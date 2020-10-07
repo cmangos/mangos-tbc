@@ -26,7 +26,7 @@ npc_mountaineer_pebblebitty
 npc_miran
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 
 /*######
@@ -136,6 +136,9 @@ struct npc_miranAI: public npc_escortAI
                 DoScriptText(SAY_MIRAN_3, m_creature);
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_PROTECTING_THE_SHIPMENT, m_creature);
+                break;
+            case 24:
+                m_creature->ForcedDespawn(5000);
                 break;
         }
     }

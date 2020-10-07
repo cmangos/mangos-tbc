@@ -21,7 +21,7 @@ SDComment: Transform spell has some minor core issues. Eject from stomach event 
 SDCategory: Temple of Ahn'Qiraj
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "temple_of_ahnqiraj.h"
 
 enum
@@ -30,10 +30,25 @@ enum
 
     // ***** Phase 1 ********
     SPELL_EYE_BEAM                  = 26134,
-    // SPELL_DARK_GLARE              = 26029,
+    SPELL_DARK_GLARE                = 26029,
     SPELL_ROTATE_TRIGGER            = 26137,                // phase switch spell - triggers 26009 or 26136. These trigger the Dark Glare spell - 26029
     SPELL_ROTATE_360_LEFT           = 26009,
     SPELL_ROTATE_360_RIGHT          = 26136,
+
+    SPELL_SUMMON_HOOK_TENTACLES     = 26397,                // Periodically triggers spell 26398 which cast spell 26140 to summon NPC 15725
+    SPELL_SUMMON_HOOK_TENTACLE      = 26140,
+
+    SPELL_SUMMON_EYE_TENTACLES      = 26152,
+    SPELL_SUMMON_EYE_TENTACLE_1     = 26144,
+    SPELL_SUMMON_EYE_TENTACLE_2     = 26145,
+    SPELL_SUMMON_EYE_TENTACLE_3     = 26146,
+    SPELL_SUMMON_EYE_TENTACLE_4     = 26147,
+    SPELL_SUMMON_EYE_TENTACLE_5     = 26148,
+    SPELL_SUMMON_EYE_TENTACLE_6     = 26149,
+    SPELL_SUMMON_EYE_TENTACLE_7     = 26150,
+    SPELL_SUMMON_EYE_TENTACLE_8     = 26151,
+
+    SPELL_DESPAWN_TENTACLES         = 26399,
 
     // ***** Phase 2 ******
     SPELL_CARAPACE_CTHUN            = 26156,                // Was removed from client dbcs
@@ -57,17 +72,6 @@ enum
     SPELL_THRASH                    = 3391,
     SPELL_SUBMERGE_VISUAL           = 28819,
 
-    // Npcs
-    // Phase 1 npcs
-    NPC_CLAW_TENTACLE               = 15725,                // summoned by missing spell 26140
-    NPC_EYE_TENTACLE                = 15726,                // summoned by spells 26144 - 26151; script effect of 26152 - triggered every 45 secs
-    NPC_TENTACLE_PORTAL             = 15904,                // summoned by missing spell 26396
-
-    // Phase 2 npcs
-    NPC_GIANT_CLAW_TENTACLE         = 15728,                // summoned by missing spell 26216 every 60 secs - also teleported by spell 26191
-    NPC_GIANT_EYE_TENTACLE          = 15334,                // summoned by missing spell 26768 every 60 secs
-    NPC_FLESH_TENTACLE              = 15802,                // summoned by missing spell 26237 every 10 secs
-    NPC_GIANT_TENTACLE_PORTAL       = 15910,                // summoned by missing spell 26477
     NPC_EXIT_TRIGGER                = 15800,
 
     DISPLAY_ID_CTHUN_BODY           = 15786,                // Helper display id; This is needed in order to have the proper transform animation. ToDo: remove this when auras are fixed in core.
@@ -112,8 +116,6 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
 
     CThunPhase m_Phase;
 
-    uint32 m_uiClawTentacleTimer;
-    uint32 m_uiEyeTentacleTimer;
     uint32 m_uiBeamTimer;
     uint32 m_uiDarkGlareTimer;
     uint32 m_uiDarkGlareEndTimer;
@@ -124,35 +126,40 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
     {
         m_Phase                 = PHASE_EYE_NORMAL;
 
-        m_uiDarkGlareTimer      = 45000;
-        m_uiDarkGlareEndTimer   = 40000;
-        m_uiClawTentacleTimer   = urand(10000, 15000);
+        m_uiDarkGlareTimer      = 45 * IN_MILLISECONDS;
+        m_uiDarkGlareEndTimer   = 40 * IN_MILLISECONDS;
         m_uiBeamTimer           = 0;
-        m_uiEyeTentacleTimer    = 45000;
     }
 
     void Aggro(Unit* /*pWho*/) override
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_CTHUN, IN_PROGRESS);
+
+        // Start periodically summoning Eye and Claw (Hook) Tentacles
+        DoCastSpellIfCan(m_creature, SPELL_SUMMON_EYE_TENTACLES, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT );
+        DoCastSpellIfCan(m_creature, SPELL_SUMMON_HOOK_TENTACLES, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
     void JustDied(Unit* pKiller) override
     {
-        // Allow the body to begin the transition
+        // Allow the body to begin the transition (internal 5 secs delay)
         if (m_pInstance)
         {
             if (Creature* pCthun = m_pInstance->GetSingleCreatureFromStorage(NPC_CTHUN))
-                pCthun->AI()->AttackStart(pKiller);
+                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, pCthun);
             else
-                script_error_log("C'thun could not be found. Please check your database!");
+                script_error_log("C'Thun could not be found. Please check your database!");
         }
     }
 
     void JustReachedHome() override
     {
-        // Despawn Eye tentacles on evade
-        DoDespawnEyeTentacles();
+        // Despawn all tentacles and portals
+        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_TENTACLES, TRIGGERED_OLD_TRIGGERED);
+
+        m_creature->RemoveAurasDueToSpell(SPELL_SUMMON_HOOK_TENTACLES);
+        m_creature->RemoveAurasDueToSpell(SPELL_SUMMON_EYE_TENTACLES);
 
         if (m_pInstance)
             m_pInstance->SetData(TYPE_CTHUN, FAIL);
@@ -168,28 +175,8 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
             case NPC_CLAW_TENTACLE:
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pSummoned->AI()->AttackStart(pTarget);
-
-                pSummoned->SummonCreature(NPC_TENTACLE_PORTAL, pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ(), 0, TEMPSPAWN_CORPSE_DESPAWN, 0);
                 break;
         }
-    }
-
-    void SummonedCreatureJustDied(Creature* pSummoned) override
-    {
-        // Despawn the tentacle portal - this applies to all the summoned tentacles
-        if (Creature* pPortal = GetClosestCreatureWithEntry(pSummoned, NPC_TENTACLE_PORTAL, 5.0f))
-            pPortal->ForcedDespawn();
-    }
-
-    void SummonedCreatureDespawn(Creature* pSummoned) override
-    {
-        // Used only after evade
-        if (SelectHostileTarget())
-            return;
-
-        // Despawn the tentacle portal - this applies to all the summoned tentacles for evade case (which is handled by creature linking)
-        if (Creature* pPortal = GetClosestCreatureWithEntry(pSummoned, NPC_TENTACLE_PORTAL, 5.0f))
-            pPortal->ForcedDespawn();
     }
 
     // Wrapper to kill the eye tentacles before summoning new ones - Note: based on sniff I think this is a bad approach
@@ -198,131 +185,66 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
         for (GuidList::const_iterator itr = m_lEyeTentaclesList.begin(); itr != m_lEyeTentaclesList.end(); ++itr)
         {
             if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
-                pTemp->DealDamage(pTemp, pTemp->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, nullptr, false);
+                pTemp->Suicide();
         }
 
         m_lEyeTentaclesList.clear();
     }
 
-    // Custom threat management
-    bool SelectHostileTarget()
-    {
-        Unit* pTarget = nullptr;
-        Unit* pOldTarget = m_creature->getVictim();
-
-        if (!m_creature->getThreatManager().isThreatListEmpty())
-            pTarget = m_creature->getThreatManager().getHostileTarget();
-
-        if (pTarget)
-        {
-            if (pOldTarget != pTarget && m_Phase == PHASE_EYE_NORMAL)
-                AttackStart(pTarget);
-
-            // Set victim to old target (if not while Dark Glare)
-            if (pOldTarget && pOldTarget->isAlive() && m_Phase == PHASE_EYE_NORMAL)
-            {
-                m_creature->SetTarget(pOldTarget);
-                m_creature->SetInFront(pOldTarget);
-            }
-
-            return true;
-        }
-
-        // Will call EnterEvadeMode if fit
-        return m_creature->SelectHostileTarget();
-    }
-
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!SelectHostileTarget())
+        // We ignore targets during Dark Glare to control Eye of C'Thun's orientation ourselves
+        // So we need custom AI management for this sub phase
+        if (m_Phase == PHASE_EYE_DARK_GLARE)
+        {
+            if (m_uiDarkGlareEndTimer < uiDiff)
+            {
+                // Remove rotation auras
+                m_creature->RemoveAurasDueToSpell(SPELL_ROTATE_360_LEFT);
+                m_creature->RemoveAurasDueToSpell(SPELL_ROTATE_360_RIGHT);
+
+                // Switch to Eye Beam
+                m_uiDarkGlareEndTimer = 40 * IN_MILLISECONDS;
+                m_uiBeamTimer         = 1 * IN_MILLISECONDS;
+                m_Phase               = PHASE_EYE_NORMAL;
+            }
+            else
+                m_uiDarkGlareEndTimer -= uiDiff;
+
+            return;
+        }
+
+        // No target: do nothing more
+        if (!m_creature->SelectHostileTarget())
             return;
 
-        switch (m_Phase)
+        // Eye Beam
+        if (m_uiBeamTimer < uiDiff)
         {
-            case PHASE_EYE_NORMAL:
-
-                if (m_uiBeamTimer < uiDiff)
-                {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    {
-                        if (DoCastSpellIfCan(pTarget, SPELL_EYE_BEAM) == CAST_OK)
-                        {
-                            m_creature->SetTarget(pTarget);
-                            m_uiBeamTimer = 3000;
-                        }
-                    }
-                }
-                else
-                    m_uiBeamTimer -= uiDiff;
-
-                if (m_uiDarkGlareTimer < uiDiff)
-                {
-                    // Cast the rotation spell
-                    if (DoCastSpellIfCan(m_creature, SPELL_ROTATE_TRIGGER) == CAST_OK)
-                    {
-                        // Remove the target focus but allow the boss to face the current victim
-                        m_creature->SetTarget(nullptr);
-                        m_creature->SetFacingToObject(m_creature->getVictim());
-
-                        // Switch to Dark Glare phase
-                        m_uiDarkGlareTimer    = 45000;
-                        m_Phase               = PHASE_EYE_DARK_GLARE;
-                    }
-                }
-                else
-                    m_uiDarkGlareTimer -= uiDiff;
-
-                break;
-            case PHASE_EYE_DARK_GLARE:
-
-                if (m_uiDarkGlareEndTimer < uiDiff)
-                {
-                    // Remove rotation auras
-                    m_creature->RemoveAurasDueToSpell(SPELL_ROTATE_360_LEFT);
-                    m_creature->RemoveAurasDueToSpell(SPELL_ROTATE_360_RIGHT);
-
-                    // Switch to Eye Beam
-                    m_uiDarkGlareEndTimer = 40000;
-                    m_uiBeamTimer         = 1000;
-                    m_Phase               = PHASE_EYE_NORMAL;
-                }
-                else
-                    m_uiDarkGlareEndTimer -= uiDiff;
-
-                break;
-            default:
-                break;
-        }
-
-        if (m_uiClawTentacleTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
-                // Spawn claw tentacle on the random target on both phases
-                m_creature->SummonCreature(NPC_CLAW_TENTACLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSPAWN_DEAD_DESPAWN, 0);
-                m_uiClawTentacleTimer = urand(7000, 13000);
+                if (DoCastSpellIfCan(target, SPELL_EYE_BEAM) == CAST_OK)
+                    m_uiBeamTimer = urand(2 * IN_MILLISECONDS, 3 * IN_MILLISECONDS);
             }
         }
         else
-            m_uiClawTentacleTimer -= uiDiff;
+            m_uiBeamTimer -= uiDiff;
 
-        if (m_uiEyeTentacleTimer <= uiDiff)
+        // Dark Glare
+        if (m_uiDarkGlareTimer < uiDiff)
         {
-            // Despawn the eye tentacles if necessary
-            DoDespawnEyeTentacles();
-
-            // Spawn 8 Eye Tentacles
-            float fX, fY, fZ;
-            for (uint8 i = 0; i < MAX_EYE_TENTACLES; ++i)
+            // Cast the rotation spell
+            if (DoCastSpellIfCan(m_creature, SPELL_ROTATE_TRIGGER) == CAST_OK)
             {
-                m_creature->GetNearPoint(m_creature, fX, fY, fZ, 0, 30.0f, M_PI_F / 4 * i);
-                m_creature->SummonCreature(NPC_EYE_TENTACLE, fX, fY, fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
+                // Switch to Dark Glare phase
+                m_uiDarkGlareTimer    = 45 * IN_MILLISECONDS;
+                m_Phase               = PHASE_EYE_DARK_GLARE;
             }
-
-            m_uiEyeTentacleTimer = 45000;
         }
         else
-            m_uiEyeTentacleTimer -= uiDiff;
+            m_uiDarkGlareTimer -= uiDiff;
+
+        // No melee cast: Eye of C'Thun does not melee
     }
 };
 
@@ -366,7 +288,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
         // Phase information
         m_Phase                     = PHASE_TRANSITION;
 
-        m_uiPhaseTimer              = 5000;
+        m_uiPhaseTimer              = 0;
         m_uiFleshTentaclesKilled    = 0;
         m_uiEyeTentacleTimer        = 35000;
         m_uiGiantClawTentacleTimer  = 20000;
@@ -382,6 +304,13 @@ struct boss_cthunAI : public Scripted_NoMovementAI
 
         // Reset flags
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        SetReactState(REACT_PASSIVE);
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
+            m_uiPhaseTimer = 5 * IN_MILLISECONDS;
     }
 
     void DamageTaken(Unit* /*pDealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
@@ -430,14 +359,11 @@ struct boss_cthunAI : public Scripted_NoMovementAI
                     pSummoned->AI()->AttackStart(pTarget);
 
                 m_lEyeTentaclesList.push_back(pSummoned->GetObjectGuid());
-                pSummoned->SummonCreature(NPC_TENTACLE_PORTAL, pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ(), 0, TEMPSPAWN_CORPSE_DESPAWN, 0);
                 break;
             case NPC_GIANT_EYE_TENTACLE:
             case NPC_GIANT_CLAW_TENTACLE:
                 if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
                     pSummoned->AI()->AttackStart(pTarget);
-
-                pSummoned->SummonCreature(NPC_GIANT_TENTACLE_PORTAL, pSummoned->GetPositionX(), pSummoned->GetPositionY(), pSummoned->GetPositionZ(), 0, TEMPSPAWN_CORPSE_DESPAWN, 0);
                 break;
         }
     }
@@ -446,16 +372,6 @@ struct boss_cthunAI : public Scripted_NoMovementAI
     {
         switch (pSummoned->GetEntry())
         {
-            // Handle portal despawn on tentacle kill
-            case NPC_EYE_TENTACLE:
-                if (Creature* pPortal = GetClosestCreatureWithEntry(pSummoned, NPC_TENTACLE_PORTAL, 5.0f))
-                    pPortal->ForcedDespawn();
-                break;
-            case NPC_GIANT_EYE_TENTACLE:
-            case NPC_GIANT_CLAW_TENTACLE:
-                if (Creature* pPortal = GetClosestCreatureWithEntry(pSummoned, NPC_GIANT_TENTACLE_PORTAL, 5.0f))
-                    pPortal->ForcedDespawn();
-                break;
             // Handle the stomach tentacles kill
             case NPC_FLESH_TENTACLE:
                 ++m_uiFleshTentaclesKilled;
@@ -488,7 +404,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
         for (GuidList::const_iterator itr = m_lEyeTentaclesList.begin(); itr != m_lEyeTentaclesList.end(); ++itr)
         {
             if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
-                pTemp->DealDamage(pTemp, pTemp->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, nullptr, false);
+                pTemp->Suicide();
         }
 
         m_lEyeTentaclesList.clear();
@@ -505,7 +421,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
     bool SelectHostileTarget()
     {
         Unit* pTarget = nullptr;
-        Unit* pOldTarget = m_creature->getVictim();
+        Unit* pOldTarget = m_creature->GetVictim();
 
         if (!m_creature->getThreatManager().isThreatListEmpty())
             pTarget = m_creature->getThreatManager().getHostileTarget();
@@ -516,7 +432,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
                 AttackStart(pTarget);
 
             // Set victim to old target
-            if (pOldTarget && pOldTarget->isAlive())
+            if (pOldTarget && pOldTarget->IsAlive())
             {
                 m_creature->SetTarget(pOldTarget);
                 m_creature->SetInFront(pOldTarget);
@@ -531,33 +447,35 @@ struct boss_cthunAI : public Scripted_NoMovementAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
+        if (m_Phase == PHASE_TRANSITION && m_uiPhaseTimer)
+        {
+            if (m_uiPhaseTimer < uiDiff)
+            {
+                // Note: we need to set the display id before casting the transform spell, in order to get the proper animation
+                m_creature->SetDisplayId(DISPLAY_ID_CTHUN_BODY);
+
+                // Transform and start C'thun phase
+                if (DoCastSpellIfCan(m_creature, SPELL_TRANSFORM) == CAST_OK)
+                {
+                    m_creature->CastSpell(nullptr, SPELL_CARAPACE_CTHUN, TRIGGERED_OLD_TRIGGERED);
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    SetReactState(REACT_AGGRESSIVE);
+                    m_creature->SetInCombatWithZone();
+                    DoSpawnFleshTentacles();
+
+                    m_Phase        = PHASE_CTHUN;
+                    m_uiPhaseTimer = 0;
+                }
+            }
+            else
+                m_uiPhaseTimer -= uiDiff;
+        }
+
         if (!SelectHostileTarget())
             return;
 
         switch (m_Phase)
         {
-            case PHASE_TRANSITION:
-
-                if (m_uiPhaseTimer < uiDiff)
-                {
-                    // Note: we need to set the display id before casting the transform spell, in order to get the proper animation
-                    m_creature->SetDisplayId(DISPLAY_ID_CTHUN_BODY);
-
-                    // Transform and start C'thun phase
-                    if (DoCastSpellIfCan(m_creature, SPELL_TRANSFORM) == CAST_OK)
-                    {
-                        m_creature->CastSpell(nullptr, SPELL_CARAPACE_CTHUN, TRIGGERED_OLD_TRIGGERED);
-                        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
-                        DoSpawnFleshTentacles();
-
-                        m_Phase        = PHASE_CTHUN;
-                        m_uiPhaseTimer = 0;
-                    }
-                }
-                else
-                    m_uiPhaseTimer -= uiDiff;
-
-                break;
             case PHASE_CTHUN:
 
                 if (m_uiMouthTentacleTimer < uiDiff)
@@ -699,38 +617,45 @@ struct npc_giant_claw_tentacleAI : public Scripted_NoMovementAI
     void UpdateAI(const uint32 uiDiff) override
     {
         // Check if we have a target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        if (m_uiDistCheckTimer < uiDiff)
+        if (m_uiDistCheckTimer)
         {
-            // If there is nobody in range, spawn a new tentacle at a new target location
-            if (!m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), SELECT_FLAG_IN_MELEE_RANGE) && m_pInstance)
+            if (m_uiDistCheckTimer < uiDiff)
             {
-                if (Creature* pCthun = m_pInstance->GetSingleCreatureFromStorage(NPC_CTHUN))
+                // If there is nobody in range, spawn a new tentacle at a new target location
+                if (!m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, uint32(0), SELECT_FLAG_IN_MELEE_RANGE) && m_pInstance)
                 {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
+                    if (Creature* pCthun = m_pInstance->GetSingleCreatureFromStorage(NPC_CTHUN))
                     {
-                        pCthun->SummonCreature(NPC_GIANT_CLAW_TENTACLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSPAWN_DEAD_DESPAWN, 0);
+                        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_NOT_IN_MELEE_RANGE))
+                        {
+                            pCthun->SummonCreature(NPC_GIANT_CLAW_TENTACLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSPAWN_DEAD_DESPAWN, 0);
 
-                        // Self kill when a new tentacle is spawned
-                        SetCombatScriptStatus(true);
-                        m_creature->SetTarget(nullptr);
-                        m_creature->CastSpell(nullptr, SPELL_SUBMERGE_VISUAL, TRIGGERED_OLD_TRIGGERED);
-                        m_creature->ForcedDespawn(1500);
-                        return;
+                            m_uiDistCheckTimer = 0;
+
+                            // Self kill when a new tentacle is spawned
+                            SetCombatScriptStatus(true);
+                            m_creature->SetTarget(nullptr);
+                            m_creature->CastSpell(nullptr, SPELL_SUBMERGE_VISUAL, TRIGGERED_OLD_TRIGGERED);
+                            m_creature->ForcedDespawn(1500);
+                            if (Creature* portal = GetClosestCreatureWithEntry(m_creature, NPC_GIANT_TENTACLE_PORTAL, 5.0f))
+                                portal->ForcedDespawn(1500);
+                            return;
+                        }
                     }
                 }
+                else
+                    m_uiDistCheckTimer = 5000;
             }
             else
-                m_uiDistCheckTimer = 5000;
+                m_uiDistCheckTimer -= uiDiff;
         }
-        else
-            m_uiDistCheckTimer -= uiDiff;
 
         if (m_uiThrashTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_THRASH) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_THRASH) == CAST_OK)
                 m_uiThrashTimer = 10000;
         }
         else
@@ -738,7 +663,7 @@ struct npc_giant_claw_tentacleAI : public Scripted_NoMovementAI
 
         if (m_uiHamstringTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMSTRING) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HAMSTRING) == CAST_OK)
                 m_uiHamstringTimer = 10000;
         }
         else
@@ -756,7 +681,7 @@ bool AreaTrigger_at_stomach_cthun(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (pAt->id == AREATRIGGER_STOMACH_1)
     {
-        if (pPlayer->isGameMaster() || !pPlayer->isAlive())
+        if (pPlayer->isGameMaster() || !pPlayer->IsAlive())
             return false;
 
         // Summon the exit trigger which should push the player outside the stomach - not used because missing eject spells
@@ -804,6 +729,78 @@ UnitAI* GetAI_npc_giant_claw_tentacle(Creature* pCreature)
     return new npc_giant_claw_tentacleAI(pCreature);
 }
 
+struct SummonHookTentacle : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            if (Unit* target = spell->GetUnitTarget())
+                target->CastSpell(target, SPELL_SUMMON_HOOK_TENTACLE, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+};
+
+struct PeriodicSummonEyeTrigger : public AuraScript
+{
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
+    {
+        if (Unit* caster = aura->GetCaster())
+        {
+            if (caster->GetEntry() != NPC_EYE_OF_CTHUN)
+                return;
+            if (auto* eyeOfCThunAI = dynamic_cast<boss_eye_of_cthunAI*>(caster->AI()))
+                eyeOfCThunAI->DoDespawnEyeTentacles();
+            else
+                return; // Something went wrong
+
+            uint32 eyeTentaclesSpells[] = { SPELL_SUMMON_EYE_TENTACLE_1, SPELL_SUMMON_EYE_TENTACLE_2, SPELL_SUMMON_EYE_TENTACLE_3, SPELL_SUMMON_EYE_TENTACLE_4, SPELL_SUMMON_EYE_TENTACLE_5, SPELL_SUMMON_EYE_TENTACLE_6, SPELL_SUMMON_EYE_TENTACLE_7, SPELL_SUMMON_EYE_TENTACLE_8 };
+            for (auto spellId:eyeTentaclesSpells)
+                caster->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+};
+
+struct RotateTrigger : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            if (Unit* target = spell->GetUnitTarget())
+            {
+                // Clear target before changing orientation
+                target->SetTarget(nullptr);
+                target->CastSpell(target, urand(0, 1) ? SPELL_ROTATE_360_LEFT : SPELL_ROTATE_360_RIGHT, TRIGGERED_OLD_TRIGGERED);
+            }
+        }
+    }
+};
+
+struct PeriodicRotate : public AuraScript
+{
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
+    {
+        if (Unit* target = aura->GetTarget())
+        {
+            // Clear target before changing orientation
+            target->SetTarget(nullptr);
+
+            float newAngle = target->GetOrientation();
+            if (aura->GetId() == SPELL_ROTATE_360_RIGHT)
+                newAngle -= M_PI_F / 40;
+            else
+                newAngle += M_PI_F / 40;
+            newAngle = MapManager::NormalizeOrientation(newAngle);
+            target->SetFacingTo(newAngle);
+
+            data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_DARK_GLARE);
+            data.caster = aura->GetCaster();
+            data.target = nullptr;
+        }
+    }
+};
+
 void AddSC_boss_cthun()
 {
     Script* pNewScript = new Script;
@@ -825,4 +822,9 @@ void AddSC_boss_cthun()
     pNewScript->Name = "at_stomach_cthun";
     pNewScript->pAreaTrigger = &AreaTrigger_at_stomach_cthun;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<SummonHookTentacle>("spell_cthun_hook_tentacle");
+    RegisterSpellScript<RotateTrigger>("spell_cthun_rotate_trigger");
+    RegisterAuraScript<PeriodicSummonEyeTrigger>("spell_cthun_periodic_eye_trigger");
+    RegisterAuraScript<PeriodicRotate>("spell_cthun_periodic_rotate");
 }

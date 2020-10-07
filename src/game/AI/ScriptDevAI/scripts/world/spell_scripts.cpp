@@ -22,7 +22,6 @@ SDCategory: Spell
 EndScriptData */
 
 /* ContentData
-spell 8913
 spell 19512
 spell 21014
 spell 21050
@@ -36,7 +35,7 @@ spell 45109
 spell 45111
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 /* When you make a spell effect:
 - always check spell id and effect index
@@ -116,11 +115,6 @@ enum
 
     NPC_CURED_DEER                      = 12299,
     NPC_CURED_GAZELLE                   = 12297,
-
-    // target morbent fel
-    SPELL_SACRED_CLEANSING              = 8913,
-    NPC_MORBENT                         = 1200,
-    NPC_WEAKENED_MORBENT                = 24782,
 
     // quest 11515
     SPELL_FEL_SIPHON_DUMMY              = 44936,
@@ -360,18 +354,6 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
             }
             return true;
         }
-        case SPELL_SACRED_CLEANSING:
-        {
-            if (uiEffIndex == EFFECT_INDEX_1)
-            {
-                if (pCreatureTarget->GetEntry() != NPC_MORBENT)
-                    return true;
-
-                pCreatureTarget->UpdateEntry(NPC_WEAKENED_MORBENT);
-                return true;
-            }
-            return true;
-        }
         case SPELL_TAG_MURLOC_PROC:
         {
             if (uiEffIndex == EFFECT_INDEX_0)
@@ -402,15 +384,7 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
                         pCreatureTarget->SummonCreature(NPC_MINION_OF_GUROK, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_CORPSE_DESPAWN, 5000);
                 }
 
-                if (pCreatureTarget->getVictim())
-                {
-                    pCaster->DealDamage(pCreatureTarget, pCreatureTarget->GetMaxHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
-                    return true;
-                }
-
-                // If not in combat, no xp or loot
-                pCreatureTarget->SetDeathState(JUST_DIED);
-                pCreatureTarget->SetHealth(0);
+                pCreatureTarget->CastSpell(nullptr, 3617, TRIGGERED_OLD_TRIGGERED); // suicide spell
                 return true;
             }
             return true;
@@ -453,6 +427,43 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
     return false;
 }
 
+struct SpellStackingRulesOverride : public SpellScript
+{
+    enum : uint32
+    {
+        SPELL_POWER_INFUSION        = 10060,
+        SPELL_ARCANE_POWER          = 12042,
+        SPELL_MISDIRECTION          = 34477,
+    };
+
+    SpellCastResult OnCheckCast(Spell* spell, bool/* strict*/) const override
+    {
+        switch (spell->m_spellInfo->Id)
+        {
+            case SPELL_POWER_INFUSION:
+            {
+                // Patch 1.10.2 (2006-05-02):
+                // Power Infusion: This aura will no longer stack with Arcane Power. If you attempt to cast it on someone with Arcane Power, the spell will fail.
+                if (Unit* target = spell->m_targets.getUnitTarget())
+                    if (target->GetAuraCount(SPELL_ARCANE_POWER))
+                        return SPELL_FAILED_AURA_BOUNCED;
+                break;
+            }
+            case SPELL_MISDIRECTION:
+            {
+                // Patch 2.3.0 (2007-11-13):
+                // Misdirection: If a Hunter attempts to use this ability on a target which already has an active Misdirection, the spell will fail to apply due to a more powerful spell already being in effect.
+                if (Unit* target = spell->m_targets.getUnitTarget())
+                    if (target->HasAura(SPELL_MISDIRECTION))
+                        return SPELL_FAILED_AURA_BOUNCED;
+                break;
+            }
+        }
+
+        return SPELL_CAST_OK;
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -465,4 +476,6 @@ void AddSC_spell_scripts()
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_dummy_npc;
     pNewScript->pEffectAuraDummy = &EffectAuraDummy_spell_aura_dummy_npc;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<SpellStackingRulesOverride>("spell_stacking_rules_override");
 }

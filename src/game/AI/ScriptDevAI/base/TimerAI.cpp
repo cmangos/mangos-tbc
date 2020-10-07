@@ -83,6 +83,12 @@ void TimerManager::AddCustomAction(uint32 id, uint32 timerMin, uint32 timerMax, 
     m_timers.emplace(id, Timer(id, functor, timerMin, timerMax, false));
 }
 
+void TimerManager::ReduceTimer(uint32 index, uint32 timer)
+{
+    auto data = m_timers.find(index);
+    (*data).second.timer = std::min((*data).second.timer, timer);
+}
+
 void TimerManager::UpdateTimers(const uint32 diff)
 {
     for (auto& data : m_timers)
@@ -140,21 +146,25 @@ void CombatActions::ResetAllTimers()
 void CombatActions::AddCombatAction(uint32 id, bool disabled)
 {
     m_CombatActions.emplace(id, CombatTimer(id, [&, id] { m_actionReadyStatus[id] = true; }, true, 0, 0, disabled));
+    m_actionReadyStatus[id] = !disabled;
 }
 
 void CombatActions::AddCombatAction(uint32 id, uint32 timer)
 {
     m_CombatActions.emplace(id, CombatTimer(id, [&, id] { m_actionReadyStatus[id] = true; }, true, timer, timer, false));
+    m_actionReadyStatus[id] = false;
 }
 
 void CombatActions::AddCombatAction(uint32 id, uint32 timerMin, uint32 timerMax)
 {
     m_CombatActions.emplace(id, CombatTimer(id, [&, id] { m_actionReadyStatus[id] = true; }, true, timerMin, timerMax, false));
+    m_actionReadyStatus[id] = false;
 }
 
 void CombatActions::AddTimerlessCombatAction(uint32 id, bool byDefault)
 {
     m_timerlessActionSettings[id] = byDefault;
+    m_actionReadyStatus[id] = byDefault;
 }
 
 void CombatActions::ResetTimer(uint32 index, uint32 timer)
@@ -179,6 +189,15 @@ void CombatActions::DisableTimer(uint32 index)
         (*data).second.timer = 0;
         (*data).second.disabled = true;
     }
+}
+
+void CombatActions::ReduceTimer(uint32 index, uint32 timer)
+{
+    auto data = m_CombatActions.find(index);
+    if (data == m_CombatActions.end())
+        TimerManager::ReduceTimer(index, timer);
+    else
+        (*data).second.timer = std::min((*data).second.timer, timer);
 }
 
 void CombatActions::GetAIInformation(ChatHandler& reader)

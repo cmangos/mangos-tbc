@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Auchindoun, Sethekk Halls
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "sethekk_halls.h"
 
@@ -127,7 +127,7 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_creature->getVictim() && m_creature->CanAttackOnSight(pWho) && pWho->isInAccessablePlaceFor(m_creature))
+        if (!m_creature->GetVictim() && m_creature->CanAttackOnSight(pWho) && pWho->isInAccessablePlaceFor(m_creature))
         {
             if (!m_Intro && m_creature->IsWithinDistInMap(pWho, 100.0f))
             {
@@ -221,9 +221,9 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (EnterEvadeIfOutOfCombatArea(diff))

@@ -21,7 +21,7 @@ SDComment: Phase 3 transition requires additional research. The Manticron cubes 
 SDCategory: Hellfire Citadel, Magtheridon's lair
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "magtheridons_lair.h"
 
 enum
@@ -128,6 +128,8 @@ struct boss_magtheridonAI : public ScriptedAI
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+
+        m_creature->GetCombatManager().SetLeashingDisable(true);
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
@@ -136,6 +138,7 @@ struct boss_magtheridonAI : public ScriptedAI
         {
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->GetCombatManager().SetLeashingDisable(false);
 
             DoScriptText(EMOTE_FREED, m_creature);
             DoScriptText(SAY_AGGRO, m_creature);
@@ -179,7 +182,7 @@ struct boss_magtheridonAI : public ScriptedAI
         if (m_creature->HasAura(SPELL_SHADOW_CAGE_DUMMY) /*|| m_creature->IsStunned()*/ || m_creature->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
             return;
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiBerserkTimer)
@@ -249,7 +252,7 @@ struct boss_magtheridonAI : public ScriptedAI
             {
                 if (m_uiQuakeTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_QUAKE) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_QUAKE) == CAST_OK)
                     {
                         m_creature->SetImmobilizedState(true, true);
                         m_quakeStunTimer = 7000;
@@ -261,7 +264,7 @@ struct boss_magtheridonAI : public ScriptedAI
 
                 if (m_uiCleaveTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
                         m_uiCleaveTimer = 10000;
                 }
                 else
@@ -363,8 +366,8 @@ struct mob_hellfire_channelerAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned) override
     {
-        if (m_creature->getVictim())
-            pSummoned->AI()->AttackStart(m_creature->getVictim());
+        if (m_creature->GetVictim())
+            pSummoned->AI()->AttackStart(m_creature->GetVictim());
     }
 
     void SummonedCreatureDespawn(Creature* pSummoned) override
@@ -387,7 +390,7 @@ struct mob_hellfire_channelerAI : public ScriptedAI
                 m_uiShadowGraspTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiShadowBoltVolleyTimer < uiDiff)
@@ -474,7 +477,7 @@ bool GOUse_go_manticron_cube(Player* player, GameObject* go)
 
         if (Creature* pMagtheridon = pInstance->GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
         {
-            if (!pMagtheridon->isAlive())
+            if (!pMagtheridon->IsAlive())
                 return true;
 
             // the real spell is cast by player - casts SPELL_SHADOW_GRASP_VISUAL
@@ -501,7 +504,7 @@ struct mob_abyssalAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiDespawnTimer < uiDiff)
@@ -514,7 +517,7 @@ struct mob_abyssalAI : public ScriptedAI
 
         if (m_uiFireBlastTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FIRE_BLAST) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FIRE_BLAST) == CAST_OK)
                 m_uiFireBlastTimer = urand(5000, 15000);
         }
         else

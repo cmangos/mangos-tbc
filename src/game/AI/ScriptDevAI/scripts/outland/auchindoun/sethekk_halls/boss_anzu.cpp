@@ -21,7 +21,7 @@ SDComment: Intro event NYI.
 SDCategory: Auchindoun, Sethekk Halls
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "sethekk_halls.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "Entities/TemporarySpawn.h"
@@ -317,7 +317,7 @@ struct boss_anzuAI : public ScriptedAI, public CombatActions
                     }
                     continue;
                 case ANZU_ACTION_FLESH_RIP:
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FLESH_RIP) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FLESH_RIP) == CAST_OK)
                     {
                         SetActionReadyStatus(i, false);
                         ResetTimer(i, GetSubsequentActionTimer(AnzuActions(i)));
@@ -377,9 +377,9 @@ struct boss_anzuAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();

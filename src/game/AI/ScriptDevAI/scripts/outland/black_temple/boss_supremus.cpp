@@ -21,7 +21,7 @@ SDComment: Unknown if other speed-changes happen, remove AI for trigger mobs in 
 SDCategory: Black Temple
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "black_temple.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 
@@ -99,9 +99,10 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
         {
             SetCombatScriptStatus(false);
             SetCombatMovement(true);
+            SetMeleeEnabled(true);
             if (!m_bTankPhase)
                 ResetTimer(SUPREMUS_ACTION_SWITCH_TARGET, 0); // switch target immediately
-            DoStartMovement(m_creature->getVictim());
+            AttackStart(m_creature->GetVictim());
         });
         Reset();
     }
@@ -220,7 +221,7 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
             {
                 Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER);
                 if (!target)
-                    target = m_creature->getVictim();
+                    target = m_creature->GetVictim();
 
                 summoned->CastSpell(nullptr, SPELL_MOLTEN_FLAME, TRIGGERED_NONE);
                 summoned->SetInCombatWithZone();
@@ -261,7 +262,8 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
                             ResetTimer(SUPREMUS_ACTION_VOLCANIC_ERUPTION, GetInitialActionTimer(SUPREMUS_ACTION_VOLCANIC_ERUPTION));
                             SetCombatScriptStatus(true);
                             SetCombatMovement(false, true);
-                            m_creature->AttackStop(true);
+                            SetMeleeEnabled(false);
+                            m_creature->SetTarget(nullptr);
                             ResetTimer(SUPREMUS_ACTION_DELAY, 1500);
                         }
                         else
@@ -278,7 +280,8 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
                             ResetTimer(SUPREMUS_ACTION_HATEFUL_STRIKE, GetInitialActionTimer(SUPREMUS_ACTION_HATEFUL_STRIKE));
                             SetCombatScriptStatus(true);
                             SetCombatMovement(false, true);
-                            m_creature->AttackStop(true);
+                            SetMeleeEnabled(false);
+                            m_creature->SetTarget(nullptr);
                             ResetTimer(SUPREMUS_ACTION_DELAY, 1500);
                         }
 
@@ -340,9 +343,9 @@ struct boss_supremusAI : public ScriptedAI, CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
         
         ExecuteActions();

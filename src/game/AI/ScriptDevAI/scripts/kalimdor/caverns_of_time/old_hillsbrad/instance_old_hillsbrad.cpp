@@ -21,7 +21,7 @@ SDComment: Thrall reset on server restart is not supported, because of core limi
 SDCategory: Caverns of Time, Old Hillsbrad Foothills
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "old_hillsbrad.h"
 
 instance_old_hillsbrad::instance_old_hillsbrad(Map* pMap) : ScriptedInstance(pMap),
@@ -131,7 +131,7 @@ void instance_old_hillsbrad::HandleThrallRelocation()
     {
         debug_log("SD2: Instance Old Hillsbrad: Thrall relocation");
 
-        if (!pThrall->isAlive())
+        if (!pThrall->IsAlive())
             pThrall->Respawn();
 
         // epoch failed, reloc to inn

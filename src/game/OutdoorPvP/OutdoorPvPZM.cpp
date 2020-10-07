@@ -381,7 +381,9 @@ bool OutdoorPvPZM::HandleGameObjectUse(Player* player, GameObject* go)
     // update graveyard owner
     m_graveyardOwner = team;
 
-    return false;
+    // return true when completed successfully
+    // this is required for the proper despawn of the flag; it won't stop further DB scripts from being executed
+    return true;
 }
 
 // Handle the ZM beacons - this is done by npcs which have certain auras

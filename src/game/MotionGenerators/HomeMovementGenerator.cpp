@@ -28,7 +28,7 @@ void HomeMovementGenerator<Creature>::Initialize(Creature& owner)
     wasActive = owner.isActiveObject();
     if (!wasActive)
         owner.SetActiveObjectState(true);
-    owner.SetEvade(EVADE_HOME);
+    owner.GetCombatManager().SetEvadeState(EVADE_HOME);
 
     _setTargetLocation(owner);
 }
@@ -42,7 +42,6 @@ void HomeMovementGenerator<Creature>::_setTargetLocation(Creature& owner)
     if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))
         return;
 
-    Movement::MoveSplineInit init(owner);
     float x, y, z, o;
     // at apply we can select more nice return points base at current movegen
     if (owner.GetMotionMaster()->empty() || !owner.GetMotionMaster()->top()->GetResetPosition(owner, x, y, z, o))
@@ -51,9 +50,16 @@ void HomeMovementGenerator<Creature>::_setTargetLocation(Creature& owner)
     if (x == 0 && x == y && y == z)
         owner.GetRespawnCoord(x, y, z, &o);
 
-    init.SetFacing(o);
-    init.MoveTo(x, y, z, true);
+    PathFinder path(&owner);
+
+    path.calculate(x, y, z, true);
+
+    Movement::MoveSplineInit init(owner);
+    init.MovebyPath(path.getPath());
     init.SetWalk(!runHome);
+    init.SetFacing(o);
+    if (path.getPathType() & (PATHFIND_NOPATH | PATHFIND_SHORTCUT))
+        init.SetVelocity(400.f);
     init.Launch();
 
     arrived = false;
@@ -68,7 +74,7 @@ bool HomeMovementGenerator<Creature>::Update(Creature& owner, const uint32& /*ti
 
 void HomeMovementGenerator<Creature>::Finalize(Creature& owner)
 {
-    owner.SetEvade(EVADE_NONE);
+    owner.GetCombatManager().SetEvadeState(EVADE_NONE);
     if (arrived)
     {
         if (owner.GetTemporaryFactionFlags() & TEMPFACTION_RESTORE_REACH_HOME)

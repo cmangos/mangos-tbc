@@ -44,7 +44,7 @@ guard_tirisfal
 guard_undercity
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/guard_ai.h"
 
 UnitAI* GetAI_guard_azuremyst(Creature* pCreature)
@@ -135,7 +135,7 @@ struct guard_shattrath_aldorAI : public guardAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_bCanTeleport)
@@ -157,7 +157,7 @@ struct guard_shattrath_aldorAI : public guardAI
         }
         else if (m_uiBanish_Timer < uiDiff)
         {
-            Unit* pVictim = m_creature->getVictim();
+            Unit* pVictim = m_creature->GetVictim();
 
             if (pVictim && pVictim->GetTypeId() == TYPEID_PLAYER)
             {
@@ -202,7 +202,7 @@ struct guard_shattrath_scryerAI : public guardAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_bCanTeleport)
@@ -224,7 +224,7 @@ struct guard_shattrath_scryerAI : public guardAI
         }
         else if (m_uiBanish_Timer < uiDiff)
         {
-            Unit* pVictim = m_creature->getVictim();
+            Unit* pVictim = m_creature->GetVictim();
 
             if (pVictim && pVictim->GetTypeId() == TYPEID_PLAYER)
             {
@@ -250,6 +250,56 @@ UnitAI* GetAI_guard_silvermoon(Creature* pCreature)
 {
     return new guardAI(pCreature);
 }
+
+enum{
+    SPELL_WINDSOR_INSPIRATION_EFFECT = 20275,
+    MAX_GUARD_SALUTES                = 7,
+};
+
+static const int32 aGuardSalute[MAX_GUARD_SALUTES] = { -1000842, -1000843, -1000844, -1000845, -1000846, -1000847, -1000848};
+
+struct guardAI_stormwind : public guardAI
+{
+    guardAI_stormwind(Creature* creature) : guardAI(creature)
+    {
+        Reset();
+    }
+
+    uint32 m_saluteWaitTimer;
+
+    void Reset() override
+    {
+        m_saluteWaitTimer = 0;
+    }
+
+    void SpellHit(Unit* /*caster*/, const SpellEntry* spell) override
+    {
+        if (spell->Id == SPELL_WINDSOR_INSPIRATION_EFFECT && !m_saluteWaitTimer)
+        {
+            DoScriptText(aGuardSalute[urand(0, MAX_GUARD_SALUTES - 1)], m_creature);
+            m_saluteWaitTimer = 2 * MINUTE * IN_MILLISECONDS;
+        }
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (m_saluteWaitTimer)
+        {
+            if (m_saluteWaitTimer < diff)
+                m_saluteWaitTimer = 0;
+            else
+                m_saluteWaitTimer -= diff;
+        }
+
+        guardAI::UpdateAI(diff);
+    }
+
+    void  ReceiveEmote(Player* player, uint32 textEmote) override
+    {
+        if (player->GetTeam() == ALLIANCE)
+            DoReplyToTextEmote(textEmote);
+    }
+};
 
 UnitAI* GetAI_guard_stormwind(Creature* pCreature)
 {

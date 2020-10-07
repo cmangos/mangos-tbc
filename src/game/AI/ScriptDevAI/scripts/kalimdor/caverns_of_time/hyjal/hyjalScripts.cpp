@@ -28,7 +28,7 @@ npc_tyrande_whisperwind
 npc_building_trigger
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "hyjalAI.h"
 
 UnitAI* GetAI_npc_jaina_proudmoore(Creature* creature)
@@ -150,7 +150,7 @@ struct npc_building_triggerAI : public ScriptedAI
     void MoveInLineOfSight(Unit* who) override
     {
         // Only let one ghoul attack
-        if (m_creature->isInCombat())
+        if (m_creature->IsInCombat())
             return;
 
         if (who->GetTypeId() != TYPEID_UNIT)
@@ -159,7 +159,7 @@ struct npc_building_triggerAI : public ScriptedAI
         if (who->GetEntry() != NPC_GHOUL && who->GetEntry() != NPC_GARGO)
             return;
 
-        if (who->isInCombat())
+        if (who->IsInCombat())
             return;
 
         if (m_creature->IsWithinDistInMap(who, 35.0f))

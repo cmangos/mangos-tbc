@@ -26,7 +26,7 @@ boss_kelidan_the_breaker
 mob_shadowmoon_channeler
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "blood_furnace.h"
 
 enum
@@ -177,7 +177,7 @@ struct boss_kelidan_the_breakerAI : public ScriptedAI
         for (GuidVector::const_iterator itr = m_vAddGuids.begin(); itr != m_vAddGuids.end(); ++itr)
         {
             Creature* pAdd = m_pInstance->instance->GetCreature(*itr);
-            if (pAdd && !pAdd->isAlive())
+            if (pAdd && !pAdd->IsAlive())
                 pAdd->Respawn();
         }
 
@@ -201,7 +201,7 @@ struct boss_kelidan_the_breakerAI : public ScriptedAI
         for (GuidVector::const_iterator itr = m_vAddGuids.begin(); itr != m_vAddGuids.end(); ++itr)
         {
             Creature* pAdd = m_creature->GetMap()->GetCreature(*itr);
-            if (pAdd && !pAdd->getVictim())
+            if (pAdd && !pAdd->GetVictim())
                 pAdd->AI()->AttackStart(pWho);
         }
     }
@@ -233,7 +233,7 @@ struct boss_kelidan_the_breakerAI : public ScriptedAI
                 m_uiSetupAddsTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiFirenovaTimer)
@@ -384,7 +384,7 @@ struct mob_shadowmoon_channelerAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (m_setupTimer && !m_creature->IsInEvadeMode())
+        if (m_setupTimer && !m_creature->GetCombatManager().IsInEvadeMode())
         {
             if (m_setupTimer <= uiDiff)
             {
@@ -395,7 +395,7 @@ struct mob_shadowmoon_channelerAI : public ScriptedAI
             else m_setupTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiMarkOfShadowTimer < uiDiff)

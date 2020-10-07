@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Temple of Ahn'Qiraj
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 enum
 {
@@ -84,7 +84,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
 
             if (Creature* buddy = m_creature->GetMap()->GetCreature(*itr))
             {
-                if (buddy->isDead())
+                if (buddy->IsDead())
                     buddy->Respawn();
             }
         }
@@ -147,7 +147,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
         {
             if (Creature* buddy = m_creature->GetMap()->GetCreature(*itr))
             {
-                if (*itr == m_creature->GetObjectGuid() || !buddy->isAlive())
+                if (*itr == m_creature->GetObjectGuid() || !buddy->IsAlive())
                     continue;
 
                 if (!hasDoneEmote)
@@ -173,7 +173,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
 
                 if (Creature* buddy = m_creature->GetMap()->GetCreature(*itr))
                 {
-                    if (buddy->isAlive())
+                    if (buddy->IsAlive())
                     {
                         npc_anubisath_sentinelAI* buddyAI = static_cast<npc_anubisath_sentinelAI*>(buddy->AI());
                         buddyAI->SetAbility(true, m_abilities[buddyCount]);
@@ -188,7 +188,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
 
     void UpdateAI(const uint32 /*uiDiff*/) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_isEnraged && m_creature->GetHealthPercent() < 30.0f)

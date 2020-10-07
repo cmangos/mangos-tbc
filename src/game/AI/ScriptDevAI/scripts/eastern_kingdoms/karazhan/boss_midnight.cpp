@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Karazhan
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 
@@ -122,7 +122,7 @@ struct boss_midnightAI : public ScriptedAI, public CombatActions
                 switch (i)
                 {
                     case MIDNIGHT_ACTION_KNOCKDOWN:
-                        DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCKDOWN);
+                        DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KNOCKDOWN);
                         ResetTimer(i, GetSubsequentActionTimer(i));
                         SetActionReadyStatus(i, false);
                         continue;
@@ -154,8 +154,8 @@ struct boss_midnightAI : public ScriptedAI, public CombatActions
 
     void JustSummoned(Creature* pSummoned) override
     {
-        if (m_creature->getVictim())
-            pSummoned->AI()->AttackStart(m_creature->getVictim());
+        if (m_creature->GetVictim())
+            pSummoned->AI()->AttackStart(m_creature->GetVictim());
 
         if (pSummoned->GetEntry() == NPC_ATTUMEN)
         {
@@ -204,14 +204,14 @@ struct boss_midnightAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Stop attacking during the mount phase
         if (m_uiPhase == 2)
             return;
         
-        UpdateTimers(uiDiff, m_creature->isInCombat());
+        UpdateTimers(uiDiff, m_creature->IsInCombat());
         ExecuteActions();
 
         // Spawn Attumen on 95% hp
@@ -319,7 +319,7 @@ struct boss_attumenAI : public ScriptedAI, public CombatActions
                 {
                     case ATTUMEN_ACTION_CLEAVE:
                     {
-                        DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOWCLEAVE);
+                        DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHADOWCLEAVE);
                         ResetTimer(i, GetSubsequentActionTimer(i));
                         SetActionReadyStatus(i, false);
                         continue;
@@ -341,7 +341,7 @@ struct boss_attumenAI : public ScriptedAI, public CombatActions
                     case ATTUMEN_ACTION_KNOCKDOWN:
                     {
                         // Cast knockdown when mounted, otherwise uppercut
-                        DoCastSpellIfCan(m_creature->getVictim(), m_creature->GetEntry() == NPC_ATTUMEN_MOUNTED ? SPELL_KNOCKDOWN : SPELL_UPPERCUT);
+                        DoCastSpellIfCan(m_creature->GetVictim(), m_creature->GetEntry() == NPC_ATTUMEN_MOUNTED ? SPELL_KNOCKDOWN : SPELL_UPPERCUT);
                         ResetTimer(i, GetSubsequentActionTimer(i));
                         SetActionReadyStatus(i, false);
                         continue;
@@ -408,10 +408,10 @@ struct boss_attumenAI : public ScriptedAI, public CombatActions
     
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        UpdateTimers(uiDiff, m_creature->isInCombat());
+        UpdateTimers(uiDiff, m_creature->IsInCombat());
         ExecuteActions();
 
         // If creature is not mounted and mount if below 25%

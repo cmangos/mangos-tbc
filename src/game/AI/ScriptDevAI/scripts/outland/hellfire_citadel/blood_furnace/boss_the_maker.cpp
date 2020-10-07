@@ -21,7 +21,7 @@ SDComment: Mind control no support
 SDCategory: Hellfire Citadel, Blood Furnace
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "blood_furnace.h"
 
 enum
@@ -93,7 +93,7 @@ struct boss_the_makerAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiExplodingBreakerTimer < uiDiff)

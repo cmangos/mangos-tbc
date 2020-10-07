@@ -140,6 +140,8 @@ enum EventAI_ActionType
     ACTION_T_SET_RANGED_MODE            = 57,               // type of ranged mode, distance to chase at
     ACTION_T_SET_WALK                   = 58,               // type of walking, unused, unused
     ACTION_T_SET_FACING                 = 59,               // Target, 0 - set, 1 - reset
+    ACTION_T_SET_SPELL_SET              = 60,               // SetId
+    ACTION_T_SET_IMMOBILIZED_STATE      = 61,               // state (true - rooted), combatonly (true - autoremoved on combat stop)
 
     ACTION_T_END,
 };
@@ -205,15 +207,6 @@ enum SpawnedEventMode
     SPAWNED_EVENT_ALWAY = 0,
     SPAWNED_EVENT_MAP   = 1,
     SPAWNED_EVENT_ZONE  = 2
-};
-
-enum RangeModeType : uint32 // maybe can be substituted for class checks
-{
-    TYPE_NONE           = 0,
-    TYPE_FULL_CASTER    = 1,
-    TYPE_PROXIMITY      = 2,
-    TYPE_NO_MELEE_MODE  = 3,
-    TYPE_MAX,
 };
 
 enum WalkSetting : uint32
@@ -545,6 +538,17 @@ struct CreatureEventAI_Action
             uint32 target;                                  // Target
             uint32 reset;                                   // 0 - set, 1 - reset
         } setFacing;
+        // ACTION_T_SET_SPELL_SET
+        struct
+        {
+            uint32 setId;                                   // creature_template_spells setId
+        } spellSet;
+        // ACTION_T_SET_IMMOBILIZED_STATE
+        struct
+        {
+            uint32 apply;
+            uint32 combatOnly;
+        } immobilizedState;
         // RAW
         struct
         {
@@ -590,6 +594,7 @@ struct CreatureEventAI_Event
             uint32 percentMin;
             uint32 repeatMin;
             uint32 repeatMax;
+            uint32 allowOutOfCombat;
         } percent_range;
         // EVENT_T_KILL                                     = 5
         struct
@@ -851,11 +856,17 @@ class CreatureEventAI : public CreatureAI
 
         void JustStoppedMovementOfTarget(SpellEntry const* spell, Unit* victim) override;
         void OnSpellInterrupt(SpellEntry const* spellInfo) override;
+        void OnSpellCooldownAdded(SpellEntry const* spellInfo) override;
 
         void DistancingStarted() override;
         void DistancingEnded() override;
 
         MovementGeneratorType GetDefaultMovement() { return m_defaultMovement; }
+
+        bool IsRangedUnit() override { return m_currentRangedMode; }
+        SpellSchoolMask GetMainAttackSchoolMask() const override { return m_currentRangedMode ? m_mainAttackMask : CreatureAI::GetMainAttackSchoolMask(); }
+
+        virtual CanCastResult DoCastSpellIfCan(Unit* target, uint32 spellId, uint32 castFlags = 0) override;
     protected:
         std::string GetAIName() override { return "EventAI"; }
         // Event rules specifiers
@@ -893,7 +904,9 @@ class CreatureEventAI : public CreatureAI
         std::unordered_set<uint32> m_distanceSpells;
         uint32 m_mainSpellId;
         uint32 m_mainSpellCost;
+        SpellEntry const* m_mainSpellInfo;
         float m_mainSpellMinRange;
+        SpellSchoolMask m_mainAttackMask;
 
         MovementGeneratorType m_defaultMovement; // TODO: Extend to all of AI
 };

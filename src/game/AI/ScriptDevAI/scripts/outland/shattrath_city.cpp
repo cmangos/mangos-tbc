@@ -28,7 +28,7 @@ npc_khadgars_servant
 npc_salsalabim
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "World/WorldState.h"
 
@@ -115,7 +115,7 @@ struct npc_dirty_larryAI : public ScriptedAI
         {
             if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
             {
-                if (!pCreepjack->IsInEvadeMode() && pCreepjack->isAlive())
+                if (!pCreepjack->GetCombatManager().IsInEvadeMode() && pCreepjack->IsAlive())
                     pCreepjack->AI()->EnterEvadeMode();
 
                 pCreepjack->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
@@ -123,7 +123,7 @@ struct npc_dirty_larryAI : public ScriptedAI
 
             if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
             {
-                if (!pMalone->IsInEvadeMode() && pMalone->isAlive())
+                if (!pMalone->GetCombatManager().IsInEvadeMode() && pMalone->IsAlive())
                     pMalone->AI()->EnterEvadeMode();
 
                 pMalone->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
@@ -164,22 +164,22 @@ struct npc_dirty_larryAI : public ScriptedAI
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 SetReactState(REACT_AGGRESSIVE);
 
-                if (pPlayer->isAlive())
+                if (pPlayer->IsAlive())
                 {
-                    if (!m_creature->isInCombat())
+                    if (!m_creature->IsInCombat())
                         AttackStart(pPlayer);
 
                     if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
                     {
                         pMalone->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                        if (!pMalone->isInCombat())
+                        if (!pMalone->IsInCombat())
                             pMalone->AI()->AttackStart(pPlayer);
                     }
 
                     if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
                     {
                         pCreepjack->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                        if (!pCreepjack->isInCombat())
+                        if (!pCreepjack->IsInCombat())
                             pCreepjack->AI()->AttackStart(pPlayer);
                     }
                 }
@@ -200,7 +200,7 @@ struct npc_dirty_larryAI : public ScriptedAI
 
     void AttackedBy(Unit* pAttacker) override
     {
-        if (m_creature->getVictim())
+        if (m_creature->GetVictim())
             return;
 
         if (!bActiveAttack)
@@ -228,14 +228,14 @@ struct npc_dirty_larryAI : public ScriptedAI
 
             if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
             {
-                if (!pCreepjack->IsInEvadeMode() && pCreepjack->isAlive())
+                if (!pCreepjack->GetCombatManager().IsInEvadeMode() && pCreepjack->IsAlive())
                     pCreepjack->AI()->EnterEvadeMode();
 
                 pCreepjack->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
             }
             if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
             {
-                if (!pMalone->IsInEvadeMode() && pMalone->isAlive())
+                if (!pMalone->GetCombatManager().IsInEvadeMode() && pMalone->IsAlive())
                     pMalone->AI()->EnterEvadeMode();
 
                 pMalone->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
@@ -255,7 +255,7 @@ struct npc_dirty_larryAI : public ScriptedAI
                 m_uiSayTimer -= diff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -408,23 +408,23 @@ struct npc_khadgars_servantAI : public npc_escortAI
 
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 if (Creature* pKhadgar = GetClosestCreatureWithEntry(m_creature, NPC_KHADGAR, 10.0f))
                     DoScriptText(SAY_KHAD_START, pKhadgar);
                 break;
-            case 5:
-            case 24:
-            case 50:
-            case 63:
-            case 74:
+            case 6:
+            case 25:
+            case 51:
+            case 64:
             case 75:
+            case 76:
                 SetEscortPaused(true);
                 break;
-            case 34:
+            case 35:
                 if (Creature* pIzzard = GetClosestCreatureWithEntry(m_creature, NPC_IZZARD, 10.0f))
                     DoScriptText(SAY_KHAD_MIND_YOU, pIzzard);
                 break;
-            case 35:
+            case 36:
                 if (Creature* pAdyria = GetClosestCreatureWithEntry(m_creature, NPC_ADYRIA, 10.0f))
                     DoScriptText(SAY_KHAD_MIND_ALWAYS, pAdyria);
                 break;
@@ -455,7 +455,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
 
                 switch (m_uiPointId)
                 {
-                    case 5:                                 // to lower city
+                    case 6:                                 // to lower city
                     {
                         switch (m_uiTalkCount)
                         {
@@ -475,7 +475,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 24:                                // in lower city
+                    case 25:                                // in lower city
                     {
                         switch (m_uiTalkCount)
                         {
@@ -495,7 +495,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 50:                                // outside
+                    case 51:                                // outside
                     {
                         switch (m_uiTalkCount)
                         {
@@ -515,7 +515,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 63:                                // scryer
+                    case 64:                                // scryer
                     {
                         switch (m_uiTalkCount)
                         {
@@ -529,7 +529,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 74:                                // aldor
+                    case 75:                                // aldor
                     {
                         switch (m_uiTalkCount)
                         {
@@ -549,7 +549,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 75:                                // a'dal
+                    case 76:                                // a'dal
                     {
                         switch (m_uiTalkCount)
                         {
@@ -621,12 +621,12 @@ struct npc_salsalabimAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiMagneticPullTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MAGNETIC_PULL);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MAGNETIC_PULL);
             m_uiMagneticPullTimer = 15000;
         }
         else
@@ -678,7 +678,7 @@ bool QuestRewarded_npc_adal(Player* player, Creature* creature, Quest const* que
                 player->SetTitle(TITLE_CHAMPION_OF_THE_NAARU);
             break;
         case QUEST_KAELTHAS_AND_THE_VERDANT_SPHERE:
-            sWorldState.HandleExternalEvent(CUSTOM_EVENT_ADALS_SONG_OF_BATTLE);
+            sWorldState.HandleExternalEvent(CUSTOM_EVENT_ADALS_SONG_OF_BATTLE, 0);
             player->GetMap()->ScriptsStart(sRelayScripts, SCRIPT_RELAY_ID, creature, player, Map::SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE); // only once active per adal
             return true; // handled
     }

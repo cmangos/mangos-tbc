@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Blood Furnace
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "blood_furnace.h"
 
 instance_blood_furnace::instance_blood_furnace(Map* pMap) : ScriptedInstance(pMap),
@@ -159,7 +159,7 @@ void instance_blood_furnace::SetData(uint32 uiType, uint32 uiData)
                             {
                                 pOrc->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                                 
-                                if (pOrc->isAlive())
+                                if (pOrc->IsAlive())
                                     pOrc->ForcedDespawn();
                                  
                                 pOrc->Respawn();
@@ -220,7 +220,7 @@ void instance_blood_furnace::OnPlayerEnter(Player* /*player*/)
                 {
                     if (GameObject* pDoor = instance->GetGameObject(m_aBroggokEvent[i].m_cellGuid))
                     {
-                        if (pOrc->IsWithinDistInMap(pDoor, 5.0f) && pOrc->GetPositionZ() < 10.0f)
+                        if (pOrc->IsWithinDistInMap(pDoor, 15.0f) && pOrc->GetPositionZ() < 15.0f)
                         {
                             pOrc->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE); // ones in cages
                             pOrc->setFaction(14); // sniffed value
@@ -387,10 +387,10 @@ void instance_blood_furnace::DoSortBroggokOrcs()
             {
                 if (GameObject* pDoor = instance->GetGameObject(i.m_cellGuid))
                 {
-                    if (pOrc->IsWithinDistInMap(pDoor, 5.0f) && pOrc->GetPositionZ() < 10.0f)
+                    if (pOrc->IsWithinDistInMap(pDoor, 15.0f) && pOrc->GetPositionZ() < 15.0f)
                     {
                         i.m_sSortedOrcGuids.insert(pOrc->GetObjectGuid());
-                        if (!pOrc->isAlive())
+                        if (!pOrc->IsAlive())
                             pOrc->Respawn();
                         break;
                     }

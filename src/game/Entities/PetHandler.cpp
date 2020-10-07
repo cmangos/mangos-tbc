@@ -56,7 +56,7 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
         return;
     }
 
-    if (!petUnit->isAlive())
+    if (!petUnit->IsAlive())
         return;
 
     CharmInfo* charmInfo = petUnit->GetCharmInfo();
@@ -106,7 +106,7 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                     if (targetUnit && targetUnit != petUnit && petUnit->CanAttack(targetUnit))
                     {
                         // This is true if pet has no target or has target but targets differs.
-                        if (petUnit->getVictim() != targetUnit)
+                        if (petUnit->GetVictim() != targetUnit)
                             petUnit->Attack(targetUnit, true);
                     }
                     break;
@@ -154,7 +154,7 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                     if (targetUnit && targetUnit != petUnit && petUnit->CanAttack(targetUnit))
                     {
                         // This is true if pet has no target or has target but targets differs.
-                        if (petUnit->getVictim() != targetUnit)
+                        if (petUnit->GetVictim() != targetUnit)
                         {
                             if (petUnit->hasUnitState(UNIT_STAT_POSSESSED))
                             {
@@ -178,7 +178,7 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                                     break;
 
                                 // Ignore command if target is moving home
-                                if (targetUnit->IsEvadingHome())
+                                if (targetUnit->GetCombatManager().IsEvadingHome())
                                     break;
 
                                 petUnit->AttackStop();
@@ -270,7 +270,7 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
             const SpellRangeEntry* sRange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
 
-            if (unit_target && !(petUnit->IsWithinDistInMap(unit_target, sRange->maxRange) && petUnit->IsWithinLOSInMap(unit_target))
+            if (unit_target && !(petUnit->IsWithinDistInMap(unit_target, sRange->maxRange) && petUnit->IsWithinLOSInMap(unit_target, true))
                     && petUnit->CanAttackNow(unit_target))
             {
                 charmInfo->SetSpellOpener(spellid, sRange->minRange, sRange->maxRange);
@@ -351,7 +351,7 @@ void WorldSession::HandlePetStopAttack(WorldPacket& recv_data)
         return;
     }
 
-    if (!pet->isAlive())
+    if (!pet->IsAlive())
         return;
 
     pet->AttackStop();

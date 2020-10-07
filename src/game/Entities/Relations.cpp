@@ -456,7 +456,7 @@ bool Unit::CanAttackNow(const Unit* unit) const
     // Original logic
 
     // We can't initiate attack while dead or ghost
-    if (!isAlive())
+    if (!IsAlive())
         return false;
 
     // We can't initiate attack while mounted ...
@@ -468,7 +468,7 @@ bool Unit::CanAttackNow(const Unit* unit) const
     }
 
     // We can't initiate attack on dead units
-    if (!unit->isAlive())
+    if (!unit->IsAlive())
         return false;
 
     return CanAttack(unit);
@@ -686,7 +686,7 @@ bool Unit::CanInteractNow(const Unit* unit) const
         return false;
 
     // We can't interact with anyone while being dead (this does not apply to player ghosts, which allow very limited interactions)
-    if (!isAlive() && (GetTypeId() == TYPEID_UNIT || !(static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))))
+    if (!IsAlive() && (GetTypeId() == TYPEID_UNIT || !(static_cast<const Player*>(this)->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))))
         return false;
 
     // We can't interact with anyone while being shapeshifted, unless form flags allow us to do so
@@ -700,7 +700,7 @@ bool Unit::CanInteractNow(const Unit* unit) const
     }
 
     // We can't interact with dead units, unless it's a creature with special flag
-    if (!unit->isAlive())
+    if (!unit->IsAlive())
     {
         if (GetTypeId() != TYPEID_UNIT || !(static_cast<const Creature*>(unit)->GetCreatureInfo()->CreatureTypeFlags & CREATURE_TYPEFLAGS_INTERACT_DEAD))
             return false;
@@ -711,7 +711,7 @@ bool Unit::CanInteractNow(const Unit* unit) const
         return false;
 
     // We can't interact with units who are currently fighting
-    if (unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT) ||  unit->getVictim())
+    if (unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT) || unit->GetVictim())
         return false;
 
     return CanInteract(unit);
@@ -793,8 +793,6 @@ bool Unit::IsInGroup(Unit const* other, bool party/* = false*/, bool ignoreCharm
             }
         }
     }
-
-    // NOTE: For future reference: server uses additional gameplay grouping logic for mobs (in combat and out of combat) - requires research for Tier 2 implementation
 
     return false;
 }
@@ -960,7 +958,7 @@ bool DynamicObject::IsFriend(Unit const* unit) const
 }
 
 /////////////////////////////////////////////////
-/// Group: Extension for creatures, player-controlled defaults to unit, creatures check based on friendliness
+/// [Serverside] Group: Extension for creatures, player-controlled defaults to unit, creatures check based on friendliness
 ///
 /// @note Relations API Tier 2
 ///
@@ -975,6 +973,27 @@ bool Creature::IsInGroup(Unit const* other, bool party/* = false*/, bool ignoreC
 
     // Faction-based based on research
     return this->IsFriend(other);
+}
+
+/////////////////////////////////////////////////
+/// [Serverside] Group: Extension for players, ignoring charms also ignores PC flag presence for UI PoV
+///
+/// @note Relations API Tier 2
+///
+/// No client counterpart, since client only deals with player-controlled entities
+/////////////////////////////////////////////////
+bool Player::IsInGroup(Unit const* other, bool party/* = false*/, bool ignoreCharms/* = false*/) const
+{
+    MANGOS_ASSERT(other)
+
+    if (this != other && ignoreCharms && other->IsPlayer())
+    {
+        const Player* otherPlayer = static_cast<Player const*>(other);
+        const Group* group = this->GetGroup();
+        return (group && group == otherPlayer->GetGroup() && (!party || group->SameSubGroup(this, otherPlayer)));
+    }
+
+    return Unit::IsInGroup(other, party, ignoreCharms);
 }
 
 /*##########################
@@ -1109,7 +1128,7 @@ bool Unit::CanAttackSpell(Unit const* target, SpellEntry const* spellInfo, bool 
     if (spellInfo)
     {
         // inversealive is needed for some spells which need to be casted at dead targets (aoe)
-        if (!target->isAlive() && !spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD))
+        if (!target->IsAlive() && !spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD))
             return false;
     }
 
@@ -1181,7 +1200,7 @@ bool Unit::CanAttackOnSight(Unit const* target) const
     MANGOS_ASSERT(target)
 
     // Do not aggro on a unit which is moving home at the moment
-    if (target->GetEvade() == EVADE_HOME)
+    if (target->GetCombatManager().IsEvadingHome())
         return false;
 
     // Do not aggro while a successful feign death is active
@@ -1343,11 +1362,34 @@ bool Unit::CanAssistInCombatAgainst(Unit const* who, Unit const* enemy) const
     if (GetMap()->Instanceable()) // in dungeons nothing else needs to be evaluated
         return true;
 
-    if (isInCombat()) // if fighting something else, do not assist
+    if (IsInCombat()) // if fighting something else, do not assist
         return false;
 
     if (CanAssist(who) && CanAttackOnSight(enemy))
         return true;
 
     return false;
+}
+
+/////////////////////////////////////////////////
+/// [Serverside] Opposition: this can join combat against enemy
+///
+/// @note Relations API Tier 3
+///
+/// This function is not intented to have client-side counterpart by original design.
+/// A helper function used to determine if current unit can join combat against enemy
+/// Used in several assistance checks
+/////////////////////////////////////////////////
+bool Unit::CanJoinInAttacking(Unit const* enemy) const
+{
+    if (!CanEnterCombat())
+        return false;
+
+    if (IsFeigningDeathSuccessfully())
+        return false;
+
+    if (!CanAttack(enemy))
+        return false;
+
+    return true;
 }

@@ -23,7 +23,7 @@ ILLHOOF_ACTION_SACRIFICE random topaggro + 1 post 2.1. else 0
 SDCategory: Karazhan
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 
@@ -168,7 +168,7 @@ struct boss_terestianAI : public ScriptedAI, public CombatActions
                     }
                     case ILLHOOF_ACTION_SHADOWBOLT:
                     {
-                        DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT);
+                        DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHADOW_BOLT);
                         ResetTimer(i, GetSubsequentActionTimer(i));
                         SetActionReadyStatus(i, false);
                         continue;
@@ -207,7 +207,7 @@ struct boss_terestianAI : public ScriptedAI, public CombatActions
     void JustReachedHome() override
     {
         Creature* kilrek = m_creature->GetMap()->GetAnyTypeCreature(m_kilrekGuid);
-        if (!kilrek || !kilrek->isAlive())
+        if (!kilrek || !kilrek->IsAlive())
             DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP);
 
         if (m_pInstance)
@@ -233,8 +233,9 @@ struct boss_terestianAI : public ScriptedAI, public CombatActions
                 break;
             case NPC_KILREK:
                 m_kilrekGuid = pSummoned->GetObjectGuid();
-                if (m_creature->isInCombat())
+                if (m_creature->IsInCombat())
                     pSummoned->SetInCombatWithZone();
+                m_creature->RemoveAurasDueToSpell(SPELL_BROKEN_PACT);
                 break;
             case NPC_DEMONCHAINS:
                 pSummoned->CastSpell(pSummoned, SPELL_DEMON_CHAINS, TRIGGERED_NONE);
@@ -268,10 +269,10 @@ struct boss_terestianAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        UpdateTimers(uiDiff, m_creature->isInCombat());
+        UpdateTimers(uiDiff, m_creature->IsInCombat());
         ExecuteActions();
 
         DoMeleeAttackIfReady();

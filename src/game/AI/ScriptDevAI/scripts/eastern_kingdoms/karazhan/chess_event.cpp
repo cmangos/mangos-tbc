@@ -21,7 +21,7 @@ SDComment: Chess AI could use some improvements.
 SDCategory: Karazhan
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 
 enum
@@ -432,7 +432,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
         for (GuidList::const_iterator itr = lTempList.begin(); itr != lTempList.end(); ++itr)
         {
             Creature* pTemp = m_creature->GetMap()->GetCreature(*itr);
-            if (pTemp && pTemp->isAlive())
+            if (pTemp && pTemp->IsAlive())
             {
                 // check for specified range targets and angle; Note: to be checked if the angle is right
                 if (fRange && !m_creature->isInFrontInMap(pTemp, fRange, fArc))
@@ -499,7 +499,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
         for (GuidList::const_iterator itr = lTempList.begin(); itr != lTempList.end(); ++itr)
         {
             Creature* pTemp = m_creature->GetMap()->GetCreature(*itr);
-            if (pTemp && pTemp->isAlive())
+            if (pTemp && pTemp->IsAlive())
                 lEnemies.push_back(pTemp);
         }
 
@@ -590,7 +590,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
                 m_uiMoveTimer -= uiDiff;
         }
 
-        /*if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        /*if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;*/
     }
 };
@@ -1686,6 +1686,100 @@ bool GossipHello_npc_orc_necrolyte(Player* pPlayer, Creature* pCreature)
     return true;
 }
 
+struct go_chessboard : public GameObjectAI
+{
+    go_chessboard(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000), m_spellInfo(sSpellTemplate.LookupEntry<SpellEntry>(SPELL_GAME_IN_SESSION)), m_started(false) {}
+
+    uint32 m_auraSearchTimer;
+    SpellEntry const* m_spellInfo;
+    bool m_started;
+
+    void ReceiveAIEvent(AIEventType eventType, uint32 miscValue = 0) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
+            ChangeState(bool(miscValue));
+    }
+
+    void ChangeState(bool apply)
+    {
+        m_started = apply;
+        if (apply)
+            CheckAndApplyAura();
+        else
+        {
+            for (auto& ref : m_go->GetMap()->GetPlayers())
+            {
+                Player* player = ref.getSource();
+                auto bounds = player->GetSpellAuraHolderBounds(m_spellInfo->Id);
+                SpellAuraHolder* myHolder = nullptr;
+                for (auto itr = bounds.first; itr != bounds.second; ++itr)
+                {
+                    SpellAuraHolder* holder = (*itr).second;
+                    if (holder->GetCasterGuid() == m_go->GetObjectGuid())
+                    {
+                        myHolder = holder;
+                        break;
+                    }
+                }
+                player->RemoveSpellAuraHolder(myHolder);
+            }
+        }
+    }
+
+    void CheckAndApplyAura()
+    {
+        for (auto& ref : m_go->GetMap()->GetPlayers())
+        {
+            Player* player = ref.getSource();
+            float x, y, z;
+            m_go->GetPosition(x, y, z);
+            auto bounds = player->GetSpellAuraHolderBounds(m_spellInfo->Id);
+            SpellAuraHolder* myHolder = nullptr;
+            for (auto itr = bounds.first; itr != bounds.second; ++itr)
+            {
+                SpellAuraHolder* holder = (*itr).second;
+                if (holder->GetCasterGuid() == m_go->GetObjectGuid())
+                {
+                    myHolder = holder;
+                    break;
+                }
+            }
+            bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0]));
+            if (!myHolder)
+            {
+                if (isCloseEnough)
+                {
+                    myHolder = CreateSpellAuraHolder(m_spellInfo, player, m_go);
+                    GameObjectAura* Aur = new GameObjectAura(m_spellInfo, EFFECT_INDEX_0, nullptr, nullptr, myHolder, player, m_go);
+                    myHolder->AddAura(Aur, EFFECT_INDEX_0);
+                    if (!player->AddSpellAuraHolder(myHolder))
+                        delete myHolder;
+                }
+            }
+            else if (!isCloseEnough)
+                player->RemoveSpellAuraHolder(myHolder);
+        }
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (!m_started)
+            return;
+
+        if (m_auraSearchTimer <= diff)
+        {
+            m_auraSearchTimer = 1000;
+            CheckAndApplyAura();
+        }
+        else m_auraSearchTimer -= diff;
+    }
+};
+
+GameObjectAI* GetGOAI_go_chessboard(GameObject* go)
+{
+    return new go_chessboard(go);
+}
+
 void AddSC_chess_event()
 {
     Script* pNewScript = new Script;
@@ -1789,5 +1883,10 @@ void AddSC_chess_event()
     pNewScript->pGossipHello = GossipHello_npc_orc_necrolyte;
     pNewScript->pGossipSelect = GossipSelect_npc_chess_generic;
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_npc_chess_generic;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_chessboard";
+    pNewScript->GetGameObjectAI = &GetGOAI_go_chessboard;
     pNewScript->RegisterSelf();
 }

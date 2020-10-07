@@ -67,8 +67,9 @@ class PlayerbotClassAI
         // all combat actions go here
         virtual CombatManeuverReturns DoFirstCombatManeuver(Unit*);
         virtual CombatManeuverReturns DoNextCombatManeuver(Unit*);
-        bool Pull() { DEBUG_LOG("[PlayerbotAI]: Warning: Using PlayerbotClassAI::Pull() rather than class specific function"); return false; }
-        bool Neutralize() { DEBUG_LOG("[PlayerbotAI]: Warning: Using PlayerbotClassAI::Neutralize() rather than class specific function"); return false; }
+        virtual bool CanPull() { return false; }
+        virtual bool Pull() { return false; }
+        virtual uint32 Neutralize(uint8 creatureType) { return 0; }
 
         // all non combat actions go here, ex buffs, heals, rezzes
         virtual void DoNonCombatActions();
@@ -78,7 +79,6 @@ class PlayerbotClassAI
         Player* GetMaster() { return m_master; }
         Player* GetPlayerBot() { return m_bot; }
         PlayerbotAI* GetAI() { return m_ai; }
-        bool CanPull();
         bool CastHoTOnTank();
         JOB_TYPE GetBotJob(Player* target);
         JOB_TYPE GetTargetJob(Player* target);
@@ -98,7 +98,7 @@ class PlayerbotClassAI
         virtual CombatManeuverReturns HealPlayer(Player* target);
         virtual CombatManeuverReturns ResurrectPlayer(Player* target);
         virtual CombatManeuverReturns DispelPlayer(Player* target);
-        CombatManeuverReturns Buff(bool (*BuffHelper)(PlayerbotAI*, uint32, Unit*), uint32 spellId, uint32 type = JOB_ALL, bool bMustBeOOC = true);
+        CombatManeuverReturns Buff(bool (*BuffHelper)(PlayerbotAI*, uint32, Unit*), uint32 spellId, uint32 type = JOB_ALL, bool mustBeOOC = true);
         bool FindTargetAndHeal();
         bool NeedGroupBuff(uint32 groupBuffSpellId, uint32 singleBuffSpellId);
         Player* GetHealTarget(JOB_TYPE type = JOB_ALL, bool onlyPickFromSameGroup = false);

@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Sunwell_Plateau
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "sunwell_plateau.h"
 
 /* Sunwell Plateau:
@@ -267,7 +267,7 @@ void instance_sunwell_plateau::SetData(uint32 uiType, uint32 uiData)
                 {
                     if (Creature* pDeceiver = instance->GetCreature(*itr))
                     {
-                        if (!pDeceiver->isAlive())
+                        if (!pDeceiver->IsAlive())
                             pDeceiver->Respawn();
                     }
                 }
@@ -481,7 +481,7 @@ bool AreaTrigger_at_sunwell_plateau(Player* pPlayer, AreaTriggerEntry const* pAt
 {
     if (pAt->id == AREATRIGGER_TWINS)
     {
-        if (pPlayer->isGameMaster() || pPlayer->isDead())
+        if (pPlayer->isGameMaster() || pPlayer->IsDead())
             return false;
 
         instance_sunwell_plateau* pInstance = (instance_sunwell_plateau*)pPlayer->GetInstanceData();

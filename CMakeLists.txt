@@ -188,13 +188,14 @@ endif()
 # Be sure to search only static lib
 add_definitions(-DBOOST_ALL_NO_LIB)
 set(Boost_USE_STATIC_LIBS ON)
+set(Boost_NO_BOOST_CMAKE ON)   # should fix build for boost 1.71
 #set(Boost_DEBUG ON)
 
 if(MSVC)
   # Use at least verion 3.8.1 of FindBoost to fix some issues. Especialy in MSVC with fixed Toolset issues.
   # This is a workaround while VisualStudio does not embed higher cmake version than 3.7.2
   if(${CMAKE_VERSION} VERSION_LESS "3.11.3")
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/macros/FindBoost)
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/macros/FindBoost")
     message(STATUS "FindBoost: included version 3.11.3 of FindBoost is used.")
   endif()
 endif()
@@ -205,9 +206,9 @@ if (POLICY CMP0074)
 endif()
 
 # Find needed packages and if necessery abort if something important is missing
-find_package(Boost REQUIRED COMPONENTS system program_options thread regex)
+find_package(Boost REQUIRED COMPONENTS system program_options thread regex serialization)
 
-if(NOT Boost_FOUND)
+if(NOT Boost_FOUND AND (BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER))
   message(STATUS "BOOST_ROOT = $ENV{BOOST_ROOT}")
   message(STATUS "BOOST_LIBRARYDIR = $ENV{BOOST_LIBRARYDIR}")
   if ("$ENV{BOOST_ROOT}" STREQUAL "")
@@ -224,8 +225,8 @@ if(NOT Boost_FOUND)
 endif()
 
 # Win32 delivered packages
-if(WIN32)
-  set(MYSQL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/dep/lib/include")
+if(WIN32 AND (BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS))
+  set(MYSQL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/dep/lib/include/mysql")
   set(MYSQL_LIBRARY "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libmySQL.lib")
   set(MYSQL_DEBUG_LIBRARY "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libmySQL.lib")
   set(OPENSSL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/dep/lib/include")
@@ -234,7 +235,7 @@ if(WIN32)
 endif()
 
 # *nix-specific packages
-if(UNIX)
+if(UNIX AND (BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS))
   if(POSTGRESQL)
     find_package(PostgreSQL REQUIRED)
   else()
@@ -244,9 +245,15 @@ if(UNIX)
   if(APPLE)
     find_package(OpenSSL QUIET)
     if(NOT OpenSSL_FOUND AND NOT OPENSSL_FOUND)
-      # If OpenSSL path isn't specified on mac we set the one that homebrew uses and try again
-      set(OPENSSL_ROOT_DIR /usr/local/opt/openssl/)
-      set(OPENSSL_INCLUDE_DIR /usr/local/opt/openssl/include)
+      # If OpenSSL path isn't specified on mac we set the one that Homebrew uses
+      # and try again. This typically makes CMake find the OpenSSL headers and version.
+      # Homebrew installs the OpenSSL libraries with a version in the library file names
+      # though, like libcrypto.1.1.dylib, but CMake doesn't seem to check that file name
+      # pattern and might eventually find a non-matching library installed by macOS in
+      # a default search path. To avoid that, we'll also point pkg-config to the Homebrew
+      # location for OpenSSL details, because CMake checks pkg-config info as well.
+      set(OPENSSL_ROOT_DIR /usr/local/opt/openssl)
+      set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/usr/local/opt/openssl/lib/pkgconfig")
       find_package(OpenSSL)
     endif()
   else()
@@ -332,10 +339,19 @@ if(NOT BUILD_GAME_SERVER AND BUILD_PLAYERBOT)
   message(STATUS "BUILD_PLAYERBOT forced to OFF due to BUILD_GAME_SERVER is not set")
 endif()
 
+if(PCH)
+  if(${CMAKE_VERSION} VERSION_LESS "3.16") 
+    message("PCH is not supported by your CMake version")
+    message("Please consider to switch to CMake 3.16")
+    message("PCH is forced to OFF")
+    set(PCH OFF)
+  endif()
+endif()
+
 # print out the results before continuing
 include(cmake/showoptions.cmake)
 
-if(NOT BUILD_GAME_SERVER AND NOT BUILD_LOGIN_SERVER AND NOT BUILD_EXTRACTORS AND NOT BUILD_RECASTDEMOMOD)
+if(NOT BUILD_GAME_SERVER AND NOT BUILD_LOGIN_SERVER AND NOT BUILD_EXTRACTORS AND NOT BUILD_DOCS AND NOT BUILD_RECASTDEMOMOD)
   message(FATAL_ERROR "You must select something to build!")
 endif()
 
@@ -378,10 +394,19 @@ if(BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS)
 endif()
 
 if(BUILD_EXTRACTORS)
-  add_subdirectory(contrib/extractor)
-  add_subdirectory(contrib/vmap_extractor)
-  add_subdirectory(contrib/vmap_assembler)
-  add_subdirectory(contrib/mmap)
+  if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+  set(BUILD_EXTRACTORS, OFF)
+  message(STATUS "BUILD_EXTRACTORS forced to OFF.  Not supported on ARM architecture")
+  else()
+    add_subdirectory(contrib/extractor)
+    add_subdirectory(contrib/vmap_extractor)
+    add_subdirectory(contrib/vmap_assembler)
+    add_subdirectory(contrib/mmap)
+  endif()
+endif()
+
+if(BUILD_DOCS)
+  add_subdirectory(doc)
 endif()
 
 if(BUILD_RECASTDEMOMOD)

@@ -33,7 +33,7 @@ void AbstractRandomMovementGenerator::Initialize(Unit& owner)
     else if (owner.AI())
     {
         owner.SetTarget(nullptr);
-        owner.SendMeleeAttackStop(owner.getVictim());
+        owner.SendMeleeAttackStop(owner.GetVictim());
     }
 
     // Stop any previously dispatched splines no matter the source
@@ -80,7 +80,7 @@ void AbstractRandomMovementGenerator::Reset(Unit& owner)
 
 bool AbstractRandomMovementGenerator::Update(Unit& owner, const uint32& diff)
 {
-    if (!owner.isAlive())
+    if (!owner.IsAlive())
         return false;
 
     if (owner.hasUnitState(UNIT_STAT_NO_FREE_MOVE & ~i_stateActive))
@@ -193,6 +193,20 @@ void WanderMovementGenerator::Interrupt(Unit& owner)
 
     if (owner.GetTypeId() == TYPEID_UNIT)
         static_cast<Creature&>(owner).SetWalk(!owner.hasUnitState(UNIT_STAT_RUNNING_STATE), false);
+}
+
+TimedWanderMovementGenerator::TimedWanderMovementGenerator(Creature const& npc, uint32 timer, float radius, float verticalZ)
+    : TimedWanderMovementGenerator(timer, npc.GetPositionX(), npc.GetPositionY(), npc.GetPositionZ(), radius, verticalZ)
+{
+}
+
+bool TimedWanderMovementGenerator::Update(Unit& owner, const uint32& diff)
+{
+    m_durationTimer.Update(diff);
+    if (m_durationTimer.Passed())
+        return false;
+
+    return WanderMovementGenerator::Update(owner, diff);
 }
 
 FleeingMovementGenerator::FleeingMovementGenerator(Unit const& source) :

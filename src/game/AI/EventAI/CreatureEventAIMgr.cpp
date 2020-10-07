@@ -230,7 +230,7 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                     return false;
             }
         case TARGET_T_EVENT_SENDER:                         // Unit who sent an AIEvent that was received with EVENT_T_RECEIVE_AI_EVENT
-            if (eventType != EVENT_T_RECEIVE_AI_EVENT)
+            if (eventType != EVENT_T_RECEIVE_AI_EVENT && eventType != EVENT_T_SPELLHIT && eventType != EVENT_T_SPELLHIT_TARGET)
             {
                 sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type %u for event-type %u", eventId, action, targetType, eventType);
                 return false;
@@ -369,7 +369,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         sLog.outErrorEventAI("Creature %u are using repeatable event(%u) with param4 < param3 (RepeatMax < RepeatMin). Event will never repeat.", temp.creature_id, i);
                     break;
                 case EVENT_T_OOC_LOS:
-                    if (temp.ooc_los.conditionId && !sConditionStorage.LookupEntry<PlayerCondition>(temp.ooc_los.conditionId))
+                    if (temp.ooc_los.conditionId && !sConditionStorage.LookupEntry<ConditionEntry>(temp.ooc_los.conditionId))
                     {
                         sLog.outErrorDb("Creature %u has `ConditionId` = %u but does not exist. Setting ConditionId to 0 for event %u.", temp.creature_id, temp.ooc_los.conditionId, i);
                         temp.ooc_los.conditionId = 0;
@@ -445,7 +445,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                     continue;
                 case EVENT_T_DEATH:
                 {
-                    if (temp.death.conditionId && !sConditionStorage.LookupEntry<PlayerCondition>(temp.death.conditionId))
+                    if (temp.death.conditionId && !sConditionStorage.LookupEntry<ConditionEntry>(temp.death.conditionId))
                     {
                         // condition does not exist for some reason
                         sLog.outErrorDb("Creature %u has `ConditionId` = %u but does not exist. Setting ConditionId to 0 for event %u.", temp.creature_id, temp.death.conditionId, i);
@@ -479,7 +479,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         continue;
                     }
 
-                    if (temp.receive_emote.conditionId && !sConditionStorage.LookupEntry<PlayerCondition>(temp.receive_emote.conditionId))
+                    if (temp.receive_emote.conditionId && !sConditionStorage.LookupEntry<ConditionEntry>(temp.receive_emote.conditionId))
                     {
                         sLog.outErrorDb("Creature %u has `ConditionId` = %u but does not exist. Setting ConditionId to 0 for event %u.", temp.creature_id, temp.receive_emote.conditionId, i);
                         temp.receive_emote.conditionId = 0;
@@ -720,6 +720,15 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         // Cast is always triggered if target is forced to cast on self
                         if (action.cast.castFlags & CAST_FORCE_TARGET_SELF)
                             action.cast.castFlags |= CAST_TRIGGERED;
+
+                        if (spell && spell->Targets) // causes crash if not handled
+                        {
+                            if (action.cast.target == TARGET_T_NONE || action.cast.target == TARGET_T_NEAREST_AOE_TARGET)
+                            {
+                                sLog.outErrorEventAI("Event %u Action %u uses SpellID %u that must have a target supplied (target is %u). Resetting to TARGET_T_HOSTILE.", i, j + 1, action.cast.spellId, action.cast.target);
+                                action.cast.target = TARGET_T_HOSTILE;
+                            }
+                        }
 
                         IsValidTargetType(temp.event_type, action.type, action.cast.target, i, j + 1);
 
@@ -1063,6 +1072,16 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                             break;
                         }
                         IsValidTargetType(temp.event_type, action.type, action.setFacing.target, i, j + 1);
+                        break;
+                    case ACTION_T_SET_SPELL_SET:
+                        if (!sObjectMgr.GetCreatureTemplateSpellSet(creature_id, action.spellSet.setId))
+                        {
+                            sLog.outErrorEventAI("Event %u Action %u uses invalid spell set %u. Setting to 0.", i, j + 1, action.spellSet.setId);
+                            action.spellSet.setId = 0;
+                            break;
+                        }
+                        break;
+                    case ACTION_T_SET_IMMOBILIZED_STATE:
                         break;
                     default:
                         sLog.outErrorEventAI("Event %u Action %u have currently not checked at load action type (%u). Need check code update?", i, j + 1, temp.action[j].type);

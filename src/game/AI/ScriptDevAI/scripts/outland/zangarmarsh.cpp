@@ -28,7 +28,7 @@ event_stormcrow
 npc_fhwoor
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "Maps/MapManager.h"
 
@@ -62,12 +62,12 @@ struct npc_cooshcooshAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiLightningBolt_Timer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_LIGHTNING_BOLT);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_LIGHTNING_BOLT);
             m_uiLightningBolt_Timer = 5000;
         }
         else m_uiLightningBolt_Timer -= uiDiff;
@@ -117,32 +117,32 @@ struct npc_kayra_longmaneAI : public npc_escortAI
 
         switch (i)
         {
-            case 0:
+            case 1:
                 m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                 break;
-            case 4:
+            case 5:
                 DoScriptText(SAY_AMBUSH1, m_creature, pPlayer);
                 m_creature->SummonCreature(NPC_SLAVEBINDER, -916.4861f, 5355.635f, 18.25233f, 5.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 30000);
                 m_creature->SummonCreature(NPC_SLAVEBINDER, -918.9288f, 5358.43f, 18.05894f, 5.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 30000);
                 break;
-            case 5:
+            case 6:
                 DoScriptText(SAY_PROGRESS1, m_creature, pPlayer);
                 SetRun();
                 break;
-            case 16:
+            case 17:
                 DoScriptText(SAY_AMBUSH2, m_creature, pPlayer);
                 break;
-            case 17:
+            case 18:
             {
                 Creature* spawn = m_creature->SummonCreature(NPC_SLAVEBINDER, -668.2899f, 5382.913f, 22.32479f, 5.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 30000);
                 DoScriptText(SAY_SLAVEBINDER_AMBUSH2, spawn, pPlayer);
                 m_creature->SummonCreature(NPC_SLAVEBINDER, -669.2795f, 5386.802f, 23.01249f, 5.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 30000);
                 break;
             }
-            case 18:
+            case 19:
                 DoScriptText(SAY_PROGRESS2, m_creature, pPlayer);
                 break;
-            case 26:
+            case 27:
                 DoScriptText(SAY_END, m_creature, pPlayer);
                 pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ESCAPE_FROM, m_creature);
                 m_creature->ForcedDespawn(10000);
@@ -265,14 +265,14 @@ struct npc_fhwoorAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 24:
+            case 25:
                 DoScriptText(SAY_PREPARE, m_creature);
                 break;
-            case 25:
+            case 26:
                 DoScriptText(SAY_CAMP_ENTER, m_creature);
                 SetRun(false);
                 break;
-            case 46:
+            case 47:
                 // despawn the Ark
                 if (GameObject* pArk = GetClosestGameObjectWithEntry(m_creature, GO_ARK_OF_SSSLITH, 10.0f))
                     pArk->SetLootState(GO_JUST_DEACTIVATED);
@@ -281,7 +281,7 @@ struct npc_fhwoorAI : public npc_escortAI
                 m_creature->SummonCreature(NPC_SLAVEDRIVER, 524.09f, 8138.67f, 21.49f, 0.58f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 m_creature->SummonCreature(NPC_SLAVEDRIVER, 526.93f, 8133.88f, 21.56f, 0.58f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 break;
-            case 70:
+            case 71:
                 DoScriptText(SAY_AMBUSH, m_creature);
                 // spawn npcs
                 m_bIsAmbush = true;
@@ -290,14 +290,14 @@ struct npc_fhwoorAI : public npc_escortAI
                 m_creature->SummonCreature(NPC_SLAVEDRIVER, 163.07f, 8187.04f, 22.71f, 0.10f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
                 SetEscortPaused(true);
                 break;
-            case 71:
+            case 72:
                 DoScriptText(SAY_AMBUSH_CLEARED, m_creature);
                 SetRun();
                 break;
-            case 92:
+            case 93:
                 SetRun(false);
                 break;
-            case 93:
+            case 94:
                 DoScriptText(SAY_ESCORT_COMPLETE, m_creature);
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_FHWOOR_SMASH, m_creature);
@@ -307,7 +307,7 @@ struct npc_fhwoorAI : public npc_escortAI
 
     void UpdateEscortAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiStompTimer < uiDiff)

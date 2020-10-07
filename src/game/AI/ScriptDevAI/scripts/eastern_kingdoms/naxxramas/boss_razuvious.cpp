@@ -21,7 +21,7 @@ SDComment: TODO: Deathknight Understudy are supposed to gain Mind Exhaustion deb
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
@@ -70,7 +70,7 @@ struct boss_razuviousAI : public ScriptedAI
         DoScriptText(SAY_SLAY, m_creature);
     }
 
-    void SpellHit(Unit* caster, const SpellEntry* spell) override
+    void SpellHit(Unit* /*caster*/, const SpellEntry* spell) override
     {
         // Every time a Deathknight Understudy taunts Razuvious, he will yell its disappointment
         if (spell->Id == SPELL_TAUNT)
@@ -128,13 +128,13 @@ struct boss_razuviousAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Unbalancing Strike
         if (m_unbalancingStrikeTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_UNBALANCING_STRIKE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_UNBALANCING_STRIKE) == CAST_OK)
                 m_unbalancingStrikeTimer = 30 * IN_MILLISECONDS;
         }
         else

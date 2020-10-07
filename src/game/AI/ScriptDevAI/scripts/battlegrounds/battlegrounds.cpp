@@ -21,7 +21,8 @@ SDComment: Spirit guides in battlegrounds will revive all players every 30 sec
 SDCategory: Battlegrounds
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
+#include "Spells/Scripts/SpellScript.h"
 
 // **** Script Info ****
 // Spiritguides in battlegrounds resurrecting many players at once
@@ -62,6 +63,15 @@ struct npc_spirit_guideAI : public ScriptedAI
             m_creature->CastSpell(m_creature, SPELL_SPIRIT_HEAL_CHANNEL, TRIGGERED_NONE);
     }
 
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
+        {
+            m_creature->InterruptSpell(CURRENT_CHANNELED_SPELL);
+            m_creature->CastSpell(nullptr, SPELL_GRAVEYARD_TELEPORT, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+
     void CorpseRemoved(uint32&) override
     {
         // TODO: would be better to cast a dummy spell
@@ -97,16 +107,57 @@ bool GossipHello_npc_spirit_guide(Player* pPlayer, Creature* /*pCreature*/)
     return true;
 }
 
-UnitAI* GetAI_npc_spirit_guide(Creature* pCreature)
+struct GYMidTrigger : public SpellScript
 {
-    return new npc_spirit_guideAI(pCreature);
-}
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const
+    {
+        // TODO: Fix when go casting is fixed
+        WorldObject* obj = spell->GetAffectiveCasterObject();
+        if (obj->IsGameObject() && spell->GetUnitTarget()->IsPlayer())
+        {
+            Player* player = static_cast<Player*>(spell->GetUnitTarget());
+            if (BattleGround* bg = player->GetBattleGround())
+            {
+                // check if it's correct bg
+                if (bg->GetTypeId() == BATTLEGROUND_AV)
+                    bg->HandlePlayerClickedOnFlag(player, static_cast<GameObject*>(obj));
+                return;
+            }
+        }
+    }
+};
+
+enum
+{
+    SPELL_OPENING_ANIM = 24390,
+};
+
+struct OpeningCapping : public SpellScript
+{
+    void OnSuccessfulStart(Spell* spell) const
+    {
+        spell->GetCaster()->CastSpell(nullptr, SPELL_OPENING_ANIM, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+struct InactiveBattleground : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        Player* player = spell->GetCaster()->GetBeneficiaryPlayer();
+        return player && player->InBattleGround() ? SPELL_CAST_OK : SPELL_FAILED_ONLY_BATTLEGROUNDS;
+    }
+};
 
 void AddSC_battleground()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "npc_spirit_guide";
-    pNewScript->GetAI = &GetAI_npc_spirit_guide;
+    pNewScript->GetAI = &GetNewAIInstance<npc_spirit_guideAI>;
     pNewScript->pGossipHello = &GossipHello_npc_spirit_guide;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<GYMidTrigger>("spell_gy_mid_trigger");
+    RegisterSpellScript<OpeningCapping>("spell_opening_capping");
+    RegisterSpellScript<InactiveBattleground>("spell_inactive");
 }

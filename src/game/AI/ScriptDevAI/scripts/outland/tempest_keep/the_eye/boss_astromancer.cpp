@@ -21,7 +21,7 @@ SDComment: Check if the split phase has some spells involved
 SDCategory: Tempest Keep, The Eye
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "the_eye.h"
 
 #include <random>
@@ -199,7 +199,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // When Solarian reaches 20% she will transform into a huge void walker.
@@ -250,7 +250,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
 
                     SetCombatMovement(true);
                     m_creature->GetMotionMaster()->Clear();
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                    m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
                 }
 
                 m_uiDelayTimer = 0;
@@ -366,7 +366,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
 
                         SetCombatMovement(true);
                         m_creature->GetMotionMaster()->Clear();
-                        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                        m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
 
                         // Set as visible and reset spells timers
                         m_creature->SetVisibility(VISIBILITY_ON);
@@ -394,7 +394,7 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
                 // Void Bolt Timer
                 if (m_uiVoidBoltTimer <= uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_VOID_BOLT) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_VOID_BOLT) == CAST_OK)
                         m_uiVoidBoltTimer = 10000;
                 }
                 else
@@ -408,7 +408,11 @@ struct boss_high_astromancer_solarianAI : public ScriptedAI
 
 struct mob_solarium_priestAI : public ScriptedAI
 {
-    mob_solarium_priestAI(Creature* pCreature) : ScriptedAI(pCreature)  { Reset(); }
+    mob_solarium_priestAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_attackDistance = 25.f;
+        Reset();
+    }
 
     uint32 m_uiHealTimer;
     uint32 m_uiHolySmiteTimer;
@@ -421,20 +425,9 @@ struct mob_solarium_priestAI : public ScriptedAI
         m_uiAoESilenceTimer = 15000;
     }
 
-    void AttackStart(Unit* pWho) override
-    {
-        if (m_creature->Attack(pWho, true))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            m_creature->GetMotionMaster()->MoveChase(pWho, 25.0f, 0.0f);
-        }
-    }
-
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiHealTimer <= uiDiff)

@@ -35,6 +35,7 @@
 #endif
 
 #include <set>
+#include <vector>
 #include <list>
 #include <string>
 #include <map>
@@ -101,6 +102,8 @@ inline float finiteAlways(float f) { return std::isfinite(f) ? f : 0.0f; }
 #define PAIR32_HIPART(x)   uint16( ((uint32(x) >> 16) & 0x0000FFFF) )
 #define PAIR32_LOPART(x)   uint16( (uint32(x)         & 0x0000FFFF) )
 
+#define MAX_NETCLIENT_PACKET_SIZE (32767 - 1)               // Client hardcap: int16 with trailing zero space otherwise crash on memory free
+
 enum TimeConstants
 {
     MINUTE = 60,
@@ -112,7 +115,7 @@ enum TimeConstants
     IN_MILLISECONDS = 1000
 };
 
-enum AccountTypes
+enum AccountTypes : uint32
 {
     SEC_PLAYER         = 0,
     SEC_MODERATOR      = 1,
@@ -135,7 +138,7 @@ enum RealmFlags
     REALM_FLAG_FULL         = 0x80
 };
 
-enum LocaleConstant
+enum LocaleConstant : uint8
 {
     LOCALE_enUS = 0,                                        // also enGB
     LOCALE_koKR = 1,
@@ -147,6 +150,8 @@ enum LocaleConstant
     LOCALE_esMX = 7,
     LOCALE_ruRU = 8
 };
+
+#define DEFAULT_LOCALE LOCALE_enUS
 
 #define MAX_LOCALE 9
 
@@ -191,5 +196,39 @@ inline char* mangos_strdup(const char* source)
 #ifndef countof
 #define countof(array) (sizeof(array) / sizeof((array)[0]))
 #endif
+
+
+
+enum CMDebugFlags
+{
+    CMDEBUGFLAG_NONE                        = 0x00000000,
+    CMDEBUGFLAG_WP_PATH                     = 0x00000001, // show intermediates point in gm mode (waypoints)
+
+
+
+    CMDEBUGFLAG_DEV_USE1                    = 0x80000000, // can be used for various reason during development
+    CMDEBUGFLAG_DEV_USE2                    = 0x80000000  // can be used for various reason during development
+};
+
+struct CMDebugCommandTableStruct
+{
+    CMDebugCommandTableStruct(std::string const& cmd, std::string const& desc, CMDebugFlags f) :
+        command(cmd), description(desc), flag(f) {}
+
+    std::string command;
+    std::string description;
+    CMDebugFlags flag;
+};
+
+static const std::vector<CMDebugCommandTableStruct> CMDebugCommandTable =
+{
+    { "clearall"                , "reset all flags"                         , CMDEBUGFLAG_NONE                  },
+    { "setall"                  , "set all flags"                           , CMDEBUGFLAG_NONE                  },
+
+    { "wppath"                  , "show waypoint path send to client"       , CMDEBUGFLAG_WP_PATH               },
+
+    { "dev1"                    , "for general use during development"      , CMDEBUGFLAG_DEV_USE1              },
+    { "dev2"                    , "for general use during development"      , CMDEBUGFLAG_DEV_USE2              }
+};
 
 #endif

@@ -77,6 +77,10 @@ bool ChatHandler::HandleMuteCommand(char* args)
     if (!ExtractUInt32(&args, notspeaktime))
         return false;
 
+    std::string givenReason;
+    if (char* givenReasonC = ExtractQuotedOrLiteralArg(&args))
+        givenReason = givenReasonC;
+
     uint32 account_id = target ? target->GetSession()->GetAccountId() : sObjectMgr.GetPlayerAccountIdByGUID(target_guid);
 
     // find only player from same account if any
@@ -103,6 +107,14 @@ bool ChatHandler::HandleMuteCommand(char* args)
     std::string nameLink = playerLink(target_name);
 
     PSendSysMessage(LANG_YOU_DISABLE_CHAT, nameLink.c_str(), notspeaktime);
+
+    // Add warning to the account
+    std::string authorName = m_session ? m_session->GetPlayerName() : "Console";
+    std::stringstream reason;
+    reason << target->GetName() << " muted " << notspeaktime << " minutes";
+    if (givenReason != "")
+        reason << " for \"" << givenReason << "\"";
+    sWorld.WarnAccount(account_id, authorName, reason.str(), "WARNING");
     return true;
 }
 
@@ -450,7 +462,7 @@ bool ChatHandler::HandleGoGraveyardCommand(char* args)
     if (!ExtractUInt32(&args, gyId))
         return false;
 
-    WorldSafeLocsEntry const* gy = sWorldSafeLocsStore.LookupEntry(gyId);
+    WorldSafeLocsEntry const* gy = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(gyId);
     if (!gy)
     {
         PSendSysMessage(LANG_COMMAND_GRAVEYARDNOEXIST, gyId);
@@ -1280,6 +1292,50 @@ bool ChatHandler::HandleGameObjectNearSpawnedCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleGameObjectRespawnCommand(char* args)
+{
+    uint32 lowguid;
+    if (!ExtractUint32KeyFromLink(&args, "Hgameobject", lowguid))
+        return false;
+
+    if (!lowguid)
+        return false;
+
+    GameObject* obj = nullptr;
+
+    // by DB guid
+    if (GameObjectData const* go_data = sObjectMgr.GetGOData(lowguid))
+        obj = GetGameObjectWithGuid(lowguid, go_data->id);
+
+    if (!obj)
+    {
+        PSendSysMessage(LANG_COMMAND_OBJNOTFOUND, lowguid);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (obj->IsSpawned())
+        return true;                                    // gameobject already spawned
+
+    if (obj->IsSpawnedByDefault()) // static spawned go - can only respawn
+        obj->Respawn();
+    else
+    {
+        uint32 timeToDespawn;
+        if (!ExtractUInt32(&args, timeToDespawn))
+        {
+            SendSysMessage("Need to input valid respawn time in seconds.");
+            return false;
+        }
+        obj->SetLootState(GO_READY);
+        obj->SetRespawnTime(timeToDespawn);             // despawn object in ? seconds
+        obj->Refresh();
+    }
+
+    PSendSysMessage("GameObject entry: %u guid: %u respawned!", obj->GetEntry(), lowguid);
+    return true;
+}
+
 bool ChatHandler::HandleGUIDCommand(char* /*args*/)
 {
     ObjectGuid guid = m_session->GetPlayer()->GetSelectionGuid();
@@ -1815,7 +1871,7 @@ bool ChatHandler::HandleNpcMoveCommand(char* args)
         }
         pCreature->GetMap()->CreatureRelocation(pCreature, x, y, z, o);
         pCreature->GetMotionMaster()->Initialize();
-        if (pCreature->isAlive())                           // dead creature will reset movement generator at respawn
+        if (pCreature->IsAlive())                           // dead creature will reset movement generator at respawn
         {
             pCreature->SetDeathState(JUST_DIED);
             pCreature->Respawn();
@@ -1909,7 +1965,7 @@ bool ChatHandler::HandleNpcSetMoveTypeCommand(char* args)
     {
         pCreature->SetDefaultMovementType(move_type);
         pCreature->GetMotionMaster()->Initialize();
-        if (pCreature->isAlive())                           // dead creature will reset movement generator at respawn
+        if (pCreature->IsAlive())                           // dead creature will reset movement generator at respawn
         {
             pCreature->SetDeathState(JUST_DIED);
             pCreature->Respawn();
@@ -2019,7 +2075,7 @@ bool ChatHandler::HandleNpcSpawnDistCommand(char* args)
     }
 
     // respawn alive creature to reinitialize everything including movement generator (dead one will do it anyway at respawn)
-    if (pCreature->isAlive())
+    if (pCreature->IsAlive())
     {
         pCreature->SetDeathState(JUST_DIED);
         pCreature->Respawn();
@@ -2175,13 +2231,13 @@ bool ChatHandler::HandleNpcShowLootCommand(char* /*args*/)
         return false;
     }
 
-    if (!creature->loot)
+    if (!creature->m_loot)
     {
         PSendSysMessage("Creature does not have any loot.");
         return true;
     }
 
-    creature->loot->PrintLootList(*this, m_session);
+    creature->m_loot->PrintLootList(*this, m_session);
     return true;
 }
 
@@ -2468,235 +2524,6 @@ bool ChatHandler::HandlePInfoCommand(char* args)
     uint32 copp = (money % GOLD) % SILVER;
     PSendSysMessage(LANG_PINFO_LEVEL,  timeStr.c_str(), level, gold, silv, copp);
 
-    return true;
-}
-
-// show tickets
-void ChatHandler::ShowTicket(GMTicket const* ticket)
-{
-    std::string lastupdated = TimeToTimestampStr(ticket->GetLastUpdate());
-
-    std::string name;
-    if (!sObjectMgr.GetPlayerNameByGUID(ticket->GetPlayerGuid(), name))
-        name = GetMangosString(LANG_UNKNOWN);
-
-    std::string nameLink = playerLink(name);
-
-    char const* response = ticket->GetResponse();
-
-    PSendSysMessage(LANG_COMMAND_TICKETVIEW, nameLink.c_str(), lastupdated.c_str(), ticket->GetText());
-    if (strlen(response))
-        PSendSysMessage(LANG_COMMAND_TICKETRESPONSE, ticket->GetResponse());
-}
-
-// ticket commands
-bool ChatHandler::HandleTicketCommand(char* args)
-{
-    char* px = ExtractLiteralArg(&args);
-
-    // ticket<end>
-    if (!px)
-    {
-        size_t count = sTicketMgr.GetTicketCount();
-
-        if (m_session)
-        {
-            bool accept = m_session->GetPlayer()->isAcceptTickets();
-
-            PSendSysMessage(LANG_COMMAND_TICKETCOUNT, count, GetOnOffStr(accept));
-        }
-        else
-            PSendSysMessage(LANG_COMMAND_TICKETCOUNT_CONSOLE, count);
-
-        return true;
-    }
-
-    // ticket on
-    if (strncmp(px, "on", 3) == 0)
-    {
-        if (!m_session)
-        {
-            SendSysMessage(LANG_PLAYER_NOT_FOUND);
-            SetSentErrorMessage(true);
-            return false;
-        }
-
-        m_session->GetPlayer()->SetAcceptTicket(true);
-        SendSysMessage(LANG_COMMAND_TICKETON);
-        return true;
-    }
-
-    // ticket off
-    if (strncmp(px, "off", 4) == 0)
-    {
-        if (!m_session)
-        {
-            SendSysMessage(LANG_PLAYER_NOT_FOUND);
-            SetSentErrorMessage(true);
-            return false;
-        }
-
-        m_session->GetPlayer()->SetAcceptTicket(false);
-        SendSysMessage(LANG_COMMAND_TICKETOFF);
-        return true;
-    }
-
-    // ticket respond
-    if (strncmp(px, "respond", 8) == 0)
-    {
-        GMTicket* ticket;
-
-        // ticket respond #num
-        uint32 num;
-        if (ExtractUInt32(&args, num))
-        {
-            if (num == 0)
-                return false;
-
-            // mgr numbering tickets start from 0
-            ticket = sTicketMgr.GetGMTicketByOrderPos(num - 1);
-
-            if (!ticket)
-            {
-                PSendSysMessage(LANG_COMMAND_TICKETNOTEXIST, num);
-                SetSentErrorMessage(true);
-                return false;
-            }
-        }
-        else
-        {
-            ObjectGuid target_guid;
-            std::string target_name;
-            if (!ExtractPlayerTarget(&args, nullptr, &target_guid, &target_name))
-                return false;
-
-            // ticket respond $char_name
-            ticket = sTicketMgr.GetGMTicket(target_guid);
-
-            if (!ticket)
-            {
-                PSendSysMessage(LANG_COMMAND_TICKETNOTEXIST_NAME, target_name.c_str());
-                SetSentErrorMessage(true);
-                return false;
-            }
-        }
-
-        // no response text?
-        if (!*args)
-            return false;
-
-        ticket->SetResponseText(args);
-
-        if (Player* pl = sObjectMgr.GetPlayer(ticket->GetPlayerGuid()))
-            pl->GetSession()->SendGMTicketGetTicket(0x06, ticket);
-
-        return true;
-    }
-
-    // ticket #num
-    uint32 num;
-    if (ExtractUInt32(&px, num))
-    {
-        if (num == 0)
-            return false;
-
-        // mgr numbering tickets start from 0
-        GMTicket* ticket = sTicketMgr.GetGMTicketByOrderPos(num - 1);
-        if (!ticket)
-        {
-            PSendSysMessage(LANG_COMMAND_TICKETNOTEXIST, num);
-            SetSentErrorMessage(true);
-            return false;
-        }
-
-        ShowTicket(ticket);
-        return true;
-    }
-
-    ObjectGuid target_guid;
-    std::string target_name;
-    if (!ExtractPlayerTarget(&px, nullptr, &target_guid, &target_name))
-        return false;
-
-    // ticket $char_name
-    GMTicket* ticket = sTicketMgr.GetGMTicket(target_guid);
-    if (!ticket)
-    {
-        PSendSysMessage(LANG_COMMAND_TICKETNOTEXIST_NAME, target_name.c_str());
-        SetSentErrorMessage(true);
-        return false;
-    }
-
-    ShowTicket(ticket);
-
-    return true;
-}
-
-// dell all tickets
-bool ChatHandler::HandleDelTicketCommand(char* args)
-{
-    char* px = ExtractLiteralArg(&args);
-    if (!px)
-        return false;
-
-    // delticket all
-    if (strncmp(px, "all", 4) == 0)
-    {
-        sTicketMgr.DeleteAll();
-        SendSysMessage(LANG_COMMAND_ALLTICKETDELETED);
-        return true;
-    }
-
-    uint32 num;
-
-    // delticket #num
-    if (ExtractUInt32(&px, num))
-    {
-        if (num == 0)
-            return false;
-
-        // mgr numbering tickets start from 0
-        GMTicket* ticket = sTicketMgr.GetGMTicketByOrderPos(num - 1);
-
-        if (!ticket)
-        {
-            PSendSysMessage(LANG_COMMAND_TICKETNOTEXIST, num);
-            SetSentErrorMessage(true);
-            return false;
-        }
-
-        ObjectGuid guid = ticket->GetPlayerGuid();
-
-        sTicketMgr.Delete(guid);
-
-        // notify player
-        if (Player* pl = sObjectMgr.GetPlayer(guid))
-        {
-            pl->GetSession()->SendGMTicketGetTicket(0x0A);
-            PSendSysMessage(LANG_COMMAND_TICKETPLAYERDEL, GetNameLink(pl).c_str());
-        }
-        else
-            PSendSysMessage(LANG_COMMAND_TICKETDEL);
-
-        return true;
-    }
-
-    Player* target;
-    ObjectGuid target_guid;
-    std::string target_name;
-    if (!ExtractPlayerTarget(&px, &target, &target_guid, &target_name))
-        return false;
-
-    // delticket $char_name
-    sTicketMgr.Delete(target_guid);
-
-    // notify players about ticket deleting
-    if (target)
-        target->GetSession()->SendGMTicketGetTicket(0x0A);
-
-    std::string nameLink = playerLink(target_name);
-
-    PSendSysMessage(LANG_COMMAND_TICKETPLAYERDEL, nameLink.c_str());
     return true;
 }
 
@@ -3084,7 +2911,7 @@ bool ChatHandler::HandleWpModifyCommand(char* args)
         {
             wpOwner->SetDefaultMovementType(RANDOM_MOTION_TYPE);
             wpOwner->GetMotionMaster()->Initialize();
-            if (wpOwner->isAlive())                         // Dead creature will reset movement generator at respawn
+            if (wpOwner->IsAlive())                         // Dead creature will reset movement generator at respawn
             {
                 wpOwner->SetDeathState(JUST_DIED);
                 wpOwner->Respawn();

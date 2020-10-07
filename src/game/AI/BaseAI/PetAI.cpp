@@ -72,8 +72,8 @@ PetAI::PetAI(Unit* unit) : UnitAI(unit), inCombat(false), m_followAngle(PET_FOLL
 
 void PetAI::MoveInLineOfSight(Unit* who)
 {
-    if (Unit* victim = m_unit->getVictim())
-        if (victim->isAlive())
+    if (Unit* victim = m_unit->GetVictim())
+        if (victim->IsAlive())
             return;
 
     Pet* pet = (m_unit->GetTypeId() == TYPEID_UNIT && static_cast<Creature*>(m_unit)->IsPet()) ? static_cast<Pet*>(m_unit) : nullptr;
@@ -83,8 +83,8 @@ void PetAI::MoveInLineOfSight(Unit* who)
             && !(who->GetTypeId() == TYPEID_UNIT && static_cast<Creature*>(who)->IsCivilian())
             && m_creature->CanAttackOnSight(who) && who->isInAccessablePlaceFor(m_unit)
             && m_unit->IsWithinDistInMap(who, m_unit->GetAttackDistance(who))
-            && m_unit->GetDistanceZ(who) <= CREATURE_Z_ATTACK_RANGE
-            && m_unit->IsWithinLOSInMap(who))
+            && m_unit->GetDistanceZ(who) <= CREATURE_Z_ATTACK_RANGE_MELEE
+            && m_unit->IsWithinLOSInMap(who, true))
     {
         AttackStart(who);
 
@@ -101,7 +101,7 @@ void PetAI::AttackStart(Unit* who)
         return;
 
     // Do not start attack if target is moving home
-    if (who->IsEvadingHome())
+    if (who->GetCombatManager().IsEvadingHome())
         return;
 
     if (m_unit->Attack(who, m_meleeEnabled))
@@ -118,11 +118,12 @@ void PetAI::AttackStart(Unit* who)
 
 void PetAI::EnterEvadeMode()
 {
+    m_unit->CombatStop();
 }
 
 void PetAI::UpdateAI(const uint32 diff)
 {
-    if (!m_unit->isAlive())
+    if (!m_unit->IsAlive())
         return;
     Creature* creature = (m_unit->GetTypeId() == TYPEID_UNIT) ? static_cast<Creature*>(m_unit) : nullptr;
     Pet* pet = (creature && creature->IsPet()) ? static_cast<Pet*>(m_unit) : nullptr;
@@ -137,10 +138,10 @@ void PetAI::UpdateAI(const uint32 diff)
     else
         m_updateAlliesTimer -= diff;
 
-    Unit* victim = (pet && pet->GetModeFlags() & PET_MODE_DISABLE_ACTIONS) ? nullptr : m_unit->getVictim();
+    Unit* victim = (pet && pet->GetModeFlags() & PET_MODE_DISABLE_ACTIONS) ? nullptr : m_unit->GetVictim();
 
     // Do not continue attacking if victim is moving home
-    if (victim && victim->IsEvadingHome())
+    if (victim && victim->GetCombatManager().IsEvadingHome())
         victim = nullptr;
 
     // Stop auto attack and chase if victim was dropped
@@ -181,16 +182,16 @@ void PetAI::UpdateAI(const uint32 diff)
         if (charminfo->GetSpellOpener() != 0) // have opener stored
         {
             uint32 minRange = charminfo->GetSpellOpenerMinRange();
-            victim = m_unit->getVictim();
+            victim = m_unit->GetVictim();
 
             if (!victim || (minRange != 0 && m_unit->IsWithinDistInMap(victim, minRange)))
                 charminfo->SetSpellOpener();
             else if (m_unit->IsWithinDistInMap(victim, charminfo->GetSpellOpenerMaxRange())
-                     && m_unit->IsWithinLOSInMap(victim))
+                     && m_unit->IsWithinLOSInMap(victim, true))
             {
                 uint32 spellId = charminfo->GetSpellOpener();
                 SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
-                Spell* spell = new Spell(m_unit, spellInfo, false);
+                Spell* spell = new Spell(m_unit, spellInfo, TRIGGERED_NONE);
 
                 // Push back stored spell
                 targetSpellStore.push_back(TargetSpellList::value_type(victim, spell));
@@ -232,17 +233,13 @@ void PetAI::UpdateAI(const uint32 diff)
                         // allow only spell not on cooldown
                         if (cooldown != 0 && duration < cooldown)
                             continue;
-
-                        // not allow instant kill auto casts as full health cost
-                        if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_INSTAKILL))
-                            continue;
                     }
                 }
                 // just ignore non-combat spells
                 else if (IsNonCombatSpell(spellInfo))
                     continue;
 
-                Spell* spell = new Spell(m_unit, spellInfo, false);
+                Spell* spell = new Spell(m_unit, spellInfo, TRIGGERED_NONE);
 
                 if (inCombat && spell->CanAutoCast(victim))
                 {
@@ -307,11 +304,11 @@ void PetAI::UpdateAI(const uint32 diff)
     }
 
     // we may get our actions disabled during spell casting, so do entire recheck for victim
-    victim = (pet && pet->GetModeFlags() & PET_MODE_DISABLE_ACTIONS) ? nullptr : m_unit->getVictim();
+    victim = (pet && pet->GetModeFlags() & PET_MODE_DISABLE_ACTIONS) ? nullptr : m_unit->GetVictim();
 
     if (victim)
     {
-        // i_pet.getVictim() can't be used for check in case stop fighting, i_pet.getVictim() clear at Unit death etc.
+        // i_pet.getVictim() can't be used for check in case stop fighting, i_pet.GetVictim() clear at Unit death etc.
         // This is needed for charmed creatures, as once their target was reset other effects can trigger threat
         if (!m_unit->CanAttack(victim))
         {
@@ -342,7 +339,7 @@ void PetAI::UpdateAI(const uint32 diff)
         const bool following = (!staying && charmInfo && charmInfo->HasCommandState(COMMAND_FOLLOW));
 
         // If not commanded to stay, try to assist owner first
-        if (!staying && owner->isInCombat() && !HasReactState(REACT_PASSIVE))
+        if (!staying && owner->IsInCombat() && !HasReactState(REACT_PASSIVE))
         {
             AttackStart(owner->getAttackerForHelper());
 
@@ -415,6 +412,6 @@ void PetAI::AttackedBy(Unit* attacker)
     MANGOS_ASSERT(charminfo);
 
     // when attacked, fight back if no victim unless we have a charm state set to passive
-    if (!(m_unit->getVictim() || charminfo->GetIsRetreating() || HasReactState(REACT_PASSIVE)))
+    if (!(m_unit->GetVictim() || charminfo->GetIsRetreating() || HasReactState(REACT_PASSIVE)))
         AttackStart(attacker);
 }

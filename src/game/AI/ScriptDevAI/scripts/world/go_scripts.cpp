@@ -27,7 +27,7 @@ go_ethereum_stasis
 go_andorhal_tower
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "GameEvents/GameEventMgr.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "Entities/TemporarySpawn.h"
@@ -226,9 +226,9 @@ struct npc_ethereum_prisonerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
@@ -391,7 +391,7 @@ struct go_ai_bell : public GameObjectAI
 
     uint32 GetBellSound(GameObject* pGo) const
     {
-        uint32 soundId;
+        uint32 soundId = 0;
         switch (pGo->GetEntry())
         {
             case GO_HORDE_BELL:
@@ -672,8 +672,8 @@ struct go_brewfest_music : public GameObjectAI
             switch (m_zoneTeam)
             {
                 case TEAM_NONE:
-                    m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetMap()->GetVisibilityDistance(),
-                                                      [&](Player * player)
+                    m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetVisibilityData().GetVisibilityDistance(),
+                    [&](Player * player)
                     {
                         if (player->GetTeam() == ALLIANCE)
                             PlayAllianceMusic();
@@ -731,8 +731,8 @@ struct go_midsummer_music : public GameObjectAI
 
         if (m_musicTimer <= diff)
         {
-            m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetMap()->GetVisibilityDistance(),
-                                              [&](Player * player)
+            m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetVisibilityData().GetVisibilityDistance(),
+            [&](Player * player)
             {
                 if (player->GetTeam() == ALLIANCE)
                     m_go->PlayMusic(EVENTMIDSUMMERFIREFESTIVAL_A, PlayPacketParameters(PLAY_TARGET, player));

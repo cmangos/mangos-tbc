@@ -23,7 +23,7 @@ SDComment: Though gameplay is Blizzlike, logic in Zombie Chow Search and Call Al
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
@@ -90,6 +90,7 @@ struct boss_gluthAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_CALL_ALL_ZOMBIE_CHOW, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);   // Aura periodically calling all NPCs 16360
 
         // Add zombies summoning aura to the three triggers
+        m_summoningTriggers.clear();
         GetCreatureListWithEntryInGrid(m_summoningTriggers, m_creature, NPC_WORLD_TRIGGER, 100.0f);
         for (auto& trigger : m_summoningTriggers)
             trigger->CastSpell(trigger, SPELL_SUMMON_ZOMBIE_CHOW, TRIGGERED_OLD_TRIGGERED);
@@ -120,13 +121,13 @@ struct boss_gluthAI : public ScriptedAI
     void UpdateAI(const uint32 diff) override
     {
         // Do nothing if no target or if we are currently stunned (Decimate effect)
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim() || m_creature->HasAuraType(SPELL_AURA_MOD_STUN))
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim() || m_creature->HasAuraType(SPELL_AURA_MOD_STUN))
             return;
 
         // Mortal Wound
         if (m_mortalWoundTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTALWOUND) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MORTALWOUND) == CAST_OK)
                 m_mortalWoundTimer = 10 * IN_MILLISECONDS;
         }
         else

@@ -16,19 +16,18 @@
 
 /* ScriptData
 SDName: Boss_Thaddius
-SD%Complete: 95
+SD%Complete: 100
 SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
 /* ContentData
 boss_thaddius
-npc_tesla_coil
 boss_stalagg
 boss_feugen
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
@@ -164,7 +163,7 @@ struct boss_thaddiusAI : public ScriptedAI
         if (!m_instance)
             return;
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Berserk
@@ -204,7 +203,7 @@ struct boss_thaddiusAI : public ScriptedAI
         {
             if (m_ballLightningTimer < diff)
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BALL_LIGHTNING) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BALL_LIGHTNING) == CAST_OK)
                     m_ballLightningTimer = 3 * IN_MILLISECONDS;
             }
             else
@@ -318,7 +317,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         return otherAdd;
     }
 
-    void Aggro(Unit* who) override
+    void Aggro(Unit* /*who*/) override
     {
         if (!m_instance)
             return;
@@ -327,7 +326,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
 
         if (Creature* otherAdd = GetOtherAdd())
         {
-            if (!otherAdd->isInCombat())
+            if (!otherAdd->IsInCombat())
                 otherAdd->SetInCombatWithZone();
         }
     }
@@ -361,7 +360,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
 
     bool IsCountingDead() const
     {
-        return m_isFakingDeath || m_creature->isDead();
+        return m_isFakingDeath || m_creature->IsDead();
     }
 
 
@@ -369,7 +368,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
-        if (m_areBothDead)                                        // This is the case while fighting Thaddius
+        if (m_areBothDead)                                    // This is the case while fighting Thaddius
         {
             if (m_shockOverloadTimer)                         // Timer before triggering phase 2 with spell Shock Overload
             {
@@ -392,7 +391,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
                 {
                     if (boss_thaddiusAddsAI* otherAI = dynamic_cast<boss_thaddiusAddsAI*>(pOther->AI()))
                     {
-                        if (!otherAI->IsCountingDead())    // Raid was to slow to kill the second add
+                        if (!otherAI->IsCountingDead())     // Raid was to slow to kill the second add
                         {
                             DoResetThreat();
                             SetCombatMovement(false);
@@ -401,7 +400,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
                         }
                         else
                         {
-                            m_areBothDead = true;             // Now both adds are counting dead
+                            m_areBothDead = true;           // Now both adds are counting dead
                             otherAI->m_areBothDead = true;
                             // Set both Teslas to overload
                             m_shockOverloadTimer = 14 * IN_MILLISECONDS;
@@ -415,7 +414,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         }
 
         // If no target do nothing
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_holdTimer)                      // A short timer preventing combat movement after revive
@@ -423,7 +422,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
             if (m_holdTimer <= diff)
             {
                 SetCombatMovement(true);
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
                 m_holdTimer = 0;
             }
             else
@@ -568,9 +567,9 @@ struct boss_feugenAI : public boss_thaddiusAddsAI
     {
         if (m_magneticPullTimer < diff)
         {
-            if (!m_isFakingDeath && GetOtherAdd(true))     // No need to check if we have a victim that Stalagg can pull: this is already done in super class
+            if (!m_isFakingDeath && GetOtherAdd(true))      // No need to check if we have a victim that Stalagg can pull: this is already done in super class
             {
-                if (DoMagneticPullIfCan())              // This will return false if Stalagg has no victim we can pull
+                if (DoMagneticPullIfCan())                  // This will return false if Stalagg has no victim we can pull
                 {
                     if (boss_thaddiusAddsAI* stalaggAI = dynamic_cast<boss_thaddiusAddsAI*>(GetOtherAdd()->AI()))
                     {

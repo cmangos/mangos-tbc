@@ -22,7 +22,7 @@ Patch_2.2.0: Increased recast time for Temporus' Hasten spell on Heroic. GetSubs
 SDCategory: Caverns of Time, The Dark Portal
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "dark_portal.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 
@@ -189,15 +189,15 @@ struct boss_temporusAI : public CombatAI
             case TEMPORUS_ACTION_HASTEN:
                 DoCastSpellIfCan(m_creature, SPELL_HASTEN);
             case TEMPORUS_ACTION_MORTAL_WOUND:
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_WOUND);
+                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MORTAL_WOUND);
         }
     }
 
     void UpdateAI(const uint32 diff)
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();

@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Karazhan
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 
 #include <random>
@@ -234,10 +234,10 @@ struct boss_netherspiteAI : public ScriptedAI
             SetCombatScriptStatus(false);
             SetMeleeEnabled(true);
 
-            if (m_creature->getVictim())
+            if (m_creature->GetVictim())
             {
-                m_creature->SetTarget(m_creature->getVictim());
-                DoStartMovement(m_creature->getVictim());
+                m_creature->SetTarget(m_creature->GetVictim());
+                DoStartMovement(m_creature->GetVictim());
             }
 
             m_uiActivePhase = BEAM_PHASE;
@@ -367,6 +367,7 @@ struct npc_netherspite_portalAI : public Scripted_NoMovementAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_uiOrientationTimer = 0;
+        m_creature->GetCombatManager().SetLeashingDisable(true);
         Reset();
     }
 

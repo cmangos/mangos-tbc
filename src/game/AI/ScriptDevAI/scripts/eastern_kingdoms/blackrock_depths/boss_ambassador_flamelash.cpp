@@ -21,7 +21,7 @@ SDComment: Texts probably missing; Spirits handling could be improved.
 SDCategory: Blackrock Depths
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "blackrock_depths.h"
 
 enum
@@ -68,8 +68,8 @@ struct boss_ambassador_flamelashAI : public ScriptedAI
     {
         ScriptedAI::MoveInLineOfSight(pWho);
 
-        if (pWho->GetEntry() == NPC_BURNING_SPIRIT && pWho->isAlive() && m_sSpiritsGuidsSet.find(pWho->GetObjectGuid()) != m_sSpiritsGuidsSet.end() &&
-                pWho->IsWithinDistInMap(m_creature, 2 * CONTACT_DISTANCE))
+        if (pWho->GetEntry() == NPC_BURNING_SPIRIT && pWho->IsAlive() && m_sSpiritsGuidsSet.find(pWho->GetObjectGuid()) != m_sSpiritsGuidsSet.end() &&
+            pWho->IsWithinDistInMap(m_creature, 2 * CONTACT_DISTANCE))
         {
             pWho->CastSpell(m_creature, SPELL_BURNING_SPIRIT, TRIGGERED_OLD_TRIGGERED);
             m_sSpiritsGuidsSet.erase(pWho->GetObjectGuid());
@@ -105,7 +105,7 @@ struct boss_ambassador_flamelashAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff) override
     {
         // Return since we have no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // m_uiSpiritTimer

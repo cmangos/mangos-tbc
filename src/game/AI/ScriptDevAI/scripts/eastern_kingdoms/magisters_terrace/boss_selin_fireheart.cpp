@@ -21,7 +21,7 @@ SDComment: Timers.
 SDCategory: Magister's Terrace
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "magisters_terrace.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 
@@ -200,7 +200,7 @@ struct boss_selin_fireheartAI : public CombatAI
                 {
                     DoScriptText(SAY_EMPOWERED, m_creature);
                     m_empowered = true;
-                    if (invoker->isAlive()) // Kill crystal
+                    if (invoker->IsAlive()) // Kill crystal
                         invoker->CastSpell(nullptr, SPELL_INSTAKILL_SELF, TRIGGERED_OLD_TRIGGERED);
                 }
 

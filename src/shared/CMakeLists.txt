@@ -95,6 +95,7 @@ set(SRC_GRP_UTIL
     Util.cpp
     Util.h
     WorldPacket.h
+    ProducerConsumerQueue.h
 )
 
 set(SRC_GRP_SRP
@@ -118,6 +119,10 @@ set(LIBRARY_SRCS
     Threading.cpp
     Threading.h
 )
+
+# define header files
+set(PCH_FILE_HEADER "pchdef.h")
+set(PCH_FILE_SOURCE "pchdef.cpp")
 
 source_group("Auth"
   FILES
@@ -176,42 +181,40 @@ else()
      )
 endif()
 
-# include external dependencies without warnings
-include_directories(SYSTEM
-  ${OPENSSL_INCLUDE_DIR}
-)
-
-include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_BINARY_DIR}
-)
-
-if(POSTGRESQL AND POSTGRESQL_FOUND AND NOT WIN32)
-  include_directories(SYSTEM ${PostgreSQL_INCLUDE_DIRS})
-else()
-  include_directories(SYSTEM ${MYSQL_INCLUDE_DIR})
-endif()
-
 add_library(${LIBRARY_NAME} STATIC
   ${LIBRARY_SRCS}
 )
 
-target_link_libraries(${LIBRARY_NAME}
-  PUBLIC framework
-  PUBLIC utf8cpp
-  PUBLIC ${OPENSSL_LIBRARIES}
-)
-
 target_include_directories(${LIBRARY_NAME}
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+  PUBLIC ${Boost_INCLUDE_DIRS}
   PUBLIC ${OPENSSL_INCLUDE_DIR}
-  PRIVATE ${Boost_INCLUDE_DIRS}
+  PUBLIC "${CMAKE_SOURCE_DIR}/src/game"
 )
 
-if(POSTGRESQL AND POSTGRESQL_FOUND AND NOT WIN32)
+target_link_libraries(${LIBRARY_NAME}
+  PUBLIC framework
+  PUBLIC ${Boost_LIBRARIES}
+  PUBLIC ${OPENSSL_LIBRARIES}
+  PUBLIC utf8cpp
+)
+
+if(POSTGRESQL AND POSTGRESQL_FOUND)
   target_include_directories(${LIBRARY_NAME} PUBLIC ${PostgreSQL_INCLUDE_DIRS})
 else()
   target_include_directories(${LIBRARY_NAME} PUBLIC ${MYSQL_INCLUDE_DIR})
+  target_link_libraries(${LIBRARY_NAME} PUBLIC ${MYSQL_LIBRARY})
+  if (WIN32)
+    # Add provided dependency lib to dev folder
+    string(REGEX REPLACE "/" "\\\\" LibFolder ${DEV_PROVIDED_LIBS_FOLDER})
+    add_custom_command(TARGET ${LIBRARY_NAME} POST_BUILD
+      COMMAND xcopy /Y \"${LibFolder}\\*.dll\" \"${DEV_BIN_DIR}\\*.dll\")
+  endif()
+endif()
+
+# Generate precompiled header
+if(PCH)
+  target_precompile_headers(${LIBRARY_NAME} PRIVATE "${PCH_FILE_HEADER}")
 endif()
 
 # Mark the revision header as being generated.

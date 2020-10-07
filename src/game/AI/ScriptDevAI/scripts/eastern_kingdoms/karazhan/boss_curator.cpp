@@ -28,7 +28,7 @@ Patches
 Removed sometime prior to 2.1.
 */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 #include "Spells/Spell.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
@@ -274,10 +274,10 @@ struct boss_curatorAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
         ExecuteActions();
 
         // if (!m_creature->HasAura(SPELL_ASTRAL_ARMOR))

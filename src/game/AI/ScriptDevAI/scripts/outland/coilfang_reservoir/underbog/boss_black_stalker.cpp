@@ -21,7 +21,7 @@ SDComment: Spore Strider should have Delayed Despawn on The Black Stalker Death
 SDCategory: Coilfang Resevoir, Underbog
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 
 enum // order based on priority
@@ -50,6 +50,10 @@ struct boss_black_stalkerAI : public ScriptedAI, public CombatActions
         AddCombatAction(BLACK_STALKER_ACTION_STATIC_CHARGE, 0u);
         AddCombatAction(BLACK_STALKER_ACTION_CHAIN_LIGHTNING, 0u);
         AddCombatAction(BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER, 0u);
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float x, float y, float /*z*/)->bool
+        {
+            return x < 100.0f || y < -30.0f;
+        });
         Reset();
     }
 
@@ -159,15 +163,14 @@ struct boss_black_stalkerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
 
         DoMeleeAttackIfReady();
-        EnterEvadeIfOutOfCombatArea(diff);
     }
 };
 

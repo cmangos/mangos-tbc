@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Scarlet Monastery
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "scarlet_monastery.h"
 
 enum
@@ -126,7 +126,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
             return;
 
         Creature* pWhitemane = m_pInstance->GetSingleCreatureFromStorage(NPC_WHITEMANE);
-        if (pWhitemane && !pWhitemane->isAlive())
+        if (pWhitemane && !pWhitemane->IsAlive())
             pWhitemane->Respawn();
     }
 
@@ -183,7 +183,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_bHasDied && !m_bHeal && m_pInstance && m_pInstance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == SPECIAL)
@@ -198,8 +198,8 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
             m_uiCrusaderStrike_Timer = 8400;
             m_uiHammerOfJustice_Timer = 9600;
 
-            if (m_creature->getVictim())
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+            if (m_creature->GetVictim())
+                m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
 
             m_bHeal = true;
         }
@@ -211,7 +211,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
         // m_uiCrusaderStrike_Timer
         if (m_uiCrusaderStrike_Timer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CRUSADERSTRIKE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CRUSADERSTRIKE) == CAST_OK)
                 m_uiCrusaderStrike_Timer = urand(6000, 15000);
         }
         else
@@ -220,7 +220,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
         // m_uiHammerOfJustice_Timer
         if (m_uiHammerOfJustice_Timer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMMEROFJUSTICE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HAMMEROFJUSTICE) == CAST_OK)
                 m_uiHammerOfJustice_Timer = urand(7000, 18500);
         }
         else
@@ -263,7 +263,7 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
 
         if (Creature* pMograine = m_pInstance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
         {
-            if (m_creature->isAlive() && !pMograine->isAlive())
+            if (m_creature->IsAlive() && !pMograine->IsAlive())
                 pMograine->Respawn();
         }
     }
@@ -314,7 +314,7 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_bCanResurrect)
@@ -368,7 +368,7 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
         // m_uiHolySmite_Timer
         if (m_uiHolySmite_Timer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLYSMITE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HOLYSMITE) == CAST_OK)
                 m_uiHolySmite_Timer = urand(3500, 5000);
         }
         else

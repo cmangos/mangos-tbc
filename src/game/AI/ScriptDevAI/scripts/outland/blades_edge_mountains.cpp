@@ -42,12 +42,13 @@ npc_spirit_prisoner_of_bladespire
 npc_evergrove_druid
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
-#include "AI/ScriptDevAI/scripts/world/world_map_scripts.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/scripts/outland/world_outland.h"
 #include "Entities/TemporarySpawn.h"
 #include "Reputation/ReputationMgr.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "Spells/Spell.h"
+#include "Spells/Scripts/SpellScript.h"
 
 /*######
 ## mobs_nether_drake
@@ -195,7 +196,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
             return;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiIntangiblePresenceTimer < uiDiff)
@@ -219,7 +220,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
 
         if (m_uiArcaneBlastTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ARCANE_BLAST) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_ARCANE_BLAST) == CAST_OK)
                 m_uiArcaneBlastTimer = urand(2500, 7500);
         }
         else
@@ -354,7 +355,7 @@ struct npc_bloodmaul_stout_triggerAI : public ScriptedAI
 
                 do
                 {
-                    if ((*ogreItr)->isAlive() && !(*ogreItr)->HasAura(SPELL_INTOXICATION))
+                    if ((*ogreItr)->IsAlive() && !(*ogreItr)->HasAura(SPELL_INTOXICATION))
                         pOgre = *ogreItr;
 
                     ++ogreItr;
@@ -775,7 +776,7 @@ struct npc_simon_game_bunnyAI : public ScriptedAI
                     else
                     {
                         DoCastSpellIfCan(pInvoker, SPELL_BAD_PRESS, CAST_TRIGGERED);
-                        if (!m_bIsLargeEvent && !pInvoker->isAlive()) // if player got killed on small event
+                        if (!m_bIsLargeEvent && !pInvoker->IsAlive()) // if player got killed on small event
                         {
                             DoCastSpellIfCan(m_creature, SPELL_VISUAL_GAME_FAILED, CAST_TRIGGERED);
                             DoCleanupGame();
@@ -1141,7 +1142,7 @@ struct npc_vimgol_AI : public ScriptedAI
     {
         m_creature->GetMotionMaster()->Clear();
         m_creature->CastSpell(m_creature, SPELL_UNHOLY_GROWTH, TRIGGERED_NONE);
-        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+        m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -1151,7 +1152,7 @@ struct npc_vimgol_AI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_uiEnrage)
@@ -1549,12 +1550,12 @@ struct npc_bloodmaul_dire_wolfAI : public ScriptedAI
                 m_uiUnfriendlyTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiRendTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_REND) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_REND) == CAST_OK)
                 m_uiRendTimer = urand(8000, 13000);
         }
         else
@@ -1626,8 +1627,8 @@ enum
 
 bool AreaTrigger_at_raven_prophecy(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
-    if (/*pPlayer->isGameMaster() ||*/ pPlayer->isAlive() &&
-        pPlayer->HasAura(UNDERSTAND_RAVENSPEECH_AURA) &&
+    if (/*pPlayer->isGameMaster() ||*/ pPlayer->IsAlive() &&
+                                       pPlayer->HasAura(UNDERSTAND_RAVENSPEECH_AURA) &&
         pPlayer->GetQuestStatus(QUEST_WHISPERS_OF_THE_RAVEN_GOD) == QUEST_STATUS_INCOMPLETE)
     {
         auto prophecyIterator = prophecies.find(pAt->id);
@@ -1678,10 +1679,11 @@ enum
 // This is a first attempt to implement GO type 30 behaviour
 struct go_aura_generator_000AI : public GameObjectAI
 {
-    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000) {}
+    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000), m_spellInfo(sSpellTemplate.LookupEntry<SpellEntry>(SPELL_OSCILLATING_FREQUENCY_SCANNER)) {}
 
     uint32 m_auraSearchTimer;
     ObjectGuid m_player;
+    SpellEntry const* m_spellInfo;
 
     void UpdateAI(const uint32 diff) override
     {
@@ -1692,7 +1694,7 @@ struct go_aura_generator_000AI : public GameObjectAI
             {
                 float x, y, z;
                 m_go->GetPosition(x, y, z);
-                auto bounds = player->GetSpellAuraHolderBounds(37407);
+                auto bounds = player->GetSpellAuraHolderBounds(m_spellInfo->Id);
                 SpellAuraHolder* myHolder = nullptr;
                 for (auto itr = bounds.first; itr != bounds.second; ++itr)
                 {
@@ -1703,14 +1705,13 @@ struct go_aura_generator_000AI : public GameObjectAI
                         break;
                     }
                 }
-                bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < 25.f; // value comes from spell and go template
+                bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0]));
                 if (!myHolder)
                 {
                     if (isCloseEnough)
                     {
-                        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_OSCILLATING_FREQUENCY_SCANNER);
-                        myHolder = CreateSpellAuraHolder(spellInfo, player, m_go);
-                        GameObjectAura* Aur = new GameObjectAura(spellInfo, EFFECT_INDEX_0, nullptr, nullptr, myHolder, player, m_go);
+                        myHolder = CreateSpellAuraHolder(m_spellInfo, player, m_go);
+                        GameObjectAura* Aur = new GameObjectAura(m_spellInfo, EFFECT_INDEX_0, nullptr, nullptr, myHolder, player, m_go);
                         myHolder->AddAura(Aur, EFFECT_INDEX_0);
                         if (!player->AddSpellAuraHolder(myHolder))
                             delete myHolder;
@@ -1884,6 +1885,8 @@ struct npc_fel_cannon : public Scripted_NoMovementAI
             }
 
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS,UNIT_FLAG_NOT_SELECTABLE);
+
+            m_creature->GetCombatManager().SetLeashingDisable(true);
         }
     }
 
@@ -1909,13 +1912,13 @@ struct npc_fel_cannon : public Scripted_NoMovementAI
 
         if (!m_bMCed)
         {
-            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
                 return;
 
             if (m_uiCannonBlastTimer <= uiDiff)
             {
                 m_uiCannonBlastTimer = 2500;
-                m_creature->CastSpell(m_creature->getVictim(), SPELL_FEL_CANNON_BLAST, TRIGGERED_NONE);
+                m_creature->CastSpell(m_creature->GetVictim(), SPELL_FEL_CANNON_BLAST, TRIGGERED_NONE);
             }
             else
                 m_uiCannonBlastTimer -= uiDiff;
@@ -1982,7 +1985,7 @@ struct npc_warp_gate : public Scripted_NoMovementAI
 
         m_guidSmoke = ObjectGuid();
 
-        if (m_creature->isAlive())
+        if (m_creature->IsAlive())
         {
             float x, y, z, ori;
             m_creature->GetRespawnCoord(x, y, z, &ori);
@@ -2266,7 +2269,7 @@ struct npc_soulgrinderAI : public ScriptedAI
                     dummy->ForcedDespawn();
 
             if (Creature* gronn = m_creature->GetMap()->GetCreature(m_skullocSoulgrinder))
-                if (gronn->isAlive())
+                if (gronn->IsAlive())
                     gronn->ForcedDespawn();
         }
     }
@@ -3145,7 +3148,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
                 {
                     case FLAYER_ACTION_REND:
                     {
-                        if (Unit* target = m_creature->getVictim())
+                        if (Unit* target = m_creature->GetVictim())
                         {
                             if (DoCastSpellIfCan(target, FLAYER_SPELL_REND) == CAST_OK)
                             {
@@ -3158,7 +3161,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
                     }
                     case FLAYER_ACTION_SHRED_ARMOR:
                     {
-                        if (Unit* target = m_creature->getVictim())
+                        if (Unit* target = m_creature->GetVictim())
                         {
                             if (DoCastSpellIfCan(target, FLAYER_SPELL_SHRED_ARMOR) == CAST_OK)
                             {
@@ -3177,7 +3180,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         {
             if (idleTimer)
             {
@@ -3202,7 +3205,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
         }
         else
         {
-            UpdateTimers(diff, m_creature->isInCombat());
+            UpdateTimers(diff, m_creature->IsInCombat());
             ExecuteActions();
 
             DoMeleeAttackIfReady();
@@ -3494,10 +3497,10 @@ struct npc_skyguard_rangerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
         ExecuteActions();
 
         DoMeleeAttackIfReady();
@@ -3701,7 +3704,7 @@ struct npc_bashir_flesh_fiendAI : public ScriptedAI, public CombatActions
                             SetCombatScriptStatus(true);
                             SetCombatMovement(false);
                             float x, y, z;
-                            m_creature->getVictim()->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), m_creature->GetCombinedCombatReach(slaveringSlave), slaveringSlave->GetAngle(m_creature));
+                            m_creature->GetVictim()->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), m_creature->GetCombinedCombatReach(slaveringSlave), slaveringSlave->GetAngle(m_creature));
                             m_creature->GetMotionMaster()->MovePoint(POINT_EAT_FRIEND, x, y, z);
                             m_slaveringSlave = slaveringSlave->GetObjectGuid();
                         }
@@ -3739,9 +3742,9 @@ struct npc_bashir_flesh_fiendAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
@@ -3975,7 +3978,7 @@ struct npc_grand_collectorAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
         if (!m_creature->SelectHostileTarget())
             return;
 
@@ -3988,6 +3991,14 @@ UnitAI* GetAI_npc_grand_collector(Creature* creature)
 {
     return new npc_grand_collectorAI(creature);
 }
+
+struct EtherealRingSignalFlare : public SpellScript
+{
+    void OnDestTarget(Spell* spell) const override
+    {
+        spell->m_targets.m_destZ = 342.9485f; // confirmed with sniffs
+    }
+};
 
 void AddSC_blades_edge_mountains()
 {
@@ -4149,4 +4160,6 @@ void AddSC_blades_edge_mountains()
     pNewScript->Name = "npc_grand_collector";
     pNewScript->GetAI = &GetAI_npc_grand_collector;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<EtherealRingSignalFlare>("spell_ethereal_ring_signal_flare");
 }

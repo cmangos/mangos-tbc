@@ -21,7 +21,7 @@ SDComment: Script handles Delrissa and her companions AI. They need special PvP-
 SDCategory: Magister's Terrace
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "magisters_terrace.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 
@@ -129,7 +129,7 @@ struct boss_priestess_delrissaAI : public CombatAI
             m_instance->SetData(TYPE_DELRISSA, IN_PROGRESS);
     }
 
-    void JustPreventedDeath(Unit* attacker) override
+    void JustPreventedDeath(Unit* /*attacker*/) override
     {
         DoFakeDeath(SPELL_PERMANENT_FEIGN_DEATH);
         if (m_summonsKilled >= 4)
@@ -140,7 +140,7 @@ struct boss_priestess_delrissaAI : public CombatAI
     void DoInitializeCompanions()
     {
         // can be called if creature are dead, so avoid
-        if (!m_creature->isAlive())
+        if (!m_creature->IsAlive())
             return;
 
         // it's empty, so first time
@@ -189,7 +189,7 @@ struct boss_priestess_delrissaAI : public CombatAI
             m_playersKilled = 0;
     }
 
-    void SummonedCreatureJustDied(Creature* summoned) override
+    void SummonedCreatureJustDied(Creature* /*summoned*/) override
     {
         ++m_summonsKilled;
         if (m_summonsKilled >= 4)
@@ -212,7 +212,7 @@ struct boss_priestess_delrissaAI : public CombatAI
 
     virtual void ExecuteActions() override
     {
-        if (!m_creature->isAlive() || m_creature->IsEvadingHome() || (m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED) && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED)) ||
+        if (!m_creature->IsAlive() || m_creature->GetCombatManager().IsEvadingHome() || (m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED) && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED)) ||
             m_unit->hasUnitState(UNIT_STAT_PROPELLED | UNIT_STAT_RETREATING) || m_unit->IsNonMeleeSpellCasted(false))
             return; // custom condition due to her medallion - TODO: resolve globally
 
@@ -337,7 +337,7 @@ struct priestess_companion_commonAI : public CombatAI
 
     virtual void ExecuteActions() override
     {
-        if (!m_creature->isAlive() || m_creature->IsEvadingHome() || (m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED) && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED)) ||
+        if (!m_creature->IsAlive() || m_creature->GetCombatManager().IsEvadingHome() || (m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED) && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED)) ||
             m_unit->hasUnitState(UNIT_STAT_PROPELLED | UNIT_STAT_RETREATING) || m_unit->IsNonMeleeSpellCasted(false))
             return; // custom condition due to medallion - TODO: resolve globally
 
@@ -415,8 +415,8 @@ struct npc_kagani_nightstrikeAI : public priestess_companion_commonAI
         AddCombatAction(KAGANI_EVISCERATE, 6000u);
         AddCustomAction(KAGANI_VANISH_END, true, [&]()
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_BACKSTAB, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_KIDNEY_SHOT, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BACKSTAB, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KIDNEY_SHOT, CAST_TRIGGERED);
         });
         Reset();
     }
@@ -431,11 +431,11 @@ struct npc_kagani_nightstrikeAI : public priestess_companion_commonAI
         switch (action)
         {
             case KAGANI_GOUGE:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_GOUGE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_GOUGE) == CAST_OK)
                     ResetCombatAction(action, 5500);
                 break;
             case KAGANI_KICK:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KICK) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KICK) == CAST_OK)
                     ResetCombatAction(action, 7000);
                 break;
             case KAGANI_VANISH:
@@ -453,7 +453,7 @@ struct npc_kagani_nightstrikeAI : public priestess_companion_commonAI
                 }
                 break;
             case KAGANI_EVISCERATE:
-                if (DoCastSpellIfCan(m_creature->getVictim(), m_isRegularMode ? SPELL_EVISCERATE : SPELL_EVISCERATE_H) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), m_isRegularMode ? SPELL_EVISCERATE : SPELL_EVISCERATE_H) == CAST_OK)
                     ResetCombatAction(action, 4000);
                 break;
         }
@@ -603,11 +603,11 @@ struct npc_eramas_brightblazeAI : public priestess_companion_commonAI
         switch (action)
         {
             case ERAMAS_KNOCKDOWN:
-                if (DoCastSpellIfCan(m_creature->getVictim(), m_isRegularMode ? SPELL_KNOCKDOWN : SPELL_KNOCKDOWN_H) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), m_isRegularMode ? SPELL_KNOCKDOWN : SPELL_KNOCKDOWN_H) == CAST_OK)
                     ResetCombatAction(action, 6000u);
                 break;
             case ERAMAS_KICK:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SNAP_KICK) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SNAP_KICK) == CAST_OK)
                     ResetCombatAction(action, 4500u);
                 break;
         }
@@ -786,23 +786,23 @@ struct npc_warlord_salarisAI : public priestess_companion_commonAI
                     ResetCombatAction(action, 2000);
                 break;
             case SALARIS_DISARM:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DISARM) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_DISARM) == CAST_OK)
                     ResetCombatAction(action, 6000);
                 break;
             case SALARIS_PIERCING_HOWL:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PIERCING_HOWL) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_PIERCING_HOWL) == CAST_OK)
                     ResetCombatAction(action, 10000);
                 break;
             case SALARIS_FRIGHTENING_SHOUT:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FRIGHTENING_SHOUT) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FRIGHTENING_SHOUT) == CAST_OK)
                     ResetCombatAction(action, 18000);
                 break;
             case SALARIS_HAMSTRING:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMSTRING) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HAMSTRING) == CAST_OK)
                     ResetCombatAction(action, 4500);
                 break;
             case SALARIS_MORTAL_STRIKE:
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
                     ResetCombatAction(action, 4500);
                 break;
         }
@@ -891,7 +891,7 @@ struct npc_garaxxasAI : public priestess_companion_commonAI
                         ResetCombatAction(action, 10000);
                 break;
             case GARAXXAS_WING_CLIP: // melee
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_WING_CLIP) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_WING_CLIP) == CAST_OK)
                     ResetCombatAction(action, 4000);
                 break;
             case GARAXXAS_FREEZING_TRAP: // melee
@@ -976,7 +976,7 @@ struct npc_apokoAI : public priestess_companion_commonAI
                         ResetCombatAction(action, 5000);
                 break;
             case APOKO_FROST_SHOCK:
-                if (DoCastSpellIfCan(m_creature->getVictim(), m_isRegularMode ? SPELL_FROST_SHOCK : SPELL_FROST_SHOCK_H) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), m_isRegularMode ? SPELL_FROST_SHOCK : SPELL_FROST_SHOCK_H) == CAST_OK)
                     ResetCombatAction(action, 7000);
                 break;
         }
@@ -1030,7 +1030,7 @@ struct npc_zelfanAI : public priestess_companion_commonAI
     void JustSummoned(Creature* summoned) override
     {
         if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_NEAREST_BY, 0, nullptr, SELECT_FLAG_PLAYER))
-            summoned->AI()->AttackStart(m_creature->getVictim());
+            summoned->AI()->AttackStart(m_creature->GetVictim());
     }
 
     void ExecuteAction(uint32 action) override

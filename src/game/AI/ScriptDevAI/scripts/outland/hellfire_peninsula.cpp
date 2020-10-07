@@ -33,7 +33,7 @@ npc_magister_aledis
 npc_living_flare
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/pet_ai.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
@@ -72,7 +72,7 @@ struct npc_aeranasAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff) override
     {
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_creature->GetHealthPercent() < 30.0f)
@@ -86,7 +86,7 @@ struct npc_aeranasAI : public ScriptedAI
 
         if (m_uiShockTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHOCK);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHOCK);
             m_uiShockTimer = 10000;
         }
         else
@@ -94,7 +94,7 @@ struct npc_aeranasAI : public ScriptedAI
 
         if (m_uiEnvelopingWindsTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_ENVELOPING_WINDS);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_ENVELOPING_WINDS);
             m_uiEnvelopingWindsTimer = 25000;
         }
         else
@@ -149,15 +149,15 @@ struct npc_ancestral_wolfAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 DoScriptText(EMOTE_WOLF_LIFT_HEAD, m_creature);
                 break;
-            case 2:
+            case 3:
                 DoScriptText(EMOTE_WOLF_HOWL, m_creature);
                 break;
-            case 50:
+            case 51:
                 Creature* pRyga = GetClosestCreatureWithEntry(m_creature, NPC_RYGA, 30.0f);
-                if (pRyga && pRyga->isAlive() && !pRyga->isInCombat())
+                if (pRyga && pRyga->IsAlive() && !pRyga->IsInCombat())
                     DoScriptText(SAY_WOLF_WELCOME, pRyga);
                 break;
         }
@@ -274,7 +274,7 @@ struct npc_demoniac_scryerAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (m_bIsComplete || !m_creature->isAlive())
+        if (m_bIsComplete || !m_creature->IsAlive())
             return;
 
         if (m_uiSpawnButtressTimer <= uiDiff)
@@ -283,7 +283,7 @@ struct npc_demoniac_scryerAI : public ScriptedAI
             {
                 m_creature->CastSpell(m_creature, SPELL_SUCKER_DESPAWN_MOB, TRIGGERED_NONE);
 
-                if (m_creature->isInCombat())
+                if (m_creature->IsInCombat())
                 {
                     m_creature->CombatStop();
                 }
@@ -380,33 +380,33 @@ struct npc_wounded_blood_elfAI : public npc_escortAI
 
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 DoScriptText(SAY_ELF_START, m_creature, pPlayer);
                 break;
-            case 13:
+            case 14:
                 m_creature->SetFacingTo(3.7f);
                 DoScriptText(SAY_ELF_SUMMON1, m_creature, pPlayer);
                 m_creature->SummonCreature(NPC_TALONGUARD, -983.206f, 4163.884f, 38.01043f, 0.72f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
                 m_creature->SummonCreature(NPC_TALONGUARD, -985.732f, 4157.546f, 43.50933f, 0.80f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
                 break;
-            case 19:
+            case 20:
                 DoScriptText(SAY_ELF_RESTING, m_creature, pPlayer);
                 m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
                 break;
-            case 20:
+            case 21:
                 m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                 break;
-            case 21:
+            case 22:
                 DoScriptText(SAY_ELF_SUMMON2, m_creature, pPlayer);
                 m_creature->SummonCreature(NPC_WINDWALKER, -864.001f, 4253.191f, 43.89390f, 5.27f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
                 break;
-            case 38:
+            case 39:
                 DoScriptText(SAY_ELF_COMPLETE, m_creature, pPlayer);
                 break;
-            case 39:
+            case 40:
                 m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
                 break;
-            case 40:
+            case 41:
                 pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ROAD_TO_FALCON_WATCH, m_creature);
                 pPlayer->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_END_TALERIS_INT, m_creature, m_creature);
                 break;
@@ -415,9 +415,7 @@ struct npc_wounded_blood_elfAI : public npc_escortAI
 
     void JustSummoned(Creature* pSummoned) override
     {
-        pSummoned->AddThreat(m_creature);
-        pSummoned->SetInCombatWith(m_creature);
-        m_creature->SetInCombatWith(pSummoned);
+        pSummoned->AI()->AttackStart(m_creature);
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -556,7 +554,7 @@ enum
     SAY_EXORCISM_5					= -1000988,
     SAY_EXORCISM_6					= -1000992,
     SAY_EXORCISM_7					= -1000986,
-    
+
     BARADA_SAY_EXORCISM_RANDOM_1	= -1000987,
     BARADA_SAY_EXORCISM_RANDOM_2	= -1015009,
     BARADA_SAY_EXORCISM_RANDOM_3	= -1000989,
@@ -607,15 +605,29 @@ struct npc_colonel_julesAI : public ScriptedAI
     npc_colonel_julesAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
 
     bool m_bReturnHome;
+    uint32 darknessReleasedCount;
+    uint32 darknessReleasedSpawnTimer;
     std::vector<ObjectGuid> m_vSummonVector;
+    CreatureList lSlimeList;
 
     void Reset() override
     {
-        for (ObjectGuid& guid : m_vSummonVector)
-            if (Creature* summon = m_creature->GetMap()->GetCreature(guid))
-                summon->ForcedDespawn();
-
+        DespawnSummons();
         m_vSummonVector.clear();
+        darknessReleasedCount = 0;
+        darknessReleasedSpawnTimer = 40000;
+    }
+
+    void UpdateAI(const uint32 uiDiff) override
+    {
+        if (darknessReleasedSpawnTimer <= uiDiff)
+        {
+            darknessReleasedSpawnTimer = 40000;
+            if (darknessReleasedCount > 0)
+                darknessReleasedCount--;
+        }
+        else
+            darknessReleasedSpawnTimer -= uiDiff;
     }
 
     void MovementInform(uint32 uiType, uint32 uiPointId) override
@@ -648,19 +660,57 @@ struct npc_colonel_julesAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned) override
     {
+        if (pSummoned->GetEntry() == NPC_DARKNESS_RELEASED)
+        {
+            if (darknessReleasedCount < 3 && m_creature->HasAura(SPELL_JULES_THREATENS_AURA))
+            {
+                darknessReleasedCount++;
+                pSummoned->AI()->SetCombatMovement(false);
+                if (Creature* pBarada = GetClosestCreatureWithEntry(m_creature, NPC_ANCHORITE_BARADA, 15.0f))
+                {
+                    pSummoned->AI()->AttackStart(pBarada);
+                    pSummoned->GetMotionMaster()->MoveRandomAroundPoint(pBarada->GetPositionX(), pBarada->GetPositionY(), pBarada->GetPositionZ(), 5.0f);
+                }
+            }
+            else
+            {
+                pSummoned->ForcedDespawn();
+                return;
+            }
+        }
+
         m_vSummonVector.push_back(pSummoned->GetObjectGuid());
     }
 
     void SummonedCreatureJustDied(Creature* pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_DARKNESS_RELEASED)
+        {
             pSummoned->CastSpell(pSummoned, SPELL_FLYING_SKULL_DESPAWN, TRIGGERED_OLD_TRIGGERED);
+            darknessReleasedCount--;
+        }
 
         m_vSummonVector.erase(std::remove(m_vSummonVector.begin(), m_vSummonVector.end(), pSummoned->GetObjectGuid()), m_vSummonVector.end());
     }
 
+    void DespawnSummons()
+    {
+        for (ObjectGuid& guid : m_vSummonVector)
+            if (Creature* summon = m_creature->GetMap()->GetCreature(guid))
+                summon->ForcedDespawn();
+
+        lSlimeList.clear();
+        GetCreatureListWithEntryInGrid(lSlimeList, m_creature, NPC_FOUL_PURGE, 40.0f);
+        for (auto& itr : lSlimeList)
+        {
+            if (itr->IsAlive())
+                itr->ForcedDespawn();
+        }
+    }
+
     void GoHome()
     {
+        DespawnSummons();
         m_bReturnHome = true;
         m_creature->GetMotionMaster()->SetNextWaypoint(5);
         m_creature->RemoveAurasDueToSpell(SPELL_JULES_VOMITS);
@@ -941,7 +991,7 @@ struct npc_anchorite_baradaAI : public ScriptedAI, private DialogueHelper
                     if (npc_colonel_julesAI* julesAI = dynamic_cast<npc_colonel_julesAI*>(pColonel->AI()))
                         julesAI->EndEvent();
 
-                if (m_creature->isAlive())
+                if (m_creature->IsAlive())
                     m_creature->ForcedDespawn();
                 m_creature->Respawn();
 
@@ -965,7 +1015,7 @@ struct npc_anchorite_baradaAI : public ScriptedAI, private DialogueHelper
                 m_uiResetTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -1089,8 +1139,9 @@ struct npc_magister_aledisAI : public ScriptedAI
 
         SetCombatMovement(true);
         SetCombatScriptStatus(false);
+        m_meleeEnabled = false;
 
-        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP); // TODO: check if needs to be removed somewhere
     }
 
     uint32 GetInitialActionTimer(AledisActions id)
@@ -1121,19 +1172,6 @@ struct npc_magister_aledisAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
     }
 
-    void AttackStart(Unit* pWho) override
-    {
-        m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-
-        if (m_creature->Attack(pWho, false))
-        {
-            m_creature->AddThreat(pWho);
-            m_creature->SetInCombatWith(pWho);
-            pWho->SetInCombatWith(m_creature);
-            HandleMovementOnAttackStart(pWho);
-        }
-    }
-
     void EnterEvadeMode() override
     {
         m_creature->RemoveAllAurasOnEvade();
@@ -1142,7 +1180,7 @@ struct npc_magister_aledisAI : public ScriptedAI
         if (!m_bIsDefeated)
             m_creature->LoadCreatureAddon(true);
 
-        if (m_creature->isAlive())
+        if (m_creature->IsAlive())
         {
             if (!m_bIsDefeated)
             {
@@ -1172,7 +1210,7 @@ struct npc_magister_aledisAI : public ScriptedAI
                 {
                     case ALEDIS_ACTION_PYROBLAST:
                     {
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_PYROBLAST) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_PYROBLAST) == CAST_OK)
                         {
                             m_actionTimers[i] = GetSubsequentActionTimer(AledisActions(i));
                             m_actionReadyStatus[i] = false;
@@ -1193,7 +1231,7 @@ struct npc_magister_aledisAI : public ScriptedAI
                     }
                     case ALEDIS_ACTION_FIREBALL:
                     {
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FIREBALL) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FIREBALL) == CAST_OK)
                         {
                             m_actionTimers[i] = GetSubsequentActionTimer(AledisActions(i));
                             m_actionReadyStatus[i] = false;
@@ -1210,7 +1248,7 @@ struct npc_magister_aledisAI : public ScriptedAI
         switch (spell->Id)
         {
         case SPELL_FROST_NOVA:
-            if (m_creature->getVictim() != victim) // frostnova hit others, resist case
+            if (m_creature->GetVictim() != victim) // frostnova hit others, resist case
                 break;
             DistanceYourself();
             break;
@@ -1219,7 +1257,7 @@ struct npc_magister_aledisAI : public ScriptedAI
 
     void DistanceYourself()
     {
-        if (Unit* victim = m_creature->getVictim()) // make sure target didnt die
+        if (Unit* victim = m_creature->GetVictim()) // make sure target didnt die
         {
             float distance = DISTANCING_CONSTANT + m_creature->GetCombinedCombatReach(victim, true);
             m_creature->GetMotionMaster()->DistanceYourself(distance);
@@ -1240,7 +1278,7 @@ struct npc_magister_aledisAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         for (uint32 i = 0; i < ALEDIS_ACTION_MAX; ++i)
@@ -1828,7 +1866,7 @@ struct npc_vindicator_sedaiAI : public ScriptedAI, public CombatActions
             switch (i)
             {
                 case SEDAI_COMBAT_ACTION_HAMMER:
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMMER_OF_JUSTICE) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HAMMER_OF_JUSTICE) == CAST_OK)
                     {
                         SetActionReadyStatus(i, false);
                         ResetTimer(i, 15000);
@@ -1836,7 +1874,7 @@ struct npc_vindicator_sedaiAI : public ScriptedAI, public CombatActions
                     }
                     continue;
                 case SEDAI_COMBAT_ACTION_HOLYFIRE:
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLY_FIRE) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HOLY_FIRE) == CAST_OK)
                     {
                         SetActionReadyStatus(i, false);
                         ResetTimer(i, 25000);
@@ -1901,9 +1939,9 @@ struct npc_vindicator_sedaiAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();

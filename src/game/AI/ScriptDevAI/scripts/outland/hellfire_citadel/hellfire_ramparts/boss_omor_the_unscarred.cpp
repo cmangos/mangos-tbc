@@ -22,7 +22,7 @@ Players should be ~6 seconds airborne, shadow whip should be casted ~3 maybe 4 t
 SDCategory: Hellfire Citadel, Hellfire Ramparts
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 enum
 {
@@ -117,7 +117,7 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiSummonTimer < uiDiff)
@@ -148,8 +148,8 @@ struct boss_omor_the_unscarredAI : public ScriptedAI
         else if (m_uiOrbitalStrikeTimer < uiDiff)
         {
             Unit* pTemp = nullptr;
-            if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
-                pTemp = m_creature->getVictim();
+            if (m_creature->CanReachWithMeleeAttack(m_creature->GetVictim()))
+                pTemp = m_creature->GetVictim();
             else
                 pTemp = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER | SELECT_FLAG_IN_MELEE_RANGE);
 

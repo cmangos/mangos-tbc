@@ -987,30 +987,29 @@ bool ChatHandler::HandlerDebugModValueHelper(Object* target, uint32 field, char*
             return false;
 
         uint32 value = target->GetUInt32Value(field);
-        const char* guidString = guid.GetString().c_str();
 
         switch (type)
         {
             default:
             case 1:                                         // int +
                 value = uint32(int32(value) + int32(iValue));
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_INT32), guidString, field, iValue, value, value);
-                PSendSysMessage(LANG_CHANGE_INT32_FIELD, guidString, field, iValue, value, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_INT32), guid.GetString().c_str(), field, iValue, value, value);
+                PSendSysMessage(LANG_CHANGE_INT32_FIELD, guid.GetString().c_str(), field, iValue, value, value);
                 break;
             case 2:                                         // |= bit or
                 value |= iValue;
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString, field, typeStr, iValue, value);
-                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString, field, typeStr, iValue, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guid.GetString().c_str(), field, typeStr, iValue, value);
+                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guid.GetString().c_str(), field, typeStr, iValue, value);
                 break;
             case 3:                                         // &= bit and
                 value &= iValue;
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString, field, typeStr, iValue, value);
-                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString, field, typeStr, iValue, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guid.GetString().c_str(), field, typeStr, iValue, value);
+                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guid.GetString().c_str(), field, typeStr, iValue, value);
                 break;
             case 4:                                         // &=~ bit and not
                 value &= ~iValue;
-                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guidString, field, typeStr, iValue, value);
-                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guidString, field, typeStr, iValue, value);
+                DEBUG_LOG(GetMangosString(LANG_CHANGE_HEX), guid.GetString().c_str(), field, typeStr, iValue, value);
+                PSendSysMessage(LANG_CHANGE_HEX_FIELD, guid.GetString().c_str(), field, typeStr, iValue, value);
                 break;
         }
 
@@ -1512,5 +1511,124 @@ bool ChatHandler::HandleDebugChatFreezeCommand(char* /*args*/)
     Player* player = m_session->GetPlayer();
     player->Whisper(message, LANG_UNIVERSAL, player->GetObjectGuid());
 
+    return true;
+}
+
+bool ChatHandler::HandleDebugFlyCommand(char* args)
+{
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        return false;
+    }
+
+    uint32 value;
+    if (!ExtractUInt32(&args, value))
+        return false;
+
+    uint32 apply;
+    if (!ExtractUInt32(&args, apply))
+        return false;
+
+    switch (value)
+    {
+        case 0: target->SetHover(bool(apply)); break;
+        case 1: target->SetLevitate(bool(apply)); break;
+        case 2: target->SetCanFly(bool(apply)); break;
+        case 3:
+            if (apply)
+                target->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+            else
+                target->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+            break;
+    }
+
+    return true;
+}
+
+bool ChatHandler::HandleDebugObjectFlags(char* args)
+{
+    char* debugCmd = ExtractLiteralArg(&args);
+    std::string debugCmdStr;
+    CMDebugCommandTableStruct const* foundCommand = nullptr;
+
+    if (debugCmd)
+    {
+        debugCmdStr = debugCmd;
+        uint32 bestMaches = 0;
+        for (std::vector < CMDebugCommandTableStruct>::const_iterator itr = CMDebugCommandTable.begin(); itr < CMDebugCommandTable.end(); ++itr)
+        {
+            CMDebugCommandTableStruct const* cmd = &*itr;
+            for (uint32 i = 0; i < debugCmdStr.length(); ++i)
+            {
+                if (i < cmd->command.length() && cmd->command[i] == debugCmdStr[i])
+                {
+                    if (bestMaches < i + 1)
+                    {
+                        bestMaches = i + 1;
+                        foundCommand = cmd;
+                    }
+                }
+                else
+                    break;
+            }
+            if (bestMaches == debugCmdStr.length())
+                break;
+        }
+    }
+
+    if (!debugCmd || !foundCommand)
+    {
+        if (debugCmd && !foundCommand)
+            PSendSysMessage("%s is not a valid command", debugCmdStr.c_str());
+
+        PSendSysMessage("Commands available...");
+
+        for (auto c : CMDebugCommandTable)
+            PSendSysMessage("%s > %s", c.command.c_str(), c.description.c_str());
+
+        PSendSysMessage("for all command if you dont specify on/off the flag will be toggled");
+        PSendSysMessage("ex: .debug debugobject intPoins on");
+        return false;
+    }
+
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CREATURE);
+        return false;
+    }
+
+    if (foundCommand->flag != CMDEBUGFLAG_NONE)
+    {
+        bool onOff = false;
+        if (!ExtractOnOff(&args, onOff))
+            onOff = !target->HaveDebugFlag(foundCommand->flag);
+
+        if (onOff)
+        {
+            PSendSysMessage("%s enabled for %s.", foundCommand->command.c_str(), target->GetGuidStr().c_str());
+            target->SetDebugFlag(foundCommand->flag);
+        }
+        else
+        {
+            PSendSysMessage("%s disabled for %s.", foundCommand->command.c_str(), target->GetGuidStr().c_str());
+            target->ClearDebugFlag(foundCommand->flag);
+        }
+    }
+    else
+    {
+        if (foundCommand->command == CMDebugCommandTable[0].command)
+        {
+            // clear all
+            target->ClearDebugFlag(CMDebugFlags(~CMDEBUGFLAG_NONE));
+        }
+        else if (foundCommand->command == CMDebugCommandTable[1].command)
+        {
+            // set all
+            target->SetDebugFlag(CMDebugFlags(~CMDEBUGFLAG_NONE));
+        }
+    }
     return true;
 }

@@ -21,7 +21,7 @@ SDComment: Percentage of say for special text is guessed based on videos
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
@@ -153,7 +153,7 @@ struct boss_horsmenAI : public ScriptedAI
     void UpdateAI(const uint32 diff) override
     {
         // Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Call Horsemen specific virtual function to cast special spells
@@ -260,7 +260,7 @@ struct boss_alexandros_mograineAI : public boss_horsmenAI
     {
         if (m_righteousFireTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_RIGHTEOUS_FIRE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_RIGHTEOUS_FIRE) == CAST_OK)
             {
                 m_righteousFireTimer = (m_markCounter < MAX_MARK_STACKS ? 15 : 1) * IN_MILLISECONDS;
                 if (urand(0 ,9) < 1)
@@ -295,7 +295,7 @@ struct boss_thane_korthazzAI : public boss_horsmenAI
     {
         if (m_meteorTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_METEOR) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_METEOR) == CAST_OK)
             {
                 m_meteorTimer = (m_markCounter < MAX_MARK_STACKS ? 20 : 1) * IN_MILLISECONDS;
                 if (urand(0 ,9) < 1)
@@ -330,7 +330,7 @@ struct boss_sir_zeliekAI : public boss_horsmenAI
     {
         if (m_holyWrathTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLY_WRATH) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HOLY_WRATH) == CAST_OK)
             {
                 m_holyWrathTimer = (m_markCounter < MAX_MARK_STACKS ? 12 : 1) * IN_MILLISECONDS;
                 if (urand(0 ,9) < 1)

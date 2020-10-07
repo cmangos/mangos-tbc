@@ -11,9 +11,11 @@
 #include <tlhelp32.h>
 #include <stdio.h>
 #include <tchar.h>
+#include <limits>
 #define _NO_CVCONST_H
 #include "WheatyExceptionReport.h"
 #include "revision.h"
+#include "common.h"
 #define CrashFolder _T("Crashes")
 //#pragma comment(linker, "/defaultlib:dbghelp.lib")
 
@@ -476,7 +478,7 @@ BOOL WheatyExceptionReport::GetLogicalAddress(
     {
         DWORD_PTR sectionStart = pSection->VirtualAddress;
         DWORD_PTR sectionEnd = sectionStart
-                               + DWORD_PTR(max(pSection->SizeOfRawData, pSection->Misc.VirtualSize));
+                               + DWORD_PTR(std::max(pSection->SizeOfRawData, pSection->Misc.VirtualSize));
 
         // Is the address in this section???
         if ((rva >= sectionStart) && (rva <= sectionEnd))
@@ -903,7 +905,7 @@ WheatyExceptionReport::GetBasicType(DWORD typeIndex, DWORD64 modBase)
 // Helper function that writes to the report file, and allows the user to use
 // printf style formating
 //============================================================================
-int __cdecl WheatyExceptionReport::_tprintf(const TCHAR* format, ...)
+int WheatyExceptionReport::_tprintf(const TCHAR* format, ...)
 {
     TCHAR szBuff[1024];
     DWORD cbWritten;

@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Caverns of Time, Mount Hyjal
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "hyjalAI.h"
 
 struct HyjalYells
@@ -63,7 +63,7 @@ void hyjalAI::Reset()
     switch (m_creature->GetEntry())
     {
         case NPC_JAINA:
-            DoCastSpellIfCan(m_creature, SPELL_BRILLIANCE_AURA, CAST_TRIGGERED);
+            DoCastSpellIfCan(m_creature, SPELL_BRILLIANCE_AURA, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
             break;
         case NPC_THRALL:
             break;
@@ -75,7 +75,7 @@ void hyjalAI::EnterEvadeMode()
     m_creature->RemoveAllAurasOnEvade();
     m_creature->CombatStop(true);
 
-    if (m_creature->isAlive())
+    if (m_creature->IsAlive())
         m_creature->GetMotionMaster()->MoveTargetedHome();
 
     m_creature->SetLootRecipient(nullptr);
@@ -161,6 +161,9 @@ void hyjalAI::ReceiveAIEvent(AIEventType eventType, Unit* sender, Unit* /*invoke
         case AI_EVENT_CUSTOM_C: // Event failed due to exceeding max number of wave mobs
             Retreat();
             break;
+        case AI_EVENT_CUSTOM_D: // Boss was killed - stop yelling
+            m_uiRallyYellTimer = 0;
+            break;
         case AI_EVENT_CUSTOM_EVENTAI_B:
         {
             if (m_creature->GetEntry() != NPC_JAINA)
@@ -197,7 +200,7 @@ void hyjalAI::UpdateAI(const uint32 uiDiff)
             m_uiRallyYellTimer -= uiDiff;
     }
 
-    if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+    if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         return;
 
     for (uint8 i = 0; i < MAX_SPELL; ++i)
@@ -215,7 +218,7 @@ void hyjalAI::UpdateAI(const uint32 uiDiff)
                 {
                     case TARGETTYPE_SELF:   pTarget = m_creature; break;
                     case TARGETTYPE_RANDOM: pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0); break;
-                    case TARGETTYPE_VICTIM: pTarget = m_creature->getVictim(); break;
+                    case TARGETTYPE_VICTIM: pTarget = m_creature->GetVictim(); break;
                 }
 
                 if (pTarget)
@@ -265,6 +268,7 @@ void hyjalAI::UpdateAI(const uint32 uiDiff)
 void hyjalAI::JustRespawned()
 {
     Reset();
+    m_uiRallyYellTimer = 0;
 }
 
 void hyjalAI::JustDied(Unit* /*killer*/)

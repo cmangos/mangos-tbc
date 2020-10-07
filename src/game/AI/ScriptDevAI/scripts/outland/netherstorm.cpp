@@ -35,10 +35,10 @@ npc_dimensius
 npc_saeed
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/pet_ai.h"
-#include "AI/ScriptDevAI/scripts/world/world_map_scripts.h"
+#include "AI/ScriptDevAI/scripts/outland/world_outland.h"
 
 /*######
 ## npc_manaforge_control_console
@@ -232,7 +232,7 @@ struct npc_manaforge_spawnAI : public ScriptedAI
 
     void UpdateAI(const uint32 /*uiDiff*/) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -552,7 +552,7 @@ struct npc_manaforge_control_consoleAI : public ScriptedAI
         switch (m_creature->GetEntry())
         {
             case NPC_BNAAR_C_CONSOLE:
-                if (pSummoned->GetEntry() == NPC_SUNFURY_TECH && uiMotionType == POINT_MOTION_TYPE && pSummoned->isAlive())
+                if (pSummoned->GetEntry() == NPC_SUNFURY_TECH && uiMotionType == POINT_MOTION_TYPE && pSummoned->IsAlive())
                     switch (uiData)
                     {
                         case 0:
@@ -577,7 +577,7 @@ struct npc_manaforge_control_consoleAI : public ScriptedAI
                     }
                 break;
             case NPC_CORUU_C_CONSOLE:
-                if (pSummoned->GetEntry() == NPC_SUNFURY_TECH && uiMotionType == POINT_MOTION_TYPE && pSummoned->isAlive())
+                if (pSummoned->GetEntry() == NPC_SUNFURY_TECH && uiMotionType == POINT_MOTION_TYPE && pSummoned->IsAlive())
                     switch (uiData)
                     {
                         case 0:
@@ -595,7 +595,7 @@ struct npc_manaforge_control_consoleAI : public ScriptedAI
                     }
                 break;
             case NPC_DURO_C_CONSOLE:
-                if (pSummoned->GetEntry() == NPC_SUNFURY_TECH && uiMotionType == POINT_MOTION_TYPE && pSummoned->isAlive())
+                if (pSummoned->GetEntry() == NPC_SUNFURY_TECH && uiMotionType == POINT_MOTION_TYPE && pSummoned->IsAlive())
                     switch (uiData)
                     {
                         case 0:
@@ -621,7 +621,7 @@ struct npc_manaforge_control_consoleAI : public ScriptedAI
                     }
                 break;
             case NPC_ARA_C_CONSOLE:
-                if ((pSummoned->GetEntry() == NPC_ARA_TECH || pSummoned->GetEntry() == NPC_ARA_ENGI || pSummoned->GetEntry() == NPC_ARA_GORKLONN) && uiMotionType == POINT_MOTION_TYPE && pSummoned->isAlive())
+                if ((pSummoned->GetEntry() == NPC_ARA_TECH || pSummoned->GetEntry() == NPC_ARA_ENGI || pSummoned->GetEntry() == NPC_ARA_GORKLONN) && uiMotionType == POINT_MOTION_TYPE && pSummoned->IsAlive())
                     switch (uiData)
                     {
                         case 0:
@@ -1158,7 +1158,7 @@ bool AreaTrigger_at_commander_dawnforge(Player* pPlayer, AreaTriggerEntry const*
     if (!pPlayer->HasAura(SPELL_SUNFURY_DISGUISE, EFFECT_INDEX_0))
         return false;
 
-    if (pPlayer->isAlive() && pPlayer->GetQuestStatus(QUEST_INFO_GATHERING) == QUEST_STATUS_INCOMPLETE)
+    if (pPlayer->IsAlive() && pPlayer->GetQuestStatus(QUEST_INFO_GATHERING) == QUEST_STATUS_INCOMPLETE)
     {
         Creature* pDawnforge = GetClosestCreatureWithEntry(pPlayer, NPC_COMMANDER_DAWNFORGE, 30.0f);
 
@@ -1195,16 +1195,16 @@ struct npc_bessyAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 3:
+            case 4:
                 m_creature->SummonCreature(NPC_TORMENTED_SOUL, 2449.67f, 2183.11f, 96.85f, 6.20f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
                 m_creature->SummonCreature(NPC_TORMENTED_SOUL, 2449.53f, 2184.43f, 96.36f, 6.27f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
                 m_creature->SummonCreature(NPC_TORMENTED_SOUL, 2449.85f, 2186.34f, 97.57f, 6.08f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
                 break;
-            case 7:
+            case 8:
                 m_creature->SummonCreature(NPC_SEVERED_SPIRIT, 2309.64f, 2186.24f, 92.25f, 6.06f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
                 m_creature->SummonCreature(NPC_SEVERED_SPIRIT, 2309.25f, 2183.46f, 91.75f, 6.22f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
                 break;
-            case 12:
+            case 13:
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_COWS_COME_HOME, m_creature);
                 break;
@@ -1325,7 +1325,7 @@ struct npc_maxx_a_million_escortAI : public npc_escortAI
 
     void UpdateEscortAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() ||  !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() ||  !m_creature->GetVictim())
         {
             if (m_uiSubEventTimer)
             {
@@ -1512,24 +1512,24 @@ struct npc_protectorate_demolitionistAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 DoScriptText(SAY_INTRO, m_creature);
                 break;
-            case 3:
+            case 4:
                 DoScriptText(SAY_STAGING_GROUNDS, m_creature);
                 break;
-            case 4:
+            case 5:
                 DoScriptText(SAY_TOXIC_HORROR, m_creature);
                 break;
-            case 9:
+            case 10:
                 DoScriptText(SAY_SALHADAAR, m_creature);
                 break;
-            case 12:
+            case 13:
                 DoScriptText(SAY_DISRUPTOR, m_creature);
                 SetEscortPaused(true);
                 m_uiEventTimer = 5000;
                 break;
-            case 13:
+            case 14:
                 DoScriptText(SAY_FINISH_2, m_creature);
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
@@ -1628,19 +1628,19 @@ struct npc_captured_vanguardAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 15:
+            case 16:
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_ESCAPE_STAGING_GROUNDS, m_creature);
                 break;
-            case 16:
+            case 17:
                 DoScriptText(SAY_VANGUARD_FINISH, m_creature);
                 SetRun();
                 break;
-            case 17:
+            case 18:
                 if (Creature* pAmeer = GetClosestCreatureWithEntry(m_creature, NPC_COMMANDER_AMEER, 5.0f))
                     DoScriptText(EMOTE_VANGUARD_FINISH, m_creature, pAmeer);
                 break;
-            case 18:
+            case 19:
                 if (DoCastSpellIfCan(m_creature, SPELL_ETHEREAL_TELEPORT, CAST_TRIGGERED) == CAST_OK)
                     m_creature->ForcedDespawn(1000);
                 break;
@@ -1649,12 +1649,12 @@ struct npc_captured_vanguardAI : public npc_escortAI
 
     void UpdateEscortAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiGlaiveTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_GLAIVE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_GLAIVE) == CAST_OK)
                 m_uiGlaiveTimer = urand(5000, 9000);
         }
         else
@@ -1662,7 +1662,7 @@ struct npc_captured_vanguardAI : public npc_escortAI
 
         if (m_uiHamstringTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMSTRING) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HAMSTRING) == CAST_OK)
                 m_uiHamstringTimer = urand(10000, 16000);
         }
         else
@@ -1817,17 +1817,17 @@ struct npc_drijyaAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 DoScriptText(SAY_DRIJYA_START, m_creature);
                 SetRun();
                 break;
-            case 1:
+            case 2:
                 DoScriptText(SAY_DRIJYA_1, m_creature);
                 break;
-            case 5:
+            case 6:
                 DoScriptText(SAY_DRIJYA_2, m_creature);
                 break;
-            case 7:
+            case 8:
                 SetEscortPaused(true);
                 m_uiSayCount = false;
                 m_uiDestroyingTimer = 60000;
@@ -1837,7 +1837,7 @@ struct npc_drijyaAI : public npc_escortAI
                 if (Creature* pTrigger = GetClosestCreatureWithEntry(m_creature, NPC_EXPLODE_TRIGGER, 40.0f))
                     m_explodeTriggerGuid = pTrigger->GetObjectGuid();
                 break;
-            case 8:
+            case 9:
                 if (Player* pPlayer = GetPlayerForEscort())
                     m_creature->SetFacingToObject(pPlayer);
                 // first pillar smoke
@@ -1845,7 +1845,7 @@ struct npc_drijyaAI : public npc_escortAI
                 DoScriptText(SAY_DRIJYA_4, m_creature);
                 m_creature->HandleEmote(EMOTE_ONESHOT_NONE);
                 break;
-            case 12:
+            case 13:
                 SetEscortPaused(true);
                 m_uiSayCount = false;
                 m_uiDestroyingTimer = 60000;
@@ -1853,7 +1853,7 @@ struct npc_drijyaAI : public npc_escortAI
                 m_uiSpawnCount = 0;
                 m_creature->HandleEmote(EMOTE_STATE_WORK);
                 break;
-            case 13:
+            case 14:
                 if (Player* pPlayer = GetPlayerForEscort())
                     m_creature->SetFacingToObject(pPlayer);
                 // second pillar smoke
@@ -1861,34 +1861,34 @@ struct npc_drijyaAI : public npc_escortAI
                 DoScriptText(SAY_DRIJYA_5, m_creature);
                 m_creature->HandleEmote(EMOTE_ONESHOT_NONE);
                 break;
-            case 17:
+            case 18:
                 SetEscortPaused(true);
                 m_uiSayCount = false;
                 m_uiDestroyingTimer = 60000;
                 m_uiSpawnDestroyerTimer = 15000;
                 m_creature->HandleEmote(EMOTE_STATE_WORK);
                 break;
-            case 18:
+            case 19:
                 m_creature->HandleEmote(EMOTE_ONESHOT_NONE);
                 // manifold smoke
                 RespawnGo(true, 2, 4);
                 DoScriptText(SAY_DRIJYA_6, m_creature);
                 m_creature->HandleEmote(EMOTE_ONESHOT_ROAR);
                 break;
-            case 19:
+            case 20:
                 // warp gate explosion, smoke and fire
                 if (Creature* pTrigger = m_creature->GetMap()->GetCreature(m_explodeTriggerGuid))
                     pTrigger->CastSpell(pTrigger, SPELL_EXPLOSION_VISUAL, TRIGGERED_NONE);
                 RespawnGo(false, 0, 4);
                 RespawnGo(true, 5, 10);
                 break;
-            case 20:
+            case 21:
                 DoScriptText(SAY_DRIJYA_7, m_creature);
                 break;
-            case 23:
+            case 24:
                 SetRun(false);
                 break;
-            case 27:
+            case 28:
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
                     DoScriptText(SAY_DRIJYA_COMPLETE, m_creature, pPlayer);
@@ -1964,7 +1964,7 @@ struct npc_drijyaAI : public npc_escortAI
                 m_uiDestroyingTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
     }
 };
@@ -2059,7 +2059,7 @@ struct npc_saeed_escortAI : public npc_escortAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         {
             if (m_uiEventTimer)
             {
@@ -2162,7 +2162,7 @@ struct npc_saeed_escortAI : public npc_escortAI
         {
             if (m_uiCleaveTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_SAEED_CLEAVE);
+                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SAEED_CLEAVE);
                 m_uiCleaveTimer = urand(7000, 11000);
             }
             else
@@ -2316,7 +2316,7 @@ struct npc_dimensiusAI : public Scripted_NoMovementAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_bSpawnsFeeding && m_creature->GetHealthPercent() < 75.0f)
@@ -2427,7 +2427,7 @@ struct npc_salhadaarAI : public ScriptedAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
     {
-        if (eventType == AI_EVENT_CUSTOM_A && (!m_creature->isInCombat()) && (!m_creature->isDead()))
+        if (eventType == AI_EVENT_CUSTOM_A && (!m_creature->IsInCombat()) && (!m_creature->IsDead()))
         {
             m_creature->RemoveAurasDueToSpell(SPELL_FLOAT);
             DoScriptText(SAY_THREAT, m_creature);
@@ -2456,7 +2456,7 @@ struct npc_salhadaarAI : public ScriptedAI
     {
         m_uiSummoned.push_back(pSummoned->GetObjectGuid());
         pSummoned->CastSpell(pSummoned, SPELL_SALAADIN_OVERSPARK, TRIGGERED_OLD_TRIGGERED);
-        pSummoned->AI()->AttackStart(m_creature->getVictim());
+        pSummoned->AI()->AttackStart(m_creature->GetVictim());
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -2492,9 +2492,9 @@ struct npc_salhadaarAI : public ScriptedAI
             }
             m_uiAttackTimer -= uiDiff;
         }
-        if (m_creature->isInCombat())
+        if (m_creature->IsInCombat())
         {
-            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
                 return;
 
             if (!m_uiUsedMirrorImage && m_creature->GetHealthPercent() < 25) // at 25% hp cast mirror image, its two spells
@@ -2574,7 +2574,7 @@ struct npc_energy_ballAI : public ScriptedAI
                 GetCreatureListWithEntryInGrid(creatureList, m_creature, NPC_SALHADAAR, 100.0f);
                 for (std::list<Creature*>::const_iterator itr = creatureList.begin(); itr != creatureList.end(); ++itr)
                 {
-                    if (!(*itr)->isInCombat())
+                    if (!(*itr)->IsInCombat())
                     {
                         m_creature->CastSpell(m_creature, SPELL_SALAADIN_TESLA, TRIGGERED_NONE);
                     }
@@ -2785,15 +2785,15 @@ struct npc_scrap_reaverAI : ScriptedPetAI
             return;
         }
 
-        if (!m_creature->isAlive())                             // should not be needed, isAlive is checked in mangos before calling UpdateAI
+        if (!m_creature->IsAlive())                             // should not be needed, IsAlive is checked in mangos before calling UpdateAI
             return;
 
         // UpdateAllies() is done in the generic PetAI in Mangos, but we can't do this from script side.
         // Unclear what side effects this has, but is something to be resolved from Mangos.
 
-        if (m_creature->getVictim())                            // in combat
+        if (m_creature->GetVictim())                            // in combat
         {
-            if (!m_creature->CanAttack(m_creature->getVictim()))
+            if (!m_creature->CanAttack(m_creature->GetVictim()))
             {
                 // target no longer valid for pet, so either attack stops or new target are selected
                 // doesn't normally reach this, because of how petAi is designed in Mangos. CombatStop
@@ -2813,7 +2813,7 @@ struct npc_scrap_reaverAI : ScriptedPetAI
             if (!owner)
                 return;
 
-            if (owner->isInCombat() && !HasReactState(REACT_PASSIVE))
+            if (owner->IsInCombat() && !HasReactState(REACT_PASSIVE))
             {
                 // Not correct in all cases.
                 // When mob initiate attack by spell, pet should not start attack before spell landed.
@@ -2963,8 +2963,8 @@ struct npc_scrapped_fel_reaverAI : ScriptedAI
 
     void SummonedMovementInform(Creature* summoned, uint32 motionType, uint32 data) override
     {
-        if (motionType == WAYPOINT_MOTION_TYPE && data == 2 && m_creature->getVictim())
-            summoned->AI()->AttackStart(m_creature->getVictim());
+        if (motionType == WAYPOINT_MOTION_TYPE && data == 2 && m_creature->GetVictim())
+            summoned->AI()->AttackStart(m_creature->GetVictim());
     }
 
     void JustSummoned(Creature* summoned) override
@@ -3008,7 +3008,7 @@ struct npc_scrapped_fel_reaverAI : ScriptedAI
                     m_eventTimer = 100 * IN_MILLISECONDS;
                     break;
                 case 1: // revert to unattackable when out of combat
-                    if (!m_creature->isInCombat())
+                    if (!m_creature->IsInCombat())
                         ResetEvent();
                     break;
             }
@@ -3368,7 +3368,7 @@ struct npc_adyen_the_lightwardenAI : public ScriptedAI
     {
         if (Creature* socrethar = ((ScriptedInstance*)m_creature->GetMap()->GetInstanceData())->GetSingleCreatureFromStorage(NPC_SOCRETHAR))
         {
-            if (!socrethar->isAlive())
+            if (!socrethar->IsAlive())
                 return;
 
             m_socretharGuid = socrethar->GetObjectGuid();
@@ -3601,12 +3601,12 @@ struct npc_adyen_the_lightwardenAI : public ScriptedAI
     {
         UpdateTimers(diff);
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_hammerOfJusticeTimer <= diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HAMMER_OF_JUSTICE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HAMMER_OF_JUSTICE) == CAST_OK)
             {
                 m_hammerOfJusticeTimer = 30000;
                 return;
@@ -3617,7 +3617,7 @@ struct npc_adyen_the_lightwardenAI : public ScriptedAI
 
         if (m_crusaderStrikeTimer <= diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CRUSADER_STRIKE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CRUSADER_STRIKE) == CAST_OK)
             {
                 m_crusaderStrikeTimer = 15000;
                 return;
@@ -3728,9 +3728,9 @@ struct npc_kaylaan_the_lostAI : public ScriptedAI
                     }
                     case KAYLAAN_ACTION_AVENGERS:
                     {
-                        if (m_creature->IsInRange(m_creature->getVictim(), 8.f, 30.f))
+                        if (m_creature->IsInRange(m_creature->GetVictim(), 8.f, 30.f))
                         {
-                            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_AVENGERS_SHEILD) == CAST_OK)
+                            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_AVENGERS_SHEILD) == CAST_OK)
                             {
                                 m_avengersShieldTimer = 15000;
                                 m_actionReadyStatus[i] = false;
@@ -3741,7 +3741,7 @@ struct npc_kaylaan_the_lostAI : public ScriptedAI
                     }
                     case KAYLAAN_ACTION_HOLY_SLAM:
                     {
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_HOLY_SLAM) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HOLY_SLAM) == CAST_OK)
                         {
                             m_holySlamTimer = 30000;
                             m_actionReadyStatus[i] = false;
@@ -3751,7 +3751,7 @@ struct npc_kaylaan_the_lostAI : public ScriptedAI
                     }
                     case KAYLAAN_ACTION_BURNING_LIGHT:
                     {
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BURNING_LIGHT) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BURNING_LIGHT) == CAST_OK)
                         {
                             m_burningLightTimer = 15000;
                             m_actionReadyStatus[i] = false;
@@ -3767,7 +3767,7 @@ struct npc_kaylaan_the_lostAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_actionReadyStatus[KAYLAAN_ACTION_AVENGERS])
@@ -3857,7 +3857,7 @@ bool GossipHello_npc_adyen_the_lightwarden(Player* player, Creature* creature)
         if (npc_adyen_the_lightwardenAI* ai = dynamic_cast<npc_adyen_the_lightwardenAI*>(creature->AI()))
         {
             Creature* socrethar = ((ScriptedInstance*)creature->GetMap()->GetInstanceData())->GetSingleCreatureFromStorage(NPC_SOCRETHAR);
-            if (!socrethar || !socrethar->isAlive() || socrethar->isInCombat())
+            if (!socrethar || !socrethar->IsAlive() || socrethar->IsInCombat())
                 ai->DespawnEvent();
         }
     }

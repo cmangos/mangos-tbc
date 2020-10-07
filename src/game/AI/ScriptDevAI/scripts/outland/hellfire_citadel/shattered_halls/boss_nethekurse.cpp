@@ -27,7 +27,7 @@ mob_fel_orc_convert
 mob_lesser_shadow_fissure
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "shattered_halls.h"
 
 enum
@@ -109,6 +109,8 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
         m_uiDeathCoilTimer = 20000;
         m_uiShadowFissureTimer = 8000;
         m_uiCleaveTimer = 5000;
+
+        SetCombatMovement(true);
     }
 
     void DoYellForPeonAggro()
@@ -261,7 +263,7 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
             }
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_bIsMainEvent)
@@ -271,7 +273,7 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
         {
             if (m_uiCleaveTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SHADOW_CLEAVE : SPELL_SHADOW_SLAM_H);
+                DoCastSpellIfCan(m_creature->GetVictim(), m_bIsRegularMode ? SPELL_SHADOW_CLEAVE : SPELL_SHADOW_SLAM_H);
                 m_uiCleaveTimer = urand(6000, 8500);
             }
             else
@@ -372,12 +374,12 @@ struct mob_fel_orc_convertAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiHemorrhageTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEMORRHAGE);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HEMORRHAGE);
             m_uiHemorrhageTimer = 15000;
         }
         else

@@ -21,7 +21,7 @@ SDComment: test Threating Gaze. Script depends on ACID script for Vilebranch Spe
 SDCategory: Zul'Gurub
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "zulgurub.h"
 
 enum
@@ -156,7 +156,7 @@ struct boss_mandokirAI : public ScriptedAI
         m_creature->LoadCreatureAddon(true);
 
         // should evade to bottom of the stairs when raid fail
-        if (m_creature->isAlive())
+        if (m_creature->IsAlive())
             m_creature->GetMotionMaster()->MovePoint(0, aMandokirDownstairsPos[0], aMandokirDownstairsPos[1], aMandokirDownstairsPos[2]);
 
         m_creature->SetLootRecipient(nullptr);
@@ -178,7 +178,7 @@ struct boss_mandokirAI : public ScriptedAI
                 {
                     if (Creature* pJindo = m_pInstance->GetSingleCreatureFromStorage(NPC_JINDO))
                     {
-                        if (pJindo->isAlive())
+                        if (pJindo->IsAlive())
                             DoScriptText(SAY_GRATS_JINDO, pJindo);
                     }
                 }
@@ -187,7 +187,7 @@ struct boss_mandokirAI : public ScriptedAI
                 m_uiKillCount = 0;
             }
 
-            if (m_creature->isInCombat())
+            if (m_creature->IsInCombat())
             {
                 if (Creature* pSpirit = GetClosestCreatureWithEntry(pVictim, NPC_CHAINED_SPIRIT, 50.0f))
                     pSpirit->CastSpell(pVictim, SPELL_REVIVE, TRIGGERED_NONE);
@@ -199,8 +199,8 @@ struct boss_mandokirAI : public ScriptedAI
     {
         if (pSummoned->GetEntry() == NPC_OHGAN)
         {
-            if (m_creature->getVictim())
-                pSummoned->AI()->AttackStart(m_creature->getVictim());
+            if (m_creature->GetVictim())
+                pSummoned->AI()->AttackStart(m_creature->GetVictim());
         }
     }
 
@@ -244,7 +244,7 @@ struct boss_mandokirAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiWatchTimer < uiDiff)
@@ -255,7 +255,7 @@ struct boss_mandokirAI : public ScriptedAI
                 Player* pWatchTarget = m_creature->GetMap()->GetPlayer(m_watchTargetGuid);
 
                 // If threat is higher that previously saved, mandokir will act
-                if (pWatchTarget && pWatchTarget->isAlive() && m_creature->getThreatManager().getThreat(pWatchTarget) > m_fTargetThreat)
+                if (pWatchTarget && pWatchTarget->IsAlive() && m_creature->getThreatManager().getThreat(pWatchTarget) > m_fTargetThreat)
                 {
                     if (!m_creature->IsWithinLOSInMap(pWatchTarget))
                         m_creature->CastSpell(pWatchTarget, SPELL_SUMMON_PLAYER, TRIGGERED_OLD_TRIGGERED);
@@ -284,7 +284,7 @@ struct boss_mandokirAI : public ScriptedAI
             // Cleave
             if (m_uiCleaveTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
                     m_uiCleaveTimer = 7000;
             }
             else
@@ -322,11 +322,11 @@ struct boss_mandokirAI : public ScriptedAI
                 m_uiFearTimer -= uiDiff;
 
             // Mortal Strike if target below 50% hp
-            if (m_creature->getVictim()->GetHealthPercent() < 50.0f)
+            if (m_creature->GetVictim()->GetHealthPercent() < 50.0f)
             {
                 if (m_uiMortalStrikeTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
                         m_uiMortalStrikeTimer = 15000;
                 }
                 else
@@ -354,7 +354,7 @@ struct mob_ohganAI : public ScriptedAI
     {
         if (pVictim->GetTypeId() == TYPEID_PLAYER)
         {
-            if (m_creature->isInCombat())
+            if (m_creature->IsInCombat())
             {
                 if (Creature* pSpirit = GetClosestCreatureWithEntry(pVictim, NPC_CHAINED_SPIRIT, 50.0f))
                     pSpirit->CastSpell(pVictim, SPELL_REVIVE, TRIGGERED_NONE);
@@ -364,13 +364,13 @@ struct mob_ohganAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // SunderArmor
         if (m_uiSunderArmorTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDERARMOR) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SUNDERARMOR) == CAST_OK)
                 m_uiSunderArmorTimer = urand(10000, 15000);
         }
         else

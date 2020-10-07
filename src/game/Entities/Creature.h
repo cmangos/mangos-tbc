@@ -61,6 +61,7 @@ enum CreatureExtraFlags
     CREATURE_EXTRA_FLAG_CIVILIAN               = 0x00010000,       // 65536 CreatureInfo->civilian substitute (for new expansions)
     CREATURE_EXTRA_FLAG_NO_MELEE               = 0x00020000,       // 131072 creature can't melee
     CREATURE_EXTRA_FLAG_FORCE_ATTACKING_CAPABILITY = 0x00080000,   // 524288 SetForceAttackingCapability(true); for nonattackable, nontargetable creatures that should be able to attack nontheless
+    // CREATURE_EXTRA_FLAG_REUSE               = 0x00100000,       // 1048576 - reuse
     CREATURE_EXTRA_FLAG_COUNT_SPAWNS           = 0x00200000,       // 2097152 count creature spawns in Map*
     CREATURE_EXTRA_FLAG_HASTE_SPELL_IMMUNITY   = 0x00400000,       // 4194304 immunity to COT or Mind Numbing Poison - very common in instances
     CREATURE_EXTRA_FLAG_DUAL_WIELD_FORCED      = 0x00800000,       // 8388606 creature is alwyas dual wielding (even if unarmed)
@@ -187,6 +188,7 @@ struct CreatureInfo
 struct CreatureTemplateSpells
 {
     uint32 entry;
+    uint32 setId;
     uint32 spells[CREATURE_MAX_SPELLS];
 };
 
@@ -381,7 +383,8 @@ enum SelectFlags
     SELECT_FLAG_RANGE_AOE_RANGE     = 0x0800,               // For AOE targeted abilities like frost nova
     SELECT_FLAG_POWER_NOT_MANA      = 0x1000,               // Used in some dungeon encounters
     SELECT_FLAG_USE_EFFECT_RADIUS   = 0x2000,               // For AOE targeted abilities which have correct data in effect index 0
-    SELECT_FLAG_SKIP_TANK           = 0x4000,               // Not getVictim - tank is not always top threat
+    SELECT_FLAG_SKIP_TANK           = 0x4000,               // Not GetVictim - tank is not always top threat
+    SELECT_FLAG_SKIP_CUSTOM         =0x10000,               // skips custom target
 };
 
 enum RegenStatsFlags
@@ -477,7 +480,8 @@ struct TrainerSpellData
 };
 
 // max different by z coordinate for creature aggro reaction
-#define CREATURE_Z_ATTACK_RANGE 3
+#define CREATURE_Z_ATTACK_RANGE_MELEE  3
+#define CREATURE_Z_ATTACK_RANGE_RANGED 15
 
 #define MAX_VENDOR_ITEMS 255                                // Limitation in item count field size in SMSG_LIST_INVENTORY
 
@@ -558,6 +562,10 @@ struct SelectAttackingTargetParams
         } range;
         struct
         {
+            uint64 guid;
+        } skip;
+        struct
+        {
             uint32 params[2];
         } raw;
     };
@@ -601,9 +609,9 @@ class Creature : public Unit
         void LoadBotMenu(Player* pPlayer);
 #endif
 
-        bool IsCorpse() const { return getDeathState() ==  CORPSE; }
-        bool IsDespawned() const { return getDeathState() ==  DEAD; }
-        void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; }
+        bool IsCorpse() const { return GetDeathState() == CORPSE; }
+        bool IsDespawned() const { return GetDeathState() == DEAD; }
+        void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; } // in seconds
         void ReduceCorpseDecayTimer();
         TimePoint GetCorpseDecayTimer() const { return m_corpseExpirationTime; }
         bool CanRestockPickpocketLoot() const;
@@ -617,7 +625,7 @@ class Creature : public Unit
         bool CanSwim() const { return (GetCreatureInfo()->InhabitType & INHABIT_WATER) != 0; }
         bool IsSwimming() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_SWIMMING); }
         bool CanFly() const override { return (GetCreatureInfo()->InhabitType & INHABIT_AIR) || m_movementInfo->HasMovementFlag((MovementFlags)(MOVEFLAG_LEVITATING | MOVEFLAG_HOVER | MOVEFLAG_CAN_FLY)); }
-        bool IsFlying() const { return m_movementInfo->HasMovementFlag((MovementFlags)(MOVEFLAG_FLYING | MOVEFLAG_HOVER | MOVEFLAG_LEVITATING)); }
+        bool IsFlying() const override { return m_movementInfo->HasMovementFlag((MovementFlags)(MOVEFLAG_FLYING | MOVEFLAG_HOVER | MOVEFLAG_LEVITATING)); }
         bool IsTrainerOf(Player* pPlayer, bool msg) const;
         bool CanInteractWithBattleMaster(Player* pPlayer, bool msg) const;
         bool CanTrainAndResetTalentsOf(Player* pPlayer) const;
@@ -673,6 +681,7 @@ class Creature : public Unit
         uint32 GetShieldBlockValue() const override { return (getLevel() / 2 + uint32(GetStat(STAT_STRENGTH) / 20)); }
 
         bool HasSpell(uint32 spellID) const override;
+        void UpdateSpellSet(uint32 spellSet);
 
         bool UpdateEntry(uint32 Entry, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr, bool preserveHPAndPower = true);
         void ResetEntry(bool respawn = false);
@@ -770,7 +779,7 @@ class Creature : public Unit
         void SaveRespawnTime() override;
 
         uint32 GetRespawnDelay() const { return m_respawnDelay; }
-        void SetRespawnDelay(uint32 delay) { m_respawnDelay = delay; }
+        void SetRespawnDelay(uint32 delay, bool once = false) { m_respawnDelay = delay; m_respawnOverriden = true; m_respawnOverrideOnce = once; }
 
         float GetRespawnRadius() const { return m_respawnradius; }
         void SetRespawnRadius(float dist) { m_respawnradius = dist; }
@@ -836,9 +845,6 @@ class Creature : public Unit
         void SetForceAttackingCapability(bool state) { m_forceAttackingCapability = state; }
         bool GetForceAttackingCapability() const { return m_forceAttackingCapability; }
 
-        void SetIgnoreRangedTargets(bool state) { m_ignoreRangedTargets = state; }
-        bool IsIgnoringRangedTargets() override { return m_ignoreRangedTargets; }
-
         void SetSpawnCounting(bool state) { m_countSpawns = state; }
 
         uint32 GetDetectionRange() const override { return m_creatureInfo->Detection; }
@@ -858,6 +864,11 @@ class Creature : public Unit
         void SetNoLoot(bool state) { m_noLoot = state; }
         bool IsNoReputation() { return m_noReputation; }
         void SetNoReputation(bool state) { m_noReputation = state; }
+
+        // spell scripting persistency
+        bool HasBeenHitBySpell(uint32 spellId);
+        void RegisterHitBySpell(uint32 spellId);
+        void ResetSpellHitCounter();
 
     protected:
         bool MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* pSpellInfo, uint32 selectFlags, SelectAttackingTargetParams params) const;
@@ -883,6 +894,8 @@ class Creature : public Unit
         TimePoint m_corpseExpirationTime;                   // (msecs) time point of corpse decay
         time_t m_respawnTime;                               // (secs) time of next respawn
         uint32 m_respawnDelay;                              // (secs) delay between corpse disappearance and respawning
+        bool m_respawnOverriden;
+        bool m_respawnOverrideOnce;
         uint32 m_corpseDelay;                               // (secs) delay between death and corpse disappearance
         TimePoint m_pickpocketRestockTime;                  // (msecs) time point of pickpocket restock
         bool m_canAggro;                                    // controls response of creature to attacks
@@ -916,8 +929,10 @@ class Creature : public Unit
         bool m_noReputation;
 
         // Script logic
-        bool m_ignoreRangedTargets;                         // Ignores ranged targets when picking someone to attack
         bool m_countSpawns;
+
+        // spell scripting persistency
+        std::set<uint32> m_hitBySpells;
 
     private:
         GridReference<Creature> m_gridRef;

@@ -21,7 +21,7 @@ SDComment: May need some small adjustments
 SDCategory: Tempest Keep, The Mechanar
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "mechanar.h"
 #include "Entities/TemporarySpawn.h"
 
@@ -50,6 +50,10 @@ struct boss_nethermancer_sepethreaAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float x, float /*y*/, float /*z*/)->bool
+        {
+            return x < 266.0f;
+        });
         Reset();
     }
 
@@ -97,16 +101,16 @@ struct boss_nethermancer_sepethreaAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff) override
     {
         // Return since we have no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Arcane Blast
         if (m_uiArcaneBlastTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ARCANE_BLAST) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_ARCANE_BLAST) == CAST_OK)
             {
                 m_uiArcaneBlastTimer = urand(15000, 30000);
-                m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), -50.0f);
+                m_creature->getThreatManager().modifyThreatPercent(m_creature->GetVictim(), -50.0f);
             }
         }
         else
@@ -127,9 +131,6 @@ struct boss_nethermancer_sepethreaAI : public ScriptedAI
             m_uiDragonsBreathTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
-        
-        // don't allow her to be kited down the hallway leading to Pathaleon
-        EnterEvadeIfOutOfCombatArea(uiDiff);
     }
 };
 
@@ -188,7 +189,7 @@ struct npc_raging_flamesAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff) override
     {
         // Return since we have no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Raging Flames

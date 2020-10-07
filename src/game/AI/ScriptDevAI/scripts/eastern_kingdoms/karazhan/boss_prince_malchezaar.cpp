@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Karazhan
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 
 enum
@@ -215,7 +215,7 @@ struct boss_malchezaarAI : public ScriptedAI
         {
             Player* pTarget = m_creature->GetMap()->GetPlayer(m_aEnfeebleTargetGuid[i]);
 
-            if (pTarget && pTarget->isAlive())
+            if (pTarget && pTarget->IsAlive())
                 pTarget->SetHealth(m_auiEnfeebleHealth[i]);
 
             m_aEnfeebleTargetGuid[i].Clear();
@@ -227,7 +227,7 @@ struct boss_malchezaarAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Phase 1 - over 60% HP
@@ -278,7 +278,7 @@ struct boss_malchezaarAI : public ScriptedAI
 
             if (m_uiSunderArmorTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SUNDER_ARMOR) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SUNDER_ARMOR) == CAST_OK)
                     m_uiSunderArmorTimer = urand(10000, 18000);
             }
             else
@@ -329,7 +329,7 @@ struct boss_malchezaarAI : public ScriptedAI
         {
             if (m_uiSWPainTimer < uiDiff)
             {
-                if (DoCastSpellIfCan(m_uiPhase == 1 ? m_creature->getVictim() : m_creature, m_uiPhase == 1 ? SPELL_SW_PAIN_PHASE1 : SPELL_SW_PAIN_PHASE3) == CAST_OK)
+                if (DoCastSpellIfCan(m_uiPhase == 1 ? m_creature->GetVictim() : m_creature, m_uiPhase == 1 ? SPELL_SW_PAIN_PHASE1 : SPELL_SW_PAIN_PHASE3) == CAST_OK)
                     m_uiSWPainTimer = 20000;
             }
             else

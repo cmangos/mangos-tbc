@@ -27,7 +27,7 @@ Fallout slime 28218
 Mutating Injection 28169
 Enrages 26527*/
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
@@ -101,13 +101,13 @@ struct boss_grobbulusAI : public ScriptedAI
     void UpdateAI(const uint32 diff) override
     {
         // Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Slime Stream
         if (!m_slimeStreamTimer)
         {
-            if (!m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
+            if (!m_creature->CanReachWithMeleeAttack(m_creature->GetVictim()))
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_SLIME_STREAM) == CAST_OK)
                     // Give some time, to re-reach Grobbulus
@@ -137,7 +137,7 @@ struct boss_grobbulusAI : public ScriptedAI
         // SlimeSpray
         if (m_slimeSprayTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIME_SPRAY) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SLIME_SPRAY) == CAST_OK)
                 m_slimeSprayTimer = urand(20, 30) * IN_MILLISECONDS;
         }
         else

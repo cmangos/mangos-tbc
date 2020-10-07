@@ -21,7 +21,7 @@ SDComment: Intro movement NYI; Event cleanup (despawn & resummon) NYI; Breath ph
 SDCategory: Sunwell Plateau
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "sunwell_plateau.h"
 #include "Entities/TemporarySpawn.h"
 
@@ -164,7 +164,7 @@ struct boss_felmystAI : public ScriptedAI
         DoCastSpellIfCan(m_creature, SPELL_SOUL_SEVER, CAST_TRIGGERED);
 
         // Fly back to the home flight location
-        if (m_creature->isAlive())
+        if (m_creature->IsAlive())
         {
             float fX, fY, fZ;
             m_creature->SetLevitate(true);
@@ -239,7 +239,7 @@ struct boss_felmystAI : public ScriptedAI
                 {
                     m_uiPhase = PHASE_TRANSITION;
                     float fGroundZ = m_creature->GetMap()->GetHeight(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
-                    m_creature->GetMotionMaster()->MovePoint(PHASE_TRANSITION, m_creature->getVictim()->GetPositionX(), m_creature->getVictim()->GetPositionY(), fGroundZ, false);
+                    m_creature->GetMotionMaster()->MovePoint(PHASE_TRANSITION, m_creature->GetVictim()->GetPositionX(), m_creature->GetVictim()->GetPositionY(), fGroundZ, false);
                     return;
                 }
 
@@ -282,7 +282,7 @@ struct boss_felmystAI : public ScriptedAI
                 SetDeathPrevention(false);
                 SetCombatMovement(true);
                 m_creature->SetLevitate(false);
-                DoStartMovement(m_creature->getVictim());
+                DoStartMovement(m_creature->GetVictim());
                 break;
         }
     }
@@ -307,7 +307,7 @@ struct boss_felmystAI : public ScriptedAI
                 m_uiMovementTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiBerserkTimer)
@@ -330,7 +330,7 @@ struct boss_felmystAI : public ScriptedAI
 
                 if (m_uiCleaveTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
                         m_uiCleaveTimer = urand(2000, 5000);
                 }
                 else
@@ -338,7 +338,7 @@ struct boss_felmystAI : public ScriptedAI
 
                 if (m_uiCorrosionTimer < uiDiff)
                 {
-                    if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CORROSION) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CORROSION) == CAST_OK)
                     {
                         DoScriptText(SAY_BREATH, m_creature);
                         m_uiCorrosionTimer = 30000;

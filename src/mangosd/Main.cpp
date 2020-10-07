@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
     }
 
     if (vm.count("ahbot"))
-        sAuctionBotConfig.SetConfigFileName(auctionBotConfig);
+        sAuctionHouseBot.SetConfigFileName(auctionBotConfig);
 
 #ifdef _WIN32                                                // windows service command need execute before config read
     if (vm.count("s"))
@@ -182,17 +182,20 @@ int main(int argc, char* argv[])
     }
 #endif
 
-    sLog.outString("%s [world-daemon]", _FULLVERSION(REVISION_DATE, REVISION_ID));
-    sLog.outString("<Ctrl-C> to stop.");
+    sLog.outString("[%s World server v%s] id(%d) port(%d)", _PACKAGENAME, VERSION
+        , sConfig.GetIntDefault("RealmID", -1), sConfig.GetIntDefault("WorldServerPort", -1));
     sLog.outString("\n\n"
-                   "       _____     __  __       _   _  _____  ____   _____ \n"
-                   "      / ____|   |  \\/  |     | \\ | |/ ____|/ __ \\ / ____|\n"
-                   "     | |        | \\  / |     |  \\| | |  __  |  | | (___  \n"
-                   "     | |ontinued| |\\/| | __ _| . ` | | |_ | |  | |\\___ \\ \n"
-                   "     | |____    | |  | |/ _` | |\\  | |__| | |__| |____) |\n"
-                   "      \\_____|   |_|  |_| (_| |_| \\_|\\_____|\\____/ \\____/ \n"
-                   "      http://cmangos.net\\__,_|     Doing things right!\n\n");
+        "       _____     __  __       _   _  _____  ____   _____ \n"
+        "      / ____|   |  \\/  |     | \\ | |/ ____|/ __ \\ / ____|\n"
+        "     | |        | \\  / |     |  \\| | |  __  |  | | (___  \n"
+        "     | |ontinued| |\\/| | __ _| . ` | | |_ | |  | |\\___ \\ \n"
+        "     | |____    | |  | |/ _` | |\\  | |__| | |__| |____) |\n"
+        "      \\_____|   |_|  |_| (_| |_| \\_|\\_____|\\____/ \\____/ \n"
+        "      http://cmangos.net\\__,_|     Doing things right!\n\n");
 
+    sLog.outString("Built on %s at %s", __DATE__, __TIME__);
+    sLog.outString("Built for %s", _ENDIAN_PLATFORM);
+    sLog.outString("Using commit hash(%s) committed on %s", REVISION_ID, REVISION_DATE);
     sLog.outString("Using configuration file %s.", configFile.c_str());
 
     DETAIL_LOG("%s (Library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
@@ -203,6 +206,9 @@ int main(int argc, char* argv[])
     }
 
     DETAIL_LOG("Using Boost: %s", BOOST_LIB_VERSION);
+
+    sLog.outString();
+    sLog.outString("<Ctrl-C> to stop.");
 
     ///- Set progress bars show mode
     BarGoLink::SetOutputState(sConfig.GetBoolDefault("ShowProgressBars", true));

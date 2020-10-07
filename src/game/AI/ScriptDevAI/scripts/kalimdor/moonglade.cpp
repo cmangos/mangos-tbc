@@ -27,10 +27,10 @@ npc_keeper_remulos
 boss_eranikus
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/scripts/world/world_map_scripts.h"
+#include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
 
 /*######
 # npc_clintar_dw_spirit
@@ -67,31 +67,31 @@ struct npc_clintar_dw_spiritAI : public npc_escortAI
         // visual details here probably need refinement
         switch (i)
         {
-            case 0:
+            case 1:
                 DoScriptText(SAY_START, m_creature, pPlayer);
                 break;
-            case 13:
+            case 14:
                 m_creature->HandleEmote(EMOTE_STATE_USESTANDING_NOSHEATHE);
                 break;
-            case 14:
+            case 15:
                 DoScriptText(SAY_RELIC1, m_creature, pPlayer);
                 break;
-            case 26:
+            case 27:
                 m_creature->HandleEmote(EMOTE_STATE_USESTANDING_NOSHEATHE);
                 break;
-            case 27:
+            case 28:
                 DoScriptText(SAY_RELIC2, m_creature, pPlayer);
                 break;
-            case 31:
+            case 32:
                 m_creature->SummonCreature(NPC_ASPECT_OF_RAVEN, 7465.321f, -3088.515f, 429.006f, 5.550f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000);
                 break;
-            case 35:
+            case 36:
                 m_creature->HandleEmote(EMOTE_STATE_USESTANDING_NOSHEATHE);
                 break;
-            case 36:
+            case 37:
                 DoScriptText(SAY_RELIC3, m_creature, pPlayer);
                 break;
-            case 49:
+            case 50:
                 DoScriptText(SAY_END, m_creature, pPlayer);
                 pPlayer->TalkedToCreature(m_creature->GetEntry(), m_creature->GetObjectGuid());
                 break;
@@ -238,9 +238,9 @@ enum
     SAY_REMULOS_OUTRO_1         = -1000704,        // remulos outro
     SAY_REMULOS_OUTRO_2         = -1000705,
 
-    POINT_ID_ERANIKUS_FLIGHT    = 0,
-    POINT_ID_ERANIKUS_COMBAT    = 1,
-    POINT_ID_ERANIKUS_REDEEMED  = 2,
+    POINT_ID_ERANIKUS_FLIGHT    = 1,
+    POINT_ID_ERANIKUS_COMBAT    = 2,
+    POINT_ID_ERANIKUS_REDEEMED  = 3,
 
     MAX_SHADOWS                 = 3,                // the max shadows summoned per turn
     MAX_SUMMON_TURNS            = 10,               // There are about 10 summoned shade waves
@@ -390,11 +390,11 @@ struct npc_keeper_remulosAI : public npc_escortAI, private DialogueHelper
     {
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 if (Player* pPlayer = GetPlayerForEscort())
                     DoScriptText(SAY_REMULOS_INTRO_1, m_creature, pPlayer);
                 break;
-            case 1:
+            case 2:
                 DoScriptText(SAY_REMULOS_INTRO_2, m_creature);
                 break;
             case 13:
@@ -549,7 +549,7 @@ struct npc_keeper_remulosAI : public npc_escortAI, private DialogueHelper
         }
 
         // Combat spells
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiHealTimer < uiDiff)
@@ -865,7 +865,7 @@ struct boss_eranikusAI : public ScriptedAI
         }
 
         // Return since we have no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Move Tyrande after she is summoned

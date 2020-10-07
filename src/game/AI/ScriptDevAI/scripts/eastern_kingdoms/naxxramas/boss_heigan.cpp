@@ -23,7 +23,7 @@ SDComment: Missing poison inside the eye stalk tunnel in phase 2
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
@@ -53,7 +53,8 @@ enum
 
     MAX_PLAYERS_TELEPORT    = 3,
 
-    NPC_WORLD_TRIGGER       = 15384                 // Control plague waves
+    NPC_PLAGUE_WAVE         = 17293,                // Control plague waves
+    NPC_WORLD_TRIGGER       = 15384
 };
 
 struct boss_heiganAI : public ScriptedAI
@@ -148,7 +149,7 @@ struct boss_heiganAI : public ScriptedAI
     void StartEruptions(uint32 spellId)
     {
         // Clear current plague waves controller spell before applying the new one
-        if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_WORLD_TRIGGER, 100.0f))
+        if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_PLAGUE_WAVE, 100.0f))
         {
             trigger->RemoveAllAuras();
             trigger->CastSpell(trigger, spellId, TRIGGERED_OLD_TRIGGERED);
@@ -158,14 +159,14 @@ struct boss_heiganAI : public ScriptedAI
     void StopEruptions()
     {
         // Reset Plague Waves
-        if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_WORLD_TRIGGER, 100.0f))
+        if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_PLAGUE_WAVE, 100.0f))
             trigger->RemoveAllAuras();
     }
 
     void UpdateAI(const uint32 diff) override
     {
         // Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_entranceDoorTimer)
@@ -261,7 +262,7 @@ struct boss_heiganAI : public ScriptedAI
             if (m_phaseTimer <= diff)                   // Return to fight
             {
                 m_creature->InterruptNonMeleeSpells(true);
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
 
                 m_phase = PHASE_GROUND;
                 ResetPhase();
@@ -330,7 +331,7 @@ struct npc_diseased_maggotAI : public ScriptedAI
     void UpdateAI(const uint32 diff) override
     {
         // Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_resetCheckTimer < diff)

@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Auchindoun, Auchenai Crypts
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 enum
 {
@@ -74,7 +74,7 @@ struct boss_shirrakAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiCarnivorousBiteTimer < uiDiff)
@@ -106,7 +106,7 @@ struct boss_shirrakAI : public ScriptedAI
                     target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER);
 
                     if (!target)
-                        target = m_creature->getVictim();
+                        target = m_creature->GetVictim();
 
                     DoScriptText(EMOTE_FOCUS, m_creature, target);
                     m_focusTargetGuid = target->GetObjectGuid();

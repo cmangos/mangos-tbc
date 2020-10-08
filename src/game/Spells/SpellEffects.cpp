@@ -4861,8 +4861,10 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
             {
                 // do not remove positive auras if friendly target
                 //               negative auras if non-friendly target
-                if ((holder->IsPositive() || holder->IsCharm()) == m_caster->CanAssistSpell(unitTarget, m_spellInfo))
-                    continue;
+                bool positive = holder->IsPositive();
+                if (positive == m_caster->CanAssistSpell(unitTarget, m_spellInfo))
+                    if (positive || !holder->IsCharm())
+                        continue;
             }
             dispelList.push_back(std::pair<SpellAuraHolder*, uint32>(holder, holder->GetStackAmount()));
         }

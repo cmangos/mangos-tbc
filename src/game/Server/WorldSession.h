@@ -802,6 +802,9 @@ class WorldSession
 
         // Movement
         void SynchronizeMovement(const MovementInfoPtr& movementInfo);
+
+        std::deque<uint32> GetOpcodeHistory();
+
     private:
         // Additional private opcode handlers
         void HandleComplainMail(WorldPacket& recv_data);

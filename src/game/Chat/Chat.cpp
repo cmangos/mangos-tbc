@@ -109,8 +109,8 @@ ChatCommand* ChatHandler::getCommandTable()
         { "account",        SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleBanAccountCommand,          "", nullptr },
         { "character",      SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleBanCharacterCommand,        "", nullptr },
         { "ip",             SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleBanIPCommand,               "", nullptr },
-        { "note",           SEC_GAMEMASTER,     true,  &ChatHandler::HandleAddCharacterNoteCommand,    "", nullptr },
-        { "warn",           SEC_GAMEMASTER,     true,  &ChatHandler::HandleWarnCharacterCommand,       "", nullptr },
+        { "note",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleAddCharacterNoteCommand,    "", nullptr },
+        { "warn",           SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleWarnCharacterCommand,       "", nullptr },
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
@@ -263,6 +263,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "lootdropstats",  SEC_ADMINISTRATOR,  false, &ChatHandler::HandleDebugLootDropStats,              "", nullptr },
         { "utf8overflow",   SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleDebugOverflowCommand,            "", nullptr },
         { "chatfreeze",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleDebugChatFreezeCommand,          "", nullptr },
+        { "opcodehistory",  SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleDebugPacketHistory,              "", nullptr },
         { "debugflags",     SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleDebugObjectFlags,                "", nullptr },
         { nullptr,          0,                  false, nullptr,                                             "", nullptr }
     };

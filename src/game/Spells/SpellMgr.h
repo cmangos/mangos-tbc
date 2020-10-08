@@ -151,7 +151,7 @@ inline bool IsSpellAppliesAura(SpellEntry const* spellInfo, uint32 effectMask = 
     return false;
 }
 
-inline bool IsEffectHandledOnDelayedSpellLaunch(SpellEntry const* spellInfo, SpellEffectIndex effecIdx)
+inline bool IsEffectHandledImmediatelySpellLaunch(SpellEntry const* spellInfo, SpellEffectIndex effecIdx)
 {
     switch (spellInfo->Effect[effecIdx])
     {
@@ -160,6 +160,9 @@ inline bool IsEffectHandledOnDelayedSpellLaunch(SpellEntry const* spellInfo, Spe
         case SPELL_EFFECT_WEAPON_PERCENT_DAMAGE:
         case SPELL_EFFECT_WEAPON_DAMAGE:
         case SPELL_EFFECT_NORMALIZED_WEAPON_DMG:
+        case SPELL_EFFECT_HEAL:
+        case SPELL_EFFECT_HEAL_MECHANICAL:
+        case SPELL_EFFECT_HEAL_PCT:
         case SPELL_EFFECT_CHARGE:
         case SPELL_EFFECT_CHARGE_DEST:
             return true;
@@ -473,6 +476,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 31792:         // Bear Form (Shapeshift)
         case 32007:         // Mo'arg Engineer Transform Visual
         case 32900:         // Bone Shards Proc
+        case 32939:         // Phase Burst
         case 32942:         // Phasing Invisibility
         case 33460:         // Inhibit Magic
         case 33900:         // Shroud of Death
@@ -1051,6 +1055,7 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
         case 37940:
         case 37962:
         case 37968:
+        case 35734: // Dropping Phase Disruptor
             return false;
     }
 

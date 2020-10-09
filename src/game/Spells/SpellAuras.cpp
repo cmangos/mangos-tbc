@@ -394,9 +394,6 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* curr
                 if (castItem)
                     damage += (damage * castItem->GetEnchantmentModifier() / 100);
                 break;
-            case 34501: // Expose Weakness
-                damage = (caster->GetStat(STAT_AGILITY) * damage) / 100;
-                break;
             default:
                 damage = OnAuraValueCalculate(caster, damage);
                 break;

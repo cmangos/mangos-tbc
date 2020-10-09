@@ -536,6 +536,12 @@ void MotionMaster::MoveFall()
     if (fabs(z - tz) < 0.1f)
         return;
 
+    if (z < tz)
+    {
+        DEBUG_LOG("MotionMaster::MoveFall: entry %u falling up for %f at map %u (x: %f, y: %f, z: %f).", m_owner->GetEntry(), tz - z, m_owner->GetMap()->GetId(), x, y, z);
+        return;
+    }
+
     Movement::MoveSplineInit init(*m_owner);
     init.MoveTo(x, y, tz);
     init.SetFall();

@@ -1060,6 +1060,9 @@ bool GameObject::ActivateToQuest(Player* pTarget) const
         {
             if (pTarget->GetQuestStatus(GetGOInfo()->chest.questId) == QUEST_STATUS_INCOMPLETE)
                 return true;
+
+            if (LootTemplates_Gameobject.HaveQuestLootForPlayer(GetGOInfo()->GetLootId(), pTarget))
+                return true;
             break;
         }
         case GAMEOBJECT_TYPE_GENERIC:

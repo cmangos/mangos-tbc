@@ -248,7 +248,7 @@ struct mob_illidari_councilAI : public ScriptedAI, public TimerManager
                 voiceAI->StartVoiceEvent();
         }
 
-        m_creature->SetInCombatWithZone();
+        m_creature->SetInCombatWithZone(false);
         for (uint32 i : aCouncilMember)
         {
             Creature* member = m_instance->GetSingleCreatureFromStorage(i);

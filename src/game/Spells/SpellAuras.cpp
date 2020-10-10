@@ -6903,6 +6903,7 @@ void Aura::PeriodicTick()
 
             // some auras remove at specific health level or more or have damage interactions
             bool breakSwitch = false;
+            bool overrideImmune = false;
             switch (GetId())
             {
                 case 43093: case 31956: case 38801:
@@ -6949,7 +6950,8 @@ void Aura::PeriodicTick()
                         aura->m_modifier.m_amount += aura->m_modifier.m_baseAmount;
                         aura->ApplyModifier(true, true);
                     }
-                    // TODO: Reverify that during pally bubble DOT should not tick
+                    // during normal immunities - ticks, only doesnt tick during spite
+                    overrideImmune = (target->HasAura(41376) || target->HasAura(41377));
                     break;
                 }
                 default:
@@ -6965,9 +6967,10 @@ void Aura::PeriodicTick()
                 break;
 
             // Check for immune (not use charges)
-            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)) // confirmed Impaling spine goes through immunity
+            // Aura of anger - video evidence confirms this, but attribute is legit because aura is still applied during
+            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) || overrideImmune) // confirmed Impaling spine goes through immunity
             {
-                if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
+                if (overrideImmune || target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
                     Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     break;

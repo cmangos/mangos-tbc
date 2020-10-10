@@ -36,6 +36,7 @@ spell 45111
 EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "OutdoorPvP/OutdoorPvP.h"
 
 /* When you make a spell effect:
 - always check spell id and effect index

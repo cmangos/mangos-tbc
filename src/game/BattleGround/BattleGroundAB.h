@@ -125,6 +125,12 @@ enum ABBanners
     BG_AB_BANNER_CONTESTED_H            = 180061,
 };
 
+enum ABSpells
+{
+    BG_AB_SPELL_QUEST_REWARD_4_BASES    = 24061,                // quests 8114 and 8121
+    BG_AB_SPELL_QUEST_REWARD_5_BASES    = 24064,                // quests 8115 and 8122
+};
+
 enum ABSounds
 {
     BG_AB_SOUND_NODE_CLAIMED            = 8192,
@@ -133,6 +139,20 @@ enum ABSounds
     BG_AB_SOUND_NODE_ASSAULTED_ALLIANCE = 8212,
     BG_AB_SOUND_NODE_ASSAULTED_HORDE    = 8174,
     BG_AB_SOUND_NEAR_VICTORY            = 8456
+};
+
+enum ABGraveyards
+{
+    AB_GRAVEYARD_STABLES                = 895,
+    AB_GRAVEYARD_BLACKSMITH             = 894,
+    AB_GRAVEYARD_FARM                   = 893,
+    AB_GRAVEYARD_LUMBER_MILL            = 897,
+    AB_GRAVEYARD_GOLD_MINE              = 896,
+
+    AB_GRAVEYARD_ALLIANCE               = 898,
+    AB_GRAVEYARD_HORDE                  = 899,
+
+    BG_AB_ZONE_MAIN                     = 3358,
 };
 
 enum ABAreaTriggers
@@ -162,8 +182,8 @@ const uint32 abContestedStates[PVP_TEAM_COUNT][BG_AB_MAX_NODES] =
 const uint32 abTickIntervals[6] = {0, 12000, 9000, 6000, 3000, 1000};
 const uint32 abTickPoints[6] = {0, 10, 10, 10, 10, 30};
 
-// WorldSafeLocs ids for 5 nodes, and for ally, and horde starting location
-const uint32 abGraveyardIds[7] = {895, 894, 893, 897, 896, 898, 899};
+// WorldSafeLocs ids
+const uint32 abGraveyardIds[BG_AB_MAX_NODES] = { AB_GRAVEYARD_STABLES, AB_GRAVEYARD_BLACKSMITH, AB_GRAVEYARD_FARM, AB_GRAVEYARD_LUMBER_MILL, AB_GRAVEYARD_GOLD_MINE };
 
 struct ArathiBannerTimer
 {
@@ -201,7 +221,6 @@ class BattleGroundAB : public BattleGround
         // General functions
         void UpdatePlayerScore(Player* source, uint32 type, uint32 value) override;
         void FillInitialWorldStates(WorldPacket& data, uint32& count) override;
-        WorldSafeLocsEntry const* GetClosestGraveYard(Player* player) override;
         Team GetPrematureWinner() override;
 
         // Battleground event handlers

@@ -21,36 +21,44 @@
 
 using namespace MMAP;
 
-bool checkDirectories(bool debugOutput)
+bool checkDirectories(bool debugOutput, char*& workdir)
 {
     vector<string> dirFiles;
+    char maps_dir[1024];
+    char vmaps_dir[1024];
+    char mmaps_dir[1024];
+    char meshes_dir[1024];
 
-    if (getDirContents(dirFiles, "maps") == LISTFILE_DIRECTORY_NOT_FOUND || !dirFiles.size())
+    sprintf(maps_dir, "%s/%s", workdir, "maps");
+    if (getDirContents(dirFiles, maps_dir) == LISTFILE_DIRECTORY_NOT_FOUND || !dirFiles.size())
     {
-        printf("'maps' directory is empty or does not exist\n");
+        printf("'%s' directory is empty or does not exist\n", maps_dir);
         return false;
     }
 
     dirFiles.clear();
-    if (getDirContents(dirFiles, "vmaps", "*.vmtree") == LISTFILE_DIRECTORY_NOT_FOUND || !dirFiles.size())
+    sprintf(vmaps_dir, "%s/%s", workdir, "vmaps");
+    if (getDirContents(dirFiles, vmaps_dir, "*.vmtree") == LISTFILE_DIRECTORY_NOT_FOUND || !dirFiles.size())
     {
-        printf("'vmaps' directory is empty or does not exist\n");
+        printf("'%s' directory is empty or does not exist\n", vmaps_dir);
         return false;
     }
 
     dirFiles.clear();
-    if (getDirContents(dirFiles, "mmaps") == LISTFILE_DIRECTORY_NOT_FOUND)
+    sprintf(mmaps_dir, "%s/%s", workdir, "mmaps");
+    if (getDirContents(dirFiles, mmaps_dir) == LISTFILE_DIRECTORY_NOT_FOUND)
     {
-        printf("'mmaps' directory does not exist\n");
+        printf("'%s' directory does not exist\n", mmaps_dir);
         return false;
     }
 
     dirFiles.clear();
     if (debugOutput)
     {
-        if (getDirContents(dirFiles, "meshes") == LISTFILE_DIRECTORY_NOT_FOUND)
+        sprintf(meshes_dir, "%s/%s", workdir, "meshes");
+        if (getDirContents(dirFiles, meshes_dir) == LISTFILE_DIRECTORY_NOT_FOUND)
         {
-            printf("'meshes' directory does not exist (no place to put debugOutput files)\n");
+            printf("'%s' directory does not exist (no place to put debugOutput files)\n", meshes_dir);
             return false;
         }
     }
@@ -72,7 +80,8 @@ void printUsage()
     printf("--debugOutput [true|false] : create debugging files for use with RecastDemo\n");
     printf("--bigBaseUnit [true|false] : Generate tile/map using bigger basic unit.\n");
     printf("--silent : Make script friendly. No wait for user input, error, completion.\n");
-    printf("--offMeshInput [file.*] : Path to file containing off mesh connections data.\n\n");
+    printf("--offMeshInput [file.*] : Path to file containing off mesh connections data.\n");
+    printf("--workdir [directory] : Path to basedir of maps/vmaps.\n\n");
     printf("Example:\nmovemapgen (generate all mmap with default arg\n"
         "movemapgen 0 (generate map 0)\n"
         "movemapgen 0 --tile 34,46 (builds only tile 34,46 of map 0)\n\n");
@@ -91,12 +100,15 @@ bool handleArgs(int argc, char** argv,
                 bool& debugOutput,
                 bool& silent,
                 bool& bigBaseUnit,
-                char*& offMeshInputPath)
+                char*& offMeshInputPath,
+                char*& workdir)
 {
     char* param = NULL;
+    workdir = "./";
+
     for (int i = 1; i < argc; ++i)
     {
-        if (strcmp(argv[i], "--maxAngle") == 0)
+        if (strcmp(argv[i], "--maxAngle") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -108,7 +120,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--maxAngle', using default\n");
         }
-        else if (strcmp(argv[i], "--tile") == 0)
+        else if (strcmp(argv[i], "--tile") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -130,7 +142,7 @@ bool handleArgs(int argc, char** argv,
                 return false;
             }
         }
-        else if (strcmp(argv[i], "--skipLiquid") == 0)
+        else if (strcmp(argv[i], "--skipLiquid") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -143,7 +155,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipLiquid', using default\n");
         }
-        else if (strcmp(argv[i], "--skipContinents") == 0)
+        else if (strcmp(argv[i], "--skipContinents") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -156,7 +168,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipContinents', using default\n");
         }
-        else if (strcmp(argv[i], "--skipJunkMaps") == 0)
+        else if (strcmp(argv[i], "--skipJunkMaps") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -169,7 +181,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipJunkMaps', using default\n");
         }
-        else if (strcmp(argv[i], "--skipBattlegrounds") == 0)
+        else if (strcmp(argv[i], "--skipBattlegrounds") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -182,7 +194,7 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--skipBattlegrounds', using default\n");
         }
-        else if (strcmp(argv[i], "--debugOutput") == 0)
+        else if (strcmp(argv[i], "--debugOutput") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -195,11 +207,11 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--debugOutput', using default true\n");
         }
-        else if (strcmp(argv[i], "--silent") == 0)
+        else if (strcmp(argv[i], "--silent") == 0 && i + 1 < argc)
         {
             silent = true;
         }
-        else if (strcmp(argv[i], "--bigBaseUnit") == 0)
+        else if (strcmp(argv[i], "--bigBaseUnit") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -212,13 +224,21 @@ bool handleArgs(int argc, char** argv,
             else
                 printf("invalid option for '--bigBaseUnit', using default false\n");
         }
-        else if (strcmp(argv[i], "--offMeshInput") == 0)
+        else if (strcmp(argv[i], "--offMeshInput") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
                 return false;
 
             offMeshInputPath = param;
+        }
+        else if (strcmp(argv[i], "--workdir") == 0 && i + 1 < argc)
+        {
+            param = argv[++i];
+            if (!param)
+                return false;
+
+            workdir = param;
         }
         else if ((strcmp(argv[i], "-?") == 0) || (strcmp(argv[i], "/?") == 0) || (strcmp(argv[i], "-h") == 0))
         {
@@ -261,11 +281,12 @@ int main(int argc, char** argv)
          silent = false,
          bigBaseUnit = false;
     char* offMeshInputPath = NULL;
+    char* workdir = NULL;
 
     bool validParam = handleArgs(argc, argv, mapnum,
                                  tileX, tileY, maxAngle,
                                  skipLiquid, skipContinents, skipJunkMaps, skipBattlegrounds,
-                                 debugOutput, silent, bigBaseUnit, offMeshInputPath);
+                                 debugOutput, silent, bigBaseUnit, offMeshInputPath, workdir);
 
     if (!validParam)
         return silent ? -1 : finish("You have specified invalid parameters (use -? for more help)", -1);
@@ -282,11 +303,11 @@ int main(int argc, char** argv)
             return 0;
     }
 
-    if (!checkDirectories(debugOutput))
+    if (!checkDirectories(debugOutput, workdir))
         return silent ? -3 : finish("Press any key to close...", -3);
 
     MapBuilder builder(maxAngle, skipLiquid, skipContinents, skipJunkMaps,
-                       skipBattlegrounds, debugOutput, bigBaseUnit, offMeshInputPath);
+                       skipBattlegrounds, debugOutput, bigBaseUnit, offMeshInputPath, workdir);
 
     if (tileX > -1 && tileY > -1 && mapnum >= 0)
         builder.buildSingleTile(mapnum, tileX, tileY);

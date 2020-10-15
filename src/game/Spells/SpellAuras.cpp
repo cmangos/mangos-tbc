@@ -5914,19 +5914,17 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
         // Special case with temporary increase max/current health
         // Cases where we need to manually calculate the amount for the spell (by percentage)
         // recalculate to full amount at apply for proper remove
-        // Backport notive TBC: no cases yet
-        // no break here
 
         // Cases where m_amount already has the correct value (spells cast with CastCustomSpell or absolute values)
         case 12976:                                         // Warrior Last Stand triggered spell (Cast with percentage-value by CastCustomSpell)
         case 28726:                                         // Nightmare Seed
-        case 34511:                                         // Valor (Bulwark of Kings, Bulwark of the Ancient Kings)
-        case 40604:                                         // Fel Rage - Gurtogg Bloodboil
+        case 33668:                                         // Tenacity (Regal Protectorate)
+        case 34511:                                         // Valor (Bulwark of Kings, Bulwark of the Ancient Kings
         case 44055:                                         // Tremendous Fortitude (Battlemaster's Alacrity)
         {
             if (Real)
             {
-                if (apply)
+                if (apply) // code confirmed for last stand
                 {
                     target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
                     target->ModifyHealth(m_modifier.m_amount);
@@ -5944,6 +5942,17 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
                     target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
                 }
             }
+            return;
+        }
+        // confirmed to keep percentage on unapply
+        case 40604:                                         // Fel Rage - Gurtogg Bloodboil
+        {
+            float percentage = target->GetHealthPercent();
+            target->HandleStatModifier(UNIT_MOD_HEALTH, TOTAL_VALUE, float(m_modifier.m_amount), apply);
+            if (apply)
+                target->ModifyHealth(m_modifier.m_amount);
+            else
+                target->SetHealthPercent(percentage);
             return;
         }
         case 30421:

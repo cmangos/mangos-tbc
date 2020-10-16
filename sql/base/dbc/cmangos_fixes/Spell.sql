@@ -2130,6 +2130,9 @@ VALUES
 -- Added Ignore LoS attribute for Web Wrab spells used in Maexxna encounter (trigger NPC is sometimes behind spider web GOs that break LoS with player)
 UPDATE `spell_template` SET `AttributesEx2`=AttributesEx2|0x00000004 WHERE `id` BETWEEN 28617 AND 28621;
 
+-- Lord Kazzak 12397 - boss_kazzak - Remove SPELL_INTERRUPT_FLAG_ABORT_ON_DMG for Void Bolt 21066
+UPDATE `spell_template` SET `InterruptFlags` = `InterruptFlags`&~0x00000010  WHERE `Id` = 21066;
+
 -- ============================================================
 -- TBC section
 -- ============================================================

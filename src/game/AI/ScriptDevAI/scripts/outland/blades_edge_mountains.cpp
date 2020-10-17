@@ -3293,6 +3293,20 @@ struct go_nether_drake_egg_trapAI : public GameObjectAI
     }
 };
 
+enum
+{
+    SPELL_ZEPHYRIUM_CHARGED = 37108,
+};
+
+struct Soaring : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            aura->GetTarget()->CastSpell(nullptr, SPELL_ZEPHYRIUM_CHARGED, TRIGGERED_NONE);
+    }
+};
+
 void AddSC_blades_edge_mountains()
 {
     Script* pNewScript = new Script;
@@ -3426,4 +3440,5 @@ void AddSC_blades_edge_mountains()
 
     RegisterSpellScript<ExorcismFeather>("spell_exorcism_feather");
     RegisterSpellScript<KoiKoiDeath>("spell_koi_koi_death");
+    RegisterAuraScript<Soaring>("spell_soaring");
 }

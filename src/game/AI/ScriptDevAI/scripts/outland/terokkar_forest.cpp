@@ -1492,6 +1492,16 @@ UnitAI* GetAI_npc_vengeful_harbinger(Creature* pCreature)
     return new npc_vengeful_harbinger(pCreature);
 }
 
+struct ShadowyDisguise : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (!apply)
+            target->RemoveAurasDueToSpell(target->getGender() == GENDER_MALE ? 38080 : 38081);
+    }
+};
+
 void AddSC_terokkar_forest()
 {
     Script* pNewScript = new Script;
@@ -1563,4 +1573,6 @@ void AddSC_terokkar_forest()
     pNewScript->Name = "npc_vengeful_harbinger";
     pNewScript->GetAI = &GetAI_npc_vengeful_harbinger;
     pNewScript->RegisterSelf();
+
+    RegisterAuraScript<ShadowyDisguise>("spell_shadowy_disguise");
 }

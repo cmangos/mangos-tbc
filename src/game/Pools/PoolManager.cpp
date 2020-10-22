@@ -388,7 +388,7 @@ bool PoolGroup<GameObject>::CanSpawn(PoolObject* object, MapPersistentState& map
 }
 
 template<>
-bool PoolGroup<Pool>::CanSpawn(PoolObject* object, MapPersistentState& mapState)
+bool PoolGroup<Pool>::CanSpawn(PoolObject* /*object*/, MapPersistentState& /*mapState*/)
 {
     return true;
 }

@@ -5305,7 +5305,7 @@ UnitAI* GetAI_npc_bt_battle_sensor(Creature* pCreature)
 
 struct TagGreaterFelfireDiemetradon : public SpellScript
 {
-    SpellCastResult OnCheckCast(Spell* spell, bool strict) const override
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
     {
         Unit* target = spell->m_targets.getUnitTarget();
         if (!target || !target->IsCreature() || static_cast<Creature*>(target)->HasBeenHitBySpell(spell->m_spellInfo->Id))

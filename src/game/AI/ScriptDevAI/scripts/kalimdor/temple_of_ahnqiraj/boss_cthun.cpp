@@ -141,7 +141,7 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_HOOK_TENTACLES, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
-    void JustDied(Unit* pKiller) override
+    void JustDied(Unit* /*pKiller*/) override
     {
         // Allow the body to begin the transition (internal 5 secs delay)
         if (m_pInstance)
@@ -743,7 +743,7 @@ struct SummonHookTentacle : public SpellScript
 
 struct PeriodicSummonEyeTrigger : public AuraScript
 {
-    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& /*data*/) const override
     {
         if (Unit* caster = aura->GetCaster())
         {

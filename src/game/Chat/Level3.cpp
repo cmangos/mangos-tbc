@@ -6741,7 +6741,7 @@ enum ModSpells
     SPELL_MOD_BLOCK_CHANCE = 15186,
 };
 
-bool ChatHandler::HandleResetModsCommand(char *args)
+bool ChatHandler::HandleResetModsCommand(char* /*args*/)
 {
     Unit* target = getSelectedUnit();
 

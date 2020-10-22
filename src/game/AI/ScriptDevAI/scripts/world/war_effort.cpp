@@ -105,7 +105,7 @@ enum Quests
     QUEST_HORDE_MAGEWEAVE_BANDAGE_2 = 8608,
 };
 
-bool QuestRewarded_war_effort(Player* player, Creature* creature, Quest const* quest)
+bool QuestRewarded_war_effort(Player* /*player*/, Creature* /*creature*/, Quest const* quest)
 {
     uint32 itemCount = quest->ReqItemCount[0];
     AQResources resource;

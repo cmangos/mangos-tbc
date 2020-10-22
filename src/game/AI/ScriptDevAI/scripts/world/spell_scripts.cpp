@@ -480,7 +480,7 @@ struct SpellStackingRulesOverride : public SpellScript
 #####*/
 struct spell_battleground_banner_trigger : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const
     {
         // TODO: Fix when go casting is fixed
         WorldObject* obj = spell->GetAffectiveCasterObject();
@@ -502,7 +502,7 @@ struct spell_battleground_banner_trigger : public SpellScript
 #####*/
 struct spell_outdoor_pvp_banner_trigger : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const
     {
         // TODO: Fix when go casting is fixed
         WorldObject* obj = spell->GetAffectiveCasterObject();

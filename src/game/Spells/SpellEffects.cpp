@@ -9754,7 +9754,7 @@ void Spell::EffectCreateTamedPet(SpellEffectIndex eff_idx)
     }
 }
 
-void Spell::EffectTeleportGraveyard(SpellEffectIndex eff_idx)
+void Spell::EffectTeleportGraveyard(SpellEffectIndex /*eff_idx*/)
 {
     if (!unitTarget || !unitTarget->IsPlayer() || !unitTarget->GetMap()->IsBattleGround())
         return;

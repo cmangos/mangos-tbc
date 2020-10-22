@@ -1518,7 +1518,7 @@ bool ChatHandler::HandleDebugFlyCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleDebugPacketHistory(char* args)
+bool ChatHandler::HandleDebugPacketHistory(char* /*args*/)
 {
     auto history = m_session->GetOpcodeHistory();
     std::string output = "Opcodes (reverse order):\n";

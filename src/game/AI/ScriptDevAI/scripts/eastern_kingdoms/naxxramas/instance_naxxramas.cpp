@@ -48,18 +48,17 @@ static const DialogueEntry naxxDialogue[] =
     {0,                     0,                0}
 };
 
-instance_naxxramas::instance_naxxramas(Map* pMap) : ScriptedInstance(pMap),
+instance_naxxramas::instance_naxxramas(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(naxxDialogue),
     m_sapphironSpawnTimer(0),
     m_tauntTimer(0),
     m_horsemenKilled(0),
-    m_horsemenTauntTimer(30 * MINUTE * IN_MILLISECONDS),
     m_livingPoisonTimer(0),
-    m_despawnKTTriggerTimer(0),
     m_screamsTimer(2 * MINUTE * IN_MILLISECONDS),
-    isFaerlinaIntroDone(false),
-    m_shackledGuardians(0),
+    m_horsemenTauntTimer(30 * MINUTE * IN_MILLISECONDS),
+    m_despawnKTTriggerTimer(0),
     m_checkGuardiansTimer(0),
-    DialogueHelper(naxxDialogue)
+    m_shackledGuardians(0),
+    isFaerlinaIntroDone(false)
 {
     Initialize();
 }

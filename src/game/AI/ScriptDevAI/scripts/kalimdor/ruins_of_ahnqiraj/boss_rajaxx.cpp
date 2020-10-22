@@ -86,8 +86,8 @@ enum AndorovActions
 
 struct npc_general_andorovAI : public CombatAI, private DialogueHelper
 {
-    npc_general_andorovAI(Creature* creature) : CombatAI(creature, ANDOROV_ACTION_MAX), m_instance(static_cast<instance_ruins_of_ahnqiraj*>(creature->GetInstanceData())),
-        DialogueHelper(aIntroDialogue)
+    npc_general_andorovAI(Creature* creature) : CombatAI(creature, ANDOROV_ACTION_MAX), DialogueHelper(aIntroDialogue),
+        m_instance(static_cast<instance_ruins_of_ahnqiraj*>(creature->GetInstanceData()))
     {
         InitializeDialogueHelper(m_instance);
         m_pointId = 0;

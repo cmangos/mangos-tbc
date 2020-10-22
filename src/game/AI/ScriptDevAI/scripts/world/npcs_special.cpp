@@ -1292,7 +1292,7 @@ enum BursterActions
 struct npc_burster_wormAI : public CombatAI
 {
     npc_burster_wormAI(Creature* creature) : CombatAI(creature, BURSTER_ACTION_MAX),
-        m_uiBorePassive(SetBorePassive()), m_boreDamageSpell(SetBoreDamageSpell()), m_rangedSpell(GetRangedSpell())
+        m_rangedSpell(GetRangedSpell()), m_uiBorePassive(SetBorePassive()), m_boreDamageSpell(SetBoreDamageSpell())
     {
         // generic abilities
         AddCombatAction(BURSTER_CHASE_DISTANCE, 10000u);

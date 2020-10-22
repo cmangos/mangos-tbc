@@ -77,8 +77,8 @@ struct npc_malfurionAI : public ScriptedAI
 {
     npc_malfurionAI(Creature* pCreature) :
         ScriptedAI(pCreature),
-        m_uiSpeech(0),
-        m_uiSayTimer(3000)
+        m_uiSayTimer(3000),
+        m_uiSpeech(0)
     {
         // Only in Sunken Temple
         if (m_creature->GetMap()->IsDungeon())

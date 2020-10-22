@@ -73,8 +73,8 @@ enum VictorNefariusActions
 
 struct boss_victor_nefariusAI : public CombatAI, private DialogueHelper
 {
-    boss_victor_nefariusAI(Creature* creature) : CombatAI(creature, NEFARIUS_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())),
-        DialogueHelper(aIntroDialogue)
+    boss_victor_nefariusAI(Creature* creature) : CombatAI(creature, NEFARIUS_ACTION_MAX), DialogueHelper(aIntroDialogue),
+        m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         if (m_creature->GetMapId() != MAP_ID_BWL)
             return;

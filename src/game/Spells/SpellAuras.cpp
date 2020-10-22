@@ -8128,10 +8128,11 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
     m_castItemGuid(castItem ? castItem->GetObjectGuid() : ObjectGuid()), m_triggeredBy(triggeredBy),
     m_spellAuraHolderState(SPELLAURAHOLDER_STATE_CREATED), m_auraSlot(MAX_AURAS),
     m_auraLevel(1), m_procCharges(0),
-    m_stackAmount(1), m_timeCla(1000), m_removeMode(AURA_REMOVE_BY_DEFAULT),
-    m_AuraDRGroup(DIMINISHING_NONE), m_permanent(false), m_isRemovedOnShapeLost(true),
-    m_heartbeatResistChance(0), m_heartbeatResistTimer(0), m_heartbeatResistInterval(0),
-    m_deleted(false), m_skipUpdate(false),
+    m_stackAmount(1), m_timeCla(1000),
+    m_heartbeatResistChance(0), m_heartbeatResistInterval(0), m_heartbeatResistTimer(0),
+    m_removeMode(AURA_REMOVE_BY_DEFAULT),
+    m_AuraDRGroup(DIMINISHING_NONE),
+    m_permanent(false), m_isRemovedOnShapeLost(true), m_deleted(false), m_skipUpdate(false),
     m_auraScript(SpellScriptMgr::GetAuraScript(spellproto->Id))
 {
     MANGOS_ASSERT(target);

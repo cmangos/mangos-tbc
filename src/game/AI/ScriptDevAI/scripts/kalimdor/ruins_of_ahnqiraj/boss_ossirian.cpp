@@ -86,8 +86,8 @@ struct boss_ossirianAI : public CombatAI
     boss_ossirianAI(Creature* creature) :
         CombatAI(creature, OSSIRIAN_ACTION_MAX),
         m_instance(static_cast<instance_ruins_of_ahnqiraj*>(m_creature->GetInstanceData())),
-        m_saidIntro(false),
-        m_uiCrystalPosition(0)
+        m_uiCrystalPosition(0),
+        m_saidIntro(false)
     {
         AddCombatAction(OSSIRIAN_INITIAL_SPAWN, 10000u);
         AddCombatAction(OSSIRIAN_SUPREME, 45000u);

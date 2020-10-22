@@ -304,11 +304,11 @@ Unit::Unit() :
     i_motionMaster(this),
     m_regenTimer(0),
     m_combatData(new CombatData(this)),
+    m_combatManager(this),
     m_spellUpdateHappening(false),
     m_spellProcsHappening(false),
-    m_auraUpdateMask(0),
     m_ignoreRangedTargets(false),
-    m_combatManager(this)
+    m_auraUpdateMask(0)
 {
     m_objectType |= TYPEMASK_UNIT;
     m_objectTypeId = TYPEID_UNIT;

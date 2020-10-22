@@ -319,7 +319,7 @@ void SpellLog::SendToSet()
 // ***********
 
 Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy) :
-    m_spellLog(this), m_spellScript(SpellScriptMgr::GetSpellScript(info->Id))
+    m_spellScript(SpellScriptMgr::GetSpellScript(info->Id)), m_spellLog(this)
 {
     MANGOS_ASSERT(caster != nullptr && info != nullptr);
     MANGOS_ASSERT(info == sSpellTemplate.LookupEntry<SpellEntry>(info->Id) && "`info` must be pointer to sSpellTemplate element");

@@ -384,6 +384,7 @@ class Spell
         void EffectPlaySound(SpellEffectIndex eff_idx);
         void EffectPlayMusic(SpellEffectIndex eff_idx);
         void EffectKnockBackFromPosition(SpellEffectIndex eff_idx);
+        void EffectSummonRafFriend(SpellEffectIndex eff_idx);
         void EffectCreateTamedPet(SpellEffectIndex eff_ifx);
 
         Spell(WorldObject* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);

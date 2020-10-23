@@ -90,7 +90,7 @@ bool WorldSessionFilter::Process(WorldPacket const& packet) const
 }
 
 /// WorldSession constructor
-WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale) :
+WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruitingFriend, bool isARecruiter) :
     LookingForGroup_auto_join(false), LookingForGroup_auto_add(true), m_muteTime(mute_time),
     _player(nullptr), m_Socket(sock ? sock->shared<WorldSocket>() : nullptr),
     m_requestSocket(nullptr), m_sessionState(WORLD_SESSION_STATE_CREATED),
@@ -98,7 +98,8 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetStorageLocaleIndexFor(locale)),
     m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED),
-    m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0) {}
+    m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0), m_recruitingFriendId(recruitingFriend), m_isRecruiter(isARecruiter)
+    {}
 
 /// WorldSession destructor
 WorldSession::~WorldSession()

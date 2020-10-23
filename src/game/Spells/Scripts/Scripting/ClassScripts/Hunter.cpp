@@ -113,7 +113,7 @@ struct Misdirection : public SpellScript
 
         return SPELL_CAST_OK;
     }
-}
+};
 
 struct ExposeWeakness : public AuraScript
 {

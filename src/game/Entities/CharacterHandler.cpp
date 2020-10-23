@@ -565,7 +565,6 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     ObjectGuid playerGuid = holder->GetGuid();
 
     Player* pCurrChar = new Player(this);
-    pCurrChar->GetMotionMaster()->Initialize();
     SetPlayer(pCurrChar);
     m_playerLoading = true;
 
@@ -588,6 +587,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         SendPacket(data, true);
         return;
     }
+
+    pCurrChar->GetMotionMaster()->Initialize();
 
     Group* group = pCurrChar->GetGroup();
 

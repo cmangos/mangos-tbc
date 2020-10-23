@@ -380,7 +380,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
             //    pStalker->CastSpell(pStalker, SPELL_AI_ACTION_TIMER, TRIGGERED_OLD_TRIGGERED);
 
             //DoCastSpellIfCan(m_creature, SPELL_AI_SNAPSHOT_TIMER, CAST_TRIGGERED);
-            DoCastSpellIfCan(m_creature, SPELL_CHESS_AI_ATTACK_TIMER, CAST_TRIGGERED);
+            DoCastSpellIfCan(nullptr, SPELL_CHESS_AI_ATTACK_TIMER, CAST_TRIGGERED);
 
             pInvoker->CastSpell(pInvoker, SPELL_DISABLE_SQUARE, TRIGGERED_OLD_TRIGGERED);
             pInvoker->CastSpell(pInvoker, SPELL_IS_SQUARE_USED, TRIGGERED_OLD_TRIGGERED);
@@ -688,9 +688,9 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
 
     bool m_bIsAttacked;
 
-    void DamageTaken(Unit* doneBy, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        if (!damage || !m_bIsAttacked || !m_pInstance || doneBy->GetTypeId() != TYPEID_UNIT)
+        if (!damage || !m_bIsAttacked || !m_pInstance || !dealer || dealer->GetTypeId() != TYPEID_UNIT)
             return;
 
         if (Creature* pMedivh = m_pInstance->GetSingleCreatureFromStorage(NPC_ECHO_MEDIVH))
@@ -740,7 +740,7 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 20.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_HEROISM);
+            DoCastSpellIfCan(nullptr, SPELL_HEROISM);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HEROISM);
@@ -754,7 +754,7 @@ struct npc_king_llaneAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_SWEEP);
+            DoCastSpellIfCan(nullptr, SPELL_SWEEP);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SWEEP);
@@ -799,9 +799,9 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
 
     bool m_bIsAttacked;
 
-    void DamageTaken(Unit* doneBy, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        if (!damage || !m_bIsAttacked || !m_pInstance || doneBy->GetTypeId() != TYPEID_UNIT)
+        if (!damage || !m_bIsAttacked || !m_pInstance || !dealer || dealer->GetTypeId() != TYPEID_UNIT)
             return;
 
         if (Creature* pMedivh = m_pInstance->GetSingleCreatureFromStorage(NPC_ECHO_MEDIVH))
@@ -853,7 +853,7 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 20.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_BLOODLUST);
+            DoCastSpellIfCan(nullptr, SPELL_BLOODLUST);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_BLOODLUST);
@@ -867,7 +867,7 @@ struct npc_warchief_blackhandAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_CLEAVE);
+            DoCastSpellIfCan(nullptr, SPELL_CLEAVE);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_CLEAVE);
@@ -1095,7 +1095,7 @@ struct npc_human_footmanAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_HEROIC_BLOW);
+            DoCastSpellIfCan(nullptr, SPELL_HEROIC_BLOW);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HEROIC_BLOW);
@@ -1109,7 +1109,7 @@ struct npc_human_footmanAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_SHIELD_BLOCK);
+            DoCastSpellIfCan(nullptr, SPELL_SHIELD_BLOCK);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHIELD_BLOCK);
@@ -1185,7 +1185,7 @@ struct npc_orc_gruntAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_VICIOUS_STRIKE);
+            DoCastSpellIfCan(nullptr, SPELL_VICIOUS_STRIKE);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_VICIOUS_STRIKE);
@@ -1199,7 +1199,7 @@ struct npc_orc_gruntAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_WEAPON_DEFLECTION);
+            DoCastSpellIfCan(nullptr, SPELL_WEAPON_DEFLECTION);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_WEAPON_DEFLECTION);
@@ -1261,7 +1261,7 @@ struct npc_water_elementalAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_GEYSER);
+            DoCastSpellIfCan(nullptr, SPELL_GEYSER);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_GEYSER);
@@ -1275,7 +1275,7 @@ struct npc_water_elementalAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_WATER_SHIELD);
+            DoCastSpellIfCan(nullptr, SPELL_WATER_SHIELD);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_WATER_SHIELD);
@@ -1337,7 +1337,7 @@ struct npc_summoned_daemonAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_HELLFIRE);
+            DoCastSpellIfCan(nullptr, SPELL_HELLFIRE);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HELLFIRE);
@@ -1351,7 +1351,7 @@ struct npc_summoned_daemonAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 9.0f))
         {
-            DoCastSpellIfCan(m_creature, SPELL_FIRE_SHIELD);
+            DoCastSpellIfCan(nullptr, SPELL_FIRE_SHIELD);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_FIRE_SHIELD);
@@ -1413,7 +1413,7 @@ struct npc_human_chargerAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_SMASH);
+            DoCastSpellIfCan(nullptr, SPELL_SMASH);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SMASH);
@@ -1427,7 +1427,7 @@ struct npc_human_chargerAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_STOMP);
+            DoCastSpellIfCan(nullptr, SPELL_STOMP);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_STOMP);
@@ -1489,7 +1489,7 @@ struct npc_orc_wolfAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 8.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_BITE);
+            DoCastSpellIfCan(nullptr, SPELL_BITE);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_BITE);
@@ -1503,7 +1503,7 @@ struct npc_orc_wolfAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 10.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_HOWL);
+            DoCastSpellIfCan(nullptr, SPELL_HOWL);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HOWL);
@@ -1579,7 +1579,7 @@ struct npc_human_clericAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 18.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_HOLY_LANCE);
+            DoCastSpellIfCan(nullptr, SPELL_HOLY_LANCE);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_HOLY_LANCE);
@@ -1655,7 +1655,7 @@ struct npc_orc_necrolyteAI : public npc_chess_piece_genericAI
     {
         if (GetTargetByType(TARGET_TYPE_RANDOM, 18.0f, M_PI_F / 12))
         {
-            DoCastSpellIfCan(m_creature, SPELL_SHADOW_SPEAR);
+            DoCastSpellIfCan(nullptr, SPELL_SHADOW_SPEAR);
 
             // reset timer based on spell values
             const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_SPEAR);
@@ -1721,7 +1721,8 @@ struct go_chessboard : public GameObjectAI
                         break;
                     }
                 }
-                player->RemoveSpellAuraHolder(myHolder);
+                if (myHolder)
+                    player->RemoveSpellAuraHolder(myHolder);
             }
         }
     }

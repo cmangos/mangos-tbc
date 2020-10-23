@@ -81,7 +81,7 @@ struct LifeTap : public SpellScript
         return SPELL_CAST_OK;
     }
 
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         Unit* caster = spell->GetCaster();
         int32 mana = spell->GetScriptValue();

@@ -319,7 +319,7 @@ void SpellLog::SendToSet()
 // ***********
 
 Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy) :
-    m_spellLog(this), m_spellScript(SpellScriptMgr::GetSpellScript(info->Id))
+    m_spellScript(SpellScriptMgr::GetSpellScript(info->Id)), m_spellLog(this)
 {
     MANGOS_ASSERT(caster != nullptr && info != nullptr);
     MANGOS_ASSERT(info == sSpellTemplate.LookupEntry<SpellEntry>(info->Id) && "`info` must be pointer to sSpellTemplate element");
@@ -1315,10 +1315,15 @@ void Spell::DoAllTargetlessEffects(bool dest)
         }
     }
 
-    if (effectMask && unitCaster)
+    if (effectMask)
     {
-        PrepareMasksForProcSystem(effectMask, procAttacker, procVictim, caster, unitTarget);
-        Unit::ProcDamageAndSpell(ProcSystemArguments(unitCaster, procAttacker & PROC_FLAG_ON_TRAP_ACTIVATION ? m_targets.getUnitTarget() : nullptr, unitCaster ? procAttacker : uint32(PROC_FLAG_NONE), procVictim, procEx, 0, m_attackType, m_spellInfo, this));
+        OnHit();
+
+        if (unitCaster)
+        {
+            PrepareMasksForProcSystem(effectMask, procAttacker, procVictim, caster, unitTarget);
+            Unit::ProcDamageAndSpell(ProcSystemArguments(unitCaster, procAttacker & PROC_FLAG_ON_TRAP_ACTIVATION ? m_targets.getUnitTarget() : nullptr, unitCaster ? procAttacker : uint32(PROC_FLAG_NONE), procVictim, procEx, 0, m_attackType, m_spellInfo, this));
+        }
     }
 }
 
@@ -1336,7 +1341,11 @@ void Spell::DoAllEffectOnTarget(GOTargetInfo* target)
     if (!go)
         return;
 
+    gameObjTarget = go; // redundant but for safety against future change for hook functionality
+
     ExecuteEffects(nullptr, nullptr, go, effectMask);
+
+    OnHit();
 
     // cast at creature (or GO) quest objectives update at successful cast finished (+channel finished)
     // ignore autorepeat/melee casts for speed (not exist quest for spells (hm... )
@@ -1353,7 +1362,11 @@ void Spell::DoAllEffectOnTarget(ItemTargetInfo* target)
     if (!target->item || !effectMask)
         return;
 
+    itemTarget = target->item; // redundant but for safety against future change for hook functionality
+
     ExecuteEffects(nullptr, target->item, nullptr, effectMask);
+
+    OnHit();
 }
 
 void Spell::HandleImmediateEffectExecution(TargetInfo* target)
@@ -3152,6 +3165,8 @@ uint64 Spell::handle_delayed(uint64 t_offset)
 
 void Spell::_handle_immediate_phase()
 {
+    m_spellState = SPELL_STATE_LANDING;
+
     if (IsMeleeAttackResetSpell())
     {
         if (!m_spellInfo->HasAttribute(SPELL_ATTR_EX2_NOT_RESET_AUTO_ACTIONS))
@@ -4537,6 +4552,9 @@ SpellCastResult Spell::CheckCast(bool strict)
         uint32 targetType = m_spellInfo->EffectImplicitTargetA[i];
         switch (targetType)
         {
+            case TARGET_UNIT_ENEMY_NEAR_CASTER:
+            case TARGET_UNIT_FRIEND_NEAR_CASTER:
+            case TARGET_UNIT_NEAR_CASTER:
             case TARGET_UNIT_CASTER_MASTER:
             case TARGET_UNIT_CASTER: break; // never check anything
             case TARGET_UNIT_CASTER_PET: // special pet checks
@@ -5749,8 +5767,21 @@ SpellCastResult Spell::CheckRange(bool strict)
             return SPELL_FAILED_OUT_OF_RANGE;
         if (minRange && dist < minRange * minRange)
             return SPELL_FAILED_TOO_CLOSE;
-        if (!m_caster->IsWithinLOS(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ + 1.f))
-            return SPELL_FAILED_LINE_OF_SIGHT;
+        if (!IsIgnoreLosSpell(m_spellInfo))
+            if (!m_caster->IsWithinLOS(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ + 1.f))
+                return SPELL_FAILED_LINE_OF_SIGHT;
+    }
+
+    if (m_targets.m_targetMask == TARGET_FLAG_SOURCE_LOCATION)
+    {
+        float dist = m_caster->GetDistance(m_targets.m_srcX, m_targets.m_srcY, m_targets.m_srcZ, DIST_CALC_NONE);
+        if (dist > maxRange* maxRange)
+            return SPELL_FAILED_OUT_OF_RANGE;
+        if (minRange && dist < minRange * minRange)
+            return SPELL_FAILED_TOO_CLOSE;
+        if (!IsIgnoreLosSpell(m_spellInfo))
+            if (!m_caster->IsWithinLOS(m_targets.m_srcX, m_targets.m_srcY, m_targets.m_srcZ + 1.f))
+                return SPELL_FAILED_LINE_OF_SIGHT;
     }
 
     m_maxRange = maxRange; // need to save max range for some calculations
@@ -6577,6 +6608,8 @@ SpellEvent::~SpellEvent()
     {
         sLog.outError("~SpellEvent: %s %u tried to delete non-deletable spell %u. Was not deleted, causes memory leak.",
                       (m_Spell->GetCaster()->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), m_Spell->GetCaster()->GetGUIDLow(), m_Spell->m_spellInfo->Id);
+        sLog.outCustomLog("~SpellEvent: %s %u tried to delete non-deletable spell %u. Was not deleted, causes memory leak.",
+                        (m_Spell->GetCaster()->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), m_Spell->GetCaster()->GetGUIDLow(), m_Spell->m_spellInfo->Id);
     }
 }
 
@@ -7001,6 +7034,13 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
                         radius = 0.3f * (60000 - auraHolder->GetAuraDuration()) * 0.001f;
                     break;
                 }
+                case 30915:                                 // Poison - Broggok
+                case 38463:
+                {
+                    if (SpellAuraHolder* auraHolder = m_caster->GetSpellAuraHolder(GetTriggeredByAuraSpellInfo()->Id))
+                        radius = (60000 - auraHolder->GetAuraDuration()) * 0.0002f;
+                    break;
+                }
                 case 43486:                                 // Summon Amani'shi Warriors
                 case 43487:                                 // Summon Amani Eagle
                 case 43962:                                 // Summon Amani'shi Hatcher
@@ -7041,7 +7081,7 @@ void Spell::ProcReflectProcs(TargetInfo& targetInfo)
         Unit::ProcDamageAndSpell(ProcSystemArguments(m_caster, m_caster, PROC_FLAG_NONE, PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_NEG, PROC_EX_REFLECT, 1, BASE_ATTACK, m_spellInfo));
 }
 
-void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex effIndex, SpellTargetFilterScheme scheme, uint32 chainTargetCount)
+void Spell::FilterTargetMap(UnitList& filterUnitList, SpellEffectIndex /*effIndex*/, SpellTargetFilterScheme scheme, uint32 chainTargetCount)
 {
     switch (scheme)
     {
@@ -7332,11 +7372,9 @@ SpellCastResult Spell::OnCheckCast(bool strict)
         case 12699: // Summon Screecher Spirit
         {
             Unit* target = m_targets.getUnitTarget();
-            if (!target || !target->IsCreature())
+            if (!target || !target->IsCreature() || static_cast<Creature*>(target)->HasBeenHitBySpell(m_spellInfo->Id))
                 return SPELL_FAILED_BAD_TARGETS;
-            if (strict)
-                return static_cast<Creature*>(target)->HasBeenHitBySpell(m_spellInfo->Id) ? SPELL_FAILED_BAD_TARGETS : SPELL_CAST_OK;
-            else
+            if (!strict)
             {
                 static_cast<Creature*>(target)->RegisterHitBySpell(m_spellInfo->Id);
                 return SPELL_CAST_OK;
@@ -7590,10 +7628,6 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
             break;
         case 37433:                                         // Spout (The Lurker Below), only players affected if its not in water
             if (target->IsInWater() && (target->GetTypeId() != TYPEID_PLAYER || static_cast<Player*>(target)->IsInHighLiquid()))
-                return false;
-            break;
-        case 37851:                                         // Tag Greater Felfire Diemetradon
-            if (target->HasAura(37851)) // Cant tag if already tagged
                 return false;
             break;
         case 37868:                                         // Arcano-Scorp Control

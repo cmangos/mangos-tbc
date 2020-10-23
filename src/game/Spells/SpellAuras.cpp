@@ -1279,10 +1279,28 @@ void Aura::TriggerSpell()
 //                    case 27601: break;
 //                    // Five Fat Finger Exploding Heart Technique
 //                    case 27673: break;
-//                    // Nitrous Boost
-//                    case 27746: break;
-//                    // Steam Tank Passive
-//                    case 27747: break;
+                    case 27746:                             // Nitrous Boost
+                    {
+                        if (triggerTarget->GetPower(POWER_MANA) >= 10)
+                        {
+                            triggerTarget->ModifyPower(POWER_MANA, -10);
+                            triggerTarget->SendEnergizeSpellLog(triggerTarget, 27746, -10, POWER_MANA);
+                        }
+                        else
+                        {
+                            triggerTarget->RemoveAurasDueToSpell(27746);
+                        }
+                        return;
+                    }
+                    case 27747:                             // Steam Tank Passive
+                    {
+                        if (triggerTarget->GetPower(POWER_MANA) <= 90)
+                        {
+                            triggerTarget->ModifyPower(POWER_MANA, 10);
+                            triggerTarget->SendEnergizeSpellLog(triggerTarget, 27747, 10, POWER_MANA);
+                        }
+                        return;
+                    }
                     // Detonate Mana
                     case 27819:
                     {
@@ -1507,8 +1525,8 @@ void Aura::TriggerSpell()
 //                    // Cursed Scarab Despawn Periodic
 //                    case 36561: break;
 //                    // Vision Guide
-//                    case 36573: break;
-//                    // Cannon Charging (platform)
+                    case 36573: return; // atm implemented in dbscripts
+                    // Cannon Charging (platform)
 //                    case 36785: break;
 //                    // Cannon Charging (self)
 //                    case 36860: break;
@@ -2127,24 +2145,22 @@ void Aura::TriggerSpellWithValue()
     int32 calculatedAmount = GetModifier()->m_amount;
 
     SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(trigger_spell_id);
-    int32 basepoints[3];
+    int32 basePoints[3] = { 0,0,0 };
     // damage triggered from spell might not only be processed by first effect (but always EffectDieSides equal 1)
     if (triggeredSpellInfo)
     {
         uint8 j = 0;
         for (uint8 i = 0; i < 3; ++i)
         {
-            basepoints[i] = 0;
             if (triggeredSpellInfo->EffectDieSides[i] == 1)
                 j = i;
         }
-        basepoints[j] = calculatedAmount;
+        basePoints[j] = calculatedAmount;
     }
     Unit* triggerCaster = triggerTarget;
     WorldObject* triggerTargetObject = nullptr;
     PickTargetsForSpellTrigger(triggerCaster, triggerTarget, triggerTargetObject, triggeredSpellInfo);
 
-    int32 basePoints[] = { 0,0,0 };
     PeriodicTriggerData data(triggerCaster, triggerTarget, triggerTargetObject, triggeredSpellInfo, basePoints);
     OnPeriodicTrigger(data);
 
@@ -2222,7 +2238,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                             if (caster->GetTypeId() != TYPEID_UNIT)
                                 return;
 
-                            caster->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                            caster->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_NOT_SELECTABLE);
                             caster->addUnitState(UNIT_STAT_ROOT);
                         }
                         return;
@@ -3461,6 +3477,13 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
         }
     }
 
+    switch (GetId())
+    {
+        case 35200: // Roc Form
+            m_modifier.m_amount = 4877;
+            break;
+    }
+
     // remove polymorph before changing display id to keep new display id
     switch (form)
     {
@@ -4043,7 +4066,17 @@ void Aura::HandleAuraTrackStealthed(bool apply, bool /*Real*/)
 
 void Aura::HandleAuraModScale(bool apply, bool /*Real*/)
 {
-    GetTarget()->ApplyPercentModFloatValue(OBJECT_FIELD_SCALE_X, float(m_modifier.m_amount), apply);
+    int32 value = GetTarget()->GetTotalAuraModifier(SPELL_AURA_MOD_SCALE);
+    int32 otherValue = GetTarget()->GetTotalAuraModifier(SPELL_AURA_MOD_SCALE_2);
+    if (!apply)
+    {
+        if (GetSpellProto()->EffectApplyAuraName[GetEffIndex()] == SPELL_AURA_MOD_SCALE)
+            value -= m_modifier.m_amount;
+        else
+            otherValue -= m_modifier.m_amount;
+    }
+    float scale = std::max(0.1f, float(100 + value) / 100.f * float(100 + otherValue) / 100.f);
+    GetTarget()->SetObjectScale(scale);
     GetTarget()->UpdateModelData();
 }
 
@@ -4064,6 +4097,20 @@ void Aura::HandleModPossess(bool apply, bool Real)
 
     if (apply)
     {
+        if (const SpellEntry* spellInfo = GetSpellProto())
+        {
+            switch (spellInfo->Id)
+            {
+                case 24937: // Using Control Console
+                {
+                    static const uint32 spells[] = { 25026, 25024, 27759, 25027 };
+                    if (target->GetTypeId() == TYPEID_UNIT)
+                        static_cast<Creature*>(target)->UpdateSpell(5, spells[urand(0, 3)]);
+                }
+                break;
+            }
+        }
+
         // Possess: advertised type of charm (unique) - remove existing advertised charm
         caster->BreakCharmOutgoing(true);
 
@@ -4076,6 +4123,18 @@ void Aura::HandleModPossess(bool apply, bool Real)
     {
         switch (spellInfo->Id)
         {
+            case 24937: // Using Control Console
+                if (!apply)
+                {
+                    caster->CastSpell(caster, 24938, TRIGGERED_OLD_TRIGGERED);      // Close Control Console
+                    caster->CastSpell(caster, 27880, TRIGGERED_OLD_TRIGGERED);      // Stun
+                    if (target->GetTypeId() == TYPEID_UNIT)
+                    {
+                        target->CastSpell(target, 3617, TRIGGERED_OLD_TRIGGERED);   // Quiet Suicide
+                        static_cast<Creature*>(target)->ForcedDespawn(5000);
+                    }
+                }
+                break;
             // Need to teleport to spawn position on possess end
             case 37868: // Arcano-Scorp Control
             case 37893:
@@ -8088,10 +8147,11 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
     m_castItemGuid(castItem ? castItem->GetObjectGuid() : ObjectGuid()), m_triggeredBy(triggeredBy),
     m_spellAuraHolderState(SPELLAURAHOLDER_STATE_CREATED), m_auraSlot(MAX_AURAS),
     m_auraLevel(1), m_procCharges(0),
-    m_stackAmount(1), m_timeCla(1000), m_removeMode(AURA_REMOVE_BY_DEFAULT),
-    m_AuraDRGroup(DIMINISHING_NONE), m_permanent(false), m_isRemovedOnShapeLost(true),
-    m_heartbeatResistChance(0), m_heartbeatResistTimer(0), m_heartbeatResistInterval(0),
-    m_deleted(false), m_skipUpdate(false),
+    m_stackAmount(1), m_timeCla(1000),
+    m_heartbeatResistChance(0), m_heartbeatResistInterval(0), m_heartbeatResistTimer(0),
+    m_removeMode(AURA_REMOVE_BY_DEFAULT),
+    m_AuraDRGroup(DIMINISHING_NONE),
+    m_permanent(false), m_isRemovedOnShapeLost(true), m_deleted(false), m_skipUpdate(false),
     m_auraScript(SpellScriptMgr::GetAuraScript(spellproto->Id))
 {
     MANGOS_ASSERT(target);

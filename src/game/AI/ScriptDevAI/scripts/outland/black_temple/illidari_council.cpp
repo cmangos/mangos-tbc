@@ -128,7 +128,8 @@ static const uint32 aCouncilMember[] = {NPC_GATHIOS, NPC_VERAS, NPC_LADY_MALANDE
 struct mob_blood_elf_council_voice_triggerAI : public ScriptedAI
 {
     mob_blood_elf_council_voice_triggerAI(Creature* creature) : ScriptedAI(creature),
-        m_councilDialogue(aCouncilDialogue), m_instance(static_cast<ScriptedInstance*>(m_creature->GetInstanceData()))
+        m_instance(static_cast<ScriptedInstance*>(m_creature->GetInstanceData())),
+        m_councilDialogue(aCouncilDialogue)
     {
         m_councilDialogue.InitializeDialogueHelper(m_instance);
         SetReactState(REACT_PASSIVE);
@@ -336,7 +337,7 @@ struct boss_illidari_councilAI : public CombatAI
         }
     }
 
-    void DamageTaken(Unit* /*doneBy*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         int32 damageTaken = (int32)damage;
         m_creature->CastCustomSpell(nullptr, SPELL_SHARED_RULE_DAM, &damageTaken, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);

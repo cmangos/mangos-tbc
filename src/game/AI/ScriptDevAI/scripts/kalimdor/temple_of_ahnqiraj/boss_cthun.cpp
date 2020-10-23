@@ -141,7 +141,7 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_HOOK_TENTACLES, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
-    void JustDied(Unit* pKiller) override
+    void JustDied(Unit* /*pKiller*/) override
     {
         // Allow the body to begin the transition (internal 5 secs delay)
         if (m_pInstance)
@@ -313,7 +313,7 @@ struct boss_cthunAI : public Scripted_NoMovementAI
             m_uiPhaseTimer = 5 * IN_MILLISECONDS;
     }
 
-    void DamageTaken(Unit* /*pDealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         // Ignore damage reduction when vulnerable
         if (m_Phase == PHASE_CTHUN_WEAKENED)
@@ -743,7 +743,7 @@ struct SummonHookTentacle : public SpellScript
 
 struct PeriodicSummonEyeTrigger : public AuraScript
 {
-    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& /*data*/) const override
     {
         if (Unit* caster = aura->GetCaster())
         {

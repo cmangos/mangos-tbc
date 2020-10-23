@@ -36,6 +36,7 @@
 #include "Entities/Pet.h"
 #include "Server/DBCStores.h"
 #include "Log.h"
+#include "Metric/Metric.h"
 
 #include <cassert>
 
@@ -46,6 +47,14 @@ inline bool isStatic(MovementGenerator* mv)
 
 void MotionMaster::Initialize()
 {
+    metric::duration<std::chrono::microseconds> meas("motionmaster.initialize", {
+        { "entry", std::to_string(m_owner->GetEntry()) },
+        { "guid", std::to_string(m_owner->GetGUIDLow()) },
+        { "unit_type", std::to_string(m_owner->GetGUIDHigh()) },
+        { "map_id", std::to_string(m_owner->GetMapId()) },
+        { "instance_id", std::to_string(m_owner->GetInstanceId()) }
+    }, 1000);
+
     // stop current move
     m_owner->StopMoving();
 
@@ -82,6 +91,14 @@ void MotionMaster::UpdateMotion(uint32 diff)
 {
     if (m_owner->hasUnitState(UNIT_STAT_CAN_NOT_MOVE))
         return;
+
+    metric::duration<std::chrono::microseconds> meas("motionmaster.updatemotion", {
+        { "entry", std::to_string(m_owner->GetEntry()) },
+        { "guid", std::to_string(m_owner->GetGUIDLow()) },
+        { "unit_type", std::to_string(m_owner->GetGUIDHigh()) },
+        { "map_id", std::to_string(m_owner->GetMapId()) },
+        { "instance_id", std::to_string(m_owner->GetInstanceId()) }
+    }, 1000);
 
     MANGOS_ASSERT(!empty());
     m_cleanFlag |= MMCF_UPDATE;

@@ -39,6 +39,7 @@ EndContentData */
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/pet_ai.h"
 #include "AI/ScriptDevAI/scripts/outland/world_outland.h"
+#include "Spells/Scripts/SpellScript.h"
 
 /*######
 ## npc_manaforge_control_console
@@ -1184,7 +1185,11 @@ enum
 
     NPC_THADELL          = 20464,
     NPC_TORMENTED_SOUL   = 20512,
-    NPC_SEVERED_SPIRIT   = 19881
+    NPC_SEVERED_SPIRIT   = 19881,
+
+    SAY_ESCORT_1         = -1015100,
+    SAY_ESCORT_2         = -1015101,
+    SAY_THADELL          = -1015102
 };
 
 struct npc_bessyAI : public npc_escortAI
@@ -1196,27 +1201,28 @@ struct npc_bessyAI : public npc_escortAI
         switch (uiPointId)
         {
             case 4:
-                m_creature->SummonCreature(NPC_TORMENTED_SOUL, 2449.67f, 2183.11f, 96.85f, 6.20f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
-                m_creature->SummonCreature(NPC_TORMENTED_SOUL, 2449.53f, 2184.43f, 96.36f, 6.27f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
-                m_creature->SummonCreature(NPC_TORMENTED_SOUL, 2449.85f, 2186.34f, 97.57f, 6.08f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
+                DoScriptText(SAY_ESCORT_2, m_creature);
+                if (Creature* pSpirit = m_creature->SummonCreature(NPC_SEVERED_SPIRIT, 2438.142f, 2200.449f, 101.5952f, 4.63704f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000, false, true))
+                    pSpirit->GetMotionMaster()->MoveWaypoint(1);
                 break;
             case 8:
-                m_creature->SummonCreature(NPC_SEVERED_SPIRIT, 2309.64f, 2186.24f, 92.25f, 6.06f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
-                m_creature->SummonCreature(NPC_SEVERED_SPIRIT, 2309.25f, 2183.46f, 91.75f, 6.22f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000);
+                if (Creature* pSpirit = m_creature->SummonCreature(NPC_SEVERED_SPIRIT, 2279.846f, 2188.402f, 91.61183f, 6.22683f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 25000, false, true))
+                    pSpirit->GetMotionMaster()->MoveWaypoint(2);
                 break;
             case 13:
+                if (Creature* pThadell = GetClosestCreatureWithEntry(m_creature, NPC_THADELL, 20.0f))
+                    DoScriptText(SAY_THADELL, pThadell);
+
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_COWS_COME_HOME, m_creature);
                 break;
         }
     }
 
-    void JustSummoned(Creature* pSummoned) override
+    void Reset() override
     {
-        pSummoned->AI()->AttackStart(m_creature);
+        m_creature->SetWalk(true);
     }
-
-    void Reset() override {}
 };
 
 bool QuestAccept_npc_bessy(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
@@ -1225,8 +1231,10 @@ bool QuestAccept_npc_bessy(Player* pPlayer, Creature* pCreature, const Quest* pQ
     {
         pCreature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_NON_ATTACKABLE);
 
+        DoScriptText(SAY_ESCORT_1, pCreature);
+
         if (npc_bessyAI* pBessyAI = dynamic_cast<npc_bessyAI*>(pCreature->AI()))
-            pBessyAI->Start(true, pPlayer, pQuest);
+            pBessyAI->Start(false, pPlayer, pQuest);
     }
     return true;
 }
@@ -3703,7 +3711,7 @@ struct npc_kaylaan_the_lostAI : public ScriptedAI
             target->RemoveAurasDueToSpell(SPELL_PERMANENT_FEIGN_DEATH);
     }
 
-    void DamageTaken(Unit* /*killer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         if (damage < m_creature->GetHealth())
             return;
@@ -3909,6 +3917,19 @@ bool GossipSelect_npc_adyen_the_lightwarden(Player* player, Creature* creature, 
     return false;
 }
 
+struct Soulbind : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        Unit* target = spell->GetUnitTarget();
+        if (!target)
+            return;
+
+        caster->CastSpell(target, 36141, TRIGGERED_OLD_TRIGGERED); // spell id is in spell effect value
+    }
+};
+
 void AddSC_netherstorm()
 {
     Script* pNewScript = new Script;
@@ -4028,4 +4049,6 @@ void AddSC_netherstorm()
     pNewScript->Name = "npc_kaylaan_the_lost";
     pNewScript->GetAI = &Getnpc_kaylaan_the_lostAI;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<Soulbind>("spell_soulbind");
 }

@@ -27,6 +27,7 @@
 #include "Timer.h"
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
+#include "Multithreading/Messager.h"
 
 #include <atomic>
 #include <set>
@@ -36,6 +37,7 @@
 #include <functional>
 #include <utility>
 #include <vector>
+#include <array>
 
 class Object;
 class ObjectGuid;
@@ -78,7 +80,9 @@ enum WorldTimers
     WUPDATE_DELETECHARS = 4,
     WUPDATE_AHBOT       = 5,
     WUPDATE_GROUPS      = 6,
-    WUPDATE_COUNT       = 7
+    WUPDATE_WARDEN      = 7, // This is here for headache merge error issues
+    WUPDATE_METRICS     = 8,
+    WUPDATE_COUNT       = 9
 };
 
 /// Configuration elements
@@ -485,6 +489,12 @@ class World
         /// Get the maximum number of parallel sessions on the server since last reboot
         uint32 GetMaxQueuedSessionCount() const { return m_maxQueuedSessionCount; }
         uint32 GetMaxActiveSessionCount() const { return m_maxActiveSessionCount; }
+        uint32 GetUniqueSessionCount() const { return m_uniqueSessionCount.size(); }
+        // player counts
+        void SetOnlinePlayer(Team team, uint8 race, uint8 plClass, bool apply); // threadsafe
+        uint32 GetOnlineTeamPlayers(bool alliance) const { return m_onlineTeams[alliance]; }
+        uint32 GetOnlineRacePlayers(uint8 race) const { return m_onlineRaces[race]; }
+        uint32 GetOnlineClassPlayers(uint8 plClass) const { return m_onlineClasses[plClass]; }
 
         /// Get the active session server limit (or security level limitations)
         uint32 GetPlayerAmountLimit() const { return m_playerLimit >= 0 ? m_playerLimit : 0; }
@@ -637,6 +647,9 @@ class World
 
         void UpdateSessionExpansion(uint8 expansion);
 
+        Messager<World>& GetMessager() { return m_messager; }
+
+        void IncrementOpcodeCounter(uint32 opcodeId); // thread safe due to atomics
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters
@@ -652,6 +665,8 @@ class World
         void ResetDailyQuests();
         void ResetWeeklyQuests();
         void ResetMonthlyQuests();
+
+        void GeneratePacketMetrics(); // thread safe due to atomics
 
     private:
         void setConfig(eConfigUInt32Values index, char const* fieldname, uint32 defvalue);
@@ -682,7 +697,9 @@ class World
         uint32 mail_timer_expires;
 
         typedef std::unordered_map<uint32, WorldSession*> SessionMap;
+        typedef std::unordered_set<uint32> UniqueSessions;
         SessionMap m_sessions;
+        UniqueSessions m_uniqueSessionCount;
         uint32 m_maxActiveSessionCount;
         uint32 m_maxQueuedSessionCount;
 
@@ -740,6 +757,17 @@ class World
         static uint32 m_currentMSTime;
         static TimePoint m_currentTime;
         static uint32 m_currentDiff;
+
+        Messager<World> m_messager;
+
+        // Opcode logging
+        std::vector<std::atomic<uint32>> m_opcodeCounters;
+        // online count logging
+        std::array<std::atomic<uint32>, 2> m_onlineTeams;
+        std::array<std::atomic<uint32>, MAX_RACES> m_onlineRaces;        
+        std::array<std::atomic<uint32>, MAX_CLASSES> m_onlineClasses;
+
+
 
     public:
         const SessionMap GetSessions() { return m_sessions; }

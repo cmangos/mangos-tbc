@@ -15,6 +15,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (1121,'spell_entangle_fankriss'),
 (3730,'spell_initialize_image'),
 (7054,'spell_forsaken_skill'),
+(16380,'spell_greater_invisibility_mob'),
 (19832,'spell_possess_razorgore'),
 (19872,'spell_calm_dragonkin'),
 (19873,'spell_destroy_egg'),
@@ -56,6 +57,20 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 
 -- TBC
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(29883,'spell_blink_arcane_anomaly'),
+(29907,'spell_astral_bite'),
+(29690,'spell_inebriate_removal'),
+(37591,'spell_inebriate_removal'),
+(30926,'spell_vazruden_liquid_fire_script'),
+(33793,'spell_vazruden_liquid_fire_script'),
+(33794,'spell_vazruden_liquid_fire_script'),
+(34653,'spell_vazruden_liquid_fire_script'),
+(36920,'spell_vazruden_liquid_fire_script'),
+(36921,'spell_vazruden_liquid_fire_script'),
+(30700,'spell_face_highest_threat'),
+(36153,'spell_soulbind'),
+(37851,'spell_tag_greater_felfire_diemetradon'),
+(38606,'spell_exorcism_feather'),
 (38915,'spell_mental_interference'),
 (40186,'spell_summon_blossom_move_target'),
 (40251,'spell_shadow_of_death'),

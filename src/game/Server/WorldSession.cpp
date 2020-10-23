@@ -93,8 +93,8 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     LookingForGroup_auto_join(false), LookingForGroup_auto_add(true), m_muteTime(mute_time),
     _player(nullptr), m_Socket(sock ? sock->shared<WorldSocket>() : nullptr),
     m_requestSocket(nullptr), m_sessionState(WORLD_SESSION_STATE_CREATED),
-    _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0),
-    m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false), m_playerSave(true),
+    _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0), m_playerSave(true),
+    m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
     m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED),
     m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0) {}
@@ -239,6 +239,7 @@ void WorldSession::SendPacket(WorldPacket const& packet, bool forcedSend /*= fal
 /// Add an incoming packet to the queue
 void WorldSession::QueuePacket(std::unique_ptr<WorldPacket> new_packet)
 {
+    sWorld.IncrementOpcodeCounter(new_packet->GetOpcode());
     std::lock_guard<std::mutex> guard(m_recvQueueLock);
     m_recvQueue.push_back(std::move(new_packet));
 }
@@ -603,8 +604,11 @@ void WorldSession::LogoutPlayer()
             group->UpdatePlayerOnlineStatus(_player, false);
 
         ///- Broadcast a logout message to the player's friends
-        sSocialMgr.SendFriendStatus(_player, FRIEND_OFFLINE, _player->GetObjectGuid(), true);
-        sSocialMgr.RemovePlayerSocial(_player->GetGUIDLow());
+        if (_player->GetSocial()) // might not yet be initialized
+        {
+            sSocialMgr.SendFriendStatus(_player, FRIEND_OFFLINE, _player->GetObjectGuid(), true);
+            sSocialMgr.RemovePlayerSocial(_player->GetGUIDLow());
+        }
 
         // GM ticket notification
         sTicketMgr.OnPlayerOnlineState(*_player, false);

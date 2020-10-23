@@ -212,7 +212,7 @@ pEffect SpellEffects[MAX_SPELL_EFFECTS] =
     &Spell::EffectUnused,                                   //150 SPELL_EFFECT_150                      unused
     &Spell::EffectTriggerRitualOfSummoning,                 //151 SPELL_EFFECT_TRIGGER_SPELL_2
     &Spell::EffectNULL,                                     //152 SPELL_EFFECT_SUMMON_RAF_FRIEND                      summon Refer-a-Friend
-    &Spell::EffectNULL,                                     //153 SPELL_EFFECT_CREATE_PET               misc value is creature entry
+    &Spell::EffectCreateTamedPet,                           //153 SPELL_EFFECT_CREATE_PET               misc value is creature entry
 };
 
 void Spell::EffectEmpty(SpellEffectIndex /*eff_idx*/)
@@ -364,12 +364,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                         float x, y, z;
                         unitTarget->GetPosition(x, y, z);
                         damage = (20 - m_caster->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH))*(damage / 20);
-                        break;
-                    }
-                    // percent max target health
-                    case 35139:                             // Throw Boom's Doom
-                    {
-                        damage = damage * unitTarget->GetMaxHealth() / 100;
                         break;
                     }
                     // Lightning Strike
@@ -733,7 +727,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (m_caster->GetTypeId() == TYPEID_UNIT) // see spell 10255 (aura dummy)
                     {
                         m_caster->clearUnitState(UNIT_STAT_ROOT);
-                        m_caster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        m_caster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_NOT_SELECTABLE);
                     }
 
                     return;
@@ -1603,6 +1597,16 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     unitTarget->RemoveAurasDueToSpell(26898);                               // Remove Heartbroken
                     unitTarget->CastSpell(unitTarget, 26921, TRIGGERED_OLD_TRIGGERED);      // cast Cancel Heartbroken, Create Bracelet
+                    return;
+                }
+                case 28000:                                 // Land Mine Trigger
+                {
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->CastSpell(nullptr, 25099, TRIGGERED_OLD_TRIGGERED);       // Detonation
+                    m_caster->RemoveAurasDueToSpell(27999);                             // Land Mine Periodic
+                    static_cast<Creature*>(m_caster)->ForcedDespawn(2000);
                     return;
                 }
                 case 28006:                                 // Arcane Cloaking
@@ -6519,6 +6523,14 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, roll_chance_i(50) ? 24714 : 24715, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
+                case 24935:                                 // Summon RC Tank
+                {
+                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, 24934, TRIGGERED_OLD_TRIGGERED); // Summon RC Tank
+                    return;
+                }
                 case 25140:                                 // Orb teleport spells
                 case 25143:
                 case 25650:
@@ -6626,6 +6638,9 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 {
                     if (!unitTarget)
                         return;
+
+                    if (unitTarget->HasAura(25863) || unitTarget->HasAura(26655))
+                        return; // protection against visual glitch
 
                     // Prevent stacking of mounts
                     unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
@@ -6769,6 +6784,15 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(unitTarget, 27697, TRIGGERED_OLD_TRIGGERED);
                     unitTarget->CastSpell(unitTarget, 27698, TRIGGERED_OLD_TRIGGERED);
                     unitTarget->CastSpell(unitTarget, 27699, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 27749:                                 // Initialize Tank
+                {
+                    if (!unitTarget)
+                        return;
+
+                    unitTarget->CastSpell(nullptr, 24936, TRIGGERED_OLD_TRIGGERED);  // RC Tank Control
+                    unitTarget->CastSpell(nullptr, 27747, TRIGGERED_OLD_TRIGGERED);  // Steam Tank Passive
                     return;
                 }
                 case 28236:                                 // Zombie Chow Search
@@ -7087,19 +7111,17 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     }
                     return;
                 }
-                case 34653:                                 // SPELL_FIREBALL_GROUND
-                case 36920:                                 // SPELL_FIREBALL_GROUND_H
-                case 33793:                                 // SPELL_FIREBALL_RANDOM
-                case 33794:                                 // SPELL_FIREBALL_RANDOM_H
-                case 30926:                                 // SPELL_CONE_OF_FIRE
-                case 36921:                                 // SPELL_CONE_OF_FIRE_H
+                case 34789:                                 // Shared Bonds
                 {
-                    if (!unitTarget)
-                        return;
+                    Creature* creature = GetClosestCreatureWithEntry(m_caster, m_caster->GetEntry(), 30.f, true, false, true);
+                    if (creature)
+                    {
+                        if (m_caster->HasAura(34788) || creature->HasAura(34788))
+                            return;
 
-                    float x, y, z;
-                    unitTarget->GetPosition(x, y, z);
-                    unitTarget->CastSpell(x, y, z, unitTarget->GetMap()->IsRegularDifficulty() ? 23971 : 30928, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_caster->GetObjectGuid());
+                        m_caster->CastSpell(creature, 34788, TRIGGERED_OLD_TRIGGERED);
+                        creature->CastSpell(m_caster, 34788, TRIGGERED_OLD_TRIGGERED);
+                    }
                     return;
                 }
                 case 35597:                                 // Cancel Power of the Legion
@@ -8283,9 +8305,7 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
         case 2:                     // unk - 2 spells
         case 4:                     // unk - 1 spell
         case 5:                     // GO trap usage
-        case 7:                     // unk - 2 spells
         case 8:                     // GO usage with TargetB = none or random
-        case 10:                    // unk - 2 spells
         case 19:                    // unk - 1 spell
         case 20:                    // unk - 2 spells
         {
@@ -8314,6 +8334,17 @@ void Spell::EffectActivateObject(SpellEffectIndex eff_idx)
                     break;
                 }
             }
+            break;
+        }
+        case 7:                     // unk - 2 spells
+        {
+            gameObjTarget->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+            break;
+        }
+        case 10:                    // unk - 2 spells
+        {
+            gameObjTarget->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+            gameObjTarget->ResetDoorOrButton();
             break;
         }
         case 12:                    // GO state active alternative - found mostly in Simon Game spells
@@ -9647,7 +9678,89 @@ void Spell::EffectKnockBackFromPosition(SpellEffectIndex eff_idx)
     ((Player*)unitTarget)->GetSession()->SendKnockBack(angle, horizontalSpeed, verticalSpeed);
 }
 
-void Spell::EffectTeleportGraveyard(SpellEffectIndex eff_idx)
+void Spell::EffectCreateTamedPet(SpellEffectIndex eff_idx)
+{
+    if (!unitTarget || unitTarget->getClass() != CLASS_HUNTER)
+        return;
+
+    uint32 creatureEntry = m_spellInfo->EffectMiscValue[eff_idx];
+
+    CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(creatureEntry);
+    if (creatureEntry && !cInfo)
+    {
+        sLog.outErrorDb("EffectCreateTamedPet: Creature entry %u not found for spell %u.", creatureEntry, m_spellInfo->Id);
+        return;
+    }
+
+    Pet* newTamedPet = new Pet(HUNTER_PET);
+    CreatureCreatePos pos(unitTarget, unitTarget->GetOrientation());
+
+    Map* map = unitTarget->GetMap();
+    uint32 petNumber = sObjectMgr.GeneratePetNumber();
+    if (!newTamedPet->Create(map->GenerateLocalLowGuid(HIGHGUID_PET), pos, cInfo, petNumber))
+    {
+        delete newTamedPet;
+        return;
+    }
+
+    newTamedPet->SetLoading(true);
+
+    newTamedPet->SetRespawnCoord(pos);
+
+    newTamedPet->SetOwnerGuid(unitTarget->GetObjectGuid());
+    newTamedPet->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
+    newTamedPet->setFaction(unitTarget->getFaction());
+    newTamedPet->SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, uint32(time(nullptr)));
+    newTamedPet->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
+
+    newTamedPet->GetCharmInfo()->SetPetNumber(petNumber, true);
+
+    if (unitTarget->IsPvP())
+        newTamedPet->SetPvP(true);
+
+    if (unitTarget->IsPvPFreeForAll())
+        newTamedPet->SetPvPFreeForAll(true);
+
+    if (unitTarget->IsPvPSanctuary())
+        newTamedPet->SetPvPSanctuary(true);
+
+    newTamedPet->SetCanModifyStats(true);
+
+    map->Add((Creature*)newTamedPet);
+
+    newTamedPet->InitStatsForLevel(unitTarget->getLevel());
+    newTamedPet->InitPetCreateSpells();
+
+    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED);
+    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_ABANDONED);
+
+    if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+    {
+        newTamedPet->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
+        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+    }
+    else
+        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+
+    newTamedPet->AIM_Initialize();
+
+    float x, y, z;
+    unitTarget->GetClosePoint(x, y, z, newTamedPet->GetObjectBoundingRadius());
+    newTamedPet->Relocate(x, y, z, unitTarget->GetOrientation());
+
+    m_caster->SetPet(newTamedPet);
+
+    newTamedPet->SetLoading(false);
+
+    Player* _player = static_cast<Player*>(unitTarget);
+    if (_player)
+    {
+        newTamedPet->SavePetToDB(PET_SAVE_AS_CURRENT, _player);
+        _player->PetSpellInitialize();
+    }
+}
+
+void Spell::EffectTeleportGraveyard(SpellEffectIndex /*eff_idx*/)
 {
     if (!unitTarget || !unitTarget->IsPlayer() || !unitTarget->GetMap()->IsBattleGround())
         return;

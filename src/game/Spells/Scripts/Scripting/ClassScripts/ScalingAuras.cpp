@@ -337,7 +337,7 @@ struct PriestPetScaling2 : public AuraScript
 
 struct PriestPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -354,7 +354,7 @@ struct PriestPetScaling3 : public AuraScript
 
 struct PriestPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -367,7 +367,7 @@ struct PriestPetScaling4 : public AuraScript
 
 struct ElementalPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -403,7 +403,7 @@ struct ElementalPetScaling2 : public AuraScript
 
 struct ElementalPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -420,7 +420,7 @@ struct ElementalPetScaling3 : public AuraScript
 
 struct ElementalPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -481,7 +481,7 @@ struct DruidPetScaling2 : public AuraScript
 
 struct DruidPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -498,7 +498,7 @@ struct DruidPetScaling3 : public AuraScript
 
 struct DruidPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -530,7 +530,7 @@ struct EnhancementPetScaling1 : public AuraScript
 
 struct EnhancementPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -547,7 +547,7 @@ struct EnhancementPetScaling2 : public AuraScript
 
 struct EnhancementPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -602,7 +602,7 @@ struct InfernalPetScaling2 : public AuraScript
 
 struct InfernalPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {
@@ -619,7 +619,7 @@ struct InfernalPetScaling3 : public AuraScript
 
 struct InfernalPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
     {
         switch (aura->GetEffIndex())
         {

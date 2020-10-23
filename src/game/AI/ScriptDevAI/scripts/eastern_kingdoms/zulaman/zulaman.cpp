@@ -26,11 +26,11 @@ EndScriptData */
 #include "MotionGenerators/WaypointManager.h"
 
 instance_zulaman::instance_zulaman(Map* map) : ScriptedInstance(map),
+    m_startCheck(false),
     m_uiEventTimer(MINUTE * IN_MILLISECONDS),
     m_uiBearEventPhase(0),
     m_isBearPhaseInProgress(false),
     m_bIsAkilzonGauntletInProgress(false),
-    m_startCheck(false),
     m_spiritFadeTimer(0)
 {
     Initialize();

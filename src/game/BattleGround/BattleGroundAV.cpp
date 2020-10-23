@@ -909,7 +909,7 @@ Team BattleGroundAV::GetPrematureWinner()
     return BattleGround::GetPrematureWinner();
 }
 
-bool BattleGroundAV::IsConditionFulfilled(Player const* source, uint32 conditionId, WorldObject const* conditionSource, uint32 conditionSourceType)
+bool BattleGroundAV::IsConditionFulfilled(Player const* /*source*/, uint32 /*conditionId*/, WorldObject const* /*conditionSource*/, uint32 /*conditionSourceType*/)
 {
     // ToDo: check condition for mine loot; check conditions for quest end script
 

@@ -1121,9 +1121,9 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
-    m_currMap(nullptr), m_mapId(0),
-    m_InstanceId(0), m_isActiveObject(false), m_visibilityData(this),
-    m_debugFlags(0)
+    m_visibilityData(this), m_currMap(nullptr),
+    m_mapId(0), m_InstanceId(0),
+    m_isActiveObject(false), m_debugFlags(0)
 {
 }
 
@@ -2654,6 +2654,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
                 case SPELL_AURA_PERIODIC_LEECH:
                     //   SPELL_AURA_PERIODIC_DAMAGE_PERCENT: excluded, abs values only
                 case SPELL_AURA_POWER_BURN_MANA:
+                case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
                     damage = true;
             }
         }

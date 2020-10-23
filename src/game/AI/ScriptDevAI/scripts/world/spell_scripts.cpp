@@ -36,6 +36,10 @@ spell 45111
 EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "Spells/Scripts/SpellScript.h"
+#include "Grids/GridNotifiers.h"
+#include "Grids/GridNotifiersImpl.h"
+#include "Grids/CellImpl.h"
 #include "OutdoorPvP/OutdoorPvP.h"
 
 /* When you make a spell effect:
@@ -476,7 +480,7 @@ struct SpellStackingRulesOverride : public SpellScript
 #####*/
 struct spell_battleground_banner_trigger : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const
     {
         // TODO: Fix when go casting is fixed
         WorldObject* obj = spell->GetAffectiveCasterObject();
@@ -498,7 +502,7 @@ struct spell_battleground_banner_trigger : public SpellScript
 #####*/
 struct spell_outdoor_pvp_banner_trigger : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const
     {
         // TODO: Fix when go casting is fixed
         WorldObject* obj = spell->GetAffectiveCasterObject();
@@ -510,6 +514,69 @@ struct spell_outdoor_pvp_banner_trigger : public SpellScript
             if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player->GetCachedZoneId()))
                 outdoorPvP->HandleGameObjectUse(player, static_cast<GameObject*>(obj));
         }
+    }
+};
+
+struct GreaterInvisibilityMob : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            aura->ForcePeriodicity(1 * IN_MILLISECONDS); // tick every second
+    }
+
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (!target->IsCreature())
+            return;
+
+        Creature* invisible = static_cast<Creature*>(target);
+        std::list<Unit*> nearbyTargets;
+        MaNGOS::AnyUnitInObjectRangeCheck u_check(invisible, float(invisible->GetDetectionRange()));
+        MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(nearbyTargets, u_check);
+        Cell::VisitGridObjects(invisible, searcher, invisible->GetDetectionRange());
+        for (Unit* nearby : nearbyTargets)
+        {
+            if (invisible->CanAttackOnSight(nearby))
+            {
+                invisible->AI()->AttackStart(nearby);
+                if (SpellAuraHolder* holder = aura->GetHolder())
+                    invisible->RemoveSpellAuraHolder(holder);
+                return;
+            }
+        }
+    }
+};
+
+struct InebriateRemoval : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (!target->IsPlayer())
+            return;
+
+        SpellEffectIndex effIdx;
+        SpellEffectIndex effIdxInebriate;
+        switch (aura->GetSpellProto()->Id)
+        {
+            case 29690: effIdx = EFFECT_INDEX_1; effIdxInebriate = EFFECT_INDEX_2; break;
+            case 37591: effIdx = EFFECT_INDEX_0; effIdxInebriate = EFFECT_INDEX_1; break;
+            default: return;
+        }
+        Player* player = static_cast<Player*>(target);
+        if (!apply && aura->GetEffIndex() == effIdx)
+            player->SetDrunkValue(uint16(std::max(int32(player->GetDrunkValue()) - player->CalculateSpellEffectValue(player, aura->GetSpellProto(), effIdxInebriate) * 256, 0)));
+    }
+};
+
+struct AstralBite : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (Unit* caster = spell->GetCaster())
+            caster->getThreatManager().modifyAllThreatPercent(-100);
     }
 };
 
@@ -527,6 +594,9 @@ void AddSC_spell_scripts()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<SpellStackingRulesOverride>("spell_stacking_rules_override");
+    RegisterAuraScript<GreaterInvisibilityMob>("spell_greater_invisibility_mob");
+    RegisterAuraScript<InebriateRemoval>("spell_inebriate_removal");
+    RegisterSpellScript<AstralBite>("spell_astral_bite");
     RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");
     RegisterSpellScript<spell_outdoor_pvp_banner_trigger>("spell_outdoor_pvp_banner_trigger");
 }

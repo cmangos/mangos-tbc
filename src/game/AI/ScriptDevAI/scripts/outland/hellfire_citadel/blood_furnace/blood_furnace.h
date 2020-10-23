@@ -39,7 +39,19 @@ enum
     GO_PRISON_CELL_BROGGOK_3        = 181820,               // Broggok cell front left  (NW)
     GO_PRISON_CELL_BROGGOK_4        = 181821,               // Broggok cell front right (SW)
 
+    GO_CRACK_1                      = 181921,
+    GO_CRACK_2                      = 181922,
+    GO_CRACK_3                      = 181923,
+    GO_CRACK_4                      = 181924,
+    GO_CRACK_5                      = 181925,
+    GO_CRACK_6                      = 181926,
+    GO_CRACK_7                      = 181927,
+
     GO_PRISON_CELL_DOOR_LEVER       = 181982,
+
+    SPELL_COMBAT_TRIGGER            = 26837,
+
+    NPC_IN_COMBAT_TRIGGER           = 16006,
 
     SAY_BROGGOK_INTRO               = -1542015,
 };
@@ -66,14 +78,14 @@ class instance_blood_furnace : public ScriptedInstance
 
         void OnPlayerEnter(Player* player) override;
 
-        void OnCreatureCreate(Creature* pCreature) override;
-        void OnObjectCreate(GameObject* pGo) override;
+        void OnCreatureCreate(Creature* creature) override;
+        void OnObjectCreate(GameObject* go) override;
 
-        void OnCreatureDeath(Creature* pCreature) override;
-        void OnCreatureEvade(Creature* pCreature) override;
+        void OnCreatureDeath(Creature* creature) override;
+        void OnCreatureEvade(Creature* creature) override;
 
-        void SetData(uint32 uiType, uint32 uiData) override;
-        uint32 GetData(uint32 uiType) const override;
+        void SetData(uint32 type, uint32 data) override;
+        uint32 GetData(uint32 type) const override;
 
         void Update(const uint32 diff) override;
 
@@ -94,9 +106,11 @@ class instance_blood_furnace : public ScriptedInstance
         uint32 m_uiBroggokEventTimer;                       // Timer for opening the event cages; 90s on normal, 30s on heroic difficulty
         uint32 m_uiBroggokEventPhase;
         uint32 m_uiRandYellTimer;                           // Random yell for Magtheridon
+        uint32 m_crackTimer;
 
         GameObject* m_lLeverGO;
 
+        GuidList m_cracks;
         GuidList m_luiNascentOrcGuids;
         GuidList m_lChannelersGuids;
 

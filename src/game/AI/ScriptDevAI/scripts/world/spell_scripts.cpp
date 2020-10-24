@@ -603,6 +603,15 @@ struct TKDive : public SpellScript
     }
 };
 
+struct CurseOfPain : public AuraScript
+{
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        if (aura->GetTarget()->GetHealthPercent() < 50.f)
+            aura->GetTarget()->RemoveAurasDueToSpell(aura->GetId());
+    }
+};
+
 /* *****************************
 *  PX-238 Winter Wondervolt TRAP
 *******************************/
@@ -662,6 +671,7 @@ void AddSC_spell_scripts()
     RegisterSpellScript<RaiseDead>("spell_raise_dead");
     RegisterSpellScript<SplitDamage>("spell_split_damage");
     RegisterSpellScript<TKDive>("spell_tk_dive");
+    RegisterAuraScript<CurseOfPain>("spell_curse_of_pain");
     RegisterSpellScript<WondervoltTrap>("spell_wondervolt_trap");
     RegisterSpellScript<ArcaneCloaking>("spell_arcane_cloaking");
 }

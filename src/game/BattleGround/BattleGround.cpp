@@ -174,7 +174,7 @@ void BattleGround::BroadcastWorker(Do& _do)
 */
 BattleGround::BattleGround(): m_buffChange(false), m_startDelayTime(0), m_arenaBuffSpawned(false), m_startMaxDist(0)
 {
-    m_typeId            = BattleGroundTypeId(0);
+    m_typeId            = BATTLEGROUND_TYPE_NONE;
     m_status            = STATUS_NONE;
     m_clientInstanceId  = 0;
     m_endTime           = 0;
@@ -183,7 +183,7 @@ BattleGround::BattleGround(): m_buffChange(false), m_startDelayTime(0), m_arenaB
     m_invitedHorde      = 0;
     m_arenaType         = ARENA_TYPE_NONE;
     m_isArena           = false;
-    m_winner            = TEAM_NONE;
+    m_winner            = WINNER_NONE;
     m_startTime         = 0;
     m_validStartPositionTimer = 0;
     m_events            = 0;
@@ -750,6 +750,8 @@ void BattleGround::EndBattleGround(Team winner)
         winmsg_id = IsBattleGround() ? LANG_BG_A_WINS : LANG_ARENA_GOLD_WINS;
         PlaySoundToAll(SOUND_ALLIANCE_WINS);
 
+        SetWinner(WINNER_ALLIANCE);
+
         // reversed index for the bg score storage system
         bgScoresWinner = TEAM_INDEX_HORDE;
     }
@@ -758,9 +760,13 @@ void BattleGround::EndBattleGround(Team winner)
         winmsg_id = IsBattleGround() ? LANG_BG_H_WINS : LANG_ARENA_GREEN_WINS;
         PlaySoundToAll(SOUND_HORDE_WINS);
 
+        SetWinner(WINNER_HORDE);
+
         // reversed index for the bg score storage system
         bgScoresWinner = TEAM_INDEX_ALLIANCE;
     }
+    else
+        SetWinner(WINNER_NONE);
 
     // store battleground scores
     if (IsBattleGround() && sWorld.getConfig(CONFIG_BOOL_BATTLEGROUND_SCORE_STATISTICS))
@@ -783,8 +789,6 @@ void BattleGround::EndBattleGround(Team winner)
 
         stmt.PExecute(battleground_id, bgScoresWinner, battleground_bracket, battleground_type);
     }
-
-    SetWinner(winner);
 
     SetStatus(STATUS_WAIT_LEAVE);
     // we must set it this way, because end time is sent in packet!
@@ -1281,7 +1285,7 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid playerGuid, bool isOnTransport
 */
 void BattleGround::Reset()
 {
-    SetWinner(TEAM_NONE);
+    SetWinner(WINNER_NONE);
     SetStatus(STATUS_WAIT_QUEUE);
     SetStartTime(0);
     SetEndTime(0);

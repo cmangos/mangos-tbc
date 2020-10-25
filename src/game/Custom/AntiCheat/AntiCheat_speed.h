@@ -7,7 +7,7 @@ class AntiCheat_speed : public AntiCheat
 public:
     AntiCheat_speed(CPlayer* player);
 
-    bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat) override;
+    bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats) override;
 
     float RoundFloat(float value, float rounding, bool up)
     {

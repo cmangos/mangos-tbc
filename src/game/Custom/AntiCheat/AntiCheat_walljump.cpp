@@ -1,15 +1,17 @@
 #include "AntiCheat_walljump.h"
+#include "Custom/AntiCheat/AntiCheat.h"
 #include "Custom/CPlayer.h"
 #include <algorithm>
 
 AntiCheat_walljump::AntiCheat_walljump(CPlayer* player) : AntiCheat(player)
 {
+    antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_WALLJUMP;
     AboveAngleCount = 0;
 }
 
-bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
-    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
+    AntiCheat::HandleMovement(MoveInfo, opcode, triggeredcheats);
 
     if (!Initialized())
     {
@@ -22,14 +24,14 @@ bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
     {
         if (angle > 50.f)
         {
-            if (!cheat && !isFlying() && !isSwimming() && AboveAngleCount)
+            if (triggeredcheats.none() && !isFlying() && !isSwimming() && AboveAngleCount)
             {
 				m_Player->TeleportToPos(storedMapID, storedmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 
                 if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
                     m_Player->BoxChat << "Jumpclimbing angle: " << angle << "\n";
 
-                cheat = true;
+                triggeredcheats.set(AntiCheatFieldOffsets::CHEAT_WALLJUMP);
             }
 
             ++AboveAngleCount;
@@ -48,11 +50,11 @@ bool AntiCheat_walljump::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
         if (!AboveAngleCount)
             SetStoredMoveInfo(false);
 
-        return SetOldMoveInfo(cheat);
+        return SetOldMoveInfo(triggeredcheats.any());
     }
 
     if (storedmoveInfo->GetPos()->z > newmoveInfo->GetPos()->z)
         AboveAngleCount = 0;
 
-    return cheat;
+    return triggeredcheats.any();
 }

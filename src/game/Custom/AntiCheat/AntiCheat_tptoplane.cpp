@@ -3,11 +3,12 @@
 
 AntiCheat_tptoplane::AntiCheat_tptoplane(CPlayer* player) : AntiCheat(player)
 {
+    antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_TPTOPLANE;
 }
 
-bool AntiCheat_tptoplane::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_tptoplane::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
-    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
+    AntiCheat::HandleMovement(MoveInfo, opcode, triggeredcheats);
 
     if (!Initialized())
         return SetOldMoveInfo(false);
@@ -22,7 +23,8 @@ bool AntiCheat_tptoplane::HandleMovement(const MovementInfoPtr& MoveInfo, Opcode
         std::fabs(po->z - pn->z) < 0.0001f)
     {
         auto groundz = m_Player->GetTerrain()->GetHeightStatic(pn->x, pn->y, pn->y, true);
-        if (groundz > pn->z + 2.f)
+        // If we're walking really fucking close to 0 and the ground isn't very close to 0 we've found a cheater
+        if (std::fabs(groundz - pn->z) > 2.f)
         {
             if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
                 m_Player->BoxChat << "TELEPORT TO PLANE CHEAT" << "\n";

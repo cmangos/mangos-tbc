@@ -4,11 +4,12 @@
 
 AntiCheat_nofall::AntiCheat_nofall(CPlayer* player) : AntiCheat(player)
 {
+    antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_NOFALL;
 }
 
-bool AntiCheat_nofall::HandleMovement(const MovementInfoPtr& moveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_nofall::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
-    AntiCheat::HandleMovement(moveInfo, opcode, cheat);
+    AntiCheat::HandleMovement(MoveInfo, opcode, triggeredcheats);
 
     if (!Initialized())
         return false;

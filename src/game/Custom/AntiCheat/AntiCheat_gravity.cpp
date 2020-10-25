@@ -1,15 +1,17 @@
 #include "AntiCheat_gravity.h"
+#include "Custom/AntiCheat/AntiCheat.h"
 #include "Custom/CPlayer.h"
 
 #include <iomanip>
 
 AntiCheat_gravity::AntiCheat_gravity(CPlayer* player) : AntiCheat(player)
 {
+    antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_GRAVITY;
 }
 
-bool AntiCheat_gravity::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_gravity::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
-    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
+    AntiCheat::HandleMovement(MoveInfo, opcode, triggeredcheats);
 
     if (!Initialized())
         return false;
@@ -22,7 +24,7 @@ bool AntiCheat_gravity::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes 
     if (!isFalling())
         SetStoredMoveInfo();
 
-    if (!cheat && isFalling() && diff > GetFallDistance() * 0.01f && diff > 0.01f)
+    if (triggeredcheats.none() && isFalling() && diff > GetFallDistance() * 0.01f && diff > 0.01f)
     {
         m_Player->TeleportToPos(storedMapID, storedmoveInfo->GetPos(), TELE_TO_NOT_LEAVE_COMBAT);
 

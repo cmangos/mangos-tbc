@@ -7,7 +7,7 @@ class AntiCheat_gravity : public AntiCheat
 public:
     AntiCheat_gravity(CPlayer* player);
 
-    bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat) override;
+    bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats) override;
 
 private:
     uint32 GetCorrectedFallTime();

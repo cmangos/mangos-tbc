@@ -1,4 +1,5 @@
 #include "AntiCheat_speed.h"
+#include "Custom/AntiCheat/AntiCheat.h"
 #include "Custom/CPlayer.h"
 #include "World/World.h"
 #include "Maps/Map.h"
@@ -8,11 +9,12 @@
 
 AntiCheat_speed::AntiCheat_speed(CPlayer* player) : AntiCheat(player)
 {
+    antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_SPEED;
 }
 
-bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
-    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
+    AntiCheat::HandleMovement(MoveInfo, opcode, triggeredcheats);
 
     if (!Initialized())
         return false;
@@ -47,7 +49,7 @@ bool AntiCheat_speed::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes op
     if (isTransport(newmoveInfo) && !verifyTransportCoords(newmoveInfo))
         cheating = false; // When we're just walking onto a transport every coordinate is a mess.
 
-    if (!cheat && cheating)
+    if (triggeredcheats.none() && cheating)
     {
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {

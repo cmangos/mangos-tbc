@@ -1,22 +1,24 @@
 #include "AntiCheat_teleport.h"
+#include "Custom/AntiCheat/AntiCheat.h"
 #include "Custom/CPlayer.h"
 
 AntiCheat_teleport::AntiCheat_teleport(CPlayer* player) : AntiCheat(player)
 {
+    antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_TELEPORT;
 }
 
-bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
-    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
+    AntiCheat::HandleMovement(MoveInfo, opcode, triggeredcheats);
 
     if (!Initialized())
     {
-        knockBack = false;
-        teleporting = false;
+        serverInitiatedMove = false;
+        
         return SetOldMoveInfo(false);
     }
 
-    if (!cheat && !knockBack && !teleporting)
+    if (triggeredcheats.none() && !serverInitiatedMove)
     {
         if (!IsMoving(oldmoveInfo) && GetDistOrTransportDist(true) > 0.1f && (!isFalling() || opcode == MSG_MOVE_JUMP))
         {
@@ -30,22 +32,19 @@ bool AntiCheat_teleport::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes
     }
 
     if (opcode == MSG_MOVE_FALL_LAND)
-    {
-        knockBack = false;
-        teleporting = false;
-    }
+        serverInitiatedMove = false;
 
     return SetOldMoveInfo(false);
 }
 
 void AntiCheat_teleport::HandleKnockBack(float  /*angle*/, float  /*horizontalSpeed*/, float  /*verticalSpeed*/)
 {
-    knockBack = true;
+    serverInitiatedMove = true;
 }
 
 void AntiCheat_teleport::HandleTeleport(uint32 map, float x, float y, float z, float o)
 {
     AntiCheat::HandleTeleport(map, x, y, z, o);
-    teleporting = true;
+    serverInitiatedMove = true;
 }
 

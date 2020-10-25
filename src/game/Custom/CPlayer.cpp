@@ -60,13 +60,12 @@ bool CPlayer::HandleAntiCheat(const MovementInfoPtr& moveInfo, Opcodes opcode)
     if (!IsInWorld())
         return false;
 
-    bool cheat = false;
+    AntiCheatFields cheatFields;
 
     for (auto& i : antiCheatStorage)
-        if (i->HandleMovement(moveInfo, opcode, cheat))
-            cheat = true;
+        i->HandleMovement(moveInfo, opcode, cheatFields);
 
-    return cheat;
+    return cheatFields.any();
 }
 
 void CPlayer::HandleKnockBack(float angle, float horizontalSpeed, float verticalSpeed)

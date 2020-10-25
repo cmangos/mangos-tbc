@@ -1,5 +1,7 @@
 #include "AntiCheat.h"
 #include "Custom/CPlayer.h"
+#include "Entities/Unit.h"
+#include <memory>
 
 AntiCheat::AntiCheat(CPlayer* player)
 {
@@ -10,7 +12,7 @@ AntiCheat::AntiCheat(CPlayer* player)
     storedmoveInfo = MovementInfoPtr(new MovementInfo());
 }
 
-bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool /*cheat*/)
+bool AntiCheat::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
     newmoveInfo = MoveInfo;
     newMapID = m_Player->GetMapId();
@@ -89,9 +91,8 @@ bool AntiCheat::Initialized()
 
 bool AntiCheat::SetOldMoveInfo(bool cheat)
 {
-    oldmoveInfo = newmoveInfo;
+    oldmoveInfo = std::make_shared<MovementInfo>(*newmoveInfo);
     oldMapID = m_Player->GetMapId();
-
     OldServerSpeed = GetServerSpeed(false);
 
     return cheat;
@@ -99,8 +100,9 @@ bool AntiCheat::SetOldMoveInfo(bool cheat)
 
 bool AntiCheat::SetStoredMoveInfo(bool cheat)
 {
-    storedmoveInfo = newmoveInfo;
+    storedmoveInfo = std::make_shared<MovementInfo>(*newmoveInfo);
     storedMapID = m_Player->GetMapId();
+
     return cheat;
 }
 bool AntiCheat::IsMoving(const MovementInfoPtr& moveInfo)

@@ -1,13 +1,35 @@
 #pragma once
 
-#include "Entities/Unit.h" 
+#include "Entities/Unit.h"
 #include "Server/Opcodes.h"
+
+#include <type_traits>
+#include <bitset>
 
 #define JUMPHEIGHT_LAND 1.65f
 #define JUMPHEIGHT_WATER 2.15f
 #define WALKABLE_CLIMB 1.f // https://goo.gl/oxvse6
 
+enum AntiCheatFieldOffsets : std::size_t {
+  CHEAT_NONE,
+  CHEAT_FLY,
+  CHEAT_GRAVITY,
+  CHEAT_JUMP,
+  CHEAT_NOFALL,
+  CHEAT_SPEED,
+  CHEAT_TELEPORT,
+  CHEAT_TIME,
+  CHEAT_TPTOPLANE,
+  CHEAT_WALLCLIMB,
+  CHEAT_WALLJUMP,
+  CHEAT_WATERWALK,
+  CHEAT_TEST,
+  CHEAT_MAX,
+};
+
 class CPlayer;
+
+typedef std::bitset<AntiCheatFieldOffsets::CHEAT_MAX> AntiCheatFields;
 
 class AntiCheat
 {
@@ -15,7 +37,7 @@ public:
     AntiCheat(CPlayer* player);
     virtual ~AntiCheat() {}
 
-    virtual bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat);
+    virtual bool HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats);
     virtual void HandleUpdate(uint32 /*update_diff*/) { }
     virtual void HandleRelocate(float x, float y, float z, float o);
     virtual void HandleTeleport(uint32 map, float x, float y, float z, float o);
@@ -86,8 +108,9 @@ protected:
     uint32 oldMapID;
     uint32 storedMapID;
     bool m_Initialized;
+    AntiCheatFieldOffsets antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_NONE;
 
-private:
+  private:
     bool m_CanFly;
     bool m_CanWaterwalk;
 

@@ -1,13 +1,15 @@
 #include "AntiCheat_fly.h"
+#include "Custom/AntiCheat/AntiCheat.h"
 #include "Custom/CPlayer.h"
 
 AntiCheat_fly::AntiCheat_fly(CPlayer* player) : AntiCheat(player)
 {
+    antiCheatFieldOffset = AntiCheatFieldOffsets::CHEAT_FLY;
 }
 
-bool AntiCheat_fly::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, bool cheat)
+bool AntiCheat_fly::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opcode, AntiCheatFields& triggeredcheats)
 {
-    AntiCheat::HandleMovement(MoveInfo, opcode, cheat);
+    AntiCheat::HandleMovement(MoveInfo, opcode, triggeredcheats);
 
     if (!Initialized())
         return false;

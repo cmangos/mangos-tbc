@@ -2619,7 +2619,7 @@ struct npc_disobedient_dragonmaw_peonAI : public ScriptedAI
                 m_angryTimer = urand(6000, 10000);
             m_booterangTimer = 0;
             m_kickTimer = urand(5000, 10000);
-            m_sunderarmorTimer = (3000, 9000);
+            m_sunderarmorTimer = urand(3000, 9000);
         }
     }
 

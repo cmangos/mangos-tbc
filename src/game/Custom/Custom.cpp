@@ -42,7 +42,10 @@ void Custom::LoadConfig()
 {
     sWorld.setConfig(CONFIG_BOOL_CFBG_ENABLED, "BattleGround.Crossfaction.Queueing", false);
     sWorld.setConfig(CONFIG_BOOL_CFBG_REPLACERACIALS, "BattleGround.Crossfaction.ReplaceRacials", false);
-    sWorld.setConfig(CONFIG_BOOL_DUELRESET_ENABLED, "Custom.DuelReset", false);
+    sWorld.setConfig(CONFIG_BOOL_DUELRESET_HEALTH, "Custom.DuelReset.Health", false);
+    sWorld.setConfig(CONFIG_BOOL_DUELRESET_POWER, "Custom.DuelReset.Power", false);
+    sWorld.setConfig(CONFIG_BOOL_DUELRESET_ARENACOOLDOWNS, "Custom.DuelReset.ArenaCooldowns", false);
+    sWorld.setConfig(CONFIG_BOOL_DUELRESET_ALLCOOLDOWNS, "Custom.DuelReset.AllCooldowns", false);
     sWorld.setConfig(CONFIG_BOOL_AUTOLEARNSPELLS, "Custom.AutoLearnSpells", false);
     sWorld.setConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER, "Custom.AutoBroadcastTimer", 0);
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_SPEEDCHEAT, "Custom.AntiCheat.SpeedCheat", 0);

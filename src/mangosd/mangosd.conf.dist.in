@@ -1829,84 +1829,101 @@ Dummy.Debug2 = 0
 ###################################################################################################################
 # CUSTOM NON BLIZZLIKE SERVER FEATURES
 #
-#    Custom.DuelReset
-#        Reset health, mana and arena cooldowns when duel starts
-#        Default: 0 - Disabled
-#             1 - Enabled
+#    Custom.DuelReset.Health
+#       Reset health when duel starts
+#       Default:    0 - Disabled
+#                   1 - Enabled
+#
+#    Custom.DuelReset.Power
+#       Reset power when duel starts
+#       Default:    0 - Disabled
+#                   1 - Enabled
+#
+#    Custom.DuelReset.ArenaCooldowns
+#       Reset arena cooldowns when duel starts
+#       Default:    0 - Disabled
+#                   1 - Enabled
+#
+#    Custom.DuelReset.AllCooldowns
+#       Reset all cooldowns when duel starts. This is probably a bad idea!
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AutoLearnSpells
-#        Enables or disables automatic learning of spells
-#        Default: 0 - Disabled
-#      1 - Enabled
+#       Enables or disables automatic learning of spells
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AutoBroadcastTimer
-#        Default timer between announcements
-#               Default: 0   - Disabled
-#                        300 - 300 seconds (5 minutes)
+#       Default timer between announcements
+#       Default:    0   - Disabled
+#                   300 - 300 seconds (5 minutes)
 #
 #    Custom.AutoBroadcastPrefix
-#        Prefix that's always applied for AutoBroadcast messages
-#        Default: "" - No prefixed text
+#       Prefix that's always applied for AutoBroadcast messages
+#       Default:    "" - No prefixed text
 #
 #    Custom.AntiCheat.SpeedCheat
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.Teleport
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
-#
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.Fly
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.Jump
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.Gravity
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.WaterWalking
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.WallClimbing
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.WallJumping
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.Tele2Plane
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.NoFall
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 #    Custom.AntiCheat.Time
-#        Enables or disables AntiCheat module
-#        Default: 0 - Disabled
-#                 1 - Enabled
+#       Enables or disables AntiCheat module
+#       Default:    0 - Disabled
+#                   1 - Enabled
 #
 ###################################################################################################################
 
-Custom.DuelReset = 0
+Custom.DuelReset.Health = 0
+Custom.DuelReset.Power = 0
+Custom.DuelReset.ArenaCooldowns = 0
+Custom.DuelReset.AllCooldowns = 0
 Custom.AutoLearnSpells = 0
 Custom.AutoBroadcastTimer = 0
 Custom.AutoBroadcastPrefix = ""

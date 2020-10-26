@@ -59,12 +59,12 @@ void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
     self->duel->startTimer = now;
     opponent->duel->startTimer = now;
 
-
-    if (sWorld.getConfig(CONFIG_BOOL_DUELRESET_ENABLED))
+    // Duel Reset code in scope below
     {
+        // Vector with duel initiator and opponent
         std::vector<Unit*> UnitsToReset = { self, opponent };
 
-        // Also fill pets up if they're alive
+        // Also fill pets up if they're alive. Can't use range because we're modifying the container
         for (size_t i = 0; i < UnitsToReset.size(); ++i)
             if (Pet* pet = UnitsToReset[i]->GetPet())
                 if (pet->IsAlive())
@@ -72,19 +72,34 @@ void WorldSession::HandleDuelAcceptedOpcode(WorldPacket& recvPacket)
 
         for (auto& i : UnitsToReset)
         {
-            // Reset health and regenerating powers
-            i->SetHealth(i->GetMaxHealth());
-            i->SetPower(POWER_MANA, i->GetMaxPower(POWER_MANA));
-            i->SetPower(POWER_ENERGY, i->GetMaxPower(POWER_ENERGY));
+            // Only allow duel resetting if we're on a continent:w
+            if (i->GetMap() && i->GetMap()->IsContinent())
+                continue;
+
+            // Reset health
+            if (sWorld.getConfig(CONFIG_BOOL_DUELRESET_HEALTH))
+                i->SetHealth(i->GetMaxHealth());
+            // Reset power for classes that has it (should be everything but rage)
+            if (sWorld.getConfig(CONFIG_BOOL_DUELRESET_POWER))
+            {
+                i->SetPower(POWER_MANA, i->GetMaxPower(POWER_MANA));
+                i->SetPower(POWER_ENERGY, i->GetMaxPower(POWER_ENERGY));
+            }
 
             // Remove all cooldowns for pets
-            if (!i->IsPlayer())
+            if (!i->IsPlayer() &&
+               (sWorld.getConfig(CONFIG_BOOL_DUELRESET_ALLCOOLDOWNS) ||
+                sWorld.getConfig(CONFIG_BOOL_DUELRESET_ARENACOOLDOWNS)))
                 i->RemoveAllCooldowns();
 
             // Remove arena cooldowns if player isn't in a dungeon
             if (Player* player = i->ToPlayer())
-                if (player->GetMap() && !player->GetMap()->IsDungeon())
+            {
+                if (sWorld.getConfig(CONFIG_BOOL_DUELRESET_ARENACOOLDOWNS))
                     player->RemoveArenaSpellCooldowns();
+                if (sWorld.getConfig(CONFIG_BOOL_DUELRESET_ALLCOOLDOWNS))
+                    player->RemoveAllCooldowns();
+            }
         }
     }
 

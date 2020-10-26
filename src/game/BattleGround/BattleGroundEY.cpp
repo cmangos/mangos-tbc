@@ -75,6 +75,10 @@ void BattleGroundEY::StartingEventOpenDoors()
 {
     // eye-doors have a despawn animation
     OpenDoorEvent(BG_EVENT_DOOR);
+
+    // setup graveyards
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(GRAVEYARD_EY_MAIN_ALLIANCE, EY_ZONE_ID_MAIN, ALLIANCE);
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(GRAVEYARD_EY_MAIN_HORDE, EY_ZONE_ID_MAIN, HORDE);
 }
 
 void BattleGroundEY::AddPoints(Team team, uint32 points)
@@ -247,7 +251,7 @@ void BattleGroundEY::ProcessCaptureEvent(GameObject* go, uint32 towerId, Team te
 
         SendMessageToAll(message, CHAT_MSG_BG_SYSTEM_ALLIANCE);
 
-        sObjectMgr.SetGraveYardLinkTeam(eyGraveyards[towerId], EY_ZONE_ID_MAIN, ALLIANCE);
+        GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(eyGraveyards[towerId], EY_ZONE_ID_MAIN, ALLIANCE);
     }
     else if (team == HORDE)
     {
@@ -257,7 +261,7 @@ void BattleGroundEY::ProcessCaptureEvent(GameObject* go, uint32 towerId, Team te
 
         SendMessageToAll(message, CHAT_MSG_BG_SYSTEM_HORDE);
 
-        sObjectMgr.SetGraveYardLinkTeam(eyGraveyards[towerId], EY_ZONE_ID_MAIN, HORDE);
+        GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(eyGraveyards[towerId], EY_ZONE_ID_MAIN, HORDE);
     }
     else
     {
@@ -278,7 +282,7 @@ void BattleGroundEY::ProcessCaptureEvent(GameObject* go, uint32 towerId, Team te
             SendMessageToAll(message, CHAT_MSG_BG_SYSTEM_HORDE);
         }
 
-        sObjectMgr.SetGraveYardLinkTeam(eyGraveyards[towerId], EY_ZONE_ID_MAIN, TEAM_INVALID);
+        GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(eyGraveyards[towerId], EY_ZONE_ID_MAIN, TEAM_INVALID);
     }
 
     // update tower state
@@ -374,12 +378,12 @@ void BattleGroundEY::Reset()
         m_towerOwner[i] = TEAM_NONE;
         m_activeEvents[i] = TEAM_INDEX_NEUTRAL;
 
-        sObjectMgr.SetGraveYardLinkTeam(eyGraveyards[i], EY_ZONE_ID_MAIN, TEAM_INVALID);
+        GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(eyGraveyards[i], EY_ZONE_ID_MAIN, TEAM_INVALID);
     }
 
     // setup graveyards
-    sObjectMgr.SetGraveYardLinkTeam(GRAVEYARD_EY_MAIN_ALLIANCE, EY_ZONE_ID_MAIN, ALLIANCE);
-    sObjectMgr.SetGraveYardLinkTeam(GRAVEYARD_EY_MAIN_HORDE, EY_ZONE_ID_MAIN, HORDE);
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(GRAVEYARD_EY_MAIN_ALLIANCE, EY_ZONE_ID_MAIN, ALLIANCE);
+    GetBgMap()->GetGraveyardManager().SetGraveYardLinkTeam(GRAVEYARD_EY_MAIN_HORDE, EY_ZONE_ID_MAIN, HORDE);
 
     // the flag in the middle is spawned at beginning
     m_activeEvents[EY_EVENT_CAPTURE_FLAG] = EY_EVENT2_FLAG_CENTER;

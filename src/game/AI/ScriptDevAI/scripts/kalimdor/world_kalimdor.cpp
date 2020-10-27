@@ -34,7 +34,7 @@ struct GhostOPlasmEvent
 
 struct world_map_kalimdor : public ScriptedMap
 {
-    world_map_kalimdor(Map* pMap) : ScriptedMap(pMap) { Initialize(); }
+    world_map_kalimdor(Map* pMap) : ScriptedMap(pMap), m_shadeData({ AREAID_RAZOR_HILL }) { Initialize(); }
 
     uint8 m_uiMurkdeepAdds_KilledAddCount;
     std::vector<GhostOPlasmEvent> m_vGOEvents;
@@ -47,6 +47,8 @@ struct world_map_kalimdor : public ScriptedMap
     std::array<std::vector<ObjectGuid>, MAX_ELEMENTS> m_aElementalRiftGUIDs;
     uint32 m_uiDronesTimer;
     uint32 m_freedSpriteDarter;
+    // Shade of the Horseman village attack event
+    ShadeOfTheHorsemanData m_shadeData;
 
     void Initialize() override
     {
@@ -62,6 +64,18 @@ struct world_map_kalimdor : public ScriptedMap
             riftList.clear();
         m_uiDronesTimer = 0;
         memset(&m_encounter, 0, sizeof(m_encounter));
+
+        m_shadeData.Reset();
+    }
+
+    bool CheckConditionCriteriaMeet(Player const* player, uint32 instanceConditionId, WorldObject const* conditionSource, uint32 conditionSourceType) const override
+    {
+        if (instanceConditionId >= INSTANCE_CONDITION_ID_FIRE_BRIGADE_PRACTICE_GOLDSHIRE && instanceConditionId <= INSTANCE_CONDITION_ID_LET_THE_FIRES_COME_HORDE)
+            return m_shadeData.IsConditionFulfilled(instanceConditionId, player->GetAreaId());
+
+        script_error_log("world_map_kalimdor::CheckConditionCriteriaMeet called with unsupported Id %u. Called with param plr %s, src %s, condition source type %u",
+            instanceConditionId, player ? player->GetGuidStr().c_str() : "nullptr", conditionSource ? conditionSource->GetGuidStr().c_str() : "nullptr", conditionSourceType);
+        return false;
     }
 
     void OnCreatureCreate(Creature* pCreature) override
@@ -78,6 +92,10 @@ struct world_map_kalimdor : public ScriptedMap
             case NPC_BARON_CHARR:
             case NPC_HIGHLORD_KRUUL:
                 m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+                break;
+            case NPC_MASKED_ORPHAN_MATRON:
+            case NPC_COSTUMED_ORPHAN_MATRON:
+                m_npcEntryGuidCollection[pCreature->GetEntry()].push_back(pCreature->GetObjectGuid());
                 break;
         }
     }
@@ -295,6 +313,13 @@ struct world_map_kalimdor : public ScriptedMap
             else
                 m_uiDronesTimer -= diff;
         }
+
+        if (m_shadeData.Update(diff))
+        {
+            // Razor Hill
+            if (Creature* matron = instance->GetCreature(m_npcEntryGuidStore[NPC_MASKED_ORPHAN_MATRON]))
+                matron->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, matron, matron);
+        }
     }
 
     void SetData(uint32 uiType, uint32 uiData)
@@ -380,6 +405,10 @@ struct world_map_kalimdor : public ScriptedMap
                         uiData = DONE;
                 }
             }
+            default:
+                if (uiType >= TYPE_SHADE_OF_THE_HORSEMAN_ATTACK_PHASE && uiType <= TYPE_SHADE_OF_THE_HORSEMAN_MAX)
+                    return m_shadeData.HandleSetData(uiType, uiData);
+                break;
         }
         m_encounter[uiType] = uiData;
     }
@@ -394,10 +423,20 @@ struct world_map_kalimdor : public ScriptedMap
                 FillInitialWorldStateData(data, count, WORLD_STATE_TETHYR_COUNT, m_uiTheramoreMarksmenAlive);
                 break;
             }
+            case AREAID_RAZOR_HILL:
+            {
+                FillInitialWorldStateData(data, count, WORLD_STATE_SHADE_OF_THE_HORSEMAN_TIMER, m_shadeData.CalculateWorldstateTimerValue());
+                break;
+            }
         }
     }
 
-    uint32 GetData(uint32 uiType) const override { return m_encounter[uiType]; }
+    uint32 GetData(uint32 type) const override
+    {
+        if (type >= TYPE_SHADE_OF_THE_HORSEMAN_ATTACK_PHASE && type <= TYPE_SHADE_OF_THE_HORSEMAN_MAX)
+            return m_shadeData.HandleGetData(type);
+        return m_encounter[type];
+    }
 };
 
 InstanceData* GetInstanceData_world_map_kalimdor(Map* pMap)

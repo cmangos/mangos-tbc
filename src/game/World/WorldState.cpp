@@ -454,6 +454,12 @@ void WorldState::HandlePlayerEnterArea(Player* player, uint32 areaId)
         case AREAID_SHARTUUL_TRANSPORTER:
         case AREAID_DEATHS_DOOR:
         case AREAID_THERAMORE_ISLE:
+        case AREAID_GOLDSHIRE:
+        case AREAID_KHARANOS:
+        case AREAID_AZURE_WATCH:
+        case AREAID_BRILL:
+        case AREAID_RAZOR_HILL:
+        case AREAID_FALCONWING_SQUARE:
         {
             std::lock_guard<std::mutex> guard(m_mutex);
             m_areaPlayers[areaId].push_back(player->GetObjectGuid());
@@ -471,6 +477,12 @@ void WorldState::HandlePlayerLeaveArea(Player* player, uint32 areaId)
         case AREAID_SHARTUUL_TRANSPORTER:
         case AREAID_DEATHS_DOOR:
         case AREAID_THERAMORE_ISLE:
+        case AREAID_GOLDSHIRE:
+        case AREAID_KHARANOS:
+        case AREAID_AZURE_WATCH:
+        case AREAID_BRILL:
+        case AREAID_RAZOR_HILL:
+        case AREAID_FALCONWING_SQUARE:
         {
             std::lock_guard<std::mutex> guard(m_mutex);
             auto position = std::find(m_areaPlayers[areaId].begin(), m_areaPlayers[areaId].end(), player->GetObjectGuid());

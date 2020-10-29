@@ -1863,6 +1863,20 @@ Dummy.Debug2 = 0
 #       Prefix that's always applied for AutoBroadcast messages
 #       Default:    "" - No prefixed text
 #
+#    Custom.PvPReward.Type
+#       Type of reward to give on kills
+#       Default:    0 - Disabled
+#                   1 - Gold
+#                   3 - Honor
+#                   4 - Arena Points
+#                   * - Item (specify item ID)
+#
+#    Custom.PvPReward.Amount
+#       Amount to give once system determines you've reached the thresold for
+#       a kill (system keeps track internally of damage and healing)
+#       Default:    0 - Disabled
+#                   1 - Enabled
+#
 #    Custom.AntiCheat.SpeedCheat
 #       Enables or disables AntiCheat module
 #       Default:    0 - Disabled
@@ -1933,6 +1947,8 @@ Custom.DuelReset.AllCooldowns = 0
 Custom.AutoLearnSpells = 0
 Custom.AutoBroadcastTimer = 0
 Custom.AutoBroadcastPrefix = ""
+Custom.PvPReward.Type = 0
+Custom.PvPReward.Amount = 0
 Custom.AntiCheat.SpeedCheat = 0
 Custom.AntiCheat.Teleport = 0
 Custom.AntiCheat.Fly = 0

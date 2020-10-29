@@ -4,38 +4,12 @@
 
 #include <sstream>
 
-// Move those please.
-static const std::string MSG_COLOR_LIGHTRED = "|cffff6060";
-static const std::string MSG_COLOR_LIGHTBLUE = "|cff00ccff";
-static const std::string MSG_COLOR_ANN_GREEN = "|c1f40af20";
-static const std::string MSG_COLOR_RED = "|cffff0000";
-static const std::string MSG_COLOR_GOLD = "|cffffcc00";
-static const std::string MSG_COLOR_SUBWHITE = "|cffbbbbbb";
-static const std::string MSG_COLOR_MAGENTA = "|cffff00ff";
-static const std::string MSG_COLOR_YELLOW = "|cffffff00";
-static const std::string MSG_COLOR_CYAN = "|cff00ffff";
-static const std::string MSG_COLOR_DARKBLUE = "|cff0000ff";
-
-static const std::string MSG_COLOR_GREY = "|cff9d9d9d";
-static const std::string MSG_COLOR_WHITE = "|cffffffff";
-static const std::string MSG_COLOR_GREEN = "|cff1eff00";
-static const std::string MSG_COLOR_BLUE = "|cff0080ff";
-static const std::string MSG_COLOR_PURPLE = "|cffb048f8";
-static const std::string MSG_COLOR_ORANGE = "|cffff8000";
-
-static const std::string MSG_COLOR_DRUID = "|cffff7d0a";
-static const std::string MSG_COLOR_HUNTER = "|cffabd473";
-static const std::string MSG_COLOR_MAGE = "|cff69ccf0";
-static const std::string MSG_COLOR_PALADIN = "|cfff58cba";
-static const std::string MSG_COLOR_PRIEST = "|cffffffff";
-static const std::string MSG_COLOR_ROGUE = "|cfffff569";
-static const std::string MSG_COLOR_SHAMAN = "|cff0070de";
-static const std::string MSG_COLOR_WARLOCK = "|cff9482c9";
-static const std::string MSG_COLOR_WARRIOR = "|cffc79c6e";
-
 class AntiCheat;
 struct Position;
 enum MessageType : uint8;
+
+typedef std::map<ObjectGuid, float> DMGHEALMap;
+typedef std::vector<std::string> RewardMap;
 
 class CPlayer : public Player
 {
@@ -49,6 +23,22 @@ public:
 
 public:
     Player* ToPlayer() { return static_cast<Player*>(this); }
+
+    // PvP Kill reward system
+public:
+    void HandlePvPKill();
+    void AddDamage(ObjectGuid guid, uint32 amount);
+    void AddHealing(ObjectGuid guid, uint32 amount);
+    DMGHEALMap& GetDamagers() { return m_Damagers; }
+    DMGHEALMap& GetHealers() { return m_Healers; }
+    void AddReward(std::string name, float amount);
+    std::string GetRewardNames(bool duplicates = true);
+    static std::string GetGoldString(uint32 copper);
+private:
+    DMGHEALMap m_Damagers;
+    DMGHEALMap m_Healers;
+    RewardMap m_rewards;
+    float m_PendingReward;
 
     // AntiCheat
 public:
@@ -81,6 +71,7 @@ public:
     bool TeleportToPos(uint32 mapid, const Position* pos, uint32 options = 0, AreaTrigger const* at = nullptr);
     void AutoLearnSpells();
     void OnLogin();
+    std::string GetNameLink(bool applycolors = false);
 
     // CFBG
 public:

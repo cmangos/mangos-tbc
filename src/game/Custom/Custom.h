@@ -1,6 +1,10 @@
 #pragma once
 
+#include "Custom/CPlayer.h"
+#include "Custom_Constants.h"
 #include "Common.h"
+#include "Entities/ObjectGuid.h"
+#include "Globals/ObjectMgr.h"
 #include "Globals/SharedDefines.h"
 #include "World/World.h"
 #include "Singleton.h"
@@ -35,6 +39,8 @@ public:
     void LoadConfig();
     void Update(uint32 diff);
     IntervalTimer& GetTimer(CustomTimers timer) { return m_timers[timer]; }
+    CPlayer* GetCPlayer(ObjectGuid guid) { return static_cast<CPlayer*>( sObjectMgr.GetPlayer(guid)); }
+
 private:
     IntervalTimer m_timers[CUPDATE_COUNT];
 };

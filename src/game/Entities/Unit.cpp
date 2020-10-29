@@ -17,6 +17,7 @@
  */
 
 #include "Entities/Unit.h"
+#include "Custom/CPlayer.h"
 #include "Log.h"
 #include "Server/Opcodes.h"
 #include "WorldPacket.h"
@@ -840,6 +841,29 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
         return 0;
     }
 
+    CPlayer* cplayerattacker = (dealer->GetMaster() ? dealer->GetMaster() : dealer)->ToCPlayer();
+    CPlayer* cplayervictim = (victim->GetMaster() ? victim->GetMaster() : victim)->ToCPlayer();
+
+    // Add damage information to victim for PvP Reward system
+    if (cplayerattacker &&
+        cplayervictim &&
+        damage &&
+        cplayerattacker != cplayervictim &&
+        !cplayerattacker->IsInDuelWith(cplayervictim))
+    {
+        uint32 dmgNoOverkill = damage;
+
+        if (dmgNoOverkill - cplayervictim->GetHealth() < 0)
+            dmgNoOverkill -= cplayervictim->GetHealth();
+
+        // Add damage to victim
+        cplayervictim->AddDamage(cplayerattacker->GetObjectGuid(), dmgNoOverkill);
+        // Add some "damage" to the attacker from the victim.
+        // this is to reward someone "tanking" in PvP (if they successfully
+        // kill the targets afterwards)
+        cplayerattacker->AddDamage(cplayervictim->GetObjectGuid(), dmgNoOverkill * 0.25);
+    }
+
     if (spellProto)
         sCustom.spellRegulator->RegulateSpell(spellProto->Id, damage);
 
@@ -921,6 +945,9 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
         Kill(dealer, victim, damagetype, spellProto, durabilityLoss, duel_hasEnded);
     else                                                    // if (health <= damage)
         HandleDamageDealt(dealer, victim, damage, cleanDamage, damagetype, damageSchoolMask, spellProto, duel_hasEnded);
+
+    if (health <= damage && cplayervictim)
+        cplayervictim->HandlePvPKill();
 
     DEBUG_FILTER_LOG(LOG_FILTER_DAMAGE, "DealDamageEnd returned %d damage", damage);
 
@@ -6879,6 +6906,17 @@ int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellPro
         sCustom.spellRegulator->RegulateSpell(spellProto->Id, addhealth);
 
     int32 gain = pVictim->ModifyHealth(int32(addhealth));
+
+    CPlayer* cplayerattacker = (GetMaster() ? GetMaster() : this)->ToCPlayer();
+    CPlayer* cplayervictim = (pVictim->GetMaster() ? pVictim->GetMaster() : pVictim)->ToCPlayer();
+
+    // Add healing done to "victim" for PvP Reward system
+    if (cplayerattacker &&
+        cplayervictim &&
+        gain &&
+        cplayerattacker != cplayervictim &&
+        !cplayerattacker->IsInDuelWith(cplayervictim))
+        cplayervictim->AddHealing(cplayerattacker->GetObjectGuid(), gain);
 
     Unit* unit = this;
 

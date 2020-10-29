@@ -1,5 +1,6 @@
 #include "CPlayer.h"
 #include "Custom/Custom.h"
+#include "Custom_Constants.h"
 #include "Entities/Object.h"
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
@@ -95,7 +96,7 @@ void CPlayer::SendStreamMessages(MessageType type, std::stringstream &ss)
 
         while (std::getline(ss, item))
         {
-            item.insert(0, MSG_COLOR_WHITE).append("|r");
+            item.insert(0, Custom_Constants::MSG_COLOR_WHITE).append("|r");
             const char* msg = item.c_str();
 
             if ((type & CHAT_BOX) != 0)
@@ -326,4 +327,23 @@ void CPlayer::SetFakeValues()
 Team Player::GetTeam() const
 {
     return ToCPlayer()->GetTeam();
+}
+
+std::string CPlayer::GetNameLink(bool applycolors)
+{
+    std::string name = GetName();
+    std::string teamcolor = GetOTeam() == ALLIANCE ? Custom_Constants::MSG_COLOR_DARKBLUE : Custom_Constants::MSG_COLOR_RED;
+    std::ostringstream ss;
+
+    if (isGameMaster())
+        teamcolor = Custom_Constants::MSG_COLOR_PURPLE;
+
+    ss << "|Hplayer:" << name << "|h";
+
+    if (applycolors)
+        ss << teamcolor << "[" << Custom_Constants::GetClassColor(getClass()) << name << teamcolor << "]|h";
+    else
+        ss << "[" << name << "]|h";
+
+    return ss.str();
 }

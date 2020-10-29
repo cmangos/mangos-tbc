@@ -1,14 +1,16 @@
 #include "CPlayer.h"
 #include "Custom.h"
+#include "Custom/Custom_Constants.h"
 #include "World/World.h"
 
 #include <algorithm>
 #include <execution>
 #include <numeric>
+#include <ostream>
 
 void CPlayer::HandlePvPKill()
 {
-    if (!sWorld.getConfig(CONFIG_BOOL_PVPREWARD_ENABLE))
+    if (!sWorld.getConfig(CONFIG_UINT32_PVPREWARD_TYPE))
         return;
 
     // Get total damage dealt to victim
@@ -72,28 +74,81 @@ void CPlayer::HandlePvPKill()
 
 void CPlayer::AddDamage(ObjectGuid guid, uint32 amount)
 {
-    if (sWorld.getConfig(CONFIG_BOOL_PVPREWARD_ENABLE))
+    if (sWorld.getConfig(CONFIG_UINT32_PVPREWARD_TYPE))
         m_Damagers[guid] += amount;
 }
 
 void CPlayer::AddHealing(ObjectGuid guid, uint32 amount)
 {
-    if (sWorld.getConfig(CONFIG_BOOL_PVPREWARD_ENABLE))
+    if (sWorld.getConfig(CONFIG_UINT32_PVPREWARD_TYPE))
         m_Healers[guid] += amount;
 }
 
 void CPlayer::AddReward(std::string name, float amount)
 {
+    uint32 rewardtype = sWorld.getConfig(CONFIG_UINT32_PVPREWARD_TYPE);
+    if (!rewardtype)
+        return;
+
+    uint32 rewardperkill = sWorld.getConfig(CONFIG_UINT32_PVPREWARD_AMOUNT);
+
     m_rewards.push_back(name + "|r");
     m_PendingReward += amount;
 
     if (m_PendingReward >= 1)
     {
-        uint32 Reward = m_PendingReward * 10000.f;
-        m_PendingReward = 0;
+        switch (rewardtype)
+        {
+            case static_cast<uint32>(PvPRewardType::GOLD):
+            {
+                uint32 reward = m_PendingReward * 10000.f * rewardperkill;
 
-        SetMoney(GetMoney() + Reward);
-        BoxChat << "You were rewarded with " << GetGoldString(Reward) << " for the kills of " << GetRewardNames() << std::endl;
+                SetMoney(GetMoney() + reward);
+                m_PendingReward = 0;
+                BoxChat << "You were rewarded with " << GetGoldString(reward)
+                        << " for the kills of " << GetRewardNames() << std::endl;
+            }
+            break;
+            case static_cast<uint32>(PvPRewardType::ARENAPOINTS):
+            {
+                uint32 reward = m_PendingReward * rewardperkill;
+
+                SetArenaPoints(GetArenaPoints() + reward);
+                m_PendingReward -= 1.f;
+                BoxChat << "You were rewarded with " << reward << "arena points"
+                        << " for the kills of " << GetRewardNames() << std::endl;
+            }
+            break;
+            case static_cast<uint32>(PvPRewardType::HONOR):
+            {
+                uint32 reward = m_PendingReward * rewardperkill;
+
+                SetHonorPoints(GetHonorPoints() + reward);
+                m_PendingReward -= 1.f;
+                BoxChat << "You were rewarded with " << reward << " honor points"
+                        << " for the kills of " << GetRewardNames() << std::endl;
+            }
+            break;
+            case static_cast<uint32>(PvPRewardType::NONE):
+                break;
+            // Default means rewardtype is an item ID.
+            default:
+            {
+                auto item = sObjectMgr.GetItemPrototype(rewardtype);
+                if (!item)
+                    return;
+
+                uint32 reward = m_PendingReward * rewardperkill;
+
+                if (StoreNewItemInBestSlots(rewardtype, reward))
+                {
+                    m_PendingReward -= 1.f;
+                    BoxChat << "You were rewarded with " << reward << " " << item->Name1
+                            << " for the kills of " << GetRewardNames() << std::endl;
+                }
+            }
+        }
+
         m_rewards.clear();
     }
 }

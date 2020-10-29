@@ -59,6 +59,9 @@ void Custom::LoadConfig()
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TELE2PLANE, "Custom.AntiCheat.Tele2Plane", 0);
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_NOFALL, "Custom.AntiCheat.NoFall", 0);
     sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TIME, "Custom.AntiCheat.Time", 0);
+    sWorld.setConfig(CONFIG_BOOL_ANTICHEAT_TEST, "Custom.AntiCheat.Test", 0);
+    sWorld.setConfig(CONFIG_UINT32_PVPREWARD_TYPE, "Custom.PvPReward.Type", 0);
+    sWorld.setConfig(CONFIG_UINT32_PVPREWARD_AMOUNT, "Custom.PvPReward.Amount", 0);
     m_timers[CUPDATE_AUTOBROADCAST].SetInterval(sWorld.getConfig(CONFIG_UINT32_AUTOBROADCAST_TIMER) * IN_MILLISECONDS);
     autoBroadcast->SetAutoBroadcastPrefix(sConfig.GetStringDefault("Custom.AutoBroadcastPrefix", ""));
 }

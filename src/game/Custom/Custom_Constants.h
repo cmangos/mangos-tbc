@@ -37,3 +37,11 @@ public:
 
     static const std::string classColors[];
 };
+
+enum class PvPRewardType : uint32
+{
+    NONE,
+    GOLD,
+    HONOR,
+    ARENAPOINTS,
+};

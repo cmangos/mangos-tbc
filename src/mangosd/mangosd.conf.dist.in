@@ -1918,6 +1918,12 @@ Dummy.Debug2 = 0
 #       Default:    0 - Disabled
 #                   1 - Enabled
 #
+#    Custom.AntiCheat.Test
+#       Enables or disables AntiCheat module. This is a test module and should
+#       only be used when developing 
+#       Default:    0 - Disabled
+#                   1 - Enabled
+#
 ###################################################################################################################
 
 Custom.DuelReset.Health = 0
@@ -1938,3 +1944,4 @@ Custom.AntiCheat.WallJumping = 0
 Custom.AntiCheat.Tele2Plane = 0
 Custom.AntiCheat.NoFall = 0
 Custom.AntiCheat.Time = 0
+Custom.AntiCheat.Test = 0

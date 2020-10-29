@@ -47,7 +47,8 @@ CPlayer::CPlayer(WorldSession* session) : Player(session)
         antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_nofall(this)));
     if (sWorld.getConfig(CONFIG_BOOL_ANTICHEAT_TIME))
         antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_time(this)));
-    //antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_test(this)));
+    if (sWorld.getConfig(CONFIG_BOOL_ANTICHEAT_TEST))
+        antiCheatStorage.push_back(AntiCheatPtr(new AntiCheat_test(this)));
 
     m_GMFly = false;
 }

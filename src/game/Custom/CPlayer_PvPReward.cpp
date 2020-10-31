@@ -4,7 +4,6 @@
 #include "World/World.h"
 
 #include <algorithm>
-#include <execution>
 #include <numeric>
 #include <ostream>
 
@@ -14,8 +13,7 @@ void CPlayer::HandlePvPKill()
         return;
 
     // Get total damage dealt to victim
-    float TotalDMG = std::reduce(
-        std::execution::unseq,
+    float TotalDMG = std::accumulate(
         GetDamagers().begin(),
         GetDamagers().end(),
         0.f, // Start value
@@ -35,8 +33,7 @@ void CPlayer::HandlePvPKill()
         attacker->AddReward(GetNameLink(true), attackReward);
 
         // Get total healing done to attacker
-        float TotalHeal = std::reduce(
-            std::execution::unseq,
+        float TotalHeal = std::accumulate(
             attacker->GetHealers().begin(),
             attacker->GetHealers().end(),
             0.f, // Start value

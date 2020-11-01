@@ -3320,11 +3320,6 @@ uint32 ChatHandler::ExtractAccountId(char** args, std::string* accountName /*= n
     return account_id;
 }
 
-Player* ChatHandler::GetPlayer()
-{
-    return m_session->GetPlayer();
-}
-
 struct RaceMaskName
 {
     char const* literal;

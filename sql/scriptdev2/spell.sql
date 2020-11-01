@@ -197,7 +197,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (20661,'spell_warrior_execute'),
 (20662,'spell_warrior_execute'),
 (25234,'spell_warrior_execute'),
-(25236,'spell_warrior_execute');
+(25236,'spell_warrior_execute'),
+(20647,'spell_warrior_execute_damage');
 
 -- Battleground and Outdoor PvP
 -- Alterac Valley

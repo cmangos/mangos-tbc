@@ -435,8 +435,6 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                     damage = uint32(damage * m_caster->GetTotalAttackPowerValue(BASE_ATTACK) / 100);
                     m_caster->ModifyAuraState(AURA_STATE_WARRIOR_VICTORY_RUSH, false);
                 }
-                if (m_spellInfo->Id == 20647)
-                    m_caster->SetPower(POWER_RAGE, 0);
                 break;
             }
             case SPELLFAMILY_WARLOCK:

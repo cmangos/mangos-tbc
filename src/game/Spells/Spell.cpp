@@ -1018,7 +1018,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
             procEx |= PROC_EX_NORMAL_HIT;
 
         m_healing = addhealth; // update value so that script handler has access
-        OnHit(); // TODO: After spell damage calc is moved to proper handler - move this before the first if
+        OnHit(missInfo); // TODO: After spell damage calc is moved to proper handler - move this before the first if
 
         int32 gain = caster->DealHeal(unitTarget, addhealth, m_spellInfo, target->isCrit);
 
@@ -1065,7 +1065,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
         procVictim |= PROC_FLAG_TAKEN_ANY_DAMAGE;
 
         m_damage = spellDamageInfo.damage; // update value so that script handler has access
-        OnHit(); // TODO: After spell damage calc is moved to proper handler - move this before the first if
+        OnHit(missInfo); // TODO: After spell damage calc is moved to proper handler - move this before the first if
 
         if (reflectTarget)
             reflectTarget->DealSpellDamage(&spellDamageInfo, true);
@@ -1105,7 +1105,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
     // Passive spell hits/misses or active spells only misses (only triggers if proc flags set)
     else if (procAttacker || procVictim)
     {
-        OnHit(); // TODO: After spell damage calc is moved to proper handler - move this before the first if
+        OnHit(missInfo); // TODO: After spell damage calc is moved to proper handler - move this before the first if
         // Fill base damage struct (unitTarget - is real spell target)
         SpellNonMeleeDamage damageInfo(caster, unitTarget, m_spellInfo->Id, m_spellSchoolMask);
         procEx = createProcExtendMask(&damageInfo, missInfo);
@@ -1313,7 +1313,7 @@ void Spell::DoAllTargetlessEffects(bool dest)
 
     if (effectMask)
     {
-        OnHit();
+        OnHit(SPELL_MISS_NONE);
 
         if (unitCaster)
         {
@@ -1341,7 +1341,7 @@ void Spell::DoAllEffectOnTarget(GOTargetInfo* target)
 
     ExecuteEffects(nullptr, nullptr, go, effectMask);
 
-    OnHit();
+    OnHit(SPELL_MISS_NONE);
 
     // cast at creature (or GO) quest objectives update at successful cast finished (+channel finished)
     // ignore autorepeat/melee casts for speed (not exist quest for spells (hm... )
@@ -1362,7 +1362,7 @@ void Spell::DoAllEffectOnTarget(ItemTargetInfo* target)
 
     ExecuteEffects(nullptr, target->item, nullptr, effectMask);
 
-    OnHit();
+    OnHit(SPELL_MISS_NONE);
 }
 
 void Spell::HandleImmediateEffectExecution(TargetInfo* target)
@@ -7755,10 +7755,10 @@ void Spell::OnCast()
         return script->OnCast(this);
 }
 
-void Spell::OnHit()
+void Spell::OnHit(SpellMissInfo missInfo)
 {
     if (SpellScript* script = GetSpellScript())
-        return script->OnHit(this);
+        return script->OnHit(this, missInfo);
 }
 
 void Spell::OnAfterHit()

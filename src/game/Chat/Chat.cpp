@@ -769,6 +769,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "current",        SEC_GAMEMASTER,     false, &ChatHandler::HandleTitlesCurrentCommand,       "", nullptr },
         { "remove",         SEC_GAMEMASTER,     false, &ChatHandler::HandleTitlesRemoveCommand,        "", nullptr },
         { "setmask",        SEC_GAMEMASTER,     false, &ChatHandler::HandleTitlesSetMaskCommand,       "", nullptr },
+        { "swap",           SEC_GAMEMASTER,     false, &ChatHandler::HandleTitlesSwapCommand,          "", nullptr },
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 

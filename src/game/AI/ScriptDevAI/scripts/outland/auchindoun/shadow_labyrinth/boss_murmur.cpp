@@ -305,7 +305,7 @@ struct SuppressionBlast : public SpellScript
 
     bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
-        if (target->isInCombat())
+        if (target->IsInCombat())
             return false;
 
         return true;

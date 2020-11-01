@@ -20,6 +20,8 @@
 #include "Entities/Player.h"
 #include "Spells/SpellMgr.h"
 
+#include <limits>
+
 enum GenericPlayerAIActions
 {
     GENERIC_ACTION_RESET = 1000,
@@ -83,7 +85,7 @@ void PlayerAI::EnterEvadeMode()
 
 void PlayerAI::AttackClosestEnemy()
 {
-    float distance = FLT_MAX;
+    float distance = std::numeric_limits<float>::max();
     AttackSpecificEnemy([&](Unit* enemy, Unit*& closestEnemy) mutable
     {
         float curDistance = enemy->GetDistance(m_unit, true, DIST_CALC_NONE);

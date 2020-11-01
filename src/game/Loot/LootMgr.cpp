@@ -2300,7 +2300,7 @@ LootStoreItem const* LootTemplate::LootGroup::Roll(Loot const& loot, Player cons
             lootStoreItemVector.push_back(&itr);
 
         // randomize the new vector
-        std::shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), std::mt19937(std::random_device()()));
+        shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), *GetRandomGenerator());
 
         float chance = rand_chance_f();
 
@@ -2333,7 +2333,7 @@ LootStoreItem const* LootTemplate::LootGroup::Roll(Loot const& loot, Player cons
             lootStoreItemVector.push_back(&itr);
 
         // randomize the new vector
-        std::shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), std::mt19937(std::random_device()()));
+        std::shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), *GetRandomGenerator());
 
         // as the new vector is randomized we can start from first element and stop at first one that meet the condition
         for (std::vector <LootStoreItem const*>::const_iterator itr = lootStoreItemVector.begin(); itr != lootStoreItemVector.end(); ++itr)

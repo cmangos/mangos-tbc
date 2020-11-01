@@ -2030,7 +2030,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     uint32 possibleSpells[] = {36693, 36694, 36695, 36696, 36697, 36698, 36699, 36700} ;
                     std::vector<uint32> spellPool(possibleSpells, possibleSpells + countof(possibleSpells));
-                    std::shuffle(spellPool.begin(), spellPool.end(), std::mt19937(std::random_device()()));
+                    std::shuffle(spellPool.begin(), spellPool.end(), *GetRandomGenerator());
 
                     for (uint8 i = 0; i < (m_caster->GetMap()->IsRegularDifficulty() ? 2 : 4); ++i)
                         m_caster->CastSpell(m_caster, spellPool[i], TRIGGERED_OLD_TRIGGERED);

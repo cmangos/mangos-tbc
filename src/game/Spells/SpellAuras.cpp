@@ -8723,16 +8723,8 @@ void SpellAuraHolder::SetAuraFlag(uint32 slot, bool add)
 
         uint32 flags = AFLAG_NONE;
         for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        {
-            if (!m_auras[i])
-                continue;
-            if ((flags & AFLAG_HARMFUL) && (flags & AFLAG_HELPFUL))
-                break;
-            flags |= (IsPositiveEffectTargetMode(m_spellProto, SpellEffectIndex(i), caster, m_target) ? AFLAG_HELPFUL : AFLAG_HARMFUL);
-        }
-
-        if (m_spellProto->HasAttribute(SPELL_ATTR_PASSIVE))
-            flags |= AFLAG_PASSIVE_DEPRECATED;
+            if (m_auras[i])
+                flags |= (1 << i); // AFLAG_EFFECT_0 is 1 and rest is bitshift
 
         flags |= ((IsPositive() && !m_spellProto->HasAttribute(SPELL_ATTR_CANT_CANCEL)) ? AFLAG_CANCELABLE : AFLAG_NOT_CANCELABLE);
 

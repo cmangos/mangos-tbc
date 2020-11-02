@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Common.h"
+#include <string>
+
 class Custom_Constants
 {
 private:

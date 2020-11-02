@@ -154,6 +154,8 @@ void WaypointMovementGenerator<Creature>::Interrupt(Creature& creature)
 void WaypointMovementGenerator<Creature>::Reset(Creature& creature)
 {
     creature.addUnitState(UNIT_STAT_ROAMING);
+    if (!i_path)
+        return;
     SendNextWayPointPath(creature);
 }
 
@@ -495,6 +497,8 @@ void WaypointMovementGenerator<Creature>::SendNextWayPointPath(Creature& creatur
     // remove presend time if next node have no delay
     if (nextNode->delay == 0)
         m_pathDuration -= PreSendTime;
+    if (i_path->size() == 1)
+        m_lastReachedWaypoint = 0;
 }
 
 void WaypointMovementGenerator<Creature>::InformAI(Creature& creature, uint32 type, uint32 data)

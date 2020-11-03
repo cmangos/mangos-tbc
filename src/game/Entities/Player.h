@@ -43,6 +43,7 @@
 #include "Cinematics/CinematicMgr.h"
 
 #include<vector>
+#include<memory>
 
 struct Mail;
 class Channel;
@@ -1896,7 +1897,7 @@ class Player : public Unit
 
         void SendAuraDurationsForTarget(Unit* target);
 
-        PlayerMenu* PlayerTalkClass;
+        std::unique_ptr<PlayerMenu> PlayerTalkClass;
         std::vector<ItemSetEffect*> ItemSetEff;
 
         /*********************************************************/

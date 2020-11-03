@@ -71,6 +71,7 @@
 #endif
 
 #include <cmath>
+#include <memory>
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
 
@@ -551,7 +552,7 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
 
     m_cinematic = 0;
 
-    PlayerTalkClass = new PlayerMenu(GetSession());
+    PlayerTalkClass = std::make_unique<PlayerMenu>(PlayerMenu(GetSession()));
     m_currentBuybackSlot = BUYBACK_SLOT_START;
 
     m_DailyQuestChanged = false;
@@ -666,8 +667,6 @@ Player::~Player()
 
     for (ItemMap::const_iterator iter = mMitems.begin(); iter != mMitems.end(); ++iter)
         delete iter->second;                                // if item is duplicated... then server may crash ... but that item should be deallocated
-
-    delete PlayerTalkClass;
 
     if (m_transport)
     {
@@ -12096,10 +12095,9 @@ void Player::SendNewItem(Item* item, uint32 count, bool received, bool created, 
 
 void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
 {
-    PlayerMenu* pMenu = PlayerTalkClass;
-    pMenu->ClearMenus();
+    PlayerTalkClass->ClearMenus();
 
-    pMenu->GetGossipMenu().SetMenuId(menuId);
+    PlayerTalkClass->GetGossipMenu().SetMenuId(menuId);
 
     GossipMenuItemsMapBounds pMenuItemBounds = sObjectMgr.GetGossipMenuItemsMapBounds(menuId);
 
@@ -12180,7 +12178,7 @@ void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
                     break;
                 case GOSSIP_OPTION_TAXIVENDOR:
                     if (GetSession()->SendLearnNewTaxiNode(pCreature))
-                        pMenu->GetGossipMenu().SetDiscoveredNode();
+                        PlayerTalkClass->GetGossipMenu().SetDiscoveredNode();
                     break;
                 case GOSSIP_OPTION_BATTLEFIELD:
                     if (!pCreature->CanInteractWithBattleMaster(this, false))
@@ -12293,8 +12291,8 @@ void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
                 strOptionText.append(")");
             }
 
-            pMenu->GetGossipMenu().AddMenuItem(gossipMenu.option_icon, strOptionText, 0, gossipMenu.option_id, strBoxText, gossipMenu.box_money, gossipMenu.box_coded);
-            pMenu->GetGossipMenu().AddGossipMenuItemData(gossipMenu.action_menu_id, gossipMenu.action_poi_id, gossipMenu.action_script_id);
+            PlayerTalkClass->GetGossipMenu().AddMenuItem(gossipMenu.option_icon, strOptionText, 0, gossipMenu.option_id, strBoxText, gossipMenu.box_money, gossipMenu.box_coded);
+            PlayerTalkClass->GetGossipMenu().AddGossipMenuItemData(gossipMenu.action_menu_id, gossipMenu.action_poi_id, gossipMenu.action_script_id);
         }
     }
 
@@ -12302,7 +12300,7 @@ void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
         PrepareQuestMenu(pSource->GetObjectGuid());
 
     // some gossips aren't handled in normal way ... so we need to do it this way .. TODO: handle it in normal way ;-)
-    /*if (pMenu->Empty())
+    /*if (PlayerTalkClass->Empty())
     {
         if (pCreature->HasFlag(UNIT_NPC_FLAGS,UNIT_NPC_FLAG_TRAINER))
         {

@@ -1499,9 +1499,9 @@ bool ChatHandler::HandleDebugFlyCommand(char* args)
         case 2: target->SetCanFly(bool(apply)); break;
         case 3:
             if (apply)
-                target->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                target->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
             else
-                target->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
+                target->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, 0);
             break;
     }
 

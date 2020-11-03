@@ -2361,8 +2361,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
 
                         //if (Unit* caster = GetCaster())
                         //{
-                        //    caster->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
-                        //    caster->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+                        //    caster->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
+                        //    caster->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
                         //    caster->SetHover(true);
                         //    caster->SetLevitate(true);
                         //    caster->SetCanFly(true);
@@ -6590,9 +6590,9 @@ void Aura::HandleAuraEmpathy(bool apply, bool /*Real*/)
 void Aura::HandleAuraUntrackable(bool apply, bool /*Real*/)
 {
     if (apply)
-        GetTarget()->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNTRACKABLE);
+        GetTarget()->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_UNTRACKABLE);
     else
-        GetTarget()->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNTRACKABLE);
+        GetTarget()->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_UNTRACKABLE);
 }
 
 void Aura::HandleAuraModPacify(bool apply, bool /*Real*/)
@@ -6614,25 +6614,31 @@ void Aura::HandleAuraModPacifyAndSilence(bool apply, bool Real)
 
 void Aura::HandleAuraGhost(bool apply, bool /*Real*/)
 {
-    if (GetTarget()->GetTypeId() != TYPEID_PLAYER)
-        return;
-
-    Player* player = (Player*)GetTarget();
+    Unit* target = GetTarget();
+    Player* player = target->IsPlayer() ? (Player*)target : nullptr;
 
     if (apply)
     {
-        player->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST);
-        if (!player->HasAuraType(SPELL_AURA_WATER_WALK))
-            player->SetWaterWalk(true);
+        target->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_FLAGS, UNIT_STAND_FLAGS_GHOST);
+        if (player)
+        {
+            player->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST);
+            if (!player->HasAuraType(SPELL_AURA_WATER_WALK))
+                player->SetWaterWalk(true);
+        }
     }
     else
     {
-        player->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST);
-        if (!player->HasAuraType(SPELL_AURA_WATER_WALK))
-            player->SetWaterWalk(false);
+        target->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_FLAGS, UNIT_STAND_FLAGS_GHOST);
+        if (player)
+        {
+            player->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST);
+            if (!player->HasAuraType(SPELL_AURA_WATER_WALK))
+                player->SetWaterWalk(false);
+        }
     }
 
-    if (player->GetGroup())
+    if (player && player->GetGroup())
         player->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_STATUS);
 }
 
@@ -7796,10 +7802,10 @@ void Aura::HandleAuraMirrorImage(bool apply, bool Real)
         // Caster can be player or creature, the unit who pCreature will become an clone of.
         Unit* caster = GetCaster();
 
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 0, caster->getRace());
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 1, caster->getClass());
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 2, caster->getGender());
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 3, caster->GetPowerType());
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, caster->getRace());
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_CLASS, caster->getClass());
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, caster->getGender());
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_POWER_TYPE, caster->GetPowerType());
 
         target->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_CLONED);
 
@@ -7810,10 +7816,10 @@ void Aura::HandleAuraMirrorImage(bool apply, bool Real)
         const CreatureInfo* cinfo = static_cast<Creature*>(target)->GetCreatureInfo();
         const CreatureModelInfo* minfo = sObjectMgr.GetCreatureModelInfo(target->GetNativeDisplayId());
 
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 0, 0);
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 1, cinfo->UnitClass);
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 2, minfo->gender);
-        target->SetByteValue(UNIT_FIELD_BYTES_0, 3, 0);
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, 0);
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_CLASS, cinfo->UnitClass);
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, minfo->gender);
+        target->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_POWER_TYPE, 0);
 
         target->RemoveFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_CLONED);
 

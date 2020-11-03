@@ -105,7 +105,7 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
             m_uiCreditTimer = 7000;
             m_creature->SetLevitate(false);
             m_creature->HandleEmote(EMOTE_ONESHOT_ATTACKUNARMED);
-            m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+            m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
         }
     }
 
@@ -146,7 +146,7 @@ struct mob_mature_netherwing_drakeAI : public ScriptedAI
 
                 Reset();
                 m_creature->SetLevitate(true);
-                m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
                 m_creature->GetMotionMaster()->Clear();
                 m_uiCreditTimer = 0;
             }
@@ -1452,7 +1452,7 @@ struct npc_shadowlord_deathwailAI : public ScriptedAI
         m_bDeathwailGrounded = false;
         m_bEventInProgress = false;
         SetReactState(REACT_PASSIVE);
-        m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
         m_creature->SetLevitate(true);
         SetDeathPrevention(true);
         Reset();
@@ -1524,7 +1524,7 @@ struct npc_shadowlord_deathwailAI : public ScriptedAI
             case 9:
                 DoScriptText(SAY_HEART_RETRIEVED, m_creature);
                 SetReactState(REACT_AGGRESSIVE);
-                m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
                 m_creature->SetLevitate(false);
 
                 if (GameObject* goHoF = GetClosestGameObjectWithEntry(m_creature, GOBJECT_HEART_OF_FURY, 30.0f))

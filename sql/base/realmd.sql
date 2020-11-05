@@ -52,7 +52,6 @@ CREATE TABLE `account` (
   `lockedIp` varchar(30) NOT NULL DEFAULT '0.0.0.0',
   `failed_logins` int(11) unsigned NOT NULL DEFAULT '0',
   `locked` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `last_login` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `active_realm_id` int(11) unsigned NOT NULL DEFAULT '0',
   `expansion` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `mutetime` bigint(40) unsigned NOT NULL DEFAULT '0',

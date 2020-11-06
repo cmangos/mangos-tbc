@@ -3880,17 +3880,7 @@ float Unit::CalculateSpellMissChance(const Unit* victim, SpellSchoolMask schoolM
         case SPELL_DAMAGE_CLASS_RANGED:
             return CalculateEffectiveMissChance(victim, GetWeaponAttackType(spell), spell);
     }
-    if (spell->HasAttribute(SPELL_ATTR_EX5_USE_PHYSICAL_HIT_CHANCE))
-    {
-        // How it works:
-        // - First introduced in patch 2.3 for Taunt, Growl, Righteous Defense, Challenging Shout and Challenging Roar
-        // - Switches spell to use ability miss chance calculation, but leaves standard unavoidable miss percent
-        // In WotLK+:
-        // - Removed for Taunt, Growl and Righteous Defense, so these spells have 17% miss against bosses
-        // - Added glyphs for Taunt and Growl to negate remaining 8% of spell miss difference
-        // - AoE taunts on cooldowns still use ability miss calculation
-        return CalculateEffectiveMissChance(victim, GetWeaponAttackType(spell), spell);
-    }
+
     chance += victim->GetMissChance(spell, schoolMask);
     // Victim's own chance appears to be zero / below zero / unmeaningful for some reason (debuffs?): skip calculation, unit can't be missed
     if (chance < 0.005f)
@@ -3910,6 +3900,25 @@ float Unit::CalculateSpellMissChance(const Unit* victim, SpellSchoolMask schoolM
     }
     else
         chance += (difference * factor);
+
+    if (spell->HasAttribute(SPELL_ATTR_EX5_USE_PHYSICAL_HIT_CHANCE))
+    {
+        // How it works:
+        // - First introduced in patch 2.3 for Taunt, Growl, Righteous Defense, Challenging Shout and Challenging Roar
+        // - Switches spell to use ability miss chance calculation, but leaves standard unavoidable miss percent
+        // In WotLK+:
+        // - Removed for Taunt, Growl and Righteous Defense, so these spells have 17% miss against bosses
+        // - Added glyphs for Taunt and Growl to negate remaining 8% of spell miss difference
+        // - AoE taunts on cooldowns still use ability miss calculation
+        WeaponAttackType attType = GetWeaponAttackType(spell);
+        const bool ranged = (attType == RANGED_ATTACK);
+        // Victim's auras affecting attacker's hit contribution:
+        chance -= victim->GetTotalAuraModifier(ranged ? SPELL_AURA_MOD_ATTACKER_RANGED_HIT_CHANCE : SPELL_AURA_MOD_ATTACKER_MELEE_HIT_CHANCE);
+        // Finally, take hit chance
+        chance -= (spell ? GetHitChance(spell, SPELL_SCHOOL_MASK_NORMAL) : GetHitChance(attType));
+        return std::max(minimum, std::min(chance, 100.0f));
+    }
+
     // Reduce by caster's spell hit chance
     chance -= GetHitChance(spell, schoolMask);
     // Reduce (or increase) by victim SPELL_AURA_MOD_ATTACKER_SPELL_HIT_CHANCE auras

@@ -45,7 +45,7 @@ void BattleGroundWS::Update(uint32 diff)
     for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
     {
         // resapwn flag after team score
-        if (m_flagState[i] == BG_WS_FLAG_STATE_WAIT_RESPAWN && m_flagState[i])
+        if (m_flagState[i] == BG_WS_FLAG_STATE_WAIT_RESPAWN && m_flagsTimer[i])
         {
             if (m_flagsTimer[i] <= diff)
             {
@@ -65,6 +65,8 @@ void BattleGroundWS::Update(uint32 diff)
                 m_flagsDropTimer[i] = 0;
                 RespawnDroppedFlag(playerTeam);
             }
+            else
+                    m_flagsDropTimer[i] -= diff;
         }
     }
 }
@@ -173,12 +175,15 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
     // for flag capture is reward 2 honorable kills
     RewardHonorToTeam(GetBonusHonorFromKill(2), team);
 
+    // update score
+    m_teamScores[teamIdx] += 1;
+    
     // despawn flags
     SpawnEvent(WS_EVENT_FLAG_A, 0, false);
     SpawnEvent(WS_EVENT_FLAG_H, 0, false);
 
     SendMessageToAll(wsgFlagData[otherTeamIdx][BG_WS_FLAG_ACTION_CAPTURED].messageId, wsgFlagData[teamIdx][BG_WS_FLAG_ACTION_CAPTURED].chatType, player);
-
+    
     UpdateFlagState(team, BG_WS_FLAG_STATE_WAIT_RESPAWN);   // flag state none
     UpdateTeamScore(team);
 
@@ -186,7 +191,6 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
     UpdatePlayerScore(player, SCORE_FLAG_CAPTURES, 1);      // +1 flag captures
 
     // Process match winner
-    m_teamScores[teamIdx] += 1;
     Team winner = m_teamScores[teamIdx] == BG_WS_MAX_TEAM_SCORE ? GetTeamIdByTeamIndex(teamIdx) : TEAM_NONE;
 
     // end battleground or set respawn timer

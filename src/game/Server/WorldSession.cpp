@@ -181,7 +181,7 @@ void WorldSession::SetExpansion(uint8 expansion)
 {
     m_expansion = expansion;
     if (_player)
-        _player->OnExpansionChange(expansion);
+        _player->OnExpansionChange();
     SendAuthOk(); // this is a hack but does what we need - resets expansion setting in client
 }
 
@@ -939,7 +939,7 @@ void WorldSession::SetAccountData(AccountDataType type, time_t time_, const std:
 
 const uint8 emptyArray[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-void WorldSession::SendAccountDataTimes(uint32 mask)
+void WorldSession::SendAccountDataTimes(uint32 /*mask*/)
 {
     // unknown identifier on TBC - if sent all 0 - client only sends
     // if sent all 1 - client requests everything

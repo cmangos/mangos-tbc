@@ -42,7 +42,8 @@
 #include "Loot/LootMgr.h"
 #include "Cinematics/CinematicMgr.h"
 
-#include<vector>
+#include <functional>
+#include <vector>
 
 struct Mail;
 class Channel;
@@ -999,7 +1000,7 @@ class Player : public Unit
 
         void InitStatsForLevel(bool reapplyMods = false);
         uint32 GetMaxAttainableLevel() const { return GetUInt32Value(PLAYER_FIELD_MAX_LEVEL); }
-        void OnExpansionChange(uint32 expansion);
+        void OnExpansionChange();
 
         // Played Time Stuff
         time_t m_logintime;

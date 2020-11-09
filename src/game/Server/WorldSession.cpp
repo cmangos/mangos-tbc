@@ -939,7 +939,7 @@ void WorldSession::SetAccountData(AccountDataType type, time_t time_, const std:
 
 const uint8 emptyArray[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-void WorldSession::SendAccountDataTimes(uint32 mask)
+void WorldSession::SendAccountDataTimes(uint32 /*mask*/)
 {
     // unknown identifier on TBC - if sent all 0 - client only sends
     // if sent all 1 - client requests everything

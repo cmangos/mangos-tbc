@@ -4997,7 +4997,7 @@ void Spell::EvaluateResultLists(std::list<std::pair<SpellAuraHolder*, uint32> >&
                     break;
             }
             if (heal_spell)
-                m_caster->CastSpell(m_caster, heal_spell, TRIGGERED_OLD_TRIGGERED);
+                m_caster->CastSpell(nullptr, heal_spell, TRIGGERED_OLD_TRIGGERED);
         }
     }
     // Send fail log to client

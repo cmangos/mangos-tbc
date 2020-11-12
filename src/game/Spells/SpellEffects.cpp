@@ -4585,12 +4585,18 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                 {
                     if (prop_id == 61)
                     {
-                        // Totem cases
                         if (CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(m_spellInfo->EffectMiscValue[eff_idx]))
                         {
+                            // Totem cases
                             if (cInfo->CreatureType == CREATURE_TYPE_TOTEM)
                             {
                                 summonResult = DoSummonTotem(summonPositions, eff_idx);
+                                break;
+                            }
+                            // Snake Trap ability - summoned Vipers and Venomous Snakes do not follow the hunter
+                            else if (cInfo->Entry == 19921 || cInfo->Entry == 19833)
+                            {
+                                summonResult = DoSummonWild(summonPositions, summon_prop, eff_idx, level);
                                 break;
                             }
                         }

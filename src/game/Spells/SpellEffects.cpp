@@ -4593,12 +4593,6 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                                 summonResult = DoSummonTotem(summonPositions, eff_idx);
                                 break;
                             }
-                            // Snake Trap ability - summoned Vipers and Venomous Snakes do not follow the hunter
-                            else if (cInfo->Entry == 19921 || cInfo->Entry == 19833)
-                            {
-                                summonResult = DoSummonWild(summonPositions, summon_prop, eff_idx, level);
-                                break;
-                            }
                         }
                         else
                             return;

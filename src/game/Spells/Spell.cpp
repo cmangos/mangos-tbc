@@ -1281,6 +1281,9 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, TargetInfo* target, 
                 // Fully diminished
                 if (duration == 0)
                 {
+                    if (IsChanneledSpell(m_spellInfo) && !IsAreaOfEffectSpell(m_spellInfo))
+                        m_caster->InterruptSpell(CURRENT_CHANNELED_SPELL);
+
                     delete m_spellAuraHolder;
                     m_spellAuraHolder = nullptr;
                     return;
@@ -1291,6 +1294,9 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, TargetInfo* target, 
 
             if (duration != originalDuration)
             {
+                if (IsChanneledSpell(m_spellInfo) && !IsAreaOfEffectSpell(m_spellInfo))
+                    SendChannelStart(duration);
+
                 m_spellAuraHolder->SetAuraMaxDuration(duration);
                 m_spellAuraHolder->SetAuraDuration(duration);
             }

@@ -315,7 +315,7 @@ void SpellLog::SendToSet()
 // ***********
 
 Spell::Spell(WorldObject* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy) :
-    m_spellScript(SpellScriptMgr::GetSpellScript(info->Id)), m_auraScript(SpellScriptMgr::GetAuraScript(info->Id)), m_spellLog(this), m_trueCaster(caster)
+    m_spellScript(SpellScriptMgr::GetSpellScript(info->Id)), m_auraScript(SpellScriptMgr::GetAuraScript(info->Id)), m_spellLog(this), m_param1(0), m_param2(0), m_trueCaster(caster)
 {
     MANGOS_ASSERT(caster != nullptr && info != nullptr);
     MANGOS_ASSERT(info == sSpellTemplate.LookupEntry<SpellEntry>(info->Id) && "`info` must be pointer to sSpellTemplate element");
@@ -3645,10 +3645,10 @@ void Spell::SendCastResult(SpellCastResult result) const
     if (recipient->GetSession()->PlayerLoading()) // don't send cast results at loading time
         return;
 
-    SendCastResult(recipient, m_spellInfo, m_cast_count, result, m_petCast);
+    SendCastResult(recipient, m_spellInfo, m_cast_count, result, m_petCast, m_param1, m_param2);
 }
 
-void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult /*=false*/)
+void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult /*=false*/, uint32 param1 /*=0*/, uint32 param2 /*=0*/)
 {
     if (result == SPELL_CAST_OK)
         return;
@@ -3662,6 +3662,10 @@ void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, ui
     {
         case SPELL_FAILED_REQUIRES_SPELL_FOCUS:
             data << uint32(spellInfo->RequiresSpellFocus);
+            break;
+        case SPELL_FAILED_NOT_READY:
+            if (spellInfo->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
+                data << uint32(spellInfo->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE));
             break;
         case SPELL_FAILED_REQUIRES_AREA:
             // hardcode areas limitation case
@@ -3694,9 +3698,18 @@ void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, ui
                     data << uint32(i);;
             break;
         case SPELL_FAILED_EQUIPPED_ITEM_CLASS:
+        case SPELL_FAILED_EQUIPPED_ITEM_CLASS_MAINHAND:
+        case SPELL_FAILED_EQUIPPED_ITEM_CLASS_OFFHAND:
             data << uint32(spellInfo->EquippedItemClass);
             data << uint32(spellInfo->EquippedItemSubClassMask);
             data << uint32(spellInfo->EquippedItemInventoryTypeMask);
+            break;
+        case SPELL_FAILED_PROSPECT_NEED_MORE:
+            data << param1;
+            data << param2;
+            break;
+        case SPELL_FAILED_PREVENTED_BY_MECHANIC:
+            data << param1;
             break;
         default:
             break;
@@ -4442,7 +4455,7 @@ SpellCastResult Spell::CheckCast(bool strict)
         if (m_triggeredByAuraSpell)
             return SPELL_FAILED_DONT_REPORT;
         else
-            return m_spellInfo->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE) ? SPELL_FAILED_DONT_REPORT : SPELL_FAILED_NOT_READY;
+            return SPELL_FAILED_NOT_READY;
     }
 
     if (!m_caster->IsAlive() && m_caster->GetTypeId() == TYPEID_PLAYER && !m_spellInfo->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_DEAD) && !m_spellInfo->HasAttribute(SPELL_ATTR_PASSIVE))
@@ -4453,7 +4466,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
     // check global cooldown
     if (strict && !m_ignoreGCD && m_caster->HasGCD(m_spellInfo))
-        return m_spellInfo->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE) ? SPELL_FAILED_DONT_REPORT : SPELL_FAILED_NOT_READY;
+        return SPELL_FAILED_NOT_READY;
 
     // only allow triggered spells if at an ended battleground
     if (!m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER)
@@ -6501,8 +6514,13 @@ SpellCastResult Spell::CheckItems()
                 if (item_prospectingskilllevel > p_caster->GetSkillValue(SKILL_JEWELCRAFTING))
                     return SPELL_FAILED_LOW_CASTLEVEL;
                 // make sure the player has the required ores in inventory
-                if (int32(itemTarget->GetCount()) < CalculateSpellEffectValue(SpellEffectIndex(i), m_caster))
+                int32 requiredCount = CalculateSpellEffectValue(SpellEffectIndex(i), m_caster);
+                if (int32(itemTarget->GetCount()) < requiredCount)
+                {
+                    m_param1 = itemTarget->GetEntry();
+                    m_param2 = requiredCount - int32(itemTarget->GetCount());
                     return SPELL_FAILED_PROSPECT_NEED_MORE;
+                }
 
                 if (!LootTemplates_Prospecting.HaveLootFor(m_targets.getItemTargetEntry()))
                     return SPELL_FAILED_CANT_BE_PROSPECTED;

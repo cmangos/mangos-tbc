@@ -391,6 +391,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     bool handled = false;
     Spell* spell = new Spell(mover, spellInfo, TRIGGERED_NONE);
     spell->m_cast_count = cast_count;                       // set count of casts
+    spell->m_clientCast = true;
     if (mover->HasGCD(spellInfo) || !mover->IsSpellReady(*spellInfo))
     {
         if (mover->HasGCDOrCooldownWithinMargin(*spellInfo))

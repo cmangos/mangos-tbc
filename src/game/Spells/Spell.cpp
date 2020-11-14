@@ -5778,6 +5778,9 @@ SpellCastResult Spell::CheckPetCast(Unit* target)
 
 SpellCastResult Spell::CheckCasterAuras() const
 {
+    if (!m_trueCaster->IsUnit())
+        return SPELL_CAST_OK;
+
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX6_IGNORE_CASTER_AURAS))
         return SPELL_CAST_OK;
 

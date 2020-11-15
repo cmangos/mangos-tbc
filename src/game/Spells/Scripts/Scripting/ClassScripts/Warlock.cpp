@@ -128,10 +128,20 @@ struct DemonicKnowledge : public AuraScript
     }
 };
 
+struct SoulLink : public AuraScript
+{
+    void OnAuraInit(Aura* aura) const override
+    {
+        if (aura->GetEffIndex() == EFFECT_INDEX_0)
+            aura->GetModifier()->m_auraname = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterAuraScript<UnstableAffliction>("spell_unstable_affliction");
     RegisterAuraScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<LifeTap>("spell_life_tap");
     RegisterAuraScript<DemonicKnowledge>("spell_demonic_knowledge");
+    RegisterAuraScript<SoulLink>("spell_soul_link");
 }

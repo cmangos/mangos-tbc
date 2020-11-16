@@ -27,8 +27,8 @@ endif()
 
 project(CMaNGOS_TBC)
 
-# Require C++ 14 support
-set(CMAKE_CXX_STANDARD 14)
+# Require C++ 17 support
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -345,7 +345,7 @@ if(NOT BUILD_GAME_SERVER AND BUILD_PLAYERBOT)
 endif()
 
 if(PCH)
-  if(${CMAKE_VERSION} VERSION_LESS "3.16") 
+  if(${CMAKE_VERSION} VERSION_LESS "3.16")
     message("PCH is not supported by your CMake version")
     message("Please consider to switch to CMake 3.16")
     message("PCH is forced to OFF")

@@ -1,15 +1,6 @@
 # Set build-directive (used in core to tell which buildtype we used)
 add_definitions(-D_BUILD_DIRECTIVE='"$(CONFIGURATION)"')
 
-include(CheckCXXCompilerFlag)
-CHECK_CXX_COMPILER_FLAG("-std=c++21" COMPILER_SUPPORTS_CXX21)
-CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
-if(COMPILER_SUPPORTS_CXX21)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++21")
-elseif(COMPILER_SUPPORTS_CXX17)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
-endif()
-
 if(WARNINGS)
   set(WARNING_FLAGS "-W -Wall -Wextra -Winit-self -Wfatal-errors")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${WARNING_FLAGS}")
@@ -19,11 +10,11 @@ else()
 # disable "unused function result" warnings
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-result")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-result")
-  
+
 # disable "unused command line argument" warnings (mostly -I)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-command-line-argument")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-command-line-argument")
-  
+
   if (APPLE)
 # disable "has no symbols" warnings
     set(CMAKE_C_ARCHIVE_CREATE   "<CMAKE_AR> Scr <TARGET> <LINK_FLAGS> <OBJECTS>")

@@ -2043,7 +2043,7 @@ bool ChatHandler::CheckEscapeSequences(const char* message)
                             bool foundName = false;
                             for (uint8 i = LOCALE_koKR; i < MAX_LOCALE; ++i)
                             {
-                                int8 dbIndex = sObjectMgr.GetIndexForLocale(LocaleConstant(i));
+                                int8 dbIndex = sObjectMgr.GetStorageLocaleIndexFor(LocaleConstant(i));
                                 if (dbIndex == -1 || il == nullptr || (size_t)dbIndex >= il->Name.size())
                                     // using strange database/client combinations can lead to this case
                                     expectedName = linkedItem->Name1;
@@ -3402,7 +3402,7 @@ int ChatHandler::GetSessionDbLocaleIndex() const
 
 const char* CliHandler::GetMangosString(int32 entry) const
 {
-    return sObjectMgr.GetMangosStringForDBCLocale(entry);
+    return sObjectMgr.GetMangosStringForDbcLocale(entry);
 }
 
 uint32 CliHandler::GetAccountId() const
@@ -3448,7 +3448,7 @@ LocaleConstant CliHandler::GetSessionDbcLocale() const
 
 int CliHandler::GetSessionDbLocaleIndex() const
 {
-    return sObjectMgr.GetDBCLocaleIndex();
+    return sObjectMgr.GetDbc2StorageLocaleIndex();
 }
 
 // Check/ Output if a NPC or GO (by guid) is part of a pool or game event

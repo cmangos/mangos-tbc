@@ -96,7 +96,7 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     m_requestSocket(nullptr), m_sessionState(WORLD_SESSION_STATE_CREATED),
     _security(sec), _accountId(id), m_expansion(expansion), _logoutTime(0), m_playerSave(true),
     m_inQueue(false), m_playerLoading(false), m_playerLogout(false), m_playerRecentlyLogout(false),
-    m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetIndexForLocale(locale)),
+    m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetStorageLocaleIndexFor(locale)),
     m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED),
     m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0) {}
 

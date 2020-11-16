@@ -1194,7 +1194,7 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
     if (CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cInfo->Family))
         SetName(cFamily->Name[sWorld.GetDefaultDbcLocale()]);
     else
-        SetName(creature->GetNameForLocaleIdx(sObjectMgr.GetDBCLocaleIndex()));
+        SetName(creature->GetNameForLocaleIdx(sObjectMgr.GetDbc2StorageLocaleIndex()));
 
     m_loyaltyPoints = 1000;
 

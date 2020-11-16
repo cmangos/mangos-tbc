@@ -108,7 +108,7 @@ void AuctionHouseMgr::SendAuctionWonMail(AuctionEntry* auction)
             if (bidder_security > SEC_PLAYER)               // not do redundant DB requests
             {
                 if (!sObjectMgr.GetPlayerNameByGUID(bidder_guid, bidder_name))
-                    bidder_name = sObjectMgr.GetMangosStringForDBCLocale(LANG_UNKNOWN);
+                    bidder_name = sObjectMgr.GetMangosStringForDbcLocale(LANG_UNKNOWN);
             }
         }
 
@@ -116,7 +116,7 @@ void AuctionHouseMgr::SendAuctionWonMail(AuctionEntry* auction)
         {
             std::string owner_name;
             if (ownerGuid && !sObjectMgr.GetPlayerNameByGUID(ownerGuid, owner_name))
-                owner_name = sObjectMgr.GetMangosStringForDBCLocale(LANG_UNKNOWN);
+                owner_name = sObjectMgr.GetMangosStringForDbcLocale(LANG_UNKNOWN);
 
             uint32 owner_accid = sObjectMgr.GetPlayerAccountIdByGUID(ownerGuid);
 
@@ -389,7 +389,7 @@ void AuctionHouseMgr::LoadAuctions()
             {
                 std::string plName;
                 if (!sObjectMgr.GetPlayerNameByGUID(ObjectGuid(HIGHGUID_PLAYER, auction->owner), plName))
-                    plName = sObjectMgr.GetMangosStringForDBCLocale(LANG_UNKNOWN);
+                    plName = sObjectMgr.GetMangosStringForDbcLocale(LANG_UNKNOWN);
 
                 Utf8toWStr(plName, plWName);
             }

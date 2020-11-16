@@ -9157,13 +9157,15 @@ void Unit::IncrDiminishing(DiminishingGroup group, bool pvp)
 
         return;
     }
-    m_Diminishing.push_back(DiminishingReturn(group, WorldTimer::getMSTime(), DIMINISHING_LEVEL_2));
+    m_Diminishing.push_back(DiminishingReturn(group, GetMap()->GetCurrentMSTime(), DIMINISHING_LEVEL_2));
 }
 
 void Unit::ApplyDiminishingToDuration(DiminishingGroup group, int32& duration, Unit* caster, DiminishingLevels Level, bool isReflected)
 {
     if (duration == -1 || group == DIMINISHING_NONE || (!isReflected && caster->CanAssist(this)))
         return;
+
+    const bool pvp = (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED));
 
     // Duration of crowd control abilities on pvp target is limited by 10 sec. (2.2.0)
     if (duration > 10000 && IsDiminishingReturnsGroupDurationLimited(group))
@@ -9175,16 +9177,14 @@ void Unit::ApplyDiminishingToDuration(DiminishingGroup group, int32& duration, U
         Unit const* target = targetOwner ? targetOwner : this;
         Unit const* source = casterOwner ? casterOwner : caster;
 
-        if (target->GetTypeId() == TYPEID_PLAYER && source->GetTypeId() == TYPEID_PLAYER)
+        if (pvp)
             duration = 10000;
     }
 
     float mod = 1.0f;
 
-    const bool pvp = (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED));
-
     // Some diminishings applies to mobs too (for example, Stun)
-    if ((GetDiminishingReturnsGroupType(group) == DRTYPE_PLAYER && pvp) || GetDiminishingReturnsGroupType(group) == DRTYPE_ALL)
+    if (IsSubjectToDiminishingLevels(group, pvp))
     {
         if (IsDiminishingReturnsGroupDurationDiminished(group, pvp))
         {

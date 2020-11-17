@@ -30,6 +30,7 @@
 #include "AuthSocket.h"
 #include "AuthCodes.h"
 #include "SRP6/SRP6.h"
+#include "CommonDefines.h"
 
 #include <openssl/md5.h>
 #include <ctime>
@@ -85,12 +86,6 @@ typedef struct AUTH_LOGON_PIN_DATA_C
     uint8 salt[16];
     uint8 hash[20];
 } sAuthLogonPinData_C;
-
-typedef struct AUTH_LOGON_AUTHENTICATOR_DATA_C
-{
-    uint8 unk; // Has to be 0x01
-    uint8 keys[6]; // Valid code must be 6 digits
-} sAuthLogonAuthenticatorData_C;
 
 // typedef sAuthLogonChallenge_C sAuthReconnectChallenge_C;
 /*
@@ -183,8 +178,19 @@ std::array<uint8, 16> VersionChallenge = { { 0xBA, 0xA3, 0x1E, 0x99, 0xA0, 0x0B,
 
 /// Constructor - set the N and g values for SRP6
 AuthSocket::AuthSocket(boost::asio::io_service& service, std::function<void (Socket*)> closeHandler)
-    : Socket(service, std::move(closeHandler)), _status(STATUS_CHALLENGE), _build(0), _accountSecurityLevel(SEC_PLAYER)
+    : Socket(service, std::move(closeHandler)), _status(STATUS_CHALLENGE), _build(0), _accountSecurityLevel(SEC_PLAYER), m_timeoutTimer(service)
 {
+    m_timeoutTimer.expires_from_now(boost::posix_time::seconds(30));
+    m_timeoutTimer.async_wait([&] (const boost::system::error_code& error)
+    {
+        // Timer was not cancelled, take necessary action.
+        if (error == boost::asio::error::operation_aborted)
+            return;
+
+        // Close socket if timer runs out
+        if (!IsClosed())
+            Close();
+    });
 }
 
 /// Read the packet from the client
@@ -244,9 +250,10 @@ bool AuthSocket::ProcessIncomingData()
             DEBUG_LOG("[Auth] Got unknown packet %u", cmd);
             return false;
         }
-
-        // if we reach here, it means that a valid opcode was found and the handler completed successfully
     }
+
+    // if we reach here, it means that a valid opcode was found and the handler completed successfully
+    m_timeoutTimer.cancel();
 
     return true;
 }
@@ -339,22 +346,24 @@ bool AuthSocket::_HandleLogonChallenge()
     _login = (const char*)ch->I;
     _build = ch->build;
 
-    // convert uint8[4] to string and storing to m_os
-    std::array<char, 5> os;
-    os.fill('\0');
-    memcpy(os.data(), ch->os, sizeof(ch->os));
-    m_os = os.data();
-
-    // Restore string order as its byte order is reversed
+    // Convert uint8[4] to string, restore string order as its byte order is reversed
+    ch->os[3] = '\0';
+    m_os = (char*)ch->os;
     std::reverse(m_os.begin(), m_os.end());
+
+    m_locale.resize(sizeof(ch->country));
+    m_locale.assign(ch->country, (ch->country + sizeof(ch->country)));
+    std::reverse(m_locale.begin(), m_locale.end());
 
     ///- Normalize account name
     // utf8ToUpperOnlyLatin(_login); -- client already send account in expected form
 
-    // Escape the user login to avoid further SQL injection
+    // Escape the user input used in DB to avoid further SQL injection
     // Memory will be freed on AuthSocket object destruction
     _safelogin = _login;
     LoginDatabase.escape_string(_safelogin);
+    _safelocale = m_locale;
+    LoginDatabase.escape_string(_safelocale);
 
     pkt << (uint8) CMD_AUTH_LOGON_CHALLENGE;
     pkt << (uint8) 0x00;
@@ -373,7 +382,7 @@ bool AuthSocket::_HandleLogonChallenge()
     {
         ///- Get the account details from the account table
         // No SQL injection (escaped user name)
-        QueryResult* result = LoginDatabase.PQuery("SELECT id,locked,last_ip,gmlevel,v,s,token FROM account WHERE username = '%s'", _safelogin.c_str());
+        QueryResult* result = LoginDatabase.PQuery("SELECT id,locked,lockedIp,gmlevel,v,s,token FROM account WHERE username = '%s'", _safelogin.c_str());
         if (result)
         {
             Field* fields = result->Fetch();
@@ -477,12 +486,6 @@ bool AuthSocket::_HandleLogonChallenge()
                     uint8 secLevel = fields[3].GetUInt8();
                     _accountSecurityLevel = secLevel <= SEC_ADMINISTRATOR ? AccountTypes(secLevel) : SEC_ADMINISTRATOR;
 
-                    _localizationName.resize(4);
-                    for (int i = 0; i < 4; ++i)
-                        _localizationName[i] = ch->country[4 - i - 1];
-
-                    BASIC_LOG("[AuthChallenge] account %s is using '%c%c%c%c' locale (%u)", _login.c_str(), ch->country[3], ch->country[2], ch->country[1], ch->country[0], GetLocaleByName(_localizationName));
-
                     ///- All good, await client's proof
                     _status = STATUS_LOGON_PROOF;
                 }
@@ -517,7 +520,8 @@ bool AuthSocket::_HandleLogonProof()
         pkt << (uint8) CMD_AUTH_LOGON_CHALLENGE;
         pkt << (uint8) 0x00;
         pkt << (uint8) WOW_FAIL_VERSION_INVALID;
-        DEBUG_LOG("[AuthChallenge] %u is not a valid client version!", _build);
+
+        BASIC_LOG("[AuthChallenge] Account %s tried to login with invalid client version %u!", _login.c_str(), _build);
         Write((const char*)pkt.contents(), pkt.size());
         return true;
     }
@@ -525,7 +529,10 @@ bool AuthSocket::_HandleLogonProof()
 
     ///- Continue the SRP6 calculation based on data received from the client
     if(!srp.CalculateSessionKey(lp.A, 32))
+    {
+        BASIC_LOG("[AuthChallenge] Session calculation failed for account %s!", _login.c_str());
         return false;
+    }
 
     srp.HashSessionKey();
     srp.CalculateProof(_login);
@@ -535,19 +542,27 @@ bool AuthSocket::_HandleLogonProof()
     {
         if (lp.securityFlags & SECURITY_FLAG_AUTHENTICATOR || !_token.empty())
         {
-            sAuthLogonAuthenticatorData_C authData{};
-            if (!Read((char*) &authData, sizeof(sAuthLogonAuthenticatorData_C)))
+            uint8 pinCount;
+            if (!Read((char*)&pinCount, sizeof(uint8)))
             {
                 const char data[4] = {CMD_AUTH_LOGON_PROOF, WOW_FAIL_UNKNOWN_ACCOUNT, 3, 0};
                 Write(data, sizeof(data));
                 return true;
             }
+            std::vector<uint8> keys(pinCount + 1);
+            if (!Read((char*)keys.data(), sizeof(uint8) * pinCount))
+            {
+                const char data[4] = { CMD_AUTH_LOGON_PROOF, WOW_FAIL_UNKNOWN_ACCOUNT, 3, 0 };
+                Write(data, sizeof(data));
+                return true;
+            }
 
+            keys[pinCount] = '\0';
             auto ServerToken = generateToken(_token.c_str());
-            auto clientToken = atoi((const char*) authData.keys);
+            auto clientToken = atoi((const char*)keys.data());
             if (ServerToken != clientToken)
             {
-                BASIC_LOG("[AuthChallenge] Account %s tried to login with wrong pincode! Given %u Expected %u", _login.c_str(), clientToken, ServerToken);
+                BASIC_LOG("[AuthChallenge] Account %s tried to login with wrong pincode! Given %u Expected %u Pin Count: %u", _login.c_str(), clientToken, ServerToken, pinCount);
 
                 const char data[4] = { CMD_AUTH_LOGON_PROOF, WOW_FAIL_UNKNOWN_ACCOUNT, 0, 0};
                 Write(data, sizeof(data));
@@ -566,10 +581,12 @@ bool AuthSocket::_HandleLogonProof()
 
         BASIC_LOG("User '%s' successfully authenticated", _login.c_str());
 
-        ///- Update the sessionkey, last_ip, last login time and reset number of failed logins in the account table for this account
-        // No SQL injection (escaped user name) and IP address as received by socket
+        ///- Update the sessionkey, current ip and login time and reset number of failed logins in the account table for this account
+        // No SQL injection (escaped user input) and IP address as received by socket
         const char* K_hex = srp.GetStrongSessionKey().AsHexStr();
-        LoginDatabase.PExecute("UPDATE account SET sessionkey = '%s', last_ip = '%s', last_login = NOW(), locale = '%u', failed_logins = 0 WHERE username = '%s'", K_hex, m_address.c_str(), GetLocaleByName(_localizationName), _safelogin.c_str());
+        LoginDatabase.PExecute("UPDATE account SET sessionkey = '%s', locale = '%s', failed_logins = 0 WHERE username = '%s'", K_hex, _safelocale.c_str(), _safelogin.c_str());
+        if (QueryResult* loginfail = LoginDatabase.PQuery("SELECT id FROM account WHERE username = '%s'", _safelogin.c_str()))
+            LoginDatabase.PExecute("INSERT INTO account_logons(accountId,ip,loginTime,loginSource) VALUES('%u','%s',NOW(),'%u')", loginfail->Fetch()[0].GetUInt32(), m_address.c_str(), LOGIN_TYPE_REALMD);
         OPENSSL_free((void*)K_hex);
 
         ///- Finish SRP6 and send the final result to the client
@@ -594,6 +611,7 @@ bool AuthSocket::_HandleLogonProof()
             const char data[2] = { CMD_AUTH_LOGON_PROOF, WOW_FAIL_UNKNOWN_ACCOUNT};
             Write(data, sizeof(data));
         }
+
         BASIC_LOG("[AuthChallenge] account %s tried to login with wrong password!", _login.c_str());
 
         uint32 MaxWrongPassCount = sConfig.GetIntDefault("WrongPass.MaxCount", 0);

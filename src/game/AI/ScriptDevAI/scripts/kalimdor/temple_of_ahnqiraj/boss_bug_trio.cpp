@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: bug_trio
-SD%Complete: 90
-SDComment: Summon Player spell NYI (when current target is unreachable); Consume mechanics is missing (only dummy implementation)
+SD%Complete: 99
+SDComment: Summon Player spell NYI (when current target is unreachable)
 SDCategory: Temple of Ahn'Qiraj
 EndScriptData */
 
@@ -37,9 +37,6 @@ enum
     SPELL_TOXIC_VOLLEY      = 25812,
     SPELL_SUMMON_CLOUD      = 26590,            // summons 15933
     SPELL_THRASH            = 3391,
-
-    SPELL_TOXIN             = 26575,
-    SPELL_TOXIC_VAPOURS     = 25786,
 
     // Vem
     SPELL_KNOCK_AWAY        = 18670,
@@ -143,6 +140,7 @@ struct boss_silithidRoyaltyAI : public CombatAI
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
         DoSpecialAbility();
         m_creature->CastSpell(nullptr, SPELL_BLOODY_DEATH, TRIGGERED_OLD_TRIGGERED);
+        m_creature->ForcedDespawn(3000);    // Despawn as we are "consumed", also prevent looting
     }
 
     void DoSpecialAbility()
@@ -215,25 +213,13 @@ struct boss_kriAI : public boss_silithidRoyaltyAI
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
-    void JustSummoned(Creature* summoned) override
-    {
-        if (summoned->GetEntry() == NPC_POISON_CLOUD)
-        {
-            summoned->AI()->SetCombatMovement(false);
-            summoned->AI()->SetMeleeEnabled(false);
-            summoned->AI()->SetReactState(REACT_PASSIVE);
-            summoned->AI()->DoCastSpellIfCan(nullptr, SPELL_TOXIN, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
-            summoned->AI()->DoCastSpellIfCan(nullptr, SPELL_TOXIC_VAPOURS);
-        }
-    }
-
     void ExecuteAction(uint32 action) override
     {
         switch (action)
         {
             case KRI_CLEAVE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
                     ResetCombatAction(action, urand(5, 12) * IN_MILLISECONDS);
                 break;
             }
@@ -295,13 +281,13 @@ struct boss_vemAI : public boss_silithidRoyaltyAI
             }
             case VEM_KNOCK_AWAY:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
                     ResetCombatAction(action, urand(10, 20) * IN_MILLISECONDS);
                 break;
             }
             case VEM_KNOCK_DOWN:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCKDOWN) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KNOCKDOWN) == CAST_OK)
                     ResetCombatAction(action, urand(15, 20) * IN_MILLISECONDS);
                 break;
             }
@@ -373,7 +359,7 @@ struct boss_yaujAI : public boss_silithidRoyaltyAI
             }
             case YAUJ_RAVAGE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_RAVAGE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_RAVAGE) == CAST_OK)
                     ResetCombatAction(action, urand(10, 15) * IN_MILLISECONDS);
                 break;
             }

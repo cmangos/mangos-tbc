@@ -20,6 +20,8 @@
 #include "Policies/Singleton.h"
 #include "Log.h"
 #include "ProgressBar.h"
+#include "Util.h"
+#include "Globals/Locales.h"
 #include "Globals/SharedDefines.h"
 #include "Server/SQLStorages.h"
 
@@ -47,7 +49,7 @@ struct WMOAreaTableTripple
     int32 adtId;
 };
 
-typedef std::map<WMOAreaTableTripple, WMOAreaTableEntry const*> WMOAreaInfoByTripple;
+typedef std::map<WMOAreaTableTripple, std::vector<WMOAreaTableEntry const*>> WMOAreaInfoByTripple;
 
 DBCStorage <AreaTableEntry> sAreaStore(AreaTableEntryfmt);
 static AreaFlagByAreaID sAreaFlagByAreaID;
@@ -84,6 +86,11 @@ DBCStorage <FactionTemplateEntry> sFactionTemplateStore(FactionTemplateEntryfmt)
 
 DBCStorage <GameObjectDisplayInfoEntry> sGameObjectDisplayInfoStore(GameObjectDisplayInfofmt);
 DBCStorage <GemPropertiesEntry> sGemPropertiesStore(GemPropertiesEntryfmt);
+
+DBCStorage <GMSurveyCurrentSurveyEntry> sGMSurveyCurrentSurveyStore(GMSurveyCurrentSurveyfmt);
+DBCStorage <GMSurveyQuestionsEntry> sGMSurveyQuestionsStore(GMSurveyQuestionsfmt);
+DBCStorage <GMSurveyEntry> sGMSurveySurveysStore(GMSurveySurveysfmt);
+DBCStorage <GMTicketCategoryEntry> sGMTicketCategoryStore(GMTicketCategoryfmt);
 
 DBCStorage <GtCombatRatingsEntry>         sGtCombatRatingsStore(GtCombatRatingsfmt);
 DBCStorage <GtChanceToMeleeCritBaseEntry> sGtChanceToMeleeCritBaseStore(GtChanceToMeleeCritBasefmt);
@@ -283,6 +290,11 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sFactionTemplateStore,     dbcPath, "FactionTemplate.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGameObjectDisplayInfoStore, dbcPath, "GameObjectDisplayInfo.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGemPropertiesStore,       dbcPath, "GemProperties.dbc");
+
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMSurveyCurrentSurveyStore,  dbcPath, "GMSurveyCurrentSurvey.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMSurveyQuestionsStore,  dbcPath, "GMSurveyQuestions.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMSurveySurveysStore,  dbcPath, "GMSurveySurveys.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMTicketCategoryStore, dbcPath, "GMTicketCategory.dbc");
 
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGtCombatRatingsStore,     dbcPath, "gtCombatRatings.dbc");
 
@@ -529,7 +541,7 @@ void LoadDBCStores(const std::string& dataPath)
     {
         if (WMOAreaTableEntry const* entry = sWMOAreaTableStore.LookupEntry(i))
         {
-            sWMOAreaInfoByTripple.insert(WMOAreaInfoByTripple::value_type(WMOAreaTableTripple(entry->rootId, entry->adtId, entry->groupId), entry));
+            sWMOAreaInfoByTripple[WMOAreaTableTripple(entry->rootId, entry->adtId, entry->groupId)].push_back(entry);
         }
     }
     // LoadDBC(availableDbcLocales,bar,bad_dbc_files,sWorldMapOverlayStore,     dbcPath,"WorldMapOverlay.dbc");
@@ -611,12 +623,28 @@ int32 GetAreaFlagByAreaID(uint32 area_id)
     return i->second;
 }
 
-WMOAreaTableEntry const* GetWMOAreaTableEntryByTripple(int32 rootid, int32 adtid, int32 groupid)
+uint32 GetAreaIdByLocalizedName(const std::string& name)
 {
-    WMOAreaInfoByTripple::iterator i = sWMOAreaInfoByTripple.find(WMOAreaTableTripple(rootid, adtid, groupid));
-    if (i == sWMOAreaInfoByTripple.end())
-        return nullptr;
-    return i->second;
+    for (uint32 i = 0; i <= sAreaStore.GetNumRows(); i++)
+    {
+        if (AreaTableEntry const* AreaEntry = sAreaStore.LookupEntry(i))
+        {
+            for (uint32 i = 0; i < MAX_LOCALE; ++i)
+            {
+                std::string area_name(AreaEntry->area_name[i]);
+                if (area_name.size() > 0 && name.find(" - " + area_name) != std::string::npos)
+                {
+                    return AreaEntry->ID;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+std::vector<WMOAreaTableEntry const*>& GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid)
+{
+    return sWMOAreaInfoByTripple[WMOAreaTableTripple(rootid, adtid, groupid)];
 }
 
 AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id)
@@ -675,14 +703,52 @@ ContentLevels GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId)
     }
 }
 
-ChatChannelsEntry const* GetChannelEntryFor(uint32 channel_id)
+ChatChannelsEntry const* GetChatChannelsEntryFor(const std::string& name, uint32 channel_id/* = 0*/)
 {
+    std::wstring wname;
+
+    Utf8toWStr(name, wname);
+
+    if (!channel_id && wname.empty())
+        return nullptr;
+
     // not sorted, numbering index from 0
     for (uint32 i = 0; i < sChatChannelsStore.GetNumRows(); ++i)
     {
-        ChatChannelsEntry const* ch = sChatChannelsStore.LookupEntry(i);
-        if (ch && ch->ChannelID == channel_id)
-            return ch;
+        if (ChatChannelsEntry const* entry = sChatChannelsStore.LookupEntry(i))
+        {
+            std::wstring wpattern;
+
+            // try to match by name first, avoid creating custom channels with same name
+            if (!wname.empty())
+            {
+                for (uint32 i = 0; i < MAX_LOCALE; ++i)
+                {
+                    Utf8toWStr(entry->pattern[i], wpattern);
+
+                    if (wpattern.empty())
+                        continue;
+
+                    size_t argpos = wpattern.find(L"%s");
+
+                    // formatting arg present: strip and attempt partial match
+                    if (argpos != std::wstring::npos)
+                    {
+                        wpattern.replace(argpos, 2, L"");
+
+                        if (wname.find(wpattern) != std::wstring::npos)
+                            return entry;
+                    }
+                    // attempt full match
+                    else if (wname.compare(wpattern) == 0)
+                        return entry;
+                }
+            }
+
+            // name still not found, but channel id is provided: possibly no dbc data for client locale
+            if (channel_id && channel_id == entry->ChannelID)
+                return entry;
+        }
     }
     return nullptr;
 }

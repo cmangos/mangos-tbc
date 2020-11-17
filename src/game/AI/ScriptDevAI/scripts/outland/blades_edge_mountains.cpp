@@ -196,7 +196,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
             return;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiIntangiblePresenceTimer < uiDiff)
@@ -209,7 +209,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
 
         if (m_uiManaBurnTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MANA_BURN, SELECT_FLAG_POWER_MANA))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MANA_BURN, (SELECT_FLAG_PLAYER | SELECT_FLAG_POWER_MANA)))
             {
                 if (DoCastSpellIfCan(pTarget, SPELL_MANA_BURN) == CAST_OK)
                     m_uiManaBurnTimer = urand(8000, 16000);
@@ -220,7 +220,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
 
         if (m_uiArcaneBlastTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_ARCANE_BLAST) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_ARCANE_BLAST) == CAST_OK)
                 m_uiArcaneBlastTimer = urand(2500, 7500);
         }
         else
@@ -355,7 +355,7 @@ struct npc_bloodmaul_stout_triggerAI : public ScriptedAI
 
                 do
                 {
-                    if ((*ogreItr)->isAlive() && !(*ogreItr)->HasAura(SPELL_INTOXICATION))
+                    if ((*ogreItr)->IsAlive() && !(*ogreItr)->HasAura(SPELL_INTOXICATION))
                         pOgre = *ogreItr;
 
                     ++ogreItr;
@@ -776,7 +776,7 @@ struct npc_simon_game_bunnyAI : public ScriptedAI
                     else
                     {
                         DoCastSpellIfCan(pInvoker, SPELL_BAD_PRESS, CAST_TRIGGERED);
-                        if (!m_bIsLargeEvent && !pInvoker->isAlive()) // if player got killed on small event
+                        if (!m_bIsLargeEvent && !pInvoker->IsAlive()) // if player got killed on small event
                         {
                             DoCastSpellIfCan(m_creature, SPELL_VISUAL_GAME_FAILED, CAST_TRIGGERED);
                             DoCleanupGame();
@@ -1142,7 +1142,7 @@ struct npc_vimgol_AI : public ScriptedAI
     {
         m_creature->GetMotionMaster()->Clear();
         m_creature->CastSpell(m_creature, SPELL_UNHOLY_GROWTH, TRIGGERED_NONE);
-        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+        m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -1152,7 +1152,7 @@ struct npc_vimgol_AI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_uiEnrage)
@@ -1442,8 +1442,8 @@ struct npc_bird_spiritAI : public ScriptedAI
 
     void JustRespawned() override
     {
-        Creature* taskmaster = GetClosestCreatureWithEntry(m_creature, NPC_TASKMASTER, 15.f);
-        if (taskmaster) // should always be valid - spell checks for it
+        Creature* taskmaster = GetClosestCreatureWithEntry(m_creature, NPC_TASKMASTER, 45.f);
+        if (taskmaster)
         {
             m_creature->SetWalk(false, true);
             m_taskmasterGuid = taskmaster->GetObjectGuid();
@@ -1530,7 +1530,7 @@ struct npc_bloodmaul_dire_wolfAI : public ScriptedAI
     void Reset() override
     {
         m_uiUnfriendlyTimer = 0;
-        m_uiRendTimer       = urand(3000, 6000);
+        m_uiRendTimer = urand(8000, 10000);
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
@@ -1550,13 +1550,13 @@ struct npc_bloodmaul_dire_wolfAI : public ScriptedAI
                 m_uiUnfriendlyTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiRendTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_REND) == CAST_OK)
-                m_uiRendTimer = urand(8000, 13000);
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_REND) == CAST_OK)
+                m_uiRendTimer = urand(34000, 36000);
         }
         else
             m_uiRendTimer -= uiDiff;
@@ -1627,8 +1627,8 @@ enum
 
 bool AreaTrigger_at_raven_prophecy(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
-    if (/*pPlayer->isGameMaster() ||*/ pPlayer->isAlive() &&
-        pPlayer->HasAura(UNDERSTAND_RAVENSPEECH_AURA) &&
+    if (/*pPlayer->isGameMaster() ||*/ pPlayer->IsAlive() &&
+                                       pPlayer->HasAura(UNDERSTAND_RAVENSPEECH_AURA) &&
         pPlayer->GetQuestStatus(QUEST_WHISPERS_OF_THE_RAVEN_GOD) == QUEST_STATUS_INCOMPLETE)
     {
         auto prophecyIterator = prophecies.find(pAt->id);
@@ -1833,6 +1833,8 @@ enum
     SPELL_UNSTABLE_FEL_IMP_TRANSFORM = 39227, // cast in acid
     SPELL_UNSTABLE_EXPLOSION = 39266, // cast in acid
 
+    SPELL_VOID_HOUND_TRANSFORM      = 39275, // TODO: Script should also spawn void hounds
+
     SPELL_GO_SMALL_FIRE = 49910, // serverside spells for spawning GOs - TODO: Remove and substitute with pre-spawned gos
     SPELL_GO_SMOKE = 49911,
     SPELL_GO_BIG_FIRE = 49912,
@@ -1912,13 +1914,13 @@ struct npc_fel_cannon : public Scripted_NoMovementAI
 
         if (!m_bMCed)
         {
-            if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+            if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
                 return;
 
             if (m_uiCannonBlastTimer <= uiDiff)
             {
                 m_uiCannonBlastTimer = 2500;
-                m_creature->CastSpell(m_creature->getVictim(), SPELL_FEL_CANNON_BLAST, TRIGGERED_NONE);
+                m_creature->CastSpell(m_creature->GetVictim(), SPELL_FEL_CANNON_BLAST, TRIGGERED_NONE);
             }
             else
                 m_uiCannonBlastTimer -= uiDiff;
@@ -1985,7 +1987,7 @@ struct npc_warp_gate : public Scripted_NoMovementAI
 
         m_guidSmoke = ObjectGuid();
 
-        if (m_creature->isAlive())
+        if (m_creature->IsAlive())
         {
             float x, y, z, ori;
             m_creature->GetRespawnCoord(x, y, z, &ori);
@@ -2269,7 +2271,7 @@ struct npc_soulgrinderAI : public ScriptedAI
                     dummy->ForcedDespawn();
 
             if (Creature* gronn = m_creature->GetMap()->GetCreature(m_skullocSoulgrinder))
-                if (gronn->isAlive())
+                if (gronn->IsAlive())
                     gronn->ForcedDespawn();
         }
     }
@@ -2944,11 +2946,11 @@ enum
 
 struct npc_evergrove_druidAI : public ScriptedAI
 {
-    npc_evergrove_druidAI(Creature* pCreature) : ScriptedAI(pCreature), m_summoner(nullptr), returnTimer(0), landingDone(false), alreadySummoned(false)
+    npc_evergrove_druidAI(Creature* pCreature) : ScriptedAI(pCreature), returnTimer(0), landingDone(false), alreadySummoned(false)
     {
     }
 
-    Player* m_summoner;
+    ObjectGuid m_summonerGuid;
     uint32 returnTimer;
     bool landingDone;
     bool alreadySummoned;
@@ -2973,7 +2975,7 @@ struct npc_evergrove_druidAI : public ScriptedAI
         if (spell->Id == SPELL_DRUID_SIGNAL)
         {
             alreadySummoned = true;
-            m_summoner = (Player*)caster;
+            m_summonerGuid = caster->GetObjectGuid();
             m_creature->CastSpell(m_creature, SPELL_EVERGROVE_DRUID_TRANSFORM_CROW, TRIGGERED_NONE);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             m_creature->GetMotionMaster()->MoveFollow(caster, 1.f, 0.f);
@@ -2988,7 +2990,7 @@ struct npc_evergrove_druidAI : public ScriptedAI
         if (who->GetTypeId() != TYPEID_PLAYER)
             return;
 
-        if (who != m_summoner)
+        if (who->GetObjectGuid() != m_summonerGuid)
             return;
 
         if (m_creature->IsWithinDistInMap(who, 5.0f))
@@ -3006,15 +3008,16 @@ struct npc_evergrove_druidAI : public ScriptedAI
 
     void ReturnToSpawn(Player* questAccepter = nullptr)
     {
-        if (!m_summoner)
+        if (!m_summonerGuid)
             return;
 
         if (questAccepter) // Only return to spawn if it's the original player accepting a quest
-            if (questAccepter != m_summoner)
+            if (questAccepter->GetObjectGuid() != m_summonerGuid)
                 return;
 
         returnTimer = 0;
-        m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_FLY_OFF_SCRIPT, m_creature, m_summoner);
+        Unit* summoned = m_creature->GetMap()->GetUnit(m_summonerGuid);
+        m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_FLY_OFF_SCRIPT, m_creature, summoned);
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* sender, Unit* /*invoker*/, uint32 /*miscValue*/) override
@@ -3148,7 +3151,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
                 {
                     case FLAYER_ACTION_REND:
                     {
-                        if (Unit* target = m_creature->getVictim())
+                        if (Unit* target = m_creature->GetVictim())
                         {
                             if (DoCastSpellIfCan(target, FLAYER_SPELL_REND) == CAST_OK)
                             {
@@ -3161,7 +3164,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
                     }
                     case FLAYER_ACTION_SHRED_ARMOR:
                     {
-                        if (Unit* target = m_creature->getVictim())
+                        if (Unit* target = m_creature->GetVictim())
                         {
                             if (DoCastSpellIfCan(target, FLAYER_SPELL_SHRED_ARMOR) == CAST_OK)
                             {
@@ -3180,7 +3183,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         {
             if (idleTimer)
             {
@@ -3205,7 +3208,7 @@ struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
         }
         else
         {
-            UpdateTimers(diff, m_creature->isInCombat());
+            UpdateTimers(diff, m_creature->IsInCombat());
             ExecuteActions();
 
             DoMeleeAttackIfReady();
@@ -3497,10 +3500,10 @@ struct npc_skyguard_rangerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff)
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
         ExecuteActions();
 
         DoMeleeAttackIfReady();
@@ -3704,7 +3707,7 @@ struct npc_bashir_flesh_fiendAI : public ScriptedAI, public CombatActions
                             SetCombatScriptStatus(true);
                             SetCombatMovement(false);
                             float x, y, z;
-                            m_creature->getVictim()->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), m_creature->GetCombinedCombatReach(slaveringSlave), slaveringSlave->GetAngle(m_creature));
+                            m_creature->GetVictim()->GetNearPoint(m_creature, x, y, z, m_creature->GetObjectBoundingRadius(), m_creature->GetCombinedCombatReach(slaveringSlave), slaveringSlave->GetAngle(m_creature));
                             m_creature->GetMotionMaster()->MovePoint(POINT_EAT_FRIEND, x, y, z);
                             m_slaveringSlave = slaveringSlave->GetObjectGuid();
                         }
@@ -3742,9 +3745,9 @@ struct npc_bashir_flesh_fiendAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
@@ -3978,7 +3981,7 @@ struct npc_grand_collectorAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
         if (!m_creature->SelectHostileTarget())
             return;
 
@@ -3996,7 +3999,56 @@ struct EtherealRingSignalFlare : public SpellScript
 {
     void OnDestTarget(Spell* spell) const override
     {
-        spell->m_targets.m_destZ = 342.9485f; // confirmed with sniffs
+        spell->m_targets.m_destPos.z = 342.9485f; // confirmed with sniffs
+    }
+};
+
+enum
+{
+    NPC_LEAFBEARD = 21326,
+};
+
+struct ExorcismFeather : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        if (ObjectGuid target = spell->m_targets.getUnitTargetGuid()) // can be cast only on this target
+            if (target.GetEntry() != NPC_LEAFBEARD)
+                return SPELL_FAILED_BAD_TARGETS;
+        return SPELL_CAST_OK;
+    }
+};
+
+struct KoiKoiDeath : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (!target || !target->IsCreature())
+            return;
+
+        Creature* leafbeard = static_cast<Creature*>(target);
+        leafbeard->SetFactionTemporary(FACTION_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN);
+        leafbeard->RemoveGuardians();
+        leafbeard->CombatStopWithPets(true);
+        leafbeard->GetMotionMaster()->MoveIdle();
+        leafbeard->ForcedDespawn(12000);
+    }
+};
+
+enum
+{
+    NPC_NETHER_DRAKE_EGG_BUNNY = 21814,
+};
+
+struct go_nether_drake_egg_trapAI : public GameObjectAI
+{
+    go_nether_drake_egg_trapAI(GameObject* go) : GameObjectAI(go) { }
+
+    void JustDespawned() override
+    {
+        if (Creature* bunny = GetClosestCreatureWithEntry(m_go, NPC_NETHER_DRAKE_EGG_BUNNY, 5.f))
+            bunny->ForcedDespawn();
     }
 };
 
@@ -4161,5 +4213,12 @@ void AddSC_blades_edge_mountains()
     pNewScript->GetAI = &GetAI_npc_grand_collector;
     pNewScript->RegisterSelf();
 
+    pNewScript = new Script;
+    pNewScript->Name = "go_nether_drake_egg_trap";
+    pNewScript->GetGameObjectAI = &GetNewAIInstance<go_nether_drake_egg_trapAI>;
+    pNewScript->RegisterSelf();
+
     RegisterSpellScript<EtherealRingSignalFlare>("spell_ethereal_ring_signal_flare");
+    RegisterSpellScript<ExorcismFeather>("spell_exorcism_feather");
+    RegisterSpellScript<KoiKoiDeath>("spell_koi_koi_death");
 }

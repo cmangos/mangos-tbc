@@ -84,7 +84,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
 
             if (Creature* buddy = m_creature->GetMap()->GetCreature(*itr))
             {
-                if (buddy->isDead())
+                if (buddy->IsDead())
                     buddy->Respawn();
             }
         }
@@ -94,7 +94,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
     {
         if (!m_myAbility)
         {
-            std::random_shuffle(m_abilities.begin(), m_abilities.end());    // shuffle the abilities, they will be set to the current creature and its siblings
+            std::shuffle(m_abilities.begin(), m_abilities.end(), *GetRandomGenerator()); // shuffle the abilities, they will be set to the current creature and its siblings
             SetAbility();
             InitSentinelsNear(who);
         }
@@ -147,7 +147,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
         {
             if (Creature* buddy = m_creature->GetMap()->GetCreature(*itr))
             {
-                if (*itr == m_creature->GetObjectGuid() || !buddy->isAlive())
+                if (*itr == m_creature->GetObjectGuid() || !buddy->IsAlive())
                     continue;
 
                 if (!hasDoneEmote)
@@ -173,7 +173,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
 
                 if (Creature* buddy = m_creature->GetMap()->GetCreature(*itr))
                 {
-                    if (buddy->isAlive())
+                    if (buddy->IsAlive())
                     {
                         npc_anubisath_sentinelAI* buddyAI = static_cast<npc_anubisath_sentinelAI*>(buddy->AI());
                         buddyAI->SetAbility(true, m_abilities[buddyCount]);
@@ -188,7 +188,7 @@ struct npc_anubisath_sentinelAI : public ScriptedAI
 
     void UpdateAI(const uint32 /*uiDiff*/) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_isEnraged && m_creature->GetHealthPercent() < 30.0f)

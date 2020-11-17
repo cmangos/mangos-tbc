@@ -34,6 +34,7 @@
 #include "DBScripts/ScriptMgr.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "vmap/DynamicTree.h"
+#include "Multithreading/Messager.h"
 
 #include <bitset>
 #include <functional>
@@ -324,15 +325,9 @@ class Map : public GridRefManager<NGridType>
         bool GetRandomPointInTheAir(float& x, float& y, float& z, float radius, bool randomRange = true) const;
         bool GetRandomPointUnderWater(float& x, float& y, float& z, float radius, GridMapLiquidData& liquid_status, bool randomRange = true) const;
 
-        void AddMessage(const std::function<void(Map*)>& message);
-
         uint32 SpawnedCountForEntry(uint32 entry);
         void AddToSpawnCount(const ObjectGuid& guid);
         void RemoveFromSpawnCount(const ObjectGuid& guid);
-
-        uint32 GetUpdateTimeMin() { return m_updateTimeMin; }
-        uint32 GetUpdateTimeMax() { return m_updateTimeMax; }
-        uint32 GetUpdateTimeAvg() { return uint32(m_updateTimeTotal / m_cycleCounter); }
 
         uint32 GetCurrentMSTime() const;
         TimePoint GetCurrentClockTime() const;
@@ -341,6 +336,8 @@ class Map : public GridRefManager<NGridType>
         void CreatePlayerOnClient(Player* player);
 
         uint32 GetLoadedGridsCount();
+
+        Messager<Map>& GetMessager() { return m_messager; }
 
     private:
         void LoadMapAndVMap(int gx, int gy);
@@ -396,12 +393,10 @@ class Map : public GridRefManager<NGridType>
         std::map<uint32, uint32> m_tempCreatures;
         std::map<uint32, uint32> m_tempPets;
 
-        std::vector<std::function<void(Map*)>> m_messageVector;
-        std::mutex m_messageMutex;
-
         WorldObjectSet m_onEventNotifiedObjects;
         WorldObjectSet::iterator m_onEventNotifiedIter;
 
+        Messager<Map> m_messager;
     private:
         time_t i_gridExpiry;
 
@@ -443,12 +438,6 @@ class Map : public GridRefManager<NGridType>
         WeatherSystem* m_weatherSystem;
 
         std::unordered_map<uint32, std::set<ObjectGuid>> m_spawnedCount;
-
-        // Map update performance logging
-        std::atomic<uint32> m_cycleCounter;
-        std::atomic<uint32> m_updateTimeMin;
-        std::atomic<uint32> m_updateTimeMax;
-        std::atomic<uint64> m_updateTimeTotal;
 };
 
 class WorldMap : public Map

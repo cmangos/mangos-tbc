@@ -27,6 +27,8 @@ extern void AddSC_npcs_special();
 extern void AddSC_quests_scripts();
 extern void AddSC_spell_scripts();
 extern void AddSC_world_map_scripts();
+extern void AddSC_boss_highlord_kruul();
+extern void AddSC_war_effort();
 
 // eastern kingdoms
 extern void AddSC_blackrock_depths();                       // blackrock_depths
@@ -158,6 +160,7 @@ extern void AddSC_zulgurub();
 extern void AddSC_alterac_mountains();
 extern void AddSC_arathi_highlands();
 extern void AddSC_blasted_lands();
+extern void AddSC_boss_kazzakAI();
 extern void AddSC_burning_steppes();
 extern void AddSC_dun_morogh();
 extern void AddSC_eastern_plaguelands();
@@ -378,6 +381,8 @@ void AddScripts()
     AddSC_quests_scripts();
     AddSC_spell_scripts();
     AddSC_world_map_scripts();
+    AddSC_boss_highlord_kruul();
+    AddSC_war_effort();
 
     // eastern kingdoms
     AddSC_blackrock_depths();                               // blackrock_depths
@@ -509,6 +514,7 @@ void AddScripts()
     AddSC_alterac_mountains();
     AddSC_arathi_highlands();
     AddSC_blasted_lands();
+    AddSC_boss_kazzakAI();
     AddSC_burning_steppes();
     AddSC_dun_morogh();
     AddSC_eastern_plaguelands();

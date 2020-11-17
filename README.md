@@ -23,7 +23,7 @@ This means, we want to focus on:
 
 * Right
   * Our goal must always be to provide the best code that we can.
-  * Being 'right' is defined by the behavior of the system
+  * Being 'right' is defined by the behaviour of the system
     we want to emulate.
   * Developing things right also includes documenting and discussing
     _how_ to do things better, hence...
@@ -43,7 +43,7 @@ To be able to accomplish these goals, we support and promote:
 
 * A friendly environment
   * We try to leave personal issues behind us.
-  * We only argue about content, and not about thin air!
+  * We only argue about content and not about thin air!
   * We follow the [Netiquette](http://tools.ietf.org/html/rfc1855).
 
 -- The C(ontinued)-MaNGOS Team!
@@ -51,7 +51,6 @@ To be able to accomplish these goals, we support and promote:
 ## Further information
 
   You can find further information about CMaNGOS at the following places:
-  * [CMaNGOS Forum](https://forum.cmangos.net/)
   * [CMaNGOS Discord](https://discord.gg/Dgzerzb)
   * [GitHub repositories](https://github.com/cmangos/)
   * [Issue tracker](https://github.com/cmangos/issues/issues)
@@ -86,7 +85,7 @@ To be able to accomplish these goals, we support and promote:
   CMaNGOS project is not affiliated with Blizzard or its licensors.
 
   Some third-party libraries CMaNGOS uses have other licenses, that must be
-  uphold.  These libraries are located within the dep/ directory
+  upheld.  These libraries are located within the dep/ directory
 
   In addition, as a special exception, the CMaNGOS project
   gives permission to link the code of its release of MaNGOS with the

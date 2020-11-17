@@ -140,11 +140,19 @@ Player* ScriptedInstance::GetPlayerInMap(bool bOnlyAlive /*=false*/, bool bCanBe
     for (const auto& lPlayer : lPlayers)
     {
         Player* pPlayer = lPlayer.getSource();
-        if (pPlayer && (!bOnlyAlive || pPlayer->isAlive()) && (bCanBeGamemaster || !pPlayer->isGameMaster()))
+        if (pPlayer && (!bOnlyAlive || pPlayer->IsAlive()) && (bCanBeGamemaster || !pPlayer->isGameMaster()))
             return pPlayer;
     }
 
     return nullptr;
+}
+
+void ScriptedInstance::DespawnGuids(GuidVector& spawns)
+{
+    for (ObjectGuid& guid : spawns)
+        if (Creature* spawn = instance->GetAnyTypeCreature(guid))
+            spawn->ForcedDespawn();
+    spawns.clear();
 }
 
 /// Returns a pointer to a loaded GameObject that was stored in m_goEntryGuidStore. Can return nullptr

@@ -10,7 +10,7 @@ enum
     MAX_ENCOUNTER           = 4,
 
     TYPE_HELLMAW            = 1,
-    // TYPE_OVERSEER        = 2,                            // obsolete id used by acid
+    // TYPE_OVERSEER           = 2,                            // obsolete id used by acid
     TYPE_INCITER            = 3,
     TYPE_VORPIL             = 4,
     TYPE_MURMUR             = 5,
@@ -20,7 +20,12 @@ enum
     NPC_HELLMAW             = 18731,
     NPC_VORPIL              = 18732,
     NPC_CABAL_RITUALIST     = 18794,
+    NPC_BLACKHEART_THE_INCITER = 18667,
     NPC_CONTAINMENT_BEAM    = 21159,
+
+    NPC_CABAL_SPELLBINDER   = 18639,
+    NPC_CABAL_SUMMONER      = 18634,
+    NPC_MURMUR              = 18708,
 
     GO_REFECTORY_DOOR       = 183296,                       // door opened when blackheart the inciter dies
     GO_SCREAMING_HALL_DOOR  = 183295,                       // door opened when grandmaster vorpil dies and player comes in range

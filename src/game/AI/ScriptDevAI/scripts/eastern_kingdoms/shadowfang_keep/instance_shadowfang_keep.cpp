@@ -79,7 +79,7 @@ void instance_shadowfang_keep::OnCreatureDeath(Creature* pCreature)
             {
                 if (Creature* nandos = GetSingleCreatureFromStorage(NPC_MASTER_NANDOS))
                 {
-                    if (nandos->isInCombat())   // Wolf Master Nandos already joined the fight: no need to go further
+                    if (nandos->IsInCombat())   // Wolf Master Nandos already joined the fight: no need to go further
                         return;
                     DoScriptText(YELL_PACK_DEAD, nandos);
                     nandos->SetWalk(false);
@@ -124,7 +124,7 @@ void instance_shadowfang_keep::DoSpeech()
     Creature* pAda = GetSingleCreatureFromStorage(NPC_ADA);
     Creature* pAsh = GetSingleCreatureFromStorage(NPC_ASH);
 
-    if (pAda && pAda->isAlive() && pAsh && pAsh->isAlive())
+    if (pAda && pAda->IsAlive() && pAsh && pAsh->IsAlive())
     {
         DoScriptText(SAY_BOSS_DIE_AD, pAda);
         DoScriptText(SAY_BOSS_DIE_AS, pAsh);

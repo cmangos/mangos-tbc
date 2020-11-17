@@ -79,7 +79,7 @@ struct GameObjectInfo
             uint32 gossipID;                                //3
             uint32 customAnim;                              //4
             uint32 noDamageImmune;                          //5
-            uint32 openTextID;                              //6 can be used to replace castBarCaption?
+            int32 openTextID;                               //6 can be used to replace castBarCaption?
             uint32 losOK;                                   //7
             uint32 allowMounted;                            //8
             uint32 large;                                   //9
@@ -93,7 +93,7 @@ struct GameObjectInfo
             uint32 consumable;                              //3
             uint32 minSuccessOpens;                         //4
             uint32 maxSuccessOpens;                         //5
-            uint32 eventId;                                 //6 lootedEvent
+            int32 eventId;                                  //6 lootedEvent
             uint32 linkedTrapId;                            //7
             uint32 questId;                                 //8 not used currently but store quest required for GO activation for player
             uint32 level;                                   //9
@@ -124,7 +124,7 @@ struct GameObjectInfo
             uint32 spellId;                                 //3
             uint32 charges;                                 //4 need respawn (if > 0)
             uint32 cooldown;                                //5 time in secs
-            uint32 autoCloseTime;                           //6
+            int32 autoCloseTime;                            //6
             uint32 startDelay;                              //7
             uint32 serverOnly;                              //8
             uint32 stealthed;                               //9
@@ -162,12 +162,12 @@ struct GameObjectInfo
         struct
         {
             uint32 lockId;                                  //0 -> Lock.dbc
-            uint32 questId;                                 //1
+            int32 questId;                                  //1
             uint32 eventId;                                 //2
             uint32 autoCloseTime;                           //3
             uint32 customAnim;                              //4
             uint32 consumable;                              //5
-            uint32 cooldown;                                //6
+            int32 cooldown;                                 //6
             uint32 pageId;                                  //7
             uint32 language;                                //8
             uint32 pageMaterial;                            //9
@@ -177,7 +177,7 @@ struct GameObjectInfo
             uint32 large;                                   //13
             uint32 openTextID;                              //14 can be used to replace castBarCaption?
             uint32 closeTextID;                             //15
-            uint32 losOK;                                   //16 isBattlegroundObject
+            uint32 isPvPObject;                             //16 flags used only in battlegrounds
             uint32 allowMounted;                            //17
             uint32 floatingTooltip;                         //18
             uint32 gossipID;                                //19
@@ -256,7 +256,7 @@ struct GameObjectInfo
         struct
         {
             uint32 spellId;                                 //0
-            uint32 charges;                                 //1
+            int32 charges;                                  //1
             uint32 partyOnly;                               //2
             uint32 allowMounted;                            //3 Is usable while on mount/vehicle. (0/1)
             uint32 large;                                   //4
@@ -337,7 +337,7 @@ struct GameObjectInfo
             uint32 conditionID1;                            //3
             uint32 auraID2;                                 //4
             uint32 conditionID2;                            //5
-            uint32 serverOnly;                              //6
+            int32 serverOnly;                               //6
         } auraGenerator;
         //31 GAMEOBJECT_TYPE_DUNGEON_DIFFICULTY
         struct
@@ -545,6 +545,18 @@ struct GameObjectInfo
             case GAMEOBJECT_TYPE_GOOBER:            return goober.large != 0;
             case GAMEOBJECT_TYPE_SPELLCASTER:       return spellcaster.large != 0;
             case GAMEOBJECT_TYPE_CAPTURE_POINT:     return capturePoint.large != 0;
+            default: return false;
+        }
+    }
+
+    bool IsServerOnly() const
+    {
+        switch (type)
+        {
+            case GAMEOBJECT_TYPE_GENERIC: return _generic.serverOnly;
+            case GAMEOBJECT_TYPE_TRAP: return trap.serverOnly;
+            case GAMEOBJECT_TYPE_SPELL_FOCUS: return spellFocus.serverOnly;
+            case GAMEOBJECT_TYPE_AURA_GENERATOR: return auraGenerator.serverOnly;
             default: return false;
         }
     }
@@ -822,6 +834,8 @@ class GameObject : public WorldObject
 
         GameObjectModel* m_model;
 
+        bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const override;
+
         bool IsAtInteractDistance(Position const& pos, float radius) const;
         bool IsAtInteractDistance(Player const* player, uint32 maxRange = 0) const;
 
@@ -830,7 +844,7 @@ class GameObject : public WorldObject
     protected:
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
-        uint32      m_respawnDelay;                     // (secs) if 0 then current GO state no dependent from timer
+        uint32      m_respawnDelay;                         // (secs) if 0 then current GO state no dependent from timer
         bool        m_respawnOverriden;
         bool        m_respawnOverrideOnce;
         bool        m_forcedDespawn;

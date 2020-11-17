@@ -86,8 +86,8 @@ enum AndorovActions
 
 struct npc_general_andorovAI : public CombatAI, private DialogueHelper
 {
-    npc_general_andorovAI(Creature* creature) : CombatAI(creature, ANDOROV_ACTION_MAX), m_instance(static_cast<instance_ruins_of_ahnqiraj*>(creature->GetInstanceData())),
-        DialogueHelper(aIntroDialogue)
+    npc_general_andorovAI(Creature* creature) : CombatAI(creature, ANDOROV_ACTION_MAX), DialogueHelper(aIntroDialogue),
+        m_instance(static_cast<instance_ruins_of_ahnqiraj*>(creature->GetInstanceData()))
     {
         InitializeDialogueHelper(m_instance);
         m_pointId = 0;
@@ -176,7 +176,7 @@ struct npc_general_andorovAI : public CombatAI, private DialogueHelper
         m_creature->RemoveAllAurasOnEvade();
         m_creature->CombatStop(true);
 
-        if (m_creature->isAlive())
+        if (m_creature->IsAlive())
         {
             // reset to combat position
             if (m_pointId >= 4)
@@ -254,13 +254,13 @@ struct npc_general_andorovAI : public CombatAI, private DialogueHelper
             }
             case ANDOROV_BASH:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BASH) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BASH) == CAST_OK)
                     ResetCombatAction(action, urand(12000, 15000));
                 break;
             }
             case ANDOROV_STRIKE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_STRIKE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_STRIKE) == CAST_OK)
                     ResetCombatAction(action, urand(4000, 6000));
                 break;
             }
@@ -340,11 +340,11 @@ struct npc_kaldorei_eliteAI : public CombatAI
         m_creature->CombatStop(true);
 
         // reset only to the last position
-        if (m_creature->isAlive())
+        if (m_creature->IsAlive())
         {
             if (Creature* andorov = m_instance->GetSingleCreatureFromStorage(NPC_GENERAL_ANDOROV))
             {
-                if (andorov->isAlive())
+                if (andorov->IsAlive())
                     m_creature->GetMotionMaster()->MoveFollow(andorov, m_creature->GetDistance(andorov), m_creature->GetAngle(andorov));
             }
         }
@@ -360,13 +360,13 @@ struct npc_kaldorei_eliteAI : public CombatAI
         {
             case KALDOREI_CLEAVE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
                     ResetCombatAction(action, urand(5000, 7000));
                 break;
             }
             case KALDOREI_STRIKE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
                     ResetCombatAction(action, urand(9000, 13000));
                 break;
             }

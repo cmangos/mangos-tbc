@@ -40,6 +40,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "Entities/Pet.h"
 #include "Social/SocialMgr.h"
+#include "GMTickets/GMTicketMgr.h"
 
 void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
 {
@@ -47,7 +48,7 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
 
     recv_data.read_skip<uint8>();
 
-    if (GetPlayer()->isAlive() || GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
+    if (GetPlayer()->IsAlive() || GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST))
         return;
 
     // the world update order is sessions, players, creatures
@@ -55,7 +56,7 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
     // creatures can kill players
     // so if the server is lagging enough the player can
     // release spirit after he's killed but before he is updated
-    if (GetPlayer()->getDeathState() == JUST_DIED)
+    if (GetPlayer()->GetDeathState() == JUST_DIED)
     {
         DEBUG_LOG("HandleRepopRequestOpcode: got request after player %s(%d) was killed and before he was updated", GetPlayer()->GetName(), GetPlayer()->GetGUIDLow());
         GetPlayer()->KillPlayer();
@@ -88,6 +89,10 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
 
     if (zones_count > 10)
         return;                                             // can't be received from real client or broken packet
+
+    // GM ticket hook shift+click to read
+    if (sTicketMgr.HookGMTicketWhoQuery(player_name, GetPlayer()))
+        return;
 
     for (uint32 i = 0; i < zones_count; ++i)
     {
@@ -269,7 +274,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recv_data*/)
     DEBUG_LOG("WORLD: Received opcode CMSG_LOGOUT_REQUEST, security %u", GetSecurity());
 
     // Can not logout if...
-    if (GetPlayer()->isInCombat() ||                        //...is in combat
+    if (GetPlayer()->IsInCombat() ||                        //...is in combat
             //...is jumping ...is falling
             GetPlayer()->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
     {
@@ -286,19 +291,8 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recv_data*/)
     if (GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) || GetPlayer()->IsTaxiFlying() ||
             GetSecurity() >= (AccountTypes)sWorld.getConfig(CONFIG_UINT32_INSTANT_LOGOUT))
     {
-        LogoutPlayer(true);
+        LogoutPlayer();
         return;
-    }
-
-    // not set flags if player can't free move to prevent lost state at logout cancel
-    if (GetPlayer()->CanFreeMove())
-    {
-        float height = GetPlayer()->GetMap()->GetHeight(GetPlayer()->GetPositionX(), GetPlayer()->GetPositionY(), GetPlayer()->GetPositionZ());
-        if ((GetPlayer()->GetPositionZ() < height + 0.1f) && !(GetPlayer()->IsInWater()))
-            GetPlayer()->SetStandState(UNIT_STAND_STATE_SIT);
-
-        GetPlayer()->SendMoveRoot(true);
-        GetPlayer()->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
     }
 
     WorldPacket data(SMSG_LOGOUT_RESPONSE, 5);
@@ -306,6 +300,11 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket& /*recv_data*/)
     data << uint8(0);
     SendPacket(data);
     LogoutRequest(time(nullptr));
+
+    // Set flags and states set by logout:
+    GetPlayer()->SetStunnedByLogout(true);
+
+    DEBUG_LOG("WORLD: Sent SMSG_LOGOUT_RESPONSE Message");
 }
 
 void WorldSession::HandlePlayerLogoutOpcode(WorldPacket& /*recv_data*/)
@@ -322,20 +321,10 @@ void WorldSession::HandleLogoutCancelOpcode(WorldPacket& /*recv_data*/)
     WorldPacket data(SMSG_LOGOUT_CANCEL_ACK, 0);
     SendPacket(data);
 
-    // not remove flags if can't free move - its not set in Logout request code.
-    if (GetPlayer()->CanFreeMove())
-    {
-        //!we can move again
-        GetPlayer()->SendMoveRoot(false);
+    // Undo flags and states set by logout:
+    GetPlayer()->SetStunnedByLogout(false);
 
-        //! Stand Up
-        GetPlayer()->SetStandState(UNIT_STAND_STATE_STAND);
-
-        //! DISABLE_ROTATE
-        GetPlayer()->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
-    }
-
-    DEBUG_LOG("WORLD: sent SMSG_LOGOUT_CANCEL_ACK Message");
+    DEBUG_LOG("WORLD: Sent SMSG_LOGOUT_CANCEL_ACK Message");
 }
 
 void WorldSession::HandleTogglePvP(WorldPacket& recv_data)
@@ -371,6 +360,12 @@ void WorldSession::HandleZoneUpdateOpcode(WorldPacket& recv_data)
     DETAIL_LOG("WORLD: Received opcode CMSG_ZONEUPDATE: newzone is %u", newZone);
 
     GetPlayer()->SetDelayedZoneUpdate(true, newZone);
+
+    if (!IsInitialZoneUpdated() && _player->IsTaxiFlying())
+        if (sWorld.getConfig(CONFIG_BOOL_TAXI_FLIGHT_CHAT_FIX))
+            _player->ForceValuesUpdateAtIndex(UNIT_FIELD_FLAGS);
+
+    m_initialZoneUpdated = true;
 }
 
 void WorldSession::HandleSetTargetOpcode(WorldPacket& recv_data)
@@ -638,7 +633,7 @@ void WorldSession::HandleReclaimCorpseOpcode(WorldPacket& recv_data)
     ObjectGuid guid;
     recv_data >> guid;
 
-    if (GetPlayer()->isAlive())
+    if (GetPlayer()->IsAlive())
         return;
 
     // do not allow corpse reclaim in arena
@@ -677,7 +672,7 @@ void WorldSession::HandleResurrectResponseOpcode(WorldPacket& recv_data)
     recv_data >> guid;
     recv_data >> status;
 
-    if (GetPlayer()->isAlive())
+    if (GetPlayer()->IsAlive())
         return;
 
     if (status == 0)
@@ -729,7 +724,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
         return;
 
     uint32 quest_id = sObjectMgr.GetQuestForAreaTrigger(Trigger_ID);
-    if (quest_id && player->isAlive() && player->IsActiveQuest(quest_id))
+    if (quest_id && player->IsAlive() && player->IsActiveQuest(quest_id))
     {
         Quest const* pQuest = sObjectMgr.GetQuestTemplate(quest_id);
         if (pQuest)
@@ -769,7 +764,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
         return;
 
     // ghost resurrected at enter attempt to dungeon with corpse (including fail enter cases)
-    if (!player->isAlive() && targetMapEntry->IsDungeon())
+    if (!player->IsAlive() && targetMapEntry->IsDungeon())
     {
         uint32 corpseMapId = 0;
         if (Corpse* corpse = player->GetCorpse())
@@ -813,7 +808,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
         player->SpawnCorpseBones();
     }
 
-    if (at->conditionId && !sObjectMgr.IsPlayerMeetToCondition(at->conditionId, player, player->GetMap(), nullptr, CONDITION_FROM_AREATRIGGER_TELEPORT))
+    if (at->conditionId && !sObjectMgr.IsConditionSatisfied(at->conditionId, player, player->GetMap(), nullptr, CONDITION_FROM_AREATRIGGER_TELEPORT))
     {
         /*TODO player->GetSession()->SendAreaTriggerMessage("%s", "YOU SHALL NOT PASS!");*/
         return;
@@ -826,14 +821,81 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
 void WorldSession::HandleUpdateAccountData(WorldPacket& recv_data)
 {
     DETAIL_LOG("WORLD: Received opcode CMSG_UPDATE_ACCOUNT_DATA");
-    recv_data.rpos(recv_data.wpos());                       // prevent spam at unimplemented packet
-    // recv_data.hexlike();
+
+    uint32 type, decompressedSize;
+    recv_data >> type >> decompressedSize;
+
+    DEBUG_LOG("UAD: type %u, decompressedSize %u", type, decompressedSize);
+
+    if (type > NUM_ACCOUNT_DATA_TYPES)
+        return;
+
+    if (decompressedSize == 0)                              // erase
+    {
+        SetAccountData(AccountDataType(type), 0, "");
+        return;
+    }
+
+    if (decompressedSize > 0xFFFF)
+    {
+        recv_data.rpos(recv_data.wpos());                   // unnneded warning spam in this case
+        sLog.outError("UAD: Account data packet too big, size %u", decompressedSize);
+        return;
+    }
+
+    ByteBuffer dest;
+    dest.resize(decompressedSize);
+
+    uLongf realSize = decompressedSize;
+    if (uncompress(const_cast<uint8*>(dest.contents()), &realSize, const_cast<uint8*>(recv_data.contents() + recv_data.rpos()), recv_data.size() - recv_data.rpos()) != Z_OK)
+    {
+        recv_data.rpos(recv_data.wpos());                   // unneded warning spam in this case
+        sLog.outError("UAD: Failed to decompress account data");
+        return;
+    }
+
+    recv_data.rpos(recv_data.wpos());                       // uncompress read (recv_data.size() - recv_data.rpos())
+
+    std::string adata;
+    dest >> adata;
+
+    SetAccountData(AccountDataType(type), 0, adata);
 }
 
-void WorldSession::HandleRequestAccountData(WorldPacket& /*recv_data*/)
+void WorldSession::HandleRequestAccountData(WorldPacket& recv_data)
 {
     DETAIL_LOG("WORLD: Received opcode CMSG_REQUEST_ACCOUNT_DATA");
-    // recv_data.hexlike();
+
+    uint32 type;
+    recv_data >> type;
+
+    DEBUG_LOG("RAD: type %u", type);
+
+    if (type > NUM_ACCOUNT_DATA_TYPES)
+        return;
+
+    AccountData* adata = GetAccountData(AccountDataType(type));
+
+    uint32 size = adata->Data.size();
+
+    uLongf destSize = compressBound(size);
+
+    ByteBuffer dest;
+    dest.resize(destSize);
+
+    if (size && compress(const_cast<uint8*>(dest.contents()), &destSize, (uint8*)adata->Data.c_str(), size) != Z_OK)
+    {
+        DEBUG_LOG("RAD: Failed to compress account data");
+        return;
+    }
+
+    dest.resize(destSize);
+
+    WorldPacket data(SMSG_UPDATE_ACCOUNT_DATA, 4 + 4 + destSize + 1);
+    data << uint32(type);                                   // type (0-7)
+    data << uint32(size);                                   // decompressed length
+    data.append(dest);                                      // compressed data
+    SendPacket(data);
 }
 
 void WorldSession::HandleSetActionButtonOpcode(WorldPacket& recv_data)
@@ -1187,7 +1249,7 @@ void WorldSession::HandleWhoisOpcode(WorldPacket& recv_data)
 
     uint32 accid = plr->GetSession()->GetAccountId();
 
-    QueryResult* result = LoginDatabase.PQuery("SELECT username,email,last_ip FROM account WHERE id=%u", accid);
+    QueryResult* result = LoginDatabase.PQuery("SELECT username,email,ip FROM account a JOIN account_logons b ON(a.id=b.accountId) WHERE a.id=%u ORDER BY loginTime DESC LIMIT 1", accid);
     if (!result)
     {
         SendNotification(LANG_ACCOUNT_FOR_PLAYER_NOT_FOUND, charname.c_str());
@@ -1415,8 +1477,8 @@ void WorldSession::HandleCancelMountAuraOpcode(WorldPacket& /*recv_data*/)
         return;
     }
 
-    _player->Unmount(_player->HasAuraType(SPELL_AURA_MOUNTED));
     _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
+    _player->Unmount();
 }
 
 void WorldSession::HandleMoveSetCanFlyAckOpcode(WorldPacket& recv_data)

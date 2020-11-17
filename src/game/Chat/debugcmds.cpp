@@ -691,17 +691,6 @@ bool ChatHandler::HandleDebugBattlegroundCommand(char* /*args*/)
     return true;
 }
 
-bool ChatHandler::HandleDebugBattlegroundStartCommand(char* /*args*/)
-{
-    if (auto bg = m_session->GetPlayer()->GetBattleGround())
-    {
-        bg->SetStartDelayTime(-1);
-        return true;
-    }
-
-    return false;
-}
-
 bool ChatHandler::HandleDebugArenaCommand(char* /*args*/)
 {
     sBattleGroundMgr.ToggleArenaTesting();
@@ -1196,35 +1185,6 @@ bool ChatHandler::HandleDebugTaxiCommand(char* /*args*/)
     return true;
 }
 
-bool ChatHandler::HandleDebugMaps(char* /*args*/)
-{
-    PSendSysMessage("Update time statistics:");
-    PSendSysMessage("Map[0] >> Min: %ums, Max: %ums, Avg: %ums",
-        sMapMgr.GetMapUpdateMinTime(0), sMapMgr.GetMapUpdateMaxTime(0), sMapMgr.GetMapUpdateAvgTime(0));
-    PSendSysMessage("Map[1] >> Min: %ums, Max: %ums, Avg: %ums",
-        sMapMgr.GetMapUpdateMinTime(1), sMapMgr.GetMapUpdateMaxTime(1), sMapMgr.GetMapUpdateAvgTime(1));
-    PSendSysMessage("Map[530] >> Min: %ums, Max: %ums, Avg: %ums",
-        sMapMgr.GetMapUpdateMinTime(530), sMapMgr.GetMapUpdateMaxTime(530), sMapMgr.GetMapUpdateAvgTime(530));
-
-    if (m_session)
-    {
-        Player* player = m_session->GetPlayer();
-        if (!player)
-            return true;
-
-        if (player->GetMap()->IsContinent())
-            return true;
-
-        uint32 mapId = player->GetMap()->GetId();
-        uint32 instance = player->GetMap()->GetInstanceId();
-        PSendSysMessage("Instance update time statistics:");
-        PSendSysMessage("Map[%u] (Instance: %u) >> Min: %ums, Max: %ums, Avg: %ums",
-            mapId, instance, sMapMgr.GetMapUpdateMinTime(mapId, instance), sMapMgr.GetMapUpdateMaxTime(mapId, instance), sMapMgr.GetMapUpdateAvgTime(mapId, instance));
-    }
-
-    return true;
-}
-
 bool ChatHandler::HandleShowTemporarySpawnList(char* /*args*/)
 {
     Player* pPlayer = m_session->GetPlayer();
@@ -1542,6 +1502,108 @@ bool ChatHandler::HandleDebugFlyCommand(char* args)
             else
                 target->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
             break;
+    }
+
+    return true;
+}
+
+bool ChatHandler::HandleDebugPacketHistory(char* /*args*/)
+{
+    auto history = m_session->GetOpcodeHistory();
+    std::string output = "Opcodes (reverse order):\n";
+    for (auto itr = history.rbegin(); itr != history.rend(); ++itr)
+    {
+        output += LookupOpcodeName(*itr);
+        output += "\n";
+    }
+
+    SendSysMessage(output.data());
+
+    return true;
+}
+
+bool ChatHandler::HandleDebugObjectFlags(char* args)
+{
+    char* debugCmd = ExtractLiteralArg(&args);
+    std::string debugCmdStr;
+    CMDebugCommandTableStruct const* foundCommand = nullptr;
+
+    if (debugCmd)
+    {
+        debugCmdStr = debugCmd;
+        uint32 bestMaches = 0;
+        for (std::vector < CMDebugCommandTableStruct>::const_iterator itr = CMDebugCommandTable.begin(); itr < CMDebugCommandTable.end(); ++itr)
+        {
+            CMDebugCommandTableStruct const* cmd = &*itr;
+            for (uint32 i = 0; i < debugCmdStr.length(); ++i)
+            {
+                if (i < cmd->command.length() && cmd->command[i] == debugCmdStr[i])
+                {
+                    if (bestMaches < i + 1)
+                    {
+                        bestMaches = i + 1;
+                        foundCommand = cmd;
+                    }
+                }
+                else
+                    break;
+            }
+            if (bestMaches == debugCmdStr.length())
+                break;
+        }
+    }
+
+    if (!debugCmd || !foundCommand)
+    {
+        if (debugCmd && !foundCommand)
+            PSendSysMessage("%s is not a valid command", debugCmdStr.c_str());
+
+        PSendSysMessage("Commands available...");
+
+        for (auto c : CMDebugCommandTable)
+            PSendSysMessage("%s > %s", c.command.c_str(), c.description.c_str());
+
+        PSendSysMessage("for all command if you dont specify on/off the flag will be toggled");
+        PSendSysMessage("ex: .debug debugobject intPoins on");
+        return false;
+    }
+
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CREATURE);
+        return false;
+    }
+
+    if (foundCommand->flag != CMDEBUGFLAG_NONE)
+    {
+        bool onOff = false;
+        if (!ExtractOnOff(&args, onOff))
+            onOff = !target->HaveDebugFlag(foundCommand->flag);
+
+        if (onOff)
+        {
+            PSendSysMessage("%s enabled for %s.", foundCommand->command.c_str(), target->GetGuidStr().c_str());
+            target->SetDebugFlag(foundCommand->flag);
+        }
+        else
+        {
+            PSendSysMessage("%s disabled for %s.", foundCommand->command.c_str(), target->GetGuidStr().c_str());
+            target->ClearDebugFlag(foundCommand->flag);
+        }
+    }
+    else
+    {
+        if (foundCommand->command == CMDebugCommandTable[0].command)
+        {
+            // clear all
+            target->ClearDebugFlag(CMDebugFlags(~CMDEBUGFLAG_NONE));
+        }
+        else if (foundCommand->command == CMDebugCommandTable[1].command)
+        {
+            // set all
+            target->SetDebugFlag(CMDebugFlags(~CMDEBUGFLAG_NONE));
+        }
     }
 
     return true;

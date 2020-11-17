@@ -278,7 +278,7 @@ struct boss_malacrassAI : public CombatAI
     void DoInitializeAdds()
     {
         // not if m_creature are dead, so avoid
-        if (!m_creature->isAlive())
+        if (!m_creature->IsAlive())
             return;
 
         // it's empty, so first time
@@ -384,7 +384,7 @@ struct boss_malacrassAI : public CombatAI
                 requireTarget = false;
                 break;
             case TARGET_TYPE_VICTIM:
-                target = m_creature->getVictim();
+                target = m_creature->GetVictim();
                 break;
             case TARGET_TYPE_RANDOM:
                 target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER);
@@ -460,7 +460,7 @@ struct boss_malacrassAI : public CombatAI
     void UpdateAI(const uint32 diff) override
     {
         CombatAI::UpdateAI(diff);
-        if (m_creature->isInCombat())
+        if (m_creature->IsInCombat())
             EnterEvadeIfOutOfCombatArea(diff);
     }
 };

@@ -197,7 +197,7 @@ void instance_ruins_of_ahnqiraj::SetData(uint32 uiType, uint32 uiData)
             if (uiData == DONE)
             {
                 if (Creature* andorov = GetSingleCreatureFromStorage(NPC_GENERAL_ANDOROV))
-                    if (andorov->isAlive())
+                    if (andorov->IsAlive())
                         andorov->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, andorov, andorov);
             }
             break;
@@ -318,11 +318,11 @@ void instance_ruins_of_ahnqiraj::DoSortArmyWaves()
 
             for (CreatureList::const_iterator itr = lCreatureList.begin(); itr != lCreatureList.end(); ++itr)
             {
-                if ((*itr)->isAlive())
+                if ((*itr)->IsAlive())
                     m_sArmyWavesGuids[i].insert((*itr)->GetObjectGuid());
             }
 
-            if (pTemp->isAlive())
+            if (pTemp->IsAlive())
                 m_sArmyWavesGuids[i].insert(pTemp->GetObjectGuid());
         }
     }
@@ -347,11 +347,12 @@ void instance_ruins_of_ahnqiraj::DoSendNextArmyWave()
             pRajaxx->SetInCombatWithZone();
             pRajaxx->AI()->AttackClosestEnemy();
         }
+        m_uiArmyDelayTimer = 0;
     }
     else
     {
         // Increase the wave id if some are already dead
-        while (m_sArmyWavesGuids[m_uiCurrentArmyWave].empty() && m_uiCurrentArmyWave < MAX_ARMY_WAVES)
+        while (m_uiCurrentArmyWave < MAX_ARMY_WAVES && m_sArmyWavesGuids[m_uiCurrentArmyWave].empty())
             ++m_uiCurrentArmyWave;
 
         if (m_uiCurrentArmyWave == MAX_ARMY_WAVES)
@@ -365,7 +366,7 @@ void instance_ruins_of_ahnqiraj::DoSendNextArmyWave()
         {
             if (Creature* pTemp = instance->GetCreature(itr))
             {
-                if (!pTemp->isAlive())
+                if (!pTemp->IsAlive())
                     continue;
 
                 pTemp->SetWalk(false);
@@ -380,10 +381,10 @@ void instance_ruins_of_ahnqiraj::DoSendNextArmyWave()
             if (Creature* pRajaxx = GetSingleCreatureFromStorage(NPC_RAJAXX))
                 DoScriptText(aArmySortingParameters[m_uiCurrentArmyWave].m_uiYellEntry, pRajaxx);
         }
+        // on wowwiki it states that there were 3 min between the waves, but this was reduced in later patches
+        m_uiArmyDelayTimer = 2 * MINUTE * IN_MILLISECONDS;
     }
 
-    // on wowwiki it states that there were 3 min between the waves, but this was reduced in later patches
-    m_uiArmyDelayTimer = 2 * MINUTE * IN_MILLISECONDS;
     ++m_uiCurrentArmyWave;
 }
 

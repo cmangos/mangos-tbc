@@ -163,7 +163,7 @@ struct boss_thaddiusAI : public ScriptedAI
         if (!m_instance)
             return;
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Berserk
@@ -203,7 +203,7 @@ struct boss_thaddiusAI : public ScriptedAI
         {
             if (m_ballLightningTimer < diff)
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BALL_LIGHTNING) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BALL_LIGHTNING) == CAST_OK)
                     m_ballLightningTimer = 3 * IN_MILLISECONDS;
             }
             else
@@ -326,7 +326,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
 
         if (Creature* otherAdd = GetOtherAdd())
         {
-            if (!otherAdd->isInCombat())
+            if (!otherAdd->IsInCombat())
                 otherAdd->SetInCombatWithZone();
         }
     }
@@ -360,7 +360,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
 
     bool IsCountingDead() const
     {
-        return m_isFakingDeath || m_creature->isDead();
+        return m_isFakingDeath || m_creature->IsDead();
     }
 
 
@@ -414,7 +414,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         }
 
         // If no target do nothing
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_holdTimer)                      // A short timer preventing combat movement after revive
@@ -422,7 +422,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
             if (m_holdTimer <= diff)
             {
                 SetCombatMovement(true);
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
+                m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
                 m_holdTimer = 0;
             }
             else
@@ -442,7 +442,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         DoMeleeAttackIfReady();
     }
 
-    void DamageTaken(Unit* killer, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         if (damage < m_creature->GetHealth())
             return;
@@ -470,7 +470,7 @@ struct boss_thaddiusAddsAI : public ScriptedAI
         m_creature->GetMotionMaster()->MoveIdle();
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
 
-        JustDied(killer);                                  // Texts
+        JustDied(dealer);                                  // Texts
     }
 };
 

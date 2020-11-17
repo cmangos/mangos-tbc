@@ -273,7 +273,6 @@ void instance_dire_maul::SetData(uint32 uiType, uint32 uiData)
                     ProcessForceFieldOpening();
             }
             break;
-
         // North
         case TYPE_KING_GORDOK:
             m_auiEncounter[uiType] = uiData;
@@ -282,12 +281,12 @@ void instance_dire_maul::SetData(uint32 uiType, uint32 uiData)
                 // change faction to certian ogres
                 if (Creature* pOgre = GetSingleCreatureFromStorage(NPC_CAPTAIN_KROMCRUSH))
                 {
-                    if (pOgre->isAlive())
+                    if (pOgre->IsAlive())
                     {
                         pOgre->SetFactionTemporary(FACTION_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN);
 
                         // only evade if required
-                        if (pOgre->getVictim())
+                        if (pOgre->GetVictim())
                             pOgre->AI()->EnterEvadeMode();
                     }
                 }
@@ -295,7 +294,7 @@ void instance_dire_maul::SetData(uint32 uiType, uint32 uiData)
                 if (Creature* pOgre = GetSingleCreatureFromStorage(NPC_CHORUSH))
                 {
                     // Chorush evades and yells on king death (if alive)
-                    if (pOgre->isAlive())
+                    if (pOgre->IsAlive())
                     {
                         DoScriptText(SAY_CHORUSH_KING_DEAD, pOgre);
                         pOgre->SetFactionTemporary(FACTION_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN);
@@ -488,7 +487,7 @@ void instance_dire_maul::ProcessForceFieldOpening()
 
     // Let the summoners attack Immol'Thar
     Creature* pImmolThar = GetSingleCreatureFromStorage(NPC_IMMOLTHAR);
-    if (!pImmolThar || pImmolThar->isDead())
+    if (!pImmolThar || pImmolThar->IsDead())
         return;
 
     bool bHasYelled = false;
@@ -502,7 +501,7 @@ void instance_dire_maul::ProcessForceFieldOpening()
             bHasYelled = true;
         }
 
-        if (!pSummoner || pSummoner->isDead())
+        if (!pSummoner || pSummoner->IsDead())
             continue;
 
         pSummoner->AI()->AttackStart(pImmolThar);
@@ -525,7 +524,7 @@ void instance_dire_maul::SortPylonGuards()
             for (GuidList::iterator itr = m_lGeneratorGuardGUIDs.begin(); itr != m_lGeneratorGuardGUIDs.end();)
             {
                 Creature* pGuard = instance->GetCreature(*itr);
-                if (!pGuard || pGuard->isDead())    // Remove invalid guids and dead guards
+                if (!pGuard || pGuard->IsDead())    // Remove invalid guids and dead guards
                 {
                     m_lGeneratorGuardGUIDs.erase(itr++);
                     continue;
@@ -636,6 +635,16 @@ bool EffectDummyCreature_spell_guard_slip_kik(Unit* pCaster, uint32 uiSpellId, S
     return false;
 }
 
+struct DreadsteedQuestObjects : public GameObjectAI
+{
+    DreadsteedQuestObjects(GameObject* go) : GameObjectAI(go) {}
+
+    void JustSpawned() override
+    {
+        m_go->SetRespawnDelay(0);
+    }
+};
+
 void AddSC_instance_dire_maul()
 {
     Script* pNewScript = new Script;
@@ -651,5 +660,10 @@ void AddSC_instance_dire_maul()
     pNewScript = new Script;
     pNewScript->Name = "npc_mizzle_crafty";
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_guard_slip_kik;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_dreadsteed_quest_objects";
+    pNewScript->GetGameObjectAI = &GetNewAIInstance<DreadsteedQuestObjects>;
     pNewScript->RegisterSelf();
 }

@@ -25,8 +25,10 @@
 
 #include "Common.h"
 #include "Timer.h"
+#include "Globals/Locales.h"
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
+#include "Multithreading/Messager.h"
 
 #include <atomic>
 #include <set>
@@ -36,6 +38,7 @@
 #include <functional>
 #include <utility>
 #include <vector>
+#include <array>
 
 class Object;
 class ObjectGuid;
@@ -78,7 +81,9 @@ enum WorldTimers
     WUPDATE_DELETECHARS = 4,
     WUPDATE_AHBOT       = 5,
     WUPDATE_GROUPS      = 6,
-    WUPDATE_COUNT       = 7
+    WUPDATE_WARDEN      = 7, // This is here for headache merge error issues
+    WUPDATE_METRICS     = 8,
+    WUPDATE_COUNT       = 9
 };
 
 /// Configuration elements
@@ -121,7 +126,11 @@ enum eConfigUInt32Values
     CONFIG_UINT32_GM_LOGIN_STATE,
     CONFIG_UINT32_GM_VISIBLE_STATE,
     CONFIG_UINT32_GM_ACCEPT_TICKETS,
+    CONFIG_UINT32_GM_LEVEL_ACCEPT_TICKETS,
     CONFIG_UINT32_GM_CHAT,
+    CONFIG_UINT32_GM_LEVEL_CHAT,
+    CONFIG_UINT32_GM_LEVEL_CHANNEL_MODERATION,
+    CONFIG_UINT32_GM_LEVEL_CHANNEL_SILENT_JOIN,
     CONFIG_UINT32_GM_WISPERING_TO,
     CONFIG_UINT32_GM_LEVEL_IN_GM_LIST,
     CONFIG_UINT32_GM_LEVEL_IN_WHO_LIST,
@@ -155,6 +164,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_QUEST_WEEKLY_RESET_HOUR,
     CONFIG_UINT32_CHAT_STRICT_LINK_CHECKING_SEVERITY,
     CONFIG_UINT32_CHAT_STRICT_LINK_CHECKING_KICK,
+    CONFIG_UINT32_CHANNEL_RESTRICTED_LANGUAGE_MODE,
     CONFIG_UINT32_CORPSE_DECAY_NORMAL,
     CONFIG_UINT32_CORPSE_DECAY_RARE,
     CONFIG_UINT32_CORPSE_DECAY_ELITE,
@@ -188,6 +198,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_FOGOFWAR_HEALTH,
     CONFIG_UINT32_FOGOFWAR_STATS,
     CONFIG_UINT32_CREATURE_PICKPOCKET_RESTOCK_DELAY,
+    CONFIG_UINT32_CHANNEL_STATIC_AUTO_TRESHOLD,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -298,14 +309,15 @@ enum eConfigBoolValues
     CONFIG_BOOL_CAST_UNSTUCK,
     CONFIG_BOOL_GM_LOG_TRADE,
     CONFIG_BOOL_GM_LOWER_SECURITY,
+    CONFIG_BOOL_GM_TICKETS_QUEUE_STATUS,
     CONFIG_BOOL_SKILL_PROSPECTING,
     CONFIG_BOOL_ALWAYS_MAX_SKILL_FOR_LEVEL,
     CONFIG_BOOL_WEATHER,
     CONFIG_BOOL_EVENT_ANNOUNCE,
     CONFIG_BOOL_QUEST_IGNORE_RAID,
     CONFIG_BOOL_DETECT_POS_COLLISION,
-    CONFIG_BOOL_RESTRICTED_LFG_CHANNEL,
-    CONFIG_BOOL_SILENTLY_GM_JOIN_TO_CHANNEL,
+    CONFIG_BOOL_CHAT_RESTRICTED_RAID_WARNINGS,
+    CONFIG_BOOL_CHANNEL_RESTRICTED_LFG,
     CONFIG_BOOL_TALENTS_INSPECTING,
     CONFIG_BOOL_CHAT_FAKE_MESSAGE_PREVENTING,
     CONFIG_BOOL_CHAT_STRICT_LINK_CHECKING_SEVERITY,
@@ -317,6 +329,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_DEATH_CORPSE_RECLAIM_DELAY_PVE,
     CONFIG_BOOL_DEATH_BONES_WORLD,
     CONFIG_BOOL_DEATH_BONES_BG_OR_ARENA,
+    CONFIG_BOOL_TAXI_FLIGHT_CHAT_FIX,
     CONFIG_BOOL_LONG_TAXI_PATHS_PERSISTENCE,
     CONFIG_BOOL_ALL_TAXI_PATHS,
     CONFIG_BOOL_DECLINED_NAMES_USED,
@@ -346,6 +359,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_PLAYER_COMMANDS,
     CONFIG_BOOL_PATH_FIND_OPTIMIZE,
     CONFIG_BOOL_PATH_FIND_NORMALIZE_Z,
+    CONFIG_BOOL_ACCOUNT_DATA,
     CONFIG_BOOL_VALUE_COUNT
 };
 
@@ -460,6 +474,12 @@ class World
         /// Get the maximum number of parallel sessions on the server since last reboot
         uint32 GetMaxQueuedSessionCount() const { return m_maxQueuedSessionCount; }
         uint32 GetMaxActiveSessionCount() const { return m_maxActiveSessionCount; }
+        uint32 GetUniqueSessionCount() const { return m_uniqueSessionCount.size(); }
+        // player counts
+        void SetOnlinePlayer(Team team, uint8 race, uint8 plClass, bool apply); // threadsafe
+        uint32 GetOnlineTeamPlayers(bool alliance) const { return m_onlineTeams[alliance]; }
+        uint32 GetOnlineRacePlayers(uint8 race) const { return m_onlineRaces[race]; }
+        uint32 GetOnlineClassPlayers(uint8 plClass) const { return m_onlineClasses[plClass]; }
 
         /// Get the active session server limit (or security level limitations)
         uint32 GetPlayerAmountLimit() const { return m_playerLimit >= 0 ? m_playerLimit : 0; }
@@ -512,6 +532,7 @@ class World
 
         void SendWorldText(int32 string_id, ...);
         void SendWorldTextToAboveSecurity(uint32 securityLevel, int32 string_id, ...);
+        void SendWorldTextToAcceptingTickets(int32 string_id, ...);
         void SendGlobalMessage(WorldPacket const& packet) const;
         void SendServerMessage(ServerMessageType type, const char* text = "", Player* player = nullptr) const;
         void SendZoneUnderAttackMessage(uint32 zoneId, Team team);
@@ -558,7 +579,7 @@ class World
         bool IsPvPRealm() const { return (getConfig(CONFIG_UINT32_GAME_TYPE) == REALM_TYPE_PVP || getConfig(CONFIG_UINT32_GAME_TYPE) == REALM_TYPE_RPPVP || getConfig(CONFIG_UINT32_GAME_TYPE) == REALM_TYPE_FFA_PVP); }
         bool IsFFAPvPRealm() const { return getConfig(CONFIG_UINT32_GAME_TYPE) == REALM_TYPE_FFA_PVP; }
 
-        void KickAll();
+        void KickAll(bool save);
         void KickAllLess(AccountTypes sec);
         void WarnAccount(uint32 accountId, std::string from, std::string reason, const char* type = "WARNING");
         BanReturn BanAccount(BanMode mode, std::string nameOrIP, uint32 duration_secs, std::string reason, const std::string& author);
@@ -609,8 +630,16 @@ class World
         static TimePoint GetCurrentClockTime() { return m_currentTime; }
         static uint32 GetCurrentDiff() { return m_currentDiff; }
 
-        void UpdateSessionExpansion(uint8 expansion);
+        template<typename T>
+        void ExecuteForAllSessions(T executor)
+        {
+            for (auto& data : m_sessions)
+                executor(*data.second);
+        }
 
+        Messager<World>& GetMessager() { return m_messager; }
+
+        void IncrementOpcodeCounter(uint32 opcodeId); // thread safe due to atomics
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters
@@ -626,6 +655,8 @@ class World
         void ResetDailyQuests();
         void ResetWeeklyQuests();
         void ResetMonthlyQuests();
+
+        void GeneratePacketMetrics(); // thread safe due to atomics
 
     private:
         void setConfig(eConfigUInt32Values index, char const* fieldname, uint32 defvalue);
@@ -656,7 +687,9 @@ class World
         uint32 mail_timer_expires;
 
         typedef std::unordered_map<uint32, WorldSession*> SessionMap;
+        typedef std::unordered_set<uint32> UniqueSessions;
         SessionMap m_sessions;
+        UniqueSessions m_uniqueSessionCount;
         uint32 m_maxActiveSessionCount;
         uint32 m_maxQueuedSessionCount;
 
@@ -714,6 +747,15 @@ class World
         static uint32 m_currentMSTime;
         static TimePoint m_currentTime;
         static uint32 m_currentDiff;
+
+        Messager<World> m_messager;
+
+        // Opcode logging
+        std::vector<std::atomic<uint32>> m_opcodeCounters;
+        // online count logging
+        std::array<std::atomic<uint32>, 2> m_onlineTeams;
+        std::array<std::atomic<uint32>, MAX_RACES> m_onlineRaces;
+        std::array<std::atomic<uint32>, MAX_CLASSES> m_onlineClasses;
 };
 
 extern uint32 realmID;

@@ -434,6 +434,13 @@ struct ScriptInfo
     float y;
     float z;
     float o;
+    uint32 condition_id;
+
+    ScriptInfo() : id(0), delay(0), command(0), buddyEntry(0), searchRadiusOrGuid(0), data_flags(0), x(0), y(0), z(0), o(0), condition_id(0)
+    {
+        memset(raw.data, 0, sizeof(raw.data));
+        memset(textId, 0, sizeof(textId));
+    }
 
     // helpers
     uint32 GetGOGuid() const
@@ -583,7 +590,8 @@ class ScriptMgr
 
         bool CheckScriptStringTemplateId(uint32 id) const { return m_scriptTemplates[STRING_TEMPLATE].find(id) != m_scriptTemplates[STRING_TEMPLATE].end(); }
         bool CheckScriptRelayTemplateId(uint32 id) const { return m_scriptTemplates[RELAY_TEMPLATE].find(id) != m_scriptTemplates[RELAY_TEMPLATE].end(); }
-        typedef std::vector<std::pair<int32, uint32>> ScriptTemplateVector;
+        typedef std::pair<int32, uint32> ScriptTemplatePair;
+        typedef std::vector<ScriptTemplatePair> ScriptTemplateVector;
         void GetScriptStringTemplate(uint32 id, ScriptTemplateVector& stringTemplate) { stringTemplate = m_scriptTemplates[STRING_TEMPLATE][id]; }
         void GetScriptRelayTemplate(uint32 id, ScriptTemplateVector& stringTemplate) { stringTemplate = m_scriptTemplates[RELAY_TEMPLATE][id]; }
         int32 GetRandomScriptTemplateId(uint32 id, uint8 templateType);
@@ -608,8 +616,10 @@ class ScriptMgr
 
         AreaTriggerScriptMap    m_AreaTriggerScripts;
         EventIdScriptMap        m_EventIdScripts;
-
+        
         ScriptTemplateMap       m_scriptTemplates[MAX_TYPE];
+        ScriptTemplateMap       m_scriptTemplatesEquallyChanced[MAX_TYPE];
+        ScriptTemplateMap       m_scriptTemplatesExplicitlyChanced[MAX_TYPE];
         ScriptNameMap           m_scriptNames;
 
         // atomic op counter for active scripts amount

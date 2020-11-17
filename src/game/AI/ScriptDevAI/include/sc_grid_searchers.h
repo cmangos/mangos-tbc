@@ -9,7 +9,7 @@
 class GameObject;
 class Creature;
 
-struct ObjectDistanceOrder : public std::binary_function<const WorldObject, const WorldObject, bool>
+struct ObjectDistanceOrder
 {
     const Unit* m_source;
 
@@ -21,7 +21,7 @@ struct ObjectDistanceOrder : public std::binary_function<const WorldObject, cons
     }
 };
 
-struct ObjectDistanceOrderReversed : public std::binary_function<const WorldObject, const WorldObject, bool>
+struct ObjectDistanceOrderReversed
 {
     const Unit* m_source;
 
@@ -48,7 +48,7 @@ class AllFriendlyCreaturesInGrid
         AllFriendlyCreaturesInGrid(Unit const* obj) : pUnit(obj) {}
         bool operator() (Unit* u)
         {
-            if (u->isAlive() && u->GetVisibility() == VISIBILITY_ON && u->CanAssist(pUnit))
+            if (u->IsAlive() && u->GetVisibility() == VISIBILITY_ON && u->CanAssist(pUnit))
                 return true;
 
             return false;

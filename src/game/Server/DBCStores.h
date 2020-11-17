@@ -24,6 +24,7 @@
 #include "Server/DBCStructure.h"
 
 #include <list>
+#include <vector>
 
 bool IsAcceptableClientBuild(uint32 build);
 std::string AcceptableClientBuildsListStr();
@@ -36,7 +37,7 @@ TalentSpellPos const* GetTalentSpellPos(uint32 spellId);
 int32 GetAreaFlagByAreaID(uint32 area_id);                  // -1 if not found
 uint32 GetAreaFlagByMapId(uint32 mapid);
 
-WMOAreaTableEntry const* GetWMOAreaTableEntryByTripple(int32 rootid, int32 adtid, int32 groupid);
+std::vector<WMOAreaTableEntry const*>& GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid);
 
 AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id);
 AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_id);
@@ -50,7 +51,7 @@ enum ContentLevels
 };
 ContentLevels GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId);
 
-ChatChannelsEntry const* GetChannelEntryFor(uint32 channel_id);
+ChatChannelsEntry const* GetChatChannelsEntryFor(const std::string& name, uint32 channel_id = 0);
 
 bool IsTotemCategoryCompatiableWith(uint32 itemTotemCategoryId, uint32 requiredTotemCategoryId);
 
@@ -74,6 +75,7 @@ extern DBCStorage <BattlemasterListEntry>        sBattlemasterListStore;
 // extern DBCStorage <ChatChannelsEntry>           sChatChannelsStore; -- accessed using function, no usable index
 extern DBCStorage <CharStartOutfitEntry>         sCharStartOutfitStore;
 extern DBCStorage <CharTitlesEntry>              sCharTitlesStore;
+extern DBCStorage <ChatChannelsEntry>            sChatChannelsStore;
 extern DBCStorage <ChrClassesEntry>              sChrClassesStore;
 extern DBCStorage <ChrRacesEntry>                sChrRacesStore;
 extern DBCStorage <CinematicCameraEntry>         sCinematicCameraStore;
@@ -92,6 +94,11 @@ extern DBCStorage <EmotesTextEntry>              sEmotesTextStore;
 extern DBCStorage <FactionTemplateEntry>         sFactionTemplateStore;
 extern DBCStorage <GameObjectDisplayInfoEntry>   sGameObjectDisplayInfoStore;
 extern DBCStorage <GemPropertiesEntry>           sGemPropertiesStore;
+
+extern DBCStorage <GMSurveyCurrentSurveyEntry>   sGMSurveyCurrentSurveyStore;
+extern DBCStorage <GMSurveyQuestionsEntry>       sGMSurveyQuestionsStore;
+extern DBCStorage <GMSurveyEntry>                sGMSurveySurveysStore;
+extern DBCStorage <GMTicketCategoryEntry>        sGMTicketCategoryStore;
 
 extern DBCStorage <GtCombatRatingsEntry>         sGtCombatRatingsStore;
 extern DBCStorage <GtChanceToMeleeCritBaseEntry> sGtChanceToMeleeCritBaseStore;

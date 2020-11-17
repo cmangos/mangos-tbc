@@ -100,6 +100,7 @@ class PlayerbotDruidAI : PlayerbotClassAI
         // all combat actions go here
         CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget);
         CombatManeuverReturns DoNextCombatManeuver(Unit* pTarget);
+        bool CanPull();
         bool Pull();
         uint32 Neutralize(uint8 creatureType);
 
@@ -107,7 +108,6 @@ class PlayerbotDruidAI : PlayerbotClassAI
         void DoNonCombatActions();
 
         // Utility Functions
-        bool CanPull();
         bool CastHoTOnTank();
 
     private:

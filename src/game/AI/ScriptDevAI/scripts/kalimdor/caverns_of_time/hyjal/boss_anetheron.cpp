@@ -243,9 +243,9 @@ struct boss_anetheronAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff)
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();

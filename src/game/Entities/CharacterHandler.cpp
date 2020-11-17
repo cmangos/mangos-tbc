@@ -35,6 +35,7 @@
 #include "Database/DatabaseImpl.h"
 #include "Tools/PlayerDump.h"
 #include "Social/SocialMgr.h"
+#include "GMTickets/GMTicketMgr.h"
 #include "Util.h"
 #include "Tools/Language.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
@@ -86,7 +87,7 @@ bool LoginQueryHolder::Initialize()
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADWEEKLYQUESTSTATUS, "SELECT quest FROM character_queststatus_weekly WHERE guid = '%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADMONTHLYQUESTSTATUS, "SELECT quest FROM character_queststatus_monthly WHERE guid = '%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADREPUTATION,      "SELECT faction,standing,flags FROM character_reputation WHERE guid = '%u'", m_guid.GetCounter());
-    res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADINVENTORY,       "SELECT data,bag,slot,item,item_template FROM character_inventory JOIN item_instance ON character_inventory.item = item_instance.guid WHERE character_inventory.guid = '%u' ORDER BY bag,slot", m_guid.GetCounter());
+    res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADINVENTORY,       "SELECT itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, bag, slot, item, item_template FROM character_inventory JOIN item_instance ON character_inventory.item = item_instance.guid WHERE character_inventory.guid = '%u' ORDER BY bag,slot", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADITEMLOOT,        "SELECT guid,itemid,amount,suffix,property FROM item_loot WHERE owner_guid = '%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADACTIONS,         "SELECT button,action,type FROM character_action WHERE guid = '%u' ORDER BY button", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADSOCIALLIST,      "SELECT friend,flags,note FROM character_social WHERE guid = '%u' LIMIT 255", m_guid.GetCounter());
@@ -98,9 +99,10 @@ bool LoginQueryHolder::Initialize()
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADGUILD,           "SELECT guildid,`rank` FROM guild_member WHERE guid = '%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADARENAINFO,       "SELECT arenateamid, played_week, played_season, personal_rating FROM arena_team_member WHERE guid='%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADBGDATA,          "SELECT instance_id, team, join_x, join_y, join_z, join_o, join_map FROM character_battleground_data WHERE guid = '%u'", m_guid.GetCounter());
+    res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADACCOUNTDATA,     "SELECT type, time, data FROM character_account_data WHERE guid='%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADSKILLS,          "SELECT skill, value, max FROM character_skills WHERE guid = '%u'", m_guid.GetCounter());
     res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADMAILS,           "SELECT id,messageType,sender,receiver,subject,itemTextId,expire_time,deliver_time,money,cod,checked,stationery,mailTemplateId,has_items FROM mail WHERE receiver = '%u' ORDER BY id DESC", m_guid.GetCounter());
-    res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,     "SELECT data, mail_id, item_guid, item_template FROM mail_items JOIN item_instance ON item_guid = guid WHERE receiver = '%u'", m_guid.GetCounter());
+    res &= SetPQuery(PLAYER_LOGIN_QUERY_LOADMAILEDITEMS,     "SELECT itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, mail_id, item_guid, item_template FROM mail_items JOIN item_instance ON item_guid = guid WHERE receiver = '%u'", m_guid.GetCounter());
 
     return res;
 }
@@ -145,7 +147,7 @@ class CharacterHandler
 
             // The bot's WorldSession is owned by the bot's Player object
             // The bot's WorldSession is deleted by PlayerbotMgr::LogoutPlayerBot
-            WorldSession* botSession = new WorldSession(lqh->GetAccountId(), nullptr, SEC_PLAYER, masterSession->GetExpansion(), 0, LOCALE_enUS);
+            WorldSession* botSession = new WorldSession(lqh->GetAccountId(), nullptr, SEC_PLAYER, masterSession->GetExpansion(), 0, DEFAULT_LOCALE);
             botSession->HandlePlayerLogin(lqh); // will delete lqh
             masterSession->GetPlayer()->GetPlayerbotMgr()->OnBotLogin(botSession->GetPlayer());
         }
@@ -564,9 +566,10 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     ObjectGuid playerGuid = holder->GetGuid();
 
     Player* pCurrChar = new Player(this);
-    pCurrChar->GetMotionMaster()->Initialize();
-    SetPlayer(pCurrChar);
+    SetPlayer(pCurrChar, playerGuid);
     m_playerLoading = true;
+
+    m_initialZoneUpdated = false;
 
     SetOnline();
 
@@ -574,7 +577,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (!pCurrChar->LoadFromDB(playerGuid, holder))
     {
         KickPlayer();                                       // disconnect client, player no set to session and it will not deleted or saved at kick
-        delete pCurrChar;                                   // delete it manually
+        // also deletes player
         delete holder;                                      // delete all unprocessed queries
         m_playerLoading = false;
 
@@ -585,6 +588,10 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         SendPacket(data, true);
         return;
     }
+
+    m_currentPlayerLevel = pCurrChar->getLevel();
+
+    pCurrChar->GetMotionMaster()->Initialize();
 
     Group* group = pCurrChar->GetGroup();
 
@@ -598,10 +605,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     data << pCurrChar->GetOrientation();
     SendPacket(data);
 
-    data.Initialize(SMSG_ACCOUNT_DATA_TIMES, 128);
-    for (int i = 0; i < 32; ++i)
-        data << uint32(0);
-    SendPacket(data);
+    // load player specific part before send times
+    LoadAccountData(holder->GetResult(PLAYER_LOGIN_QUERY_LOADACCOUNTDATA), PER_CHARACTER_CACHE_MASK);
+    SendAccountDataTimes(PER_CHARACTER_CACHE_MASK);
 
     data.Initialize(SMSG_FEATURE_SYSTEM_STATUS, 2);         // added in 2.2.0
     data << uint8(2);                                       // Can complain (0 = disabled, 1 = enabled, don't auto ignore, 2 = enabled, auto ignore)
@@ -654,7 +660,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         }
     }
 
-    if (!pCurrChar->isAlive())
+    if (!pCurrChar->IsAlive())
         pCurrChar->SendCorpseReclaimDelay(true);
 
     pCurrChar->SendInitialPacketsBeforeAddToMap();
@@ -718,6 +724,9 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     // Send friend list online status for other players
     sSocialMgr.SendFriendStatus(pCurrChar, FRIEND_ONLINE, pCurrChar->GetObjectGuid(), true);
+
+    // GM ticket notifications
+    sTicketMgr.OnPlayerOnlineState(*pCurrChar, true);
 
     // Place character in world (and load zone) before some object loading
     pCurrChar->LoadCorpse();
@@ -790,7 +799,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     sLog.outChar("Account: %d (IP: %s) Login Character:[%s] (guid: %u)",
                  GetAccountId(), IP_str.c_str(), pCurrChar->GetName(), pCurrChar->GetGUIDLow());
 
-    if (!pCurrChar->IsStandState() && !pCurrChar->hasUnitState(UNIT_STAT_STUNNED))
+    if (!pCurrChar->IsStandState() && !pCurrChar->IsStunned())
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
 
     m_playerLoading = false;
@@ -802,11 +811,16 @@ void WorldSession::HandlePlayerReconnect()
     // stop logout timer if need
     LogoutRequest(0);
 
+    // silently kick from chat channels player lists to allow reconnect correctly
+    _player->CleanupChannels();
+
     // set loading flag
     m_playerLoading = true;
 
     // reset all visible objects to be able to resend them
     _player->m_clientGUIDs.clear();
+
+    m_initialZoneUpdated = false;
 
     SetOnline();
 
@@ -860,7 +874,7 @@ void WorldSession::HandlePlayerReconnect()
         }
     }
 
-    if (!_player->isAlive())
+    if (!_player->IsAlive())
         _player->SendCorpseReclaimDelay(true);
 
     _player->SendInitialPacketsBeforeAddToMap();
@@ -885,6 +899,13 @@ void WorldSession::HandlePlayerReconnect()
 
     // Send friend list online status for other players
     sSocialMgr.SendFriendStatus(_player, FRIEND_ONLINE, _player->GetObjectGuid(), true);
+
+    // GM ticket notifications
+    sTicketMgr.OnPlayerOnlineState(*_player, true);
+
+    // Send current LFG preferences on reconnect
+    _player->GetSession()->SendLFGUpdateLFM();
+    _player->GetSession()->SendLFGUpdateLFG();
 
     // show time before shutdown if shutdown planned.
     if (sWorld.IsShutdowning())
@@ -914,6 +935,12 @@ void WorldSession::HandlePlayerReconnect()
 
     // send mirror timers
     _player->SendMirrorTimers(true);
+
+    if (!_player->IsStandState() && !_player->IsStunned())
+        _player->SetStandState(UNIT_STAND_STATE_STAND);
+
+    // Undo flags and states set by logout if present:
+    _player->SetStunnedByLogout(false);
 
     m_playerLoading = false;
 }

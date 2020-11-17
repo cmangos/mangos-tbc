@@ -32,6 +32,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "Spells/Scripts/SpellScript.h"
 
 /*######
 # npc_barnesAI
@@ -129,12 +130,12 @@ struct npc_barnesAI : public npc_escortAI, private DialogueHelper
 
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 DoCastSpellIfCan(m_creature, SPELL_TUXEDO);
                 if (m_pInstance->GetData(TYPE_OPERA) != FAIL)
                     m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
                 break;
-            case 4:
+            case 5:
                 switch (m_pInstance->GetData(TYPE_OPERA_PERFORMANCE))
                 {
                     case OPERA_EVENT_WIZARD_OZ:
@@ -150,10 +151,10 @@ struct npc_barnesAI : public npc_escortAI, private DialogueHelper
                 SetEscortPaused(true);
                 m_creature->SummonCreature(NPC_SPOTLIGHT, 0, 0, 0, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
                 break;
-            case 8:
+            case 9:
                 m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
                 break;
-            case 9:
+            case 10:
                 m_pInstance->DoPrepareOperaStage(m_creature);
                 break;
         }
@@ -505,6 +506,32 @@ bool ProcessEventId_event_spell_medivh_journal(uint32 /*uiEventId*/, Object* pSo
     return true;
 }
 
+enum
+{
+    SPELL_BLINK = 29884,
+};
+
+struct BlinkArcaneAnomaly : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            if (Unit* target = spell->GetUnitTarget())
+            {
+                spell->GetCaster()->CastSpell(target, SPELL_BLINK, TRIGGERED_OLD_TRIGGERED);
+                spell->GetCaster()->getThreatManager().modifyAllThreatPercent(-100);
+                spell->GetCaster()->AddThreat(target, 1000.f);
+            }
+        }
+    }
+};
+
 void AddSC_karazhan()
 {
     Script* pNewScript = new Script;
@@ -528,4 +555,6 @@ void AddSC_karazhan()
     pNewScript->Name = "event_spell_medivh_journal";
     pNewScript->pProcessEventId = &ProcessEventId_event_spell_medivh_journal;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<BlinkArcaneAnomaly>("spell_blink_arcane_anomaly");
 }

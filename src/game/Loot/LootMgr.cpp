@@ -25,7 +25,6 @@
 #include "Globals/SharedDefines.h"
 #include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
-#include "BattleGround/BattleGroundAV.h"
 #include "Entities/ItemEnchantmentMgr.h"
 #include "Tools/Language.h"
 #include <sstream>
@@ -129,14 +128,14 @@ void LootStore::LoadLootTable()
 
             if (conditionId)
             {
-                const PlayerCondition* condition = sConditionStorage.LookupEntry<PlayerCondition>(conditionId);
+                const ConditionEntry* condition = sConditionStorage.LookupEntry<ConditionEntry>(conditionId);
                 if (!condition)
                 {
                     sLog.outErrorDb("Table `%s` for entry %u, item %u has condition_id %u that does not exist in `conditions`, ignoring", GetName(), entry, item, uint32(conditionId));
                     continue;
                 }
 
-                if (mincountOrRef < 0 && !PlayerCondition::CanBeUsedWithoutPlayer(conditionId))
+                if (mincountOrRef < 0 && !ConditionEntry::CanBeUsedWithoutPlayer(conditionId))
                 {
                     sLog.outErrorDb("Table '%s' entry %u mincountOrRef %i < 0 and has condition %u that requires a player and is not supported, skipped", GetName(), entry, mincountOrRef, uint32(conditionId));
                     continue;
@@ -408,7 +407,7 @@ bool LootItem::AllowedForPlayer(Player const* player, WorldObject const* lootTar
 
         case LOOTITEM_TYPE_CONDITIONNAL:
             // DB conditions check
-            if (!sObjectMgr.IsPlayerMeetToCondition(conditionId, player, player->GetMap(), lootTarget, CONDITION_FROM_LOOT))
+            if (!sObjectMgr.IsConditionSatisfied(conditionId, player, player->GetMap(), lootTarget, CONDITION_FROM_LOOT))
                 return false;
             break;
 
@@ -613,6 +612,9 @@ void GroupLootRoll::SendLootRollWon(ObjectGuid const& targetGuid, uint32 rollNum
             case ROLL_NOT_VALID:
                 SendRoll(itr->first, 128, 128);
                 break;
+            case ROLL_GREED:
+                if (rollType == ROLL_NEED)
+                    break;
             default:
                 SendRoll(itr->first, itr->second.number, itr->second.vote);
                 break;
@@ -1710,7 +1712,7 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
     // And permit out of range GO with no owner in case fishing hole
     if ((type != LOOT_FISHINGHOLE &&
             ((type != LOOT_FISHING && type != LOOT_FISHING_FAIL) || gameObject->GetOwnerGuid() != player->GetObjectGuid()) &&
-            !gameObject->IsWithinDistInMap(player, INTERACTION_DISTANCE)))
+            !gameObject->IsAtInteractDistance(player)))
     {
         sLog.outError("Loot::CreateLoot> cannot create game object loot, basic check failed for gameobject %u!", gameObject->GetEntry());
         return;
@@ -1719,16 +1721,6 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
     // generate loot only if ready for open and spawned in world
     if (gameObject->GetLootState() == GO_READY && gameObject->IsSpawned())
     {
-        if ((gameObject->GetEntry() == BG_AV_OBJECTID_MINE_N || gameObject->GetEntry() == BG_AV_OBJECTID_MINE_S))
-        {
-            if (BattleGround* bg = player->GetBattleGround())
-                if (bg->GetTypeID() == BATTLEGROUND_AV)
-                    if (!(((BattleGroundAV*)bg)->PlayerCanDoMineQuest(gameObject->GetEntry(), player->GetTeam())))
-                    {
-                        return;
-                    }
-        }
-
         switch (type)
         {
             case LOOT_FISHING_FAIL:
@@ -1820,7 +1812,7 @@ Loot::Loot(Player* player, Corpse* corpse, LootType type) :
          m_lootMethod = NOT_GROUP_TYPE_LOOT;
          m_clientLootType = CLIENT_LOOT_CORPSE;
 
-        if (player->GetBattleGround()->GetTypeID() == BATTLEGROUND_AV)
+        if (player->GetBattleGround()->GetTypeId() == BATTLEGROUND_AV)
             FillLoot(0, LootTemplates_Creature, player, false);
 
         // It may need a better formula
@@ -2310,7 +2302,7 @@ LootStoreItem const* LootTemplate::LootGroup::Roll(Loot const& loot, Player cons
             lootStoreItemVector.push_back(&itr);
 
         // randomize the new vector
-        random_shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end());
+        shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), *GetRandomGenerator());
 
         float chance = rand_chance_f();
 
@@ -2343,7 +2335,7 @@ LootStoreItem const* LootTemplate::LootGroup::Roll(Loot const& loot, Player cons
             lootStoreItemVector.push_back(&itr);
 
         // randomize the new vector
-        random_shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end());
+        std::shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), *GetRandomGenerator());
 
         // as the new vector is randomized we can start from first element and stop at first one that meet the condition
         for (std::vector <LootStoreItem const*>::const_iterator itr = lootStoreItemVector.begin(); itr != lootStoreItemVector.end(); ++itr)
@@ -2595,11 +2587,11 @@ bool LootTemplate::PlayerOrGroupFulfilsCondition(const Loot& loot, Player const*
     auto& ownerSet = loot.GetOwnerSet();
     // optimization - no need to look up when player is solo
     if (ownerSet.size() <= 1)
-        return sObjectMgr.IsPlayerMeetToCondition(conditionId, lootOwner, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT);
+        return sObjectMgr.IsConditionSatisfied(conditionId, lootOwner, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT);
 
     for (const ObjectGuid& guid : ownerSet)
         if (Player* player = map->GetPlayer(guid))
-            if (sObjectMgr.IsPlayerMeetToCondition(conditionId, player, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT))
+            if (sObjectMgr.IsConditionSatisfied(conditionId, player, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT))
                 return true;
 
     return false;

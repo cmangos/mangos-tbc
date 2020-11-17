@@ -81,11 +81,20 @@ struct boss_murmurAI : public Scripted_NoMovementAI
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
         m_thunderingParams.range.minRange = SPELL_THUNDERING_STORM_MINRANGE;
         m_thunderingParams.range.maxRange = SPELL_THUNDERING_STORM_MAXRANGE;
+        m_uiCastersAttackMurmurTimer = 0;
+        m_uiAttackTimer = 0;
+        SetRootSelf(true);
         Reset();
     }
 
     ScriptedInstance* m_pInstance;
     bool m_bIsRegularMode;
+
+    uint32 m_uiAttackTimer;
+    uint32 m_uiCastersAttackMurmurTimer;
+
+    GuidVector spellbindersVector;
+    GuidVector summonersVector;
 
     uint32 m_uiSonicBoomTimer;
     uint32 m_uiMurmursTouchTimer;
@@ -98,8 +107,6 @@ struct boss_murmurAI : public Scripted_NoMovementAI
 
     void Reset() override
     {
-        m_creature->SetImmobilizedState(true);
-
         m_uiSonicBoomTimer       = urand(SPELL_SONIC_BOOM_MIN_TIMER, SPELL_SONIC_BOOM_MAX_TIMER);
         m_uiMurmursTouchTimer    = m_bIsRegularMode ? SPELL_MURMURS_TOUCH_TIMER_N : urand(SPELL_MURMURS_TOUCH_MIN_TIMER_H, SPELL_MURMURS_TOUCH_MAX_TIMER_H);
         m_uiResonanceTimer       = urand(SPELL_RESONANCE_MIN_TIMER, SPELL_RESONANCE_MAX_TIMER);
@@ -111,8 +118,96 @@ struct boss_murmurAI : public Scripted_NoMovementAI
         m_creature->SetHealth(uint32(m_creature->GetMaxHealth()*.4));
     }
 
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
+        {
+            m_uiCastersAttackMurmurTimer = urand(8000, 10000);
+            m_uiAttackTimer = urand(8000, 10000);
+            m_pInstance->GetCreatureGuidVectorFromStorage(NPC_CABAL_SPELLBINDER, spellbindersVector);
+            m_pInstance->GetCreatureGuidVectorFromStorage(NPC_CABAL_SUMMONER, summonersVector);
+        }
+    }
+
     void UpdateAI(const uint32 uiDiff) override
     {
+        if (!m_creature->IsInCombat())
+        {
+            if (m_uiAttackTimer)
+            {
+                if (m_uiAttackTimer <= uiDiff)
+                {
+                    // kill one that's moving
+                    if (urand(0, 1))
+                    {
+                        GuidVector moversVector;
+                        for (ObjectGuid& guid : spellbindersVector)
+                        {
+                            if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
+                            {
+                                if (creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
+                                {
+                                    moversVector.push_back(guid);
+                                }
+                            }
+                        }
+                        for (ObjectGuid& guid : summonersVector)
+                        {
+                            if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
+                            {
+                                if (creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
+                                {
+                                    moversVector.push_back(guid);
+                                }
+                            }
+                        }
+                        if (moversVector.size() > 0)
+                        {
+                            if (ObjectGuid& guid = moversVector[urand(0, moversVector.size() - 1)])
+                            {
+                                if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
+                                {
+                                    DoCastSpellIfCan(creature, SPELL_MURMURS_WRATH);
+                                }
+                            }
+                        }
+                    }
+                    // stun 5 targets
+                    else
+                        DoCastSpellIfCan(m_creature, SPELL_SUPPRESSION_BLAST);
+
+                    m_uiAttackTimer = 3000;
+                }
+                else
+                    m_uiAttackTimer -= uiDiff;
+            }
+
+            if (m_uiCastersAttackMurmurTimer)
+            {
+                if (m_uiCastersAttackMurmurTimer <= uiDiff)
+                {
+                    for (ObjectGuid& guid : spellbindersVector)
+                    {
+                        if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
+                        {
+                            m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, creature);
+                        }
+                    }
+                    for (ObjectGuid& guid : summonersVector)
+                    {
+                        if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
+                        {
+                            m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, creature);
+                        }
+                    }
+                    m_uiCastersAttackMurmurTimer = urand(3000, 8000);
+                }
+                else
+                    m_uiCastersAttackMurmurTimer -= uiDiff;
+            }
+        }
+
         // Return since we have no target
         if (!m_creature->SelectHostileTarget())
             return;
@@ -181,7 +276,7 @@ struct boss_murmurAI : public Scripted_NoMovementAI
         }
 
         // Resonance_Timer - cast if no target is in range
-        if (m_creature->getVictim() && m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
+        if (m_creature->GetVictim() && m_creature->CanReachWithMeleeAttack(m_creature->GetVictim()))
             DoMeleeAttackIfReady();
         else
         {
@@ -201,10 +296,28 @@ UnitAI* GetAI_boss_murmur(Creature* pCreature)
     return new boss_murmurAI(pCreature);
 }
 
+struct SuppressionBlast : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(5);
+    }
+
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (target->IsInCombat())
+            return false;
+
+        return true;
+    }
+};
+
 void AddSC_boss_murmur()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_murmur";
     pNewScript->GetAI = &GetAI_boss_murmur;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<SuppressionBlast>("spell_suppression_blast");
 }

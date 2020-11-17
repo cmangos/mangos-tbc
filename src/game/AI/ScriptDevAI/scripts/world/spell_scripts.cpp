@@ -22,7 +22,6 @@ SDCategory: Spell
 EndScriptData */
 
 /* ContentData
-spell 8913
 spell 19512
 spell 21014
 spell 21050
@@ -37,6 +36,11 @@ spell 45111
 EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "Spells/Scripts/SpellScript.h"
+#include "Grids/GridNotifiers.h"
+#include "Grids/GridNotifiersImpl.h"
+#include "Grids/CellImpl.h"
+#include "OutdoorPvP/OutdoorPvP.h"
 
 /* When you make a spell effect:
 - always check spell id and effect index
@@ -116,11 +120,6 @@ enum
 
     NPC_CURED_DEER                      = 12299,
     NPC_CURED_GAZELLE                   = 12297,
-
-    // target morbent fel
-    SPELL_SACRED_CLEANSING              = 8913,
-    NPC_MORBENT                         = 1200,
-    NPC_WEAKENED_MORBENT                = 24782,
 
     // quest 11515
     SPELL_FEL_SIPHON_DUMMY              = 44936,
@@ -360,18 +359,6 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
             }
             return true;
         }
-        case SPELL_SACRED_CLEANSING:
-        {
-            if (uiEffIndex == EFFECT_INDEX_1)
-            {
-                if (pCreatureTarget->GetEntry() != NPC_MORBENT)
-                    return true;
-
-                pCreatureTarget->UpdateEntry(NPC_WEAKENED_MORBENT);
-                return true;
-            }
-            return true;
-        }
         case SPELL_TAG_MURLOC_PROC:
         {
             if (uiEffIndex == EFFECT_INDEX_0)
@@ -445,6 +432,205 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
     return false;
 }
 
+struct SpellStackingRulesOverride : public SpellScript
+{
+    enum : uint32
+    {
+        SPELL_POWER_INFUSION        = 10060,
+        SPELL_ARCANE_POWER          = 12042,
+        SPELL_MISDIRECTION          = 34477,
+    };
+
+    SpellCastResult OnCheckCast(Spell* spell, bool/* strict*/) const override
+    {
+        switch (spell->m_spellInfo->Id)
+        {
+            case SPELL_POWER_INFUSION:
+            {
+                // Patch 1.10.2 (2006-05-02):
+                // Power Infusion: This aura will no longer stack with Arcane Power. If you attempt to cast it on someone with Arcane Power, the spell will fail.
+                if (Unit* target = spell->m_targets.getUnitTarget())
+                    if (target->GetAuraCount(SPELL_ARCANE_POWER))
+                        return SPELL_FAILED_AURA_BOUNCED;
+                break;
+            }
+            case SPELL_MISDIRECTION:
+            {
+                // Patch 2.3.0 (2007-11-13):
+                // Misdirection: If a Hunter attempts to use this ability on a target which already has an active Misdirection, the spell will fail to apply due to a more powerful spell already being in effect.
+                if (Unit* target = spell->m_targets.getUnitTarget())
+                    if (target->HasAura(SPELL_MISDIRECTION))
+                        return SPELL_FAILED_AURA_BOUNCED;
+                break;
+            }
+        }
+
+        return SPELL_CAST_OK;
+    }
+};
+
+/*#####
+# spell_battleground_banner_trigger
+#
+# These are generic spells that handle player click on battleground banners; All spells are triggered by GO type 10
+# Contains following spells:
+# Arathi Basin: 23932, 23935, 23936, 23937, 23938
+# Alterac Valley: 24677
+# Isle of Conquest: 35092, 65825, 65826, 66686, 66687
+#####*/
+struct spell_battleground_banner_trigger : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const
+    {
+        // TODO: Fix when go casting is fixed
+        WorldObject* obj = spell->GetAffectiveCasterObject();
+
+        if (obj->IsGameObject() && spell->GetUnitTarget()->IsPlayer())
+        {
+            Player* player = static_cast<Player*>(spell->GetUnitTarget());
+            if (BattleGround* bg = player->GetBattleGround())
+                bg->HandlePlayerClickedOnFlag(player, static_cast<GameObject*>(obj));
+        }
+    }
+};
+
+/*#####
+# spell_outdoor_pvp_banner_trigger
+#
+# These are generic spells that handle player click on outdoor PvP banners; All spells are triggered by GO type 10
+# Contains following spells used in Zangarmarsh: 32433, 32438
+#####*/
+struct spell_outdoor_pvp_banner_trigger : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const
+    {
+        // TODO: Fix when go casting is fixed
+        WorldObject* obj = spell->GetAffectiveCasterObject();
+
+        if (obj->IsGameObject() && spell->GetUnitTarget()->IsPlayer())
+        {
+            Player* player = static_cast<Player*>(spell->GetUnitTarget());
+
+            if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player->GetCachedZoneId()))
+                outdoorPvP->HandleGameObjectUse(player, static_cast<GameObject*>(obj));
+        }
+    }
+};
+
+struct GreaterInvisibilityMob : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            aura->ForcePeriodicity(1 * IN_MILLISECONDS); // tick every second
+    }
+
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (!target->IsCreature())
+            return;
+
+        Creature* invisible = static_cast<Creature*>(target);
+        std::list<Unit*> nearbyTargets;
+        MaNGOS::AnyUnitInObjectRangeCheck u_check(invisible, float(invisible->GetDetectionRange()));
+        MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(nearbyTargets, u_check);
+        Cell::VisitWorldObjects(invisible, searcher, invisible->GetDetectionRange());
+        for (Unit* nearby : nearbyTargets)
+        {
+            if (invisible->CanAttackOnSight(nearby))
+            {
+                invisible->AI()->AttackStart(nearby);
+                return;
+            }
+        }
+    }
+};
+
+struct InebriateRemoval : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (!target->IsPlayer())
+            return;
+
+        SpellEffectIndex effIdx;
+        SpellEffectIndex effIdxInebriate;
+        switch (aura->GetSpellProto()->Id)
+        {
+            case 29690: effIdx = EFFECT_INDEX_1; effIdxInebriate = EFFECT_INDEX_2; break;
+            case 37591: effIdx = EFFECT_INDEX_0; effIdxInebriate = EFFECT_INDEX_1; break;
+            default: return;
+        }
+        Player* player = static_cast<Player*>(target);
+        if (!apply && aura->GetEffIndex() == effIdx)
+            player->SetDrunkValue(uint16(std::max(int32(player->GetDrunkValue()) - player->CalculateSpellEffectValue(player, aura->GetSpellProto(), effIdxInebriate) * 256, 0)));
+    }
+};
+
+struct AstralBite : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (Unit* caster = spell->GetCaster())
+            caster->getThreatManager().modifyAllThreatPercent(-100);
+    }
+};
+
+struct FelInfusion : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+        spell->SetFilteringScheme(EFFECT_INDEX_0, true, SCHEME_CLOSEST);
+    }
+
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (!target->IsInCombat())
+            return false;
+        return true;
+    }
+};
+
+enum
+{
+    SPELL_POSSESS       = 32830,
+    SPELL_POSSESS_BUFF  = 32831,
+    SPELL_POSSESS_INVIS = 32832,
+    SPELL_KNOCKDOWN     = 13360,
+};
+
+struct AuchenaiPossess : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+        {
+            Unit* caster = aura->GetCaster();
+            if (caster)
+                caster->CastSpell(nullptr, SPELL_POSSESS_INVIS, TRIGGERED_OLD_TRIGGERED);
+            aura->GetTarget()->CastSpell(nullptr, SPELL_POSSESS_BUFF, TRIGGERED_OLD_TRIGGERED);
+            aura->ForcePeriodicity(1000);
+        }
+        else
+        {
+            aura->GetTarget()->RemoveAurasDueToSpell(SPELL_POSSESS_BUFF);
+            aura->GetTarget()->CastSpell(aura->GetTarget(), SPELL_KNOCKDOWN, TRIGGERED_OLD_TRIGGERED);
+            if (Unit* caster = aura->GetCaster())
+                if (caster->IsCreature())
+                    static_cast<Creature*>(caster)->ForcedDespawn();
+        }
+    }
+
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        if (aura->GetTarget()->GetHealthPercent() < 50.f)
+            aura->GetTarget()->RemoveAurasDueToSpell(SPELL_POSSESS);
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -457,4 +643,13 @@ void AddSC_spell_scripts()
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_dummy_npc;
     pNewScript->pEffectAuraDummy = &EffectAuraDummy_spell_aura_dummy_npc;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<SpellStackingRulesOverride>("spell_stacking_rules_override");
+    RegisterAuraScript<GreaterInvisibilityMob>("spell_greater_invisibility_mob");
+    RegisterAuraScript<InebriateRemoval>("spell_inebriate_removal");
+    RegisterSpellScript<AstralBite>("spell_astral_bite");
+    RegisterSpellScript<FelInfusion>("spell_fel_infusion");
+    RegisterAuraScript<AuchenaiPossess>("spell_auchenai_possess");
+    RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");
+    RegisterSpellScript<spell_outdoor_pvp_banner_trigger>("spell_outdoor_pvp_banner_trigger");
 }

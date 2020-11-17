@@ -75,22 +75,22 @@ struct npc_giltharesAI : public npc_escortAI
 
         switch (uiPointId)
         {
-            case 16:
+            case 17:
                 DoScriptText(SAY_GIL_AT_LAST, m_creature, pPlayer);
                 break;
-            case 17:
+            case 18:
                 DoScriptText(SAY_GIL_PROCEED, m_creature, pPlayer);
                 break;
-            case 18:
+            case 19:
                 DoScriptText(SAY_GIL_FREEBOOTERS, m_creature, pPlayer);
                 break;
-            case 37:
+            case 38:
                 DoScriptText(SAY_GIL_ALMOST, m_creature, pPlayer);
                 break;
-            case 47:
+            case 48:
                 DoScriptText(SAY_GIL_SWEET, m_creature, pPlayer);
                 break;
-            case 53:
+            case 54:
                 DoScriptText(SAY_GIL_FREED, m_creature, pPlayer);
                 pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_FREE_FROM_HOLD, m_creature);
                 break;
@@ -219,7 +219,7 @@ struct npc_taskmaster_fizzuleAI : public ScriptedAI
                 resetTimer -= diff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -336,12 +336,12 @@ struct npc_twiggy_flatheadAI : public ScriptedAI
     void FailEvent()
     {
         if (Creature* bigWill = m_creature->GetMap()->GetCreature(m_bigWillGuid))
-            if (bigWill->isAlive())
+            if (bigWill->IsAlive())
                 bigWill->ForcedDespawn();
 
         for (ObjectGuid guid : m_vAffrayChallengerGuidsVector)
             if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
-                if (creature->isAlive())
+                if (creature->IsAlive())
                     creature->ForcedDespawn();
 
         Reset();
@@ -434,7 +434,7 @@ struct npc_twiggy_flatheadAI : public ScriptedAI
         {
             Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid);
 
-            if (!pPlayer || !pPlayer->isAlive())
+            if (!pPlayer || !pPlayer->IsAlive())
             {
                 FailEvent();
                 return;
@@ -487,7 +487,7 @@ UnitAI* GetAI_npc_twiggy_flathead(Creature* pCreature)
 
 bool AreaTrigger_at_twiggy_flathead(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
 {
-    if (pPlayer->isAlive() && !pPlayer->isGameMaster() && pPlayer->GetQuestStatus(QUEST_AFFRAY) == QUEST_STATUS_INCOMPLETE)
+    if (pPlayer->IsAlive() && !pPlayer->isGameMaster() && pPlayer->GetQuestStatus(QUEST_AFFRAY) == QUEST_STATUS_INCOMPLETE)
     {
         Creature* pCreature = GetClosestCreatureWithEntry(pPlayer, NPC_TWIGGY, 30.0f);
         if (!pCreature)
@@ -556,21 +556,21 @@ struct npc_wizzlecranks_shredderAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 if (Player* pPlayer = GetPlayerForEscort())
                     DoScriptText(SAY_STARTUP1, m_creature, pPlayer);
                 break;
-            case 9:
+            case 10:
                 SetRun(false);
                 break;
-            case 17:
+            case 18:
                 if (Creature* pTemp = m_creature->SummonCreature(NPC_MERCENARY, 1128.489f, -3037.611f, 92.701f, 1.472f, TEMPSPAWN_TIMED_OOC_DESPAWN, 120000))
                 {
                     DoScriptText(SAY_MERCENARY, pTemp);
                     m_creature->SummonCreature(NPC_MERCENARY, 1160.172f, -2980.168f, 97.313f, 3.690f, TEMPSPAWN_TIMED_OOC_DESPAWN, 120000);
                 }
                 break;
-            case 24:
+            case 25:
                 m_bIsPostEvent = true;
                 break;
         }
@@ -580,11 +580,11 @@ struct npc_wizzlecranks_shredderAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 9:
+            case 10:
                 if (Player* pPlayer = GetPlayerForEscort())
                     DoScriptText(SAY_STARTUP2, m_creature, pPlayer);
                 break;
-            case 18:
+            case 19:
                 if (Player* pPlayer = GetPlayerForEscort())
                     DoScriptText(SAY_PROGRESS_1, m_creature, pPlayer);
                 SetRun();
@@ -603,7 +603,7 @@ struct npc_wizzlecranks_shredderAI : public npc_escortAI
 
     void UpdateEscortAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         {
             if (m_bIsPostEvent)
             {
@@ -908,7 +908,7 @@ private:
         {
             if (Creature * creature = m_creature->GetMap()->GetCreature(spawnItr.first))
             {
-                if (creature->isInCombat())
+                if (creature->IsInCombat())
                 {
                     // Give one minute to the NPCs still fighting before despawning them
                     creature->ForcedDespawn(MINUTE * IN_MILLISECONDS);

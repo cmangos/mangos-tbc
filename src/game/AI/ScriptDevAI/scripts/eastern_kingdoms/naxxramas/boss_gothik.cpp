@@ -129,7 +129,7 @@ struct boss_gothikAI : public ScriptedAI
         {
             if (Player* player = playerGuid.getSource())
             {
-                if (!m_instance->IsInRightSideGothikArea(player) && player->isAlive())
+                if (!m_instance->IsInRightSideGothikArea(player) && player->IsAlive())
                     return true;
             }
         }
@@ -180,7 +180,7 @@ struct boss_gothikAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Summoning auras handling
@@ -470,7 +470,7 @@ struct CheckGothikSide : public SpellScript
                     {
                         if (Player* player = playerInList.getSource())
                         {
-                            if (!player->isAlive())
+                            if (!player->IsAlive())
                                 return;
 
                             if (spell->m_spellInfo->Id == SPELL_CHECK_UNRELENTING_SIDE && instance->IsInRightSideGothikArea(player))
@@ -497,7 +497,7 @@ struct GothikSideAssault : public SpellScript
             {
                 // If for some reason one ore more creatures are not in combat when the central gates open
                 // Set them in combat with zone
-                if (!unitTarget->isInCombat())
+                if (!unitTarget->IsInCombat())
                     ((Creature*)unitTarget)->SetInCombatWithZone();
                     unitTarget->AI()->AttackClosestEnemy();
             }

@@ -42,18 +42,35 @@ void HomeMovementGenerator<Creature>::_setTargetLocation(Creature& owner)
     if (owner.hasUnitState(UNIT_STAT_NOT_MOVE))
         return;
 
-    Movement::MoveSplineInit init(owner);
-    float x, y, z, o;
+    Position pos;
     // at apply we can select more nice return points base at current movegen
-    if (owner.GetMotionMaster()->empty() || !owner.GetMotionMaster()->top()->GetResetPosition(owner, x, y, z, o))
-        owner.GetCombatStartPosition(x, y, z, o);
+    if (owner.GetMotionMaster()->empty() || !owner.GetMotionMaster()->top()->GetResetPosition(owner, pos.x, pos.y, pos.z, pos.o))
+        owner.GetCombatStartPosition(pos);
 
-    if (x == 0 && x == y && y == z)
-        owner.GetRespawnCoord(x, y, z, &o);
+    if (pos.IsEmpty())
+        owner.GetRespawnCoord(pos.x, pos.y, pos.z, &pos.o);
+    if (owner.GetDistance(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), DIST_CALC_NONE) > 150.f * 150.f)
+    {
+        if (!owner.IsInWorld() || !owner.GetMap()->IsDungeon())
+        {
+            arrived = true;
+            Finalize(owner);
+            owner.SetRespawnDelay(5, true);
+            owner.ForcedDespawn(1);
+            return;
+        }
+    }
 
-    init.SetFacing(o);
-    init.MoveTo(x, y, z, true);
+    PathFinder path(&owner);
+
+    path.calculate(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), true);
+
+    Movement::MoveSplineInit init(owner);
+    init.MovebyPath(path.getPath());
     init.SetWalk(!runHome);
+    init.SetFacing(pos.GetPositionO());
+    if (path.getPathType() & (PATHFIND_NOPATH | PATHFIND_SHORTCUT))
+        init.SetVelocity(400.f);
     init.Launch();
 
     arrived = false;
@@ -88,5 +105,7 @@ void HomeMovementGenerator<Creature>::Finalize(Creature& owner)
 
         if (!wasActive)
             owner.SetActiveObjectState(false);
+
+        owner.SetCombatStartPosition(Position());
     }
 }

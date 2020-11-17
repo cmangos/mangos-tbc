@@ -236,7 +236,7 @@ struct boss_skeramAI : public CombatAI
 
     void HandleInitImages()
     {
-        std::random_shuffle(m_teleports.begin(), m_teleports.end()); // Shuffle the teleport spells to ensure that boss and images have a different location assigned randomly
+        std::shuffle(m_teleports.begin(), m_teleports.end(), *GetRandomGenerator()); // Shuffle the teleport spells to ensure that boss and images have a different location assigned randomly
         m_teleportCounter = 1;
         DoCastSpellIfCan(nullptr, SPELL_INITIALIZE_IMAGES, CAST_TRIGGERED);
         DoTeleport(false);
@@ -267,7 +267,7 @@ struct boss_skeramAI : public CombatAI
             {
                 // Arcane Explosion is done if more than a set number of people are in melee range
                 PlayerList meleePlayerList;
-                float meleeRange = m_creature->GetCombinedCombatReach(m_creature->getVictim(), true);
+                float meleeRange = m_creature->GetCombinedCombatReach(m_creature->GetVictim(), true);
                 GetPlayerListWithEntryInWorld(meleePlayerList, m_creature, meleeRange);
                 if (meleePlayerList.size() >= m_maxMeleeAllowed)
                 {
@@ -287,7 +287,7 @@ struct boss_skeramAI : public CombatAI
             }
             case SKERAM_BLINK:
             {
-                std::random_shuffle(m_teleports.begin(), m_teleports.end());    // Shuffle the teleport spells to ensure that boss and images have a different location assigned randomly
+                std::shuffle(m_teleports.begin(), m_teleports.end(), *GetRandomGenerator()); // Shuffle the teleport spells to ensure that boss and images have a different location assigned randomly
                 m_teleportCounter = 1;
                 DoTeleport(true);
                 for (auto guid : m_images)
@@ -300,14 +300,14 @@ struct boss_skeramAI : public CombatAI
             {
                 uint32 timer = 500;
                 // If victim exists we have a target in melee range
-                if (m_creature->getVictim() && m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
+                if (m_creature->GetVictim() && m_creature->CanReachWithMeleeAttack(m_creature->GetVictim()))
                     m_rangeCheckState = -1;
                 // Spam Waterbolt spell when not tanked
                 else
                 {
                     ++m_rangeCheckState;
                     if (m_rangeCheckState > 1)
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_EARTH_SHOCK) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_EARTH_SHOCK) == CAST_OK)
                             timer = 2500;
                 }
                 ResetCombatAction(action, timer);
@@ -359,7 +359,7 @@ struct InitializeImage : public SpellScript
                 maxHealthPct = 0.10f;
 
             // Set the same health percent as the original boss
-            spell->GetCaster()->SetMaxHealth(unitTarget->GetMaxHealth() * 0.1f); // 10% of boss max health
+            spell->GetCaster()->SetMaxHealth(unitTarget->GetMaxHealth() * maxHealthPct);
             spell->GetCaster()->SetHealthPercent(healthPct);
         }
     }

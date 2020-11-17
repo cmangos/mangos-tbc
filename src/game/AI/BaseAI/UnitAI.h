@@ -25,6 +25,7 @@
 #include "Dynamic/FactoryHolder.h"
 #include "Entities/ObjectGuid.h"
 #include "AI/BaseAI/AIDefines.h"
+#include <functional>
 
 class WorldObject;
 class GameObject;
@@ -403,6 +404,7 @@ class UnitAI
 
 
         // TODO: Implement proper casterAI in EAI and remove this from Leotheras script
+        uint32 GetAttackDistance() { return m_attackDistance; }
         void SetMoveChaseParams(float dist, float angle, bool moveFurther) { m_attackDistance = dist; m_attackAngle = angle; m_moveFurther = moveFurther; }
 
         // Returns friendly unit with the most amount of hp missing from max hp - ignoreSelf - some spells cant target self
@@ -458,7 +460,11 @@ class UnitAI
         virtual void DistancingStarted();
         virtual void DistancingEnded();
 
-        void AttackClosestEnemy();
+        void AttackSpecificEnemy(std::function<void(Unit*,Unit*&)> check);
+        virtual void AttackClosestEnemy();
+
+        void SetRootSelf(bool apply, bool combatOnly = false);
+        void ClearSelfRoot();
 
     protected:
         virtual std::string GetAIName() { return "UnitAI"; }
@@ -482,6 +488,7 @@ class UnitAI
         bool m_dismountOnAggro;
 
         bool m_meleeEnabled;                              // If we allow melee auto attack
+        bool m_selfRooted;
 
         ReactStates m_reactState;
 

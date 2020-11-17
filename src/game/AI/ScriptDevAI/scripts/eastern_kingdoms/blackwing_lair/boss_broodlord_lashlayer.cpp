@@ -84,13 +84,13 @@ struct boss_broodlordAI : public CombatAI
         {
             case BROODLORD_CLEAVE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
                     ResetCombatAction(action, 7000);
                 break;
             }
             case BROODLORD_KNOCK_AWAY:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KNOCK_AWAY) == CAST_OK)
                     ResetCombatAction(action, urand(15000, 30000));
                 break;
             }
@@ -102,7 +102,7 @@ struct boss_broodlordAI : public CombatAI
             }
             case BROODLORD_MORTAL_STRIKE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MORTAL_STRIKE) == CAST_OK)
                     ResetCombatAction(action, urand(25000, 35000));
                 break;
             }
@@ -112,7 +112,7 @@ struct boss_broodlordAI : public CombatAI
     void UpdateAI(const uint32 diff) override
     {
         CombatAI::UpdateAI(diff);
-        if (m_creature->isInCombat())
+        if (m_creature->IsInCombat())
             if (EnterEvadeIfOutOfCombatArea(diff))
                 DoScriptText(SAY_LEASH, m_creature);
     }

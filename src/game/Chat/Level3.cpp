@@ -53,82 +53,12 @@
 #include "Maps/InstanceData.h"
 #include "Server/DBCStores.h"
 #include "AI/EventAI/CreatureEventAIMgr.h"
-#include "AuctionHouseBot/AuctionHouseBot.h"
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 #include "World/WorldState.h"
 
-static uint32 ahbotQualityIds[MAX_AUCTION_QUALITY] =
-{
-    LANG_AHBOT_QUALITY_GREY, LANG_AHBOT_QUALITY_WHITE,
-    LANG_AHBOT_QUALITY_GREEN, LANG_AHBOT_QUALITY_BLUE,
-    LANG_AHBOT_QUALITY_PURPLE, LANG_AHBOT_QUALITY_ORANGE,
-    LANG_AHBOT_QUALITY_YELLOW
-};
-
-bool ChatHandler::HandleAHBotItemsAmountCommand(char* args)
-{
-    uint32 qVals[MAX_AUCTION_QUALITY];
-    for (unsigned int& qVal : qVals)
-        if (!ExtractUInt32(&args, qVal))
-            return false;
-
-    sAuctionBot.SetItemsAmount(qVals);
-
-    for (int i = 0; i < MAX_AUCTION_QUALITY; ++i)
-        PSendSysMessage(LANG_AHBOT_ITEMS_AMOUNT, GetMangosString(ahbotQualityIds[i]), sAuctionBotConfig.getConfigItemQualityAmount(AuctionQuality(i)));
-
-    return true;
-}
-
-template<int Q>
-bool ChatHandler::HandleAHBotItemsAmountQualityCommand(char* args)
-{
-    uint32 qVal;
-    if (!ExtractUInt32(&args, qVal))
-        return false;
-    sAuctionBot.SetItemsAmountForQuality(AuctionQuality(Q), qVal);
-    PSendSysMessage(LANG_AHBOT_ITEMS_AMOUNT, GetMangosString(ahbotQualityIds[Q]),
-                    sAuctionBotConfig.getConfigItemQualityAmount(AuctionQuality(Q)));
-    return true;
-}
-
-template bool ChatHandler::HandleAHBotItemsAmountQualityCommand<AUCTION_QUALITY_GREY>(char*);
-template bool ChatHandler::HandleAHBotItemsAmountQualityCommand<AUCTION_QUALITY_WHITE>(char*);
-template bool ChatHandler::HandleAHBotItemsAmountQualityCommand<AUCTION_QUALITY_GREEN>(char*);
-template bool ChatHandler::HandleAHBotItemsAmountQualityCommand<AUCTION_QUALITY_BLUE>(char*);
-template bool ChatHandler::HandleAHBotItemsAmountQualityCommand<AUCTION_QUALITY_PURPLE>(char*);
-template bool ChatHandler::HandleAHBotItemsAmountQualityCommand<AUCTION_QUALITY_ORANGE>(char*);
-template bool ChatHandler::HandleAHBotItemsAmountQualityCommand<AUCTION_QUALITY_YELLOW>(char*);
-
-bool ChatHandler::HandleAHBotItemsRatioCommand(char* args)
-{
-    uint32 rVal[MAX_AUCTION_HOUSE_TYPE];
-    for (unsigned int& i : rVal)
-        if (!ExtractUInt32(&args, i))
-            return false;
-
-    sAuctionBot.SetItemsRatio(rVal[0], rVal[1], rVal[2]);
-
-    for (int i = 0; i < MAX_AUCTION_HOUSE_TYPE; ++i)
-        PSendSysMessage(LANG_AHBOT_ITEMS_RATIO, AuctionBotConfig::GetHouseTypeName(AuctionHouseType(i)), sAuctionBotConfig.getConfigItemAmountRatio(AuctionHouseType(i)));
-    return true;
-}
-
-template<int H>
-bool ChatHandler::HandleAHBotItemsRatioHouseCommand(char* args)
-{
-    uint32 rVal;
-    if (!ExtractUInt32(&args, rVal))
-        return false;
-    sAuctionBot.SetItemsRatioForHouse(AuctionHouseType(H), rVal);
-    PSendSysMessage(LANG_AHBOT_ITEMS_RATIO, AuctionBotConfig::GetHouseTypeName(AuctionHouseType(H)), sAuctionBotConfig.getConfigItemAmountRatio(AuctionHouseType(H)));
-    return true;
-}
-
-template bool ChatHandler::HandleAHBotItemsRatioHouseCommand<AUCTION_HOUSE_ALLIANCE>(char*);
-template bool ChatHandler::HandleAHBotItemsRatioHouseCommand<AUCTION_HOUSE_HORDE>(char*);
-template bool ChatHandler::HandleAHBotItemsRatioHouseCommand<AUCTION_HOUSE_NEUTRAL>(char*);
+#ifdef BUILD_AHBOT
+#include "AuctionHouseBot/AuctionHouseBot.h"
 
 bool ChatHandler::HandleAHBotRebuildCommand(char* args)
 {
@@ -140,13 +70,13 @@ bool ChatHandler::HandleAHBotRebuildCommand(char* args)
         all = true;
     }
 
-    sAuctionBot.Rebuild(all);
+    sAuctionHouseBot.Rebuild(all);
     return true;
 }
 
 bool ChatHandler::HandleAHBotReloadCommand(char* /*args*/)
 {
-    if (sAuctionBot.ReloadAllConfig())
+    if (sAuctionHouseBot.ReloadAllConfig())
     {
         SendSysMessage(LANG_AHBOT_RELOAD_OK);
         return true;
@@ -156,18 +86,10 @@ bool ChatHandler::HandleAHBotReloadCommand(char* /*args*/)
     return false;
 }
 
-bool ChatHandler::HandleAHBotStatusCommand(char* args)
+bool ChatHandler::HandleAHBotStatusCommand(char* /*args*/)
 {
-    bool all = false;
-    if (*args)
-    {
-        if (!ExtractLiteralArg(&args, "all"))
-            return false;
-        all = true;
-    }
-
     AuctionHouseBotStatusInfo statusInfo;
-    sAuctionBot.PrepareStatusInfos(statusInfo);
+    sAuctionHouseBot.PrepareStatusInfos(statusInfo);
 
     if (!m_session)
     {
@@ -188,38 +110,67 @@ bool ChatHandler::HandleAHBotStatusCommand(char* args)
                     statusInfo[AUCTION_HOUSE_HORDE].ItemsCount +
                     statusInfo[AUCTION_HOUSE_NEUTRAL].ItemsCount);
 
-    if (all)
-    {
-        PSendSysMessage(fmtId, GetMangosString(LANG_AHBOT_STATUS_ITEM_RATIO),
-                        sAuctionBotConfig.getConfig(CONFIG_UINT32_AHBOT_ALLIANCE_ITEM_AMOUNT_RATIO),
-                        sAuctionBotConfig.getConfig(CONFIG_UINT32_AHBOT_HORDE_ITEM_AMOUNT_RATIO),
-                        sAuctionBotConfig.getConfig(CONFIG_UINT32_AHBOT_NEUTRAL_ITEM_AMOUNT_RATIO),
-                        sAuctionBotConfig.getConfig(CONFIG_UINT32_AHBOT_ALLIANCE_ITEM_AMOUNT_RATIO) +
-                        sAuctionBotConfig.getConfig(CONFIG_UINT32_AHBOT_HORDE_ITEM_AMOUNT_RATIO) +
-                        sAuctionBotConfig.getConfig(CONFIG_UINT32_AHBOT_NEUTRAL_ITEM_AMOUNT_RATIO));
-
-        if (!m_session)
-        {
-            SendSysMessage(LANG_AHBOT_STATUS_BAR_CONSOLE);
-            SendSysMessage(LANG_AHBOT_STATUS_TITLE2_CONSOLE);
-            SendSysMessage(LANG_AHBOT_STATUS_MIDBAR_CONSOLE);
-        }
-        else
-            SendSysMessage(LANG_AHBOT_STATUS_TITLE2_CHAT);
-
-        for (int i = 0; i < MAX_AUCTION_QUALITY; ++i)
-            PSendSysMessage(fmtId, GetMangosString(ahbotQualityIds[i]),
-                            statusInfo[AUCTION_HOUSE_ALLIANCE].QualityInfo[i],
-                            statusInfo[AUCTION_HOUSE_HORDE].QualityInfo[i],
-                            statusInfo[AUCTION_HOUSE_NEUTRAL].QualityInfo[i],
-                            sAuctionBotConfig.getConfigItemQualityAmount(AuctionQuality(i)));
-    }
-
     if (!m_session)
         SendSysMessage(LANG_AHBOT_STATUS_BAR_CONSOLE);
 
     return true;
 }
+
+bool ChatHandler::HandleAHBotItemCommand(char* args)
+{
+    // .ahbot item #itemid [$itemvalue [$addchance [$minstack [$maxstack]]]] [reset]
+    char* cId = ExtractKeyFromLink(&args, "Hitem");
+    if (!cId)
+        return false;
+
+    uint32 itemId = 0;
+    if (!ExtractUInt32(&cId, itemId))                       // [name] manual form
+    {
+        std::string itemName = cId;
+        WorldDatabase.escape_string(itemName);
+        QueryResult* result = WorldDatabase.PQuery("SELECT entry FROM item_template WHERE name = '%s'", itemName.c_str());
+        if (!result)
+        {
+            PSendSysMessage(LANG_COMMAND_COULDNOTFIND, cId);
+            SetSentErrorMessage(true);
+            return false;
+        }
+        itemId = result->Fetch()->GetUInt16();
+        delete result;
+    }
+    ItemPrototype const* proto = ObjectMgr::GetItemPrototype(itemId);
+    if (!proto)
+    {
+        PSendSysMessage(LANG_COMMAND_COULDNOTFIND, cId);
+        return false;
+    }
+
+    AuctionHouseBotItemData itemData;
+    bool reset = ExtractLiteralArg(&args, "reset") != nullptr;
+    bool setItemData = true;
+    if (!reset && !ExtractUInt32(&args, itemData.Value))
+    {
+        // only item id specified, show item data to player
+        itemData = sAuctionHouseBot.GetItemData(itemId);
+        setItemData = false;
+    }
+    else if (!reset && ExtractUInt32(&args, itemData.AddChance) && ExtractUInt32(&args, itemData.MinAmount))
+        ExtractUInt32(&args, itemData.MaxAmount);
+    if (setItemData)
+        sAuctionHouseBot.SetItemData(itemId, itemData, reset);
+
+    std::stringstream ss;
+    ss << itemData.Value / 10000 << "g, " << itemData.Value / 100 % 100 << "s, " << itemData.Value % 100 << "c. ";
+    if (itemData.MinAmount == 0)
+        ss << "Item data is not overridden by user.";
+    else if (itemData.AddChance == 0)
+        ss << "Item will be added using normal sources.";
+    else
+        ss << "Add chance: " << itemData.AddChance << "%, Min/Max amount: " << itemData.MinAmount << "/" << itemData.MaxAmount;
+    PSendSysMessage(LANG_ITEM_LIST_CHAT, itemId, itemId, proto->Name1, ss.str().c_str());
+    return true;
+}
+#endif
 
 // reload commands
 bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
@@ -2515,7 +2466,7 @@ bool ChatHandler::HandleLookupSpellCommand(char* args)
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(id);
         if (spellInfo)
         {
-            int loc = int(LOCALE_enUS);
+            int loc = int(DEFAULT_LOCALE);
             std::string name = spellInfo->SpellName[loc];
             if (name.empty())
                 continue;
@@ -3039,7 +2990,7 @@ bool ChatHandler::HandleDieCommand(char* args)
     ExtractOptUInt32(&args, param, 0);
     if (param != 0)
     {
-        if (target->isAlive())
+        if (target->IsAlive())
         {
             DamageEffectType damageType = DIRECT_DAMAGE;
             uint32 absorb = 0;
@@ -3050,7 +3001,7 @@ bool ChatHandler::HandleDieCommand(char* args)
     }
     else
     {
-        if (target->isAlive())
+        if (target->IsAlive())
         {
             Unit::DealDamage(player, target, target->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
         }
@@ -3074,7 +3025,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
         return false;
     }
 
-    if (!target->isAlive())
+    if (!target->IsAlive())
         return true;
 
     int32 damage_int;
@@ -3458,6 +3409,8 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     PSendSysMessage(LANG_NPCINFO_POSITION, float(target->GetPositionX()), float(target->GetPositionY()), float(target->GetPositionZ()));
     PSendSysMessage("Combat timer: %u", target->GetCombatManager().GetCombatTimer());
     PSendSysMessage("Is in evade mode: %s", target->GetCombatManager().IsInEvadeMode() ? "true" : "false");
+
+    PSendSysMessage("Combat Timer: %u Leashing disabled: %s", target->GetCombatManager().GetCombatTimer(), target->GetCombatManager().IsLeashingDisabled() ? "true" : "false");
 
     if (auto vector = sObjectMgr.GetAllRandomEntries(target->GetGUIDLow()))
     {
@@ -4087,6 +4040,12 @@ bool ChatHandler::HandleListAurasCommand(char* args)
 
     uint32 auraNameId;
     ExtractOptUInt32(&args, auraNameId, 0);
+    if (auraNameId >= TOTAL_AURAS)
+    {
+        PSendSysMessage("Need to use aura name id below %u.", TOTAL_AURAS);
+        SetSentErrorMessage(true);
+        return false;
+    }
 
     char const* talentStr = GetMangosString(LANG_TALENT);
     char const* passiveStr = GetMangosString(LANG_PASSIVE);
@@ -4927,7 +4886,7 @@ bool ChatHandler::HandleBanInfoCharacterCommand(char* args)
 
 bool ChatHandler::HandleBanInfoHelper(uint32 accountid, char const* accountname)
 {
-    QueryResult* result = LoginDatabase.PQuery("SELECT FROM_UNIXTIME(banned_at),expires_at-banned_at,active,expires_at,reason,banned_by,unbanned_at,unbanned_by"
+    QueryResult* result = LoginDatabase.PQuery("SELECT FROM_UNIXTIME(banned_at),expires_at-banned_at,active,expires_at,reason,banned_by,unbanned_at,unbanned_by "
                                                "FROM account_banned WHERE account_id = '%u' ORDER BY banned_at ASC", accountid);
     if (!result)
     {
@@ -4946,7 +4905,7 @@ bool ChatHandler::HandleBanInfoHelper(uint32 accountid, char const* accountname)
             active = true;
         bool permanent = (fields[1].GetUInt64() == (uint64)0);
         std::string bantime = permanent ? GetMangosString(LANG_BANINFO_INFINITE) : secsToTimeString(fields[1].GetUInt64(), true);
-        std::string unbannedBy = fields[7].GetString();
+        std::string unbannedBy = fields[7].IsNULL() ? "" : fields[7].GetString();
         std::string manuallyUnbanned = "";
         if (unbannedBy.empty())
             manuallyUnbanned = GetMangosString(LANG_BANINFO_YES);
@@ -5219,7 +5178,7 @@ bool ChatHandler::HandleRespawnCommand(char* /*args*/)
             return false;
         }
 
-        if (target->isDead())
+        if (target->IsDead())
             ((Creature*)target)->Respawn();
         return true;
     }
@@ -5489,6 +5448,29 @@ bool ChatHandler::HandleMovespeedShowCommand(char* /*args*/)
     return true;
 }
 
+bool ChatHandler::HandleDebugMovement(char* args)
+{
+    Unit* unit = getSelectedUnit();
+    if (!unit)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    bool value;
+    if (!ExtractOnOff(&args, value))
+    {
+        SendSysMessage(LANG_USE_BOL);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    unit->SetDebuggingMovement(value);
+    PSendSysMessage("New value: %s", (value ? "true" : "false"));
+    return true;
+}
+
 bool ChatHandler::HandleServerPLimitCommand(char* args)
 {
     if (*args)
@@ -5497,28 +5479,26 @@ bool ChatHandler::HandleServerPLimitCommand(char* args)
         if (!param)
             return false;
 
-        int l = strlen(param);
-
-        int val;
-        if (strncmp(param, "player", l) == 0)
-            sWorld.SetPlayerLimit(-SEC_PLAYER);
-        else if (strncmp(param, "moderator", l) == 0)
-            sWorld.SetPlayerLimit(-SEC_MODERATOR);
-        else if (strncmp(param, "gamemaster", l) == 0)
-            sWorld.SetPlayerLimit(-SEC_GAMEMASTER);
-        else if (strncmp(param, "administrator", l) == 0)
-            sWorld.SetPlayerLimit(-SEC_ADMINISTRATOR);
-        else if (strncmp(param, "reset", l) == 0)
-            sWorld.SetPlayerLimit(sConfig.GetIntDefault("PlayerLimit", DEFAULT_PLAYER_LIMIT));
+        int32 val;
+        if (param[0] =='p' || param[0] == 'P')
+            val = -int32(SEC_PLAYER);
+        else if (param[0] == 'm' || param[0] == 'M')
+            val = -int32(SEC_MODERATOR);
+        else if (param[0] == 'g' || param[0] == 'G')
+            val = -int32(SEC_GAMEMASTER);
+        else if (param[0] == 'a' || param[0] == 'A')
+            val = -int32(SEC_ADMINISTRATOR);
+        else if (param[0] == 'r' || param[0] == 'R')
+            val = sConfig.GetIntDefault("PlayerLimit", DEFAULT_PLAYER_LIMIT);
         else if (ExtractInt32(&param, val))
         {
-            if (val < -SEC_ADMINISTRATOR)
-                val = -SEC_ADMINISTRATOR;
-
-            sWorld.SetPlayerLimit(val);
+            if (val < -int32(SEC_ADMINISTRATOR))
+                val = -int32(SEC_ADMINISTRATOR);
         }
         else
             return false;
+
+        sWorld.SetPlayerLimit(val);
 
         // kick all low security level players
         if (sWorld.GetPlayerAmountLimit() > SEC_PLAYER)
@@ -5652,7 +5632,7 @@ bool ChatHandler::HandleCastTargetCommand(char* args)
         return false;
     }
 
-    if (!caster->getVictim())
+    if (!caster->GetVictim())
     {
         SendSysMessage(LANG_SELECTED_TARGET_NOT_HAVE_VICTIM);
         SetSentErrorMessage(true);
@@ -5670,7 +5650,7 @@ bool ChatHandler::HandleCastTargetCommand(char* args)
 
     caster->SetFacingToObject(m_session->GetPlayer());
 
-    caster->CastSpell(caster->getVictim(), spell, triggered ? TRIGGERED_OLD_TRIGGERED : TRIGGERED_NONE);
+    caster->CastSpell(caster->GetVictim(), spell, triggered ? TRIGGERED_OLD_TRIGGERED : TRIGGERED_NONE);
 
     return true;
 }
@@ -6726,6 +6706,18 @@ bool ChatHandler::HandleLinkCheckCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleWarEffortCommand(char* args)
+{
+    uint32 param;
+    if (!ExtractUInt32(&args, param))
+    {
+        PSendSysMessage("%s", sWorldState.GetAQPrintout().data());
+        return true;
+    }
+    sWorldState.HandleWarEffortPhaseTransition(param);
+    return true;
+}
+
 bool ChatHandler::HandleExpansionRelease(char* args)
 {
     uint32 curExpansion = sWorldState.GetExpansion();
@@ -6780,7 +6772,7 @@ enum ModSpells
     SPELL_MOD_BLOCK_CHANCE = 15186,
 };
 
-bool ChatHandler::HandleResetModsCommand(char *args)
+bool ChatHandler::HandleResetModsCommand(char* /*args*/)
 {
     Unit* target = getSelectedUnit();
 
@@ -6849,7 +6841,7 @@ bool ChatHandler::ModifyStatCommandHelper(char* args, char const* statName, uint
 
     if (spellId == SPELL_MOD_STAMINA)
         target->SetHealthPercent(100);
-    else if (spellId = SPELL_MOD_INTELLECT)
+    else if (spellId == SPELL_MOD_INTELLECT)
         target->SetPower(POWER_MANA, target->GetMaxPower(POWER_MANA));
 
     PSendSysMessage("You changed %s of %s to %i.", statName, target->GetName(), amount);

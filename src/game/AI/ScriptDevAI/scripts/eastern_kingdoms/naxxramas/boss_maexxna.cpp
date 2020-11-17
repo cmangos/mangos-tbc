@@ -85,7 +85,7 @@ struct npc_web_wrapAI : public ScriptedAI
         // Remove polymporph and DoT auras from web wrapped player
         if (m_player)
         {
-            if (m_player->isAlive())
+            if (m_player->IsAlive())
                 DoCastSpellIfCan(m_player, SPELL_CLEAR_WEB_WRAP_TARGET, CAST_TRIGGERED);
         }
         m_creature->ForcedDespawn(5000);
@@ -107,7 +107,7 @@ struct npc_web_wrapAI : public ScriptedAI
             // Check if the web wrapped player is still alive, if not, clear ourselves
             if (m_checkVictimAliveTimer <= diff)
             {
-                if (!m_player->isAlive())
+                if (!m_player->IsAlive())
                     DoCastSpellIfCan(m_creature, SPELL_CLEAR_WEB_WRAP_SELF, CAST_TRIGGERED);
                 m_checkVictimAliveTimer = 1 * IN_MILLISECONDS;
             }
@@ -194,7 +194,7 @@ struct boss_maexxnaAI : public ScriptedAI
     void UpdateAI(const uint32 diff) override
     {
         // Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Web Wrap
@@ -208,7 +208,7 @@ struct boss_maexxnaAI : public ScriptedAI
 
             if (targets.size() > MAX_PLAYERS_WEB_WRAP)
             {
-                std::random_shuffle(targets.begin(), targets.end());
+                std::shuffle(targets.begin(), targets.end(), *GetRandomGenerator());
                 targets.resize(MAX_PLAYERS_WEB_WRAP);
             }
 
@@ -223,7 +223,7 @@ struct boss_maexxnaAI : public ScriptedAI
 
                 // Randomly pick up to three trigger NPCs
                 std::vector<Unit*> invisibleMen(m_summoningTriggers.begin(), m_summoningTriggers.end());
-                std::random_shuffle(invisibleMen.begin(), invisibleMen.end());
+                std::shuffle(invisibleMen.begin(), invisibleMen.end(), *GetRandomGenerator());
                 invisibleMen.resize(targets.size());
 
                 for (uint8 i = 0; i < targets.size(); i++)
@@ -247,7 +247,7 @@ struct boss_maexxnaAI : public ScriptedAI
         // Poison Shock
         if (m_poisonShockTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_POISONSHOCK) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_POISONSHOCK) == CAST_OK)
                 m_poisonShockTimer = urand(10, 20) * IN_MILLISECONDS;
         }
         else
@@ -256,7 +256,7 @@ struct boss_maexxnaAI : public ScriptedAI
         // Necrotic Poison
         if (m_necroticPoisonTimer < diff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_NECROTICPOISON) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_NECROTICPOISON) == CAST_OK)
                 m_necroticPoisonTimer = urand(20, 30) * IN_MILLISECONDS;
         }
         else
@@ -333,7 +333,7 @@ struct npc_invisible_manAI : public ScriptedAI
             {
                 if (Player* victim = m_creature->GetMap()->GetPlayer(m_victimGuid))
                 {
-                    if (victim->isAlive())
+                    if (victim->IsAlive())
                     {
                         // Make the player cast the visual effects spells with a delay to ensure he/she has reach his/her destination
                         victim->CastSpell(victim, SPELL_WEB_WRAP_SUMMON, TRIGGERED_OLD_TRIGGERED);

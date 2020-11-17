@@ -143,10 +143,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuver(Unit* pTarget)
         case PlayerbotAI::SCENARIO_PVE_RAID:
         default:
             return DoFirstCombatManeuverPVE(pTarget);
-            break;
     }
-
-    return RETURN_NO_ACTION_ERROR;
 }
 
 CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVE(Unit* pTarget)
@@ -288,10 +285,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuver(Unit* pTarget)
         case PlayerbotAI::SCENARIO_PVE_RAID:
         default:
             return DoNextCombatManeuverPVE(pTarget);
-            break;
     }
-
-    return RETURN_NO_ACTION_ERROR;
 }
 
 CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit* pTarget)
@@ -306,7 +300,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit* pTarget)
 
     //Used to determine if this bot is highest on threat
     Unit* newTarget = m_ai->FindAttacker((PlayerbotAI::ATTACKERINFOTYPE)(PlayerbotAI::AIT_VICTIMSELF | PlayerbotAI::AIT_HIGHESTTHREAT), m_bot);
-    Unit* pVictim = pTarget->getVictim();
+    Unit* pVictim = pTarget->GetVictim();
 
     // do shouts, berserker rage, etc...
     if (BERSERKER_RAGE > 0 && !m_bot->HasAura(BERSERKER_RAGE, EFFECT_INDEX_0))
@@ -314,10 +308,17 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit* pTarget)
     else if (BLOODRAGE > 0 && m_ai->GetRageAmount() <= 10)
         m_ai->CastSpell(BLOODRAGE);
 
-    Creature* pCreature = (Creature*) pTarget;
-
-    // Prevent low health humanoid from fleeing with Hamstring
-    if (pCreature && (m_bot->HasAura(BATTLE_STANCE, EFFECT_INDEX_0) || m_bot->HasAura(BERSERKER_STANCE, EFFECT_INDEX_0)) && pCreature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID && pTarget->GetHealthPercent() < 20 && !pCreature->IsWorldBoss())
+    // Prevent low health humanoid or player from fleeing with Hamstring
+    bool canBeSlowed = false;
+    if (pTarget->GetTypeId() == TYPEID_PLAYER)
+        canBeSlowed = true;
+    else
+    {
+        auto* creature = (Creature*) pTarget;
+        if (creature->GetCreatureInfo()->CreatureType == CREATURE_TYPE_HUMANOID && !creature->IsWorldBoss())
+            canBeSlowed = true;
+    }
+    if (canBeSlowed && (m_bot->HasAura(BATTLE_STANCE, EFFECT_INDEX_0) || m_bot->HasAura(BERSERKER_STANCE, EFFECT_INDEX_0)) && pTarget->GetHealthPercent() < 20)
     {
         if (HAMSTRING > 0 && !pTarget->HasAura(HAMSTRING, EFFECT_INDEX_0) && m_ai->CastSpell(HAMSTRING, *pTarget) == SPELL_CAST_OK)
             return RETURN_CONTINUE;
@@ -593,18 +594,7 @@ bool PlayerbotWarriorAI::CanPull()
     if (!m_bot) return false;
     if (!m_ai) return false;
 
-    if (m_bot->GetUInt32Value(PLAYER_AMMO_ID)) // Having ammo equipped means a weapon is equipped as well. Probably. [TODO: does this work with throwing knives? Can a playerbot 'cheat' ammo into the slot without a proper weapon?]
-    {
-        // Can't do this, CanPull CANNOT check for anything that requires a target
-        //if (!m_ai->IsInRange(m_ai->GetCurrentTarget(), AUTO_SHOT))
-        //{
-        //    m_ai->TellMaster("I'm out of range.");
-        //    return false;
-        //}
-        return true;
-    }
-
-    return false;
+    return m_bot->GetUInt32Value(PLAYER_AMMO_ID) != 0;
 }
 
 // Match up with "CanPull()" above
@@ -617,7 +607,13 @@ bool PlayerbotWarriorAI::Pull()
     {
         if (!m_ai->In_Range(m_ai->GetCurrentTarget(), AUTO_SHOT))
         {
-            m_ai->TellMaster("I'm out of range.");
+            m_ai->TellMaster("Can't pull: I'm out of range.");
+            return false;
+        }
+
+        if (!m_bot->IsWithinLOSInMap(m_ai->GetCurrentTarget()))
+        {
+            m_ai->TellMaster("Can't pull: target is out of sight.");
             return false;
         }
 
@@ -635,5 +631,6 @@ bool PlayerbotWarriorAI::Pull()
         return true;
     }
 
-    return false;
+    m_ai->TellMaster("I cannot pull my target for an unkown reason.");
+        return false;
 }

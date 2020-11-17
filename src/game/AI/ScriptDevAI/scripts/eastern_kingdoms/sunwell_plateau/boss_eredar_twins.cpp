@@ -139,7 +139,7 @@ struct boss_alythessAI : public ScriptedAI
             // Respawn dead sister
             if (Creature* pSister = m_pInstance->GetSingleCreatureFromStorage(NPC_SACROLASH))
             {
-                if (!pSister->isAlive())
+                if (!pSister->IsAlive())
                     pSister->Respawn();
             }
         }
@@ -165,7 +165,7 @@ struct boss_alythessAI : public ScriptedAI
         {
             if (Creature* pSacrolash = m_pInstance->GetSingleCreatureFromStorage(NPC_SACROLASH))
             {
-                if (!pSacrolash->isAlive())
+                if (!pSacrolash->IsAlive())
                 {
                     m_pInstance->SetData(TYPE_EREDAR_TWINS, DONE);
                     DoScriptText(SAY_ALYTHESS_DEAD, m_creature);
@@ -195,7 +195,7 @@ struct boss_alythessAI : public ScriptedAI
             m_introDialogue.DialogueUpdate(uiDiff);
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiEnrageTimer < uiDiff)
@@ -246,7 +246,7 @@ struct boss_alythessAI : public ScriptedAI
 
         if (m_uiBlazeTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BLAZE) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BLAZE) == CAST_OK)
                 m_uiBlazeTimer = 3000;
         }
         else
@@ -294,7 +294,7 @@ struct boss_sacrolashAI : public ScriptedAI
             // Respawn dead sister
             if (Creature* pSister = m_pInstance->GetSingleCreatureFromStorage(NPC_ALYTHESS))
             {
-                if (!pSister->isAlive())
+                if (!pSister->IsAlive())
                     pSister->Respawn();
             }
         }
@@ -320,7 +320,7 @@ struct boss_sacrolashAI : public ScriptedAI
         {
             if (Creature* pAlythess = m_pInstance->GetSingleCreatureFromStorage(NPC_ALYTHESS))
             {
-                if (!pAlythess->isAlive())
+                if (!pAlythess->IsAlive())
                 {
                     m_pInstance->SetData(TYPE_EREDAR_TWINS, DONE);
                     DoScriptText(SAY_SACROLASH_DEAD, m_creature);
@@ -371,7 +371,7 @@ struct boss_sacrolashAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiEnrageTimer < uiDiff)
@@ -414,11 +414,11 @@ struct boss_sacrolashAI : public ScriptedAI
 
         if (m_uiConfoundingBlowTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CONFOUNDING_BLOW) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CONFOUNDING_BLOW) == CAST_OK)
             {
                 // Reset threat
-                if (m_creature->getThreatManager().getThreat(m_creature->getVictim()))
-                    m_creature->getThreatManager().modifyThreatPercent(m_creature->getVictim(), -100);
+                if (m_creature->getThreatManager().getThreat(m_creature->GetVictim()))
+                    m_creature->getThreatManager().modifyThreatPercent(m_creature->GetVictim(), -100);
 
                 m_uiConfoundingBlowTimer = urand(25000, 30000);
             }
@@ -438,14 +438,14 @@ struct boss_sacrolashAI : public ScriptedAI
             m_uiSummonShadowImage -= uiDiff;
 
         // Overwrite the melee attack in order to apply the dark strike
-        if (m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
+        if (m_creature->CanReachWithMeleeAttack(m_creature->GetVictim()))
         {
             // Make sure our attack is ready and we aren't currently casting
             if (m_creature->isAttackReady() && !m_creature->IsNonMeleeSpellCasted(false))
             {
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_DARK_STRIKE);
+                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_DARK_STRIKE);
 
-                m_creature->AttackerStateUpdate(m_creature->getVictim());
+                m_creature->AttackerStateUpdate(m_creature->GetVictim());
                 m_creature->resetAttackTimer();
             }
         }
@@ -476,7 +476,7 @@ struct npc_shadow_imageAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Suicide on timer; this is needed because of the cast time
@@ -498,7 +498,7 @@ struct npc_shadow_imageAI : public ScriptedAI
                 case SPELL_SHADOWFURY:
                     if (m_uiAbilityTimer < uiDiff)
                     {
-                        if (m_creature->IsWithinDistInMap(m_creature->getVictim(), INTERACTION_DISTANCE))
+                        if (m_creature->IsWithinDistInMap(m_creature->GetVictim(), INTERACTION_DISTANCE))
                         {
                             if (DoCastSpellIfCan(m_creature, SPELL_SHADOWFURY) == CAST_OK)
                                 m_uiSuicideTimer = 1000;
@@ -510,7 +510,7 @@ struct npc_shadow_imageAI : public ScriptedAI
                 case SPELL_DARK_STRIKE:
                     if (m_uiAbilityTimer < uiDiff)
                     {
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DARK_STRIKE) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_DARK_STRIKE) == CAST_OK)
                         {
                             ++m_uiDarkStrikes;
                             // kill itself after 2 strikes

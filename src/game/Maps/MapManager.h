@@ -27,6 +27,8 @@
 #include "Grids/GridStates.h"
 #include "Maps/MapUpdater.h"
 
+#include <functional>
+
 class Transport;
 class BattleGround;
 
@@ -123,11 +125,11 @@ class MapManager : public MaNGOS::Singleton<MapManager, MaNGOS::ClassLevelLockab
             if (o < 0)
             {
                 float mod = o * -1;
-                mod = fmod(mod, 2.0f * M_PI_F);
+                mod = std::fmod(mod, 2.0f * M_PI_F);
                 mod = -mod + 2.0f * M_PI_F;
                 return mod;
             }
-            return fmod(o, 2.0f * M_PI_F);
+            return std::fmod(o, 2.0f * M_PI_F);
         }
 
         void RemoveAllObjectsInRemoveList();
@@ -146,10 +148,6 @@ class MapManager : public MaNGOS::Singleton<MapManager, MaNGOS::ClassLevelLockab
         /* statistics */
         uint32 GetNumInstances();
         uint32 GetNumPlayersInInstances();
-
-        uint32 GetMapUpdateMinTime(uint32 mapId, uint32 instance = 0);
-        uint32 GetMapUpdateMaxTime(uint32 mapId, uint32 instance = 0);
-        uint32 GetMapUpdateAvgTime(uint32 mapId, uint32 instance = 0);
 
         // get list of all maps
         const MapMapType& Maps() const { return i_maps; }

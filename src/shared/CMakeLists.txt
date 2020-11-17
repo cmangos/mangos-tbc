@@ -76,6 +76,18 @@ set(SRC_GRP_LOG
     Log.h
 )
 
+set(SRC_GRP_MT
+    Multithreading/Messager.h
+    Multithreading/Messager.cpp
+)
+
+set(SRC_GRP_METRIC
+    Metric/Measurement.cpp
+    Metric/Measurement.h
+    Metric/Metric.cpp
+    Metric/Metric.h
+)
+
 set(SRC_GRP_NETWORK
     Network/PacketBuffer.cpp
     Network/Socket.cpp
@@ -96,6 +108,7 @@ set(SRC_GRP_UTIL
     Util.h
     WorldPacket.h
     ProducerConsumerQueue.h
+    CommonDefines.h
 )
 
 set(SRC_GRP_SRP
@@ -109,9 +122,11 @@ set(LIBRARY_SRCS
     ${SRC_GRP_DATABASE}
     ${SRC_GRP_DATABASE_DBC}
     ${SRC_GRP_LOG}
+    ${SRC_GRP_METRIC}
     ${SRC_GRP_UTIL}
     ${SRC_GRP_SRP}
     ${SRC_GRP_NETWORK}
+    ${SRC_GRP_MT}
     Common.cpp
     Common.h
     revision_sql.h
@@ -149,6 +164,11 @@ source_group("Log"
     ${SRC_GRP_LOG}
 )
 
+source_group("Metric"
+  FILES
+    ${SRC_GRP_METRIC}
+)
+
 source_group("Util"
   FILES
     ${SRC_GRP_UTIL}
@@ -157,6 +177,11 @@ source_group("Util"
 source_group("SRP"
   FILES
     ${SRC_GRP_SRP}
+)
+
+source_group("Multithreading"
+  FILES
+    ${SRC_GRP_MT}
 )
 
 # OS specific files
@@ -192,12 +217,22 @@ target_include_directories(${LIBRARY_NAME}
   PUBLIC "${CMAKE_SOURCE_DIR}/src/game"
 )
 
-target_link_libraries(${LIBRARY_NAME}
-  PUBLIC framework
-  PUBLIC ${Boost_LIBRARIES}
-  PUBLIC ${OPENSSL_LIBRARIES}
-  PUBLIC utf8cpp
-)
+if(UNIX)
+  target_link_libraries(${LIBRARY_NAME}
+    PUBLIC framework
+    PUBLIC utf8cpp
+    PUBLIC dl
+    PUBLIC ${Boost_LIBRARIES}
+    PUBLIC ${OPENSSL_LIBRARIES}
+  )
+else()
+  target_link_libraries(${LIBRARY_NAME}
+    PUBLIC framework
+    PUBLIC ${Boost_LIBRARIES}
+    PUBLIC ${OPENSSL_LIBRARIES}
+    PUBLIC utf8cpp
+  )
+endif()
 
 if(POSTGRESQL AND POSTGRESQL_FOUND)
   target_include_directories(${LIBRARY_NAME} PUBLIC ${PostgreSQL_INCLUDE_DIRS})
@@ -208,7 +243,7 @@ else()
     # Add provided dependency lib to dev folder
     string(REGEX REPLACE "/" "\\\\" LibFolder ${DEV_PROVIDED_LIBS_FOLDER})
     add_custom_command(TARGET ${LIBRARY_NAME} POST_BUILD
-      COMMAND copy \"${LibFolder}\\*.dll\" \"${DEV_BIN_DIR}\")
+      COMMAND xcopy /Y \"${LibFolder}\\*.dll\" \"${DEV_BIN_DIR}\\*.dll\")
   endif()
 endif()
 

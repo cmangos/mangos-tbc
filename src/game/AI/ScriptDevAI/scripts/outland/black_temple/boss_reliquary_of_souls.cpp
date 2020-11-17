@@ -325,9 +325,9 @@ struct essence_base_AI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
@@ -515,11 +515,12 @@ struct boss_essence_of_desireAI : public essence_base_AI
         DoScriptText(DESI_SAY_RECAP, m_creature);
     }
 
-    void DamageTaken(Unit* doneBy, uint32& damage, DamageEffectType damagetype, SpellEntry const* spellInfo) override
+    void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType damagetype, SpellEntry const* spellInfo) override
     {
         int32 damageTaken = ((int32)damage) / 2;
-        doneBy->CastCustomSpell(doneBy, SPELL_AURA_OF_DESIRE_SELF_DMG, &damageTaken, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
-        ScriptedAI::DamageTaken(doneBy, damage, damagetype, spellInfo);
+        if (dealer)
+            dealer->CastCustomSpell(dealer, SPELL_AURA_OF_DESIRE_SELF_DMG, &damageTaken, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+        ScriptedAI::DamageTaken(dealer, damage, damagetype, spellInfo);
     }
 
     void ExecuteActions() override
@@ -544,7 +545,7 @@ struct boss_essence_of_desireAI : public essence_base_AI
                     }
                     case DESIRE_ACTION_DEADEN:
                     {
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_DEADEN) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_DEADEN) == CAST_OK)
                         {
                             DoScriptText(DESI_SAY_SPEC, m_creature);
                             ResetTimer(i, GetSubsequentActionTimer(DesireActions(i)));
@@ -554,7 +555,7 @@ struct boss_essence_of_desireAI : public essence_base_AI
                     }
                     case DESIRE_ACTION_SPIRIT_SHOCK:
                     {
-                        if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SPIRIT_SHOCK) == CAST_OK)
+                        if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SPIRIT_SHOCK) == CAST_OK)
                         {
                             ResetTimer(i, GetSubsequentActionTimer(DesireActions(i)));
                             SetActionReadyStatus(i, false);
@@ -699,9 +700,9 @@ struct boss_essence_of_angerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
@@ -772,7 +773,7 @@ struct npc_enslaved_soulAI : public ScriptedAI, TimerManager
     {
         UpdateTimers(diff);
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();

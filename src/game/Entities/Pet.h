@@ -193,9 +193,10 @@ class Pet : public Creature
 
         bool CanSwim() const
         {
-            Unit const* owner = GetOwner();
-            if (owner)
-                return owner->GetTypeId() == TYPEID_PLAYER ? true : ((Creature const*)owner)->CanSwim();
+            if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+                return true;
+            if (Unit const* owner = GetOwner())
+                return static_cast<Creature const*>(owner)->CanSwim();
             return Creature::CanSwim();
         }
 
@@ -218,9 +219,6 @@ class Pet : public Creature
         uint32 GetCurrentFoodBenefitLevel(uint32 itemlevel) const;
         void SetDuration(int32 dur) { m_duration = dur; }
         int32 GetDuration() const { return m_duration; }
-
-        int32 GetBonusDamage() const { return m_bonusdamage; }
-        void SetBonusDamage(int32 damage) { m_bonusdamage = damage; }
 
         bool UpdateStats(Stats stat) override;
         bool UpdateAllStats() override;
@@ -299,13 +297,13 @@ class Pet : public Creature
 
         virtual void RegenerateHealth() override;
 
+        void ResetCorpseRespawn();
     protected:
         uint32  m_happinessTimer;
         uint32  m_loyaltyTimer;
         PetType m_petType;
         int32   m_duration;                                 // time until unsummon (used mostly for summoned guardians and not used for controlled pets)
         int32   m_loyaltyPoints;
-        int32   m_bonusdamage;
         bool    m_loading;
         uint32  m_xpRequiredForNextLoyaltyLevel;
         DeclinedName* m_declinedname;
@@ -313,6 +311,7 @@ class Pet : public Creature
     private:
         PetModeFlags m_petModeFlags;
         CharmInfo*   m_originalCharminfo;
+        bool m_inStatsUpdate;
 
         void SaveToDB(uint32, uint8) override               // overwrited of Creature::SaveToDB     - don't must be called
         {

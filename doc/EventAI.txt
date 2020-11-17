@@ -172,6 +172,8 @@ For all ACTION_T_RANDOM Actions, When a Particular Param is selected for the Eve
 57  ACTION_T_SET_RANGED_MODE                RangeModeType,chaseDistance         Enables RangeModeType AI (0 off, 1 = caster, 2 = hunter), distance to chase at
 58  ACTION_T_SET_WALK                       WalkSetting                         Enables Walk (0 off, 1 on) or enables chase walk (2 off, 3 on)
 59  ACTION_T_SET_FACING                     Target, Reset                       Set 0, Reset 1
+60  ACTION_T_SET_SPELL_SET                  SetId                               Set for possess
+61  ACTION_T_SET_IMMOBILIZED_STATE          Apply, CombatOnly                   CombatOnly is autoremoved on combat stop (death, evade, despawn)
 
 * = Use -1 where the param is expected to do nothing. Random constant is generated for each event, so if you have a random yell and a random sound, they will be linked up with each other (ie. param2 with param2).
 
@@ -1097,6 +1099,17 @@ Parameter 2: Reset boolean, 0 sets and 1 resets
 
 Sets facing, i.e. orientation to target, or resets it to last waypoint hit, or to respawn position.
 
+--------------------------------
+60 - ACTION_T_SET_SPELL_SET
+--------------------------------
+Parameter 1: creature_template_spells setid
+
+--------------------------------
+61 - ACTION_T_SET_IMMOBILIZED_STATE
+--------------------------------
+Parameter 1: apply
+Parameter 2: combatOnly - autoremoved on combat stop
+
 =========================================
 Target Types
 =========================================
@@ -1144,7 +1157,7 @@ Another example: the number "5" (101 in Binary, selecting first and third option
 8   128         CAST_SWITCH_CASTER_TARGET           Switches target and caster for spell cast - enables casting by spawner on AI owner for example
 9   256         CAST_MAIN_SPELL                     Marks main spell for ranged mode. When this spell is interrupted or goes OOM, the AI owner goes into melee mode. Connected to ACTION_T_SET_RANGED_MODE
 10  512         CAST_PLAYER_ONLY                    To be used in connection with targets. Restricts targeting to player only
-11  1024        CAST_DISTANCE_YOURSELF              Marks spell which stuns or immobilizes, so that creature distances itself from target, when main aggro target is hit (getVictim()). Connected to ACTION_T_SET_RANGED_MODE.
+11  1024        CAST_DISTANCE_YOURSELF              Marks spell which stuns or immobilizes, so that creature distances itself from target, when main aggro target is hit (GetVictim()). Connected to ACTION_T_SET_RANGED_MODE.
 
 NOTE: You can add the numbers in the decimal column to combine flags.
 For example if you wanted to use CAST_NO_MELEE_IF_OOM(8) and CAST_TRIGGERED(2) you would simply use 10 in the cast flags field (8 + 2 = 10).

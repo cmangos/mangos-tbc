@@ -22,9 +22,11 @@
 #include "MotionGenerators/PathFinder.h"
 #include "Log.h"
 #include "World/World.h"
+#include "Metric/Metric.h"
 
 #include <Detour/Include/DetourCommon.h>
 #include <Detour/Include/DetourMath.h>
+#include <limits>
 
 ////////////////// PathFinder //////////////////
 PathFinder::PathFinder(const Unit* owner) :
@@ -66,6 +68,14 @@ bool PathFinder::calculate(const Vector3& start, const Vector3& dest, bool force
     if (!MaNGOS::IsValidMapCoord(start.x, start.y, start.z))
         return false;
 
+    metric::duration<std::chrono::microseconds> meas("pathfinder.calculate", {
+        { "entry", std::to_string(m_sourceUnit->GetEntry()) },
+        { "guid", std::to_string(m_sourceUnit->GetGUIDLow()) },
+        { "unit_type", std::to_string(m_sourceUnit->GetGUIDHigh()) },
+        { "map_id", std::to_string(m_sourceUnit->GetMapId()) },
+        { "instance_id", std::to_string(m_sourceUnit->GetInstanceId()) }
+    }, 1000);
+
     setStartPosition(start);
 
     setEndPosition(dest);
@@ -96,7 +106,7 @@ dtPolyRef PathFinder::getPathPolyByPosition(const dtPolyRef* polyPath, uint32 po
         return INVALID_POLYREF;
 
     dtPolyRef nearestPoly = INVALID_POLYREF;
-    float minDist2d = FLT_MAX;
+    float minDist2d = std::numeric_limits<float>::max();
     float minDist3d = 0.0f;
 
     for (uint32 i = 0; i < polyPathSize; ++i)

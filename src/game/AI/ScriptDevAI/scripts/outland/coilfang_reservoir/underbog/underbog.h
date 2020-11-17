@@ -11,6 +11,11 @@ enum
     NPC_CLAW              = 17827,
     NPC_CLAW_DRUID_FORM   = 17894,
     NPC_GHAZAN            = 18105,
+    NPC_BLACK_STALKER     = 17882,
+
+    NPC_UNDERBOG_FRENZY   = 20465,
+
+    SPELL_PERMANENT_FEIGH_DEATH = 31261,
 
     DATA_GHAZAN_SURFACE   = 0,
 };
@@ -25,6 +30,7 @@ class instance_underbog : public ScriptedInstance
         uint32 GetData(uint32 type) const override;
 
         void OnCreatureCreate(Creature* creature) override;
+        void OnCreatureDeath(Creature* creature) override;
 
     private:
         bool m_bGhazanSurfaced;

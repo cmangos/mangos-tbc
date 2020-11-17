@@ -29,10 +29,11 @@
 #include "Entities/UpdateData.h"
 #include "UpdateMask.h"
 #include "Util.h"
-#include "Maps/MapManager.h"
 #include "Grids/CellImpl.h"
 #include "Grids/GridNotifiers.h"
 #include "Grids/GridNotifiersImpl.h"
+#include "Maps/GridDefines.h"
+#include "Maps/MapManager.h"
 #include "Maps/ObjectPosSelector.h"
 #include "Entities/TemporarySpawn.h"
 #include "Movement/packet_builder.h"
@@ -110,12 +111,14 @@ void Object::SendForcedObjectUpdate()
     BuildUpdateData(update_players);
     RemoveFromClientUpdateList();
 
-    WorldPacket packet;                                     // here we allocate a std::vector with a size of 0x10000
+    // here we allocate a std::vector with a size of 0x10000
     for (auto& update_player : update_players)
     {
-        update_player.second.BuildPacket(packet);
-        update_player.first->GetSession()->SendPacket(packet);
-        packet.clear();                                     // clean the string
+        for (size_t i = 0; i < update_player.second.GetPacketCount(); ++i)
+        {
+            WorldPacket packet = update_player.second.BuildPacket(i);
+            update_player.first->GetSession()->SendPacket(packet);
+        }
     }
 }
 
@@ -162,7 +165,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
 
     if (isType(TYPEMASK_UNIT))
     {
-        if (((Unit*)this)->getVictim())
+        if (((Unit*) this)->GetVictim())
             updateFlags |= UPDATEFLAG_HAS_ATTACKING_TARGET;
     }
 
@@ -185,12 +188,14 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
 void Object::SendCreateUpdateToPlayer(Player* player) const
 {
     // send create update to player
-    UpdateData upd;
-    WorldPacket packet;
+    UpdateData updateData;
+    BuildCreateUpdateBlockForPlayer(&updateData, player);
 
-    BuildCreateUpdateBlockForPlayer(&upd, player);
-    upd.BuildPacket(packet);
-    player->GetSession()->SendPacket(packet);
+    for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
+    {
+        WorldPacket packet = updateData.BuildPacket(i);
+        player->GetSession()->SendPacket(packet);
+    }
 }
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
@@ -346,8 +351,8 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
     // 0x4
     if (updateFlags & UPDATEFLAG_HAS_ATTACKING_TARGET)      // packed guid (current target guid)
     {
-        if (((Unit*)this)->getVictim())
-            *data << ((Unit*)this)->getVictim()->GetPackGUID();
+        if (((Unit*) this)->GetVictim())
+            *data << ((Unit*) this)->GetVictim()->GetPackGUID();
         else
             data->appendPackGUID(0);
     }
@@ -521,11 +526,32 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                 {
                     *data << uint32(0);
                 }
-
-                // Gamemasters should be always able to select units - remove not selectable flag
-                else if (index == UNIT_FIELD_FLAGS && target->isGameMaster())
+                else if (index == UNIT_FIELD_FLAGS)
                 {
-                    *data << (m_uint32Values[index] & ~UNIT_FLAG_NOT_SELECTABLE);
+                    uint32 value = m_uint32Values[index];
+
+                    // For gamemasters in GM mode:
+                    if (target->isGameMaster())
+                    {
+                        // Gamemasters should be always able to select units - remove not selectable flag:
+                        value &= ~UNIT_FLAG_NOT_SELECTABLE;
+
+                        // Gamemasters have power to cliffwalk in GM mode:
+                        if (target == this)
+                            value |= UNIT_FLAG_UNK_0;
+                    }
+
+                    // Client bug workaround: Fix for missing chat channels when resuming taxi flight on login
+                    // Client does not send any chat joining attempts by itself when taxi flag is on
+                    if (target == this && (value & UNIT_FLAG_TAXI_FLIGHT))
+                    {
+                        if (sWorld.getConfig(CONFIG_BOOL_TAXI_FLIGHT_CHAT_FIX))
+                            if (WorldSession* session = static_cast<Player const*>(this)->GetSession())
+                                if (!session->IsInitialZoneUpdated())
+                                    value &= ~UNIT_FLAG_TAXI_FLIGHT;
+                    }
+
+                    *data << value;
                 }
                 // Hide lootable animation for unallowed players
                 // Handle tapped flag
@@ -535,7 +561,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                     uint32 dynflagsValue = m_uint32Values[index];
 
                     // Checking SPELL_AURA_EMPATHY and caster
-                    if (dynflagsValue & UNIT_DYNFLAG_SPECIALINFO && ((Unit*)this)->isAlive())
+                    if (dynflagsValue & UNIT_DYNFLAG_SPECIALINFO && ((Unit*) this)->IsAlive())
                     {
                         bool bIsEmpathy = false;
                         bool bIsCaster = false;
@@ -557,12 +583,12 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                         Creature* creature = (Creature*)this;
                         bool setTapFlags = false;
 
-                        if (creature->isAlive())
+                        if (creature->IsAlive())
                         {
                             // creature is alive so, not lootable
                             dynflagsValue = dynflagsValue & ~UNIT_DYNFLAG_LOOTABLE;
 
-                            if (creature->isInCombat())
+                            if (creature->IsInCombat())
                             {
                                 // as creature is in combat we have to manage tap flags
                                 setTapFlags = true;
@@ -764,23 +790,22 @@ void Object::ClearUpdateMask(bool remove)
     }
 }
 
-bool Object::LoadValues(const char* data)
+void Object::_LoadIntoDataField(const char* data, uint32 startOffset, uint32 count)
 {
-    if (!m_uint32Values) _InitValues();
+    if (!data)
+        return;
 
     Tokens tokens = StrSplit(data, " ");
 
-    if (tokens.size() != m_valuesCount)
-        return false;
+    if (tokens.size() != count)
+        return;
 
-    Tokens::iterator iter;
-    int index;
-    for (iter = tokens.begin(), index = 0; index < m_valuesCount; ++iter, ++index)
+    Tokens::const_iterator iter;
+    uint32 index;
+    for (iter = tokens.begin(), index = 0; index < count; ++iter, ++index)
     {
-        m_uint32Values[index] = std::stoul(*iter);
+        m_uint32Values[startOffset + index] = atol((*iter).c_str());
     }
-
-    return true;
 }
 
 void Object::_SetUpdateBits(UpdateMask* updateMask, Player* /*target*/) const
@@ -1093,8 +1118,9 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
-    m_currMap(nullptr), m_mapId(0),
-    m_InstanceId(0), m_isActiveObject(false), m_visibilityData(this)
+    m_visibilityData(this), m_currMap(nullptr),
+    m_mapId(0), m_InstanceId(0),
+    m_isActiveObject(false), m_debugFlags(0)
 {
 }
 
@@ -1375,7 +1401,23 @@ bool WorldObject::IsInRange3d(float x, float y, float z, float minRange, float m
     return distsq < maxdist * maxdist;
 }
 
-float WorldObject::GetAngle(const WorldObject* obj) const
+// Return angle in range 0..2*pi
+float WorldObject::GetAngleAt(float x, float y, float ox, float oy)
+{
+    float dx = (ox - x);
+    float dy = (oy - y);
+
+    float ang = std::atan2(dy, dx);                              // returns value between -Pi..Pi
+    ang = (ang >= 0) ? ang : 2 * M_PI_F + ang;
+    return ang;
+}
+
+float WorldObject::GetAngle(float x, float y) const
+{
+    return m_position.GetAngle(x, y);
+}
+
+float WorldObject::GetAngleAt(float x, float y, const WorldObject* obj) const
 {
     if (!obj)
         return 0.0f;
@@ -1387,21 +1429,18 @@ float WorldObject::GetAngle(const WorldObject* obj) const
         sLog.outError("INVALID CALL for GetAngle for %s", obj->GetGuidStr().c_str());
         return 0.0f;
     }
-    return GetAngle(obj->GetPositionX(), obj->GetPositionY());
+    return GetAngleAt(x, y, obj->GetPositionX(), obj->GetPositionY());
 }
 
-// Return angle in range 0..2*pi
-float WorldObject::GetAngle(const float x, const float y) const
+float WorldObject::GetAngle(const WorldObject* obj) const
 {
-    float dx = x - GetPositionX();
-    float dy = y - GetPositionY();
+    if (!obj)
+        return 0.0f;
 
-    float ang = atan2(dy, dx);                              // returns value between -Pi..Pi
-    ang = (ang >= 0) ? ang : 2 * M_PI_F + ang;
-    return ang;
+    return GetAngleAt(GetPositionX(), GetPositionY(), obj->GetPositionX(), obj->GetPositionY());
 }
 
-bool WorldObject::HasInArc(const WorldObject* target, float arc /*= M_PI*/) const
+bool WorldObject::HasInArcAt(float x, float y, float o, const WorldObject* target, float arc/* = M_PI_F*/) const
 {
     // always have self in arc
     if (target == this)
@@ -1410,8 +1449,8 @@ bool WorldObject::HasInArc(const WorldObject* target, float arc /*= M_PI*/) cons
     // move arc to range 0.. 2*pi
     arc = MapManager::NormalizeOrientation(arc);
 
-    float angle = GetAngle(target);
-    angle -= m_position.o;
+    float angle = GetAngleAt(x, y, target);
+    angle -= o;
 
     // move angle to range -pi ... +pi
     angle = MapManager::NormalizeOrientation(angle);
@@ -1421,6 +1460,11 @@ bool WorldObject::HasInArc(const WorldObject* target, float arc /*= M_PI*/) cons
     float lborder =  -1 * (arc / 2.0f);                     // in range -pi..0
     float rborder = (arc / 2.0f);                           // in range 0..pi
     return ((angle >= lborder) && (angle <= rborder));
+}
+
+bool WorldObject::HasInArc(const WorldObject* target, float arc/* = M_PI_F*/) const
+{
+    return HasInArcAt(GetPositionX(), GetPositionY(), GetOrientation(), target, arc);
 }
 
 bool WorldObject::IsFacingTargetsBack(const WorldObject* target, float arc /*= M_PI_F*/) const
@@ -1631,12 +1675,12 @@ namespace MaNGOS
     {
         public:
             MonsterChatBuilder(WorldObject const& obj, ChatMsg msgtype, MangosStringLocale const* textData, Language language, Unit const* target)
-                : i_object(obj), i_msgtype(msgtype), i_textData(textData), i_language(language), i_target(target) {}
+                : i_object(obj), i_msgtype(msgtype), i_textData(textData), i_language(language), i_target(target), m_gender(obj.IsUnit() ? Gender(static_cast<Unit const&>(obj).getGender()) : GENDER_MALE) {}
             void operator()(WorldPacket& data, int32 loc_idx)
             {
                 char const* text = nullptr;
                 if (BroadcastText const* bct = i_textData->broadcastText)
-                    text = bct->GetText(loc_idx).data();
+                    text = bct->GetText(loc_idx, m_gender).data();
                 else
                 {
                     if ((int32)i_textData->Content.size() > loc_idx + 1 && !i_textData->Content[loc_idx + 1].empty())
@@ -1655,6 +1699,7 @@ namespace MaNGOS
             MangosStringLocale const* i_textData;
             Language i_language;
             Unit const* i_target;
+            Gender m_gender;
     };
 }                                                           // namespace MaNGOS
 
@@ -2255,10 +2300,21 @@ bool WorldObject::HasGCD(SpellEntry const* spellEntry) const
     if (spellEntry)
     {
         auto gcdItr = m_GCDCatMap.find(spellEntry->StartRecoveryCategory);
-        return gcdItr != m_GCDCatMap.end();
+        return gcdItr != m_GCDCatMap.end() && (*gcdItr).second > GetMap()->GetCurrentClockTime();
+    }
+    return !m_GCDCatMap.empty();
+}
+
+TimePoint WorldObject::GetGCD(SpellEntry const* spellEntry) const
+{
+    if (spellEntry)
+    {
+        auto gcdItr = m_GCDCatMap.find(spellEntry->StartRecoveryCategory);
+        if (gcdItr != m_GCDCatMap.end())
+        return (*gcdItr).second;
     }
 
-    return !m_GCDCatMap.empty();
+    return GetMap()->GetCurrentClockTime();
 }
 
 void WorldObject::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* /*itemProto = nullptr*/, bool /*permanent = false*/, uint32 forcedDuration /*= 0*/)
@@ -2295,12 +2351,12 @@ void WorldObject::UpdateCooldowns(TimePoint const& now)
     }
 }
 
-bool WorldObject::CheckLockout(SpellSchoolMask schoolMask) const
+bool WorldObject::CheckLockout(SpellSchoolMask schoolMask, TimePoint const& now) const
 {
     for (auto& lockoutItr : m_lockoutMap)
     {
         SpellSchoolMask lockoutSchoolMask = SpellSchoolMask(1 << lockoutItr.first);
-        if (lockoutSchoolMask & schoolMask)
+        if ((lockoutSchoolMask & schoolMask) && lockoutItr.second > now)
             return true;
     }
 
@@ -2336,6 +2392,12 @@ bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const
 {
     uint32 spellCategory = spellEntry.Category;
 
+    TimePoint now;
+    if (IsInWorld())
+        now = GetMap()->GetCurrentClockTime();
+    else
+        now = World::GetCurrentClockTime();
+
     // overwrite category by provided category in item prototype during item cast if need
     if (itemProto)
     {
@@ -2349,13 +2411,21 @@ bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const
         }
     }
 
-    if (m_cooldownMap.FindBySpellId(spellEntry.Id) != m_cooldownMap.end())
-        return false;
+    {
+        auto itr = m_cooldownMap.FindBySpellId(spellEntry.Id);
+        if (itr != m_cooldownMap.end() && !(*itr).second->IsSpellCDExpired(now))
+            if (!itemProto || itemProto->ItemId == (*itr).second.get()->GetItemId())
+                return false;
+    }
 
-    if (spellCategory && m_cooldownMap.FindByCategory(spellCategory) != m_cooldownMap.end())
-        return false;
+    if (spellCategory)
+    {
+        auto itr = m_cooldownMap.FindByCategory(spellCategory);
+        if (itr != m_cooldownMap.end() && !(*itr).second->IsCatCDExpired(now))
+            return false;
+    }
 
-    if (spellEntry.PreventionType == SPELL_PREVENTION_TYPE_SILENCE && CheckLockout(GetSpellSchoolMask(&spellEntry)))
+    if (spellEntry.PreventionType == SPELL_PREVENTION_TYPE_SILENCE && CheckLockout(GetSpellSchoolMask(&spellEntry), now))
         return false;
 
     return true;
@@ -2368,6 +2438,65 @@ bool WorldObject::IsSpellReady(uint32 spellId, ItemPrototype const* itemProto /*
         return false;
 
     return IsSpellReady(*spellEntry, itemProto);
+}
+
+bool WorldObject::HasGCDOrCooldownWithinMargin(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/)
+{
+    uint64 diff = 0;
+    auto gcdItr = m_GCDCatMap.find(spellEntry.StartRecoveryCategory);
+    if (gcdItr != m_GCDCatMap.end())
+        diff = std::max(diff, uint64(((*gcdItr).second - GetMap()->GetCurrentClockTime()).count()));
+
+    uint32 spellCategory = spellEntry.Category;
+    if (itemProto)
+    {
+        for (const auto& Spell : itemProto->Spells)
+        {
+            if (Spell.SpellId == spellEntry.Id)
+            {
+                spellCategory = Spell.SpellCategory;
+                break;
+            }
+        }
+    }
+
+    auto itr = m_cooldownMap.FindBySpellId(spellEntry.Id);
+    if (itr != m_cooldownMap.end() && !(*itr).second->IsSpellCDExpired(GetMap()->GetCurrentClockTime()))
+    {
+        if (!itemProto || itemProto->ItemId == (*itr).second.get()->GetItemId())
+        {
+            TimePoint timePoint;
+            if ((*itr).second->GetSpellCDExpireTime(timePoint))
+                diff = std::max(diff, uint64((timePoint - GetMap()->GetCurrentClockTime()).count()));
+        }
+    }
+
+    if (spellCategory)
+    {
+        auto itr = m_cooldownMap.FindByCategory(spellCategory);
+        if (itr != m_cooldownMap.end() && !(*itr).second->IsCatCDExpired(GetMap()->GetCurrentClockTime()))
+        {
+            TimePoint timePoint;
+            if ((*itr).second->GetCatCDExpireTime(timePoint))
+                diff = std::max(diff, uint64((timePoint - GetMap()->GetCurrentClockTime()).count()));
+        }
+    }
+
+    if (spellEntry.PreventionType == SPELL_PREVENTION_TYPE_SILENCE)
+    {
+        SpellSchoolMask spellSchoolMask = GetSpellSchoolMask(&spellEntry);
+        for (auto& lockoutItr : m_lockoutMap)
+        {
+            SpellSchoolMask lockoutSchoolMask = SpellSchoolMask(1 << lockoutItr.first);
+            if ((lockoutSchoolMask & spellSchoolMask) && lockoutItr.second > GetMap()->GetCurrentClockTime())
+                diff = std::max(diff, uint64((lockoutItr.second - GetMap()->GetCurrentClockTime()).count()));
+        }
+    }
+
+    if (diff < 50)
+        return true;
+
+    return false;
 }
 
 void WorldObject::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
@@ -2600,6 +2729,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
                 case SPELL_AURA_PERIODIC_LEECH:
                     //   SPELL_AURA_PERIODIC_DAMAGE_PERCENT: excluded, abs values only
                 case SPELL_AURA_POWER_BURN_MANA:
+                case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
                     damage = true;
             }
         }
@@ -2633,4 +2763,14 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
     }
 
     return value;
+}
+
+float Position::GetAngle(const float x, const float y) const
+{
+    float dx = x - GetPositionX();
+    float dy = y - GetPositionY();
+
+    float ang = atan2(dy, dx);                              // returns value between -Pi..Pi
+    ang = (ang >= 0) ? ang : 2 * M_PI_F + ang;
+    return ang;
 }

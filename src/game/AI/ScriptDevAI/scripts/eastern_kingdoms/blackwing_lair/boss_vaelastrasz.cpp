@@ -190,7 +190,7 @@ struct boss_vaelastraszAI : public CombatAI
                 for (CreatureList::const_iterator itr = lTechniciansList.begin(); itr != lTechniciansList.end(); ++itr)
                 {
                     // Ignore Blackwing Technicians on upper floors and dead ones
-                    if (!((*itr)->isAlive()) || (*itr)->GetPositionZ() > m_creature->GetPositionZ() + 1)
+                    if (!((*itr)->IsAlive()) || (*itr)->GetPositionZ() > m_creature->GetPositionZ() + 1)
                         continue;
 
                     // Each fleeing part and despawn is handled in DB, we only need to make them run
@@ -286,7 +286,7 @@ struct boss_vaelastraszAI : public CombatAI
             }
             case VAEL_BURNING_ADRENALINE_TANK:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_BURNING_ADRENALINE_TANK) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BURNING_ADRENALINE_TANK) == CAST_OK)
                     ResetCombatAction(action, 45000);
                 break;
             }
@@ -299,7 +299,7 @@ struct boss_vaelastraszAI : public CombatAI
             }
             case VAEL_FLAME_BREATH:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_FLAME_BREATH) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FLAME_BREATH) == CAST_OK)
                     ResetCombatAction(action, urand(4000, 8000));
                 break;
             }
@@ -311,7 +311,7 @@ struct boss_vaelastraszAI : public CombatAI
             }
             case VAEL_CLEAVE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CLEAVE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
                     ResetCombatAction(action, 15000);
                 break;
             }
@@ -374,7 +374,7 @@ bool AreaTrigger_at_vaelastrasz(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (pAt->id == AREATRIGGER_VAEL_INTRO)
     {
-        if (pPlayer->isGameMaster() || pPlayer->isDead())
+        if (pPlayer->isGameMaster() || pPlayer->IsDead())
             return false;
 
         if (instance_blackwing_lair* pInstance = (instance_blackwing_lair*)pPlayer->GetInstanceData())

@@ -217,6 +217,8 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     uint32 m_uiBellTolls;
     std::vector<std::pair<ObjectGuid, uint32>> m_vBellGuids;
 
+    ObjectGuid m_lastRingOfBlood;
+
     // Worldstate variables
     uint32 m_deathsDoorEventActive;
     int32 m_deathsDoorNorthHP;
@@ -497,6 +499,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case NPC_SOCRETHAR:
             case NPC_DEATHS_DOOR_NORTH_WARP_GATE:
             case NPC_DEATHS_DOOR_SOUTH_WARP_GATE:
+            case NPC_GURTHOCK:
                 m_npcEntryGuidStore[creature->GetEntry()] = creature->GetObjectGuid();
                 break;
             case NPC_SKYGUARD_AETHER_TECH:
@@ -540,6 +543,63 @@ struct world_map_outland : public ScriptedMap, public TimerManager
         }
     }
 
+    void OnCreatureRespawn(Creature* creature) override
+    {
+        switch (creature->GetEntry())
+        {
+            case NPC_BROKENTOE:
+            case NPC_MURKBLOOD_TWIN:
+            case NPC_ROKDAR:
+            case NPC_SKRAGATH:
+            case NPC_WARMAUL_CHAMPION:
+            case NPC_MOGOR:
+                creature->SetCorpseDelay(20);
+                creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
+                    {
+                        return unit->GetDistance(-707.214f, 7877.495f, 45.191f, DIST_CALC_NONE) > 2500.f; // squared
+                    });
+                if (creature->GetEntry() != NPC_MOGOR)
+                    m_lastRingOfBlood = creature->GetObjectGuid();
+                break;
+            case NPC_ETHEREUM_PRISONER: // Gameobject should close when Ethereum Prisoner respawns
+                if (GameObject* go = GetClosestGameObjectWithEntry(creature, GO_SALVAGED_ETHEREUM_PRISON, 3.f))
+                {
+                    go->ResetDoorOrButton();
+                }
+                break;
+        }
+    }
+
+    void OnCreatureEvade(Creature* creature) override
+    {
+        switch (creature->GetEntry())
+        {
+            case NPC_BROKENTOE:
+            case NPC_MURKBLOOD_TWIN:
+            case NPC_ROKDAR:
+            case NPC_SKRAGATH:
+            case NPC_WARMAUL_CHAMPION:
+                creature->ForcedDespawn(1);
+                break;
+        }
+    }
+
+    void OnCreatureDespawn(Creature* creature) override
+    {
+        switch (creature->GetEntry())
+        {
+            case NPC_BROKENTOE:
+            case NPC_MURKBLOOD_TWIN:
+            case NPC_ROKDAR:
+            case NPC_SKRAGATH:
+            case NPC_WARMAUL_CHAMPION:
+                if (creature->GetObjectGuid() == m_lastRingOfBlood)
+                    if (Creature* gurthock = GetSingleCreatureFromStorage(NPC_GURTHOCK))
+                        gurthock->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                break;
+        }
+    }
+
     void OnCreatureDeath(Creature* creature) override
     {
         switch (creature->GetEntry())
@@ -574,6 +634,15 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                 break;
             case NPC_GRAND_COLLECTOR:
                 FinishPhase(BASHIR_PHASE_3);
+                break;
+            case NPC_BROKENTOE:
+            case NPC_MURKBLOOD_TWIN:
+            case NPC_ROKDAR:
+            case NPC_SKRAGATH:
+            case NPC_WARMAUL_CHAMPION:
+                if (creature->GetObjectGuid() == m_lastRingOfBlood)
+                    if (Creature* gurthock = GetSingleCreatureFromStorage(NPC_GURTHOCK))
+                        gurthock->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
                 break;
         }
     }
@@ -691,6 +760,17 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                         break;
                 }
                 break;
+            case TYPE_MOGOR:
+                if (Creature* mogor = GetSingleCreatureFromStorage(NPC_MOGOR))
+                {
+                    if (mogor->IsAlive())
+                    {
+                        m_lastRingOfBlood = mogor->GetObjectGuid();
+                        if (Creature* gurthock = GetSingleCreatureFromStorage(NPC_GURTHOCK))
+                            gurthock->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                    }
+                }
+                break;
         }
     }
 
@@ -701,7 +781,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case INSTANCE_CONDITION_ID_SOCRETHAR_GOSSIP:
             {
                 Creature const* socrethar = GetSingleCreatureFromStorage(NPC_SOCRETHAR);
-                if (!socrethar || !socrethar->isAlive() || socrethar->isInCombat())
+                if (!socrethar || !socrethar->IsAlive() || socrethar->IsInCombat())
                     return true;
                 return false;
             }
@@ -954,7 +1034,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
         }
         for (ObjectGuid guid : m_bashirEnemySpawns)
             if (Creature* spawn = instance->GetCreature(guid))
-                if (!spawn->isInCombat())
+                if (!spawn->IsInCombat())
                     spawn->ForcedDespawn();
         StartPhase(BashirPhases(uint32(phase) + 1));
     }
@@ -998,7 +1078,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     void ShowChatCommands(ChatHandler* handler) override
     {
         handler->SendSysMessage("This instance supports the following commands:\n bashir (0,1,2,3,4,5,6,7) starts event at stage respectively - start event, start phase 1, finish phase 1,"
-        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event");
+        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event\n debuggurthock");
     }
 
     void ExecuteChatCommand(ChatHandler* handler, char* args) override
@@ -1025,13 +1105,17 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                 case BASHIR_PHASE_3:
                 case BASHIR_PHASE_TRANSITION_3:
                 case BASHIR_PHASE_ALL_VENDORS_SPAWNED:
-                    StartBashirAtCustomSpot(BashirPhases(startPhase), handler->GetPlayer());
+                    StartBashirAtCustomSpot(BashirPhases(startPhase), handler->GetSession()->GetPlayer());
                     break;
                 case BASHIR_DESPAWN:
                     DespawnBashir(true);
                     break;
                 default: break;
             }
+        }
+        else if (val == "debuggurthock")
+        {
+            handler->PSendSysMessage("Last ring of blood guid: %lu", m_lastRingOfBlood.GetRawValue());
         }
     }
 };

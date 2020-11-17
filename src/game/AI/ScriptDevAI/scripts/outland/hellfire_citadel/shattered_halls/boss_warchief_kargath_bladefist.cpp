@@ -96,6 +96,9 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
         m_uiSummonAssistantTimer = 20000;
         m_uiAssassinsTimer = 5000;
 
+        SetCombatScriptStatus(false);
+        SetCombatMovement(true);
+
         DoCastSpellIfCan(m_creature, SPELL_DOUBLE_ATTACK, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
@@ -189,7 +192,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                 m_bladeDanceTargetGuids.push_back(target->GetObjectGuid());
                 break;
             case SPELL_BLADE_DANCE_CHARGE:
-                m_uiWaitTimer = 1;
+                m_uiWaitTimer = 500;
                 m_creature->CastSpell(nullptr, SPELL_BLADE_DANCE, TRIGGERED_OLD_TRIGGERED);
                 break;
         }            
@@ -197,7 +200,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // Check if out of range
@@ -230,7 +233,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                         m_bInBlade = false;
                         SetCombatScriptStatus(false);
                         SetCombatMovement(true);
-                        DoStartMovement(m_creature->getVictim());
+                        DoStartMovement(m_creature->GetVictim());
                         m_uiWaitTimer = 0;
                         if (!m_bIsRegularMode)
                             m_uiChargeTimer = 500;
@@ -324,9 +327,9 @@ struct npc_blade_dance_targetAI : public ScriptedAI
 {
     npc_blade_dance_targetAI(Creature* creature) : ScriptedAI(creature) {}
     void Reset() override {}
-    void DamageTaken(Unit* /*pDealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        damage = std::min(m_creature->GetHealth() - 1, damage);
+        damage = std::max(m_creature->GetMaxHealth(), damage);
     }
 };
 

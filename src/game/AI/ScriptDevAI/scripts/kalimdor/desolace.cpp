@@ -101,7 +101,7 @@ struct npc_aged_dying_ancient_kodoAI : public ScriptedAI
         // timer should always be == 0 unless we already updated entry of creature. Then not expect this updated to ever be in combat.
         if (m_uiDespawnTimer && m_uiDespawnTimer <= diff)
         {
-            if (!m_creature->getVictim() && m_creature->isAlive())
+            if (!m_creature->GetVictim() && m_creature->IsAlive())
             {
                 Reset();
                 m_creature->SetDeathState(JUST_DIED);
@@ -111,7 +111,7 @@ struct npc_aged_dying_ancient_kodoAI : public ScriptedAI
         }
         else m_uiDespawnTimer -= diff;
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -179,7 +179,11 @@ enum
 
 struct npc_dalinda_malemAI : public npc_escortAI
 {
-    npc_dalinda_malemAI(Creature* m_creature) : npc_escortAI(m_creature) { Reset(); }
+    npc_dalinda_malemAI(Creature* m_creature) : npc_escortAI(m_creature)
+    {
+        m_creature->SetStandState(UNIT_STAND_STATE_KNEEL, true);
+        Reset();
+    }
 
     void Reset() override {}
 
@@ -369,7 +373,7 @@ struct npc_melizza_brimbuzzleAI : public npc_escortAI, private DialogueHelper
     {
         DialogueUpdate(uiDiff);
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -737,7 +741,7 @@ struct npc_magrami_spectre : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiCurseTimer)
@@ -745,7 +749,7 @@ struct npc_magrami_spectre : public ScriptedAI
             if (m_uiCurseTimer <= uiDiff)
             {
                 m_uiCurseTimer = 0;
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CURSE_OF_MAGRAMI);
+                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CURSE_OF_MAGRAMI);
             }
             else
                 m_uiCurseTimer -= uiDiff;

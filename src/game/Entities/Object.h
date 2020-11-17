@@ -20,44 +20,19 @@
 #define _OBJECT_H
 
 #include "Common.h"
+#include "ObjectDefines.h"
 #include "ByteBuffer.h"
 #include "Entities/UpdateFields.h"
 #include "Entities/UpdateData.h"
 #include "Entities/ObjectGuid.h"
 #include "Entities/EntitiesMgr.h"
 #include "Globals/SharedDefines.h"
-#include "Camera.h"
+#include "Entities/Camera.h"
 #include "Server/DBCStructure.h"
 #include "PlayerDefines.h"
 #include "Entities/ObjectVisibility.h"
 
 #include <set>
-
-#define CONTACT_DISTANCE                0.5f
-#define INTERACTION_DISTANCE            5.0f
-#define ATTACK_DISTANCE                 5.0f
-#define MELEE_LEEWAY                    8.0f / 3.0f // Melee attack and melee spell leeway when moving
-#define AOE_LEEWAY                      2.0f        // AOE leeway when moving
-#define INSPECT_DISTANCE                28.0f
-#define TRADE_DISTANCE                  11.11f
-
-#define MAX_VISIBILITY_DISTANCE         SIZE_OF_GRIDS               // max distance for visible object show, limited in 533 yards
-#define VISIBILITY_DISTANCE_GIGANTIC    400.0f
-#define VISIBILITY_DISTANCE_LARGE       200.0f
-#define VISIBILITY_DISTANCE_NORMAL      100.0f
-#define VISIBILITY_DISTANCE_SMALL       50.0f
-#define VISIBILITY_DISTANCE_TINY        25.0f
-#define DEFAULT_VISIBILITY_DISTANCE     VISIBILITY_DISTANCE_NORMAL  // default visible distance, 100 yards on continents
-#define DEFAULT_VISIBILITY_INSTANCE     170.0f                      // default visible distance in instances, 170 yards
-#define DEFAULT_VISIBILITY_BGARENAS     533.0f                      // default visible distance in BG/Arenas, 533 yards
-
-
-#define DEFAULT_WORLD_OBJECT_SIZE       0.388999998569489f      // currently used (correctly?) for any non Unit world objects. This is actually the bounding_radius, like player/creature from creature_model_data
-#define DEFAULT_OBJECT_SCALE            1.0f                    // player/item scale as default, npc/go from database, pets from dbc
-float const DEFAULT_COLLISION_HEIGHT = 2.03128f; // Most common value in dbc
-
-#define MAX_STEALTH_DETECT_RANGE        45.0f
-#define GRID_ACTIVATION_RANGE           45.0f
 
 enum TempSpawnType
 {
@@ -145,7 +120,7 @@ class CooldownData
             m_spellId(spellId),
             m_category(spellCategory),
             m_expireTime(duration ? std::chrono::milliseconds(duration) + clockNow : TimePoint()),
-            m_catExpireTime(spellCategory && categoryDuration ? std::chrono::milliseconds(categoryDuration) + clockNow : TimePoint()),
+            m_catExpireTime((spellCategory && categoryDuration) ? (std::chrono::milliseconds(categoryDuration) + clockNow) : TimePoint()),
             m_typePermanent(isPermanent),
             m_itemId(itemId)
         {}
@@ -229,7 +204,10 @@ class CooldownContainer
                 else
                 {
                     if (cd->m_category && cd->IsCatCDExpired(now))
+                    {
                         m_categoryMap.erase(cd->m_category);
+                        cd->m_category = 0;
+                    }
                     ++spellCDItr;
                 }
             }
@@ -237,9 +215,13 @@ class CooldownContainer
 
         bool AddCooldown(TimePoint clockNow, uint32 spellId, uint32 duration, uint32 spellCategory = 0, uint32 categoryDuration = 0, uint32 itemId = 0, bool onHold = false)
         {
-            auto resultItr = m_spellIdMap.emplace(spellId, std::unique_ptr<CooldownData>(new CooldownData(clockNow, spellId, duration, spellCategory, categoryDuration, itemId, onHold)));
+            RemoveBySpellId(spellId);
+            auto resultItr = m_spellIdMap.emplace(spellId, std::move(std::unique_ptr<CooldownData>(new CooldownData(clockNow, spellId, duration, spellCategory, categoryDuration, itemId, onHold))));
             if (resultItr.second && spellCategory && categoryDuration)
+            {
+                RemoveByCategory(spellCategory);
                 m_categoryMap.emplace(spellCategory, resultItr.first);
+            }
 
             return resultItr.second;
         }
@@ -264,7 +246,10 @@ class CooldownContainer
         {
             auto spellCDItr = m_categoryMap.find(category);
             if (spellCDItr != m_categoryMap.end())
+            {
+                spellCDItr->second->second->m_category = 0;
                 m_categoryMap.erase(spellCDItr);
+            }
         }
 
         Iterator erase(ConstIterator spellCDItr)
@@ -308,6 +293,8 @@ struct Position
     float GetPositionY() const { return y; }
     float GetPositionZ() const { return z; }
     float GetPositionO() const { return o; }
+    bool IsEmpty() const { return x == 0.f && y == 0.f && z == 0.f; }
+    float GetAngle(const float x, const float y) const;
 };
 
 struct WorldLocation
@@ -372,6 +359,7 @@ class Object
 
         ObjectGuid const& GetObjectGuid() const { return GetGuidValue(OBJECT_FIELD_GUID); }
         uint32 GetGUIDLow() const { return GetObjectGuid().GetCounter(); }
+        uint32 GetGUIDHigh() const { return GetObjectGuid().GetHigh(); }
         PackedGuid const& GetPackGUID() const { return m_PackGUID; }
         std::string GetGuidStr() const { return GetObjectGuid().GetString(); }
 
@@ -581,7 +569,7 @@ class Object
 
         void ClearUpdateMask(bool remove);
 
-        bool LoadValues(const char* data);
+        void _LoadIntoDataField(const char* data, uint32 startOffset, uint32 count);
 
         uint16 GetValuesCount() const { return m_valuesCount; }
 
@@ -796,7 +784,7 @@ class WorldObject : public Object
         }
         bool IsWithinDist3d(float x, float y, float z, float dist2compare) const;
         bool IsWithinDist2d(float x, float y, float dist2compare) const;
-        bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
+        virtual bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const;
         bool _IsWithinCombatDist(WorldObject const* obj, float dist2compare, bool is3D) const;
 
         // use only if you will sure about placing both object at same map
@@ -817,15 +805,18 @@ class WorldObject : public Object
         bool IsInRange2d(float x, float y, float minRange, float maxRange, bool combat = false) const;
         bool IsInRange3d(float x, float y, float z, float minRange, float maxRange, bool combat = false) const;
 
+        static float GetAngleAt(float x, float y, float ox, float oy);
+        float GetAngle(float x, float y) const;
+        float GetAngleAt(float x, float y, const WorldObject* obj) const;
         float GetAngle(const WorldObject* obj) const;
-        float GetAngle(const float x, const float y) const;
-        bool HasInArc(const WorldObject* target, const float arc = M_PI) const;
-        bool isInFrontInMap(WorldObject const* target, float distance, float arc = M_PI) const;
-        bool isInBackInMap(WorldObject const* target, float distance, float arc = M_PI) const;
+        bool HasInArcAt(float x, float y, float o, const WorldObject* target, float arc = M_PI_F) const;
+        bool HasInArc(const WorldObject* target, float arc = M_PI_F) const;
+        bool isInFrontInMap(WorldObject const* target, float distance, float arc = M_PI_F) const;
+        bool isInBackInMap(WorldObject const* target, float distance, float arc = M_PI_F) const;
         // Used in AOE - meant to ignore bounding radius of source
-        bool isInFront(WorldObject const* target, float distance, float arc = M_PI) const;
+        bool isInFront(WorldObject const* target, float distance, float arc = M_PI_F) const;
         // Used in AOE - meant to ignore bounding radius of source
-        bool isInBack(WorldObject const* target, float distance, float arc = M_PI) const;
+        bool isInBack(WorldObject const* target, float distance, float arc = M_PI_F) const;
         bool IsFacingTargetsBack(const WorldObject* target, float arc = M_PI_F) const;
         bool IsFacingTargetsFront(const WorldObject* target, float arc = M_PI_F) const;
 
@@ -873,7 +864,7 @@ class WorldObject : public Object
         void SetMap(Map* map);
         Map* GetMap() const { MANGOS_ASSERT(m_currMap); return m_currMap; }
         // used to check all object's GetMap() calls when object is not in world!
-        void ResetMap() { m_currMap = nullptr; }
+        virtual void ResetMap() { m_currMap = nullptr; }
 
         // obtain terrain data for map where this object belong...
         TerrainInfo const* GetTerrain() const;
@@ -904,6 +895,7 @@ class WorldObject : public Object
         // cooldown system
         virtual void AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration = 0, bool updateClient = false);
         virtual bool HasGCD(SpellEntry const* spellEntry) const;
+        TimePoint GetGCD(SpellEntry const* spellEntry) const;
         void ResetGCD(SpellEntry const* spellEntry = nullptr);
         virtual void AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr, bool permanent = false, uint32 forcedDuration = 0);
         virtual void RemoveSpellCooldown(SpellEntry const& spellEntry, bool updateClient = true);
@@ -912,6 +904,7 @@ class WorldObject : public Object
         virtual void RemoveAllCooldowns(bool /*sendOnly*/ = false) { m_GCDCatMap.clear(); m_cooldownMap.clear(); m_lockoutMap.clear(); }
         bool IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr) const;
         bool IsSpellReady(uint32 spellId, ItemPrototype const* itemProto = nullptr) const;
+        bool HasGCDOrCooldownWithinMargin(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr);
         virtual void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration);
         void PrintCooldownList(ChatHandler& chat) const;
 
@@ -925,6 +918,10 @@ class WorldObject : public Object
         VisibilityData const& GetVisibilityData() const { return m_visibilityData; }
         VisibilityData& GetVisibilityData() { return m_visibilityData; }
 
+        bool HaveDebugFlag(CMDebugFlags flag) const { return (uint64(m_debugFlags) & flag) != 0; }
+        void SetDebugFlag(CMDebugFlags flag) { m_debugFlags |= uint64(flag); }
+        void ClearDebugFlag(CMDebugFlags flag) { m_debugFlags &= ~(uint64(flag)); }
+
     protected:
         explicit WorldObject();
 
@@ -936,7 +933,7 @@ class WorldObject : public Object
 
         // cooldown system
         void UpdateCooldowns(TimePoint const& now);
-        bool CheckLockout(SpellSchoolMask schoolMask) const;
+        bool CheckLockout(SpellSchoolMask schoolMask, TimePoint const& now) const;
         bool GetExpireTime(SpellEntry const& spellEntry, TimePoint& expireTime, bool& isPermanent) const;
 
         GCDMap            m_GCDCatMap;
@@ -960,6 +957,7 @@ class WorldObject : public Object
         Position m_position;
         ViewPoint m_viewPoint;
         bool m_isActiveObject;
+        uint64 m_debugFlags;
 };
 
 #endif

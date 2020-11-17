@@ -83,7 +83,7 @@ struct boss_golemaggAI : public CombatAI
         GetCreatureListWithEntryInGrid(lCoreRagerList, m_creature, NPC_CORE_RAGER, 100.0f);
         for (auto& itr : lCoreRagerList)
         {
-            if (itr->isAlive())
+            if (itr->IsAlive())
                 m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, itr);
         }
         if (m_instance)
@@ -175,7 +175,7 @@ struct mob_core_ragerAI : public CombatAI
             }
             case CORE_RAGER_MANGLE:
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_MANGLE) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MANGLE) == CAST_OK)
                     ResetCombatAction(action, 10 * IN_MILLISECONDS);
                 break;
             }

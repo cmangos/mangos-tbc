@@ -74,6 +74,10 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
     boss_leotheras_the_blindAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float /*z*/)
+        {
+            return !(x < 409.0f && y > -524.0f && x > 300.0f && y < -301.0f);
+        });
         Reset();
     }
 
@@ -150,7 +154,7 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
         {
             pSummoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             pSummoned->AI()->SetMoveChaseParams(35.f, 0.f, false);
-            pSummoned->AI()->AttackStart(m_creature->getVictim());
+            pSummoned->AI()->AttackStart(m_creature->GetVictim());
         }
     }
 
@@ -167,6 +171,17 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
     void EnterEvadeMode() override
     {
         m_creature->CastSpell(m_creature, SPELL_WHISPER_CLEAR, TRIGGERED_NONE);
+        for (ObjectGuid guid : m_charmTargets)
+        {
+            if (Player* player = m_creature->GetMap()->GetPlayer(guid))
+            {
+                if (player->HasAura(SPELL_CONS_MADNESS))
+                {
+                    player->RemoveAurasDueToSpell(SPELL_CONS_MADNESS);
+                    player->Suicide();
+                }
+            }
+        }
         ScriptedAI::EnterEvadeMode();
     }
 
@@ -196,7 +211,7 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->isInCombat())
+        if (!m_creature->IsInCombat())
         {
             // Banish the boss before combat
             if (m_uiBanishTimer)
@@ -238,7 +253,7 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
                         SetCombatMovement(true);
 
                         m_attackDistance = 0.f;
-                        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim(), m_attackDistance);
+                        m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim(), m_attackDistance);
                         m_uiFinalFormTimer = 0;
                         break;
                     }
@@ -280,7 +295,7 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
                         DoScriptText(SAY_SWITCH_TO_DEMON, m_creature);
                         SetEquipmentSlots(false, 0, 0, 0); // remove weapons
                         m_attackDistance = 35.f;
-                        m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim(), m_attackDistance, m_attackAngle, m_moveFurther);
+                        m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim(), m_attackDistance, m_attackAngle, m_moveFurther);
 
                         DoResetThreat();
                         m_bDemonForm = true;
@@ -294,7 +309,6 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
             }
 
             DoMeleeAttackIfReady();
-            EnterEvadeIfOutOfCombatArea(uiDiff);
         }
         // Demon form spells
         else
@@ -316,7 +330,7 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
 
             if (m_uiChaosBlastTimer <= uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CHAOS_BLAST) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CHAOS_BLAST) == CAST_OK)
                     m_uiChaosBlastTimer = urand(2000, 3000);
             }
             else
@@ -332,7 +346,7 @@ struct boss_leotheras_the_blindAI : public ScriptedAI
                 SetEquipmentSlots(true);
 
                 m_attackDistance = 0.f;
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim(), m_attackDistance, m_attackAngle, m_moveFurther);
+                m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim(), m_attackDistance, m_attackAngle, m_moveFurther);
 
                 DoResetThreat();
                 m_bDemonForm = false;
@@ -423,7 +437,7 @@ struct npc_inner_demonAI : public ScriptedAI
     {
         if (m_uiShadowBoltTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SHADOW_BOLT) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHADOW_BOLT) == CAST_OK)
                 m_uiShadowBoltTimer = urand(7900, 12500);
         }
         else

@@ -34,6 +34,7 @@ enum
     TYPE_DEATHS_DOOR_SOUTH  = 1,
     TYPE_SHARTUUL           = 2,
     TYPE_BASHIR             = 3,
+    TYPE_MOGOR              = 4,
 
     // Bashir
     SPELL_SPIRIT_SPAWN_IN       = 17321,
@@ -45,6 +46,19 @@ enum
     NPC_RIVENDARK = 23061,
     NPC_FURYWING  = 23261,
     NPC_INSIDION  = 23281,
+
+    // Ring of Blood
+    NPC_GURTHOCK            = 18471,
+
+    NPC_BROKENTOE           = 18398,
+    NPC_MURKBLOOD_TWIN      = 18399,
+    NPC_ROKDAR              = 18400,
+    NPC_SKRAGATH            = 18401,
+    NPC_WARMAUL_CHAMPION    = 18402,
+    NPC_MOGOR               = 18069,
+
+    NPC_ETHEREUM_PRISONER   = 20520,
+    GO_SALVAGED_ETHEREUM_PRISON = 184488,
 };
 
 enum SpawnIndexes

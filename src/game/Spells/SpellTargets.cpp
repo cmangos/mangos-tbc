@@ -107,7 +107,7 @@ SpellTargetInfo SpellTargetInfoTable[MAX_SPELL_TARGETS] =
     /*[74]*/    { "TARGET_LOCATION_UNIT_RANDOM_SIDE",                     TARGET_TYPE_LOCATION_DEST                                                 },
     /*[75]*/    { "TARGET_LOCATION_UNIT_RANDOM_CIRCUMFERENCE",            TARGET_TYPE_LOCATION_DEST                                                 },
     /*[76]*/    { "TARGET_LOCATION_DYNOBJ_POSITION",                      TARGET_TYPE_LOCATION_DEST                                                 },
-    /*[77]*/    { "TARGET_UNIT_CHANNEL_TARGET",                           TARGET_TYPE_UNIT,             TARGET_NEUTRAL,    TARGET_ENUMERATOR_SINGLE },
+    /*[77]*/    { "TARGET_UNIT_CHANNEL_TARGET",                           TARGET_TYPE_UNIT,             TARGET_HARMFUL,    TARGET_ENUMERATOR_SINGLE },
     /*[78]*/    { "TARGET_LOCATION_NORTH",                                TARGET_TYPE_LOCATION_DEST                                                 },
     /*[79]*/    { "TARGET_LOCATION_SOUTH",                                TARGET_TYPE_LOCATION_DEST                                                 },
     /*[80]*/    { "TARGET_LOCATION_EAST",                                 TARGET_TYPE_LOCATION_DEST                                                 },
@@ -545,13 +545,6 @@ SpellTargetFilterScheme SpellTargetMgr::GetSpellTargetingFilterScheme(SpellTarge
 {
     switch (spellId)
     {
-        case 2643:  // Multi-shot - chain spell but behaves like aoe
-        case 14288:
-        case 14289:
-        case 14290:
-        case 25294:
-        case 27021:
-            return SCHEME_RANDOM;
         case 26052: // Poison Bolt Volley (spell hits only the 15 closest targets)
         case 26180: // Wyvern Sting (spell hits only the 10 closest targets)
         case 30284: // Change Facing - Chess event - QOL to pick deterministically closest target
@@ -561,7 +554,6 @@ SpellTargetFilterScheme SpellTargetMgr::GetSpellTargetingFilterScheme(SpellTarge
         case 37151:
         case 37152:
         case 37153:
-        case 30469: // Nether Beam - Netherspite - Picks closest target
         case 41294: // Fixate - Reliquary of Souls - Picks closest target
             return SCHEME_CLOSEST;
         case 28307:

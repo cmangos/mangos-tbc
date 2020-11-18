@@ -38,43 +38,42 @@ class WorldObject;
 
 enum EventAI_Type
 {
-    EVENT_T_TIMER_IN_COMBAT                 = 0,                    // InitialMin, InitialMax, RepeatMin, RepeatMax
-    EVENT_T_TIMER_OOC                       = 1,                    // InitialMin, InitialMax, RepeatMin, RepeatMax
-    EVENT_T_HP                              = 2,                    // HPMax%, HPMin%, RepeatMin, RepeatMax
-    EVENT_T_MANA                            = 3,                    // ManaMax%,ManaMin% RepeatMin, RepeatMax
-    EVENT_T_AGGRO                           = 4,                    // NONE
-    EVENT_T_KILL                            = 5,                    // RepeatMin, RepeatMax, PlayerOnly (1)
-    EVENT_T_DEATH                           = 6,                    // ConditionId
-    EVENT_T_EVADE                           = 7,                    // NONE
-    EVENT_T_SPELLHIT                        = 8,                    // SpellID, School, RepeatMin, RepeatMax
-    EVENT_T_RANGE                           = 9,                    // MinDist, MaxDist, RepeatMin, RepeatMax
-    EVENT_T_OOC_LOS                         = 10,                   // NoHostile, MaxRange, RepeatMin, RepeatMax, PlayerOnly, ConditionId
-    EVENT_T_SPAWNED                         = 11,                   // Condition, CondValue1
-    EVENT_T_TARGET_HP                       = 12,                   // HPMax%, HPMin%, RepeatMin, RepeatMax
-    EVENT_T_TARGET_CASTING                  = 13,                   // RepeatMin, RepeatMax
-    EVENT_T_FRIENDLY_HP                     = 14,                   // HPDeficit, Radius, RepeatMin, RepeatMax
-    EVENT_T_FRIENDLY_IS_CC                  = 15,                   // DispelType, Radius, RepeatMin, RepeatMax
-    EVENT_T_FRIENDLY_MISSING_BUFF_INCOMBAT  = 16,                   // SpellId, Radius, RepeatMin, RepeatMax
-    EVENT_T_SUMMONED_UNIT                   = 17,                   // CreatureId, RepeatMin, RepeatMax
-    EVENT_T_TARGET_MANA                     = 18,                   // ManaMax%, ManaMin%, RepeatMin, RepeatMax
-    EVENT_T_QUEST_ACCEPT                    = 19,                   // QuestID
-    EVENT_T_QUEST_COMPLETE                  = 20,                   //
-    EVENT_T_REACHED_HOME                    = 21,                   // NONE
-    EVENT_T_RECEIVE_EMOTE                   = 22,                   // EmoteId, ConditionId
-    EVENT_T_AURA                            = 23,                   // Param1 = SpellID, Param2 = Number of time stacked, Param3/4 Repeat Min/Max
-    EVENT_T_TARGET_AURA                     = 24,                   // Param1 = SpellID, Param2 = Number of time stacked, Param3/4 Repeat Min/Max
-    EVENT_T_SUMMONED_JUST_DIED              = 25,                   // CreatureId, RepeatMin, RepeatMax
-    EVENT_T_SUMMONED_JUST_DESPAWN           = 26,                   // CreatureId, RepeatMin, RepeatMax
-    EVENT_T_MISSING_AURA                    = 27,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
-    EVENT_T_TARGET_MISSING_AURA             = 28,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
-    EVENT_T_TIMER_GENERIC                   = 29,                   // InitialMin, InitialMax, RepeatMin, RepeatMax
-    EVENT_T_RECEIVE_AI_EVENT                = 30,                   // AIEventType, Sender-Entry, unused, unused
-    EVENT_T_ENERGY                          = 31,                   // EnergyMax%, EnergyMin%, RepeatMin, RepeatMax
-    EVENT_T_SELECT_ATTACKING_TARGET         = 32,                   // MinRange, MaxRange, RepeatMin, RepeatMax
-    EVENT_T_FACING_TARGET                   = 33,                   // Position, unused, RepeatMin, RepeatMax
-    EVENT_T_SPELLHIT_TARGET                 = 34,                   // SpellID, School, RepeatMin, RepeatMax
-    EVENT_T_DEATH_PREVENTED                 = 35,                   //
-    EVENT_T_FRIENDLY_MISSING_BUFF_NOCOMBAT  = 36,
+    EVENT_T_TIMER_IN_COMBAT         = 0,                    // InitialMin, InitialMax, RepeatMin, RepeatMax
+    EVENT_T_TIMER_OOC               = 1,                    // InitialMin, InitialMax, RepeatMin, RepeatMax
+    EVENT_T_HP                      = 2,                    // HPMax%, HPMin%, RepeatMin, RepeatMax
+    EVENT_T_MANA                    = 3,                    // ManaMax%,ManaMin% RepeatMin, RepeatMax
+    EVENT_T_AGGRO                   = 4,                    // NONE
+    EVENT_T_KILL                    = 5,                    // RepeatMin, RepeatMax, PlayerOnly (1)
+    EVENT_T_DEATH                   = 6,                    // ConditionId
+    EVENT_T_EVADE                   = 7,                    // NONE
+    EVENT_T_SPELLHIT                = 8,                    // SpellID, School, RepeatMin, RepeatMax
+    EVENT_T_RANGE                   = 9,                    // MinDist, MaxDist, RepeatMin, RepeatMax
+    EVENT_T_OOC_LOS                 = 10,                   // NoHostile, MaxRange, RepeatMin, RepeatMax, PlayerOnly, ConditionId
+    EVENT_T_SPAWNED                 = 11,                   // Condition, CondValue1
+    EVENT_T_TARGET_HP               = 12,                   // HPMax%, HPMin%, RepeatMin, RepeatMax
+    EVENT_T_TARGET_CASTING          = 13,                   // RepeatMin, RepeatMax
+    EVENT_T_FRIENDLY_HP             = 14,                   // HPDeficit, Radius, RepeatMin, RepeatMax
+    EVENT_T_FRIENDLY_IS_CC          = 15,                   // DispelType, Radius, RepeatMin, RepeatMax
+    EVENT_T_FRIENDLY_MISSING_BUFF   = 16,                   // SpellId, Radius, RepeatMin, RepeatMax, InCombat
+    EVENT_T_SUMMONED_UNIT           = 17,                   // CreatureId, RepeatMin, RepeatMax
+    EVENT_T_TARGET_MANA             = 18,                   // ManaMax%, ManaMin%, RepeatMin, RepeatMax
+    EVENT_T_QUEST_ACCEPT            = 19,                   // QuestID
+    EVENT_T_QUEST_COMPLETE          = 20,                   //
+    EVENT_T_REACHED_HOME            = 21,                   // NONE
+    EVENT_T_RECEIVE_EMOTE           = 22,                   // EmoteId, ConditionId
+    EVENT_T_AURA                    = 23,                   // Param1 = SpellID, Param2 = Number of time stacked, Param3/4 Repeat Min/Max
+    EVENT_T_TARGET_AURA             = 24,                   // Param1 = SpellID, Param2 = Number of time stacked, Param3/4 Repeat Min/Max
+    EVENT_T_SUMMONED_JUST_DIED      = 25,                   // CreatureId, RepeatMin, RepeatMax
+    EVENT_T_SUMMONED_JUST_DESPAWN   = 26,                   // CreatureId, RepeatMin, RepeatMax
+    EVENT_T_MISSING_AURA            = 27,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
+    EVENT_T_TARGET_MISSING_AURA     = 28,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
+    EVENT_T_TIMER_GENERIC           = 29,                   // InitialMin, InitialMax, RepeatMin, RepeatMax
+    EVENT_T_RECEIVE_AI_EVENT        = 30,                   // AIEventType, Sender-Entry, unused, unused
+    EVENT_T_ENERGY                  = 31,                   // EnergyMax%, EnergyMin%, RepeatMin, RepeatMax
+    EVENT_T_SELECT_ATTACKING_TARGET = 32,                   // MinRange, MaxRange, RepeatMin, RepeatMax
+    EVENT_T_FACING_TARGET           = 33,                   // Position, unused, RepeatMin, RepeatMax
+    EVENT_T_SPELLHIT_TARGET         = 34,                   // SpellID, School, RepeatMin, RepeatMax
+    EVENT_T_DEATH_PREVENTED         = 35,                   //
 
     EVENT_T_END,
 };
@@ -656,6 +655,7 @@ struct CreatureEventAI_Event
             uint32 radius;
             uint32 repeatMin;
             uint32 repeatMax;
+            uint32 inCombat;
         } friendly_buff;
         // EVENT_T_SUMMONED_UNIT                            = 17
         // EVENT_T_SUMMONED_JUST_DIED                       = 25
@@ -835,8 +835,7 @@ class CreatureEventAI : public CreatureAI
 
         bool SpawnedEventConditionsCheck(CreatureEventAI_Event const& event) const;
 
-        void DoFindFriendlyMissingBuffInCombat(CreatureList& list, float range, uint32 spellId) const;
-        void DoFindFriendlyMissingBuffNoCombat(CreatureList& list, float range, uint32 spellId) const;
+        void DoFindFriendlyMissingBuff(CreatureList& list, float range, uint32 spellId, bool inCombat) const;
         void DoFindFriendlyCC(CreatureList& list, float range) const;
 
         void SetRangedMode(bool state, float distance, RangeModeType type);

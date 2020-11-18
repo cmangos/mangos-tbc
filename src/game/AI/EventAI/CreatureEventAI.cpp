@@ -224,7 +224,7 @@ bool CreatureEventAI::IsTimerExecutedEvent(EventAI_Type type) const
         case EVENT_T_TARGET_CASTING:
         case EVENT_T_FRIENDLY_HP:
         case EVENT_T_FRIENDLY_IS_CC:
-        case EVENT_T_FRIENDLY_MISSING_BUFF_INCOMBAT:
+        case EVENT_T_FRIENDLY_MISSING_BUFF:
         case EVENT_T_TARGET_MANA:
         case EVENT_T_AURA:
         case EVENT_T_TARGET_AURA:
@@ -234,7 +234,6 @@ bool CreatureEventAI::IsTimerExecutedEvent(EventAI_Type type) const
         case EVENT_T_ENERGY:
         case EVENT_T_SELECT_ATTACKING_TARGET:
         case EVENT_T_FACING_TARGET:
-        case EVENT_T_FRIENDLY_MISSING_BUFF_NOCOMBAT:
             return true;
         default:
             return false;
@@ -273,7 +272,7 @@ bool CreatureEventAI::IsTimerBasedEvent(EventAI_Type type) const
         case EVENT_T_TARGET_CASTING:
         case EVENT_T_FRIENDLY_HP:
         case EVENT_T_FRIENDLY_IS_CC:
-        case EVENT_T_FRIENDLY_MISSING_BUFF_INCOMBAT:
+        case EVENT_T_FRIENDLY_MISSING_BUFF:
         case EVENT_T_SUMMONED_UNIT:
         case EVENT_T_SUMMONED_JUST_DIED:
         case EVENT_T_SUMMONED_JUST_DESPAWN:
@@ -286,7 +285,6 @@ bool CreatureEventAI::IsTimerBasedEvent(EventAI_Type type) const
         case EVENT_T_SELECT_ATTACKING_TARGET:
         case EVENT_T_FACING_TARGET:
         case EVENT_T_SPELLHIT_TARGET:
-        case EVENT_T_FRIENDLY_MISSING_BUFF_NOCOMBAT:
             return true;
         default: return false;
     }
@@ -445,13 +443,29 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
             holder.eventTarget = *(pList.begin());
             break;
         }
-        case EVENT_T_FRIENDLY_MISSING_BUFF_INCOMBAT:
+        case EVENT_T_FRIENDLY_MISSING_BUFF:
         {
-            if (!m_creature->IsInCombat())
-                return false;
-
+            // 0 = Only in combat
+            // 1 = Out and in combat
+            // 2 = Only out of combat
             CreatureList pList;
-            DoFindFriendlyMissingBuffInCombat(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId);
+
+            if (event.friendly_buff.inCombat == 0)
+            {
+                if (!m_creature->IsInCombat())
+                    return false;
+                
+                DoFindFriendlyMissingBuff(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId, false);
+            }
+            else if (event.friendly_buff.inCombat == 1)            
+                DoFindFriendlyMissingBuff(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId, true);            
+            else if (event.friendly_buff.inCombat == 2)
+            {
+                if (m_creature->IsInCombat())
+                    return false;
+                                
+                DoFindFriendlyMissingBuff(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId, true);
+            }            
 
             // List is empty
             if (pList.empty())
@@ -567,20 +581,6 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
         }
         case EVENT_T_DEATH_PREVENTED:
             break;
-        case EVENT_T_FRIENDLY_MISSING_BUFF_NOCOMBAT:
-        {
-
-            CreatureList pList;
-            DoFindFriendlyMissingBuffNoCombat(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId);
-
-            // List is empty
-            if (pList.empty())
-                return false;
-
-            // We don't really care about the whole list, just return first available
-            holder.eventTarget = *(pList.begin());
-            break;
-        }
         default:
             sLog.outErrorEventAI("Creature %u using Event %u has invalid Event Type(%u), missing from ProcessEvent() Switch.", m_creature->GetEntry(), holder.event.event_id, holder.event.event_type);
             return false;
@@ -1776,19 +1776,23 @@ void CreatureEventAI::DoFindFriendlyCC(CreatureList& list, float range) const
     Cell::VisitGridObjects(m_creature, searcher, range);
 }
 
-void CreatureEventAI::DoFindFriendlyMissingBuffInCombat(CreatureList& list, float range, uint32 spellId) const
+void CreatureEventAI::DoFindFriendlyMissingBuff(CreatureList& list, float range, uint32 spellId, bool inCombat) const
 {
-    MaNGOS::FriendlyMissingBuffInRangeInCombatCheck u_check(m_creature, range, spellId);
-    MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeInCombatCheck> searcher(list, u_check);
-    Cell::VisitGridObjects(m_creature, searcher, range);
+    if (inCombat == false)
+    {
+        MaNGOS::FriendlyMissingBuffInRangeInCombatCheck u_check(m_creature, range, spellId);
+        MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeInCombatCheck> searcher(list, u_check);
+        Cell::VisitGridObjects(m_creature, searcher, range);
+    }
+    else if (inCombat == true)
+    {
+        MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck u_check(m_creature, range, spellId);
+        MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck> searcher(list, u_check);
+
+        Cell::VisitGridObjects(m_creature, searcher, range);
+    }
 }
 
-void CreatureEventAI::DoFindFriendlyMissingBuffNoCombat(CreatureList& list, float range, uint32 spellId) const
-{
-    MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck u_check(m_creature, range, spellId);
-    MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck> searcher(list, u_check);
-    Cell::VisitGridObjects(m_creature, searcher, range);
-}
 //*********************************
 //*** Functions used globally ***
 

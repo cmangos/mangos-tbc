@@ -2966,7 +2966,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         {
             // Seduction
             // ToDo: Fix  diminishing returns aspect of this spell, currently limited to 10secs in pvp only as setting DIMINISHING_FEAR to DRTYPE_ALL messes with PvE
-            if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)))
+            if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)) && spellproto->Id != 7870) // Exclude Lesser Invisibility
                 return DIMINISHING_FEAR;
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(uint64(0x00080000000)))

@@ -4262,6 +4262,15 @@ void Aura::HandleModConfuse(bool apply, bool Real)
     if (!apply && GetTarget()->HasAuraType(SPELL_AURA_MOD_CONFUSE))
         return;
 
+    if (apply)
+    {
+        Unit* target = GetTarget();
+        Unit* caster = GetCaster();
+        if (caster)
+            if (UnitAI* ai = caster->AI())
+                ai->JustDisorientedTarget(GetSpellProto(), target);
+    }
+
     GetTarget()->SetConfused(apply, GetCasterGuid(), GetId());
 
     GetTarget()->getHostileRefManager().HandleSuppressed(apply);

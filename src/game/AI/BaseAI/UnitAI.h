@@ -438,6 +438,7 @@ class UnitAI
         virtual void JustRootedTarget(SpellEntry const* spellInfo, Unit* victim) { JustStoppedMovementOfTarget(spellInfo, victim); }
         virtual void JustStunnedTarget(SpellEntry const* spellInfo, Unit* victim) { JustStoppedMovementOfTarget(spellInfo, victim); }
         virtual void JustStoppedMovementOfTarget(SpellEntry const* /*spellInfo*/, Unit* /*victim*/) {}
+        virtual void JustDisorientedTarget(SpellEntry const* spellInfo, Unit* victim) { JustStoppedMovementOfTarget(spellInfo, victim); }
 
         // AI selection - works in connection with IsPossessCharmType
         virtual bool CanHandleCharm() { return false; }

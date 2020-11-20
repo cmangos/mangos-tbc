@@ -165,6 +165,9 @@ class CreatureLinkingHolder
         // This function lets a slave refollow his master
         bool TryFollowMaster(Creature* pCreature);
 
+        // Function to get the Master of a Group
+        Unit* GetMaster(Creature* pCreature);
+
     private:
         // Structure associated to a master (entry case)
         struct InfoAndGuids

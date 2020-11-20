@@ -771,4 +771,31 @@ bool CreatureLinkingHolder::TryFollowMaster(Creature* pCreature)
     return false;
 }
 
+// Function to get the Master of a Group
+Unit* CreatureLinkingHolder::GetMaster(Creature* pCreature)
+{
+    CreatureLinkingInfo const* pInfo = sCreatureLinkingMgr.GetLinkedTriggerInformation(pCreature);
+    if (!pInfo)
+        return false;
+
+    Creature* pMaster = nullptr;
+    if (pInfo->mapId != INVALID_MAP_ID)                     // entry case
+    {
+        BossGuidMapBounds finds = m_masterGuid.equal_range(pInfo->masterId);
+        for (BossGuidMap::const_iterator itr = finds.first; itr != finds.second; ++itr)
+        {
+            pMaster = pCreature->GetMap()->GetCreature(itr->second);
+            if (pMaster && IsSlaveInRangeOfMaster(pCreature, pMaster, pInfo->searchRange))
+                break;
+        }
+    }
+    else                                                    // guid case
+    {
+        CreatureData const* masterData = sObjectMgr.GetCreatureData(pInfo->masterDBGuid);
+        CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(masterData->id);
+        pMaster = pCreature->GetMap()->GetCreature(ObjectGuid(cInfo->GetHighGuid(), cInfo->Entry, pInfo->masterDBGuid));
+    }
+
+    return pMaster;
+}
 /*! @} */

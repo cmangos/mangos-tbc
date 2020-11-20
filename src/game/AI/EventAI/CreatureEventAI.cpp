@@ -1345,6 +1345,13 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             SetRootSelf(action.immobilizedState.apply, action.immobilizedState.combatOnly);
             break;
         }
+        case ACTION_T_SEND_AI_TO_MASTER:
+        {
+            if (Unit* target = m_creature->GetMap()->GetCreatureLinkingHolder()->GetMaster(m_creature))
+                if (target->IsAlive())
+                    m_creature->AI()->SendAIEvent(AIEventType(action.sendEvent.eventType), m_creature, target);
+            break;
+        }
         default:
             sLog.outError("%s::ProcessAction(): action(%u) not implemented", GetAIName().data(), static_cast<uint32>(action.type));
             return false;

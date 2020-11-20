@@ -1083,6 +1083,13 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         break;
                     case ACTION_T_SET_IMMOBILIZED_STATE:
                         break;
+                    case ACTION_T_SEND_AI_TO_MASTER:
+                        if (action.sendEvent.eventType >= MAXIMAL_AI_EVENT_EVENTAI)
+                        {
+                            sLog.outErrorEventAI("Event %u Action %u uses invalid event type %u (must be less than %u), skipping", i, j + 1, action.sendEvent.eventType, MAXIMAL_AI_EVENT_EVENTAI);
+                            continue;
+                        }
+                        break;
                     default:
                         sLog.outErrorEventAI("Event %u Action %u have currently not checked at load action type (%u). Need check code update?", i, j + 1, temp.action[j].type);
                         break;

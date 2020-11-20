@@ -142,6 +142,7 @@ enum EventAI_ActionType
     ACTION_T_SET_FACING                 = 59,               // Target, 0 - set, 1 - reset
     ACTION_T_SET_SPELL_SET              = 60,               // SetId
     ACTION_T_SET_IMMOBILIZED_STATE      = 61,               // state (true - rooted), combatonly (true - autoremoved on combat stop)
+    ACTION_T_SEND_AI_TO_MASTER          = 62,               // Sending custom AI event to linking master
 
     ACTION_T_END,
 };
@@ -549,6 +550,11 @@ struct CreatureEventAI_Action
             uint32 apply;
             uint32 combatOnly;
         } immobilizedState;
+        // ACTION_T_SEND_AI_TO_MASTER
+        struct
+        {
+            uint32 eventType;
+        } sendEvent;
         // RAW
         struct
         {

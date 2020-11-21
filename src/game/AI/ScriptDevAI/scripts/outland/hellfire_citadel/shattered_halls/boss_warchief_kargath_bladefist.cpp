@@ -96,6 +96,9 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
         m_uiSummonAssistantTimer = 20000;
         m_uiAssassinsTimer = 5000;
 
+        SetCombatScriptStatus(false);
+        SetCombatMovement(true);
+
         DoCastSpellIfCan(m_creature, SPELL_DOUBLE_ATTACK, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
@@ -189,7 +192,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                 m_bladeDanceTargetGuids.push_back(target->GetObjectGuid());
                 break;
             case SPELL_BLADE_DANCE_CHARGE:
-                m_uiWaitTimer = 1;
+                m_uiWaitTimer = 500;
                 m_creature->CastSpell(nullptr, SPELL_BLADE_DANCE, TRIGGERED_OLD_TRIGGERED);
                 break;
         }            
@@ -326,7 +329,7 @@ struct npc_blade_dance_targetAI : public ScriptedAI
     void Reset() override {}
     void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        damage = std::min(m_creature->GetHealth() - 1, damage);
+        damage = std::max(m_creature->GetMaxHealth(), damage);
     }
 };
 

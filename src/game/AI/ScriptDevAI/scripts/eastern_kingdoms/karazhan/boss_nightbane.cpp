@@ -86,7 +86,7 @@ struct boss_nightbaneAI : public CombatAI
     {
         AddCombatAction(NIGHTBANE_PHASE_RESET, true);
         AddTimerlessCombatAction(NIGHTBANE_PHASE_2, true);
-        AddCombatAction(NIGHTBANE_BELLOWING_ROAR, 30000, 45000);
+        AddCombatAction(NIGHTBANE_BELLOWING_ROAR, 55000, 60000);
         AddCombatAction(NIGHTBANE_CHARRED_EARTH, 10000, 15000);
         AddCombatAction(NIGHTBANE_SMOLDERING_BREATH, 9000, 13000);
         AddCombatAction(NIGHTBANE_TAIL_SWEEP, 12000, 15000);
@@ -125,6 +125,7 @@ struct boss_nightbaneAI : public CombatAI
         SetDeathPrevention(false);
         m_creature->SetSupportThreatOnly(false);
         SetCombatScriptStatus(false);
+        SetMeleeEnabled(true);
 
         m_skeletons.clear();
     }
@@ -356,7 +357,7 @@ struct boss_nightbaneAI : public CombatAI
             case NIGHTBANE_BELLOWING_ROAR:
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_BELLOWING_ROAR) == CAST_OK)
-                    ResetCombatAction(action, urand(30000, 45000));
+                    ResetCombatAction(action, urand(38000, 48000));
                 break;
             }
             case NIGHTBANE_CHARRED_EARTH:
@@ -412,7 +413,7 @@ struct boss_nightbaneAI : public CombatAI
             case NIGHTBANE_FIREBALL_BARRAGE:
             {
                 if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_FARTHEST_AWAY, 0, SPELL_FIREBALL_BARRAGE, SELECT_FLAG_PLAYER))
-                    if (target->IsWithinDist(m_creature, 60.f) || m_creature->CastSpell(m_creature->GetVictim(), SPELL_FIREBALL_BARRAGE, TRIGGERED_NONE) == SPELL_CAST_OK)
+                    if (m_creature->GetDistance(target, false, DIST_CALC_COMBAT_REACH) < 60.f || (m_creature->CastSpell(m_creature->GetVictim(), SPELL_FIREBALL_BARRAGE, TRIGGERED_NONE) == SPELL_CAST_OK))
                         ResetCombatAction(action, urand(3000, 6000)); // if farthest target is 40+ yd away
                 break;
             }

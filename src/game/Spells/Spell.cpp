@@ -362,6 +362,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     unitTarget = nullptr;
     itemTarget = nullptr;
     gameObjTarget = nullptr;
+    corpseTarget = nullptr;
     focusObject = nullptr;
     m_cast_count = 0;
     m_triggeredByAuraSpell  = nullptr;
@@ -511,11 +512,18 @@ void Spell::FillTargetMap()
                 OnDestTarget();
                 AddDestExecution(SpellEffectIndex(i));
                 break;
+            case TARGET_TYPE_CORPSE: // can be unit and corpse
+                if (!targetingData.data[i].tempCorpseList.empty())
+                {
+                    CorpseList& corpseTargetList = targetingData.data[i].tempCorpseList;
+                    uint8 effectMask = targetMask[0] | targetMask[1];
+                    for (Corpse* corpse : corpseTargetList)
+                        AddCorpseTarget(corpse, effectMask);
+                }
             case TARGET_TYPE_UNIT:
             case TARGET_TYPE_UNIT_DEST:
             case TARGET_TYPE_PLAYER: // for now player handled here
             case TARGET_TYPE_SPECIAL_UNIT:
-            case TARGET_TYPE_CORPSE:
                 processedUnits = true;
                 for (uint8 rightTarget = 0; rightTarget < 2; ++rightTarget) // need to process target A and B separately due to effect masks
                 {
@@ -891,6 +899,27 @@ void Spell::AddGOTarget(GameObject* target, uint8 effectMask)
     m_UniqueGOTargetInfo.push_back(targetInfo);
 }
 
+void Spell::AddCorpseTarget(Corpse* target, uint8 effectMask)
+{
+    m_targets.m_targetMask |= m_spellInfo->Targets;
+
+    // Lookup target in already in list
+    for (auto& ihit : m_uniqueCorpseTargetInfo)
+    {
+        if (target->GetObjectGuid() == ihit.corpseGUID) // Found in list
+        {
+            ihit.effectMask |= effectMask;            // Add only effect mask
+            return;
+        }
+    }
+
+    CorpseTargetInfo info;
+    info.corpseGUID = target->GetObjectGuid();
+    info.effectMask = effectMask;
+
+    m_uniqueCorpseTargetInfo.push_back(info);
+}
+
 void Spell::AddItemTarget(Item* item, uint8 effectMask)
 {
     // Lookup target in already in list
@@ -1037,18 +1066,21 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
 
         spellDamageInfo.damage = m_damage;
         spellDamageInfo.HitInfo = target->HitInfo;
-        if (target->isCrit)
+        if (!m_spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
         {
-            spellDamageInfo.HitInfo |= SPELL_HIT_TYPE_CRIT;
-            spellDamageInfo.damage = caster->CalculateCritAmount(unitTarget, spellDamageInfo.damage, m_spellInfo);
-        }
+            if (target->isCrit)
+            {
+                spellDamageInfo.HitInfo |= SPELL_HIT_TYPE_CRIT;
+                spellDamageInfo.damage = caster->CalculateCritAmount(unitTarget, spellDamageInfo.damage, m_spellInfo);
+            }
 
-        // damage mitigation
-        if (spellDamageInfo.damage > 0)
-        {
-            // physical damage => armor
-            if (m_spellSchoolMask & SPELL_SCHOOL_MASK_NORMAL)
-                spellDamageInfo.damage = caster->CalcArmorReducedDamage(unitTarget, spellDamageInfo.damage);
+            // damage mitigation
+            if (spellDamageInfo.damage > 0)
+            {
+                // physical damage => armor
+                if (m_spellSchoolMask & SPELL_SCHOOL_MASK_NORMAL)
+                    spellDamageInfo.damage = caster->CalcArmorReducedDamage(unitTarget, spellDamageInfo.damage);
+            }
         }
 
         unitTarget->CalculateAbsorbResistBlock(caster, &spellDamageInfo, m_spellInfo);
@@ -1363,6 +1395,20 @@ void Spell::DoAllEffectOnTarget(ItemTargetInfo* target)
     ExecuteEffects(nullptr, target->item, nullptr, effectMask);
 
     OnHit(SPELL_MISS_NONE);
+}
+
+void Spell::DoAllEffectOnTarget(CorpseTargetInfo* target)
+{
+    uint32 effectMask = target->effectMask;
+    if (!target->corpseGUID || !effectMask)
+        return;
+
+    Corpse* corpse = ObjectAccessor::GetCorpseInMap(target->corpseGUID, m_caster->GetMapId());
+    if (!corpse)
+        return;
+
+    corpseTarget = corpse;
+    ExecuteEffects(nullptr, nullptr, nullptr, effectMask);
 }
 
 void Spell::HandleImmediateEffectExecution(TargetInfo* target)
@@ -3078,6 +3124,9 @@ void Spell::handle_immediate()
     for (auto& ihit : m_UniqueTargetInfo)
         DoAllEffectOnTarget(&ihit);
 
+    for (auto& ihit : m_uniqueCorpseTargetInfo)
+        DoAllEffectOnTarget(&ihit);
+
     for (auto& ihit : m_UniqueGOTargetInfo)
         DoAllEffectOnTarget(&ihit);
 
@@ -3942,24 +3991,6 @@ void Spell::SendChannelStart(uint32 duration)
         m_caster->AI()->OnChannelStateChange(this, true, target);
 }
 
-void Spell::SendResurrectRequest(Player* target) const
-{
-    // Both players and NPCs can resurrect using spells - have a look at creature 28487 for example
-    // However, the packet structure differs slightly
-
-    const char* sentName = m_caster->GetTypeId() == TYPEID_PLAYER ? "" : m_caster->GetNameForLocaleIdx(target->GetSession()->GetSessionDbLocaleIndex());
-
-    WorldPacket data(SMSG_RESURRECT_REQUEST, (8 + 4 + strlen(sentName) + 1 + 1 + 1));
-    data << m_caster->GetObjectGuid();
-    data << uint32(strlen(sentName) + 1);
-
-    data << sentName;
-    data << uint8(m_caster->isSpiritHealer());
-    // override delay sent with SMSG_CORPSE_RECLAIM_DELAY, set instant resurrection for spells with this attribute
-    data << uint8(!m_spellInfo->HasAttribute(SPELL_ATTR_EX3_IGNORE_RESURRECTION_TIMER));
-    target->GetSession()->SendPacket(data);
-}
-
 void Spell::TakeCastItem()
 {
     if (!m_CastItem || m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -4177,7 +4208,7 @@ void Spell::HandleThreatSpells()
         // positive spells distribute threat among all units that are in combat with target, like healing
         if (positive)
         {
-            target->getHostileRefManager().threatAssist(m_caster /*real_caster ??*/, threat, m_spellInfo);
+            target->getHostileRefManager().threatAssist(m_caster /*real_caster ??*/, threat, m_spellInfo, false, true);
         }
         // for negative spells threat gets distributed among affected targets
         else
@@ -4530,8 +4561,8 @@ SpellCastResult Spell::CheckCast(bool strict)
             if (non_caster_target && m_spellInfo->HasAttribute(SPELL_ATTR_EX_NOT_IN_COMBAT_TARGET) && target->IsInCombat())
                 return SPELL_FAILED_TARGET_AFFECTING_COMBAT;
 
-            // check if target is affected by Spirit of Redemption (Aura: 27827)
-            if (target->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION))
+            // check if target is affected by Spirit of Redemption (Aura: 27827) unless death persistent
+            if (target->HasAuraType(SPELL_AURA_SPIRIT_OF_REDEMPTION) && !m_spellInfo->HasAttribute(SPELL_ATTR_EX3_DEATH_PERSISTENT))
                 return SPELL_FAILED_BAD_TARGETS;
 
             // Check if more powerful spell applied on target (if spell only contains non-aoe auras)
@@ -5007,6 +5038,9 @@ SpellCastResult Spell::CheckCast(bool strict)
                     if (!strict && go->IsInUse())
                         return SPELL_FAILED_CHEST_IN_USE;
 
+                    if (!strict && go->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE))
+                        return SPELL_FAILED_CHEST_IN_USE;
+
                     // done in client but we need to recheck anyway
                     if (go->GetGOInfo()->CannotBeUsedUnderImmunity() && m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE))
                         return SPELL_FAILED_DAMAGE_IMMUNE;
@@ -5141,6 +5175,33 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 break;
             }
+            case SPELL_EFFECT_TRIGGER_SPELL_2:
+            {
+                if (m_caster->GetTypeId() != TYPEID_PLAYER)
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                // pre 2.4 - could not summon to netherstorm
+                if (m_caster->GetZoneId() == 3523)
+                    return SPELL_FAILED_FIZZLE;
+
+                Player* caster = static_cast<Player*>(m_caster);
+                if (!caster->GetSelectionGuid())
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                Player* target = sObjectMgr.GetPlayer(caster->GetSelectionGuid());
+                if (!target || caster == target || !target->IsInGroup(m_caster))
+                    return SPELL_FAILED_BAD_TARGETS;
+
+                uint32 mapId = m_caster->GetMapId();
+                const MapEntry* map = sMapStore.LookupEntry(mapId);
+                if (map->IsDungeon())
+                {
+                    // pre 2.4 - could not summon to instance
+                    if (target->GetMapId() != mapId)
+                        return SPELL_FAILED_TARGET_NOT_IN_INSTANCE;
+                }
+                break;
+            }
             case SPELL_EFFECT_SUMMON_PLAYER:
             {
                 if (m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -5158,6 +5219,10 @@ SpellCastResult Spell::CheckCast(bool strict)
                 const MapEntry* map = sMapStore.LookupEntry(mapId);
                 if (map->IsDungeon())
                 {
+                    // pre 2.4 - could not summon to instance
+                    if (target->GetMapId() != mapId)
+                        return SPELL_FAILED_TARGET_NOT_IN_INSTANCE;
+
                     InstanceTemplate const* instance = ObjectMgr::GetInstanceTemplate(mapId);
                     if (!instance)
                         return SPELL_FAILED_TARGET_NOT_IN_INSTANCE;
@@ -6571,7 +6636,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
             return false;
 
     // If spell have ingore CC attr & unit is CC
-    if (m_spellInfo->AttributesEx6 & SPELL_ATTR_EX6_IGNORE_CC_TARGETS && target->IsCrowdControlled())
+    if (m_spellInfo->AttributesEx6 & SPELL_ATTR_EX6_IGNORE_CC_TARGETS && target != m_targets.getUnitTarget() && target->IsCrowdControlled())
         return false;
 
     if (target->GetTypeId() != TYPEID_PLAYER && m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER)
@@ -6622,7 +6687,7 @@ SpellEvent::~SpellEvent()
     if (m_Spell->getState() != SPELL_STATE_FINISHED)
         m_Spell->cancel();
 
-    if (m_Spell->IsDeletable())
+    if (m_Spell->IsDeletable() || World::IsStopped())
     {
         delete m_Spell;
     }
@@ -7222,6 +7287,7 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
                 break;
             UnitList newList;
             newList.push_back(unitTarget);
+            bool isInGroup = m_caster->IsInGroup(unitTarget);
             filterUnitList.pop_front();
             filterUnitList.sort(LowestHPNearestOrder(unitTarget, DIST_CALC_COMBAT_REACH));
             Unit* prev = unitTarget;
@@ -7237,6 +7303,12 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
                 }
 
                 if (!prev->IsWithinLOSInMap(*next, true))
+                {
+                    ++next;
+                    continue;
+                }
+
+                if (isInGroup && !m_caster->IsInGroup(*next))
                 {
                     ++next;
                     continue;
@@ -7270,8 +7342,7 @@ void Spell::FillFromTargetFlags(TempTargetingData& targetingData, SpellEffectInd
         else if (m_targets.getCorpseTargetGuid())
         {
             if (Corpse* corpse = m_targets.getCorpseTarget())
-                if (Player* owner = ObjectAccessor::FindPlayer(corpse->GetOwnerGuid()))
-                    targetingData.data[effIdx].tmpUnitList[false].push_back(owner);
+                targetingData.data[effIdx].tempCorpseList.push_back(corpse);
         }
     }
     else if (m_spellInfo->Targets & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM))
@@ -7464,6 +7535,10 @@ SpellCastResult Spell::OnCheckCast(bool strict)
         case 43732: // Remove Amani Curse - should only be usable on Forest Frog
             if (ObjectGuid target = m_targets.getUnitTargetGuid())
                 if (target.GetEntry() != 24396)
+                    return SPELL_FAILED_BAD_TARGETS;
+        case 42489:
+            if (ObjectGuid target = m_targets.getUnitTargetGuid())
+                if (target.GetEntry() != 4393 && target.GetEntry() != 4394)
                     return SPELL_FAILED_BAD_TARGETS;
         default:
             if (SpellScript* script = GetSpellScript())
@@ -7724,10 +7799,6 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
             }
             return false;
         }
-        case 38028:                             // Watery Grave
-            if (!target->IsAlive())
-                return false;
-            // no break
         case 30769:                             // Pick Red Riding Hood
         case 30843:                             // Enfeeble
         case 31298:                             // Sleep

@@ -2468,7 +2468,7 @@ bool ChatHandler::HandleLookupSpellCommand(char* args)
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(id);
         if (spellInfo)
         {
-            int loc = int(LOCALE_enUS);
+            int loc = int(DEFAULT_LOCALE);
             std::string name = spellInfo->SpellName[loc];
             if (name.empty())
                 continue;
@@ -5449,6 +5449,29 @@ bool ChatHandler::HandleMovespeedShowCommand(char* /*args*/)
     PSendSysMessage("%s speeds:", unit->GetName());
     PSendSysMessage("Walk speed %f, Run speed %f, Swim speed %f, Fly speed %f", unit->GetSpeed(MOVE_WALK), unit->GetSpeed(MOVE_RUN), unit->GetSpeed(MOVE_SWIM), unit->GetSpeed(MOVE_FLIGHT));
 
+    return true;
+}
+
+bool ChatHandler::HandleDebugMovement(char* args)
+{
+    Unit* unit = getSelectedUnit();
+    if (!unit)
+    {
+        SendSysMessage(LANG_SELECT_CHAR_OR_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    bool value;
+    if (!ExtractOnOff(&args, value))
+    {
+        SendSysMessage(LANG_USE_BOL);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    unit->SetDebuggingMovement(value);
+    PSendSysMessage("New value: %s", (value ? "true" : "false"));
     return true;
 }
 

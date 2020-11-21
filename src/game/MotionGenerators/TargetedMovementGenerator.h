@@ -22,6 +22,7 @@
 #include "Movement/MoveSplineInit.h"
 #include "MotionGenerators/MovementGenerator.h"
 #include "MotionGenerators/FollowerReference.h"
+#include "Entities/ObjectGuid.h"
 
 class PathFinder;
 
@@ -161,6 +162,8 @@ class ChaseMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Chas
         bool m_closenessExpired;
 
         ChaseMovementMode m_currentMode;
+
+        GuidVector m_spawns;
 };
 
 class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, FollowMovementGenerator>

@@ -15,415 +15,511 @@
  */
 
 /* ScriptData
-SDName: Arcatraz
-SD%Complete: 60
-SDComment: Warden Mellichar, event controller for Skyriss event. Millhouse Manastorm. TODO: make better combatAI for Millhouse.
+SDName: Instance_Arcatraz
+SD%Complete: 80
+SDComment: Mainly Harbringer Skyriss event
 SDCategory: Tempest Keep, The Arcatraz
 EndScriptData */
-
-/* ContentData
-npc_millhouse_manastorm
-npc_warden_mellichar
-mob_zerekethvoidzone
-EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "arcatraz.h"
 
-/*#####
-# npc_millhouse_manastorm
-#####*/
+/* Arcatraz encounters:
+1 - Zereketh the Unbound event
+2 - Dalliah the Doomsayer event
+3 - Wrath-Scryer Soccothrates event
+4 - Harbinger Skyriss event, 5 sub-events
+*/
 
 enum
 {
-    SAY_INTRO_1                     = -1552010,
-    SAY_INTRO_2                     = -1552011,
-    SAY_WATER                       = -1552012,
-    SAY_BUFFS                       = -1552013,
-    SAY_DRINK                       = -1552014,
-    SAY_READY                       = -1552015,
-    SAY_KILL_1                      = -1552016,
-    SAY_KILL_2                      = -1552017,
-    SAY_PYRO                        = -1552018,
-    SAY_ICEBLOCK                    = -1552019,
-    SAY_LOWHP                       = -1552020,
-    SAY_DEATH                       = -1552021,
+    SAY_SOCCOTHRATES_AGGRO          = -1552039,
+    SAY_SOCCOTHRATES_DEATH          = -1552043,
 
-    SPELL_CONJURE_WATER             = 36879,
-    SPELL_ARCANE_INTELLECT          = 36880,
-    SPELL_ICE_ARMOR                 = 36881,
-    SD_SPELL_DRINK                  = 30024,
+    YELL_MELLICHAR_INTRO1           = -1552023,
+    YELL_MELLICHAR_INTRO2           = -1552024,
+    YELL_MELLICHAR_RELEASE1         = -1552025,
+    YELL_MELLICHAR_RELEASE2         = -1552026,
+    YELL_MELLICHAR_RELEASE3         = -1552027,
+    YELL_MELLICHAR_RELEASE4         = -1552028,
+    YELL_MELLICHAR_RELEASE5         = -1552029,
+    YELL_MELLICAR_WELCOME           = -1552030,
+    SAY_SKYRISS_INTRO               = -1552000,
+    SAY_SKYRISS_AGGRO               = -1552001,
+    SAY_MILLHOUSE_COMPLETE          = -1552022,
 
-    SPELL_ARCANE_MISSILES           = 33833,
-    SPELL_CONE_OF_COLD              = 12611,
-    SPELL_FIRE_BLAST                = 13341,
-    SPELL_FIREBALL                  = 14034,
-    SPELL_FROSTBOLT                 = 15497,
-    SPELL_PYROBLAST                 = 33975,
-    SPELL_ICE_BLOCK                 = 36911,
+    // Spells used by Mellichar during the dialogue
+    SPELL_TARGET_BETA               = 36854,
+    SPELL_TARGET_ALPHA              = 36856,
+    SPELL_TARGET_DELTA              = 36857,
+    SPELL_TARGET_GAMMA              = 36858,
+    SPELL_SIMPLE_TELEPORT           = 12980, // TODO: Other mobs need to use it too
+    SPELL_MIND_REND                 = 36859,
+    SPELL_QUIET_SUICIDE             = 3617,
 
-    POINT_ID_CENTER                 = 1,
+    QUEST_TRIAL_OF_THE_NAARU_TENACITY = 10886,
 };
 
-static const DialogueEntry aIntroDialogue[] =
+static const DialogueEntry aArcatrazDialogue[] =
 {
-    {NPC_MILLHOUSE,   0,             2000},
-    {SAY_INTRO_1,     NPC_MILLHOUSE, 10000},
-    {TYPE_WARDEN_2,   0,             10000},
-    {SAY_INTRO_2,     NPC_MILLHOUSE, 18000},
-    {SAY_WATER,       NPC_MILLHOUSE, 7000},
-    {SAY_BUFFS,       NPC_MILLHOUSE, 6000},
-    {SPELL_ICE_ARMOR, 0,             1000},
-    {SAY_DRINK,       NPC_MILLHOUSE, 7000},
-    {SAY_READY,       NPC_MILLHOUSE, 6000},
-    {POINT_ID_CENTER, 0,             0},
+    // Soccothares taunts
+    {TYPE_DALLIAH,            0,             5000},
+    {SAY_SOCCOTHRATES_AGGRO,  NPC_SOCCOTHRATES, 0},
+    {TYPE_SOCCOTHRATES,       0,             5000},
+    {SAY_SOCCOTHRATES_DEATH,  NPC_SOCCOTHRATES, 0},
+    // Skyriss event
+    {YELL_MELLICHAR_INTRO1,   NPC_MELLICHAR, 22000},
+    {YELL_MELLICHAR_INTRO2,   NPC_MELLICHAR, 7000},
+    {SPELL_TARGET_ALPHA,      0,             7000},
+    {YELL_MELLICHAR_RELEASE1, NPC_MELLICHAR, 0},
+    {YELL_MELLICHAR_RELEASE2, NPC_MELLICHAR, 7000},
+    {SPELL_TARGET_BETA,       0,             7000},
+    {TYPE_WARDEN_2,           0,             0},
+    {YELL_MELLICHAR_RELEASE3, NPC_MELLICHAR, 7000},
+    {SPELL_TARGET_DELTA,      0,             7000},
+    {TYPE_WARDEN_3,           0,             0},
+    {YELL_MELLICHAR_RELEASE4, NPC_MELLICHAR, 7000},
+    {SPELL_TARGET_GAMMA,      0,             7000},
+    {TYPE_WARDEN_4,           0,             0},
+    {YELL_MELLICHAR_RELEASE5, NPC_MELLICHAR, 8000},
+    {TYPE_WARDEN_5,           0,             5000},
+    {SAY_SKYRISS_INTRO,       NPC_SKYRISS,   25000},
+    {YELL_MELLICAR_WELCOME,   NPC_MELLICHAR, 3000},
+    {SAY_SKYRISS_AGGRO,       NPC_SKYRISS,   0},
     {0, 0, 0},
 };
 
-static const float fRoomCenterCoords[3] = {445.8804f, -158.7055f, 43.06898f};
-
-struct npc_millhouse_manastormAI : public ScriptedAI, private DialogueHelper
+instance_arcatraz::instance_arcatraz(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aArcatrazDialogue),
+    m_uiResetDelayTimer(0),
+    m_uiEntranceEventTimer(0),
+    m_uiKilledWarders(0),
+    m_uiKilledDefenders(0)
 {
-    npc_millhouse_manastormAI(Creature* pCreature) : ScriptedAI(pCreature),
-        DialogueHelper(aIntroDialogue)
+    Initialize();
+}
+
+void instance_arcatraz::Initialize()
+{
+    memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+    InitializeDialogueHelper(this);
+}
+
+void instance_arcatraz::OnPlayerEnter(Player* /*pPlayer*/)
+{
+    // Check encounter states
+    if (GetData(TYPE_ENTRANCE) == DONE || GetData(TYPE_ENTRANCE) == IN_PROGRESS)
+        return;
+
+    SetData(TYPE_ENTRANCE, IN_PROGRESS);
+    m_uiEntranceEventTimer = 1000;
+}
+
+void instance_arcatraz::OnObjectCreate(GameObject* pGo)
+{
+    switch (pGo->GetEntry())
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        InitializeDialogueHelper(m_pInstance);
-        Reset();
-        m_attackDistance = 25.0f;
-        StartNextDialogueText(NPC_MILLHOUSE);
-    }
-
-    ScriptedInstance* m_pInstance;
-
-    bool m_bHasLowHp;
-    uint32 m_uiPyroblastTimer;
-    uint32 m_uiFireballTimer;
-    uint32 m_uiFrostBoltTimer;
-    uint32 m_uiFireBlastTimer;
-    uint32 m_uiConeColtTimer;
-    uint32 m_uiArcaneMissileTimer;
-
-    void Reset() override
-    {
-        m_bHasLowHp             = false;
-        m_uiPyroblastTimer      = urand(6000, 9000);
-        m_uiFireballTimer       = urand(2500, 4000);
-        m_uiFrostBoltTimer      = urand(3000, 5000);
-        m_uiFireBlastTimer      = urand(6000, 14000);
-        m_uiConeColtTimer       = urand(7000, 12000);
-        m_uiArcaneMissileTimer  = urand(5000, 8000);
-    }
-
-    void KilledUnit(Unit* /*pVictim*/) override
-    {
-        DoScriptText(urand(0, 1) ? SAY_KILL_1 : SAY_KILL_2, m_creature);
-    }
-
-    void JustDied(Unit* /*pVictim*/) override
-    {
-        DoScriptText(SAY_DEATH, m_creature);
-
-        /*for questId 10886 (heroic mode only)
-        if (m_pInstance && m_pInstance->GetData(TYPE_HARBINGERSKYRISS) != DONE)
-            ->FailQuest();*/
-    }
-
-    void EnterEvadeMode() override
-    {
-        m_creature->RemoveAllAurasOnEvade();
-        m_creature->CombatStop(true);
-        m_creature->LoadCreatureAddon(true);
-
-        // Boss should evade in the center of the room
-        if (m_creature->IsAlive())
-            m_creature->GetMotionMaster()->MovePoint(1, fRoomCenterCoords[0], fRoomCenterCoords[1], fRoomCenterCoords[2]);
-
-        m_creature->SetLootRecipient(nullptr);
-
-        Reset();
-    }
-
-    void JustDidDialogueStep(int32 iEntry) override
-    {
-        switch (iEntry)
-        {
-            case TYPE_WARDEN_2:
-                if (m_pInstance)
-                    m_pInstance->SetData(TYPE_WARDEN_2, DONE);
-                break;
-            case SAY_WATER:
-                DoCastSpellIfCan(m_creature, SPELL_CONJURE_WATER);
-                break;
-            case SAY_BUFFS:
-                DoCastSpellIfCan(m_creature, SPELL_ARCANE_INTELLECT);
-                break;
-            case SPELL_ICE_ARMOR:
-                DoCastSpellIfCan(m_creature, SPELL_ICE_ARMOR);
-                break;
-            case SAY_DRINK:
-                DoCastSpellIfCan(m_creature, SD_SPELL_DRINK);
-                break;
-            case POINT_ID_CENTER:
-                m_creature->SetWalk(false);
-                m_creature->GetMotionMaster()->MovePoint(1, fRoomCenterCoords[0], fRoomCenterCoords[1], fRoomCenterCoords[2]);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                break;
-        }
-    }
-
-    void HandleMovementOnAttackStart(Unit* victim) const override
-    {
-        m_creature->GetMotionMaster()->MoveChase(victim, m_attackDistance, m_attackAngle, false);
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        DialogueUpdate(uiDiff);
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+        case GO_CORE_SECURITY_FIELD_ALPHA:
+            if (m_auiEncounter[2] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            break;
+        case GO_CORE_SECURITY_FIELD_BETA:
+            if (m_auiEncounter[1] == DONE)
+                pGo->SetGoState(GO_STATE_ACTIVE);
+            break;
+        case GO_SEAL_SPHERE:
+        case GO_POD_ALPHA:
+        case GO_POD_BETA:
+        case GO_POD_DELTA:
+        case GO_POD_GAMMA:
+        case GO_POD_OMEGA:
+            break;
+        default:
             return;
-
-        if (!m_bHasLowHp && m_creature->GetHealthPercent() < 20.0f)
-        {
-            DoScriptText(SAY_LOWHP, m_creature);
-            m_bHasLowHp = true;
-        }
-
-        if (m_uiPyroblastTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_PYROBLAST) == CAST_OK)
-            {
-                m_uiPyroblastTimer = 40000;
-                DoScriptText(SAY_PYRO, m_creature);
-            }
-        }
-        else
-            m_uiPyroblastTimer -= uiDiff;
-
-        if (m_uiFireballTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FIREBALL) == CAST_OK)
-                m_uiFireballTimer = 4000;
-        }
-        else
-            m_uiFireballTimer -= uiDiff;
-
-        if (m_uiFrostBoltTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FROSTBOLT) == CAST_OK)
-                m_uiFrostBoltTimer = urand(4000, 6000);
-        }
-        else
-            m_uiFrostBoltTimer -= uiDiff;
-
-        if (m_uiConeColtTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_CONE_OF_COLD) == CAST_OK)
-                m_uiConeColtTimer = urand(7000, 12000);
-        }
-        else
-            m_uiConeColtTimer -= uiDiff;
-
-        if (m_uiFireBlastTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FIRE_BLAST) == CAST_OK)
-                m_uiFireBlastTimer = urand(5000, 16000);
-        }
-        else
-            m_uiFireBlastTimer -= uiDiff;
-
-        if (m_uiArcaneMissileTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_ARCANE_MISSILES) == CAST_OK)
-                m_uiArcaneMissileTimer = urand(5000, 8000);
-        }
-        else
-            m_uiArcaneMissileTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
-};
-
-UnitAI* GetAI_npc_millhouse_manastorm(Creature* pCreature)
-{
-    return new npc_millhouse_manastormAI(pCreature);
+    m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
-/*#####
-# npc_warden_mellichar
-#####*/
-
-enum
+void instance_arcatraz::OnCreatureCreate(Creature* pCreature)
 {
-    SPELL_BUBBLE_VISUAL     = 36849,
-    SPELL_SIMPLE_TELEPORT   = 12980,
-};
-
-struct npc_warden_mellicharAI : public ScriptedAI
-{
-    npc_warden_mellicharAI(Creature* pCreature) : ScriptedAI(pCreature)
+    switch (pCreature->GetEntry())
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        SetCombatMovement(false);
-        Reset();
+        case NPC_SKYRISS:
+        case NPC_MILLHOUSE:
+            m_lSkyrissEventMobsGuidList.push_back(pCreature->GetObjectGuid());
+        // no break here because we want them in both lists
+        case NPC_PRISON_APHPA_POD:
+        case NPC_PRISON_BETA_POD:
+        case NPC_PRISON_DELTA_POD:
+        case NPC_PRISON_GAMMA_POD:
+        case NPC_PRISON_BOSS_POD:
+        case NPC_MELLICHAR:
+        case NPC_DALLIAH:
+        case NPC_SOCCOTHRATES:
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            break;
+        case NPC_WRATH_SCRYER_FELFIRE:
+            m_npcEntryGuidCollection[pCreature->GetEntry()].push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_BLAZING_TRICKSTER:
+        case NPC_PHASE_HUNTER:
+        case NPC_AKKIRIS:
+        case NPC_SULFURON:
+        case NPC_TW_DRAKONAAR:
+        case NPC_BL_DRAKONAAR:
+            m_lSkyrissEventMobsGuidList.push_back(pCreature->GetObjectGuid());
+            break;
     }
-
-    ScriptedInstance* m_pInstance;
-
-    uint32 m_uiIntroTimer;
-    ObjectGuid m_targetPlayerGuid;
-
-    void Reset() override
-    {
-        m_uiIntroTimer = 5000;
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-    }
-
-    void AttackStart(Unit* /*pWho*/) override {}
-
-    void Aggro(Unit* pWho) override
-    {
-        m_creature->InterruptNonMeleeSpells(false);
-        m_creature->SetFacingToObject(pWho);
-        m_targetPlayerGuid = pWho->GetObjectGuid();
-
-        DoCastSpellIfCan(m_creature, SPELL_BUBBLE_VISUAL);
-
-        // In theory the Seal Sphere should protect the npc from being attacked, but because LoS isn't enabled for Gameobjects we have to use this workaround
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-        SetReactState(REACT_PASSIVE);
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_HARBINGERSKYRISS, IN_PROGRESS);
-    }
-
-    void JustSummoned(Creature* pSummoned) override
-    {
-        pSummoned->CastSpell(pSummoned, SPELL_SIMPLE_TELEPORT, TRIGGERED_NONE);
-
-        if (pSummoned->GetEntry() != NPC_MILLHOUSE && pSummoned->GetEntry() != NPC_SKYRISS)
-        {
-            if (Unit* pTarget = m_creature->GetMap()->GetUnit(m_targetPlayerGuid))
-                pSummoned->AI()->AttackStart(pTarget);
-        }
-    }
-
-    void JustDied(Unit* /*pKiller*/) override
-    {
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-        if (m_pInstance)
-        {
-            if (Creature* pSkyriss = m_pInstance->GetSingleCreatureFromStorage(NPC_SKYRISS))
-            {
-                if (Unit* pTarget = m_creature->GetMap()->GetUnit(m_targetPlayerGuid))
-                    pSkyriss->AI()->AttackStart(pTarget);
-            }
-        }
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        // Set the visual intro on OOC timer
-        if (m_uiIntroTimer)
-        {
-            if (m_uiIntroTimer <= uiDiff)
-            {
-                DoCastSpellIfCan(m_creature, SPELL_TARGET_OMEGA);
-                m_uiIntroTimer = 0;
-            }
-            else
-                m_uiIntroTimer -= uiDiff;
-        }
-    }
-};
-
-UnitAI* GetAI_npc_warden_mellichar(Creature* pCreature)
-{
-    return new npc_warden_mellicharAI(pCreature);
 }
 
-/*######
-## npc_arcatraz_defender
-######*/
-
-enum
+void instance_arcatraz::SetData(uint32 uiType, uint32 uiData)
 {
-    SPELL_FLAMING_WEAPON    = 36601,
-    SPELL_FLAMING_WEAPON_H  = 38804,
-    SPELL_PROTEAN_SUBDUAL   = 36288,
-    SPELL_PROTEAN_SUBDUAL_H = 40449,
-};
-
-struct npc_arcatraz_defenderAI : public ScriptedAI
-{
-    npc_arcatraz_defenderAI(Creature* pCreature) : ScriptedAI(pCreature)
+    switch (uiType)
     {
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
+        case TYPE_ENTRANCE:
+        case TYPE_ZEREKETH:
+            m_auiEncounter[uiType] = uiData;
+            break;
+
+        case TYPE_DALLIAH:
+            if (uiData == IN_PROGRESS)
+            {
+                // Soccothares taunts after Dalliah gets aggro
+                if (GetData(TYPE_SOCCOTHRATES) != DONE)
+                    StartNextDialogueText(TYPE_DALLIAH);
+            }
+            if (uiData == DONE)
+            {
+                DoUseDoorOrButton(GO_CORE_SECURITY_FIELD_BETA);
+
+                // Soccothares taunts after Dalliah dies
+                if (GetData(TYPE_SOCCOTHRATES) != DONE)
+                    StartNextDialogueText(TYPE_SOCCOTHRATES);
+            }
+            m_auiEncounter[uiType] = uiData;
+            break;
+
+        case TYPE_SOCCOTHRATES:
+            if (uiData != IN_PROGRESS)
+            {
+                GuidVector felfireVector; // at aggro felfire mobs always teleport to respawn location
+                GetCreatureGuidVectorFromStorage(NPC_WRATH_SCRYER_FELFIRE, felfireVector);
+                for (ObjectGuid& guid : felfireVector)
+                {
+                    if (Creature* creature = instance->GetCreature(guid))
+                    {
+                        creature->RemoveAllDynObjects();
+                        creature->CombatStop();
+                    }
+                }
+            }
+            if (uiData == DONE)
+                DoUseDoorOrButton(GO_CORE_SECURITY_FIELD_ALPHA);
+            m_auiEncounter[uiType] = uiData;
+            break;
+
+        case TYPE_HARBINGERSKYRISS:
+            if (uiData == FAIL)
+            {
+                SetData(TYPE_WARDEN_1, NOT_STARTED);
+                SetData(TYPE_WARDEN_2, NOT_STARTED);
+                SetData(TYPE_WARDEN_3, NOT_STARTED);
+                SetData(TYPE_WARDEN_4, NOT_STARTED);
+                SetData(TYPE_WARDEN_5, NOT_STARTED);
+
+                // Reset event in 1 min
+                if (Creature* pMellichar = GetSingleCreatureFromStorage(NPC_MELLICHAR))
+                    pMellichar->ForcedDespawn();
+                m_uiResetDelayTimer = 60000;
+
+                // Despawn all the summons manually
+                for (GuidList::const_iterator itr = m_lSkyrissEventMobsGuidList.begin(); itr != m_lSkyrissEventMobsGuidList.end(); ++itr)
+                {
+                    if (Creature* pTemp = instance->GetCreature(*itr))
+                        pTemp->ForcedDespawn();
+                }
+
+                // Reset these objects, because they doesn't reset automatically
+                if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_POD_BETA))
+                    pGo->ResetDoorOrButton();
+                if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_POD_OMEGA))
+                    pGo->ResetDoorOrButton();
+                if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_SEAL_SPHERE))
+                    pGo->ResetDoorOrButton();
+            }
+            if (uiData == IN_PROGRESS)
+            {
+                StartNextDialogueText(YELL_MELLICHAR_INTRO1);
+                DoUseDoorOrButton(GO_SEAL_SPHERE);
+            }
+            if (uiData == DONE)
+            {
+                if (Creature* pMillhouse = GetSingleCreatureFromStorage(NPC_MILLHOUSE))
+                {
+                    DoScriptText(SAY_MILLHOUSE_COMPLETE, pMillhouse);
+                    if (!instance->IsRegularDifficulty())
+                    {
+                        Map::PlayerList const& PlayerList = instance->GetPlayers();
+
+                        for (const auto& itr : PlayerList)
+                        {
+                            Player* pPlayer = itr.getSource();
+                            if (pPlayer && pPlayer->GetQuestStatus(QUEST_TRIAL_OF_THE_NAARU_TENACITY) == QUEST_STATUS_INCOMPLETE)
+                                pPlayer->AreaExploredOrEventHappens(QUEST_TRIAL_OF_THE_NAARU_TENACITY);
+                        }
+                    }
+                }
+            }
+            m_auiEncounter[3] = uiData;
+            break;
+
+        case TYPE_WARDEN_1:
+            if (uiData == IN_PROGRESS)
+                DoUseDoorOrButton(GO_POD_ALPHA);
+            if (uiData == DONE)
+                StartNextDialogueText(YELL_MELLICHAR_RELEASE2);
+            m_auiEncounter[uiType] = uiData;
+            break;
+
+        case TYPE_WARDEN_2:
+            if (uiData == IN_PROGRESS)
+                DoUseDoorOrButton(GO_POD_BETA);
+            if (uiData == DONE)
+                StartNextDialogueText(YELL_MELLICHAR_RELEASE3);
+            m_auiEncounter[uiType] = uiData;
+            break;
+
+        case TYPE_WARDEN_3:
+            if (uiData == IN_PROGRESS)
+                DoUseDoorOrButton(GO_POD_DELTA);
+            if (uiData == DONE)
+                StartNextDialogueText(YELL_MELLICHAR_RELEASE4);
+            m_auiEncounter[uiType] = uiData;
+            break;
+
+        case TYPE_WARDEN_4:
+            if (uiData == IN_PROGRESS)
+                DoUseDoorOrButton(GO_POD_GAMMA);
+            if (uiData == DONE)
+                StartNextDialogueText(YELL_MELLICHAR_RELEASE5);
+            m_auiEncounter[uiType] = uiData;
+            break;
+
+        case TYPE_WARDEN_5:
+            if (uiData == IN_PROGRESS)
+                DoUseDoorOrButton(GO_POD_OMEGA);
+            m_auiEncounter[uiType] = uiData;
+            break;
     }
 
-    bool m_bIsRegularMode;
-    uint32 m_uiFlamingWeaponTimer;
-    uint32 m_uiProteanSubdualTimer;
-
-    void Reset() override
+    if (uiData == DONE)
     {
-        m_uiFlamingWeaponTimer = urand(3000, 6000);
-        m_uiProteanSubdualTimer = 2000;
+        OUT_SAVE_INST_DATA;
+
+        std::ostringstream saveStream;
+
+        saveStream << m_auiEncounter[0] << " " << m_auiEncounter[1] << " " << m_auiEncounter[2] << " "
+                   << m_auiEncounter[3] << " " << m_auiEncounter[4];
+
+        m_strInstData = saveStream.str();
+
+        SaveToDB();
+        OUT_SAVE_INST_DATA_COMPLETE;
+    }
+}
+
+uint32 instance_arcatraz::GetData(uint32 uiType) const
+{
+    if (uiType < MAX_ENCOUNTER)
+        return m_auiEncounter[uiType];
+
+    return 0;
+}
+
+void instance_arcatraz::Load(const char* chrIn)
+{
+    if (!chrIn)
+    {
+        OUT_LOAD_INST_DATA_FAIL;
+        return;
     }
 
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
+    OUT_LOAD_INST_DATA(chrIn);
 
-        if (m_uiFlamingWeaponTimer < uiDiff)
+    std::istringstream loadStream(chrIn);
+    loadStream >> m_auiEncounter[0] >> m_auiEncounter[1] >> m_auiEncounter[2] >> m_auiEncounter[3]
+               >> m_auiEncounter[4];
+
+    for (uint32& i : m_auiEncounter)
+    {
+        if (i == IN_PROGRESS)
+            i = NOT_STARTED;
+    }
+
+    OUT_LOAD_INST_DATA_COMPLETE;
+}
+
+void instance_arcatraz::JustDidDialogueStep(int32 iEntry)
+{
+    Creature* pMellichar = GetSingleCreatureFromStorage(NPC_MELLICHAR);
+    if (!pMellichar)
+        return;
+
+    switch (iEntry)
+    {
+        case SPELL_TARGET_ALPHA:
+            pMellichar->CastSpell(pMellichar, SPELL_TARGET_ALPHA, TRIGGERED_NONE);
+            if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_APHPA_POD))
+                pMellichar->SetFacingToObject(pTarget);
+            SetData(TYPE_WARDEN_1, IN_PROGRESS);
+            break;
+        case YELL_MELLICHAR_RELEASE1:
+            pMellichar->SummonCreature(urand(0, 1) ? NPC_BLAZING_TRICKSTER : NPC_PHASE_HUNTER, aSummonPosition[0].m_fX, aSummonPosition[0].m_fY, aSummonPosition[0].m_fZ, aSummonPosition[0].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0);
+            break;
+        case YELL_MELLICHAR_RELEASE2:
+            if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_BETA_POD))
+                pMellichar->SetFacingToObject(pTarget);
+            break;
+        case SPELL_TARGET_BETA:
+            pMellichar->CastSpell(pMellichar, SPELL_TARGET_BETA, TRIGGERED_NONE);
+            SetData(TYPE_WARDEN_2, IN_PROGRESS);
+            break;
+        case TYPE_WARDEN_2:
+            pMellichar->SummonCreature(NPC_MILLHOUSE, aSummonPosition[1].m_fX, aSummonPosition[1].m_fY, aSummonPosition[1].m_fZ, aSummonPosition[1].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0);
+            break;
+        case SPELL_TARGET_DELTA:
+            pMellichar->CastSpell(pMellichar, SPELL_TARGET_DELTA, TRIGGERED_NONE);
+            if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_DELTA_POD))
+                pMellichar->SetFacingToObject(pTarget);
+            SetData(TYPE_WARDEN_3, IN_PROGRESS);
+            break;
+        case TYPE_WARDEN_3:
+            pMellichar->SummonCreature(urand(0, 1) ? NPC_AKKIRIS : NPC_SULFURON, aSummonPosition[2].m_fX, aSummonPosition[2].m_fY, aSummonPosition[2].m_fZ, aSummonPosition[2].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0);
+            pMellichar->CastSpell(pMellichar, SPELL_TARGET_OMEGA, TRIGGERED_NONE);
+            if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_BOSS_POD))
+                pMellichar->SetFacingToObject(pTarget);
+            break;
+        case YELL_MELLICHAR_RELEASE4:
+            pMellichar->InterruptNonMeleeSpells(false);
+            if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_GAMMA_POD))
+                pMellichar->SetFacingToObject(pTarget);
+            break;
+        case SPELL_TARGET_GAMMA:
+            pMellichar->CastSpell(pMellichar, SPELL_TARGET_GAMMA, TRIGGERED_NONE);
+            if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_GAMMA_POD))
+                pMellichar->SetFacingToObject(pTarget);
+            SetData(TYPE_WARDEN_4, IN_PROGRESS);
+            break;
+        case TYPE_WARDEN_4:
+            pMellichar->SummonCreature(urand(0, 1) ? NPC_TW_DRAKONAAR : NPC_BL_DRAKONAAR, aSummonPosition[3].m_fX, aSummonPosition[3].m_fY, aSummonPosition[3].m_fZ, aSummonPosition[3].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0);
+            pMellichar->CastSpell(pMellichar, SPELL_TARGET_OMEGA, TRIGGERED_NONE);
+            if (Creature* pTarget = GetSingleCreatureFromStorage(NPC_PRISON_BOSS_POD))
+                pMellichar->SetFacingToObject(pTarget);
+            break;
+        case YELL_MELLICHAR_RELEASE5:
+            pMellichar->InterruptNonMeleeSpells(false);
+            SetData(TYPE_WARDEN_5, IN_PROGRESS);
+            break;
+        case TYPE_WARDEN_5:
+            if (Creature* pSkyriss = pMellichar->SummonCreature(NPC_SKYRISS, aSummonPosition[4].m_fX, aSummonPosition[4].m_fY, aSummonPosition[4].m_fZ, aSummonPosition[4].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0))
+                pSkyriss->CastSpell(pSkyriss, SPELL_SIMPLE_TELEPORT, TRIGGERED_NONE);
+            break;
+        case YELL_MELLICAR_WELCOME:
+            if (Creature* pSkyriss = GetSingleCreatureFromStorage(NPC_SKYRISS))
+                pSkyriss->CastSpell(pSkyriss, SPELL_MIND_REND, TRIGGERED_NONE);
+            break;
+        case SAY_SKYRISS_AGGRO:
+            // Kill Mellichar and start combat
+            if (Creature* pSkyriss = GetSingleCreatureFromStorage(NPC_SKYRISS))
+            {
+                pSkyriss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                pSkyriss->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                pMellichar->CastSpell(pMellichar, SPELL_QUIET_SUICIDE, TRIGGERED_NONE);
+            }
+            DoUseDoorOrButton(GO_SEAL_SPHERE);
+            break;
+    }
+}
+
+void instance_arcatraz::OnCreatureDeath(Creature* pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_ARCATRAZ_WARDER:
+            ++m_uiKilledWarders;
+            break;
+        case NPC_ARCATRAZ_DEFENDER:
+            ++m_uiKilledDefenders;
+            break;
+        case NPC_PROTEAN_NIGHTMARE:
+        case NPC_PROTEAN_HORROR:
+            // intro Protean spawn corpses should despawn after about 5 seconds
+            pCreature->ForcedDespawn(5000);
+            break;
+    }
+
+    // Stop the intro spawns when the wardens are killed
+    if (m_uiKilledDefenders == MAX_DEFENDERS && m_uiKilledWarders == MAX_WARDERS)
+    {
+        SetData(TYPE_ENTRANCE, DONE);
+        m_uiEntranceEventTimer = 0;
+    }
+}
+
+void instance_arcatraz::Update(uint32 uiDiff)
+{
+    DialogueUpdate(uiDiff);
+
+    if (m_uiResetDelayTimer)
+    {
+        if (m_uiResetDelayTimer <= uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), m_bIsRegularMode ? SPELL_FLAMING_WEAPON : SPELL_FLAMING_WEAPON_H) == CAST_OK)
-                m_uiFlamingWeaponTimer = urand(3000, 6000);
+            if (Creature* pMellichar = GetSingleCreatureFromStorage(NPC_MELLICHAR))
+                pMellichar->Respawn();
+            m_uiResetDelayTimer = 0;
         }
         else
-            m_uiFlamingWeaponTimer -= uiDiff;
-
-        // this spell should only be used against Protean Horror and Protean Nightmare, never players
-        if (m_creature->GetVictim() && m_creature->GetVictim()->GetTypeId() != TYPEID_PLAYER)
-        {
-            if (m_uiProteanSubdualTimer < uiDiff)
-            {
-                if (DoCastSpellIfCan(m_creature->GetVictim(), m_bIsRegularMode ? SPELL_PROTEAN_SUBDUAL : SPELL_PROTEAN_SUBDUAL_H) == CAST_OK)
-                    m_uiProteanSubdualTimer = urand(2000, 3000);
-            }
-            else
-                m_uiProteanSubdualTimer -= uiDiff;
-        }
-
-        DoMeleeAttackIfReady();
+            m_uiResetDelayTimer -= uiDiff;
     }
-};
 
-UnitAI* GetAI_npc_arcatraz_defender(Creature* pCreature)
-{
-    return new npc_arcatraz_defenderAI(pCreature);
+    if (m_uiEntranceEventTimer)
+    {
+        if (m_uiEntranceEventTimer <= uiDiff)
+        {
+            Player* pPlayer = GetPlayerInMap();
+            if (!pPlayer)
+                return;
+
+            uint32 uiEntry = urand(0, 10) ? NPC_PROTEAN_HORROR : NPC_PROTEAN_NIGHTMARE;
+
+            // Protean Horrors stop spawning once 4 warders are killed
+            // Protean Nightmares stop spawning once 3 defenders are killed
+            if ((uiEntry == NPC_PROTEAN_HORROR && m_uiKilledWarders == MAX_WARDERS) || (uiEntry == NPC_PROTEAN_NIGHTMARE && m_uiKilledDefenders == MAX_DEFENDERS))
+            {
+                m_uiEntranceEventTimer = urand(0, 10) ? urand(2000, 3500) : urand(5000, 7000);
+                return;
+            }
+
+            // Summon and move the intro creatures into combat positions
+            if (Creature* pTemp = pPlayer->SummonCreature(uiEntry, aEntranceSpawnLoc[0], aEntranceSpawnLoc[1], aEntranceSpawnLoc[2], aEntranceSpawnLoc[3], TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 30000))
+            {
+                pTemp->GetMotionMaster()->MoveWaypoint(1);
+            }
+            m_uiEntranceEventTimer = urand(0, 10) ? urand(2000, 3500) : urand(5000, 7000);
+        }
+        else
+            m_uiEntranceEventTimer -= uiDiff;
+    }
 }
 
-void AddSC_arcatraz()
+InstanceData* GetInstanceData_instance_arcatraz(Map* pMap)
+{
+    return new instance_arcatraz(pMap);
+}
+
+void AddSC_instance_arcatraz()
 {
     Script* pNewScript = new Script;
-    pNewScript->Name = "npc_millhouse_manastorm";
-    pNewScript->GetAI = &GetAI_npc_millhouse_manastorm;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_warden_mellichar";
-    pNewScript->GetAI = &GetAI_npc_warden_mellichar;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_arcatraz_defender";
-    pNewScript->GetAI = &GetAI_npc_arcatraz_defender;
+    pNewScript->Name = "instance_arcatraz";
+    pNewScript->GetInstanceData = &GetInstanceData_instance_arcatraz;
     pNewScript->RegisterSelf();
 }

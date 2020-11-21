@@ -297,6 +297,12 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
         return;
     }
 
+    if (obj->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED)) // we should not allow use of a locked GO
+        return;
+
+    if (obj->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE))
+        return;
+
     // Never expect this opcode for non intractable GO's
     if (obj->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT))
     {
@@ -379,9 +385,33 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     if (HasMissingTargetFromClient(spellInfo))
         targets.setUnitTarget(mover->GetTarget());
 
+    if (_player->HasQueuedSpell())
+        return;
+
+    bool handled = false;
     Spell* spell = new Spell(mover, spellInfo, TRIGGERED_NONE);
     spell->m_cast_count = cast_count;                       // set count of casts
-    spell->SpellStart(&targets);
+    if (mover->HasGCD(spellInfo) || !mover->IsSpellReady(*spellInfo))
+    {
+        if (mover->HasGCDOrCooldownWithinMargin(*spellInfo))
+        {
+            handled = true;
+            _player->SetQueuedSpell(spell);
+            GetMessager().AddMessage([guid = mover->GetObjectGuid(), targets = targets](WorldSession* session) mutable
+            {
+                if (session->GetPlayer()) // in case of logout
+                {
+                    if (session->GetPlayer()->GetMover()->GetObjectGuid() == guid) // in case of mind control end
+                        session->GetPlayer()->CastQueuedSpell(targets);
+                    else
+                        session->GetPlayer()->ClearQueuedSpell();
+                }
+            });
+        }
+    }
+
+    if (!handled)
+        spell->SpellStart(&targets);
 }
 
 void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
@@ -393,6 +423,9 @@ void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
     // ignore for remote control state (for player case)
     Unit* mover = _player->GetMover();
     if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
+        return;
+
+    if (!_player->IsClientControlled(_player))
         return;
 
     // FIXME: hack, ignore unexpected client cancel Deadly Throw cast

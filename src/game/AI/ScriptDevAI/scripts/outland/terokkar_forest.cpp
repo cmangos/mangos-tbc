@@ -150,7 +150,7 @@ struct mob_netherweb_victimAI : public ScriptedAI
 {
     mob_netherweb_victimAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        SetCombatMovement(false);
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
@@ -1383,6 +1383,10 @@ struct npc_vengeful_harbinger : public ScriptedAI
     void Reset() override
     {
         eventResetTimer = EVENT_RESET_TIMER;
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
+        {
+            return y > 4428.f;
+        });
     }
 
     void JustRespawned() override
@@ -1441,15 +1445,16 @@ struct npc_vengeful_harbinger : public ScriptedAI
             {
                 if (eventResetTimer <= uiDiff)
                 {
-                    if (Creature* tombGuardian = GetClosestCreatureWithEntry(m_creature, NPC_DRAENEI_TOMB_GUARDIAN, 15))
+                    if (Unit* tombGuardian = m_creature->GetSpawner())
                     {
                         m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, m_creature, tombGuardian);
                         eventResetTimer = 0;
-                    }
-                    else
-                    {
-                        sLog.outCustomLog("Vengeful Harbinger found out of combat in a strange place. This should never happen!");
-                        m_creature->ForcedDespawn();
+
+                        if (!m_creature->IsWithinDist(tombGuardian, 25.f))
+                        {
+                            sLog.outCustomLog("Vengeful Harbinger found out of combat in a strange place. This should never happen!");
+                            m_creature->ForcedDespawn();
+                        }
                     }
                 }
                 else

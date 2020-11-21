@@ -598,27 +598,6 @@ void Map::Update(const uint32& t_diff)
 
     GetMessager().Execute(this);
 
-    /// update worldsessions for existing players
-    for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
-    {
-        Player* plr = m_mapRefIter->getSource();
-        if (plr && plr->IsInWorld())
-        {
-            WorldSession* pSession = plr->GetSession();
-            MapSessionFilter updater(pSession);
-
-            pSession->Update(t_diff, updater);
-        }
-    }
-
-    /// update players at tick
-    for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
-    {
-        Player* plr = m_mapRefIter->getSource();
-        if (plr && plr->IsInWorld())
-            plr->Update(t_diff);
-    }
-
     /// update active cells around players and active objects
     resetMarkedCells();
 
@@ -629,6 +608,38 @@ void Map::Update(const uint32& t_diff)
 
     // the player iterator is stored in the map object
     // to make sure calls to Map::Remove don't invalidate it
+    {
+        uint32 updatedSessions = 0;
+
+        metric::duration<std::chrono::milliseconds> sessions_meas("map.update.session", {
+            { "map_id", std::to_string(i_id) },
+            { "instance_id", std::to_string(i_InstanceId) },
+            });
+
+        for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
+        {
+            Player* player = m_mapRefIter->getSource();
+            if (!player || !player->IsInWorld())
+                continue;
+
+            // Update session first
+            WorldSession* pSession = player->GetSession();
+            pSession->UpdateMap(t_diff);
+
+            ++updatedSessions;
+        }
+
+        sessions_meas.add_field("count", std::to_string(static_cast<int32>(updatedSessions)));
+    }
+
+    /// update players at tick
+    for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
+    {
+        Player* plr = m_mapRefIter->getSource();
+        if (plr && plr->IsInWorld())
+            plr->Update(t_diff);
+    }
+
     for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
     {
         Player* player = m_mapRefIter->getSource();
@@ -2297,8 +2308,8 @@ bool Map::GetRandomPointUnderWater(float& x, float& y, float& z, float radius, G
         // Mobs underwater do not move along Z axis
         //float max_z = std::max(z + 0.7f * radius, min_z);
         //max_z = std::min(max_z, liquidLevel);
-        //x = i_x;
-        //y = i_y;
+        x = i_x;
+        y = i_y;
         //z = min_z + rand_norm_f() * (max_z - min_z);
         return true;
     }

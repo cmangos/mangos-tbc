@@ -46,6 +46,14 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
     if (!i_target.isValid() || !i_target->IsInWorld())
         return false;
 
+    // Trying to detect error
+    if (i_target->GetMap() != owner.GetMap())
+    {
+        sLog.outCustomLog("TargetedMovementGeneratorMedium::Update(): Target %s left map id %u for map id %u out of order!",
+                      i_target->GetGuidStr().c_str(), i_target->GetMapId(), owner.GetMapId());
+        return false;
+    }
+
     if (!owner.IsAlive())
         return true;
 
@@ -116,6 +124,11 @@ void ChaseMovementGenerator::Initialize(Unit& owner)
 {
     if (!i_target.isValid() || !i_target->IsInWorld())
         return;
+    if (i_target->GetMap() != owner.GetMap())
+    {
+        sLog.outCustomLog("ChaseMovementGenerator: Owner and target are not in the same map.");
+        return;
+    }
     owner.addUnitState(UNIT_STAT_CHASE);                    // _MOVE set in _SetTargetLocation after required checks
     _setLocation(owner);
     i_target->GetPosition(i_lastTargetPos.x, i_lastTargetPos.y, i_lastTargetPos.z);
@@ -234,12 +247,14 @@ void ChaseMovementGenerator::HandleTargetedMovement(Unit& owner, const uint32& t
             if (this->i_offset == 0.f)
             {
                 if (!owner.CanReachWithMeleeAttack(this->i_target.getTarget()))
-                    m_reachable = false;
+                    if (!i_target->IsJumping() && !i_target->IsFalling())
+                        m_reachable = false;
             }
             else
             {
                 if (owner.GetDistance(this->i_target.getTarget(), true, DIST_CALC_COMBAT_REACH) > this->i_offset)
-                    m_reachable = false;
+                    if (!i_target->IsJumping() && !i_target->IsFalling())
+                        m_reachable = false;
             }
             return;
         }
@@ -452,6 +467,18 @@ bool ChaseMovementGenerator::DispatchSplineToPosition(Unit& owner, float x, floa
 
     if (cutPath)
         CutPath(owner, path);
+
+    if (owner.IsDebuggingMovement())
+    {
+        for (ObjectGuid guid : m_spawns)
+            if (Creature* whisp = owner.GetMap()->GetCreature(guid))
+                whisp->ForcedDespawn();
+
+        m_spawns.clear();
+
+        for (auto& point : path)
+            m_spawns.push_back(owner.SummonCreature(2, point.x, point.y, point.z, 0.f, TEMPSPAWN_TIMED_DESPAWN, 5000)->GetObjectGuid());
+    }
 
     _addUnitStateMove(owner);
 
@@ -666,7 +693,10 @@ void FollowMovementGenerator::Initialize(Unit& owner)
         return;
 
     if (i_target->GetMap() != owner.GetMap())
+    {
+        sLog.outCustomLog("FollowMovementGenerator: Owner and target are not in the same map.");
         return;
+    }
 
     owner.addUnitState(UNIT_STAT_FOLLOW);                   // _MOVE set in _SetTargetLocation after required checks
 }

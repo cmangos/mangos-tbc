@@ -187,7 +187,7 @@ enum UnitRename
 
 // byte flags value (UNIT_FIELD_BYTES_2,3)                  See enum ShapeshiftForm in SharedDefines.h
 
-#define CREATURE_MAX_SPELLS     8
+#define CREATURE_MAX_SPELLS     10
 
 enum Swing
 {
@@ -1448,7 +1448,7 @@ class Unit : public WorldObject
          * @return false if we weren't attacking already, true otherwise
          * \see Unit::m_attacking
          */
-        virtual bool AttackStop(bool targetSwitch = false, bool includingCast = false, bool includingCombo = false);
+        bool AttackStop(bool targetSwitch = false, bool includingCast = false, bool includingCombo = false, bool clientInitiated = false);
         /**
          * Removes all attackers from the Unit::m_attackers set and logs it if someone that
          * wasn't attacking it was in the list. Does this check by checking if Unit::AttackStop()
@@ -1914,6 +1914,9 @@ class Unit : public WorldObject
         bool IsRooted() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_ROOT); }
         bool IsJumping() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_JUMPING); }
         bool IsFalling() const { return m_movementInfo->HasMovementFlag(MOVEFLAG_FALLING); }
+
+        bool IsDebuggingMovement() const { return m_debuggingMovement; }
+        void SetDebuggingMovement(bool state) { m_debuggingMovement = state; }
 
         virtual void SetLevitate(bool /*enabled*/) {}
         virtual void SetSwim(bool /*enabled*/) {}
@@ -2694,6 +2697,7 @@ class Unit : public WorldObject
         bool m_noThreat;
         bool m_supportThreatOnly;
         bool m_ignoreRangedTargets;                         // Ignores ranged targets when picking someone to attack
+        bool m_debuggingMovement;
 
         // guard to prevent chaining extra attacks
         bool m_extraAttacksExecuting;

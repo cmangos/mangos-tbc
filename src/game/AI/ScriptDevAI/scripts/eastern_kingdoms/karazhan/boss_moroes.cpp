@@ -92,7 +92,7 @@ struct boss_moroesAI : public CombatAI
         });
         m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float) -> bool
         {
-            return x > -11030.f && x < -10943.f && y > -1955.f && y < -1860.f;
+            return x < -11030.f || x > -10943.f || y < -1955.f || y > -1860.f;
         });
         Reset();
     }

@@ -34,8 +34,8 @@ enum
 
     // Gauntlet
     NPC_GAUNTLET_OF_FIRE        = 17692,
-    NPC_ARCHER                  = 17427,
-    NPC_ZEALOT                  = 17462,
+    NPC_SHATTERED_HAND_ZEALOT   = 17462,
+    NPC_SHATTERED_HAND_ARCHER   = 17427,
     NPC_SCOUT                   = 17693,
     NPC_BLOOD_GUARD             = 17461,
     NPC_PORUNG                  = 20923,
@@ -53,6 +53,8 @@ enum
     SAY_KARGATH_EXECUTE_HORDE   = -1540050,
 
     // AT_NETHEKURSE               = 4524,                  // Area trigger used for the execution event
+
+    NPC_FLAME_ARROW             = 17687,
 };
 
 struct SpawnLocation

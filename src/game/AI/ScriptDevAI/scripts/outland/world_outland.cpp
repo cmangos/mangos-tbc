@@ -561,6 +561,12 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                 if (creature->GetEntry() != NPC_MOGOR)
                     m_lastRingOfBlood = creature->GetObjectGuid();
                 break;
+            case NPC_ETHEREUM_PRISONER: // Gameobject should close when Ethereum Prisoner respawns
+                if (GameObject* go = GetClosestGameObjectWithEntry(creature, GO_SALVAGED_ETHEREUM_PRISON, 3.f))
+                {
+                    go->ResetDoorOrButton();
+                }
+                break;
         }
     }
 
@@ -1072,7 +1078,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     void ShowChatCommands(ChatHandler* handler) override
     {
         handler->SendSysMessage("This instance supports the following commands:\n bashir (0,1,2,3,4,5,6,7) starts event at stage respectively - start event, start phase 1, finish phase 1,"
-        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event");
+        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event\n debuggurthock");
     }
 
     void ExecuteChatCommand(ChatHandler* handler, char* args) override
@@ -1106,6 +1112,10 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                     break;
                 default: break;
             }
+        }
+        else if (val == "debuggurthock")
+        {
+            handler->PSendSysMessage("Last ring of blood guid: %lu", m_lastRingOfBlood.GetRawValue());
         }
     }
 };

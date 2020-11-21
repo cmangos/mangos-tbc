@@ -54,6 +54,8 @@ enum
     SPELL_CARAPACE_CTHUN            = 26156,                // Was removed from client dbcs
     SPELL_TRANSFORM                 = 26232,
     SPELL_CTHUN_VULNERABLE          = 26235,
+    SPELL_SUMMON_GIANT_EYE_TENTACLES= 26766,                // Periodically triggers 26767 that cast 26768 on random target to summon NPC 15334
+    SPELL_SUMMON_GIANT_EYE_TENTACLE = 26768,                // Summon NPC 15334
     SPELL_MOUTH_TENTACLE            = 26332,                // prepare target to teleport to stomach
     SPELL_DIGESTIVE_ACID_TELEPORT   = 26220,                // removed from DBC (readded). stomach teleport spell
     SPELL_EXIT_STOMACH_KNOCKBACK    = 25383,                // spell id is wrong
@@ -271,7 +273,6 @@ struct boss_cthunAI : public Scripted_NoMovementAI
     uint8 m_uiFleshTentaclesKilled;
     uint32 m_uiEyeTentacleTimer;
     uint32 m_uiGiantClawTentacleTimer;
-    uint32 m_uiGiantEyeTentacleTimer;
     uint32 m_uiDigestiveAcidTimer;
 
     // Body Phase
@@ -292,7 +293,6 @@ struct boss_cthunAI : public Scripted_NoMovementAI
         m_uiFleshTentaclesKilled    = 0;
         m_uiEyeTentacleTimer        = 35000;
         m_uiGiantClawTentacleTimer  = 20000;
-        m_uiGiantEyeTentacleTimer   = 50000;
         m_uiDigestiveAcidTimer      = 4000;
 
         // Body Phase
@@ -324,6 +324,12 @@ struct boss_cthunAI : public Scripted_NoMovementAI
             damage = std::min(damage, m_creature->GetHealth() - 1);
     }
 
+    void Aggro(Unit* /*who*/) override
+    {
+        // Start periodically summoning Giant Eye Tentacles
+        DoCastSpellIfCan(m_creature, SPELL_SUMMON_GIANT_EYE_TENTACLES, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT );
+    }
+
     void EnterEvadeMode() override
     {
         // Kill any player from the stomach on evade - this is becuase C'thun cannot be soloed.
@@ -333,6 +339,8 @@ struct boss_cthunAI : public Scripted_NoMovementAI
                 pPlayer->CastSpell(pPlayer, SPELL_PORT_OUT_STOMACH_EFFECT, TRIGGERED_OLD_TRIGGERED);
         }
 
+        m_creature->RemoveAurasDueToSpell(SPELL_SUMMON_GIANT_EYE_TENTACLES);
+
         Scripted_NoMovementAI::EnterEvadeMode();
     }
 
@@ -340,6 +348,11 @@ struct boss_cthunAI : public Scripted_NoMovementAI
     {
         if (m_pInstance)
             m_pInstance->SetData(TYPE_CTHUN, FAIL);
+    }
+
+    void SummonedCreatureDespawn(Creature* pSummoned) override
+    {
+        m_creature->AI()->EnterEvadeMode();
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -542,17 +555,6 @@ struct boss_cthunAI : public Scripted_NoMovementAI
         }
         else
             m_uiGiantClawTentacleTimer -= uiDiff;
-
-        if (m_uiGiantEyeTentacleTimer < uiDiff)
-        {
-            // Summon 1 Giant Eye Tentacle every 60 seconds
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_IN_LOS))
-                m_creature->SummonCreature(NPC_GIANT_EYE_TENTACLE, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0, TEMPSPAWN_DEAD_DESPAWN, 0);
-
-            m_uiGiantEyeTentacleTimer = 60000;
-        }
-        else
-            m_uiGiantEyeTentacleTimer -= uiDiff;
 
         if (m_uiEyeTentacleTimer < uiDiff)
         {
@@ -761,6 +763,18 @@ struct PeriodicSummonEyeTrigger : public AuraScript
     }
 };
 
+struct SummonGiantEyeTentacle : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            if (Unit* target = spell->GetUnitTarget())
+                target->CastSpell(nullptr, SPELL_SUMMON_GIANT_EYE_TENTACLE, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+};
+
 struct RotateTrigger : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
@@ -825,6 +839,7 @@ void AddSC_boss_cthun()
 
     RegisterSpellScript<SummonHookTentacle>("spell_cthun_hook_tentacle");
     RegisterSpellScript<RotateTrigger>("spell_cthun_rotate_trigger");
+    RegisterSpellScript<SummonGiantEyeTentacle>("spell_cthun_giant_eye_tentacle");
     RegisterAuraScript<PeriodicSummonEyeTrigger>("spell_cthun_periodic_eye_trigger");
     RegisterAuraScript<PeriodicRotate>("spell_cthun_periodic_rotate");
 }

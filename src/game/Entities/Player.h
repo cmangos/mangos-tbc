@@ -2170,6 +2170,8 @@ class Player : public Unit
         void UnsummonPetIfAny();
         void ResummonPetTemporaryUnSummonedIfAny();
         bool IsPetNeedBeTemporaryUnsummoned(Pet* pet) const;
+        uint32 GetBGPetSpell() const { return m_BGPetSpell; }
+        void SetBGPetSpell(uint32 petSpell) { m_BGPetSpell = petSpell; }
 
         void SendCinematicStart(uint32 CinematicSequenceId);
 
@@ -2582,6 +2584,7 @@ class Player : public Unit
 
         // Temporary removed pet cache
         uint32 m_temporaryUnsummonedPetNumber;
+        uint32 m_BGPetSpell;
 
         ReputationMgr  m_reputationMgr;
 

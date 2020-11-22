@@ -21,6 +21,7 @@
 #include "packet_builder.h"
 #include "Entities/Unit.h"
 #include "Maps/TransportSystem.h"
+#include "Entities/Transports.h"
 
 namespace Movement
 {
@@ -30,12 +31,16 @@ namespace Movement
     {
         MoveSpline& move_spline = *unit.movespline;
         TransportInfo* transportInfo = unit.GetTransportInfo();
+        // TODO: merge these two together
+        GenericTransport* transport = unit.GetTransport();
 
         Location real_position(unit.GetPositionX(), unit.GetPositionY(), unit.GetPositionZ(), unit.GetOrientation());
 
         // If boarded use current local position
         if (transportInfo)
             transportInfo->GetLocalPosition(real_position.x, real_position.y, real_position.z, real_position.orientation);
+        if (transport)
+            transport->CalculatePassengerOffset(real_position.x, real_position.y, real_position.z, &real_position.orientation);
 
         // there is a big chane that current position is unknown if current state is not finalized, need compute it
         // this also allows calculate spline position and update map position in much greater intervals
@@ -73,10 +78,13 @@ namespace Movement
         WorldPacket data(SMSG_MONSTER_MOVE, 64);
         data << unit.GetPackGUID();
 
-        if (transportInfo)
+        if (transportInfo || transport)
         {
             data.SetOpcode(SMSG_MONSTER_MOVE_TRANSPORT);
-            data << transportInfo->GetTransportGuid().WriteAsPacked();
+            if (transportInfo)
+                data << transportInfo->GetTransportGuid().WriteAsPacked();
+            else if (transport)
+                data << transport->GetPackGUID();
         }
 
         PacketBuilder::WriteMonsterMove(move_spline, data);

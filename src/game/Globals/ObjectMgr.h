@@ -1151,6 +1151,8 @@ class ObjectMgr
         * Qualifier: const
         **/
         CreatureClassLvlStats const* GetCreatureClassLvlStats(uint32 level, uint32 unitClass, int32 expansion) const;
+
+        bool IsEnchantNonRemoveInArena(uint32 enchantId) const { return m_roguePoisonEnchantIds.find(enchantId) != m_roguePoisonEnchantIds.end(); }
     protected:
 
         // current locale settings
@@ -1309,6 +1311,8 @@ class ObjectMgr
         CacheTrainerSpellMap m_mCacheTrainerSpellMap;
 
         BroadcastTextMap m_broadcastTextMap;
+
+        std::map<uint32, bool> m_roguePoisonEnchantIds;
 };
 
 #define sObjectMgr MaNGOS::Singleton<ObjectMgr>::Instance()

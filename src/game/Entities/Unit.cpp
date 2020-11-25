@@ -8910,7 +8910,7 @@ bool Unit::SelectHostileTarget()
             if (target != this)
                 SetInFront(target);
 
-        return !(AI()->GetCombatScriptStatus() && getThreatManager().isThreatListEmpty());
+        return !((AI()->GetCombatScriptStatus() || IsStunned()) && getThreatManager().isThreatListEmpty());
     }
 
     Unit* target = nullptr;

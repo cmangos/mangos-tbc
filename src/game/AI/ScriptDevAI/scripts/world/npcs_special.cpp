@@ -1894,18 +1894,11 @@ struct npc_nether_rayAI : public CombatAI
                 DoCastSpellIfCan(m_creature->GetVictim(), SPELL_TAIL_STING);
                 return;
             case RAY_ACTION_NETHER_SHOCK:
-                if (!m_creature->GetVictim())
-                    return;
                 DoCastSpellIfCan(m_creature->GetVictim(), SPELL_NETHER_SHOCK);
                 return;
         }
     }
 };
-
-UnitAI* GetAI_npc_nether_ray(Creature* creature)
-{
-    return new npc_nether_rayAI(creature);
-}
 
 /*########
 # npc_mojo
@@ -2338,7 +2331,7 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_nether_ray";
-    pNewScript->GetAI = &GetAI_npc_nether_ray;
+    pNewScript->GetAI = &GetNewAIInstance<npc_nether_rayAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

@@ -909,6 +909,7 @@ class Player : public Unit
         friend void Item::AddToUpdateQueueOf(Player* player);
         friend void Item::RemoveFromUpdateQueueOf(Player* player);
     public:
+        uint8 xprate;
         explicit Player(WorldSession* session);
         ~Player();
 

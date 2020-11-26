@@ -283,3 +283,31 @@ bool ChatHandler::HandleServerMotdCommand(char* /*args*/)
     PSendSysMessage(LANG_MOTD_CURRENT, sWorld.GetMotd());
     return true;
 }
+
+bool ChatHandler::HandlePlayerXPCommand(char* args)
+{
+    std::string arg = args;
+    uint64 rate = 1;
+    bool error = false;
+    try {
+        rate = std::stoull(args);
+    }
+    catch (...)
+    {
+        error = true;
+    }
+
+    if (rate > 10)
+        error = true;
+
+    if (error)
+    {
+        PSendSysMessage("Invalid number");
+        return false;
+    }
+    if (auto session = GetSession())
+        if (auto player = session->GetPlayer())
+            player->xprate = rate;
+
+    return true;
+}

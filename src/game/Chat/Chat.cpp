@@ -847,6 +847,7 @@ ChatCommand* ChatHandler::getCommandTable()
 
     static ChatCommand commandTable[] =
     {
+        { "setxp",          SEC_PLAYER,         false, &ChatHandler::HandlePlayerXPCommand,            "", nullptr              },
         { "account",        SEC_PLAYER,         true,  nullptr,                                        "", accountCommandTable  },
         { "auction",        SEC_ADMINISTRATOR,  false, nullptr,                                        "", auctionCommandTable  },
 #ifdef BUILD_AHBOT

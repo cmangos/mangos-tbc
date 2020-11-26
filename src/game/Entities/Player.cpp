@@ -476,6 +476,7 @@ UpdateMask Player::updateVisualBits;
 
 Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(this), m_camera(this), m_reputationMgr(this)
 {
+    xprate = 0;
     m_transport = nullptr;
 
 #ifdef BUILD_PLAYERBOT
@@ -4243,7 +4244,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
                     if (has_items)
                     {
                         // data needs to be at first place for Item::LoadFromDB
-                        //                                                          0          1            2                3      4         5        6      7             8                 9           10          11         12             
+                        //                                                          0          1            2                3      4         5        6      7             8                 9           10          11         12
                         QueryResult* resultItems = CharacterDatabase.PQuery("SELECT itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, item_guid, item_template FROM mail_items JOIN item_instance ON item_guid = guid WHERE mail_id='%u'", mail_id);
                         if (resultItems)
                         {
@@ -8254,7 +8255,7 @@ uint8 Player::FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) 
                 // in both scenarios, a swap is required
                 if (currentSlot == EQUIPMENT_SLOT_OFFHAND && (IsTwoHandUsed() || proto->InventoryType == INVTYPE_2HWEAPON))
                     continue;
-                
+
                 return currentSlot;
             }
         }

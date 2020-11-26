@@ -191,6 +191,8 @@ class ChatHandler
         void CheckIntegrity(ChatCommand* table, ChatCommand* parentCommand) const;
         ChatCommand* getCommandTable();
 
+        bool HandlePlayerXPCommand(char* args);
+
         bool HandleAccountCommand(char* args);
         bool HandleAccountCharactersCommand(char* args);
         bool HandleAccountCreateCommand(char* args);

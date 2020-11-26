@@ -1601,9 +1601,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             }
             // Get a random point AT the circumference
             float angle = 2.0f * M_PI_F * rand_norm_f();
-            float dest_x, dest_y, dest_z;
-            target->GetNearPoint(target, dest_x, dest_y, dest_z, target->GetObjectBoundingRadius(), radius, angle, target->IsInWater());
-            m_targets.setDestination(dest_x, dest_y, dest_z);
+            WorldLocation loc;
+            target->GetFirstCollisionPosition(loc, radius, angle);
+            m_targets.setDestination(loc.coord_x, loc.coord_y, loc.coord_z);
             break;
         }
         case TARGET_LOCATION_RANDOM_SIDE:
@@ -1644,13 +1644,13 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                 case TARGET_LOCATION_CASTER_RIGHT:       angle -= M_PI_F / 2;     break;
             }
 
-            float x, y;
             float z = m_caster->GetPositionZ();
             if (radius == 0.f) // All shaman totems have 0 radius - need to override with proper value
                 radius = 2.f;
 
-            m_caster->GetNearPoint(m_caster, x, y, z, m_caster->GetObjectBoundingRadius(), radius, angle, m_caster->IsInWater());
-            m_targets.setDestination(x, y, z);
+            WorldLocation loc;
+            m_caster->GetFirstCollisionPosition(loc, radius, angle);
+            m_targets.setDestination(loc.coord_x, loc.coord_y, loc.coord_z);
             break;
         }
         case TARGET_LOCATION_CURRENT_REFERENCE:
@@ -1759,9 +1759,9 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                     case TARGET_LOCATION_UNIT_FRONT_LEFT:   angle += M_PI_F * 0.25f; break;
                 }
 
-                float x, y, z;
-                target->GetNearPoint(target, x, y, z, target->GetObjectBoundingRadius(), radius, angle, target->IsInWater());
-                m_targets.setDestination(x, y, z);
+                WorldLocation loc;
+                target->GetFirstCollisionPosition(loc, radius, angle);
+                m_targets.setDestination(loc.coord_x, loc.coord_y, loc.coord_z);
             }
             break;
         }
@@ -7845,13 +7845,6 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
             break;
         case 43657:                             // Electrical Storm - Akil'zon
             if (target->HasAura(44007)) // Electrical Storm - Safe within eye
-                return false;
-            break;
-        case 37676:                             // Insidious Whisper
-            if (m_caster->GetVictim() == target) // skips tank
-                return false;
-
-            if (!target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED)) // not MCed
                 return false;
             break;
         case 39992:                             // Needle Spine Targeting - Najentus

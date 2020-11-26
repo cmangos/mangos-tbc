@@ -32,6 +32,7 @@ Patches
 #include "karazhan.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "Spells/Scripts/SpellScript.h"
+#include "Globals/ObjectMgr.h"
 
 enum
 {
@@ -179,7 +180,7 @@ struct boss_aranAI : public RangedCombatAI
         }
     }
 
-    uint32 GetNormalSpellCooldown(uint32 spellId) const
+    static uint32 GetNormalSpellCooldown(uint32 spellId)
     {
         switch (spellId)
         {
@@ -487,4 +488,8 @@ void AddSC_boss_shade_of_aran()
     RegisterSpellScript<DispelBlizzard>("spell_dispel_blizzard");
     RegisterSpellScript<MassiveMagneticPull>("spell_massive_magnetic_pull");
     RegisterSpellScript<FlameWreath>("spell_flame_wreath");
+
+    sObjectMgr.AddCreatureCooldown(NPC_SHADOW_OF_ARAN, SPELL_FROSTBOLT, boss_aranAI::GetNormalSpellCooldown(SPELL_FROSTBOLT), boss_aranAI::GetNormalSpellCooldown(SPELL_FROSTBOLT));
+    sObjectMgr.AddCreatureCooldown(NPC_SHADOW_OF_ARAN, SPELL_FIREBALL, boss_aranAI::GetNormalSpellCooldown(SPELL_FIREBALL), boss_aranAI::GetNormalSpellCooldown(SPELL_FIREBALL));
+    sObjectMgr.AddCreatureCooldown(NPC_SHADOW_OF_ARAN, SPELL_ARCANE_MISSILES, boss_aranAI::GetNormalSpellCooldown(SPELL_ARCANE_MISSILES), boss_aranAI::GetNormalSpellCooldown(SPELL_ARCANE_MISSILES));
 }

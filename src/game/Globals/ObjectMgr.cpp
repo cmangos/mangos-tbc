@@ -1527,7 +1527,7 @@ void ObjectMgr::LoadCreatures()
         {
             AddCreatureToGrid(guid, &data);
 
-            if (cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_ACTIVE)
+            if (sWorld.getConfig(CONFIG_BOOL_AUTOLOAD_ACTIVE) && cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_ACTIVE)
                 m_activeCreatures.insert(ActiveCreatureGuidsOnMap::value_type(data.mapid, guid));
         }
 
@@ -9685,6 +9685,11 @@ void ObjectMgr::LoadCreatureCooldowns()
 
     sLog.outString(">> Loaded %u creature_cooldowns definitions", count);
     sLog.outString();
+}
+
+void ObjectMgr::AddCreatureCooldown(uint32 entry, uint32 spellId, uint32 min, uint32 max)
+{
+    m_creatureCooldownMap[entry].emplace(spellId, std::make_pair(min, max));
 }
 
 SimpleFactionsList const* GetFactionTeamList(uint32 faction)

@@ -46,9 +46,9 @@ void instance_serpentshrine_cavern::Initialize()
 
 bool instance_serpentshrine_cavern::IsEncounterInProgress() const
 {
-    for (uint32 i : m_auiEncounter)
+    for (uint32 i = 0; i < TYPE_COMBAT_MAX; ++i)
     {
-        if (i == IN_PROGRESS)
+        if (m_auiEncounter[i] == IN_PROGRESS)
             return true;
     }
 
@@ -194,6 +194,12 @@ void instance_serpentshrine_cavern::SetData(uint32 uiType, uint32 uiData)
                 DoToggleGameObjectFlags(GO_SHIELD_GENERATOR_2, GO_FLAG_NO_INTERACT, false);
                 DoToggleGameObjectFlags(GO_SHIELD_GENERATOR_3, GO_FLAG_NO_INTERACT, false);
                 DoToggleGameObjectFlags(GO_SHIELD_GENERATOR_4, GO_FLAG_NO_INTERACT, false);
+
+                if (Creature* vashj = GetSingleCreatureFromStorage(NPC_LADYVASHJ))
+                {
+                    vashj->SetRespawnDelay(30, true);
+                    vashj->ForcedDespawn();
+                }
             }
             break;
         case TYPE_LEOTHERAS_EVENT_DEMONS:
@@ -396,11 +402,6 @@ bool GOUse_go_ssc_boss_consoles(Player* /*pPlayer*/, GameObject* pGo)
     return false;
 }
 
-InstanceData* GetInstanceData_instance_serpentshrine_cavern(Map* pMap)
-{
-    return new instance_serpentshrine_cavern(pMap);
-}
-
 struct npc_serpentshrine_parasiteAI : public ScriptedAI
 {
     npc_serpentshrine_parasiteAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
@@ -435,16 +436,11 @@ void instance_serpentshrine_cavern::ExecuteChatCommand(ChatHandler* handler, cha
         SetData(TYPE_THELURKER_EVENT, IN_PROGRESS);
 }
 
-UnitAI* GetAI_npc_serpentshrine_parasite(Creature* pCreature)
-{
-    return new npc_serpentshrine_parasiteAI(pCreature);
-}
-
 void AddSC_instance_serpentshrine_cavern()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "npc_serpentshrine_parasite";
-    pNewScript->GetAI = &GetAI_npc_serpentshrine_parasite;
+    pNewScript->GetAI = &GetNewAIInstance<npc_serpentshrine_parasiteAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -454,6 +450,6 @@ void AddSC_instance_serpentshrine_cavern()
 
     pNewScript = new Script;
     pNewScript->Name = "instance_serpent_shrine";
-    pNewScript->GetInstanceData = &GetInstanceData_instance_serpentshrine_cavern;
+    pNewScript->GetInstanceData = &GetNewInstanceScript<instance_serpentshrine_cavern>;
     pNewScript->RegisterSelf();
 }

@@ -118,7 +118,14 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (40251,'spell_shadow_of_death'),
 (41289,'spell_ethereal_ring_signal_flare'),
 (41999,'spell_shadow_of_death_remove'),
+(38358,'spell_tidal_surge_caribdis'),
+(37676,'spell_insidious_whisper'),
+(37750,'spell_clear_consuming_madness'),
+(37640,'spell_leotheras_whirlwind_aura'),
+(37641,'spell_leotheras_whirlwind_proc'),
 (33572,'spell_gronn_lords_grasp'),
+(38511,'spell_vashj_persuasion'),
+(38573,'spell_spore_drop_effect'),
 (33040,'spell_wota_main_cast_and_jump'),
 (33049,'spell_wota_main_cast_and_jump'),
 (33045,'spell_wota_dot'),
@@ -127,8 +134,16 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (42783,'spell_wrath_of_the_astromancer'),
 (45043,'spell_power_circle'),
 (44006,'spell_teleport_self_akilzon'),
+(43681,'spell_inactive'),
+(35861,'spell_nether_vapor_summon'),
+(35862,'spell_nether_vapor_summon'),
+(35863,'spell_nether_vapor_summon'),
+(35864,'spell_nether_vapor_summon'),
+(35865,'spell_nether_vapor_summon_parent'),
+(45960,'spell_nether_vapor_lightning'),
 (34630,'spell_scrap_reaver_spell'),
-(43681,'spell_inactive');
+(34800,'spell_getting_sleepy_aura'),
+(43364,'spell_getting_sleepy_aura');
 
 -- Wotlk
 

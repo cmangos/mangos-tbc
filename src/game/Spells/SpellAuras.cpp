@@ -675,7 +675,8 @@ void AreaAura::Update(uint32 diff)
                             // do not stack the same aura from the same caster
                             // allows stack party-wide auras from totems/pets matching stacking rules
                             // TODO: Find a better condition (Blizzlike Moonkin aura tricky case)
-                            if (aur == this || aur->GetCaster() == caster || caster->GetTypeId() == TYPEID_PLAYER || !actualSpellInfo->SpellFamilyName)
+                            if (aur == this || aur->GetCaster() == caster || caster->GetTypeId() == TYPEID_PLAYER || !actualSpellInfo->SpellFamilyName ||
+                                !IsStackableSpell(actualSpellInfo, i->second->GetSpellProto(), target))
                                 apply = false;
                             break;
                         default:
@@ -2002,6 +2003,11 @@ void Aura::TriggerSpell()
                 casterGUID = target->GetObjectGuid();
                 break;
             }
+            case 38652:                                     // Spore Cloud
+            {
+                triggerCaster = GetCaster();
+                break;
+            }
             // dummy trigger 18350 family
             case 28820:                                     // Lightning Shield
             case 38443:                                     // Totemic Mastery
@@ -3036,62 +3042,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     else
                         target->RemoveAurasDueToSpell(37284);
                 }
-                case 37676:                             // Insidious Whisper
-                {
-                    if (target->GetTypeId() != TYPEID_PLAYER)
-                        return;
-
-                    if (apply)
-                    {
-                        target->CastSpell(target, 37735, TRIGGERED_OLD_TRIGGERED); // Summon Inner Demon
-
-                        InstanceData* data = target->GetInstanceData();
-                        if (data)
-                        {
-                            m_modifier.m_amount = target->GetInstanceData()->GetData(6);
-                            target->GetInstanceData()->SetData(6, m_modifier.m_amount + 1);
-                            m_modifier.m_amount += 1018;
-                        }
-                        else
-                            m_modifier.m_amount = 1018;
-                    }
-
-                    ReputationRank faction_rank = ReputationRank(1); // value taken from sniff
-
-                    Player* player = (Player*)target;
-
-                    player->GetReputationMgr().ApplyForceReaction(m_modifier.m_amount, faction_rank, apply);
-                    player->GetReputationMgr().SendForceReactions();
-
-                    // stop fighting if at apply forced rank friendly or at remove real rank friendly
-                    if ((apply && faction_rank >= REP_FRIENDLY) || (!apply && player->GetReputationRank(m_modifier.m_amount) >= REP_FRIENDLY))
-                        player->StopAttackFaction(m_modifier.m_amount);
-
-                    if (!apply)
-                    {
-                        if (m_removeMode == AURA_REMOVE_BY_EXPIRE) // MC player if inner demon was not killed
-                        {
-                            if (Unit* pCaster = GetCaster())
-                            {
-                                pCaster->CastSpell(target, 37749, TRIGGERED_OLD_TRIGGERED); // Consuming Madness
-                                pCaster->getThreatManager().modifyThreatPercent(target, -100);
-                            }
-                        }
-                    }
-                    return;
-                }
-                case 37922:                                 // Clear Insidious Whisper
-                {
-                    // no clue why its a dummy aura
-                    if (apply)
-                    {
-                        if (target->HasAura(37716) && target->GetTypeId() == TYPEID_UNIT)
-                            static_cast<Creature*>(target)->ForcedDespawn();
-                        else
-                            target->RemoveAurasDueToSpell(37676);
-                    }
-                    return;
-                }
                 case 40133:                                 // Summon Fire Elemental
                 {
                     Unit* caster = GetCaster();
@@ -3484,7 +3434,7 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
 
                 uint32 aurMechMask = GetAllSpellMechanicMask(aurSpellInfo);
 
-                if ((*iter)->IsPositive())
+                if ((*iter)->IsPositive() || aurSpellInfo->HasAttribute(SPELL_ATTR_AURA_IS_DEBUFF))
                 {
                     ++iter;
                     continue;
@@ -8587,9 +8537,6 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
                     break;
                 case 36797: // Mind Control - Kaelthas
                     boostSpells.push_back(36798);
-                    break;
-                case 38511: // Persuasion - Vashj
-                    boostSpells.push_back(38514);
                     break;
                 default:
                     return;

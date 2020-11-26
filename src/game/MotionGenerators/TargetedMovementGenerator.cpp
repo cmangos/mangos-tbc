@@ -167,6 +167,26 @@ void ChaseMovementGenerator::SetOffsetAndAngle(float offset, float angle, bool m
 #define CHASE_RECHASE_RANGE_FACTOR                        0.75f
 #define CHASE_MOVE_CLOSER_FACTOR                          0.875f
 
+std::pair<std::string, std::string> ChaseMovementGenerator::GetPrintout() const
+{
+    std::string output;
+    std::string commandOutput;
+    auto& path = this->i_path->getPath();
+    if (path.size() > 0)
+    {
+        output += "Start:" + std::to_string(path[0].x) + " " + std::to_string(path[0].y) + " " + std::to_string(path[0].z) + "\n";
+        commandOutput += ".go xyz " + std::to_string(path[0].x) + " " + std::to_string(path[0].y) + " " + std::to_string(path[0].z) + "\n";
+        for (uint32 i = 1; i < path.size() - 1; ++i)
+        {
+            output += "Point: " + std::to_string(path[i].x) + " " + std::to_string(path[i].y) + " " + std::to_string(path[i].z) + "\n";
+            commandOutput += ".go xyz " + std::to_string(path[i].x) + " " + std::to_string(path[i].y) + " " + std::to_string(path[i].z) + "\n";
+        }
+        output += "End:" + std::to_string(path[path.size() - 1].x) + " " + std::to_string(path[path.size() - 1].y) + " " + std::to_string(path[path.size() - 1].z) + "\n";
+        commandOutput += ".go xyz " + std::to_string(path[path.size() - 1].x) + " " + std::to_string(path[path.size() - 1].y) + " " + std::to_string(path[path.size() - 1].z) + "\n";
+    }
+    return {output, commandOutput};
+}
+
 float ChaseMovementGenerator::GetDynamicTargetDistance(Unit& owner, bool forRangeCheck) const
 {
     if (m_moveFurther)
@@ -442,26 +462,71 @@ void ChaseMovementGenerator::FanOut(Unit& owner)
 
 bool ChaseMovementGenerator::DispatchSplineToPosition(Unit& owner, float x, float y, float z, bool walk, bool cutPath, bool target)
 {
+    if (owner.IsDebuggingMovement())
+    {
+        for (ObjectGuid guid : m_spawns)
+            if (Creature* whisp = owner.GetMap()->GetCreature(guid))
+                whisp->ForcedDespawn();
+        m_spawns.clear();
+    }
+
     if (!owner.movespline->Finalized())
     {
-        auto loc = owner.movespline->ComputePosition();
-
-        if (owner.movespline->isFacing())
+        owner.UpdateSplinePosition();
+        if (owner.IsDebuggingMovement())
         {
-            float angle = atan2((loc.y - owner.GetPositionY()), (loc.x - owner.GetPositionX()));
-            loc.orientation = (angle >= 0 ? angle : ((2 * M_PI_F) + angle));
+            Position loc = owner.GetPosition();
+            if (Creature* spawn = owner.SummonCreature(1, loc.x, loc.y, loc.z, loc.o, TEMPSPAWN_TIMED_DESPAWN, 5000))
+                m_spawns.push_back(spawn->GetObjectGuid()), spawn->SetVisibility(VISIBILITY_ON);
         }
-
-        owner.Relocate(loc.x, loc.y, loc.z, loc.orientation);
     }
 
     if (!this->i_path)
         this->i_path = new PathFinder(&owner);
 
-    this->i_path->calculate(x, y, z, false);
+    bool gen = false;
+    if (owner.IsWithinDist3d(x, y, z, 200.f) && std::abs(owner.GetPositionZ() - z) < 5.f && owner.IsWithinLOS(x, y, z + i_target->GetCollisionHeight()) && !owner.IsInWater() && !i_target->IsInWater())
+    {
+        this->i_path->calculate(x, y, z, false, true);
+        auto& path = this->i_path->getPath();
+        gen = true;
+        if (sWorld.getConfig(CONFIG_BOOL_PATH_FIND_NORMALIZE_Z) && (this->i_path->getPathType() & (PATHFIND_NOPATH | PATHFIND_INCOMPLETE)) == 0)
+        {
+            for (uint32 i = 0; i < path.size() - 1; ++i)
+            {
+                if (std::abs(path[i].z - path[i + 1].z) > 1.f)
+                {
+                    gen = false;
+                    break;
+                }
+            }
+        }
+    }
 
-    if (this->i_path->getPathType() & PATHFIND_NOPATH)
-        return false;
+    if (owner.IsDebuggingMovement())
+    {
+        if (i_target->IsPlayer())
+        {
+            Position pos = owner.GetPosition();
+            std::string message = "Start X: " + std::to_string(pos.x) + " Y: " + std::to_string(pos.y) + " Z: " + std::to_string(pos.z) + "\n";
+            message += "End X: " + std::to_string(x) + " Y: " + std::to_string(y) + " Z: " + std::to_string(z) + "\n";
+            message += (owner.IsWithinDist3d(x, y, z, 200.f) ? "Within 200f " : "") + std::string(owner.IsWithinLOS(x, y, z + i_target->GetCollisionHeight()) ? "Within LOS " : "") +
+                ((this->i_path->getPathType() & PATHFIND_NOPATH) ? " No straight path" : "") + "\n";
+            static_cast<Player*>(i_target.getTarget())->SendMessageToPlayer(message);
+            std::ostringstream out;
+            out.precision(10);
+            out << ".go xyz " << std::fixed << pos.x << " " << pos.y << " " << pos.z << std::endl;
+            out << ".go xyz " << std::fixed << x << " " << y << " " << z << std::endl;
+            sLog.outCustomLog("%s", out.str().data());
+        }
+    }
+
+    if (!gen || (this->i_path->getPathType() & PATHFIND_NOPATH | PATHFIND_INCOMPLETE))
+    {
+        this->i_path->calculate(x, y, z);
+        if (this->i_path->getPathType() & PATHFIND_NOPATH)
+            return false;
+    }
 
     auto& path = this->i_path->getPath();
 
@@ -470,14 +535,9 @@ bool ChaseMovementGenerator::DispatchSplineToPosition(Unit& owner, float x, floa
 
     if (owner.IsDebuggingMovement())
     {
-        for (ObjectGuid guid : m_spawns)
-            if (Creature* whisp = owner.GetMap()->GetCreature(guid))
-                whisp->ForcedDespawn();
-
-        m_spawns.clear();
-
         for (auto& point : path)
-            m_spawns.push_back(owner.SummonCreature(2, point.x, point.y, point.z, 0.f, TEMPSPAWN_TIMED_DESPAWN, 5000)->GetObjectGuid());
+            if (Creature* spawn = owner.SummonCreature(1, point.x, point.y, point.z, 0.f, TEMPSPAWN_TIMED_DESPAWN, 5000))
+                m_spawns.push_back(spawn->GetObjectGuid()), spawn->SetVisibility(VISIBILITY_ON);
     }
 
     _addUnitStateMove(owner);

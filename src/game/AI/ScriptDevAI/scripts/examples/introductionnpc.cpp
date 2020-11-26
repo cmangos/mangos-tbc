@@ -3,7 +3,7 @@
 #include <cstring>
 #include <string>
 
-bool GossipHello_example_gossip_codebox(Player* player, Creature* creature)
+bool GossipHello_welcome(Player* player, Creature* creature)
 {
     if (player->getLevel() < 58)
         player->PlayerTalkClass->GetGossipMenu().AddMenuItem(0, "Set your level", 1, 1, "Max level 58", 0, true);
@@ -33,7 +33,7 @@ bool GossipHello_example_gossip_codebox(Player* player, Creature* creature)
     return true;
 }
 
-bool GossipSelect_example_gossip_codebox(Player* player, Creature* creature, uint32 sender, uint32 action)
+bool GossipSelect_welcome(Player* player, Creature* creature, uint32 sender, uint32 action)
 {
     if (sender == 100+CLASS_WARRIOR && 0) // Arms
     {
@@ -83,7 +83,7 @@ bool GossipSelect_example_gossip_codebox(Player* player, Creature* creature, uin
     return true;
 }
 
-bool GossipSelectWithCode_example_gossip_codebox(Player* player, Creature* creature, uint32 sender, uint32 action, const char* ccode)
+bool GossipSelectWithCode_welcomenpc(Player* player, Creature* creature, uint32 sender, uint32 action, const char* ccode)
 {
     if (sender == 1 && action == 1)
     {
@@ -109,8 +109,8 @@ void AddSC_welcomenpc()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "welcomenpc";
-    pNewScript->pGossipHello = &GossipHello_example_gossip_codebox;
-    pNewScript->pGossipSelect = &GossipSelect_example_gossip_codebox;
-    pNewScript->pGossipSelectWithCode = &GossipSelectWithCode_example_gossip_codebox;
+    pNewScript->pGossipHello = &GossipHello_welcome;
+    pNewScript->pGossipSelect = &GossipSelect_welcome;
+    pNewScript->pGossipSelectWithCode = &GossipSelectWithCode_welcomenpc;
     pNewScript->RegisterSelf(false);
 }

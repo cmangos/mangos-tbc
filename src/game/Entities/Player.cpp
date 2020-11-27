@@ -2609,6 +2609,8 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
     for (auto ModXPPctAura : ModXPPctAuras)
         xp = uint32(xp * (1.0f + ModXPPctAura->GetModifier()->m_amount / 100.0f));
 
+    xp *= xprate;
+
     // XP resting bonus for kill
     uint32 rested_bonus_xp = victim ? GetXPRestBonus(xp) : 0;
 

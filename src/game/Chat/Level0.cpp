@@ -309,5 +309,7 @@ bool ChatHandler::HandlePlayerXPCommand(char* args)
         if (auto player = session->GetPlayer())
             player->xprate = rate;
 
+    PSendSysMessage("XPRate set to %u", rate);
+
     return true;
 }

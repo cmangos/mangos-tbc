@@ -4474,6 +4474,9 @@ void Unit::SetInFront(Unit const* target)
 void Unit::SetFacingTo(float ori)
 {
     Movement::MoveSplineInit init(*this);
+    // supplied orientation is global space but we need local orientation
+    if (GenericTransport* transport = GetTransport())
+        transport->CalculatePassengerOrientation(ori);
     init.SetFacing(ori);
     init.Launch();
 }

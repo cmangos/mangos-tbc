@@ -608,6 +608,8 @@ void Spell::FillTargetMap()
                     }
                 }
                 break;
+            default:
+                break;
         }
     }
 }

@@ -89,9 +89,26 @@ struct RighteousDefense : public SpellScript
     }
 };
 
+enum
+{
+    SPELL_SEAL_OF_BLOOD_DAMAGE              = 31893,
+    SPELL_JUDGEMENT_OF_BLOOD_SELF_DAMAGE    = 32220,
+    SPELL_SEAL_OF_BLOOD_SELF_DAMAGE         = 32221
+};
+
+struct SealOfBloodSelfDamage : public SpellScript
+{
+    void OnAfterHit(Spell* spell) const override
+    {
+        int32 damagePoint = spell->GetTotalTargetDamage() * 33 / 100;
+        spell->GetCaster()->CastCustomSpell(nullptr, (spell->m_spellInfo->Id == SPELL_SEAL_OF_BLOOD_DAMAGE ? SPELL_SEAL_OF_BLOOD_SELF_DAMAGE : SPELL_JUDGEMENT_OF_BLOOD_SELF_DAMAGE), &damagePoint, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void LoadPaladinScripts()
 {
     RegisterAuraScript<IncreasedHolyLightHealing>("spell_increased_holy_light_healing");
     RegisterSpellScript<RighteousDefense>("spell_righteous_defense");
     RegisterAuraScript<SealOfTheCrusader>("spell_seal_of_the_crusader");
+    RegisterSpellScript<SealOfBloodSelfDamage>("spell_seal_of_blood_self_damage");
 }

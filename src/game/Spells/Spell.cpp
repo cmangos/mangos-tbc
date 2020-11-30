@@ -1139,14 +1139,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
         else
             caster->DealSpellDamage(&spellDamageInfo, true);
 
-        // Judgement of Blood
-        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN && m_spellInfo->SpellFamilyFlags & uint64(0x0000000800000000) && m_spellInfo->SpellIconID == 153)
-        {
-            int32 damagePoint = spellDamageInfo.damage * 33 / 100;
-            m_caster->CastCustomSpell(m_caster, 32220, &damagePoint, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
-        }
-        // Bloodthirst
-        else if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & uint64(0x40000000000))
+        if (m_spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && m_spellInfo->SpellFamilyFlags & uint64(0x40000000000))
         {
             uint32 BTAura = 0;
             switch (m_spellInfo->Id)

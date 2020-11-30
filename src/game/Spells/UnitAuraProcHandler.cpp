@@ -1671,18 +1671,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         CastSpell(target, 31893, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
                         return SPELL_AURA_PROC_OK;
                     case 1:
-                    {
-                        // Self damage only procced from the Seal of Blood dmg proc
-                        if (!procSpell)
-                            return SPELL_AURA_PROC_FAILED;
-                        if (!(procSpell->SpellFamilyFlags & uint64(0x0000040000000000)))
-                            return SPELL_AURA_PROC_FAILED;
-                        // damage
-                        basepoints[0] = triggerAmount * damage / 100;
-                        target = nullptr;
-                        triggered_spell_id = 32221;
-                        break;
-                    }
+                        return SPELL_AURA_PROC_OK;
                     default:
                         break;
                 }

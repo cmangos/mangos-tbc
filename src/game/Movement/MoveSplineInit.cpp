@@ -137,7 +137,10 @@ namespace Movement
         if (transportInfo || transport)
         {
             data.SetOpcode(SMSG_MONSTER_MOVE_TRANSPORT);
-            data << transportInfo->GetTransportGuid().WriteAsPacked();
+            if (transportInfo)
+                data << transportInfo->GetTransportGuid().WriteAsPacked();
+            else
+                data << transport->GetPackGUID();
         }
 
         data << real_position.x << real_position.y << real_position.z;

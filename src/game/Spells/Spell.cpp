@@ -608,6 +608,8 @@ void Spell::FillTargetMap()
                     }
                 }
                 break;
+            default:
+                break;
         }
     }
 }
@@ -3142,10 +3144,12 @@ uint64 Spell::handle_delayed(uint64 t_offset)
     uint64 next_time = 0;
 
     if (!m_destTargetInfo.processed)
+    {
         if (m_destTargetInfo.timeDelay <= t_offset)
             DoAllTargetlessEffects(true);
         else if (next_time == 0 || m_destTargetInfo.timeDelay < next_time)
             next_time = m_destTargetInfo.timeDelay;
+    }
 
     // now recheck units targeting correctness (need before any effects apply to prevent adding immunity at first effect not allow apply second spell effect and similar cases)
     for (auto& ihit : m_UniqueTargetInfo)
@@ -3340,7 +3344,7 @@ void Spell::update(uint32 difftime)
                             if (target != m_caster)
                             {
                                 float orientation = m_caster->GetAngle(target);
-                                if (m_caster->GetTypeId() == TYPEID_UNIT)
+                                if (!m_caster->IsClientControlled())
                                 {
                                     m_caster->SetOrientation(orientation);
                                     m_caster->SetFacingTo(orientation);

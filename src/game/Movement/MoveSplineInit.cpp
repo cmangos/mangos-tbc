@@ -135,6 +135,8 @@ namespace Movement
         // current first vertex
         args.path[0] = real_position;
 
+        args.splineId = splineCounter++;
+
         args.flags = MoveSplineFlag::Done;
         unit.m_movementInfo.RemoveMovementFlag(MovementFlags(MOVEFLAG_FORWARD | MOVEFLAG_SPLINE_ENABLED));
         move_spline.Initialize(args);

@@ -438,7 +438,6 @@ class WorldSession
         void HandlePlayedTime(WorldPacket& recvPacket);
 
         // new
-        void HandleMoveUnRootAck(WorldPacket& recvPacket);
         void HandleMoveRootAck(WorldPacket& recvPacket);
 
         // new inspect

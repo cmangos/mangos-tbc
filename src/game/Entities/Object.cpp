@@ -1860,11 +1860,11 @@ void WorldObject::AddObjectToRemoveList()
 
 void WorldObject::GetPosition(float& x, float& y, float& z, GenericTransport* transport) const
 {
-    if (transport && m_movementInfo.t_guid == transport->GetObjectGuid())
+    if (transport && m_movementInfo->t_guid == transport->GetObjectGuid())
     {
-        x = m_movementInfo.t_pos.x;
-        y = m_movementInfo.t_pos.y;
-        z = m_movementInfo.t_pos.z;
+        x = m_movementInfo->t_pos.x;
+        y = m_movementInfo->t_pos.y;
+        z = m_movementInfo->t_pos.z;
         return;
     }
     x = GetPositionX();
@@ -1909,10 +1909,10 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
     creature->SetRespawnCoord(pos);
     if (transport)
     {
-        creature->m_movementInfo.t_pos.x = settings.x;
-        creature->m_movementInfo.t_pos.y = settings.y;
-        creature->m_movementInfo.t_pos.z = settings.z;
-        creature->m_movementInfo.t_pos.o = settings.ori;
+        creature->m_movementInfo->t_pos.x = settings.x;
+        creature->m_movementInfo->t_pos.y = settings.y;
+        creature->m_movementInfo->t_pos.z = settings.z;
+        creature->m_movementInfo->t_pos.o = settings.ori;
     }
 
     // Set run or walk before any other movement starts

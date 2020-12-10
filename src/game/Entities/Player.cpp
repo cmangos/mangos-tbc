@@ -1996,13 +1996,13 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             currentTransport = GetMap()->GetTransport(m_teleportTransport);
         if (currentTransport)
         {
-            x = m_movementInfo.t_pos.x;
-            y = m_movementInfo.t_pos.y;
-            z = m_movementInfo.t_pos.z;
+            x = m_movementInfo->t_pos.x;
+            y = m_movementInfo->t_pos.y;
+            z = m_movementInfo->t_pos.z;
             currentTransport->CalculatePassengerPosition(x, y, z, &orientation);
-            m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
-            m_movementInfo.t_guid = GetObjectGuid();
-            m_movementInfo.t_time = currentTransport->GetPathProgress();
+            m_movementInfo->AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+            m_movementInfo->t_guid = GetObjectGuid();
+            m_movementInfo->t_time = currentTransport->GetPathProgress();
         }
 
         // this will be used instead of the current location in SaveToDB

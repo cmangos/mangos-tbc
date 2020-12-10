@@ -364,7 +364,7 @@ void AntiCheat::UpdateGravityInfo(Opcodes opcode)
         m_StartFallZ = newmoveInfo->GetPos()->z;
         m_Jumping = true;
         m_Falling = true;
-        m_StartVelocity = newmoveInfo->GetJumpInfo().velocity;
+        m_StartVelocity = newmoveInfo->jump.velocity;
     }
     // Start falling by walking off a cliff
     else if (!m_Falling && isFalling(newmoveInfo))

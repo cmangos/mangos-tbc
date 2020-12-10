@@ -268,23 +268,23 @@ bool GenericTransport::AddPassenger(Unit* passenger)
         DETAIL_LOG("Unit %s boarded transport %s.", passenger->GetName(), GetName());
         m_passengers.insert(passenger);
         passenger->SetTransport(this);
-        passenger->m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
-        passenger->m_movementInfo.t_guid = GetObjectGuid();
-        passenger->m_movementInfo.t_time = GetPathProgress();
-        if (!passenger->m_movementInfo.t_pos.x)
+        passenger->m_movementInfo->AddMovementFlag(MOVEFLAG_ONTRANSPORT);
+        passenger->m_movementInfo->t_guid = GetObjectGuid();
+        passenger->m_movementInfo->t_time = GetPathProgress();
+        if (!passenger->m_movementInfo->t_pos.x)
         {
-            passenger->m_movementInfo.t_pos.x = passenger->GetPositionX();
-            passenger->m_movementInfo.t_pos.y = passenger->GetPositionY();
-            passenger->m_movementInfo.t_pos.z = passenger->GetPositionZ();
-            passenger->m_movementInfo.t_pos.o = passenger->GetOrientation();
-            CalculatePassengerOffset(passenger->m_movementInfo.t_pos.x, passenger->m_movementInfo.t_pos.y, passenger->m_movementInfo.t_pos.z, &passenger->m_movementInfo.t_pos.o);
+            passenger->m_movementInfo->t_pos.x = passenger->GetPositionX();
+            passenger->m_movementInfo->t_pos.y = passenger->GetPositionY();
+            passenger->m_movementInfo->t_pos.z = passenger->GetPositionZ();
+            passenger->m_movementInfo->t_pos.o = passenger->GetOrientation();
+            CalculatePassengerOffset(passenger->m_movementInfo->t_pos.x, passenger->m_movementInfo->t_pos.y, passenger->m_movementInfo->t_pos.z, &passenger->m_movementInfo->t_pos.o);
         }
 
         if (Pet* pet =passenger->GetPet())
         {
             AddPassenger(pet);
-            pet->m_movementInfo.SetTransportData(GetObjectGuid(), passenger->m_movementInfo.t_pos.x, passenger->m_movementInfo.t_pos.y, passenger->m_movementInfo.t_pos.z, passenger->m_movementInfo.t_pos.o, GetPathProgress());
-            pet->NearTeleportTo(passenger->m_movementInfo.pos.x, passenger->m_movementInfo.pos.y, passenger->m_movementInfo.pos.z, passenger->m_movementInfo.pos.o);
+            pet->m_movementInfo->SetTransportData(GetObjectGuid(), passenger->m_movementInfo->t_pos.x, passenger->m_movementInfo->t_pos.y, passenger->m_movementInfo->t_pos.z, passenger->m_movementInfo->t_pos.o, GetPathProgress());
+            pet->NearTeleportTo(passenger->m_movementInfo->pos.x, passenger->m_movementInfo->pos.y, passenger->m_movementInfo->pos.z, passenger->m_movementInfo->pos.o);
         }
     }
     return true;
@@ -312,11 +312,11 @@ bool GenericTransport::RemovePassenger(Unit* passenger)
     {
         DETAIL_LOG("Unit %s removed from transport %s.", passenger->GetName(), GetName());
         passenger->SetTransport(nullptr);
-        passenger->m_movementInfo.SetTransportData(ObjectGuid(), 0, 0, 0, 0, 0);
+        passenger->m_movementInfo->SetTransportData(ObjectGuid(), 0, 0, 0, 0, 0);
         if (Pet* pet = passenger->GetPet())
         {
             RemovePassenger(pet);
-            pet->NearTeleportTo(passenger->m_movementInfo.pos.x, passenger->m_movementInfo.pos.y, passenger->m_movementInfo.pos.z, passenger->m_movementInfo.pos.o);
+            pet->NearTeleportTo(passenger->m_movementInfo->pos.x, passenger->m_movementInfo->pos.y, passenger->m_movementInfo->pos.z, passenger->m_movementInfo->pos.o);
         }
     }
     return true;
@@ -530,7 +530,7 @@ void GenericTransport::UpdatePassengerPosition(WorldObject* passenger)
                 GetMap()->CreatureRelocation(creature, x, y, z, o);
             else
                 passenger->Relocate(x, y, z, o);
-            creature->m_movementInfo.t_time = GetPathProgress();
+            creature->m_movementInfo->t_time = GetPathProgress();
             break;
         }
         case TYPEID_PLAYER:
@@ -540,9 +540,9 @@ void GenericTransport::UpdatePassengerPosition(WorldObject* passenger)
             else
             {
                 passenger->Relocate(x, y, z, o);
-                dynamic_cast<Player*>(passenger)->m_movementInfo.t_guid = GetObjectGuid();
+                dynamic_cast<Player*>(passenger)->m_movementInfo->t_guid = GetObjectGuid();
             }
-            dynamic_cast<Player*>(passenger)->m_movementInfo.t_time = GetPathProgress();
+            dynamic_cast<Player*>(passenger)->m_movementInfo->t_time = GetPathProgress();
             break;
         case TYPEID_GAMEOBJECT:
             //GetMap()->GameObjectRelocation(passenger->ToGameObject(), x, y, z, o, false);

@@ -18,14 +18,14 @@ bool AntiCheat_time::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opc
 
     if (!Initialized())
     {
-        calculatedServerTime = MoveInfo->GetTime();
+        calculatedServerTime = MoveInfo->ctime;
         return SetOldMoveInfo(false);
     }
 
     if (GetDiff() < 500)
         return false;
 
-    int diff = MoveInfo->GetTime() - calculatedServerTime;
+    int diff = MoveInfo->ctime - calculatedServerTime;
 
     if (std::abs(diff) > 1000 + m_Player->GetSession()->GetLatency())
     {
@@ -34,13 +34,13 @@ bool AntiCheat_time::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opc
         if (m_Player->GetSession()->GetSecurity() > SEC_PLAYER)
         {
             m_Player->BoxChat << "TIMECHEAT" << "\n";
-            m_Player->BoxChat << "ClientTime: " << MoveInfo->GetTime() << "\n";
+            m_Player->BoxChat << "ClientTime: " << MoveInfo->ctime << "\n";
             m_Player->BoxChat << "ServerTime: " << WorldTimer::getMSTime() << "\n";
             m_Player->BoxChat << "Offset: " << diff << "\n";
         }
 
         // Reset time offset when cheat is detected
-        calculatedServerTime = MoveInfo->GetTime();
+        calculatedServerTime = MoveInfo->ctime;
     }
 
     return SetOldMoveInfo(false);

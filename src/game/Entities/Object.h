@@ -752,10 +752,11 @@ MovementFlags const movementOrTurningFlagsMask = MovementFlags(
             movementFlagsMask | MOVEFLAG_TURN_LEFT | MOVEFLAG_TURN_RIGHT
         );
 
+
 class MovementInfo
 {
     public:
-        MovementInfo() : moveFlags(MOVEFLAG_NONE), moveFlags2(0), ctime(0), stime(0),
+        MovementInfo() : moveFlags(MOVEFLAG_NONE), moveFlags2(0), ctime(0), stime(0), acTime(0),
             t_time(0), s_pitch(0.0f), fallTime(0), u_unk1(0.0f) {}
 
         // Read/Write methods
@@ -813,6 +814,7 @@ class MovementInfo
         uint32 GetFallTime() const { return fallTime; }
         void ChangeOrientation(float o) { pos.o = o; }
         void ChangePosition(float x, float y, float z, float o) { pos.x = x; pos.y = y; pos.z = z; pos.o = o; }
+        uint32 GetACTime() const { return acTime; }
 
         // jumping
         struct JumpInfo
@@ -829,6 +831,7 @@ class MovementInfo
         uint8    moveFlags2;
         uint32   ctime;     // client time
         uint32   stime;     // server time
+        uint32   acTime;
         Position pos;
         // transport
         ObjectGuid t_guid;
@@ -842,6 +845,20 @@ class MovementInfo
         float    u_unk1;
 };
 
+typedef std::shared_ptr<MovementInfo> MovementInfoPtr;
+
+inline ByteBuffer& operator<< (ByteBuffer& buf, MovementInfoPtr mi)
+{
+    mi->Write(buf);
+    return buf;
+}
+
+inline ByteBuffer& operator >> (ByteBuffer& buf, MovementInfoPtr mi)
+{
+    mi->Read(buf);
+    return buf;
+}
+
 inline ByteBuffer& operator<< (ByteBuffer& buf, MovementInfo const& mi)
 {
     mi.Write(buf);
@@ -850,7 +867,7 @@ inline ByteBuffer& operator<< (ByteBuffer& buf, MovementInfo const& mi)
 
 inline ByteBuffer& operator>> (ByteBuffer& buf, MovementInfo& mi)
 {
-    mi.Read(buf);
+    mi.Write(buf);
     return buf;
 }
 
@@ -1127,7 +1144,7 @@ class WorldObject : public Object
         void SetTransport(GenericTransport* t) { m_transport = t; }
 
         // only needed for unit+ but put here due to hiding and wotlk
-        MovementInfo m_movementInfo;
+        MovementInfoPtr m_movementInfo;
         GenericTransport* m_transport;
 
     protected:

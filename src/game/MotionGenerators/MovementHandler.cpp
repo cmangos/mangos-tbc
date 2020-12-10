@@ -463,10 +463,10 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket& recv_data)
     WorldPacket data(MSG_MOVE_KNOCK_BACK, recv_data.size() + 15);
     data << mover->GetObjectGuid();
     data << movementInfo;
-    data << movementInfo.jump.cosAngle;
-    data << movementInfo.jump.sinAngle;
-    data << movementInfo.jump.xyspeed;
-    data << movementInfo.jump.velocity;
+    data << movementInfo->jump.cosAngle;
+    data << movementInfo->jump.sinAngle;
+    data << movementInfo->jump.xyspeed;
+    data << movementInfo->jump.velocity;
     mover->SendMessageToSetExcept(data, _player);
 }
 
@@ -566,17 +566,17 @@ void WorldSession::HandleMoverRelocation(const MovementInfoPtr& movementInfo)
     if (Player* plMover = mover->GetTypeId() == TYPEID_PLAYER ? (Player*)mover : nullptr)
     {
         plMover->m_movementInfo = movementInfo;
-        if (plMover->m_movementInfo.HasMovementFlag(MOVEFLAG_ONTRANSPORT))
+        if (plMover->m_movementInfo->HasMovementFlag(MOVEFLAG_ONTRANSPORT))
         {
             if (!plMover->m_transport)
-                if (GenericTransport* transport = plMover->GetMap()->GetTransport(movementInfo.GetTransportGuid()))
+                if (GenericTransport* transport = plMover->GetMap()->GetTransport(movementInfo->GetTransportGuid()))
                     transport->AddPassenger(plMover);
         }
         else if (plMover->m_transport)               // if we were on a transport, leave
         {
             plMover->m_transport->RemovePassenger(plMover);
             plMover->m_transport = nullptr;
-            plMover->m_movementInfo.ClearTransportData();
+            plMover->m_movementInfo->ClearTransportData();
         }
 
         plMover->SetPosition(movementInfo->GetPos()->x, movementInfo->GetPos()->y, movementInfo->GetPos()->z, movementInfo->GetPos()->o);
@@ -630,8 +630,8 @@ void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recv_data)
     if (mover == nullptr || guid != mover->GetObjectGuid())
         return;
 
-    mover->m_movementInfo.stime += timeSkipped;
-    mover->m_movementInfo.ctime += timeSkipped;
+    mover->m_movementInfo->stime += timeSkipped;
+    mover->m_movementInfo->ctime += timeSkipped;
 
     // Send to other players
     WorldPacket data(MSG_MOVE_TIME_SKIPPED, 16);

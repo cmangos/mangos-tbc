@@ -2245,11 +2245,11 @@ class Unit : public WorldObject
         void AddPetAura(PetAura const* petSpell);
         void RemovePetAura(PetAura const* petSpell);
 
-        float GetTransOffsetX() const { return m_movementInfo.GetTransportPos()->x; }
-        float GetTransOffsetY() const { return m_movementInfo.GetTransportPos()->y; }
-        float GetTransOffsetZ() const { return m_movementInfo.GetTransportPos()->z; }
-        float GetTransOffsetO() const { return m_movementInfo.GetTransportPos()->o; }
-        uint32 GetTransTime() const { return m_movementInfo.GetTransportTime(); }
+        float GetTransOffsetX() const { return m_movementInfo->GetTransportPos()->x; }
+        float GetTransOffsetY() const { return m_movementInfo->GetTransportPos()->y; }
+        float GetTransOffsetZ() const { return m_movementInfo->GetTransportPos()->z; }
+        float GetTransOffsetO() const { return m_movementInfo->GetTransportPos()->o; }
+        uint32 GetTransTime() const { return m_movementInfo->GetTransportTime(); }
 
         // Movement info
         Movement::MoveSpline* movespline;

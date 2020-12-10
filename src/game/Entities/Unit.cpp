@@ -224,7 +224,7 @@ void MovementInfo::Read(ByteBuffer& data)
     data >> moveFlags;
     data >> moveFlags2;
     data >> ctime;
-    acTime = time;
+    acTime = ctime;
     data >> pos.x;
     data >> pos.y;
     data >> pos.z;

@@ -16,10 +16,10 @@ bool AntiCheat_test::HandleMovement(const MovementInfoPtr& MoveInfo, Opcodes opc
 
     float angle = std::atan2(GetDistanceZ(), GetDistance2D()) * 180.f / M_PI_F;
 
-    m_Player->BoxChat << "cosAngle: " << newmoveInfo->GetJumpInfo().cosAngle << "\n";
-    m_Player->BoxChat << "sinAngle: " << newmoveInfo->GetJumpInfo().sinAngle << "\n";
-    m_Player->BoxChat << "velocity: " << newmoveInfo->GetJumpInfo().velocity << "\n";
-    m_Player->BoxChat << "xyspeed: " << newmoveInfo->GetJumpInfo().xyspeed << "\n";
+    m_Player->BoxChat << "cosAngle: " << newmoveInfo->jump.cosAngle << "\n";
+    m_Player->BoxChat << "sinAngle: " << newmoveInfo->jump.sinAngle << "\n";
+    m_Player->BoxChat << "velocity: " << newmoveInfo->jump.velocity << "\n";
+    m_Player->BoxChat << "xyspeed: " << newmoveInfo->jump.xyspeed << "\n";
     m_Player->BoxChat << "cposx: " << newmoveInfo->GetPos()->x << "\n";
     m_Player->BoxChat << "cposy: " << newmoveInfo->GetPos()->y << "\n";
     m_Player->BoxChat << "cposz: " << newmoveInfo->GetPos()->z << "\n";

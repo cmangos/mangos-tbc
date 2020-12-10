@@ -921,7 +921,7 @@ class Player : public Unit
         void AddToWorld() override;
         void RemoveFromWorld() override;
 
-        bool TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0, AreaTrigger const* at = nullptr);
+        bool TeleportTo(uint32 mapid, float x, float y, float z, float orientation, uint32 options = 0, AreaTrigger const* at = nullptr, GenericTransport* transport = nullptr);
 
         bool TeleportTo(WorldLocation const& loc, uint32 options = 0)
         {
@@ -2081,16 +2081,6 @@ class Player : public Unit
 
         ObjectGuid const& GetFarSightGuid() const { return GetGuidValue(PLAYER_FARSIGHT); }
 
-        // Transports
-        Transport* GetTransport() const { return m_transport; }
-        void SetTransport(Transport* t) { m_transport = t; }
-
-        float GetTransOffsetX() const { return m_movementInfo->GetTransportPos()->x; }
-        float GetTransOffsetY() const { return m_movementInfo->GetTransportPos()->y; }
-        float GetTransOffsetZ() const { return m_movementInfo->GetTransportPos()->z; }
-        float GetTransOffsetO() const { return m_movementInfo->GetTransportPos()->o; }
-        uint32 GetTransTime() const { return m_movementInfo->GetTransportTime(); }
-
         uint32 GetSaveTimer() const { return m_nextSave; }
         void   SetSaveTimer(uint32 timer) { m_nextSave = timer; }
 
@@ -2455,9 +2445,6 @@ class Player : public Unit
         RestType m_restType;
         //////////////////// Rest System/////////////////////
 
-        // Transports
-        Transport* m_transport;
-
         uint32 m_resetTalentsCost;
         time_t m_resetTalentsTime;
         uint32 m_usedTalentCount;
@@ -2544,6 +2531,7 @@ class Player : public Unit
         // Current teleport data
         WorldLocation m_teleport_dest;
         uint32 m_teleport_options;
+        ObjectGuid m_teleportTransport;
         bool m_semaphoreTeleport_Near;
         bool m_semaphoreTeleport_Far;
 

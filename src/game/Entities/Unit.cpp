@@ -50,6 +50,7 @@
 #include "Entities/CreatureLinkingMgr.h"
 #include "Tools/Formulas.h"
 #include "Metric/Metric.h"
+#include "Entities/Transports.h"
 
 #include "Custom/Custom.h"
 #include "Custom/SpellRegulator.hpp"
@@ -219,9 +220,10 @@ static const SpellPartialResistDistribution SPELL_PARTIAL_RESIST_DISTRIBUTION = 
 
 void MovementInfo::Read(ByteBuffer& data)
 {
+    stime = sWorld.GetCurrentMSTime();
     data >> moveFlags;
     data >> moveFlags2;
-    data >> time;
+    data >> ctime;
     acTime = time;
     data >> pos.x;
     data >> pos.y;
@@ -251,7 +253,14 @@ void MovementInfo::Read(ByteBuffer& data)
         data >> jump.cosAngle;
         data >> jump.sinAngle;
         data >> jump.xyspeed;
+        if (!jump.startClientTime)
+        {
+            jump.startClientTime = ctime;
+            jump.start = pos;
+        }
     }
+    else
+        jump.startClientTime = 0;
 
     if (HasMovementFlag(MOVEFLAG_SPLINE_ELEVATION))
     {
@@ -263,7 +272,7 @@ void MovementInfo::Write(ByteBuffer& data) const
 {
     data << moveFlags;
     data << moveFlags2;
-    data << time;
+    data << stime;
     data << pos.x;
     data << pos.y;
     data << pos.z;
@@ -298,6 +307,19 @@ void MovementInfo::Write(ByteBuffer& data) const
     {
         data << u_unk1;
     }
+}
+
+float MovementInfo::GetOrientationInMotion(MovementFlags flags, float orientation)
+{
+    float mod = ((flags & MOVEFLAG_BACKWARD) ? M_PI_F : 0);
+
+    if (flags & (MOVEFLAG_STRAFE_LEFT | MOVEFLAG_STRAFE_RIGHT))
+    {
+        float flip = (M_PI_F * ((flags & MOVEFLAG_STRAFE_LEFT) ? 0.5f : -0.5f));
+        flip = ((flags & MOVEFLAG_BACKWARD) ? -flip : flip);
+        mod += (flip * ((flags & (MOVEFLAG_FORWARD | MOVEFLAG_BACKWARD)) ? 0.5f : 1));
+    }
+    return MapManager::NormalizeOrientation(orientation + mod);
 }
 
 ////////////////////////////////////////////////////////////
@@ -643,7 +665,6 @@ bool Unit::UpdateMeleeAttackingState()
 
 void Unit::SendHeartBeat()
 {
-    m_movementInfo->UpdateTime(GetMap()->GetCurrentMSTime());
     WorldPacket data(MSG_MOVE_HEARTBEAT, 64);
     data << GetPackGUID();
     data << m_movementInfo;
@@ -8402,11 +8423,7 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
 
     // player visible for other player if not logout and at same transport
     // including case when player is out of world
-    bool at_same_transport =
-        GetTypeId() == TYPEID_PLAYER &&  u->GetTypeId() == TYPEID_PLAYER &&
-        !((Player*)this)->GetSession()->PlayerLogout() && !((Player*)u)->GetSession()->PlayerLogout() &&
-        !((Player*)this)->GetSession()->PlayerLoading() && !((Player*)u)->GetSession()->PlayerLoading() &&
-        ((Player*)this)->GetTransport() && ((Player*)this)->GetTransport() == ((Player*)u)->GetTransport();
+    bool at_same_transport = GetTransport() == u->GetTransport();
 
     // not in world
     if (!at_same_transport && (!IsInWorld() || !u->IsInWorld()))
@@ -9684,6 +9701,12 @@ void Unit::RemoveFromWorld()
         RemoveAllGameObjects();
         RemoveAllDynObjects();
         GetViewPoint().Event_RemovedFromWorld();
+
+        if (!IsPlayer())
+            if (GenericTransport* transport = GetTransport())
+                transport->RemovePassenger(this);
+
+        m_FollowingRefManager.clearReferences();
     }
 
     Object::RemoveFromWorld();
@@ -11947,6 +11970,9 @@ void Unit::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap /*=null
 {
     if (!atMap)
         atMap = GetMap();
+
+    if (GenericTransport* transport = GetTransport())
+        return;
 
     // non fly unit don't must be in air
     // non swim unit must be at ground (mostly speedup, because it don't must be in water and water level check less fast

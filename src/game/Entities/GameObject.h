@@ -652,6 +652,7 @@ enum GameobjectExtraFlags
 class Unit;
 class GameObjectModel;
 struct GameObjectDisplayInfoEntry;
+struct TransportAnimation;
 
 struct QuaternionData
 {
@@ -676,15 +677,18 @@ class GameObject : public WorldObject
         explicit GameObject();
         ~GameObject();
 
+        static GameObject* CreateGameObject(uint32 entry);
+
         void AddToWorld() override;
         void RemoveFromWorld() override;
 
-        bool Create(uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang,
+        virtual bool Create(uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang,
                     float rotation0 = 0.0f, float rotation1 = 0.0f, float rotation2 = 0.0f, float rotation3 = 0.0f, uint32 animprogress = GO_ANIMPROGRESS_DEFAULT, GOState go_state = GO_STATE_READY);
         void Update(const uint32 diff) override;
         GameObjectInfo const* GetGOInfo() const;
 
         bool IsTransport() const;
+        bool IsMoTransport() const;
 
         bool HasStaticDBSpawnData() const;                  // listed in `gameobject` table and have fixed in DB guid
 
@@ -833,13 +837,19 @@ class GameObject : public WorldObject
         GameObjectAI* AI() const { return m_AI.get(); }
 
         GameObjectModel* m_model;
+        void UpdateModelPosition();
 
         bool _IsWithinDist(WorldObject const* obj, float dist2compare, bool is3D) const override;
 
-        bool IsAtInteractDistance(Position const& pos, float radius) const;
+        bool IsAtInteractDistance(Position const& pos, float radius, bool is3D = true) const;
         bool IsAtInteractDistance(Player const* player, uint32 maxRange = 0) const;
 
         SpellEntry const* GetSpellForLock(Player const* player) const;
+
+        float GetStationaryX() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionX(); return 0.f; }
+        float GetStationaryY() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionY(); return 0.f; }
+        float GetStationaryZ() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionZ(); return 0.f; }
+        float GetStationaryO() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionO(); return GetOrientation(); }
 
     protected:
         uint32      m_spellId;
@@ -867,6 +877,8 @@ class GameObject : public WorldObject
 
         GameObjectInfo const* m_goInfo;
         GameObjectDisplayInfoEntry const* m_displayInfo;
+
+        Position m_stationaryPosition;
 
         // Loot System
         ObjectGuid m_lootRecipientGuid;                     // player who will have rights for looting if m_lootGroupRecipient==0 or group disbanded

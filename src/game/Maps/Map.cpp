@@ -80,6 +80,23 @@ uint32 Map::GetCurrentDiff() const
     return World::GetCurrentDiff();
 }
 
+GenericTransport* Map::GetTransport(ObjectGuid guid)
+{
+    // elevators also cause the client to send MOVEFLAG_ONTRANSPORT - just unmount if the guid can be found in the transport list
+    for (MapManager::TransportSet::const_iterator iter = sMapMgr.m_Transports.begin(); iter != sMapMgr.m_Transports.end(); ++iter)
+    {
+        if ((*iter)->GetObjectGuid() == guid)
+        {
+            return (*iter);
+        }
+    }
+    if (guid.GetEntry())
+        if (GameObject* go = GetGameObject(guid))
+            if (go->IsTransport())
+                return static_cast<GenericTransport*>(go);
+    return nullptr;
+}
+
 void Map::LoadMapAndVMap(int gx, int gy)
 {
     if (m_bLoadedGrids[gx][gy])
@@ -141,6 +158,13 @@ template<class T>
 void Map::AddToGrid(T* obj, NGridType* grid, Cell const& cell)
 {
     (*grid)(cell.CellX(), cell.CellY()).AddGridObject<T>(obj);
+}
+
+template<>
+void Map::AddToGrid(GameObject* obj, NGridType* grid, Cell const& cell)
+{
+    (*grid)(cell.CellX(), cell.CellY()).AddGridObject<GameObject>(obj);
+    obj->SetCurrentCell(cell);
 }
 
 template<>
@@ -885,6 +909,41 @@ void Map::CreatureRelocation(Creature* creature, float x, float y, float z, floa
     }
 }
 
+void Map::GameObjectRelocation(GameObject* go, float x, float y, float z, float orientation, bool respawnRelocationOnFail)
+{
+    Cell new_cell(MaNGOS::ComputeCellPair(x, y));
+    Cell old_cell = go->GetCurrentCell();
+
+    if (!respawnRelocationOnFail && !getNGrid(new_cell.GridX(), new_cell.GridY()))
+        return;
+
+    if (old_cell.DiffGrid(new_cell))
+    {
+        if (!go->isActiveObject() && !loaded(new_cell.gridPair()))
+        {
+            DEBUG_FILTER_LOG(LOG_FILTER_CREATURE_MOVES, "Creature (GUID: %u Entry: %u) attempt move from grid[%u,%u]cell[%u,%u] to unloaded grid[%u,%u]cell[%u,%u].", go->GetGUIDLow(), go->GetEntry(), old_cell.GridX(), old_cell.GridY(), old_cell.CellX(), old_cell.CellY(), new_cell.GridX(), new_cell.GridY(), new_cell.CellX(), new_cell.CellY());
+            return;
+        }
+        EnsureGridLoadedAtEnter(new_cell);
+    }
+
+    // delay creature move for grid/cell to grid/cell moves
+    if (old_cell.DiffCell(new_cell) || old_cell.DiffGrid(new_cell))
+    {
+        NGridType* oldGrid = getNGrid(old_cell.GridX(), old_cell.GridY());
+        NGridType* newGrid = getNGrid(new_cell.GridX(), new_cell.GridY());
+        RemoveFromGrid(go, oldGrid, old_cell);
+        AddToGrid(go, newGrid, new_cell);
+        go->GetViewPoint().Event_GridChanged(&(*newGrid)(new_cell.CellX(), new_cell.CellY()));
+    }
+    else
+    {
+        go->Relocate(x, y, z, orientation);
+        go->UpdateModelPosition();
+        go->UpdateObjectVisibility();
+    }
+}
+
 bool Map::CreatureCellRelocation(Creature* c, const Cell& new_cell)
 {
     Cell const& old_cell = c->GetCurrentCell();
@@ -1021,7 +1080,7 @@ void Map::SendInitSelf(Player* player) const
     bool hasTransport = false;
 
     // attach to player data current transport data
-    if (Transport* transport = player->GetTransport())
+    if (GenericTransport* transport = player->GetTransport())
     {
         hasTransport = true;
         transport->BuildCreateUpdateBlockForPlayer(&updateData, player);
@@ -1031,7 +1090,7 @@ void Map::SendInitSelf(Player* player) const
     player->BuildCreateUpdateBlockForPlayer(&updateData, player);
 
     // build other passengers at transport also (they always visible and marked as visible and will not send at visibility update at add to map
-    if (Transport* transport = player->GetTransport())
+    if (GenericTransport* transport = player->GetTransport())
     {
         for (auto itr : transport->GetPassengers())
         {
@@ -2007,6 +2066,7 @@ WorldObject* Map::GetWorldObject(ObjectGuid guid)
     switch (guid.GetHigh())
     {
         case HIGHGUID_PLAYER:       return GetPlayer(guid);
+        case HIGHGUID_TRANSPORT:
         case HIGHGUID_GAMEOBJECT:   return GetGameObject(guid);
         case HIGHGUID_UNIT:         return GetCreature(guid);
         case HIGHGUID_PET:          return GetPet(guid);
@@ -2018,7 +2078,6 @@ WorldObject* Map::GetWorldObject(ObjectGuid guid)
             return corpse && corpse->IsInWorld() ? corpse : nullptr;
         }
         case HIGHGUID_MO_TRANSPORT:
-        case HIGHGUID_TRANSPORT:
         default:                    break;
     }
 
@@ -2053,6 +2112,7 @@ uint32 Map::GenerateLocalLowGuid(HighGuid guidhigh)
     {
         case HIGHGUID_UNIT:
             return m_CreatureGuids.Generate();
+        case HIGHGUID_TRANSPORT:
         case HIGHGUID_GAMEOBJECT:
             return m_GameObjectGuids.Generate();
         case HIGHGUID_DYNAMICOBJECT:

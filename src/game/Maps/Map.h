@@ -55,6 +55,7 @@ class BattleGround;
 class GridMap;
 class GameObjectModel;
 class WeatherSystem;
+class GenericTransport;
 namespace MaNGOS { struct ObjectUpdater; }
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
@@ -148,6 +149,7 @@ class Map : public GridRefManager<NGridType>
 
         void PlayerRelocation(Player*, float x, float y, float z, float orientation);
         void CreatureRelocation(Creature* creature, float x, float y, float z, float ang);
+        void GameObjectRelocation(GameObject* go, float x, float y, float z, float orientation, bool respawnRelocationOnFail = true);
 
         template<class T, class CONTAINER> void Visit(const Cell& cell, TypeContainerVisitor<T, CONTAINER>& visitor);
 
@@ -339,6 +341,8 @@ class Map : public GridRefManager<NGridType>
 
         Messager<Map>& GetMessager() { return m_messager; }
 
+        GenericTransport* GetTransport(ObjectGuid guid);
+
     private:
         void LoadMapAndVMap(int gx, int gy);
 
@@ -419,6 +423,7 @@ class Map : public GridRefManager<NGridType>
         // Map local low guid counters
         ObjectGuidGenerator<HIGHGUID_UNIT> m_CreatureGuids;
         ObjectGuidGenerator<HIGHGUID_GAMEOBJECT> m_GameObjectGuids;
+        ObjectGuidGenerator<HIGHGUID_TRANSPORT> m_transportGuids;
         ObjectGuidGenerator<HIGHGUID_DYNAMICOBJECT> m_DynObjectGuids;
         ObjectGuidGenerator<HIGHGUID_PET> m_PetGuids;
 

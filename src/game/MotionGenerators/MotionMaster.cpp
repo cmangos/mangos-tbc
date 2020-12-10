@@ -64,10 +64,10 @@ void MotionMaster::Initialize()
     // set new default movement generator
     if (m_owner->GetTypeId() == TYPEID_UNIT && !m_owner->hasUnitState(UNIT_STAT_POSSESSED))
     {
+        m_currentPathId = m_defaultPathId;
         MovementGenerator* movement = FactorySelector::selectMovementGenerator((Creature*)m_owner);
         push(movement == nullptr ? &si_idleMovement : movement);
         top()->Initialize(*m_owner);
-        m_currentPathId = m_defaultPathId;
         if (top()->GetMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
             (static_cast<WaypointMovementGenerator<Creature>*>(top()))->InitializeWaypointPath(*((Creature*)(m_owner)), m_currentPathId, PATH_NO_PATH, 0, 0);
     }
@@ -365,12 +365,17 @@ void MotionMaster::MoveStay(float x, float y, float z, float o, bool asMain)
     Mutate(new StayMovementGenerator(x, y, z, o));
 }
 
-void MotionMaster::MovePoint(uint32 id, float x, float y, float z, bool generatePath/* = true*/, ForcedMovement forcedMovement/* = FORCED_MOVEMENT_NONE*/)
+void MotionMaster::MovePoint(uint32 id, Position& position, ForcedMovement forcedMovement, bool generatePath)
 {
-    return MovePoint(id, x, y, z, 0, generatePath, forcedMovement);
+    MovePoint(id, position.x, position.y, position.z, position.o, forcedMovement, generatePath);
 }
 
-void MotionMaster::MovePoint(uint32 id, float x, float y, float z, float o, bool generatePath/* = true*/, ForcedMovement forcedMovement/* = FORCED_MOVEMENT_NONE*/)
+void MotionMaster::MovePoint(uint32 id, float x, float y, float z, ForcedMovement forcedMovement/* = FORCED_MOVEMENT_NONE*/, bool generatePath/* = true*/)
+{
+    return MovePoint(id, x, y, z, 0, forcedMovement, generatePath);
+}
+
+void MotionMaster::MovePoint(uint32 id, float x, float y, float z, float o, ForcedMovement forcedMovement/* = FORCED_MOVEMENT_NONE*/, bool generatePath/* = true*/)
 {
     if (o != 0.f)
         DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s targeted point (Id: %u X: %f Y: %f Z: %f O: %f)", m_owner->GetGuidStr().c_str(), id, x, y, z, o);
@@ -407,34 +412,9 @@ void MotionMaster::MovePath(std::vector<G3D::Vector3>& path, float o, ForcedMove
     Mutate(new FixedPathMovementGenerator(path, o, forcedMovement, flying));
 }
 
-void MotionMaster::MovePath(WaypointPath& path, ForcedMovement forcedMovement, bool flying)
+void MotionMaster::MovePath(int32 pathId, WaypointPathOrigin wpOrigin /*= PATH_NO_PATH*/, ForcedMovement forcedMovement, bool flying)
 {
-    if (path.empty())
-        return;
-
-    if (path.begin()->first != 0)
-    {
-        sLog.outError("%s attempts to follow a pre-calculated path with unusual indexing: first waypoint at %i", m_owner->GetGuidStr().c_str(), path.begin()->first);
-        return;
-    }
-
-    const auto& finish = path.rbegin();
-    auto& dest = finish->second;
-
-    for (auto itr = path.begin(); itr != path.end(); ++itr)
-    {
-        if ((*itr).first > (*finish).first)
-            dest = ((*itr).second);
-    }
-
-    const float x = dest.x, y = dest.y, z = dest.z, o = dest.orientation;
-
-    if (o != 0.f)
-        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s follows a pre-calculated path using waypoints to X: %f Y: %f Z: %f O: %f", m_owner->GetGuidStr().c_str(), x, y, z, o);
-    else
-        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s follows a pre-calculated path using waypoints to X: %f Y: %f Z: %f", m_owner->GetGuidStr().c_str(), x, y, z);
-
-    Mutate(new FixedPathMovementGenerator(path, forcedMovement, flying));
+    Mutate(new FixedPathMovementGenerator(*m_owner, pathId, wpOrigin, forcedMovement, flying));
 }
 
 void MotionMaster::MoveRetreat(float x, float y, float z, float o, uint32 delay)
@@ -605,6 +585,12 @@ void MotionMaster::PauseWaypoints(uint32 time)
         gen->AddToWaypointPauseTime(time, true);
         return;
     }
+    else if (GetCurrentMovementGeneratorType() == PATH_MOTION_TYPE)
+    {
+        auto gen = (FixedPathMovementGenerator*)top();
+        gen->AddToPathPauseTime(time, true);
+        return;
+    }
 }
 
 void MotionMaster::UnpauseWaypoints()
@@ -617,6 +603,12 @@ void MotionMaster::UnpauseWaypoints()
     {
         auto gen = (WaypointMovementGenerator<Creature>*)top();
         gen->AddToWaypointPauseTime(0, true);
+        return;
+    }
+    else if (GetCurrentMovementGeneratorType() == PATH_MOTION_TYPE)
+    {
+        auto gen = (FixedPathMovementGenerator*)top();
+        gen->AddToPathPauseTime(0, true);
         return;
     }
 }

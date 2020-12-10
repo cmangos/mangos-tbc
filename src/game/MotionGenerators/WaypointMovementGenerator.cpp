@@ -140,7 +140,7 @@ void WaypointMovementGenerator<Creature>::Finalize(Creature& creature)
 void WaypointMovementGenerator<Creature>::Interrupt(Creature& creature)
 {
     // be sure we are not already interrupted before saving current pos
-    if (creature.hasUnitState(UNIT_STAT_ROAMING))
+    if (creature.hasUnitState(UNIT_STAT_ROAMING_MOVE))
     {
         // save the current position in case of reset
         creature.GetPosition(m_resetPoint);
@@ -489,7 +489,7 @@ void WaypointMovementGenerator<Creature>::SendNextWayPointPath(Creature& creatur
     init.MovebyPath(genPath);
     if (nextNode->orientation != 100 && nextNode->delay != 0)
         init.SetFacing(nextNode->orientation);
-    creature.SetWalk(!creature.hasUnitState(UNIT_STAT_RUNNING_STATE) && !creature.IsLevitating(), false);
+    init.SetWalk(!creature.hasUnitState(UNIT_STAT_RUNNING));
 
     // send path to client
     m_pathDuration = init.Launch();

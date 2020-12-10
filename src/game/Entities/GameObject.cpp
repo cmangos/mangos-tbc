@@ -43,6 +43,7 @@
 #include <G3D/Box.h>
 #include <G3D/CoordinateFrame.h>
 #include <G3D/Quat.h>
+#include "Entities/Transports.h"
 
 bool QuaternionData::isUnit() const
 {
@@ -104,6 +105,14 @@ GameObject::~GameObject()
     delete m_model;
 }
 
+GameObject* GameObject::CreateGameObject(uint32 entry)
+{
+    GameObjectInfo const* goinfo = ObjectMgr::GetGameObjectInfo(entry);
+    if (goinfo && goinfo->type == GAMEOBJECT_TYPE_TRANSPORT)
+        return new ElevatorTransport;
+    return new GameObject;
+}
+
 void GameObject::AddToWorld()
 {
     ///- Register the gameobject for guid lookup
@@ -163,6 +172,8 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
     MANGOS_ASSERT(map);
     Relocate(x, y, z, ang);
     SetMap(map);
+
+    m_stationaryPosition = Position(x, y, z, ang);
 
     if (!IsPositionValid())
     {
@@ -229,8 +240,14 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
                 GetVisibilityData().SetInvisibilityMask(INVISIBILITY_TRAP, true);
                 GetVisibilityData().AddInvisibilityValue(INVISIBILITY_TRAP, 300);
             }
+            // [[fallthrough]]
         case GAMEOBJECT_TYPE_FISHINGNODE:
             m_lootState = GO_NOT_READY;                     // Initialize Traps and Fishingnode delayed in ::Update
+            break;
+        case GAMEOBJECT_TYPE_TRANSPORT:
+            SetUInt32Value(GAMEOBJECT_LEVEL, goinfo->transport.pause);
+            SetGoState(goinfo->transport.startOpen ? GO_STATE_ACTIVE : GO_STATE_READY);
+            SetGoAnimProgress(animprogress);
             break;
         default:
             break;
@@ -456,7 +473,7 @@ void GameObject::Update(const uint32 diff)
                 }
 
                 int32 max_charges = goInfo->GetCharges();   // Only check usable (positive) charges; 0 : no charge; -1 : infinite charges
-                if (max_charges > 0 && m_useTimes >= max_charges)
+                if (max_charges > 0 && m_useTimes >= uint32(max_charges))
                 {
                     m_useTimes = 0;
                     SetLootState(GO_JUST_DEACTIVATED);  // can be despawned or destroyed
@@ -916,6 +933,13 @@ bool GameObject::IsTransport() const
     return gInfo->type == GAMEOBJECT_TYPE_TRANSPORT || gInfo->type == GAMEOBJECT_TYPE_MO_TRANSPORT;
 }
 
+bool GameObject::IsMoTransport() const
+{
+    GameObjectInfo const* gInfo = GetGOInfo();
+    if (!gInfo) return false;
+    return gInfo->type == GAMEOBJECT_TYPE_MO_TRANSPORT;
+}
+
 void GameObject::SaveRespawnTime()
 {
     if (m_respawnTime > time(nullptr) && m_spawnedByDefault)
@@ -929,7 +953,7 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
         return false;
 
     // Transport always visible at this step implementation
-    if (IsTransport() && IsInMap(u))
+    if (IsMoTransport() && IsInMap(u))
         return true;
 
     // quick check visibility false cases for non-GM-mode
@@ -1001,6 +1025,9 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
         if (GetEntry() == 187039 && ((u->GetVisibilityData().GetInvisibilityDetectMask() | u->GetVisibilityData().GetInvisibilityMask()) & (1 << 10)) == 0)
             return false;
     }
+
+    if (IsTransport())
+        printf("");
 
     // check distance
     return IsWithinDistInMap(viewPoint, GetVisibilityData().GetVisibilityDistance(), false);
@@ -1908,6 +1935,19 @@ void GameObject::UpdateModel()
         GetMap()->InsertGameObjectModel(*m_model);
 }
 
+void GameObject::UpdateModelPosition()
+{
+    if (!m_model)
+        return;
+
+    if (GetMap()->ContainsGameObjectModel(*m_model))
+    {
+        GetMap()->RemoveGameObjectModel(*m_model);
+        m_model->Relocate(*this);
+        GetMap()->InsertGameObjectModel(*m_model);
+    }
+}
+
 Player* GameObject::GetOriginalLootRecipient() const
 {
     return m_lootRecipientGuid ? ObjectAccessor::FindPlayer(m_lootRecipientGuid) : nullptr;
@@ -2014,7 +2054,9 @@ struct SpawnGameObjectInMapsWorker
         // Spawn if necessary (loaded grids only)
         if (map->IsLoaded(i_data->posX, i_data->posY))
         {
-            GameObject* pGameobject = new GameObject;
+            GameObjectData const* data = sObjectMgr.GetGOData(i_guid);
+            MANGOS_ASSERT(data);
+            GameObject* pGameobject = GameObject::CreateGameObject(data->id);
             // DEBUG_LOG("Spawning gameobject %u", *itr);
             if (!pGameobject->LoadFromDB(i_guid, map))
             {
@@ -2390,10 +2432,10 @@ bool GameObject::_IsWithinDist(WorldObject const* obj, float dist2compare, bool 
         return distsq < dist2compare * dist2compare;
     }
 
-    return IsAtInteractDistance(obj->GetPosition(), obj->GetCombatReach() + dist2compare);
+    return IsAtInteractDistance(obj->GetPosition(), obj->GetCombatReach() + dist2compare, is3D);
 }
 
-bool GameObject::IsAtInteractDistance(Position const& pos, float radius) const
+bool GameObject::IsAtInteractDistance(Position const& pos, float radius, bool is3D) const
 {
     if (GameObjectDisplayInfoEntry const* displayInfo = m_displayInfo)
     {
@@ -2411,7 +2453,7 @@ bool GameObject::IsAtInteractDistance(Position const& pos, float radius) const
 
         return G3D::CoordinateFrame{ { worldRotationQuat }, { GetPositionX(), GetPositionY(), GetPositionZ() } }
             .toWorldSpace(G3D::Box{ { minX, minY, minZ }, { maxX, maxY, maxZ } })
-            .contains({ pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ() });
+            .contains({ pos.GetPositionX(), pos.GetPositionY(), is3D ? pos.GetPositionZ() : GetPositionZ() });
     }
 
     return GetDistance(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), DIST_CALC_NONE) <= (radius * radius);

@@ -1192,6 +1192,17 @@ struct TotemCategoryEntry
     uint32    categoryMask;                                 // 19       m_totemCategoryMask (compatibility mask for same type: different for totems, compatible from high to low for rods)
 };
 
+struct TransportAnimationEntry
+{
+    //uint32  Id;
+    uint32  TransportEntry;
+    uint32  TimeSeg;
+    float   Y;
+    float   X;
+    float   Z;
+    //uint32  MovementId;
+};
+
 struct WMOAreaTableEntry
 {
     uint32 Id;                                              // 0        m_ID index
@@ -1302,7 +1313,7 @@ struct TaxiPathBySourceAndDestination
 typedef std::map<uint32, TaxiPathBySourceAndDestination> TaxiPathSetForSource;
 typedef std::map<uint32, TaxiPathSetForSource> TaxiPathSetBySource;
 
-typedef std::vector<TaxiPathNodeEntry const*> TaxiPathNodeList;
+typedef Path<TaxiPathNodeEntry const*> TaxiPathNodeList;
 typedef std::vector<TaxiPathNodeList> TaxiPathNodesByPath;
 
 #define TaxiMaskSize 16

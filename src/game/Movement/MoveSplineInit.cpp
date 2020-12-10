@@ -50,7 +50,8 @@ namespace Movement
 
         // corrent first vertex
         args.path[0] = real_position;
-        uint32 moveFlags = unit.m_movementInfo->GetMovementFlags();
+        args.flags.enter_cycle = args.flags.cyclic;
+        uint32 moveFlags = unit.m_movementInfo.GetMovementFlags();
         if (args.flags.runmode)
             moveFlags &= ~MOVEFLAG_WALK_MODE;
         else

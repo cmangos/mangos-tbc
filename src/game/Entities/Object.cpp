@@ -24,9 +24,11 @@
 #include "World/World.h"
 #include "Entities/Creature.h"
 #include "Entities/Player.h"
+#include "Entities/GameObject.h"
 #include "Globals/ObjectMgr.h"
 #include "Entities/ObjectGuid.h"
 #include "Entities/UpdateData.h"
+#include "Entities/Transports.h"
 #include "UpdateMask.h"
 #include "Util.h"
 #include "Grids/CellImpl.h"
@@ -157,9 +159,9 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
             case HighGuid::HIGHGUID_PLAYER:
             case HighGuid::HIGHGUID_UNIT:
             case HighGuid::HIGHGUID_GAMEOBJECT:
+            case HighGuid::HIGHGUID_TRANSPORT:
                 updatetype = UPDATETYPE_CREATE_OBJECT2;
                 break;
-
             default:
                 break;
         }
@@ -264,8 +266,6 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
                 player->m_movementInfo->RemoveMovementFlag(MOVEFLAG_ONTRANSPORT);
         }
 
-        // Update movement info time
-        unit->m_movementInfo->UpdateTime(WorldTimer::getMSTime());
         // Write movement info
         unit->m_movementInfo->Write(*data);
 
@@ -287,12 +287,13 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
     else if (updateFlags & UPDATEFLAG_HAS_POSITION)
     {
         // 0x02
-        if (updateFlags & UPDATEFLAG_TRANSPORT && ((GameObject*)this)->GetGoType() == GAMEOBJECT_TYPE_MO_TRANSPORT)
+        if (updateFlags & UPDATEFLAG_TRANSPORT)
         {
-            *data << float(0);
-            *data << float(0);
-            *data << float(0);
-            *data << float(((WorldObject*)this)->GetOrientation());
+            GameObject const* go = static_cast<GameObject const*>(this);
+            *data << float(go->GetStationaryX());
+            *data << float(go->GetStationaryY());
+            *data << float(go->GetStationaryZ());
+            *data << float(go->GetStationaryO());
         }
         else
         {
@@ -362,7 +363,11 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const
     // 0x2
     if (updateFlags & UPDATEFLAG_TRANSPORT)
     {
-        *data << uint32(WorldTimer::getMSTime());           // ms time
+        GameObject const* go = static_cast<GameObject const*>(this);
+        if (go && go->IsMoTransport())
+            *data << uint32(static_cast<Transport const*>(go)->GetPathProgress());
+        else
+            *data << uint32(go->GetMap()->GetCurrentMSTime());
     }
 }
 
@@ -1122,7 +1127,7 @@ WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_visibilityData(this), m_currMap(nullptr),
     m_mapId(0), m_InstanceId(0),
-    m_isActiveObject(false), m_debugFlags(0)
+    m_isActiveObject(false), m_debugFlags(0), m_transport(nullptr)
 {
 }
 
@@ -1853,6 +1858,22 @@ void WorldObject::AddObjectToRemoveList()
     GetMap()->AddObjectToRemoveList(this);
 }
 
+void WorldObject::GetPosition(float& x, float& y, float& z, GenericTransport* transport) const
+{
+    if (transport && m_movementInfo.t_guid == transport->GetObjectGuid())
+    {
+        x = m_movementInfo.t_pos.x;
+        y = m_movementInfo.t_pos.y;
+        z = m_movementInfo.t_pos.z;
+        return;
+    }
+    x = GetPositionX();
+    y = GetPositionY();
+    z = GetPositionZ();
+    if (transport)
+        transport->CalculatePassengerOffset(x, y, z);
+}
+
 Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
 {
     CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(settings.entry);
@@ -1864,7 +1885,14 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
 
     TemporarySpawn* creature = new TemporarySpawn(settings.spawner ? settings.spawner->GetObjectGuid() : ObjectGuid());
 
-    CreatureCreatePos pos(map, settings.x, settings.y, settings.z, settings.ori);
+    GenericTransport* transport = nullptr;
+    if (settings.spawner)
+        transport = settings.spawner->GetTransport();
+    float x = settings.x, y = settings.y, z = settings.z;
+    if (transport)
+        transport->CalculatePassengerPosition(x, y, z);
+
+    CreatureCreatePos pos(map, x, y, z, settings.ori);
 
     if (settings.x == 0.0f && settings.y == 0.0f && settings.z == 0.0f && settings.spawner)
     {
@@ -1879,6 +1907,13 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
     }
 
     creature->SetRespawnCoord(pos);
+    if (transport)
+    {
+        creature->m_movementInfo.t_pos.x = settings.x;
+        creature->m_movementInfo.t_pos.y = settings.y;
+        creature->m_movementInfo.t_pos.z = settings.z;
+        creature->m_movementInfo.t_pos.o = settings.ori;
+    }
 
     // Set run or walk before any other movement starts
     creature->SetWalk(!settings.setRun);
@@ -1896,6 +1931,38 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
         creature->SetSpawnCounting(true);
 
     creature->GetMotionMaster()->SetDefaultPathId(settings.pathId);
+
+    if (settings.spawner)
+    {
+        if (GenericTransport* transport = settings.spawner->GetTransport())
+        {
+            transport->AddPassenger(creature);
+            transport->UpdatePassengerPosition(creature);
+        }
+    }
+
+    if (settings.spawnDataEntry)
+    {
+        if (CreatureSpawnTemplate const* templateData = sObjectMgr.GetCreatureSpawnTemplate(settings.spawnDataEntry))
+        {
+            if (templateData->unitFlags != -1)
+                creature->SetUInt32Value(UNIT_FIELD_FLAGS, uint32(templateData->unitFlags));
+            if (templateData->faction > 0)
+                creature->SetPower(POWER_MANA, templateData->curMana);
+            if (templateData->modelId > 0)
+                creature->SetDisplayId(templateData->modelId);
+            if (templateData->equipmentId)
+                creature->LoadEquipment(templateData->equipmentId == -1 ? 0 : templateData->equipmentId, true);
+            if (templateData->curHealth > 1)
+                creature->SetHealth(templateData->curHealth);
+            if (templateData->curMana > 0)
+                creature->SetPower(POWER_MANA, templateData->curMana);
+            if (templateData->IsRunning())
+                creature->SetWalk(false);
+            if (templateData->IsHovering())
+                creature->SetHover(true);
+        }
+    }
 
     creature->Summon(settings.spawnType, settings.despawnTime);                  // Also initializes the AI and MMGen
     if (settings.corpseDespawnTime)

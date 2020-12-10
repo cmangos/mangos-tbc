@@ -841,8 +841,21 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
         return 0;
     }
 
-    CPlayer* cplayerattacker = (dealer->GetMaster() ? dealer->GetMaster() : dealer)->ToCPlayer();
-    CPlayer* cplayervictim = (victim->GetMaster() ? victim->GetMaster() : victim)->ToCPlayer();
+    Unit* uplayerattacker = NULL;
+    Unit* uplayervictim = NULL;
+    if (dealer)
+        uplayerattacker = dealer->GetMaster() ? dealer->GetMaster() : dealer;
+    if (victim)
+        uplayervictim = victim->GetMaster() ? victim->GetMaster() : victim;
+
+    CPlayer* cplayerattacker = NULL;
+    CPlayer* cplayervictim = NULL;
+
+    if (uplayerattacker && uplayerattacker->IsPlayer())
+        cplayerattacker = uplayerattacker->ToCPlayer();
+
+    if (uplayervictim && uplayervictim->IsPlayer())
+        cplayervictim = uplayervictim->ToCPlayer();
 
     // Add damage information to victim for PvP Reward system
     if (cplayerattacker &&
@@ -6939,8 +6952,17 @@ int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellPro
 
     int32 gain = pVictim->ModifyHealth(int32(addhealth));
 
-    CPlayer* cplayerattacker = (GetMaster() ? GetMaster() : this)->ToCPlayer();
-    CPlayer* cplayervictim = (pVictim->GetMaster() ? pVictim->GetMaster() : pVictim)->ToCPlayer();
+    Unit* uplayerattacker = GetMaster() ? GetMaster() : this;
+    Unit* uplayervictim = pVictim->GetMaster() ? pVictim->GetMaster() : pVictim;
+
+    CPlayer* cplayerattacker = NULL;
+    CPlayer* cplayervictim = NULL;
+
+    if (uplayerattacker && uplayerattacker->IsPlayer())
+        cplayerattacker = uplayerattacker->ToCPlayer();
+
+    if (uplayervictim && uplayervictim->IsPlayer())
+        cplayervictim = uplayervictim->ToCPlayer();
 
     // Add healing done to "victim" for PvP Reward system
     if (cplayerattacker &&

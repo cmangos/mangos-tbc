@@ -4379,22 +4379,7 @@ void Spell::EffectApplyAreaAura(SpellEffectIndex eff_idx)
 
 void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 {
-    switch (m_spellInfo->Id)
-    {
-        case 44322: // Hacky fix for summon spell in Vexallus fight (MGT)
-        case 46154: // need more info on how to handle this
-        case 46159:
-        case 33903: // serverside, used by Raging Colossus
-            break;
-        default:
-        {
-            // if this spell already have an aura applied cancel the summon
-            if (SpellAuraHolder* holder = m_caster->GetSpellAuraHolder(m_spellInfo->Id))
-                if (holder != m_spellAuraHolder)
-                    return;
-            break;
-        }
-    }
+    // TODO add script for 35679 and 34877
 
     uint32 prop_id = m_spellInfo->EffectMiscValueB[eff_idx];
     SummonPropertiesEntry const* summon_prop = sSummonPropertiesStore.LookupEntry(prop_id);

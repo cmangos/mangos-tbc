@@ -706,7 +706,7 @@ class GameObject : public WorldObject
 
         void SaveToDB() const;
         void SaveToDB(uint32 mapid, uint8 spawnMask) const;
-        bool LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransport* transport = nullptr);
+        bool LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid);
         void DeleteFromDB() const;
 
         ObjectGuid const& GetOwnerGuid() const override { return GetGuidValue(OBJECT_FIELD_CREATED_BY); }

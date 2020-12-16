@@ -798,7 +798,7 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask) const
     WorldDatabase.CommitTransaction();
 }
 
-bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransport* transport)
+bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid)
 {
     GameObjectData const* data = sObjectMgr.GetGOData(dbGuid);
 

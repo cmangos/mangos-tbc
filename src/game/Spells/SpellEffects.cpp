@@ -3420,21 +3420,12 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
         case 29950:
             m_caster->RemoveAurasDueToSpellByCancel(29947);
             return;
-        // Priest Shadowfiend (34433) need apply mana gain trigger aura on pet
-        case 41967:
-        {
-            if (Unit* pet = unitTarget->GetPet())
-            {
-                pet->CastSpell(pet, 28305, TRIGGERED_OLD_TRIGGERED);
-                pet->AI()->AttackStart(m_caster->GetTarget());
-            }
-            return;
-        }
         case 44949:
             // triggered spell have same category
             if (m_caster->GetTypeId() == TYPEID_PLAYER)
                 m_caster->RemoveSpellCooldown(triggered_spell_id);
             break;
+        case 41967: // Priest Shadowfiend (34433) - handled in spell script
         case 47531: // Dismiss pet - suppress error
             return;
     }

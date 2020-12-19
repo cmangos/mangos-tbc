@@ -3155,10 +3155,6 @@ void Spell::cast(bool skipCheck)
     // Okay, everything is prepared. Now we need to distinguish between immediate and evented delayed spells
     if (GetSpellSpeed() > 0.0f && !IsChanneledSpell(m_spellInfo))
     {
-        // Remove used for cast item if need (it can be already nullptr after TakeReagents call
-        // in case delayed spell remove item at cast delay start
-        TakeCastItem();
-
         // For channels, delay starts at channel end
         if (m_spellState != SPELL_STATE_CHANNELING)
         {
@@ -3176,9 +3172,6 @@ void Spell::cast(bool skipCheck)
 
 void Spell::handle_immediate()
 {
-    // Remove used for cast item if need (it can be already nullptr after TakeReagents call
-    TakeCastItem();
-
     // AOE caps implementation - only works for non-travelling spells
     ProcessAOECaps();
 
@@ -3284,6 +3277,9 @@ void Spell::_handle_immediate_phase()
     // process items
     for (auto& ihit : m_UniqueItemInfo)
         DoAllEffectOnTarget(&ihit);
+
+    // take cast item after processing items
+    TakeCastItem();
 
     // fill initial spell damage from caster for immediate effects
     for (auto& ihit : m_UniqueTargetInfo)

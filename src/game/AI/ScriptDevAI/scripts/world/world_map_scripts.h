@@ -77,15 +77,11 @@ struct ShadeOfTheHorsemanData
 {
     ShadeOfTheHorsemanData(std::vector<uint32> areaIds) : m_areaIds(areaIds) {}
     uint32 m_shadeOfTheHorsemanAttackPhases[MAX_VILLAGES];
-    uint32 m_shadeOfTheHorsemanAttackFireCounts[MAX_VILLAGES];
 
     void Reset();
 
     uint32 GetDataAttackPhase(uint32 id) const;
-    uint32 GetDataFireCount(uint32 id) const;
-
     void SetDataAttackPhase(uint32 id, uint32 value);
-    void SetDataFireCount(uint32 id, uint32 value);
 
     bool IsConditionFulfilled(uint32 conditionId, uint32 areaId) const;
 

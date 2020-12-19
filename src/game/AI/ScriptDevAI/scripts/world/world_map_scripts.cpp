@@ -80,7 +80,6 @@ bool ProcessEventTransports(uint32 uiEventId, Object* pSource, Object* /*pTarget
 void ShadeOfTheHorsemanData::Reset()
 {
     memset(m_shadeOfTheHorsemanAttackPhases, 0, sizeof(m_shadeOfTheHorsemanAttackPhases));
-    memset(m_shadeOfTheHorsemanAttackFireCounts, 0, sizeof(m_shadeOfTheHorsemanAttackFireCounts));
 }
 
 uint32 ShadeOfTheHorsemanData::GetDataAttackPhase(uint32 id) const
@@ -88,19 +87,9 @@ uint32 ShadeOfTheHorsemanData::GetDataAttackPhase(uint32 id) const
     return m_shadeOfTheHorsemanAttackPhases[id];
 }
 
-uint32 ShadeOfTheHorsemanData::GetDataFireCount(uint32 id) const
-{
-    return m_shadeOfTheHorsemanAttackFireCounts[id];
-}
-
 void ShadeOfTheHorsemanData::SetDataAttackPhase(uint32 id, uint32 value)
 {
     m_shadeOfTheHorsemanAttackPhases[id] = value;
-}
-
-void ShadeOfTheHorsemanData::SetDataFireCount(uint32 id, uint32 value)
-{
-    m_shadeOfTheHorsemanAttackFireCounts[id] = value;
 }
 
 bool ShadeOfTheHorsemanData::IsConditionFulfilled(uint32 conditionId, uint32 areaId) const

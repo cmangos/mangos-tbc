@@ -132,6 +132,7 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
             }
             ResetTimer(EVENT_REINFORCEMENTS_LEADER_SPEAK, urand(60000, 90000));
         });
+        Initialize();
     }
 
     std::set<ObjectGuid> _spawn;

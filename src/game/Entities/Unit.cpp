@@ -10811,14 +10811,21 @@ void Unit::NearTeleportTo(float x, float y, float z, float orientation, bool cas
     }
 }
 
-void Unit::SendTeleportPacket(float x, float y, float z, float ori)
+void Unit::SendTeleportPacket(float x, float y, float z, float ori, GenericTransport* transport)
 {
     MovementInfo teleportMovementInfo = m_movementInfo;
+    if (transport)
+    {
+        teleportMovementInfo.SetTransportData(transport->GetObjectGuid(), x, y, z, ori, transport->GetPathProgress());
+        transport->CalculatePassengerPosition(x, y, z, &ori); // recalculate to real coords
+    }
     teleportMovementInfo.ChangePosition(x, y, z, ori);
+
+    Player* player = nullptr;
 
     if (GetTypeId() == TYPEID_PLAYER)
     {
-        Player* player = static_cast<Player*>(this);
+        player = static_cast<Player*>(this);
         WorldPacket data;
         data.Initialize(MSG_MOVE_TELEPORT_ACK, 41);
         data << GetPackGUID();
@@ -10830,7 +10837,7 @@ void Unit::SendTeleportPacket(float x, float y, float z, float ori)
     WorldPacket moveUpdateTeleport(MSG_MOVE_TELEPORT, 38);
     moveUpdateTeleport << GetPackGUID();
     teleportMovementInfo.Write(moveUpdateTeleport);
-    SendMessageToSet(moveUpdateTeleport, false);
+    SendMessageToSetExcept(moveUpdateTeleport, player);
 }
 
 void Unit::MonsterMoveWithSpeed(float x, float y, float z, float speed, bool generatePath, bool forceDestination)

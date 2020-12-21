@@ -20686,7 +20686,7 @@ Player* Player::GetNextRaidMemberWithLowestLifePercentage(float radius, AuraType
     {
         Player* target = itr->getSource();
 
-        if (target && target != this)
+        if (target && target != this && target->IsAlive())
         {
             float x, y, z;
             GetPosition(x, y, z);

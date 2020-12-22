@@ -3006,6 +3006,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
                 return DIMINISHING_FEAR;
             break;
         }
+        case SPELLFAMILY_UNK1:
+            return DIMINISHING_NONE;
         default:
             break;
     }

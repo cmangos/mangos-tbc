@@ -1143,6 +1143,8 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         case ACTION_T_ZONE_COMBAT_PULSE:
         {
             m_creature->SetInCombatWithZone();
+            if (!m_creature->GetVictim())
+                AttackClosestEnemy();
             break;
         }
         case ACTION_T_CALL_FOR_HELP:
@@ -1609,7 +1611,7 @@ void CreatureEventAI::EnterCombat(Unit* enemy)
     m_EventUpdateTime = EVENT_UPDATE_TIME;
     m_EventDiff = 0;
 
-    UnitAI::EnterCombat(enemy);
+    CreatureAI::EnterCombat(enemy);
 }
 
 void CreatureEventAI::MoveInLineOfSight(Unit* who)

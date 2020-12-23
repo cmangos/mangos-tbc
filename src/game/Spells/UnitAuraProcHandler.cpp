@@ -1320,7 +1320,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
 
                     // Cast finish spell (triggeredByAura already not exist!)
                     if (Unit* caster = triggeredByAura->GetCaster())
-                        caster->CastSpell(this, 27285, TRIGGERED_OLD_TRIGGERED, castItem);
+                        caster->CastSpell(this, 27285, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
                     return SPELL_AURA_PROC_OK;              // no hidden cooldown
                 }
 

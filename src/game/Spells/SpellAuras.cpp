@@ -2681,7 +2681,7 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 if (m_removeMode == AURA_REMOVE_BY_DEATH)
                     if (Unit* caster = GetCaster())
-                        caster->CastSpell(target, 27285, TRIGGERED_OLD_TRIGGERED);
+                        caster->CastSpell(target, 27285, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
                 return;
             }
             case 29104:                                     // Anub'Rekhan Aura

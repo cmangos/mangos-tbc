@@ -161,6 +161,7 @@ struct boss_onyxiaAI : public CombatAI
         AddCustomAction(ONYXIA_SUMMON_WHELPS, true, [&]() { SummonWhelps(); });
         AddCustomAction(ONYXIA_PHASE_TRANSITIONS, true, [&]() { PhaseTransition(); });
         m_creature->SetWalk(false); // onyxia should run when flying
+        AddOnKillText(SAY_KILL);
     }
 
     instance_onyxias_lair* m_instance;
@@ -238,11 +239,6 @@ struct boss_onyxiaAI : public CombatAI
             return;
 
         summoned->SetInCombatWithZone();
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_KILL, m_creature);
     }
 
     void SpellHit(Unit* /*caster*/, const SpellEntry* spellInfo) override

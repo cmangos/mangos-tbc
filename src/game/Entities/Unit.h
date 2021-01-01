@@ -2361,6 +2361,9 @@ class Unit : public WorldObject
         void SetSupportThreatOnly(bool state) { m_supportThreatOnly = state; }
         bool IsSupportThreatOnly() { return m_supportThreatOnly; }
 
+        void DisableThreatPropagationToOwner() { m_ownerThreatPropagation = false; }
+        bool IsPropagatingThreatToOwner() { return m_ownerThreatPropagation; } // TBC+ - Eye of Kilrogg
+
         float GetAttackDistance(Unit const* pl) const;
         virtual uint32 GetDetectionRange() const { return 20.f; }
 
@@ -2579,6 +2582,7 @@ class Unit : public WorldObject
         bool m_alwaysHit;
         bool m_noThreat;
         bool m_supportThreatOnly;
+        bool m_ownerThreatPropagation;
         bool m_ignoreRangedTargets;                         // Ignores ranged targets when picking someone to attack
         bool m_debuggingMovement;
 

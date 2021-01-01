@@ -428,6 +428,7 @@ Unit::Unit() :
     m_alwaysHit = false;
     m_noThreat = false;
     m_supportThreatOnly = false;
+    m_ownerThreatPropagation = true;
     m_extraAttacksExecuting = false;
     m_debuggingMovement = false;
 
@@ -2115,10 +2116,11 @@ void Unit::DealMeleeDamage(CalcDamageInfo* calcDamageInfo, bool durabilityLoss)
             // if damage pVictim call AI reaction
             victim->AttackedBy(this);
 
-            if (Unit* owner = GetOwner())
-                if (owner->GetTypeId() == TYPEID_UNIT)
-                    if (owner->CanJoinInAttacking(victim))
-                        owner->EngageInCombatWithAggressor(victim);
+            if (IsPropagatingThreatToOwner())
+                if (Unit* owner = GetOwner())
+                    if (owner->GetTypeId() == TYPEID_UNIT)
+                        if (owner->CanJoinInAttacking(victim))
+                            owner->EngageInCombatWithAggressor(victim);
 
             for (m_guardianPetsIterator = m_guardianPets.begin(); m_guardianPetsIterator != m_guardianPets.end();)
                 if (Pet* guardian = GetMap()->GetPet(*(m_guardianPetsIterator++)))
@@ -8261,7 +8263,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
             // TODO: Unify this combat propagation with linking combat propagation in threat system
             Unit* controller = GetMaster();
 
-            if (controller && controller->CanJoinInAttacking(enemy))
+            if (IsPropagatingThreatToOwner() && controller && controller->CanJoinInAttacking(enemy))
             {
                 if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
                 {
@@ -11915,7 +11917,8 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
             {
                 attacker->AttackStop(true, true);
                 attacker->getThreatManager().modifyThreatPercent(charmed, -101);     // only remove the possessed creature from threat list because it can be filled by other players
-                attacker->AddThreat(this);
+                if (charmed->IsPropagatingThreatToOwner())
+                    attacker->AddThreat(this);
             }
 
             // we have to restore initial MotionMaster

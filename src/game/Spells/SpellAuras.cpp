@@ -2189,7 +2189,8 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                             Unit* pet = static_cast<Player*>(target)->GetCharm();
                             if (pet && pet->GetEntry() == 4277)
                             {
-                                pet->CastSpell(pet, 2585, TRIGGERED_OLD_TRIGGERED);
+                                pet->CastSpell(nullptr, 2585, TRIGGERED_OLD_TRIGGERED);
+                                pet->DisableThreatPropagationToOwner();
                             }
                         }
                         break;

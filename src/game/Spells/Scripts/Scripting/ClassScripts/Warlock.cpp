@@ -204,6 +204,15 @@ struct SeedOfCorruption : public AuraScript
     }
 };
 
+struct EyeOfKilrogg : public SpellScript
+{
+    void OnSummon(Spell* spell, Creature* summon) const override
+    {
+        summon->CastSpell(nullptr, 2585, TRIGGERED_OLD_TRIGGERED);
+        summon->DisableThreatPropagationToOwner();
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterAuraScript<UnstableAffliction>("spell_unstable_affliction");
@@ -215,4 +224,5 @@ void LoadWarlockScripts()
     RegisterAuraScript<Corruption>("spell_corruption");
     RegisterAuraScript<SiphonLife>("spell_siphon_life");
     RegisterAuraScript<CurseOfAgony>("spell_curse_of_agony");
+    RegisterSpellScript<EyeOfKilrogg>("spell_eye_of_kilrogg");
 }

@@ -2182,19 +2182,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 switch (GetId())
                 {
-                    case 126:                               // Eye of Kilrogg
-                    {
-                        if (target->IsPlayer())
-                        {
-                            Unit* pet = static_cast<Player*>(target)->GetCharm();
-                            if (pet && pet->GetEntry() == 4277)
-                            {
-                                pet->CastSpell(nullptr, 2585, TRIGGERED_OLD_TRIGGERED);
-                                pet->DisableThreatPropagationToOwner();
-                            }
-                        }
-                        break;
-                    }
                     case 11403:                             // Dream Vision
                     {
                         if (target->IsPlayer())

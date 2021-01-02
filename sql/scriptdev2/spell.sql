@@ -364,6 +364,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 
 -- Warlock
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(126,'spell_eye_of_kilrogg'),
 (172,'spell_corruption'),
 (6222,'spell_corruption'),
 (6223,'spell_corruption'),

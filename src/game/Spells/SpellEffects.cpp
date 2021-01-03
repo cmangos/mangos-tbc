@@ -6176,6 +6176,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                             pct = -25;
                             break;
                         case 30013:                                 // Disarm - Ethereal Thief 16544
+                        case 37317:                                 // Knockback - Tempest Falconer 20037
                             pct = -99;
                             break;
                     }

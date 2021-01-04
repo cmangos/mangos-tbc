@@ -154,7 +154,7 @@ SpellCastResult Pet::TryLoadFromDB(Unit* owner, uint32 petentry /*= 0*/, uint32 
     return SPELL_CAST_OK; // If errors occur down the line, one must think about data consistency
 }
 
-bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber /*= 0*/, bool current /*= false*/, uint32 healthPercentage /*= 0*/, bool permanentOnly /*= false*/, bool forced /*= false*/)
+bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry /*= 0*/, uint32 petnumber /*= 0*/, bool current /*= false*/, uint32 healthPercentage /*= 0*/, bool permanentOnly /*= false*/, bool forced /*= false*/)
 {
     m_loading = true;
 
@@ -248,7 +248,7 @@ bool Pet::LoadPetFromDB(Player* owner, uint32 petentry /*= 0*/, uint32 petnumber
 
     Map* map = owner->GetMap();
 
-    CreatureCreatePos pos(owner, owner->GetOrientation(), PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);
+    CreatureCreatePos pos(owner->GetMap(), spawnPos.x, spawnPos.y, spawnPos.z, spawnPos.o);
 
     uint32 guid = pos.GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
     if (!Create(guid, pos, creatureInfo, pet_number))
@@ -571,6 +571,13 @@ void Pet::SavePetToDB(PetSaveMode mode, Player* owner)
         RemoveAllAuras(AURA_REMOVE_BY_DELETE);
         DeleteFromDB(m_charmInfo->GetPetNumber());
     }
+}
+
+Position Pet::GetPetSpawnPosition(Player* owner)
+{
+    Position pos;
+    owner->GetFirstCollisionPosition(pos, 2.f, owner->GetOrientation() + M_PI_F * 0.25f);
+    return pos;
 }
 
 void Pet::DeleteFromDB(uint32 guidlow, bool separate_transaction)

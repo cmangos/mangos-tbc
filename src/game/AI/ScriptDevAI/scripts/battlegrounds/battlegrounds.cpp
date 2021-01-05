@@ -23,6 +23,7 @@ EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "Spells/Scripts/SpellScript.h"
+#include "OutdoorPvP/OutdoorPvP.h"
 
 // **** Script Info ****
 // Spiritguides in battlegrounds resurrecting many players at once
@@ -129,6 +130,54 @@ struct InactiveBattleground : public SpellScript
     }
 };
 
+
+/*#####
+# spell_battleground_banner_trigger
+#
+# These are generic spells that handle player click on battleground banners; All spells are triggered by GO type 10
+# Contains following spells:
+# Arathi Basin: 23932, 23935, 23936, 23937, 23938
+# Alterac Valley: 24677
+#####*/
+struct spell_battleground_banner_trigger : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        // TODO: Fix when go casting is fixed
+        WorldObject* obj = spell->GetAffectiveCasterObject();
+
+        if (obj->IsGameObject() && spell->GetUnitTarget()->IsPlayer())
+        {
+            Player* player = static_cast<Player*>(spell->GetUnitTarget());
+            if (BattleGround* bg = player->GetBattleGround())
+                bg->HandlePlayerClickedOnFlag(player, static_cast<GameObject*>(obj));
+        }
+    }
+};
+
+/*#####
+# spell_outdoor_pvp_banner_trigger
+#
+# These are generic spells that handle player click on outdoor PvP banners; All spells are triggered by GO type 10
+# Contains following spells used in Zangarmarsh: 32433, 32438
+#####*/
+struct spell_outdoor_pvp_banner_trigger : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        // TODO: Fix when go casting is fixed
+        WorldObject* obj = spell->GetAffectiveCasterObject();
+
+        if (obj->IsGameObject() && spell->GetUnitTarget()->IsPlayer())
+        {
+            Player* player = static_cast<Player*>(spell->GetUnitTarget());
+
+            if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player->GetCachedZoneId()))
+                outdoorPvP->HandleGameObjectUse(player, static_cast<GameObject*>(obj));
+        }
+    }
+};
+
 void AddSC_battleground()
 {
     Script* pNewScript = new Script;
@@ -139,4 +188,6 @@ void AddSC_battleground()
 
     RegisterSpellScript<OpeningCapping>("spell_opening_capping");
     RegisterSpellScript<InactiveBattleground>("spell_inactive");
+    RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");
+    RegisterSpellScript<spell_outdoor_pvp_banner_trigger>("spell_outdoor_pvp_banner_trigger");
 }

@@ -8253,7 +8253,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
         }
 
         if (creature->GetCombatStartPosition().IsEmpty())
-            creature->SetCombatStartPosition(GetPosition());
+            creature->SetCombatStartPosition(GetPosition(GetTransport()));
 
         if (!creature->CanAggro()) // if creature aggroed during initial ignoration period, clear the state
         {
@@ -11550,7 +11550,7 @@ bool Unit::TakePossessOf(Unit* possessed)
     if (possessed->IsImmuneToNPC() != immuneNPC)
         possessed->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
 
-    charmInfo->SetCharmStartPosition(combatStartPosition.IsEmpty() ? possessed->GetPosition() : combatStartPosition);
+    charmInfo->SetCharmStartPosition(combatStartPosition.IsEmpty() ? possessed->GetPosition(possessed->GetTransport()) : combatStartPosition);
 
     charmInfo->ProcessUnattackableTargets();
 
@@ -11693,7 +11693,7 @@ bool Unit::TakeCharmOf(Unit* charmed, uint32 spellId, bool advertised /*= true*/
     if (charmed->IsImmuneToNPC() != immuneNPC)
         charmed->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
 
-    charmInfo->SetCharmStartPosition(combatStartPosition.IsEmpty() ? charmed->GetPosition() : combatStartPosition);
+    charmInfo->SetCharmStartPosition(combatStartPosition.IsEmpty() ? charmed->GetPosition(charmed->GetTransport()) : combatStartPosition);
 
     if (charmerPlayer && advertised)
     {

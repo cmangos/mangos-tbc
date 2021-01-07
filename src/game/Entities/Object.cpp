@@ -2027,8 +2027,12 @@ GameObject* WorldObject::SpawnGameObject(uint32 dbGuid, Map* map)
 {
     GameObjectData const* data = sObjectMgr.GetGOData(dbGuid);
     MANGOS_ASSERT(data);
+
+    if (data->spawnMask && !map->CanSpawn(TYPEID_GAMEOBJECT, dbGuid))
+        return nullptr;
+
     GameObject* gameobject = GameObject::CreateGameObject(data->id);
-    if (!gameobject->LoadFromDB(dbGuid, map, map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT)) || (data->spawnMask && !map->CanSpawn(TYPEID_GAMEOBJECT, dbGuid)))
+    if (!gameobject->LoadFromDB(dbGuid, map, map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT)))
     {
         delete gameobject;
         return nullptr;
@@ -2053,9 +2057,12 @@ Creature* WorldObject::SpawnCreature(uint32 dbGuid, Map* map)
         return nullptr;
     }
 
+    if (data->spawnMask && !map->CanSpawn(TYPEID_UNIT, dbGuid))
+        return nullptr;
+
     Creature* creature = new Creature;
     // DEBUG_LOG("Spawning creature %u",*itr);
-    if (!creature->LoadFromDB(dbGuid, map, map->GenerateLocalLowGuid(cinfo->GetHighGuid())) || (data->spawnMask && !map->CanSpawn(TYPEID_UNIT, dbGuid)))
+    if (!creature->LoadFromDB(dbGuid, map, map->GenerateLocalLowGuid(cinfo->GetHighGuid())))
     {
         delete creature;
         return nullptr;

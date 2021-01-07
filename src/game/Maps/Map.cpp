@@ -128,6 +128,7 @@ bool Map::CanSpawn(TypeID typeId, uint32 dbGuid)
         if (data)
             if ((data->spawnMask & (1 << GetDifficulty())) == 0)
                 return false;
+        return true;
     }
     return false;
 }

@@ -49,6 +49,9 @@ void BattleGroundNA::AddPlayer(Player* plr)
     // create score and add it to map, default values are set in constructor
     BattleGroundNAScore* sc = new BattleGroundNAScore;
 
+    // Needed for scoreboard if player leaves.
+    sc->Team = plr->GetBGTeam();
+
     m_playerScores[plr->GetObjectGuid()] = sc;
 
     UpdateWorldState(0xa0f, GetAlivePlayersCountByTeam(ALLIANCE));

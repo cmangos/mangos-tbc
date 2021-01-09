@@ -1160,11 +1160,15 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid playerGuid, bool isOnTransport
         participant = true;
     }
 
-    BattleGroundScoreMap::iterator itr2 = m_playerScores.find(playerGuid);
-    if (itr2 != m_playerScores.end())
+    // Arena scoreboard retains all players.
+    if (IsBattleGround() && GetStatus() != STATUS_WAIT_LEAVE)
     {
-        delete itr2->second;                                // delete player's score
-        m_playerScores.erase(itr2);
+        BattleGroundScoreMap::iterator itr2 = m_playerScores.find(playerGuid);
+        if (itr2 != m_playerScores.end())
+        {
+            delete itr2->second;                                // delete player's score
+            m_playerScores.erase(itr2);
+        }
     }
 
     Player* player = sObjectMgr.GetPlayer(playerGuid);

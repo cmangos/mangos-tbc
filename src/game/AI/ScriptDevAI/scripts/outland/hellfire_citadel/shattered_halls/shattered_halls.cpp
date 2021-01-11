@@ -784,7 +784,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (pWho->GetTypeId() == TYPEID_PLAYER && !static_cast<Player*>(pWho)->isGameMaster() && pWho->GetDistance(m_creature) <= 50.f)
+        if (pWho->GetTypeId() == TYPEID_PLAYER && !static_cast<Player*>(pWho)->IsGameMaster() && pWho->GetDistance(m_creature) <= 50.f)
             if (!m_bRunning)
                 DoStartRunning();
     }
@@ -848,7 +848,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
 
 bool AreaTrigger_at_shattered_halls(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
 {
-    if (pPlayer->isGameMaster() || !pPlayer->IsAlive())
+    if (pPlayer->IsGameMaster() || !pPlayer->IsAlive())
         return false;
 
     instance_shattered_halls* pInstance = (instance_shattered_halls*)pPlayer->GetInstanceData();

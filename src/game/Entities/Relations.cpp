@@ -1228,7 +1228,7 @@ bool Unit::IsFogOfWarVisibleStealth(Unit const* other) const
     MANGOS_ASSERT(other)
 
     // Gamemasters can see through invisibility
-    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->IsGameMaster())
         return true;
 
     switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_STEALTH))
@@ -1251,7 +1251,7 @@ bool Unit::IsFogOfWarVisibleHealth(Unit const* other) const
     MANGOS_ASSERT(other)
 
     // Gamemasters can see health values
-    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->IsGameMaster())
         return true;
 
     switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_HEALTH))
@@ -1275,7 +1275,7 @@ bool Unit::IsFogOfWarVisibleStats(Unit const* other) const
     MANGOS_ASSERT(other)
 
     // Gamemasters can see stat values
-    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->isGameMaster())
+    if (other->GetTypeId() == TYPEID_PLAYER && static_cast<Player const*>(other)->IsGameMaster())
         return true;
 
     switch (sWorld.getConfig(CONFIG_UINT32_FOGOFWAR_STATS))

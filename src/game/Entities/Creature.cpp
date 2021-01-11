@@ -1950,7 +1950,7 @@ SpellEntry const* Creature::ReachWithSpellCure(Unit* pVictim)
 bool Creature::IsVisibleInGridForPlayer(Player* pl) const
 {
     // gamemaster in GM mode see all, including ghosts
-    if (pl->isGameMaster())
+    if (pl->IsGameMaster())
         return true;
 
     if (IsInvisible())
@@ -2179,7 +2179,7 @@ void Creature::SetInCombatWithZone(bool checkAttackability)
     {
         if (Player* pPlayer = i.getSource())
         {
-            if (pPlayer->isGameMaster())
+            if (pPlayer->IsGameMaster())
                 continue;
 
             if (pPlayer->IsAlive())

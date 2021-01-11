@@ -2157,7 +2157,7 @@ enum DiminishingGroup
     DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED,                  // Includes all knockout mechanics (gouge, maim, repentance), polymorph and sap
     DIMINISHING_BLIND_CYCLONE,                              // From 2.3.0
     DIMINISHING_DISARM,                                     // From 2.3.0
-    DIMINISHING_SILENCE,                                    // From 2.3.0
+    //DIMINISHING_SILENCE,                                  // From 3.0.8 - "All Silence spells now have diminishing returns." - https://wowwiki.fandom.com/wiki/Patch_3.0.8
     DIMINISHING_FREEZE,                                     // Hunter's Freezing Trap
     DIMINISHING_BANISH,
     // Other

@@ -364,6 +364,10 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (9858,'spell_regrowth'),
 (26980,'spell_regrowth');
 
+-- Rogue
+INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(14185,'spell_preparation');
+
 -- Shaman
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (974,'spell_earth_shield'),

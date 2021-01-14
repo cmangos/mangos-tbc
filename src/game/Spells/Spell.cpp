@@ -4721,9 +4721,8 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
             }
 
-            uint32 affectedMask = GetCheckCastEffectMask(m_spellInfo);
-            if (IsPositiveSpell(m_spellInfo->Id) && !m_spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY))
-                if (target->IsImmuneToSpell(m_spellInfo, target == m_caster, affectedMask) && !target->hasUnitState(UNIT_STAT_ISOLATED))
+            if (IsPositiveSpell(m_spellInfo->Id) && affectedMask)
+                if (target->IsImmuneToSpell(m_spellInfo, target == m_trueCaster, affectedMask))
                     return SPELL_FAILED_TARGET_AURASTATE;
 
             // Caster must be facing the targets back

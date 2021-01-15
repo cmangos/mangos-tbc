@@ -213,6 +213,26 @@ struct EyeOfKilrogg : public SpellScript
     }
 };
 
+struct DevourMagic : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool strict) const override
+    {
+        Unit* target = spell->m_targets.getUnitTarget();
+        Unit* caster = spell->GetCaster();
+        if (target && caster)
+        {
+            auto auras = target->GetSpellAuraHolderMap();
+            for (auto itr : auras)
+            {
+                SpellEntry const* spell = itr.second->GetSpellProto();
+                if (itr.second->GetTarget()->GetObjectGuid() != caster->GetObjectGuid() && spell->Dispel == DISPEL_MAGIC && IsPositiveSpell(spell) && !IsPassiveSpell(spell))
+                    return SPELL_CAST_OK;
+            }
+        }
+        return SPELL_FAILED_NOTHING_TO_DISPEL;
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterAuraScript<UnstableAffliction>("spell_unstable_affliction");
@@ -225,4 +245,5 @@ void LoadWarlockScripts()
     RegisterAuraScript<SiphonLife>("spell_siphon_life");
     RegisterAuraScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<EyeOfKilrogg>("spell_eye_of_kilrogg");
+    RegisterSpellScript<DevourMagic>("spell_devour_magic");
 }

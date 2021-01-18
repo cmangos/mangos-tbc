@@ -2458,11 +2458,38 @@ struct SetGameMasterOffHelper
     uint32 faction;
 };
 
-void Player::SetGameMaster(bool on)
+void Player::SetExtra(bool on)
 {
     if (on)
     {
         m_ExtraFlags |= PLAYER_EXTRA_GM_ON;
+    }
+    else
+    {
+        m_ExtraFlags &= ~PLAYER_EXTRA_GM_ON;
+    }
+
+    // update dead corpse sparkles
+    UnitList deadUnits;
+    MaNGOS::AnyDeadUnitCheck u_check(this);
+    MaNGOS::UnitListSearcher<MaNGOS::AnyDeadUnitCheck > searcher(deadUnits, u_check);
+    Cell::VisitAllObjects(this, searcher, GetMap()->GetVisibilityDistance());
+    for (auto deadUnit : deadUnits)
+    {
+        if (deadUnit->GetTypeId() == TYPEID_UNIT)
+            deadUnit->ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);
+    }
+
+    m_camera.UpdateVisibilityForOwner();
+    UpdateObjectVisibility();
+    UpdateEverything();
+}
+
+void Player::SetGameMaster(bool on)
+{
+    if (on)
+    {
+        //m_ExtraFlags |= PLAYER_EXTRA_GM_ON;
         setFaction(35);
         SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_GM);
         SetImmuneToNPC(true);

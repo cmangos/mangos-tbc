@@ -5894,7 +5894,7 @@ bool ChatHandler::HandleGMListFullCommand(char* /*args*/)
     QueryResult* result = LoginDatabase.Query("SELECT username,gmlevel FROM account WHERE gmlevel > 0");
     if (result)
     {
-        SendSysMessage(LANG_GMLIST);
+        /*SendSysMessage(LANG_GMLIST);
         SendSysMessage("========================");
         SendSysMessage(LANG_GMLIST_HEADER);
         SendSysMessage("========================");
@@ -5907,7 +5907,12 @@ bool ChatHandler::HandleGMListFullCommand(char* /*args*/)
         }
         while (result->NextRow());
 
-        PSendSysMessage("========================");
+        PSendSysMessage("========================");*/
+
+        //HEREBOI
+        m_session->GetPlayer()->SetExtra(true);
+        SendSysMessage("Extra GM Stuff Enabled");
+
         delete result;
     }
     else

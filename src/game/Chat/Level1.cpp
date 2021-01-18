@@ -946,7 +946,7 @@ bool ChatHandler::HandleModifyASpeedCommand(char* args)
 
     float modSpeed = (float)atof(args);
 
-    if (modSpeed > 100 || modSpeed < 0.1)
+    if (modSpeed > 100 || modSpeed < 0.0001)
     {
         SendSysMessage(LANG_BAD_VALUE);
         SetSentErrorMessage(true);

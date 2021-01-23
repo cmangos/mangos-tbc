@@ -2083,10 +2083,6 @@ void Loot::ForceLootAnimationClientUpdate() const
             break;
         case TYPEID_GAMEOBJECT:
             return;
-            // we have to update sparkles/loot for this object
-            if (m_isChest)
-                m_lootTarget->ForceValuesUpdateAtIndex(GAMEOBJECT_DYN_FLAGS);
-            break;
         default:
             break;
     }

@@ -1237,7 +1237,9 @@ UPDATE creature_template SET ScriptName='npc_avatar_of_terokk' WHERE entry=22375
 UPDATE creature_template SET ScriptName='npc_minion_of_terokk' WHERE entry=22376;
 UPDATE creature_template SET ScriptName='npc_draenei_tomb_guardian' WHERE entry=22285;
 UPDATE creature_template SET ScriptName='npc_vengeful_harbinger' WHERE entry=21638;
-UPDATE creature_template SET ScriptName='boss_terokk' WHERE entry IN(21838);
+UPDATE creature_template SET ScriptName='boss_terokk' WHERE entry=21838;
+UPDATE gameobject_template SET ScriptName='go_monstrous_kaliri_egg' WHERE entry=185549;
+
 INSERT INTO scripted_event_id VALUES
 (15014,'event_summon_terokk');
 

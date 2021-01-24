@@ -1494,6 +1494,26 @@ UnitAI* GetAI_npc_vengeful_harbinger(Creature* pCreature)
     return new npc_vengeful_harbinger(pCreature);
 }
 
+/*######
+## go_monstrous_kaliri_egg
+######*/
+
+struct go_monstrous_kaliri_egg : public GameObjectAI
+{
+    go_monstrous_kaliri_egg(GameObject* go) : GameObjectAI(go) {}
+
+    void OnLootStateChange() override
+    {
+        if (m_go->GetLootState() == GO_ACTIVATED)
+            m_go->SetForcedDespawn();
+    }
+};
+
+GameObjectAI* GetAI_go_monstrous_kaliri_egg(GameObject* go)
+{
+    return new go_monstrous_kaliri_egg(go);
+}
+
 struct ShadowyDisguise : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -1574,6 +1594,11 @@ void AddSC_terokkar_forest()
     pNewScript = new Script;
     pNewScript->Name = "npc_vengeful_harbinger";
     pNewScript->GetAI = &GetAI_npc_vengeful_harbinger;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_monstrous_kaliri_egg";
+    pNewScript->GetGameObjectAI = &GetAI_go_monstrous_kaliri_egg;
     pNewScript->RegisterSelf();
 
     RegisterAuraScript<ShadowyDisguise>("spell_shadowy_disguise");

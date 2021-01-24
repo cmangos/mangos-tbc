@@ -34,21 +34,22 @@ enum
 
 static float FelOrcSpawnCoords[][4] =    // Coords needed for spawns and waypoints
 {
-    { 0.0f, 0.0f, 0.0f, 0.0f,}, // No spawn
-    { 81.417f, 113.488f, -13.223f, 3.127f }, // Spawn 1
+    { 0.0f, 0.0f, 0.0f, 0.0f,}, // first group no spawn
+    { 81.417f, 113.488f, -13.223f, 3.127f }, // spawn 1
+    { 86.376f, 187.03f, -13.236f, 3.127f}, // spawn 2
 };
 
 static float FelOrcMoveCoords[][4] =    // Coords needed for spawns and waypoints
 {
-    { 0.0f, 0.0f, 0.0f, 0.0f,}, // No spawn
+    { 0.0f, 0.0f, 0.0f, 0.0f,}, // no spawn
     { 69.774910f, 46.661671f, -13.211f, 3.127f}, // Waypoint 1
+    { 69.908f, 98.118f, -13.22f,  3.127f}, // waypoint 2
 };
 
 enum LegionnaireGUIDS
 {
     FIRST_LEGIONNAIRE_GUID = 5400077,
     SECOND_LEGIONNAIRE_GUID = 5400075,
-    THIRD_LEGIONNAIRE_GUID = 5400076,
 };
 
 static const int32 aRandomReinf[] = { -1540056, -1540057, -1540058, -1540059, -1540060, -1540061, -1540062, 1540063, 1540064, 1540065 };
@@ -65,6 +66,8 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
 
         if (guid == FIRST_LEGIONNAIRE_GUID)
             legionnaireGuid = 1;
+        else if (guid == SECOND_LEGIONNAIRE_GUID)
+            legionnaireGuid = 2;
         else
             legionnaireGuid = 0;
     }

@@ -326,6 +326,7 @@ extern void AddSC_boss_grand_warlock_nethekurse();          // HC, shattered_hal
 extern void AddSC_boss_warbringer_omrogg();
 extern void AddSC_boss_warchief_kargath_bladefist();
 extern void AddSC_instance_shattered_halls();
+extern void AddSC_mob_shattered_hand_legionnaire();
 extern void AddSC_arcatraz();                               // TK, arcatraz
 extern void AddSC_boss_dalliah();
 extern void AddSC_boss_harbinger_skyriss();
@@ -684,6 +685,7 @@ void AddScripts()
     AddSC_boss_warbringer_omrogg();
     AddSC_boss_warchief_kargath_bladefist();
     AddSC_instance_shattered_halls();
+    AddSC_mob_shattered_hand_legionnaire();
     AddSC_arcatraz();                                       // TK, arcatraz
     AddSC_boss_dalliah();
     AddSC_boss_harbinger_skyriss();

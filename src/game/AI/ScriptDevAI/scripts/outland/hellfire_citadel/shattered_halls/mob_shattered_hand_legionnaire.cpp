@@ -37,6 +37,8 @@ static float FelOrcSpawnCoords[][4] =    // Coords needed for spawns and waypoin
     { 0.0f, 0.0f, 0.0f, 0.0f,}, // first group no spawn
     { 81.417f, 113.488f, -13.223f, 3.127f }, // spawn 1
     { 86.376f, 187.03f, -13.236f, 3.127f}, // spawn 2
+    { 81.854f, 221.99f, -13.218f, 3.127f }, // spawn 3
+    { 82.254f, 249.218f, -13.198, 3.09f } // Spawn 4
 };
 
 static float FelOrcMoveCoords[][4] =    // Coords needed for spawns and waypoints
@@ -44,12 +46,16 @@ static float FelOrcMoveCoords[][4] =    // Coords needed for spawns and waypoint
     { 0.0f, 0.0f, 0.0f, 0.0f,}, // no spawn
     { 69.774910f, 46.661671f, -13.211f, 3.127f}, // Waypoint 1
     { 69.908f, 98.118f, -13.22f,  3.127f}, // waypoint 2
+    { 69.737f, 131.877f, -13.196f, 4.692f}, // waypoint 3
+    { 70.045f, 167.220f, -13.198f, 4.70f} // waypoint 4
 };
 
 enum LegionnaireGUIDS
 {
-    FIRST_LEGIONNAIRE_GUID = 5400077,
+    FIRST_LEGIONNAIRE_GUID  = 5400077,
     SECOND_LEGIONNAIRE_GUID = 5400075,
+    THIRD_LEGIONNAIRE_GUID  = 5400076,
+    FOURTH_LEGIONNAIRE_GUID = 5400282,
 };
 
 static const int32 aRandomReinf[] = { -1540056, -1540057, -1540058, -1540059, -1540060, -1540061, -1540062, 1540063, 1540064, 1540065 };
@@ -67,6 +73,10 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
         if (guid == FIRST_LEGIONNAIRE_GUID)
             legionnaireGuid = 1;
         else if (guid == SECOND_LEGIONNAIRE_GUID)
+            legionnaireGuid = 2;
+        else if (guid == THIRD_LEGIONNAIRE_GUID)
+            legionnaireGuid = 2;
+        else if (guid == FOURTH_LEGIONNAIRE_GUID)
             legionnaireGuid = 2;
         else
             legionnaireGuid = 0;
@@ -102,7 +112,6 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
         // When last waypoint reached, search for players.
         if (pSummoned->GetEntry() == MOB_FEL_ORC && uiPointId == 100)
         {
-            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);
             pSummoned->GetMotionMaster()->MoveIdle();
             pSummoned->StopMoving();
             pSummoned->GetMotionMaster()->Clear(false, true);

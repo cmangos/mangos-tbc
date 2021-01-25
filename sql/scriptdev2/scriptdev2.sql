@@ -3877,7 +3877,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1540053','Ready!','10157','6','0','0','14311','Gauntlet of fire yell 3'),
 ('-1540054','Aim!','10158','6','0','0','17910','Gauntlet of fire yell 4'),
 ('-1540055','Fire!','10159','6','0','0','17911','Gauntlet of fire yell 5'), 
-('-1540055','Fire!','10159','6','0','0','17911','Gauntlet of fire yell 5'),
 
 ('-1540056', 'Join the fight! Agrama-ka!', '10181', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),
 ('-1540057', 'Next warrior, now!', '10174', '1', '0', '5', '0', 'Shattered Hand Legionnaire - Call for Reinforcements'),

@@ -14,6 +14,7 @@ enum
     TYPE_BLADEFIST              = 2,                        // Note: if players skip Omrogg and go straight to Karagth then Omrogg comes to aid Karagth
     TYPE_EXECUTION              = 3,
     TYPE_GAUNTLET               = 4,
+    TYPE_HALLOFFATHERS          = 5,                        // Hall of Fathers Spawn Event 1
 
     NPC_NETHEKURSE              = 16807,
     NPC_KARGATH_BLADEFIST       = 16808,
@@ -28,6 +29,17 @@ enum
     NPC_SOLDIER_HORDE_2         = 17295,
     NPC_SOLDIER_HORDE_3         = 17297,
     NPC_OFFICER_HORDE           = 17296,                    // quest objective
+
+    // Halls of Father
+    NPC_SENTRY = 16507,
+    SENTRY_GUID = 5400054,
+    SENTRY_SEC_GUID = 5400055,
+
+    HALLOFFATHER_GUID_1 = 5400070,
+    HALLOFFATHER_GUID_2 = 5400075,
+    HALLOFFATHER_GUID_3 = 5400079,
+    HALLOFFATHER_GUID_4 = 5400080,
+    HALLOFFATHER_GUID_5 = 5400132,
 
     GO_NETHEKURSE_DOOR          = 182540,
     GO_NETHEKURSE_ENTER_DOOR    = 182539,
@@ -106,20 +118,24 @@ class instance_shattered_halls : public ScriptedInstance
         void FailGauntlet(Creature* gauntlet);
         void StopGauntlet(Creature* gauntlet);
         void EndGauntlet(Creature* gauntlet);
+        void SpawnHallOfFathers();
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
 
         ObjectGuid m_guidGauntletNPC;
+        ObjectGuid m_guidLegionnaireNPC;
 
         uint32 m_uiExecutionTimer;
         uint32 m_uiTeam;
         uint8 m_uiExecutionStage;
         uint8 m_uiPrisonersLeft;
+        uint32 m_auiSentrys;
 
         std::vector<ObjectGuid> m_vGauntletPermanentGuids;
         std::vector<ObjectGuid> m_vGauntletTemporaryGuids;
         std::vector<ObjectGuid> m_vGauntletBossGuids;
+        std::vector<ObjectGuid> m_vHallOfFatherGuids;
 
         std::vector<std::pair<ObjectGuid, uint32>> m_vBlazeTimers;
 };

@@ -28,7 +28,8 @@ instance_shattered_halls::instance_shattered_halls(Map* pMap) : ScriptedInstance
     m_uiExecutionTimer(55 * MINUTE * IN_MILLISECONDS),
     m_uiTeam(0),
     m_uiExecutionStage(0),
-    m_uiPrisonersLeft(3)
+    m_uiPrisonersLeft(3),
+    m_auiSentrys(0)
 {
     Initialize();
 }
@@ -106,6 +107,19 @@ void instance_shattered_halls::OnCreatureCreate(Creature* creature)
         case NPC_GAUNTLET_OF_FIRE:
             m_guidGauntletNPC = creature->GetObjectGuid();
             break;
+    }
+    switch (creature->GetGUIDLow())
+    {
+        case HALLOFFATHER_GUID_1:        
+        case HALLOFFATHER_GUID_3:
+        case HALLOFFATHER_GUID_4:
+        case  HALLOFFATHER_GUID_5:
+            creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            creature->SetVisibility(VISIBILITY_OFF);
+            m_vHallOfFatherGuids.push_back(creature->GetObjectGuid());
+            break;
+        case HALLOFFATHER_GUID_2:
+            m_guidLegionnaireNPC = creature->GetObjectGuid();
     }
 }
 
@@ -199,6 +213,22 @@ void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
 
             m_auiEncounter[uiType] = uiData;
             break;
+        case TYPE_HALLOFFATHERS:
+            switch (uiData)
+            {
+                case SPECIAL:
+                    if (m_auiSentrys != 1)                    
+                        m_auiSentrys = 1;                    
+                    else
+                        SetData(TYPE_HALLOFFATHERS, DONE);
+                    break;
+                case DONE:
+                    SpawnHallOfFathers();
+                    break;
+                default:
+                    break;
+            }
+            break;
 
     }
 
@@ -250,6 +280,13 @@ void instance_shattered_halls::OnCreatureDeath(Creature* creature)
 {
     if (creature->GetEntry() == NPC_EXECUTIONER)
         SetData(TYPE_EXECUTION, DONE);
+
+    if (creature->GetEntry() == NPC_SENTRY)
+    {
+        uint32 m_uiSentryGuid = creature->GetGUIDLow();
+        if (m_uiSentryGuid == SENTRY_GUID || m_uiSentryGuid == SENTRY_SEC_GUID)
+            SetData(TYPE_HALLOFFATHERS, SPECIAL);
+    }
 }
 
 void instance_shattered_halls::OnCreatureEnterCombat(Creature* creature)
@@ -267,6 +304,24 @@ void instance_shattered_halls::OnCreatureEvade(Creature* creature)
         SetData(TYPE_EXECUTION, IN_PROGRESS);
     else if (creature->GetEntry() == NPC_SHATTERED_HAND_ZEALOT)
         SetData(TYPE_GAUNTLET, FAIL);
+}
+
+void instance_shattered_halls::SpawnHallOfFathers()
+{
+    for (ObjectGuid& guid : m_vHallOfFatherGuids)
+        if (Creature* FirstGroup = instance->GetCreature(guid))
+        {
+            FirstGroup->SetVisibility(VISIBILITY_ON);
+            FirstGroup->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            FirstGroup->GetMotionMaster()->MoveWaypoint(0);
+        }
+    if (Creature* legionnaire = instance->GetCreature(m_guidLegionnaireNPC))
+    {
+        legionnaire->SetVisibility(VISIBILITY_ON);
+        legionnaire->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        legionnaire->GetMotionMaster()->MoveWaypoint(1);
+    }
+    
 }
 
 bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const

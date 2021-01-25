@@ -15,6 +15,7 @@ enum
     TYPE_EXECUTION              = 3,
     TYPE_GAUNTLET               = 4,
     TYPE_HALLOFFATHERS          = 5,                        // Hall of Fathers Spawn Event 1
+    TYPE_HALLOFFATHERS_2        = 6,                        // Hall of Fathers Spawn Event 2
 
     NPC_NETHEKURSE              = 16807,
     NPC_KARGATH_BLADEFIST       = 16808,
@@ -34,12 +35,25 @@ enum
     NPC_SENTRY = 16507,
     SENTRY_GUID = 5400054,
     SENTRY_SEC_GUID = 5400055,
-
+    // 3rd legionnaire
     HALLOFFATHER_GUID_1 = 5400070,
     HALLOFFATHER_GUID_2 = 5400075,
     HALLOFFATHER_GUID_3 = 5400079,
     HALLOFFATHER_GUID_4 = 5400080,
     HALLOFFATHER_GUID_5 = 5400132,
+    // 4th legionnaire
+    HALLOFFATHER_GUID_6 = 5400076,
+    HALLOFFATHER_GUID_7 = 5400071,
+    HALLOFFATHER_GUID_8 = 5400133,
+    HALLOFFATHER_GUID_9 = 5400072,
+    HALLOFFATHER_GUID_10 = 5400081,
+    // 5th legionnaire
+    HALLOFFATHER_GUID_11 = 5400279,
+    HALLOFFATHER_GUID_12 = 5400278,
+    HALLOFFATHER_GUID_13 = 5400275,
+    HALLOFFATHER_GUID_14 = 5400276,
+    HALLOFFATHER_GUID_15 = 5400277,
+    HALLOFFATHER_GUID_16 = 5400282,
 
     GO_NETHEKURSE_DOOR          = 182540,
     GO_NETHEKURSE_ENTER_DOOR    = 182539,
@@ -118,13 +132,14 @@ class instance_shattered_halls : public ScriptedInstance
         void FailGauntlet(Creature* gauntlet);
         void StopGauntlet(Creature* gauntlet);
         void EndGauntlet(Creature* gauntlet);
-        void SpawnHallOfFathers();
+        void SpawnHallOfFathers(uint32 uiGroup);
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
 
         ObjectGuid m_guidGauntletNPC;
-        ObjectGuid m_guidLegionnaireNPC;
+        ObjectGuid m_guid3rdLegionnaireNPC;
+        ObjectGuid m_guid4thLegionnaireNPC;
 
         uint32 m_uiExecutionTimer;
         uint32 m_uiTeam;
@@ -136,6 +151,7 @@ class instance_shattered_halls : public ScriptedInstance
         std::vector<ObjectGuid> m_vGauntletTemporaryGuids;
         std::vector<ObjectGuid> m_vGauntletBossGuids;
         std::vector<ObjectGuid> m_vHallOfFatherGuids;
+        std::vector<ObjectGuid> m_vHallOfFather2ndGuids;
 
         std::vector<std::pair<ObjectGuid, uint32>> m_vBlazeTimers;
 };

@@ -119,7 +119,29 @@ void instance_shattered_halls::OnCreatureCreate(Creature* creature)
             m_vHallOfFatherGuids.push_back(creature->GetObjectGuid());
             break;
         case HALLOFFATHER_GUID_2:
-            m_guidLegionnaireNPC = creature->GetObjectGuid();
+            creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            creature->SetVisibility(VISIBILITY_OFF);
+            m_guid3rdLegionnaireNPC = creature->GetObjectGuid();
+            break;
+        case HALLOFFATHER_GUID_6:
+            creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            creature->SetVisibility(VISIBILITY_OFF);
+            m_guid4thLegionnaireNPC = creature->GetObjectGuid();
+            break;
+        case HALLOFFATHER_GUID_7:
+        case HALLOFFATHER_GUID_8:
+        case HALLOFFATHER_GUID_9:
+        case HALLOFFATHER_GUID_10:
+        case HALLOFFATHER_GUID_11:
+        case HALLOFFATHER_GUID_12:
+        case HALLOFFATHER_GUID_13:
+        case HALLOFFATHER_GUID_14:
+        case HALLOFFATHER_GUID_15:
+        case HALLOFFATHER_GUID_16:
+            creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            creature->SetVisibility(VISIBILITY_OFF);
+            m_vHallOfFather2ndGuids.push_back(creature->GetObjectGuid());
+            break;
     }
 }
 
@@ -129,6 +151,23 @@ void instance_shattered_halls::OnCreatureRespawn(Creature* creature)
         creature->SetCanEnterCombat(false);
     if (creature->GetRespawnDelay() == 5)
         creature->SetNoRewards();
+
+    if (TYPE_HALLOFFATHERS_2 == DONE)
+    {
+        // Last pack in hall of fathers
+        switch (creature->GetGUIDLow())
+        {
+        case HALLOFFATHER_GUID_11:
+        case HALLOFFATHER_GUID_12:
+        case HALLOFFATHER_GUID_13:
+        case HALLOFFATHER_GUID_14:
+        case HALLOFFATHER_GUID_15:
+            creature->SetVisibility(VISIBILITY_ON);
+            creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            creature->GetMotionMaster()->MoveWaypoint(0);
+            break;
+        }
+    }
 }
 
 void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
@@ -223,12 +262,21 @@ void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
                         SetData(TYPE_HALLOFFATHERS, DONE);
                     break;
                 case DONE:
-                    SpawnHallOfFathers();
+                    SpawnHallOfFathers(1);
                     break;
                 default:
                     break;
             }
             break;
+        case TYPE_HALLOFFATHERS_2:
+            switch (uiData)
+            {
+            case DONE:
+                SpawnHallOfFathers(2);
+                break;
+            default:
+                break;
+            }
 
     }
 
@@ -306,22 +354,40 @@ void instance_shattered_halls::OnCreatureEvade(Creature* creature)
         SetData(TYPE_GAUNTLET, FAIL);
 }
 
-void instance_shattered_halls::SpawnHallOfFathers()
+void instance_shattered_halls::SpawnHallOfFathers(uint32 uiGroup)
 {
-    for (ObjectGuid& guid : m_vHallOfFatherGuids)
-        if (Creature* FirstGroup = instance->GetCreature(guid))
-        {
-            FirstGroup->SetVisibility(VISIBILITY_ON);
-            FirstGroup->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-            FirstGroup->GetMotionMaster()->MoveWaypoint(0);
-        }
-    if (Creature* legionnaire = instance->GetCreature(m_guidLegionnaireNPC))
+    if (uiGroup == 1)
     {
-        legionnaire->SetVisibility(VISIBILITY_ON);
-        legionnaire->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-        legionnaire->GetMotionMaster()->MoveWaypoint(1);
+        for (ObjectGuid& guid : m_vHallOfFatherGuids)
+            if (Creature* FirstGroup = instance->GetCreature(guid))
+            {
+                FirstGroup->SetVisibility(VISIBILITY_ON);
+                FirstGroup->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                FirstGroup->GetMotionMaster()->MoveWaypoint(0);
+            }
+        if (Creature* legionnaire = instance->GetCreature(m_guid3rdLegionnaireNPC))
+        {
+            legionnaire->SetVisibility(VISIBILITY_ON);
+            legionnaire->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            legionnaire->GetMotionMaster()->MoveWaypoint(1);
+        }
     }
-    
+    if (uiGroup == 2)
+    {
+        for (ObjectGuid& guid : m_vHallOfFather2ndGuids)
+            if (Creature* SecondGroup = instance->GetCreature(guid))
+            {
+                SecondGroup->SetVisibility(VISIBILITY_ON);
+                SecondGroup->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                SecondGroup->GetMotionMaster()->MoveWaypoint(0);
+            }
+        if (Creature* legionnaire = instance->GetCreature(m_guid4thLegionnaireNPC))
+        {
+            legionnaire->SetVisibility(VISIBILITY_ON);
+            legionnaire->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+            legionnaire->GetMotionMaster()->MoveWaypoint(2);
+        }
+    }    
 }
 
 bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const

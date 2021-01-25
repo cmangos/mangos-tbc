@@ -91,6 +91,21 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
     uint32 legionnaireGuid;
     bool nearbyFriendDied;
 
+    void MoveInLineOfSight(Unit* pWho) override
+    {
+        if (!m_pInstance)
+            return;
+
+        if (m_creature->GetGUIDLow() == THIRD_LEGIONNAIRE_GUID)
+        {
+            if (m_pInstance->GetData(TYPE_HALLOFFATHERS_2) == DONE)
+                return;
+
+            if (pWho->GetTypeId() == TYPEID_PLAYER && !static_cast<Player*>(pWho)->IsGameMaster() && pWho->GetDistance(m_creature) <= 60.f)
+                m_pInstance->SetData(TYPE_HALLOFFATHERS_2, DONE);
+        }
+    }
+
     void Reset() override
     {
         m_uiPummelTimmer = urand(10000, 15000);

@@ -2665,13 +2665,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                 GetCaster()->CastSpell(target, 26078, TRIGGERED_OLD_TRIGGERED);
                 return;
             }
-            case 27243:                                     // Seed of Corruption
-            {
-                if (m_removeMode == AURA_REMOVE_BY_DEATH)
-                    if (Unit* caster = GetCaster())
-                        caster->CastSpell(target, 27285, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
-                return;
-            }
             case 29104:                                     // Anub'Rekhan Aura
             {
                 if (m_removeMode == AURA_REMOVE_BY_DEATH && target->GetTypeId() == TYPEID_PLAYER)

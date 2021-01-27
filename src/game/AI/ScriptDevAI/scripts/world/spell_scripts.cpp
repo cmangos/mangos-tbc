@@ -612,6 +612,36 @@ struct CurseOfPain : public AuraScript
     }
 };
 
+struct spell_seed_of_corruption_npc : public AuraScript
+{
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    {
+        if (aura->GetEffIndex() != EFFECT_INDEX_1)
+            return SPELL_AURA_PROC_OK;
+        Modifier* mod = procData.triggeredByAura->GetModifier();
+        // if damage is more than need deal finish spell
+        if (mod->m_amount <= (int32)procData.damage)
+        {
+            // remember guid before aura delete
+            ObjectGuid casterGuid = procData.triggeredByAura->GetCasterGuid();
+
+            int32 basePoints = 2000; // guesswork, need to fill for all spells that use this because its not in spell data
+
+            // Remove aura (before cast for prevent infinite loop handlers)
+            procData.victim->RemoveAurasByCasterSpell(procData.triggeredByAura->GetId(), procData.triggeredByAura->GetCasterGuid());
+
+            // Cast finish spell (triggeredByAura already not exist!)
+            if (Unit* caster = procData.triggeredByAura->GetCaster()) // TODO: check if 44141 should use 43991
+                caster->CastCustomSpell(procData.victim, 32865, &basePoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+            return SPELL_AURA_PROC_OK;              // no hidden cooldown
+        }
+
+        // Damage counting
+        mod->m_amount -= procData.damage;
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
 /* *****************************
 *  PX-238 Winter Wondervolt TRAP
 *******************************/
@@ -672,6 +702,7 @@ void AddSC_spell_scripts()
     RegisterSpellScript<SplitDamage>("spell_split_damage");
     RegisterSpellScript<TKDive>("spell_tk_dive");
     RegisterAuraScript<CurseOfPain>("spell_curse_of_pain");
+    RegisterAuraScript<spell_seed_of_corruption_npc>("spell_seed_of_corruption_npc");
     RegisterSpellScript<WondervoltTrap>("spell_wondervolt_trap");
     RegisterSpellScript<ArcaneCloaking>("spell_arcane_cloaking");
 }

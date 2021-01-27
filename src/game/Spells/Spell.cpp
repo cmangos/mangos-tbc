@@ -8047,10 +8047,6 @@ bool Spell::OnCheckTarget(Unit* target, SpellEffectIndex eff) const
             if (target->GetTypeId() == TYPEID_PLAYER && target == m_caster->GetVictim())
                 return false;
             break;
-        case 27285:                                         // Seed of Corruption - damage spell
-            if (target->GetObjectGuid() == m_targets.getUnitTargetGuid()) // in TBC skip target of initial aura
-                return false;
-            break;
         case 30835:                                         // Infernal Relay - Malchezaar - must only hit unused infernals
         {
             Creature* creature = nullptr;

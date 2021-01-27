@@ -5037,7 +5037,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1585030','Oh no, he was merely an instrument, a stepping stone to a much larger plan! It has all led to this... and this time you will not interfere!','0','1','0','0','25387','kaelthas MT SAY_INTRO_2'),
 
 ('-1585031','Vexallus overloads!','0','3','0','0','23781','vexallus EMOTE_OVERLOAD'),
-('-1585032','Be still, mortals, and hearken to my words.','0','1','0','0','23936','Kalecgos on spawn');
+('-1585032','Be still, mortals, and hearken to my words.','0','6','0','0','23936','Kalecgos on spawn');
 
 -- -1 999 900 EXAMPLE TEXT
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES

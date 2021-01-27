@@ -300,8 +300,10 @@ void PlayerTaxi::InitTaxiNodesForLevel(uint32 race, uint32 level)
         default: break;
     }
     // level dependent taxi hubs
-    if (level >= 68)
-        SetTaximaskNode(213);                               // Shattered Sun Staging Area
+
+#ifndef PRENERF_2_4
+    SetTaximaskNode(213);                                   // Shattered Sun Staging Area
+#endif
 }
 
 void PlayerTaxi::LoadTaxiMask(const char* data)

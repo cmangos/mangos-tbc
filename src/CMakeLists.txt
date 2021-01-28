@@ -29,3 +29,7 @@ endif()
 if(BUILD_LOGIN_SERVER)
   add_subdirectory(realmd)
 endif()
+
+if(BUILD_IKE3_BOTS)
+add_subdirectory(modules)
+endif()

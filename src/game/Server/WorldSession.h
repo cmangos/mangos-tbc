@@ -243,7 +243,12 @@ class WorldSession
         // Players connected without socket are bot
         const std::string GetRemoteAddress() const { return m_Socket ? m_Socket->GetRemoteAddress() : "disconnected/bot"; }
 #else
+#ifdef ENABLE_PLAYERBOTS
+        // Players connected without socket are bot
+        const std::string GetRemoteAddress() const { return m_Socket ? m_Socket->GetRemoteAddress() : "disconnected/bot"; }
+#else
         const std::string GetRemoteAddress() const { return m_Socket ? m_Socket->GetRemoteAddress() : "disconnected"; }
+#endif
 #endif
         void SetPlayer(Player* plr, uint32 playerGuid);
         uint8 GetExpansion() const { return m_expansion; }
@@ -841,6 +846,11 @@ class WorldSession
         void HandleSetGuildBankTabText(WorldPacket& recv_data);
 
         void HandleGetMirrorimageData(WorldPacket& recv_data);
+
+#ifdef ENABLE_PLAYERBOTS
+        // Playerbots
+        void HandleBotPackets();
+#endif
 
         // Movement
         void SynchronizeMovement(MovementInfo &movementInfo);

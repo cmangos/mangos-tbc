@@ -64,6 +64,11 @@ struct FactionTemplateEntry;
 #include "PlayerBot/Base/PlayerbotAI.h"
 #endif
 
+#ifdef ENABLE_PLAYERBOTS
+class PlayerbotAI;
+class PlayerbotMgr;
+#endif
+
 struct AreaTrigger;
 
 typedef std::deque<Mail*> PlayerMails;
@@ -1380,6 +1385,10 @@ class Player : public Unit
 
         bool LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder);
 
+#ifdef ENABLE_PLAYERBOTS
+        bool MinimalLoadFromDB(QueryResult *result, uint32 guid);
+#endif
+
         static uint32 GetZoneIdFromDB(ObjectGuid guid);
         static uint32 GetLevelFromDB(ObjectGuid guid);
         static bool   LoadPositionFromDB(ObjectGuid guid, uint32& mapid, float& x, float& y, float& z, float& o, bool& in_flight);
@@ -2208,6 +2217,16 @@ class Player : public Unit
         bool IsInDuel() const { return duel && duel->startTime != 0; }
 #endif
 
+#ifdef ENABLE_PLAYERBOTS
+        //EquipmentSets& GetEquipmentSets() { return m_EquipmentSets; }
+        void SetPlayerbotAI(PlayerbotAI* ai) { assert(!m_playerbotAI && !m_playerbotMgr); m_playerbotAI = ai; }
+        PlayerbotAI* GetPlayerbotAI() { return m_playerbotAI; }
+        void SetPlayerbotMgr(PlayerbotMgr* mgr) { assert(!m_playerbotAI && !m_playerbotMgr); m_playerbotMgr = mgr; }
+        PlayerbotMgr* GetPlayerbotMgr() { return m_playerbotMgr; }
+        void SetBotDeathTimer() { m_deathTimer = 0; }
+        //PlayerTalentMap& GetTalentMap(uint8 spec) { return m_talents[spec]; }
+#endif
+
         virtual UnitAI* AI() override { if (m_charmInfo) return m_charmInfo->GetAI(); return nullptr; }
         virtual CombatData* GetCombatData() override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
 
@@ -2505,6 +2524,11 @@ class Player : public Unit
         MapReference m_mapRef;
 
 #ifdef BUILD_PLAYERBOT
+        PlayerbotAI* m_playerbotAI;
+        PlayerbotMgr* m_playerbotMgr;
+#endif
+
+#ifdef ENABLE_PLAYERBOTS
         PlayerbotAI* m_playerbotAI;
         PlayerbotMgr* m_playerbotMgr;
 #endif

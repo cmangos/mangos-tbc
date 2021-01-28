@@ -51,6 +51,10 @@
 #include "PlayerBot/Base/PlayerbotAI.h"
 #endif
 
+#ifdef ENABLE_PLAYERBOTS
+#include "playerbot.h"
+#endif
+
 // select opcodes appropriate for processing in Map::Update context for current session state
 static bool MapSessionFilterHelper(WorldSession* session, OpcodeHandler const& opHandle)
 {
@@ -206,6 +210,15 @@ void WorldSession::SendPacket(WorldPacket const& packet, bool forcedSend /*= fal
     // Send packet to bot AI
     if (GetPlayer())
     {
+        if (GetPlayer()->GetPlayerbotAI())
+            GetPlayer()->GetPlayerbotAI()->HandleBotOutgoingPacket(packet);
+        else if (GetPlayer()->GetPlayerbotMgr())
+            GetPlayer()->GetPlayerbotMgr()->HandleMasterOutgoingPacket(packet);
+    }
+#endif
+
+#ifdef ENABLE_PLAYERBOTS
+    if (GetPlayer()) {
         if (GetPlayer()->GetPlayerbotAI())
             GetPlayer()->GetPlayerbotAI()->HandleBotOutgoingPacket(packet);
         else if (GetPlayer()->GetPlayerbotMgr())
@@ -398,6 +411,10 @@ bool WorldSession::Update(uint32 /*diff*/)
                 if (_player && _player->GetPlayerbotMgr())
                     _player->GetPlayerbotMgr()->HandleMasterIncomingPacket(*packet);
 #endif
+#ifdef ENABLE_PLAYERBOTS
+                    if (_player && _player->GetPlayerbotMgr())
+                        _player->GetPlayerbotMgr()->HandleMasterIncomingPacket(*packet);
+#endif
                 break;
             case STATUS_LOGGEDIN_OR_RECENTLY_LOGGEDOUT:
                 if (!_player && !m_playerRecentlyLogout)
@@ -472,6 +489,10 @@ bool WorldSession::Update(uint32 /*diff*/)
         }
         GetPlayer()->GetPlayerbotMgr()->RemoveBots();
     }
+#endif
+#ifdef ENABLE_PLAYERBOTS
+    if (GetPlayer() && GetPlayer()->GetPlayerbotMgr())
+        GetPlayer()->GetPlayerbotMgr()->UpdateSessions(0);
 #endif
 
     // check if we are safe to proceed with logout
@@ -587,6 +608,19 @@ void WorldSession::UpdateMap(uint32 diff)
     }
 }
 
+#ifdef ENABLE_PLAYERBOTS
+void WorldSession::HandleBotPackets()
+{
+    while (!m_recvQueue.empty())
+    {
+        auto const packet = std::move(m_recvQueue.front());
+        m_recvQueue.pop_front();
+        OpcodeHandler const& opHandle = opcodeTable[packet->GetOpcode()];
+        (this->*opHandle.handler)(*packet);
+    }
+}
+#endif
+
 /// %Log the player out
 void WorldSession::LogoutPlayer()
 {
@@ -612,6 +646,12 @@ void WorldSession::LogoutPlayer()
 
         if (Loot* loot = sLootMgr.GetLoot(_player))
             loot->Release(_player);
+
+#ifdef ENABLE_PLAYERBOTS
+        if (_player->GetPlayerbotMgr() && (!_player->GetPlayerbotAI() || _player->GetPlayerbotAI()->IsRealPlayer()))
+            _player->GetPlayerbotMgr()->LogoutAllBots();
+        sRandomPlayerbotMgr.OnPlayerLogout(_player);
+#endif
 
         if (_player->GetDeathTimer())
         {
@@ -724,6 +764,11 @@ void WorldSession::LogoutPlayer()
         uint32 guid = _player->GetGUIDLow();
 #endif
 
+#ifdef ENABLE_PLAYERBOTS
+        // Remember player GUID for update SQL below
+        uint32 guid = _player->GetGUIDLow();
+#endif
+
         ///- Remove the player from the world
         // the player may not be in the world when logging out
         // e.g if he got disconnected during a transfer to another map
@@ -754,10 +799,17 @@ void WorldSession::LogoutPlayer()
         SqlStatement stmt = CharacterDatabase.CreateStatement(updChars, "UPDATE characters SET online = 0 WHERE guid = ?");
         stmt.PExecute(guid);
 #else
+#ifdef ENABLE_PLAYERBOTS
+        // Set for only character instead of accountid
+        // Different characters can be alive as bots
+        stmt = CharacterDatabase.CreateStatement(updChars, "UPDATE characters SET online = 0 WHERE guid = ?");
+        stmt.PExecute(guid);
+#else
         ///- Since each account can only have one online character at any given time, ensure all characters for active account are marked as offline
         // No SQL injection as AccountId is uint32
         stmt = CharacterDatabase.CreateStatement(updChars, "UPDATE characters SET online = 0 WHERE account = ?");
         stmt.PExecute(GetAccountId());
+#endif
 #endif
 
         DEBUG_LOG("SESSION: Sent SMSG_LOGOUT_COMPLETE Message");
@@ -1293,6 +1345,15 @@ void WorldSession::SetDelayedAnticheat(std::unique_ptr<SessionAnticheatInterface
 }
 
 #ifdef BUILD_PLAYERBOT
+
+void WorldSession::SetNoAnticheat()
+{
+    m_anticheat.reset(new NullSessionAnticheat(this));
+}
+
+#endif
+
+#ifdef ENABLE_PLAYERBOTS
 
 void WorldSession::SetNoAnticheat()
 {

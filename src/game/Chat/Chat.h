@@ -101,6 +101,11 @@ class ChatHandler
 
         bool HasSentErrorMessage() const { return sentErrorMessage;}
 
+#ifdef ENABLE_PLAYERBOTS
+        WorldSession* GetSession() { return m_session; }
+        bool HandlePerfMonCommand(char* args);
+#endif
+
         /**
         * \brief Prepare SMSG_GM_MESSAGECHAT/SMSG_MESSAGECHAT
         *
@@ -762,6 +767,13 @@ class ChatHandler
         bool HandleQuitCommand(char* args);
 #ifdef BUILD_PLAYERBOT
         bool HandlePlayerbotCommand(char* args);
+#endif
+
+#ifdef ENABLE_PLAYERBOTS
+        bool HandlePlayerbotCommand(char* args);
+        bool HandleRandomPlayerbotCommand(char* args);
+        bool HandleAhBotCommand(char* args);
+        bool HandleGuildTaskCommand(char* args);
 #endif
 
         bool HandleArenaFlushPointsCommand(char* args);

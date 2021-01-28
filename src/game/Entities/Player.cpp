@@ -71,6 +71,11 @@
 #include "Config/Config.h"
 #endif
 
+#ifdef ENABLE_PLAYERBOTS
+#include "playerbot.h"
+#include "PlayerbotAIConfig.h"
+#endif
+
 #include <cmath>
 
 #define ZONE_UPDATE_INTERVAL (1*IN_MILLISECONDS)
@@ -481,6 +486,10 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
     m_playerbotAI = 0;
     m_playerbotMgr = 0;
 #endif
+#ifdef ENABLE_PLAYERBOTS
+    m_playerbotAI = 0;
+    m_playerbotMgr = 0;
+#endif
     m_speakTime = 0;
     m_speakCount = 0;
 
@@ -698,6 +707,22 @@ Player::~Player()
         m_playerbotMgr = 0;
     }
 #endif
+
+#ifdef ENABLE_PLAYERBOTS
+    if (m_playerbotAI) {
+        {
+            delete m_playerbotAI;
+        }
+        m_playerbotAI = 0;
+    }
+    if (m_playerbotMgr) {
+        {
+            delete m_playerbotMgr;
+        }
+        m_playerbotMgr = 0;
+    }
+#endif
+
     delete m_declinedname;
 }
 
@@ -1624,6 +1649,20 @@ void Player::Update(const uint32 diff)
         m_playerbotMgr->UpdateAI(diff);
 #endif
 }
+
+#ifdef ENABLE_PLAYERBOTS
+void Player::UpdateAI(const uint32 diff, bool minimal)
+{
+    if (m_playerbotAI)
+    {
+        m_playerbotAI->UpdateAI(diff, minimal);
+    }
+    if (m_playerbotMgr)
+    {
+        m_playerbotMgr->UpdateAI(diff);
+    }
+}
+#endif
 
 void Player::Heartbeat()
 {
@@ -13157,8 +13196,12 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
     if (questStatusData.uState != QUEST_NEW)
         questStatusData.uState = QUEST_CHANGED;
 
+#ifdef ENABLE_PLAYERBOTS
     // quest accept scripts
+    if (questGiver && this != questGiver)
+#else
     if (questGiver)
+#endif
     {
         switch (questGiver->GetTypeId())
         {
@@ -13204,6 +13247,9 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
 
     AdjustQuestReqItemCount(pQuest, questStatusData);
 
+#ifdef ENABLE_PLAYERBOTS
+    if (this != questGiver) {
+#endif
     // Some spells applied at quest activation
     uint32 zone, area;
     GetZoneAndAreaId(zone, area);
@@ -13219,6 +13265,9 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
     saBounds = sSpellMgr.GetSpellAreaForAreaMapBounds(0);
     for (SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
         itr->second->ApplyOrRemoveSpellIfCan(this, zone, area, true);
+#ifdef ENABLE_PLAYERBOTS
+    }
+#endif
 
     UpdateForQuestWorldObjects();
 }
@@ -13375,6 +13424,9 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
             break;
     }
 
+#ifdef ENABLE_PLAYERBOTS
+    if (this != questGiver && !handled && pQuest->GetQuestCompleteScript() != 0)
+#else
     if (!handled && pQuest->GetQuestCompleteScript() != 0)
         GetMap()->ScriptsStart(SCRIPT_TYPE_QUEST_END, pQuest->GetQuestCompleteScript(), questGiver, this, Map::SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE);
 
@@ -13382,6 +13434,11 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     uint32 spellId = pQuest->GetRewSpellCast();
     if (!spellId)
         spellId = pQuest->GetRewSpell();
+
+#ifdef ENABLE_PLAYERBOTS
+    if (this == questGiver)
+        spellId = 0;
+#endif
 
     if (spellId)
     {

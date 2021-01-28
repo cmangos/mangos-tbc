@@ -290,9 +290,22 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
 
     WorldLocation const& dest = plMover->GetTeleportDest();
 
+    // send MSG_MOVE_TELEPORT to observers around old position
+    SendTeleportToObservers(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation);
+
     plMover->SetDelayedZoneUpdate(false, 0);
 
     plMover->SetPosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation, true);
+    plMover->m_movementInfo.ChangePosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation);
+
+#ifdef ENABLE_PLAYERBOTS
+    // interrupt moving for bot if any
+    if (plMover->GetPlayerbotAI() && !plMover->GetMotionMaster()->empty())
+    {
+        if (MovementGenerator* movgen = plMover->GetMotionMaster()->top())
+            movgen->Interrupt(*plMover);
+    }
+#endif
 
     plMover->SetFallInformation(0, dest.coord_z);
 
@@ -305,15 +318,23 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
 
     uint32 newzone, newarea;
     plMover->GetZoneAndAreaId(newzone, newarea);
-    plMover->UpdateZone(newzone, newarea);
-
-    // new zone
     if (old_zone != newzone)
+        plMover->UpdateZone(newzone, newarea);
+    // honorless target
+    if (plMover->pvpInfo.inPvPEnforcedArea)
+        plMover->CastSpell(plMover, 2479, TRIGGERED_OLD_TRIGGERED);
+
+#ifdef ENABLE_PLAYERBOTS
+    // reset moving for bot if any
+    if (plMover->GetPlayerbotAI() && !plMover->GetMotionMaster()->empty())
     {
-        // honorless target
-        if (plMover->pvpInfo.inPvPEnforcedArea)
-            plMover->CastSpell(plMover, 2479, TRIGGERED_OLD_TRIGGERED);
+        if (MovementGenerator* movgen = plMover->GetMotionMaster()->top())
+            movgen->Reset(*plMover);
     }
+#endif
+
+    // send MSG_MOVE_TELEPORT to observers around new position
+    SendTeleportToObservers(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation);
 
     m_anticheat->Teleport({ dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation });
 
@@ -547,6 +568,17 @@ void WorldSession::SendKnockBack(Unit* who, float angle, float horizontalSpeed, 
     IncrementOrderCounter();
 
     m_anticheat->KnockBack(horizontalSpeed, -verticalSpeed, vcos, vsin);
+}
+
+void WorldSession::SendTeleportToObservers(float x, float y, float z, float orientation)
+{
+    WorldPacket data(MSG_MOVE_TELEPORT, 64);
+    data << _player->GetPackGUID();
+    // copy moveinfo to change position to where player is teleporting
+    MovementInfo moveInfo = _player->m_movementInfo;
+    moveInfo.ChangePosition(x, y, z, orientation);
+    data << moveInfo;
+    _player->SendMessageToSetExcept(data, _player);
 }
 
 void WorldSession::HandleMoveFlagChangeOpcode(WorldPacket& recv_data)

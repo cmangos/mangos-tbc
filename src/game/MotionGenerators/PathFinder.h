@@ -16,6 +16,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#ifndef IKE_PATHFINDER
+#define IKE_PATHFINDER
+#endif
+
 #ifndef MANGOS_PATH_FINDER_H
 #define MANGOS_PATH_FINDER_H
 
@@ -34,8 +38,8 @@ class Unit;
 // 74*4.0f=296y  number_of_points*interval = max_path_len
 // this is way more than actual evade range
 // I think we can safely cut those down even more
-#define MAX_PATH_LENGTH         74
-#define MAX_POINT_PATH_LENGTH   74
+#define MAX_PATH_LENGTH         148 //This value is doubled from the original and then used only half by findpath. If the same value is used by findpath and findsmooth path no result will be found by the second at max length.
+#define MAX_POINT_PATH_LENGTH   148
 
 #define SMOOTH_PATH_STEP_SIZE   4.0f
 #define SMOOTH_PATH_SLOP        0.3f
@@ -54,18 +58,20 @@ static float FarPolySearchBound[VERTEX_SIZE] = { 10.0f, 10.0f, 10.0f };
 
 enum PathType
 {
-    PATHFIND_BLANK          = 0x0000,   // path not built yet
-    PATHFIND_NORMAL         = 0x0001,   // normal path
-    PATHFIND_SHORTCUT       = 0x0002,   // travel through obstacles, terrain, air, etc (old behavior)
-    PATHFIND_INCOMPLETE     = 0x0004,   // we have partial path to follow - getting closer to target
-    PATHFIND_NOPATH         = 0x0008,   // no valid path at all or error in generating one
+    PATHFIND_BLANK = 0x0000,   // path not built yet
+    PATHFIND_NORMAL = 0x0001,   // normal path
+    PATHFIND_SHORTCUT = 0x0002,   // travel through obstacles, terrain, air, etc (old behavior)
+    PATHFIND_INCOMPLETE = 0x0004,   // we have partial path to follow - getting closer to target
+    PATHFIND_NOPATH = 0x0008,   // no valid path at all or error in generating one
     PATHFIND_NOT_USING_PATH = 0x0010,   // used when we are either flying/swiming or on map w/o mmaps
-    PATHFIND_SHORT          = 0x0020,   // path is longer or equal to its limited path length
+    PATHFIND_SHORT = 0x0020,   // path is longer or equal to its limited path length
 };
 
 class PathFinder
 {
     public:
+        PathFinder();
+        PathFinder(uint32 mapId, uint32 instanceId = 0);
         PathFinder(Unit const* owner, bool ignoreNormalization = false);
         ~PathFinder();
 
@@ -88,6 +94,12 @@ class PathFinder
 
         PointsArray& getPath() { return m_pathPoints; }
         PathType getPathType() const { return m_type; }
+
+        void setArea(uint32 mapId, float x, float y, float z, uint32 area = 1, float range = 10.0f);
+        uint32 getArea(uint32 mapId, float x, float y, float z);
+        unsigned short getFlags(uint32 mapId, float x, float y, float z);
+
+        void setAreaCost(uint32 area = 1, float cost = 0.0f);
 
     private:
 

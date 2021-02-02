@@ -32,7 +32,7 @@ enum
     MOB_FEL_ORC = 17083
 };
 
-static float FelOrcSpawnCoords[][4] =    // Coords needed for spawns and waypoints
+static float FelOrcSpawnCoords[5][4] =    // Coords needed for spawns and waypoints
 {
     { 0.0f, 0.0f, 0.0f, 0.0f,}, // first group no spawn
     { 81.417f, 113.488f, -13.223f, 3.127f }, // spawn 1
@@ -41,13 +41,14 @@ static float FelOrcSpawnCoords[][4] =    // Coords needed for spawns and waypoin
     { 82.254f, 249.218f, -13.198, 3.09f } // Spawn 4
 };
 
-static float FelOrcMoveCoords[][4] =    // Coords needed for spawns and waypoints
+static float FelOrcMoveCoords[6][4] =    // Coords needed for spawns and waypoints
 {
     { 0.0f, 0.0f, 0.0f, 0.0f,}, // no spawn
     { 69.774910f, 46.661671f, -13.211f, 3.127f}, // Waypoint 1
     { 69.908f, 98.118f, -13.22f,  3.127f}, // waypoint 2
     { 69.737f, 131.877f, -13.196f, 4.692f}, // waypoint 3
-    { 70.045f, 167.220f, -13.198f, 4.70f} // waypoint 4
+    { 70.045f, 167.220f, -13.198f, 4.70f}, // waypoint 4
+    { 69.586f, 236.486f, -13.194f, 4.69f } // Waypoint 5
 };
 
 enum LegionnaireGUIDS
@@ -56,9 +57,11 @@ enum LegionnaireGUIDS
     SECOND_LEGIONNAIRE_GUID = 5400075,
     THIRD_LEGIONNAIRE_GUID  = 5400076,
     FOURTH_LEGIONNAIRE_GUID = 5400282,
+    FIFTH_LEGIONNAIRE_GUID  = 5400078,
 };
 
 static const int32 aRandomReinf[] = { -1540056, -1540057, -1540058, -1540059, -1540060, -1540061, -1540062, 1540063, 1540064, 1540065 };
+static const int32 aSleepingReinfGuid[] = { 5400063, 5400064, 5400065, 5400068 };
 
 struct mob_shattered_hand_legionnaireAI : public ScriptedAI
 {
@@ -75,9 +78,11 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
         else if (guid == SECOND_LEGIONNAIRE_GUID)
             legionnaireGuid = 2;
         else if (guid == THIRD_LEGIONNAIRE_GUID)
-            legionnaireGuid = 2;
+            legionnaireGuid = 3;
         else if (guid == FOURTH_LEGIONNAIRE_GUID)
-            legionnaireGuid = 2;
+            legionnaireGuid = 4;
+        else if (guid == FIFTH_LEGIONNAIRE_GUID)
+            legionnaireGuid = 5;
         else
             legionnaireGuid = 0;
     }
@@ -146,21 +151,35 @@ struct mob_shattered_hand_legionnaireAI : public ScriptedAI
                 DoScriptText(EMOTE_ENRAGE, m_creature);
             }
 
-            // Have to reasearch the cooldown for FelOrc spawn
-            if (m_uiMinionSpawnTimmer < uiDiff)
-            {                
+            // Legionnaire from group 5 "awakes" one from the nearby sleeping creatures
+            if (legionnaireGuid == 5)
+            {
 
-                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 100000, true, true))
+                if (Creature* sleeping = GetClosestCreatureWithGuid(m_creature, aSleepingReinfGuid[urand(0, 3)], 150.0f))
                 {
-                    felorc->GetMotionMaster()->MovePoint(100, FelOrcMoveCoords[legionnaireGuid][0], FelOrcMoveCoords[legionnaireGuid][1], FelOrcMoveCoords[legionnaireGuid][2]);
-                    felorc->SetRespawnCoord(FelOrcMoveCoords[legionnaireGuid][0], FelOrcMoveCoords[legionnaireGuid][1], FelOrcMoveCoords[legionnaireGuid][2], FelOrcMoveCoords[legionnaireGuid][3]);
+                    sleeping->GetMotionMaster()->MovePoint(100, FelOrcMoveCoords[legionnaireGuid][0], FelOrcMoveCoords[legionnaireGuid][1], FelOrcMoveCoords[legionnaireGuid][2]);
+                    sleeping->RemoveAurasDueToSpell(16093);
                 }
-                DoScriptText(aRandomReinf[urand(0, 10)], m_creature);
                 nearbyFriendDied = false;
-                m_uiMinionSpawnTimmer = 5000;
             }
             else
-                m_uiMinionSpawnTimmer -= uiDiff;
+            { 
+                // Have to reasearch the cooldown for FelOrc spawn
+                if (m_uiMinionSpawnTimmer < uiDiff)
+                {                
+
+                    if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 100000, true, true))
+                    {
+                        felorc->GetMotionMaster()->MovePoint(100, FelOrcMoveCoords[legionnaireGuid][0], FelOrcMoveCoords[legionnaireGuid][1], FelOrcMoveCoords[legionnaireGuid][2]);
+                        felorc->SetRespawnCoord(FelOrcMoveCoords[legionnaireGuid][0], FelOrcMoveCoords[legionnaireGuid][1], FelOrcMoveCoords[legionnaireGuid][2], FelOrcMoveCoords[legionnaireGuid][3]);
+                    }
+                    DoScriptText(aRandomReinf[urand(0, 10)], m_creature);
+                    nearbyFriendDied = false;
+                    m_uiMinionSpawnTimmer = 5000;
+                }
+                else
+                    m_uiMinionSpawnTimmer -= uiDiff;
+            }
         }
 
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())

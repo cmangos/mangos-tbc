@@ -35,6 +35,7 @@ struct ObjectDistanceOrderReversed
 
 GameObject* GetClosestGameObjectWithEntry(WorldObject* source, uint32 entry, float maxSearchRange);
 Creature* GetClosestCreatureWithEntry(WorldObject* source, uint32 entry, float maxSearchRange, bool onlyAlive = true, bool onlyDead = false, bool excludeSelf = false);
+Creature* GetClosestCreatureWithGuid(WorldObject* source, uint32 guid, float maxSearchRange, bool onlyAlive = true, bool onlyDead = false, bool excludeSelf = false);
 
 void GetGameObjectListWithEntryInGrid(GameObjectList& goList, WorldObject* source, uint32 entry, float maxSearchRange);
 void GetCreatureListWithEntryInGrid(CreatureList& creatureList, WorldObject* source, uint32 entry, float maxSearchRange);

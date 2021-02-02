@@ -1193,6 +1193,42 @@ namespace MaNGOS
             NearestCreatureEntryWithLiveStateInObjectRangeCheck(NearestCreatureEntryWithLiveStateInObjectRangeCheck const&);
     };
 
+    // Success at unit in range, range update for next check (this can be use with CreatureLastSearcher to find nearest creature)
+    class NearestCreatureGuidWithLiveStateInObjectRangeCheck
+    {
+    public:
+        NearestCreatureGuidWithLiveStateInObjectRangeCheck(WorldObject const& obj, uint32 guid, bool onlyAlive, bool onlyDead, float range, bool excludeSelf = false, bool is3D = true)
+            : i_obj(obj), i_guid(guid), i_range(range* range), i_onlyAlive(onlyAlive), i_onlyDead(onlyDead), i_excludeSelf(excludeSelf), i_is3D(is3D), i_foundOutOfRange(false) {}
+        WorldObject const& GetFocusObject() const { return i_obj; }
+        bool operator()(Creature* u)
+        {
+            if (u->GetGUIDLow() == i_guid && ((i_onlyAlive && u->IsAlive()) || (i_onlyDead && u->IsCorpse()) || (!i_onlyAlive && !i_onlyDead)) && (!i_excludeSelf || (&i_obj != u)))
+            {
+                float dist = i_obj.GetDistance(u, true, DIST_CALC_NONE);
+                if (dist < i_range)
+                {
+                    i_range = dist; // use found unit range as new range limit for next check
+                    return true;
+                }
+                i_foundOutOfRange = true;
+            }
+            return false;
+        }
+        float GetLastRange() const { return sqrt(i_range); }
+    private:
+        WorldObject const& i_obj;
+        uint32 i_guid;
+        float  i_range;
+        bool   i_onlyAlive;
+        bool   i_onlyDead;
+        bool   i_excludeSelf;
+        bool   i_is3D;
+        bool   i_foundOutOfRange;
+
+        // prevent clone this object
+        NearestCreatureGuidWithLiveStateInObjectRangeCheck(NearestCreatureGuidWithLiveStateInObjectRangeCheck const&);
+    };
+
     // Success at unit in range, range update for next check (this can be used with CreatureListSearcher to find creatures with given entry)
     class AllCreatureEntriesWithLiveStateInObjectRangeCheck
     {

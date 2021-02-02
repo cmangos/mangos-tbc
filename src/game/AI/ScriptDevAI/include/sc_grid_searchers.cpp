@@ -35,6 +35,19 @@ Creature* GetClosestCreatureWithEntry(WorldObject* source, uint32 entry, float m
     return creature;
 }
 
+// return closest creature with guid, alive in grid, with range from pSource
+Creature* GetClosestCreatureWithGuid(WorldObject* source, uint32 guid, float maxSearchRange, bool onlyAlive/*=true*/, bool onlyDead/*=false*/, bool excludeSelf/*=false*/)
+{
+    Creature* creature = nullptr;
+
+    MaNGOS::NearestCreatureGuidWithLiveStateInObjectRangeCheck creature_check(*source, guid, onlyAlive, onlyDead, maxSearchRange, excludeSelf);
+    MaNGOS::CreatureLastSearcher<MaNGOS::NearestCreatureGuidWithLiveStateInObjectRangeCheck> searcher(creature, creature_check);
+
+    Cell::VisitGridObjects(source, searcher, maxSearchRange);
+
+    return creature;
+}
+
 void GetGameObjectListWithEntryInGrid(GameObjectList& goList, WorldObject* source, uint32 entry, float maxSearchRange)
 {
     MaNGOS::GameObjectEntryInPosRangeCheck check(*source, entry, source->GetPositionX(), source->GetPositionY(), source->GetPositionZ(), maxSearchRange);

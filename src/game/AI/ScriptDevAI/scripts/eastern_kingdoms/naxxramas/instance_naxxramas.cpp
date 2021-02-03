@@ -1164,7 +1164,7 @@ struct mob_naxxramasGargoyleAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        if (m_creature->GetPositionX() > 2963.0f && m_creature->GetPositionY() > -3476.0f)
+        if (m_creature->GetPositionX() > 2963.0f && m_creature->GetPositionY() > -3476.0f && m_creature->GetPositionZ() > 297.6f)
 	    {
 		    m_creature->AI()->EnterEvadeMode();
             return;

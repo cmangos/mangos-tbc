@@ -1416,7 +1416,7 @@ void Player::Update(const uint32 diff)
     Unit::Update(diff);
     SetCanDelayTeleport(false);
 
-    if (IsHasDelayedTeleport())
+    if (IsHasDelayedTeleport() && m_semaphoreTeleport_Near)
         TeleportTo(m_teleport_dest, m_teleport_options);
 
     time_t now = time(nullptr);
@@ -1602,6 +1602,9 @@ void Player::Update(const uint32 diff)
     Pet* pet = GetPet();
     if (pet && !pet->IsWithinDistInMap(this, GetMap()->GetVisibilityDistance()) && (GetCharmGuid() && (pet->GetObjectGuid() != GetCharmGuid())))
         pet->Unsummon(PET_SAVE_REAGENTS, this);
+
+    if (IsHasDelayedTeleport() && !m_semaphoreTeleport_Near)
+        TeleportTo(m_teleport_dest, m_teleport_options);
 
 #ifdef BUILD_PLAYERBOT
     if (m_playerbotAI)

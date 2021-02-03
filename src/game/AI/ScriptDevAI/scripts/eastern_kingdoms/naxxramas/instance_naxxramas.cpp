@@ -1097,11 +1097,119 @@ bool ProcessEventId_naxxramas(uint32 eventId, Object* source, Object* /*target*/
     return false;
 }
 
+
+struct mob_naxxramasGargoyleAI : public ScriptedAI
+{
+    instance_naxxramas* m_instance;
+    mob_naxxramasGargoyleAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+	m_instance = (instance_naxxramas*)pCreature->GetInstanceData();
+        Reset();
+        goStoneform();
+
+        if (m_creature->GetDefaultMovementType() == IDLE_MOTION_TYPE && m_creature->GetEntry() == 16168)
+            DoCastSpellIfCan(m_creature, 18950, true); // stealth detection
+    }
+
+    void goStoneform()
+    {
+        if (m_creature->GetDefaultMovementType() == IDLE_MOTION_TYPE && m_creature->GetEntry() == 16168)
+        {
+            DoCastSpellIfCan(m_creature, 29154, true);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
+        }
+    }
+
+    uint32 acidVolleyTimer;
+
+    void Reset() override
+    {
+        acidVolleyTimer = 4000;
+    }
+
+    void JustReachedHome() override
+    {
+        goStoneform();
+    }
+
+    void MoveInLineOfSight(Unit* pWho) override
+    {
+        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE))
+        {
+            if (pWho->GetTypeId() == TYPEID_PLAYER
+                && !m_creature->IsInCombat()
+                && m_creature->IsWithinDistInMap(pWho, 17.0f)
+                && !pWho->HasAuraType(SPELL_AURA_FEIGN_DEATH)
+                && m_creature->IsWithinLOSInMap(pWho))
+            {
+                AttackStart(pWho);
+            }
+        }
+        else
+        {
+            ScriptedAI::MoveInLineOfSight(pWho);
+        }
+    }
+
+    void Aggro(Unit*) override
+    {
+        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE))
+        {
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
+        }
+    }
+
+    void UpdateAI(uint32 const diff) override
+    {
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+            return;
+
+        if (m_creature->GetPositionX() > 2963.0f && m_creature->GetPositionY() > -3476.0f)
+	    {
+		    m_creature->AI()->EnterEvadeMode();
+            return;
+	    }
+
+        if (m_creature->GetHealthPercent() < 30.0f && !m_creature->HasAura(28995))
+        {
+            if (DoCastSpellIfCan(m_creature, 28995) == CAST_OK)
+            {
+                DoCastSpellIfCan(m_creature, 28995, true); // Stoneskin
+                DoScriptText(10755, m_creature); // %s emits a strange noise.
+            }
+        }
+
+        if (acidVolleyTimer < diff)
+        {
+            if (m_creature->GetGUIDLow() != 5330722)
+            {
+                if (DoCastSpellIfCan(m_creature, 29325) == CAST_OK) // acid volley
+                    acidVolleyTimer = 8000;
+            }
+        }
+        else
+            acidVolleyTimer -= diff;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+UnitAI* GetAI_mob_naxxramasGargoyle(Creature* creature)
+{
+	return new mob_naxxramasGargoyleAI(creature);
+}
+
+
 void AddSC_instance_naxxramas()
 {
     Script* newScript = new Script;
     newScript->Name = "instance_naxxramas";
     newScript->GetInstanceData = &GetInstanceData_instance_naxxramas;
+    newScript->RegisterSelf();
+
+    newScript = new Script;
+    newScript->Name = "mob_naxxramasGargoyle";
+    newScript->GetAI = &GetAI_mob_naxxramasGargoyle;
     newScript->RegisterSelf();
 
     newScript = new Script;

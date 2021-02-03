@@ -865,6 +865,7 @@ UPDATE creature_template SET ScriptName='npc_gurthock' WHERE entry=18471;
 
 /* NAXXRAMAS */
 UPDATE instance_template SET ScriptName='instance_naxxramas' WHERE map=533;
+UPDATE creature_template SET ScriptName="mob_naxxramasGargoyle" WHERE entry=16168;
 UPDATE creature_template SET ScriptName='boss_anubrekhan' WHERE entry=15956;
 UPDATE creature_template SET ScriptName='boss_faerlina' WHERE entry=15953;
 UPDATE creature_template SET ScriptName='boss_maexxna' WHERE entry=15952;

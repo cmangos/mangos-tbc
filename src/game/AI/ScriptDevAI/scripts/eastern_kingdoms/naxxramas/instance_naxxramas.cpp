@@ -1100,10 +1100,14 @@ bool ProcessEventId_naxxramas(uint32 eventId, Object* source, Object* /*target*/
 
 struct mob_naxxramasGargoyleAI : public ScriptedAI
 {
-    instance_naxxramas* m_instance;
+    //instance_naxxramas* m_instance;
     mob_naxxramasGargoyleAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-	m_instance = (instance_naxxramas*)pCreature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
+        {
+            return y > -3476.f && x > 2963.f && z > 297.6f;
+        });
+	    //m_instance = (instance_naxxramas*)pCreature->GetInstanceData();
         Reset();
         goStoneform();
 
@@ -1163,11 +1167,6 @@ struct mob_naxxramasGargoyleAI : public ScriptedAI
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
-
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
-        {
-            return y > -3476.f && x > 2963.f && z > 297.6f;
-        });
 
         if (m_creature->GetHealthPercent() < 30.0f && !m_creature->HasAura(28995))
         {

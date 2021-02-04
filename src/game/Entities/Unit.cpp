@@ -3981,6 +3981,9 @@ float Unit::CalculateSpellMissChance(const Unit* victim, SpellSchoolMask schoolM
     else
         chance += (difference * factor);
 
+    if (victim->HasAura(45210)) // Taunt Hit Chance - Brutallus
+        chance -= 20.f;
+
     if (spell->HasAttribute(SPELL_ATTR_EX5_USE_PHYSICAL_HIT_CHANCE))
     {
         // How it works:

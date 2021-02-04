@@ -50,6 +50,10 @@ struct boss_faerlinaAI : public ScriptedAI
     boss_faerlinaAI(Creature* creature) : ScriptedAI(creature)
     {
         m_instance = (instance_naxxramas*)creature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float, float, float z)
+        {
+            return z > 266.0f;
+        });
         Reset();
     }
 

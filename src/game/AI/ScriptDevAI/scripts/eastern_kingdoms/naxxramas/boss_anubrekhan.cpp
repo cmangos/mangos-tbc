@@ -65,6 +65,12 @@ struct boss_anubrekhanAI : public ScriptedAI
         m_instance = (instance_naxxramas*)creature->GetInstanceData();
         m_introDialogue.InitializeDialogueHelper(m_instance);
         m_hasDoneIntro = false;
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float /*x*/, float /*y*/, float)
+        {
+            float x, y, z;
+            m_creature->GetRespawnCoord(x, y, z);
+            return m_creature->GetDistance2d(x,y) > 130.f;
+        });
         Reset();
 
         DoCastSpellIfCan(m_creature, SPELL_DOUBLE_ATTACK, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);

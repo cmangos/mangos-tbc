@@ -62,6 +62,12 @@ struct boss_heiganAI : public ScriptedAI
     boss_heiganAI(Creature* creature) : ScriptedAI(creature)
     {
         m_instance = (instance_naxxramas*)creature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float /*y*/, float)
+        {
+            float re_x, y, z;
+            m_creature->GetRespawnCoord(re_x, y, z);
+            return m_creature->GetDistance2d(re_x,y) > 90.f || x > 2825.0f;
+        });
         Reset();
     }
 

@@ -109,6 +109,12 @@ struct boss_nothAI : public ScriptedAI
     boss_nothAI(Creature* creature) : ScriptedAI(creature)
     {
         m_instance = (instance_naxxramas*)creature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float /*x*/, float /*y*/, float)
+        {
+            float x, y, z;
+            m_creature->GetRespawnCoord(x, y, z);
+            return m_creature->GetDistance2d(x,y) > 120.f;
+        });
         Reset();
     }
 

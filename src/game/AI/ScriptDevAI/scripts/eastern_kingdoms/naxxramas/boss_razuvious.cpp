@@ -51,6 +51,10 @@ struct boss_razuviousAI : public ScriptedAI
     boss_razuviousAI(Creature* creature) : ScriptedAI(creature)
     {
         m_instance = (instance_naxxramas*)creature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float, float, float z)
+        {
+            return z > 275.0f;
+        });
         Reset();
     }
 

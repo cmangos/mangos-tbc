@@ -53,7 +53,7 @@ struct boss_razuviousAI : public ScriptedAI
         m_instance = (instance_naxxramas*)creature->GetInstanceData();
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float, float, float z)
         {
-            return z > 275.0f;
+            return z > 285.0f;
         });
         Reset();
     }

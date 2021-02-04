@@ -100,6 +100,10 @@ struct boss_horsmenAI : public ScriptedAI
     boss_horsmenAI(Creature* creature) : ScriptedAI(creature)
     {
         m_instance = (ScriptedInstance*)creature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float /*z*/)
+        {
+            return ( x > 2577.3 && y < -3024.0f ) || ( x > 2585.9f && y < -3015.1f ) || ( x > 2594.6f && y < -3006.7f );
+        });
         Reset();
     }
 
@@ -148,10 +152,6 @@ struct boss_horsmenAI : public ScriptedAI
 
         if (m_instance)
             m_instance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
-    }
-
-    void JustReachedHome() override
-    {
     }
 
     virtual void UpdateHorsmenAI(const uint32 /*diff*/) {}

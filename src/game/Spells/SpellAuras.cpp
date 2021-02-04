@@ -5841,10 +5841,18 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
 
         // Cases where m_amount already has the correct value (spells cast with CastCustomSpell or absolute values)
         case 12976:                                         // Warrior Last Stand triggered spell (Cast with percentage-value by CastCustomSpell)
+        case 16609:                                         // Warchief's Blessing
+        case 28506:                                         // Potion of Heroes (i.22837 - Heroic Potion)
         case 28726:                                         // Nightmare Seed
-        case 33668:                                         // Tenacity (Regal Protectorate)
-        case 34511:                                         // Valor (Bulwark of Kings, Bulwark of the Ancient Kings
-        case 44055:                                         // Tremendous Fortitude (Battlemaster's Alacrity)
+        case 33053:                                         // Mr Pinchy's Blessing (s.33060 - Make a Wish)
+        case 33668:                                         // Tenacity (i.28042 - Regal Protectorate)
+        case 39625:                                         // Elixir of Major Fortitude (i.32062 - Elixir of Major Fortitude)
+        case 34410:                                         // Hellscream's Warsong (Thrall Nagrand)
+        case 34511:                                         // Valor (Bulwark of Kings, Bulwark of the Ancient Kings)
+        case 40464:                                         // Protector's Vigor (i.32501 - Shadowmoon Insignia)
+        case 40538:                                         // Tenacity (i.32534 - Brooch of the Immortal King)
+        case 44055:                                         // Tremendous Fortitude (Battlemaster's Trinkets)
+        case 45049:                                         // Tenacity (i.34428 - Steely Naaru Sliver)
         {
             if (Real)
             {

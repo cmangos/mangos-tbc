@@ -1164,11 +1164,10 @@ struct mob_naxxramasGargoyleAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        if (m_creature->GetPositionX() > 2963.0f && m_creature->GetPositionY() > -3476.0f && m_creature->GetPositionZ() > 297.6f)
-	    {
-		    m_creature->AI()->EnterEvadeMode();
-            return;
-	    }
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
+        {
+            return y > -3476.f && x > 2963.f && z > 297.6f;
+        });
 
         if (m_creature->GetHealthPercent() < 30.0f && !m_creature->HasAura(28995))
         {

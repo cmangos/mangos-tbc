@@ -100,6 +100,12 @@ struct boss_horsmenAI : public ScriptedAI
     boss_horsmenAI(Creature* creature) : ScriptedAI(creature)
     {
         m_instance = (ScriptedInstance*)creature->GetInstanceData();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float /*y*/, float)
+        {
+            float re_x, y, z;
+            m_creature->GetRespawnCoord(re_x, y, z);
+            return m_creature->GetDistance2d(re_x,y) > 115.f;
+        });
         Reset();
     }
 
@@ -140,6 +146,39 @@ struct boss_horsmenAI : public ScriptedAI
 
         if (m_instance)
             m_instance->SetData(TYPE_FOUR_HORSEMEN, SPECIAL);
+    }
+
+    void EnterEvadeMode() override
+    {
+        ScriptedAI::EnterEvadeMode();
+        if (Creature* blaumeux = m_instance->GetSingleCreatureFromStorage(NPC_BLAUMEUX))
+        {
+            if (blaumeux->IsInCombat())
+            {
+                blaumeux->AI()->EnterEvadeMode();
+            }
+        }
+        if (Creature* mograine = m_instance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
+        {
+            if (mograine->IsInCombat())
+            {
+                mograine->AI()->EnterEvadeMode();
+            }
+        }
+        if (Creature* zeliek = m_instance->GetSingleCreatureFromStorage(NPC_ZELIEK))
+        {
+            if (zeliek->IsInCombat())
+            {
+                zeliek->AI()->EnterEvadeMode();
+            }
+        }
+        if (Creature* thane = m_instance->GetSingleCreatureFromStorage(NPC_THANE))
+        {
+            if (thane->IsInCombat())
+            {
+                thane->AI()->EnterEvadeMode();
+            }
+        }
     }
 
     void JustReachedHome() override

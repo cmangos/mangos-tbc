@@ -146,17 +146,12 @@ struct boss_horsmenAI : public ScriptedAI
     {
         ScriptedAI::EnterEvadeMode();
 
-        std::vector<uint32> entries = {NPC_BLAUMEUX, NPC_MOGRAINE, NPC_ZELIEK, NPC_THANE};
-        for (uint32 entry : entries)
-            if (Creature* creature = m_instance->GetSingleCreatureFromStorage(entry) )
-                if (creature->IsInCombat())
-                    creature->AI()->EnterEvadeMode();
+        if (m_instance)
+            m_instance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
     }
 
     void JustReachedHome() override
     {
-        if (m_instance)
-            m_instance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
     }
 
     virtual void UpdateHorsmenAI(const uint32 /*diff*/) {}

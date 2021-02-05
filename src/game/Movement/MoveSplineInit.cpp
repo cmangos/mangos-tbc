@@ -48,10 +48,12 @@ namespace Movement
         if (!move_spline.Finalized())
             real_position = move_spline.ComputePosition();
 
+        bool pathEmpty = false;
         if (args.path.empty())
         {
             // should i do the things that user should do?
             MoveTo(real_position);
+            pathEmpty = true;
         }
 
         // corrent first vertex
@@ -71,7 +73,7 @@ namespace Movement
         if (!args.Validate(&unit))
             return 0;
 
-        if (moveFlags & MOVEFLAG_ROOT && !args.path.empty())
+        if (moveFlags & MOVEFLAG_ROOT && !pathEmpty)
         {
             sLog.outCustomLog("Invalid movement during root.");
             sLog.traceLog();

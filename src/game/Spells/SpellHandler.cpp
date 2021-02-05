@@ -276,6 +276,9 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
     if (!_player->IsSelfMover())
         return;
 
+    if (_player->IsBeingTeleported())
+        return;
+
     GameObject* obj = _player->GetMap()->GetGameObject(guid);
     if (!obj)
         return;

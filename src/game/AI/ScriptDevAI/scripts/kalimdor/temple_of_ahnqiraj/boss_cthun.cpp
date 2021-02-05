@@ -33,6 +33,7 @@ enum
 
     // ***** Phase 1 ********
     SPELL_EYE_BEAM                  = 26134,
+    SPELL_EYE_BEAM_INIT             = 32950,                // Cast three times on victim at encounter start, then replaced by spell 26134 on random targets
     SPELL_DARK_GLARE                = 26029,
     SPELL_ROTATE_TRIGGER            = 26137,                // phase switch spell - triggers 26009 or 26136. These trigger the Dark Glare spell - 26029
     SPELL_ROTATE_360_LEFT           = 26009,
@@ -119,6 +120,7 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
 
     CThunPhase m_Phase;
 
+    uint8 m_eyeBeamCount;
     uint32 m_uiBeamTimer;
     uint32 m_uiDarkGlareTimer;
     uint32 m_uiDarkGlareEndTimer;
@@ -132,6 +134,7 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
         m_uiDarkGlareTimer      = 45 * IN_MILLISECONDS;
         m_uiDarkGlareEndTimer   = 40 * IN_MILLISECONDS;
         m_uiBeamTimer           = 0;
+        m_eyeBeamCount          = 0;
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -214,7 +217,21 @@ struct boss_eye_of_cthunAI : public Scripted_NoMovementAI
         // Eye Beam
         if (m_uiBeamTimer < uiDiff)
         {
-            if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            // The first three casts of "Eye Beam" use a specific spell that always target Eye of C'Thun's victim
+            if (m_eyeBeamCount < 3)
+            {
+                if (m_creature->GetVictim())
+                {
+                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_EYE_BEAM_INIT) == CAST_OK)
+                    {
+                        m_uiBeamTimer = urand(2 * IN_MILLISECONDS, 3 * IN_MILLISECONDS);
+                        ++m_eyeBeamCount;
+                        DoScriptText(-1000234, m_creature);
+                    }
+                }
+            }
+            // After the first three cast, random player is targeted with a second specific spell
+            else if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
             {
                 if (DoCastSpellIfCan(target, SPELL_EYE_BEAM) == CAST_OK)
                     m_uiBeamTimer = urand(2 * IN_MILLISECONDS, 3 * IN_MILLISECONDS);

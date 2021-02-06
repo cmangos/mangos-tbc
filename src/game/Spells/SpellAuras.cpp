@@ -319,7 +319,7 @@ pAuraHandler AuraHandler[TOTAL_AURAS] =
     &Aura::HandleUnused,                                    //258 unused
     &Aura::HandleUnused,                                    //259 unused
     &Aura::HandleUnused,                                    //260 unused
-    &Aura::HandleNULL                                       //261 SPELL_AURA_261 some phased state (44856 spell)
+    &Aura::HandleAuraPhase                                  //261 SPELL_AURA_PHASE some phased state (44856 spell)
 };
 
 static AuraType const frozenAuraTypes[] = { SPELL_AURA_MOD_ROOT, SPELL_AURA_MOD_STUN, SPELL_AURA_NONE };
@@ -4474,7 +4474,10 @@ void Aura::HandleInvisibilityDetect(bool apply, bool Real)
             target->GetVisibilityData().SetInvisibilityDetectMask(aura->GetModifier()->m_miscvalue, true);
     }
     if (GetId() == 44855) // hack for nonexistant phasing system in tbc core
+    {
+        GetTarget()->SetPhaseMask(apply ? 2u : 1u);
         HandleInvisibility(apply, Real);
+    }
     if (Real && target->GetTypeId() == TYPEID_PLAYER)
         ((Player*)target)->GetCamera().UpdateVisibilityForOwner();
 }
@@ -7838,6 +7841,13 @@ void Aura::HandleFactionOverride(bool apply, bool Real)
 void Aura::HandleOverrideClassScript(bool apply, bool /*real*/)
 {
     GetTarget()->RegisterOverrideScriptAura(this, m_modifier.m_miscvalue, apply);
+}
+
+void Aura::HandleAuraPhase(bool apply, bool real)
+{
+    if (!real)
+        return;
+    GetTarget()->SetPhaseMask(apply ? GetMiscValue() : 1u);
 }
 
 bool Aura::IsLastAuraOnHolder()

@@ -277,6 +277,9 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, float x, float
     if (GetGOInfo()->IsLargeGameObject())
         GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
 
+    if (GetEntry() == 187039) // Smuggled Mana Cell - only GO in phase in TBC
+        SetPhaseMask(2);
+
     return true;
 }
 
@@ -1031,10 +1034,6 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
                 break;
             }
         }
-
-        // Smuggled Mana Cell required 10 invisibility type detection/state - hack for nonexistant phasing tech
-        if ((GetEntry() == 187039) == (((u->GetVisibilityData().GetInvisibilityDetectMask() | u->GetVisibilityData().GetInvisibilityMask()) & (1 << 10)) == 0))
-            return false;
     }
 
     // check distance

@@ -292,7 +292,7 @@ pAuraProcHandler AuraProcHandler[TOTAL_AURAS] =
     &Unit::HandleNULLProc,                                  //258 unused
     &Unit::HandleNULLProc,                                  //259 unused
     &Unit::HandleNULLProc,                                  //260 unused
-    &Unit::HandleNULLProc,                                  //261 SPELL_AURA_261 some phased state (44856 spell)
+    &Unit::HandleNULLProc,                                  //261 SPELL_AURA_PHASE some phased state (44856 spell)
 };
 
 struct ProcTriggeredData

@@ -945,6 +945,11 @@ class WorldObject : public Object
         uint32 GetMapId() const { return m_mapId; }
         uint32 GetInstanceId() const { return m_InstanceId; }
 
+        virtual void SetPhaseMask(uint32 newPhaseMask);
+        uint32 GetPhaseMask() const { return m_phaseMask; }
+        bool InSamePhase(WorldObject const* obj) const { return InSamePhase(obj->GetPhaseMask()); }
+        bool InSamePhase(uint32 phasemask) const { return (GetPhaseMask() & phasemask) != 0; }
+
         uint32 GetZoneId() const;
         uint32 GetAreaId() const;
         void GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const;
@@ -965,7 +970,7 @@ class WorldObject : public Object
         float GetDistanceZ(const WorldObject* obj) const;
         bool IsInMap(const WorldObject* obj) const
         {
-            return obj && IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap());
+            return IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap()) && InSamePhase(obj);
         }
         bool IsWithinCombatDist(WorldObject const* obj, float dist2compare, bool is3D = true) const
         {
@@ -1162,6 +1167,7 @@ class WorldObject : public Object
 
         uint32 m_mapId;                                     // object at map with map_id
         uint32 m_InstanceId;                                // in map copy with instance id
+        uint32 m_phaseMask;                                 // in area phase state
 
         Position m_position;
         ViewPoint m_viewPoint;

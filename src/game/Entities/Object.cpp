@@ -1123,7 +1123,7 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_visibilityData(this), m_currMap(nullptr),
-    m_mapId(0), m_InstanceId(0),
+    m_mapId(0), m_InstanceId(0), m_phaseMask(1),
     m_isActiveObject(false), m_debugFlags(0), m_transport(nullptr)
 {
 }
@@ -2290,6 +2290,11 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         searcher->UpdateAllowedPositionZ(x, y, z, GetMap());// update to LOS height if available
     else if (!isInWater)
         UpdateGroundPositionZ(x, y, z);
+}
+
+void WorldObject::SetPhaseMask(uint32 newPhaseMask)
+{
+    m_phaseMask = newPhaseMask;
 }
 
 void WorldObject::PlayDistanceSound(uint32 sound_id, PlayPacketParameters parameters /*= PlayPacketParameters(PLAY_SET)*/) const

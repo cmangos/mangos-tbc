@@ -343,6 +343,10 @@ class Map : public GridRefManager<NGridType>
 
         Messager<Map>& GetMessager() { return m_messager; }
 
+        typedef std::set<Transport*> TransportSet;
+        GenericTransport* GetTransport(ObjectGuid guid);
+        TransportSet const& GetTransports() { return m_transports; }
+
         GraveyardManager& GetGraveyardManager() { return m_graveyardManager; }
 
         GenericTransport* GetTransport(ObjectGuid guid);
@@ -455,7 +459,6 @@ class Map : public GridRefManager<NGridType>
         WeatherSystem* m_weatherSystem;
 
         // Transports
-        typedef std::set<Transport*> TransportSet;
         TransportSet m_transports;
         TransportSet::iterator m_transportsIterator;
 

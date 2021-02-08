@@ -1703,34 +1703,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         CastSpell(target, 42463, TRIGGERED_OLD_TRIGGERED, nullptr, triggeredByAura);
                     break;
                 }
-                // Paladin Tier 6 Trinket (Ashtongue Talisman of Zeal)
-                case 40470:
-                {
-                    if (!procSpell)
-                        return SPELL_AURA_PROC_FAILED;
-
-                    float  chance;
-
-                    // Flash of light/Holy light
-                    if (procSpell->SpellFamilyFlags & uint64(0x00000000C0000000))
-                    {
-                        triggered_spell_id = 40471;
-                        chance = 15.0f;
-                    }
-                    // Judgement
-                    else if (procSpell->SpellFamilyFlags & uint64(0x0000000000800000))
-                    {
-                        triggered_spell_id = 40472;
-                        chance = 50.0f;
-                    }
-                    else
-                        return SPELL_AURA_PROC_FAILED;
-
-                    if (!roll_chance_f(chance))
-                        return SPELL_AURA_PROC_FAILED;
-
-                    break;
-                }
             }
             break;
         }

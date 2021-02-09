@@ -2727,7 +2727,7 @@ void Creature::UnsummonCleanup()
     RemoveAllAurasOnDeath();
     BreakCharmOutgoing();
     BreakCharmIncoming();
-    RemoveGuardians();
+    RemoveGuardians(false);
     RemoveMiniPet();
     UnsummonAllTotems();
     InterruptNonMeleeSpells(false);

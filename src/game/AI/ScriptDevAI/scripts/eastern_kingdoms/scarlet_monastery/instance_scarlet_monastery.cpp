@@ -85,6 +85,8 @@ void instance_scarlet_monastery::SetData(uint32 uiType, uint32 uiData)
     }
     else if (uiType == TYPE_ASHBRINGER_EVENT)
         m_auiEncounter[1] = uiData;
+    else if (uiType == TYPE_WHITEMANE_DEFEATED)
+        m_whitemaneDefeated = true;
 }
 
 uint32 instance_scarlet_monastery::GetData(uint32 uiData) const
@@ -93,7 +95,8 @@ uint32 instance_scarlet_monastery::GetData(uint32 uiData) const
         return m_auiEncounter[0];
     if (uiData == TYPE_ASHBRINGER_EVENT)
         return m_auiEncounter[1];
-
+    if (uiData == TYPE_WHITEMANE_DEFEATED)
+        return m_whitemaneDefeated;
     return 0;
 }
 

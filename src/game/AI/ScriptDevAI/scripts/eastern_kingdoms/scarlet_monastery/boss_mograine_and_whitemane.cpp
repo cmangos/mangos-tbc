@@ -61,6 +61,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
     boss_scarlet_commander_mograineAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
+        SetReactState(REACT_AGGRESSIVE);
         Reset();
     }
 
@@ -105,6 +106,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
                 }
             }
         }
+        ScriptedAI::MoveInLineOfSight(pWho);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -126,8 +128,11 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
             return;
 
         Creature* pWhitemane = m_pInstance->GetSingleCreatureFromStorage(NPC_WHITEMANE);
-        if (pWhitemane && !pWhitemane->IsAlive())
+        if (pWhitemane && !pWhitemane->IsAlive()){
+            if (!(m_pInstance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == NOT_STARTED) || !(m_pInstance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == FAIL))
+                m_pInstance->SetData(TYPE_MOGRAINE_AND_WHITE_EVENT, FAIL);
             pWhitemane->Respawn();
+        }            
     }
 
     void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
@@ -144,6 +149,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
             m_pInstance->SetData(TYPE_MOGRAINE_AND_WHITE_EVENT, IN_PROGRESS);
 
             pWhitemane->GetMotionMaster()->MovePoint(1, 1163.113370f, 1398.856812f, 32.527786f);
+            pWhitemane->AI()->AttackStart(m_creature->GetVictim());
 
             m_creature->GetMotionMaster()->MovementExpired();
             m_creature->GetMotionMaster()->MoveIdle();
@@ -310,6 +316,13 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
     void KilledUnit(Unit* /*pVictim*/) override
     {
         DoScriptText(SAY_WH_KILL, m_creature);
+    }
+
+    void JustDied(Unit* /*pKiller*/){
+        if(m_pInstance->GetData(TYPE_WHITEMANE_DEFEATED)){
+            m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+        }
+        m_pInstance->SetData(TYPE_WHITEMANE_DEFEATED, 1);
     }
 
     void UpdateAI(const uint32 uiDiff) override

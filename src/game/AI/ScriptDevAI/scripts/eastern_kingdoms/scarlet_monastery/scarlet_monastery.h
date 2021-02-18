@@ -11,6 +11,7 @@ enum
 
     TYPE_MOGRAINE_AND_WHITE_EVENT   = 1,
     TYPE_ASHBRINGER_EVENT           = 2,
+    TYPE_WHITEMANE_DEFEATED         = 3,
 
     NPC_MOGRAINE                    = 3976,
     NPC_WHITEMANE                   = 3977,
@@ -44,6 +45,7 @@ class instance_scarlet_monastery : public ScriptedInstance
 
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
+        bool m_whitemaneDefeated = false;
 };
 
 #endif

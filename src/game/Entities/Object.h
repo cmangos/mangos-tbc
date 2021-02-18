@@ -859,7 +859,7 @@ class WorldObject : public Object
 
         virtual void Update(const uint32 /*diff*/) {}
 
-        void _Create(uint32 guidlow, HighGuid guidhigh);
+        void _Create(uint32 guidlow, HighGuid guidhigh, uint32 phaseMask = 1);
 
         TransportInfo* GetTransportInfo() const { return m_transportInfo; }
         bool IsBoarded() const { return m_transportInfo != nullptr; }

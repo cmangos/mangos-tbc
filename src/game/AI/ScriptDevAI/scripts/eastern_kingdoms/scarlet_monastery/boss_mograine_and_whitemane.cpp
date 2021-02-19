@@ -87,6 +87,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+        SetDeathPrevention(true);
     }
 
     void MoveInLineOfSight(Unit* pWho) override
@@ -135,15 +136,11 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
         }            
     }
 
-    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void JustPreventedDeath(Unit* /*attacker*/) override
     {
-        if (damage < m_creature->GetHealth() || m_bHasDied)
-            return;
-
         if (!m_pInstance)
             return;
 
-        // On first death, fake death and open door, as well as initiate whitemane if exist
         if (Creature* pWhitemane = m_pInstance->GetSingleCreatureFromStorage(NPC_WHITEMANE))
         {
             m_pInstance->SetData(TYPE_MOGRAINE_AND_WHITE_EVENT, IN_PROGRESS);
@@ -169,8 +166,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
 
             m_bHasDied = true;
             m_bFakeDeath = true;
-
-            damage = std::min(damage, m_creature->GetHealth() - 1);
+            SetDeathPrevention(false);
         }
     }
 

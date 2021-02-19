@@ -16,7 +16,7 @@
 
 /* ScriptData
 SDName: Boss_Mograine_And_Whitemane
-SD%Complete: 90
+SD%Complete: 95
 SDComment:
 SDCategory: Scarlet Monastery
 EndScriptData */
@@ -41,6 +41,7 @@ enum
     SPELL_HAMMEROFJUSTICE        = 5589,
     SPELL_LAYONHANDS             = 9257,
     SPELL_RETRIBUTIONAURA        = 8990,
+    SPELL_DIVINESHIELD           = 642,
 
     // Whitemanes Spells
     SPELL_DEEPSLEEP              = 9256,
@@ -214,6 +215,14 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
         if (m_bFakeDeath)
             return;
 
+        if (m_bHasDied)
+        {
+            if(m_creature->GetHealthPercent()<33.3f)
+            {
+                DoCastSpellIfCan(m_creature, SPELL_DIVINESHIELD);
+            }
+        }
+
         // m_uiCrusaderStrike_Timer
         if (m_uiCrusaderStrike_Timer < uiDiff)
         {
@@ -250,9 +259,11 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
     uint32 m_uiPowerWordShield_Timer;
     uint32 m_uiHolySmite_Timer;
     uint32 m_uiWait_Timer;
+    uint32 m_uiResurrectWait_Timer;
 
     bool m_bCanResurrectCheck;
     bool m_bCanResurrect;
+    bool m_bDidResurrect;
 
     void Reset() override
     {
@@ -260,9 +271,11 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
         m_uiHeal_Timer            = 10000;
         m_uiPowerWordShield_Timer = 15000;
         m_uiHolySmite_Timer       = 4000;
+        m_uiResurrectWait_Timer   = 2200;
 
         m_bCanResurrectCheck      = false;
         m_bCanResurrect           = false;
+        m_bDidResurrect           = false;
 
         if (!m_pInstance)
             return;
@@ -318,13 +331,6 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
         DoScriptText(SAY_WH_KILL, m_creature);
     }
 
-    void JustDied(Unit* /*pKiller*/){
-        if(m_pInstance->GetData(TYPE_WHITEMANE_DEFEATED)){
-            m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
-        }
-        m_pInstance->SetData(TYPE_WHITEMANE_DEFEATED, 1);
-    }
-
     void UpdateAI(const uint32 uiDiff) override
     {
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
@@ -339,9 +345,24 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
                 DoCastSpellIfCan(m_creature, SPELL_SCARLETRESURRECTION);
                 DoScriptText(SAY_WH_RESSURECT, m_creature);
                 m_bCanResurrect = false;
+                m_bDidResurrect = true;
+                m_creature->GetMotionMaster()->Clear();
+                SetCombatMovement(true);
             }
             else
                 m_uiWait_Timer -= uiDiff;
+        }
+        if(m_bDidResurrect)
+        {
+            if(m_uiResurrectWait_Timer < uiDiff)
+            {
+                m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
+                m_bDidResurrect = false;
+            }
+            else
+            {
+                m_uiResurrectWait_Timer -= uiDiff;
+            }
         }
 
         // Cast Deep sleep when health is less than 50%
@@ -350,6 +371,14 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
             DoCastSpellIfCan(m_creature, SPELL_DEEPSLEEP, CAST_INTERRUPT_PREVIOUS);
             m_bCanResurrectCheck = true;
             m_bCanResurrect = true;
+            if (Creature* pMograine = m_pInstance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
+            {
+                SetCombatMovement(false);
+                float fX, fY, fZ;
+                pMograine->GetContactPoint(m_creature, fX, fY, fZ, CONTACT_DISTANCE);
+                m_creature->GetMotionMaster()->Clear();
+                m_creature->GetMotionMaster()->MovePoint(0, fX, fY, fZ, FORCED_MOVEMENT_RUN);
+            }
             return;
         }
 
@@ -391,25 +420,15 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_boss_scarlet_commander_mograine(Creature* pCreature)
-{
-    return new boss_scarlet_commander_mograineAI(pCreature);
-}
-
-UnitAI* GetAI_boss_high_inquisitor_whitemane(Creature* pCreature)
-{
-    return new boss_high_inquisitor_whitemaneAI(pCreature);
-}
-
 void AddSC_boss_mograine_and_whitemane()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_scarlet_commander_mograine";
-    pNewScript->GetAI = &GetAI_boss_scarlet_commander_mograine;
+    pNewScript->GetAI = &GetNewAIInstance<boss_scarlet_commander_mograineAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "boss_high_inquisitor_whitemane";
-    pNewScript->GetAI = &GetAI_boss_high_inquisitor_whitemane;
+    pNewScript->GetAI = &GetNewAIInstance<boss_high_inquisitor_whitemaneAI>;
     pNewScript->RegisterSelf();
 }

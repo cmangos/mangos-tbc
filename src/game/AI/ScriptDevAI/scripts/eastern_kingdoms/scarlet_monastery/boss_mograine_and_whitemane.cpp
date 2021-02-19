@@ -69,19 +69,23 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
 
     uint32 m_uiCrusaderStrike_Timer;
     uint32 m_uiHammerOfJustice_Timer;
+    uint32 m_uiDivineShield_Timer;
 
     bool m_bHasDied;
     bool m_bHeal;
     bool m_bFakeDeath;
+    bool m_bDivineShield;
 
     void Reset() override
     {
         m_uiCrusaderStrike_Timer  = 8400;
         m_uiHammerOfJustice_Timer = 9600;
+        m_uiDivineShield_Timer    = 40000;
 
         m_bHasDied                = false;
         m_bHeal                   = false;
         m_bFakeDeath              = false;
+        m_bDivineShield           = false;
 
         // Incase wipe during phase that mograine fake death
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
@@ -200,7 +204,6 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
                 if(DoCastSpellIfCan(pWhitemane, SPELL_LAYONHANDS) != CAST_OK)
                 {
                     pWhitemane->SetHealth(std::min(pWhitemane->GetMaxHealth(), m_creature->GetMaxHealth()));
-                    m_creature->SetPower(POWER_MANA, 0);
                 }
                 m_uiCrusaderStrike_Timer = 8400;
                 m_uiHammerOfJustice_Timer = 9600;
@@ -215,14 +218,6 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
         // This if-check to make sure mograine does not attack while fake death
         if (m_bFakeDeath)
             return;
-
-        if (m_bHasDied)
-        {
-            if(m_creature->GetHealthPercent()<33.3f)
-            {
-                DoCastSpellIfCan(m_creature, SPELL_DIVINESHIELD);
-            }
-        }
 
         // m_uiCrusaderStrike_Timer
         if (m_uiCrusaderStrike_Timer < uiDiff)
@@ -241,6 +236,16 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
         }
         else
             m_uiHammerOfJustice_Timer -= uiDiff;
+
+        // m_uiDivineShield_Timer
+        if (m_uiDivineShield_Timer < uiDiff)
+        {
+            if(!m_bDivineShield && m_creature->GetHealthPercent() <= 50.f)
+                if(DoCastSpellIfCan(m_creature, SPELL_DIVINESHIELD) == CAST_OK)
+                    m_bDivineShield = true;
+        }
+        else
+            m_uiDivineShield_Timer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }
@@ -421,6 +426,12 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
         }
         else
             m_uiHolySmite_Timer -= uiDiff;
+
+        if(urand(1, 1000) == 1){
+            Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0);
+            if(target)
+                DoCastSpellIfCan(target, SPELL_DOMINATEMIND);
+        }
 
         DoMeleeAttackIfReady();
     }

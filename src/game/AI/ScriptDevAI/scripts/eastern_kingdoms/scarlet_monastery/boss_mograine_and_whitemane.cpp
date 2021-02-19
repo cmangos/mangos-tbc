@@ -374,7 +374,7 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
             {
                 SetCombatMovement(false);
                 float fX, fY, fZ;
-                pMograine->GetContactPoint(m_creature, fX, fY, fZ, CONTACT_DISTANCE);
+                pMograine->GetContactPoint(m_creature, fX, fY, fZ, INTERACTION_DISTANCE);
                 m_creature->GetMotionMaster()->Clear();
                 m_creature->GetMotionMaster()->MovePoint(0, fX, fY, fZ, FORCED_MOVEMENT_RUN);
             }

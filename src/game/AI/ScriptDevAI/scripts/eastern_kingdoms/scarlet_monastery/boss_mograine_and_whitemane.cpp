@@ -286,8 +286,6 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
             if (m_creature->IsAlive() && !pMograine->IsAlive())
                 pMograine->Respawn();
         }
-
-        SetDeathPrevention(true);
     }
 
     void JustReachedHome() override
@@ -352,7 +350,6 @@ struct boss_high_inquisitor_whitemaneAI : public ScriptedAI
                 m_bDidResurrect = true;
                 m_creature->GetMotionMaster()->Clear();
                 SetCombatMovement(true);
-                SetDeathPrevention(false);
             }
             else
             {

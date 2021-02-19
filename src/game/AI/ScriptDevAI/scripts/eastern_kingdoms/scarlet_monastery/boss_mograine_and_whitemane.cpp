@@ -62,7 +62,6 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
     boss_scarlet_commander_mograineAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        SetReactState(REACT_AGGRESSIVE);
         Reset();
     }
 

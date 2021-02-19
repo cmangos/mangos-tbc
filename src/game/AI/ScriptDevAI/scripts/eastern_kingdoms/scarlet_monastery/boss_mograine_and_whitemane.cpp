@@ -166,7 +166,6 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
 
             m_bHasDied = true;
             m_bFakeDeath = true;
-            SetDeathPrevention(false);
         }
     }
 
@@ -194,6 +193,7 @@ struct boss_scarlet_commander_mograineAI : public ScriptedAI
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+            SetDeathPrevention(false);
             // spell has script target on Whitemane
             DoCastSpellIfCan(m_creature, SPELL_LAYONHANDS);
 

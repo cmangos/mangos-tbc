@@ -39,6 +39,7 @@
 #include "Util.h"
 #include "Tools/Language.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "Mail.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
@@ -900,6 +901,28 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_RESET_TAXINODES, true);
         SendNotification("Your taxi nodes have been reset.");
     }
+
+    // create collector's edition reward
+    if (sWorld.getConfig(CONFIG_BOOL_COLLECTORS_EDITION))
+        if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
+        {
+            ostringstream body;
+            body << "Hello, " << pCurrChar->GetName() << ",\n";
+            body << "\n";
+            body << "Welcome to the World of Warcraft!\n";
+            body << "As special thanks for purchasing the World of Warcraft: The Burning Crusade Collector's Edition we send you a gift: a little companion to join you on your quest for adventure and glory.\n";
+            body << "Thanks again, and enjoy your stay in the World of Warcraft!";
+
+            MailDraft draft;
+            draft.SetSubjectAndBody("Collector's Edition Gift", body.str());
+
+            Item* gift = Item::CreateItem(25535, 1, nullptr);
+            gift->SaveToDB();
+            draft.AddItem(gift);
+
+            MailSender sender(MAIL_NORMAL, (uint32)0, MAIL_STATIONERY_GM);
+            draft.SendMailTo(MailReceiver(pCurrChar, pCurrChar->GetObjectGuid()), sender);
+        }
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_FIRST);

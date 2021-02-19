@@ -1660,6 +1660,18 @@ OutdoorPvp.TFEnabled = 1
 OutdoorPvp.NAEnabled = 1
 
 ###################################################################################################################
+# CUSTOM SETTINGS CONFIG
+#
+#    Custom.CollectorsEdition
+#        Send TBC Collector's Edition reward by mail on first login (Netherwhelp pet)
+#        Default: 0 (disable)
+#                 1 (enable)
+#
+###################################################################################################################
+
+Custom.CollectorsEdition = 0
+
+###################################################################################################################
 # NETWORK CONFIG
 #
 #    Network.Threads

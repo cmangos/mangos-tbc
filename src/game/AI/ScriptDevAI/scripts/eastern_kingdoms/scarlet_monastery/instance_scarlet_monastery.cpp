@@ -93,6 +93,7 @@ uint32 instance_scarlet_monastery::GetData(uint32 uiData) const
         return m_auiEncounter[0];
     if (uiData == TYPE_ASHBRINGER_EVENT)
         return m_auiEncounter[1];
+
     return 0;
 }
 

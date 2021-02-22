@@ -978,6 +978,20 @@ static float highlordKruulSpawns[10][4] =
     { 6443.186f, -3904.882f, 668.369f, 0.937313f },         // Winterpsring
 };
 
+static std::string highlordKruulSpawnNames[10] =
+{
+    { "Undercity" },
+    { "Stormwind" },
+    { "Ironforge" },
+    { "Booty Bay / Stranglethorn Vale" },
+    { "Hinterlands" },
+    { "Eastern Plaguelands" },
+    { "Searing Gorge" },
+    { "Orgrimmar" },
+    { "Azshara" },
+    { "Winterpsring" },
+};
+
 void WorldState::RespawnHighlordKruul()
 {
     if (!m_highlordKruulSpawned)
@@ -988,6 +1002,7 @@ void WorldState::RespawnHighlordKruul()
     }
 
     uint8 mapId = m_highlordKruulChosenPosition <= 6 ? 0 : 1;
+    sLog.outString("Highlord Kruul spawned at %s!", highlordKruulSpawnNames[m_highlordKruulChosenPosition]);
     sMapMgr.DoForAllMapsWithMapId(mapId, [&](Map* map)
     {
         WorldObject::SummonCreature(TempSpawnSettings(nullptr, NPC_HIGHLORD_KRUUL, highlordKruulSpawns[m_highlordKruulChosenPosition][0], highlordKruulSpawns[m_highlordKruulChosenPosition][1], highlordKruulSpawns[m_highlordKruulChosenPosition][2], highlordKruulSpawns[m_highlordKruulChosenPosition][3], TEMPSPAWN_DEAD_DESPAWN, 0, true, false, m_highlordKruulChosenPosition), map);

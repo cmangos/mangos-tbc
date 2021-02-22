@@ -304,9 +304,9 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
     boss_high_inquisitor_whitemaneAI(Creature* creature) : CombatAI(creature, WHITEMANE_ACTION_MAX), m_instance(static_cast<instance_scarlet_monastery*>(creature->GetInstanceData()))
     {
         AddTimerlessCombatAction(WHITEMANE_ACTION_DEEP_SLEEP, true);
-        AddCombatAction(WHITEMANE_ACTION_HEAL, false);
-        AddCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, false);
-        AddCombatAction(WHITEMANE_ACTION_HOLY_SMITE, false);
+        AddCombatAction(WHITEMANE_ACTION_HEAL, true);
+        AddCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, true);
+        AddCombatAction(WHITEMANE_ACTION_HOLY_SMITE, true);
         AddCombatAction(WHITEMANE_ACTION_SCARLET_RESURRECTION, true);
         AddCombatAction(WHITEMANE_ACTION_SCARLET_RESURRECTION_TIMER, false);
         AddCombatAction(WHITEMANE_ACTION_SCARLET_RESURRECTION_ENTER_COMBAT, false);        
@@ -345,6 +345,7 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         DisableCombatAction(WHITEMANE_ACTION_HEAL);
         DisableCombatAction(WHITEMANE_ACTION_HOLY_SMITE);
         DisableCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD);
+        DisableCombatAction(WHITEMANE_ACTION_SCARLET_RESURRECTION_ENTER_COMBAT);
 
         if (!m_instance)
             return;
@@ -388,9 +389,9 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
                 if (Creature* pMograine = m_instance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
                     m_creature->SetFacingToObject(pMograine);
         if(uiMotionType == POINT_MOTION_TYPE && uiPointId == 1){            
-            // ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
-            // ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
-            // ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 500u);
+            ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
+            ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
+            ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 100u);
             SetMeleeEnabled(true);
             m_creature->SetInCombatWithZone();
         }
@@ -469,6 +470,7 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
                     DisableCombatAction(WHITEMANE_ACTION_DOMINATE_MIND);
                     DisableCombatAction(WHITEMANE_ACTION_HEAL);
                     DisableCombatAction(WHITEMANE_ACTION_HOLY_SMITE);
+                    DisableCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD);
                     DisableCombatAction(action);
                 }
                 return;
@@ -497,6 +499,7 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
                 ResetTimer(WHITEMANE_ACTION_HEAL, 13000u);
                 ResetTimer(WHITEMANE_ACTION_POWERWORD_SHIELD, urand(22000, 45000));
                 ResetTimer(WHITEMANE_ACTION_HOLY_SMITE, urand(3500, 5000));
+                SetActionReadyStatus(WHITEMANE_ACTION_DOMINATE_MIND, true);
                 DisableCombatAction(WHITEMANE_ACTION_SCARLET_RESURRECTION_NO_COMBAT);
                 DisableCombatAction(action);
                 return;

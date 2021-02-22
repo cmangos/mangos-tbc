@@ -315,7 +315,7 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         {
             case WHITEMANE_ACTION_HEAL: return 13000u;
             case WHITEMANE_ACTION_POWERWORD_SHIELD: return urand(22000, 45000);
-            case WHITEMANE_ACTION_HOLY_SMITE: return urand(3500, 5000);
+            case WHITEMANE_ACTION_HOLY_SMITE: return urand(3500, 8000);
             default: return 0; // never occurs but for compiler
         }
     }
@@ -413,13 +413,8 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
             }
             case WHITEMANE_ACTION_HOLY_SMITE:
             {
-                if(urand(1,3) <= 2)
-                {
-                    if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HOLYSMITE) == CAST_OK)                    
-                        ResetCombatAction(action, GetSubsequentActionTimer(action));
-                } else {
-                    DelayCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 1500u);
-                }
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HOLYSMITE) == CAST_OK)                    
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
                 return;
             }
             case WHITEMANE_ACTION_POWERWORD_SHIELD:
@@ -508,6 +503,7 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
             case WHITEMANE_ACTION_SCARLET_RESURRECTION_NO_COMBAT:
             {
                 m_creature->AttackStop(true);
+                return;
             }
             case WHITEMANE_ACTION_WAITING_FOR_COMBAT:
             {
@@ -515,6 +511,7 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
                 {
                     m_creature->SetFacingToObject(pMograine);
                 }
+                return;
             }
         }
     }

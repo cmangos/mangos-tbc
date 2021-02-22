@@ -140,6 +140,7 @@ void WorldState::Load()
                     if (data.size())
                     {
                         loadStream >> m_highlordKruulTimer >> respawnTime;
+                        loadStream >> m_highlordKruulChosenPosition;
                         if (respawnTime)
                         {
                             TimePoint respawnTimePoint = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::from_time_t(respawnTime));
@@ -243,6 +244,21 @@ void WorldState::Save(SaveIds saveId)
                 loveData += std::to_string(m_loveIsInTheAirData.counters[i]);
             }
             SaveHelper(loveData, SAVE_ID_LOVE_IS_IN_THE_AIR);
+            break;
+        }
+        case SAVE_ID_HIGHLORD_KRUUL:
+        {
+            uint64 time;
+            if (m_highlordKruulTimer)
+            {
+                auto curTime = World::GetCurrentClockTime();
+                auto respawnTime = std::chrono::milliseconds(m_highlordKruulTimer) + curTime;
+                time = uint64(Clock::to_time_t(respawnTime));
+            }
+            else time = 0;
+            std::string kruulData = std::to_string(m_highlordKruulTimer) + " " + std::to_string(time);
+            kruulData += " " + std::to_string(m_highlordKruulChosenPosition);
+            SaveHelper(kruulData, SAVE_ID_HIGHLORD_KRUUL);
             break;
         }
     }

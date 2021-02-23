@@ -89,18 +89,18 @@ void instance_scarlet_monastery::SetData(uint32 uiType, uint32 uiData)
                     return;
                 if(pWhitemane->IsAlive() && pMograine->IsAlive())
                 {
+                    pWhitemane->SetRespawnDelay(25, true);
                     pWhitemane->ForcedDespawn();
-                    pWhitemane->Respawn();
+                    pMograine->SetRespawnDelay(30, true);
                     pMograine->ForcedDespawn();
-                    pMograine->Respawn();
                     DoUseDoorOrButton(GO_WHITEMANE_DOOR);
                     m_auiEncounter[0] = NOT_STARTED;
                     return;
                 }
                 if(!pMograine->IsAlive() && pWhitemane->IsAlive())
                 {
+                    pWhitemane->SetRespawnDelay(25, true);
                     pWhitemane->ForcedDespawn();
-                    pWhitemane->Respawn();
                     DoUseDoorOrButton(GO_WHITEMANE_DOOR);
                     m_auiEncounter[0] = uiData;
                     return;

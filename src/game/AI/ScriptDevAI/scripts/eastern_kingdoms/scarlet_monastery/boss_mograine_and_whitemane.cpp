@@ -183,6 +183,7 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
             m_creature->ClearComboPointHolders();
             m_creature->RemoveAllAurasOnDeath();
             m_creature->ClearAllReactives();
+            m_creature->AttackStop(true, true, true);
 
             SetCombatScriptStatus(true);
             m_creature->SetTarget(nullptr);
@@ -227,7 +228,9 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
 
                 //m_creature->HandleEmote(EMOTE_ONESHOT_ROAR);
 
-                ResetTimer(MOGRAINE_ACTION_ROAR, 100u);
+
+                m_creature->GetMotionMaster()->Clear();
+                ResetTimer(MOGRAINE_ACTION_ROAR, 500u);
 
                 ResetTimer(MOGRAINE_ACTION_REVIVED, 2000u);
 
@@ -329,7 +332,6 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
             default: return 0; // never occurs but for compiler
         }
     }
-
     instance_scarlet_monastery* m_instance;
 
     void EnterEvadeMode() override
@@ -354,6 +356,16 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         CombatAI::AttackStart(pWho);
     }
 
+    void EnterCombat(Unit* /*enemy*/) override
+    {
+        SetCombatScriptStatus(false);
+        ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
+        ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
+        ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 100u);
+        SetMeleeEnabled(true);
+        SetReactState(REACT_AGGRESSIVE);
+    }
+
     void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
     {
         if (uiMotionType == POINT_MOTION_TYPE && uiPointId == 2)
@@ -369,13 +381,6 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         }
         if (uiMotionType == POINT_MOTION_TYPE && uiPointId == 1)
         {
-            sLog.outError("Reached Waypoint 2");
-            ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
-            ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
-            ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 100u);
-            SetMeleeEnabled(true);
-            SetCombatScriptStatus(false);
-            SetReactState(REACT_AGGRESSIVE);
             m_creature->SetInCombatWithZone();
             AttackClosestEnemy();
         }

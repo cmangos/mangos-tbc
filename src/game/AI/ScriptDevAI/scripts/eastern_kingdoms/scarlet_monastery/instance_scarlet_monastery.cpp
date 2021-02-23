@@ -81,37 +81,35 @@ void instance_scarlet_monastery::SetData(uint32 uiType, uint32 uiData)
             DoUseDoorOrButton(GO_WHITEMANE_DOOR);
         if (uiData == FAIL)
             {
+                Creature* pWhitemane = GetSingleCreatureFromStorage(NPC_WHITEMANE);
+                if(!pWhitemane)
+                    return;
+                Creature* pMograine = GetSingleCreatureFromStorage(NPC_MOGRAINE);
+                if(!pMograine)
+                    return;
+                if(pWhitemane->IsAlive() && pMograine->IsAlive())
                 {
-                    Creature* pWhitemane = GetSingleCreatureFromStorage(NPC_WHITEMANE);
-                    if(!pWhitemane)
-                        return;
-                    Creature* pMograine = GetSingleCreatureFromStorage(NPC_MOGRAINE);
-                    if(!pMograine)
-                        return;
-                    if(pWhitemane->IsAlive() && pMograine->IsAlive())
-                    {
-                        pWhitemane->ForcedDespawn();
-                        pWhitemane->Respawn();
-                        pMograine->ForcedDespawn();
-                        pMograine->Respawn();
-                        DoUseDoorOrButton(GO_WHITEMANE_DOOR);
-                        m_auiEncounter[0] = NOT_STARTED;
-                        return;
-                    }
-                    if(!pMograine->IsAlive() && pWhitemane->IsAlive())
-                    {
-                        pWhitemane->ForcedDespawn();
-                        pWhitemane->Respawn();
-                        DoUseDoorOrButton(GO_WHITEMANE_DOOR);
-                        m_auiEncounter[0] = uiData;
-                        return;
-                    }
-                    if(!pWhitemane->IsAlive() && pMograine->IsAlive())
-                    {
-                        pMograine->ForcedDespawn();
-                        m_auiEncounter[0] = uiData;
-                        return;
-                    }
+                    pWhitemane->ForcedDespawn();
+                    pWhitemane->Respawn();
+                    pMograine->ForcedDespawn();
+                    pMograine->Respawn();
+                    DoUseDoorOrButton(GO_WHITEMANE_DOOR);
+                    m_auiEncounter[0] = NOT_STARTED;
+                    return;
+                }
+                if(!pMograine->IsAlive() && pWhitemane->IsAlive())
+                {
+                    pWhitemane->ForcedDespawn();
+                    pWhitemane->Respawn();
+                    DoUseDoorOrButton(GO_WHITEMANE_DOOR);
+                    m_auiEncounter[0] = uiData;
+                    return;
+                }
+                if(!pWhitemane->IsAlive() && pMograine->IsAlive())
+                {
+                    pMograine->ForcedDespawn();
+                    m_auiEncounter[0] = uiData;
+                    return;
                 }
             }
 

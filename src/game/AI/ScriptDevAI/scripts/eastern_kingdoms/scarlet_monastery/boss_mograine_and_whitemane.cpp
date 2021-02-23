@@ -126,16 +126,15 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
 
     void EnterEvadeMode() override
     {
-        CombatAI::EnterEvadeMode();
-        
         if (m_instance)
         {
-        Creature* pWhitemane = m_instance->GetSingleCreatureFromStorage(NPC_WHITEMANE);
-            if (pWhitemane && !pWhitemane->IsAlive()){
-                pWhitemane->Respawn();
-                if (!(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == NOT_STARTED) || !(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == FAIL))
-                    m_instance->SetData(TYPE_MOGRAINE_AND_WHITE_EVENT, FAIL);
-            }
+            if(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == NOT_STARTED)
+                {
+                    CombatAI::EnterEvadeMode();
+                    return;
+                }
+            if (!(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == NOT_STARTED) || !(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == FAIL))
+                m_instance->SetData(TYPE_MOGRAINE_AND_WHITE_EVENT, FAIL);
         }
     }
 
@@ -341,23 +340,22 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         if (!m_instance)
             return;
 
-        if (Creature* pMograine = m_instance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
-        {
-            if (m_creature->IsAlive() && !pMograine->IsAlive())
-                pMograine->Respawn();
-        }
+        // if (Creature* pMograine = m_instance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
+        // {
+        //     if (m_creature->IsAlive() && !pMograine->IsAlive())
+        //         pMograine->Respawn();
+        // }
     }
 
     void EnterEvadeMode() override
     {
-        CombatAI::EnterEvadeMode();
         if (m_instance)
         {
+            if(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == NOT_STARTED)
+                CombatAI::EnterEvadeMode();
             if (!(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == NOT_STARTED) || !(m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == FAIL))
                 m_instance->SetData(TYPE_MOGRAINE_AND_WHITE_EVENT, FAIL);
         }
-        m_creature->SetRespawnDelay(1, true);
-        m_creature->ForcedDespawn();
     }
 
     void MoveInLineOfSight(Unit* /*pWho*/) override

@@ -181,7 +181,6 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
             m_instance->SetData(TYPE_MOGRAINE_AND_WHITE_EVENT, IN_PROGRESS);
 
             pWhitemane->GetMotionMaster()->MovePoint(1, 1163.113370f, 1398.856812f, 32.527786f, FORCED_MOVEMENT_RUN);
-            pWhitemane->AI()->SetCombatScriptStatus(true);
 
             DoScriptText(SAY_WH_INTRO, pWhitemane);
 
@@ -302,7 +301,6 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         AddTimerlessCombatAction(WHITEMANE_ACTION_DOMINATE_MIND, true);
         AddTimerlessCombatAction(WHITEMANE_ACTION_SCARLET_RESURRECTION_NO_COMBAT, false);
         AddTimerlessCombatAction(WHITEMANE_ACTION_WAITING_FOR_COMBAT, false);
-        SetMeleeEnabled(false);
 
         Reset();
     }
@@ -339,12 +337,6 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
 
         if (!m_instance)
             return;
-
-        // if (Creature* pMograine = m_instance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
-        // {
-        //     if (m_creature->IsAlive() && !pMograine->IsAlive())
-        //         pMograine->Respawn();
-        // }
     }
 
     void EnterEvadeMode() override
@@ -371,6 +363,13 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         CombatAI::AttackStart(pWho);
     }
 
+    void EnterCombat(Unit* /*enemy*/) override
+    {
+            ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
+            ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
+            ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 100u);
+    }
+
     void MovementInform(uint32 uiMotionType, uint32 uiPointId) override
     {
         if (uiMotionType == POINT_MOTION_TYPE && uiPointId == 2)
@@ -378,11 +377,6 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
                 if (Creature* pMograine = m_instance->GetSingleCreatureFromStorage(NPC_MOGRAINE))
                     m_creature->SetFacingToObject(pMograine);
         if(uiMotionType == POINT_MOTION_TYPE && uiPointId == 1){
-            SetCombatScriptStatus(false);
-            ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
-            ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
-            ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 100u);
-            SetMeleeEnabled(true);
             m_creature->SetInCombatWithZone();
         }
     }

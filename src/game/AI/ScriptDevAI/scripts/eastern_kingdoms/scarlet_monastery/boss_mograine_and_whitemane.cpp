@@ -53,6 +53,13 @@ enum
     SPELL_HEAL                   = 12039,
     SPELL_POWERWORDSHIELD        = 22187,
 
+    NPC_SCARLET_ABBOT               = 4303,
+    NPC_SCARLET_MONK                = 4540,
+    NPC_SCARLET_CHAMPION            = 4302,
+    NPC_SCARLET_WIZARD              = 4300,
+    NPC_SCARLET_CENTURION           = 4301,
+    NPC_SCARLET_CHAPLAIN            = 4299,
+
     ASHBRINGER_RELAY_SCRIPT_ID   = 9001,
     ITEM_CORRUPTED_ASHBRINGER    = 22691,
 
@@ -152,7 +159,7 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
         DoScriptText(SAY_MO_AGGRO, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_RETRIBUTIONAURA);
 
-        m_creature->CallForHelp(VISIBLE_RANGE);
+        MograineCallForHelp();
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -232,6 +239,24 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
                 ResetTimer(MOGRAINE_ACTION_REVIVED, 2000u);
 
                 m_bHeal = true;
+            }
+        }
+    }
+
+    void MograineCallForHelp()
+    {
+        sLog.outError("Mograine calls for help!");
+        std::vector<uint32> Adds = {NPC_SCARLET_ABBOT, NPC_SCARLET_CENTURION, NPC_SCARLET_CHAMPION, NPC_SCARLET_CHAPLAIN, NPC_SCARLET_MONK, NPC_SCARLET_WIZARD};
+        for (uint32 Add : Adds)
+        {
+            CreatureList cL;
+            GetCreatureListWithEntryInGrid(cL, m_creature, Add, 80.f);
+            for(Creature* creature : cL)
+            {
+                if(creature && creature->IsAlive())
+                {
+                    creature->AI()->AttackStart(m_creature->GetVictim());
+                }
             }
         }
     }

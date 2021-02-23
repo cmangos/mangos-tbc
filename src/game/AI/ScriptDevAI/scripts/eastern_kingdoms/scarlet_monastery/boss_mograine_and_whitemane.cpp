@@ -226,9 +226,6 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
                 // spell has script target on Whitemane but sometimes wouldn't work
                 m_creature->CastSpell(nullptr, SPELL_LAYONHANDS, TRIGGERED_OLD_TRIGGERED);
 
-                //m_creature->HandleEmote(EMOTE_ONESHOT_ROAR);
-
-
                 m_creature->GetMotionMaster()->Clear();
                 ResetTimer(MOGRAINE_ACTION_ROAR, 500u);
 

@@ -254,7 +254,8 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
             {
                 if(creature && creature->IsAlive())
                 {
-                    creature->AI()->AttackStart(m_creature->GetVictim());
+                    creature->SetInCombatWithZone();
+                    creature->AI()->AttackClosestEnemy();
                 }
             }
         }

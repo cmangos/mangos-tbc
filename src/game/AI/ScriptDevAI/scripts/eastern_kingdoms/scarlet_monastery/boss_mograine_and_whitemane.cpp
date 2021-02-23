@@ -250,9 +250,9 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
         {
             CreatureList scarletTrash;
             GetCreatureListWithEntryInGrid(scarletTrash, m_creature, entry, 80.f);
-            for(Creature* creature : scarletTrash)
+            for (Creature* creature : scarletTrash)
             {
-                if(creature && creature->IsAlive())
+                if (creature && creature->IsAlive())
                 {
                     creature->SetInCombatWithZone();
                     creature->AI()->AttackClosestEnemy();

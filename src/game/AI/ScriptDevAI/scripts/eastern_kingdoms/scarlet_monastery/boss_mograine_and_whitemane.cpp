@@ -245,7 +245,6 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
 
     void MograineCallForHelp()
     {
-        sLog.outError("Mograine calls for help!");
         std::vector<uint32> Adds = {NPC_SCARLET_ABBOT, NPC_SCARLET_CENTURION, NPC_SCARLET_CHAMPION, NPC_SCARLET_CHAPLAIN, NPC_SCARLET_MONK, NPC_SCARLET_WIZARD};
         for (uint32 Add : Adds)
         {

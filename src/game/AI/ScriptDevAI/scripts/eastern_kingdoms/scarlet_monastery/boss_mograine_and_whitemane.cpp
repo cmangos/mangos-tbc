@@ -245,12 +245,12 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
 
     void MograineCallForHelp()
     {
-        std::vector<uint32> Adds = {NPC_SCARLET_ABBOT, NPC_SCARLET_CENTURION, NPC_SCARLET_CHAMPION, NPC_SCARLET_CHAPLAIN, NPC_SCARLET_MONK, NPC_SCARLET_WIZARD};
-        for (uint32 Add : Adds)
+        std::vector<uint32> entries = {NPC_SCARLET_ABBOT, NPC_SCARLET_CENTURION, NPC_SCARLET_CHAMPION, NPC_SCARLET_CHAPLAIN, NPC_SCARLET_MONK, NPC_SCARLET_WIZARD};
+        for (uint32 entry : entries)
         {
-            CreatureList cL;
-            GetCreatureListWithEntryInGrid(cL, m_creature, Add, 80.f);
-            for(Creature* creature : cL)
+            CreatureList scarletTrash;
+            GetCreatureListWithEntryInGrid(scarletTrash, m_creature, entry, 80.f);
+            for(Creature* creature : scarletTrash)
             {
                 if(creature && creature->IsAlive())
                 {

@@ -909,8 +909,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
             ostringstream body;
             body << "Hello, " << pCurrChar->GetName() << ",\n";
             body << "\n";
-            body << "Welcome to the World of Warcraft!\n";
-            body << "As special thanks for purchasing the World of Warcraft: The Burning Crusade Collector's Edition we send you a gift: a little companion to join you on your quest for adventure and glory.\n";
+            body << "Welcome to the World of Warcraft!\n\n";
+            body << "As special thanks for purchasing the World of Warcraft: The Burning Crusade Collector's Edition we send you a gift: a little companion to join you on your quest for adventure and glory.\n\n";
             body << "Thanks again, and enjoy your stay in the World of Warcraft!";
 
             MailDraft draft;

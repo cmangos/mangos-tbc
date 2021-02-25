@@ -21526,6 +21526,12 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
         return AREA_LOCKSTATUS_INSUFFICIENT_EXPANSION;
     }
 
+    // Do not allow enter Dark Portal if expansion = 0
+    if (sWorldState.GetExpansion() == EXPANSION_NONE && at->entry == 4354)
+    {
+        return AREA_LOCKSTATUS_NOT_ALLOWED;
+    }
+
     // Gamemaster can always enter
     if (IsGameMaster())
         return AREA_LOCKSTATUS_OK;

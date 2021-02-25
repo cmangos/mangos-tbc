@@ -216,11 +216,12 @@ struct mob_arugal_voidwalkerAI : public ScriptedAI
         m_bWPDone = true;
 
         Creature* pLeader = m_creature->GetMap()->GetCreature(m_leaderGuid);
-        if (pLeader && pLeader->IsAlive())
+        if (pLeader && pLeader->IsAlive() && m_creature != pLeader)
         {
             m_creature->GetMotionMaster()->MoveFollow(pLeader, 1.0f, M_PI / 2 * m_uiPosition);
         }
-        else
+
+        if (pLeader && !pLeader->IsAlive())
         {
             CreatureList lVoidwalkerList;
             Creature* pNewLeader = nullptr;

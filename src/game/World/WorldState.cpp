@@ -44,7 +44,7 @@ enum
 };
 
 WorldState::WorldState() : m_emeraldDragonsState(0xF), m_emeraldDragonsTimer(0), m_emeraldDragonsChosenPositions(4, 0), m_isMagtheridonHeadSpawnedHorde(false), m_isMagtheridonHeadSpawnedAlliance(false),
-    m_adalSongOfBattleTimer(0), m_expansion(sWorld.getConfig(CONFIG_UINT32_EXPANSION)), m_highlordKruulSpawned(false), m_highlordKruulTimer(0), m_highlordKruulChosenPosition(0)
+    m_adalSongOfBattleTimer(0), m_expansion(sWorld.getConfig(CONFIG_UINT32_EXPANSION)), m_highlordKruulSpawned(false), m_highlordKruulTimer(0), m_highlordKruulChosenPosition(0), m_darkPortalTimer(0)
 {
     m_transportStates[GROMGOL_UNDERCITY]    = GROMGOLUC_EVENT_1;
     m_transportStates[GROMGOL_ORGRIMMAR]    = OGUC_EVENT_1;
@@ -783,7 +783,7 @@ void WorldState::Update(const uint32 diff)
         {
             ///- Display a message every 12 hours, 1 hour, 5 minutes, 1 minute
             if (isOpen || (m_darkPortalTimer < 15 * MINUTE * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % MINUTE) == 0) ||       // < 15 min; every 1 min
-                (m_darkPortalTimer < 30 * MINUTE * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % (5 * MINUTE)) == 0) || // < 30 min; every 5 min
+                (m_darkPortalTimer < 60 * MINUTE * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % (5 * MINUTE)) == 0) || // < 30 min; every 5 min
                 (m_darkPortalTimer < 12 * HOUR * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % HOUR) == 0) ||           // < 12 h; every 1 h
                 (m_darkPortalTimer >= 12 * HOUR * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % (12 * HOUR * IN_MILLISECONDS)) == 0))     // >= 12 h; every 12 h
             {

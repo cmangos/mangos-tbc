@@ -71,9 +71,33 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
                 {
                     ResetTimer(EVENT_SPAWN_REINFORCEMENTS, 1000);
                     ResetTimer(EVENT_REINFORCEMENTS_LEADER_SPEAK, urand(45000, 90000));
+                    ResetTimer(EVENT_REINFORCEMENTS_LEADER_FLEE, 4 * MINUTE * IN_MILLISECONDS);
                 }
             }
-            ResetTimer(EVENT_REINFORCEMENTS_NEEDED, urand(5000, 10000));
+            if (_spawnProtector.size() < 8 || _spawnGuardian.size() < 8)
+            {
+                ResetTimer(EVENT_SPAWN_SMALL_REINFORCEMENTS, 1000);
+            }
+            ResetTimer(EVENT_REINFORCEMENTS_NEEDED, urand(5000, 15000));
+        });
+        AddCustomAction(EVENT_SPAWN_SMALL_REINFORCEMENTS, true, [&]
+        {
+            if (_spawnProtector.size() < 10)
+            {
+                switch (urand(0, 1))
+                {
+                case 0: DoSpawn(NPC_ARGENT_GUARDIAN); break;
+                case 1: DoSpawn(NPC_ARGENT_BOWMAN); break;
+                }
+            }
+            if (_spawnGuardian.size() < 10)
+            {
+                switch (urand(0, 1))
+                {
+                case 0: DoSpawn(NPC_ARGENT_PROTECTOR); break;
+                case 1: DoSpawn(NPC_ARGENT_HUNTER); break;
+                }
+            }
         });
         AddCustomAction(EVENT_SPAWN_REINFORCEMENTS, true, [&]
         {
@@ -82,6 +106,42 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
                 case 0: DoSpawn(NPC_LORD_MARSHAL_RAYNOR); break;
                 case 1: DoSpawn(NPC_JUSTINIUS_THE_HARBINGER); break;
                 case 2: DoSpawn(NPC_MELGROMM_HIGHMOUNTAIN); break;
+            }
+        });
+        AddCustomAction(EVENT_REINFORCEMENTS_LEADER_FLEE, true, [&]
+        {
+            if (_spawnSupport.size() > 0)
+            {
+                uint32 randomScriptTextId = 0;
+
+                for (std::set<ObjectGuid>::iterator it = _spawnSupport.begin(); it != _spawnSupport.end(); ++it)
+                {
+                    if (Creature* lead = instance->GetCreature(*it))
+                    {
+                        Position fleePos;
+                        uint32 despawnScriptTextId = 0;
+
+                        switch (lead->GetEntry())
+                        {
+                        case NPC_LORD_MARSHAL_RAYNOR:
+                            despawnScriptTextId = LMR_DESPAWN;
+                            fleePos = spawnAllyReinforcementPos;
+                        case NPC_JUSTINIUS_THE_HARBINGER:
+                            despawnScriptTextId = JTH_DESPAWN;
+                            fleePos = spawnAllyReinforcementPos;
+                            break;
+                        case NPC_MELGROMM_HIGHMOUNTAIN:
+                            despawnScriptTextId = MH_DESPAWN;
+                            fleePos = spawnHordeReinforcementPos;
+                            break;
+                        }
+                        DoScriptText(despawnScriptTextId, lead);
+                        lead->CombatStop();
+                        lead->RemoveAllAurasOnEvade();
+                        lead->SetFactionTemporary(35, TEMPFACTION_RESTORE_RESPAWN);
+                        lead->GetMotionMaster()->MovePoint(0, fleePos.x, fleePos.y, fleePos.z, FORCED_MOVEMENT_RUN, true);
+                    }
+                }
             }
         });
         AddCustomAction(EVENT_REINFORCEMENTS_LEADER_SPEAK, true, [&]
@@ -144,7 +204,16 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
     Position const spawnPortalPos = { -11900.3f, -3207.62f, -14.7534f, 0.146405f };
     Position const spawnPortalPos1 = { -11901.25f, -3202.272f, -14.7534f, 0.146405f };
     Position const spawnBossPortalPos = { -11891.500f, -3207.010f, -14.798f, 0.146405f };
-    Position const spawnReinforcementPos = { -11815.1f, -3190.39f, -30.7338f, 3.32447f };
+    Position const centerBattlePos = { -11815.1f, -3190.39f, -30.7338f, 3.32447f };
+    Position const spawnAllyReinforcementPos = { -11772.43f, -3272.84f, -17.9f, 2.0f };
+    Position const spawnHordeReinforcementPos = { -11741.70f, -3130.3f, -11.7936f, 3.8f };
+    Position const spawnSmallAllyReinforcementPos = { -11794.278f, -3224.424f, -29.99856f, 2.5f };
+    Position const spawnSmallAllyReinforcementPos2 = { -11818.512f, -3234.08f, -30.017094f, 1.6f };
+    Position const spawnSmallHordeReinforcementPos = { -11774.95f, -3183.269f, -28.9086f, 3.0f };
+    Position const allyGuardPos = { -11838.594f, -3212.88f, -30.049786f, 2.74f };
+    Position const allyGuardPos2 = { -11836.145f, -3204.032f, -30.24958f, 2.74f };
+    Position const hordeGuardPos = { -11834.107f,  -3194.97f, -30.048494f, 3.5f };
+    Position const hordeGuardPos2 = { -11837.795f, -3188.976f, -29.704037f, 3.5f };
 
     // Shade of the Horseman village attack event
     ShadeOfTheHorsemanData m_shadeData;
@@ -214,9 +283,11 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
                 _spawn.insert(pCreature->GetObjectGuid());
                 break;
             case NPC_ARGENT_GUARDIAN:
+            case NPC_ARGENT_HUNTER:
                 _spawnGuardian.insert(pCreature->GetObjectGuid());
                 break;
             case NPC_ARGENT_PROTECTOR:
+            case NPC_ARGENT_BOWMAN:
                 _spawnProtector.insert(pCreature->GetObjectGuid());
                 break;
             case NPC_MASKED_ORPHAN_MATRON:
@@ -242,14 +313,64 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
                 _spawnSupport.erase(pCreature->GetObjectGuid());
                 break;
             case NPC_ARGENT_GUARDIAN:
+            case NPC_ARGENT_HUNTER:
                 _spawnGuardian.erase(pCreature->GetObjectGuid());
                 break;
             case NPC_ARGENT_PROTECTOR:
+            case NPC_ARGENT_BOWMAN:
                 _spawnProtector.erase(pCreature->GetObjectGuid());
                 break;
             default:
                 _spawn.erase(pCreature->GetObjectGuid());
                 break;
+        }
+    }
+
+    void OnCreatureEvade(Creature* pCreature) override
+    {
+        float x, y, z;
+        float ori = 3.6f;
+        switch (pCreature->GetEntry())
+        {
+        case NPC_DREADKNIGHT:
+        case NPC_FELGUARD_LIEUTENANT:
+        case NPC_INVADING_FELGUARD:
+        case NPC_INVADING_VOIDWALKER:
+        case NPC_INVADING_INFERNAL:
+        case NPC_PORTAL_HOUND:
+        case NPC_INVADING_FEL_STALKER:
+        case NPC_INVADING_ANGUISHER:
+            pCreature->GetRandomPoint(centerBattlePos.x, centerBattlePos.y, centerBattlePos.z, 20.0f, x, y, z);
+            pCreature->SetRespawnCoord(x, y, z, 1.0f);
+            pCreature->GetMotionMaster()->MovePoint(0, x, y, z, FORCED_MOVEMENT_RUN, true);
+            break;
+        case NPC_LORD_MARSHAL_RAYNOR:
+        case NPC_JUSTINIUS_THE_HARBINGER:
+        case NPC_MELGROMM_HIGHMOUNTAIN:
+            if (urand(0, 1))
+            {
+                pCreature->GetRandomPoint(allyGuardPos.x, allyGuardPos.y, allyGuardPos.z, 2.0f, x, y, z);
+                ori = 2.7f;
+            }
+            else
+                pCreature->GetRandomPoint(hordeGuardPos.x, hordeGuardPos.y, hordeGuardPos.z, 2.0f, x, y, z);
+            pCreature->SetRespawnCoord(x, y, z, ori);
+            pCreature->GetMotionMaster()->MovePoint(0, x, y, z, FORCED_MOVEMENT_RUN, true);
+            break;
+        case NPC_ARGENT_GUARDIAN:
+        case NPC_ARGENT_HUNTER:
+        case NPC_ARGENT_PROTECTOR:
+        case NPC_ARGENT_BOWMAN:
+            if (urand(0, 1))
+            {
+                pCreature->GetRandomPoint(allyGuardPos.x, allyGuardPos.y, allyGuardPos.z, 2.0f, x, y, z);
+                ori = 2.7f;
+            }
+            else
+                pCreature->GetRandomPoint(hordeGuardPos.x, hordeGuardPos.y, hordeGuardPos.z, 2.0f, x, y, z);
+            pCreature->SetRespawnCoord(x, y, z, ori);
+            pCreature->GetMotionMaster()->MovePoint(0, x, y, z, FORCED_MOVEMENT_RUN, true);
+            break;
         }
     }
 
@@ -277,6 +398,9 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
         uint32 spawnScriptTextId = 0;
         uint32 formationCreatureEntry = 0;
         uint32 despawnTimer = 0;
+        bool isEnemy = false;
+        bool isBoss = false;
+        bool isSoldier = false;
         TempSpawnType spawnType = TEMPSPAWN_DEAD_DESPAWN;
 
         switch (spawnId)
@@ -284,30 +408,43 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
             case NPC_DREADKNIGHT:
             case NPC_FELGUARD_LIEUTENANT:
                 spawnPos = spawnBossPortalPos;
+                isBoss = true;
+                isEnemy = true;
                 break;
             case NPC_LORD_MARSHAL_RAYNOR:
-                spawnPos = spawnReinforcementPos;
-                despawnTimer = 3 * MINUTE * IN_MILLISECONDS;
+                spawnPos = spawnAllyReinforcementPos;
+                despawnTimer = 4.3 * MINUTE * IN_MILLISECONDS;
                 spawnType = TEMPSPAWN_TIMED_OR_DEAD_DESPAWN;
                 formationCreatureEntry = NPC_STORMWIND_MARSHAL;
                 spawnScriptTextId = LMR_SPAWN;
                 break;
             case NPC_JUSTINIUS_THE_HARBINGER:
-                spawnPos = spawnReinforcementPos;
-                despawnTimer = 3 * MINUTE * IN_MILLISECONDS;
+                spawnPos = spawnAllyReinforcementPos;
+                despawnTimer = 4.2 * MINUTE * IN_MILLISECONDS;
                 spawnType = TEMPSPAWN_TIMED_OR_DEAD_DESPAWN;
                 formationCreatureEntry = NPC_AZUREMYST_VINDICATOR;
                 spawnScriptTextId = JTH_SPAWN;
                 break;
             case NPC_MELGROMM_HIGHMOUNTAIN:
-                spawnPos = spawnReinforcementPos;
-                despawnTimer = 3 * MINUTE * IN_MILLISECONDS;
+                spawnPos = spawnHordeReinforcementPos;
+                despawnTimer = 4.2 * MINUTE * IN_MILLISECONDS;
                 spawnType = TEMPSPAWN_TIMED_OR_DEAD_DESPAWN;
                 formationCreatureEntry = NPC_THUNDER_BLUFF_HUNTSMAN;
                 spawnScriptTextId = MH_SPAWN;
                 break;
+            case NPC_ARGENT_GUARDIAN:
+            case NPC_ARGENT_HUNTER:
+                spawnPos = spawnSmallHordeReinforcementPos;
+                isSoldier = true;
+                break;
+            case NPC_ARGENT_PROTECTOR:
+            case NPC_ARGENT_BOWMAN:
+                spawnPos = urand(0, 1) ? spawnSmallAllyReinforcementPos : spawnSmallAllyReinforcementPos2;
+                isSoldier = true;
+                break;
             default:
                 spawnPos = urand(0, 1) ? spawnPortalPos : spawnPortalPos1;
+                isEnemy = true;
                 break;
         }
 
@@ -325,6 +462,61 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
 
                     if (Creature* add = summon->SummonCreature(formationCreatureEntry, summon->GetPositionX(), summon->GetPositionY(), summon->GetPositionZ(), 0.0f, spawnType, despawnTimer))
                         add->GetMotionMaster()->MoveFollow(summon, 5.f, 140.f * float(M_PI) / 180.0f, true);
+
+                    if (Creature* add = summon->SummonCreature(formationCreatureEntry, summon->GetPositionX(), summon->GetPositionY(), summon->GetPositionZ(), 0.0f, spawnType, despawnTimer))
+                        add->GetMotionMaster()->MoveFollow(summon, 5.f, 180.f * float(M_PI) / 180.0f, true);
+
+                    if (Creature* add = summon->SummonCreature(formationCreatureEntry, summon->GetPositionX(), summon->GetPositionY(), summon->GetPositionZ(), 0.0f, spawnType, despawnTimer))
+                        add->GetMotionMaster()->MoveFollow(summon, 5.f, 100.f * float(M_PI) / 180.0f, true);
+
+                    float x, y, z;
+                    float ori = 3.6f;
+                    if (urand(0, 1))
+                    {
+                        summon->GetRandomPoint(allyGuardPos.x, allyGuardPos.y, allyGuardPos.z, 2.0f, x, y, z);
+                        ori = 2.7f;
+                    }
+                    else
+                        summon->GetRandomPoint(hordeGuardPos.x, hordeGuardPos.y, hordeGuardPos.z, 2.0f, x, y, z);
+                    summon->SetRespawnCoord(x, y, z, ori);
+                    summon->GetMotionMaster()->MovePoint(0, x, y, z, FORCED_MOVEMENT_RUN, true);
+                }
+
+                if (isEnemy)
+                {
+                    float x, y, z;
+                    summon->GetRandomPoint(centerBattlePos.x, centerBattlePos.y, centerBattlePos.z, 20.0f, x, y, z);
+                    summon->SetRespawnCoord(x, y, z, 1.0f);
+                    summon->GetMotionMaster()->MovePoint(0, x, y, z, isBoss ? FORCED_MOVEMENT_WALK : FORCED_MOVEMENT_RUN, true);
+                }
+
+                if (isSoldier)
+                {
+                    bool isAlly = true;
+                    switch (spawnId)
+                    {
+                    case NPC_ARGENT_GUARDIAN:
+                    case NPC_ARGENT_HUNTER:
+                        isAlly = false;
+                        break;
+                    }
+                    float x, y, z;
+                    if (isAlly)
+                    {
+                        if (urand(0, 1))
+                            summon->GetRandomPoint(allyGuardPos.x, allyGuardPos.y, allyGuardPos.z, 5.0f, x, y, z);
+                        else
+                            summon->GetRandomPoint(allyGuardPos2.x, allyGuardPos2.y, allyGuardPos2.z, 5.0f, x, y, z);
+                    }
+                    else
+                    {
+                        if (urand(0, 1))
+                            summon->GetRandomPoint(hordeGuardPos.x, hordeGuardPos.y, hordeGuardPos.z, 5.0f, x, y, z);
+                        else
+                            summon->GetRandomPoint(hordeGuardPos2.x, hordeGuardPos2.y, hordeGuardPos2.z, 5.0f, x, y, z);
+                    }
+                    summon->SetRespawnCoord(x, y, z, isAlly ? 2.7f : 3.6f);
+                    summon->GetMotionMaster()->MovePoint(0, x, y, z, FORCED_MOVEMENT_RUN, true);
                 }
             }
         }
@@ -339,9 +531,10 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
 
         if (activate && !resume)
         {
-            ResetTimer(EVENT_SPAWN, 1000);
-            ResetTimer(EVENT_SPAWN_BOSS, 30000);
+            ResetTimer(EVENT_SPAWN, 60000);
+            ResetTimer(EVENT_SPAWN_BOSS, 90000);
             ResetTimer(EVENT_REINFORCEMENTS_NEEDED, 30000);
+            ResetTimer(EVENT_SPAWN_SMALL_REINFORCEMENTS, 1000);
         }
         else
         {
@@ -448,8 +641,8 @@ struct npc_agent_proudwell : public ScriptedAI
         if (pInstance)
             pInstance->_spawnSupport.erase(pSummoned->GetObjectGuid());
 
-        if (despawnScriptTextId && pSummoned->IsAlive())
-            DoScriptText(despawnScriptTextId, pSummoned);
+        //if (despawnScriptTextId && pSummoned->IsAlive())
+        //    DoScriptText(despawnScriptTextId, pSummoned);
     }
 };
 

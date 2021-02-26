@@ -713,6 +713,11 @@ void World::LoadConfigSettings(bool reload)
     // Collector's Edition rewards
     setConfig(CONFIG_BOOL_COLLECTORS_EDITION, "Custom.CollectorsEdition", false);
 
+    // Battle for dark portal event
+    setConfig(CONFIG_BOOL_DARK_PORTAL_EVENT, "Custom.DarkPortalEvent", false);
+    setConfig(CONFIG_BOOL_DARK_PORTAL_EVENT_RESET, "Custom.DarkPortalEventReset", false);
+    setConfig(CONFIG_UINT32_DARK_PORTAL_EVENT_TIMER, "Custom.DarkPortalEventTimer", 60);
+
     setConfig(CONFIG_BOOL_OFFHAND_CHECK_AT_TALENTS_RESET, "OffhandCheckAtTalentsReset", false);
 
     setConfig(CONFIG_BOOL_KICK_PLAYER_ON_BAD_PACKET, "Network.KickOnBadPacket", false);
@@ -1399,7 +1404,6 @@ void World::SetInitialWorldSettings()
 #endif
 #ifdef ENABLE_PLAYERBOTS
     sPlayerbotAIConfig.Initialize();
-    auctionbot.Init();
 #endif
     sLog.outString("---------------------------------------");
     sLog.outString("      CMANGOS: World initialized       ");

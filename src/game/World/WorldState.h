@@ -410,6 +410,9 @@ class WorldState
 
         // Release Events
         void StartExpansionEvent();
+        void StopExpansionEvent();
+        bool m_darkPortalOpen;
+        uint32 m_darkPortalTimer;
 
         std::atomic<uint8> m_expansion;
 

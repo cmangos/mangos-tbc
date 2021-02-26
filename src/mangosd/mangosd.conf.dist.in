@@ -1667,9 +1667,27 @@ OutdoorPvp.NAEnabled = 1
 #        Default: 0 (disable)
 #                 1 (enable)
 #
+#    Custom.DarkPortalEvent
+#        Start Dark Portal event at first server start.
+#        Dark Portal disabled until event ends. New races enabled
+#        Default: 1 (enable)
+#                 0 (disable)
+#
+#    Custom.DarkPortalEventTimer
+#        How many minutes event lasts.
+#        Default: 60 (1 hour)
+#
+#    Custom.DarkPortalEventReset
+#        Force start event on next server start
+#        Default: 0 (disable)
+#                 1 (start event on server start)
+#
 ###################################################################################################################
 
 Custom.CollectorsEdition = 0
+Custom.DarkPortalEvent = 0
+Custom.DarkPortalEventTimer = 60
+Custom.DarkPortalEventReset = 0
 
 ###################################################################################################################
 # NETWORK CONFIG

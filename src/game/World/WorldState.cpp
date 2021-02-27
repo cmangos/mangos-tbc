@@ -44,7 +44,7 @@ enum
 };
 
 WorldState::WorldState() : m_emeraldDragonsState(0xF), m_emeraldDragonsTimer(0), m_emeraldDragonsChosenPositions(4, 0), m_isMagtheridonHeadSpawnedHorde(false), m_isMagtheridonHeadSpawnedAlliance(false),
-    m_adalSongOfBattleTimer(0), m_expansion(sWorld.getConfig(CONFIG_UINT32_EXPANSION)), m_highlordKruulSpawned(false), m_highlordKruulTimer(0), m_highlordKruulChosenPosition(0), m_darkPortalTimer(0)
+    m_adalSongOfBattleTimer(0), m_expansion(sWorld.getConfig(CONFIG_UINT32_EXPANSION)), m_highlordKruulSpawned(false), m_highlordKruulTimer(0), m_highlordKruulChosenPosition(0)
 {
     m_transportStates[GROMGOL_UNDERCITY]    = GROMGOLUC_EVENT_1;
     m_transportStates[GROMGOL_ORGRIMMAR]    = OGUC_EVENT_1;
@@ -161,13 +161,11 @@ void WorldState::Load()
                     {
                         uint32 expansion; // need to read as number not as character
                         loadStream >> expansion;
-                        if (!sWorld.getConfig(CONFIG_BOOL_DARK_PORTAL_EVENT_RESET) || expansion == EXPANSION_NONE)
+                        if (!sWorld.getConfig(CONFIG_BOOL_DARK_PORTAL_EVENT_RESET))
                             m_expansion = expansion;
                         else
-                        {
                             m_expansion = EXPANSION_NONE;
-                            Save(SAVE_ID_EXPANSION_RELEASE);
-                        }
+
                         if (m_expansion == EXPANSION_NONE)
                         {
                             auto curTime = World::GetCurrentClockTime();
@@ -181,11 +179,8 @@ void WorldState::Load()
                             else m_darkPortalTimer = 0;
                         }
                         else
-                        {
-                            m_darkPortalOpen = false;
                             m_darkPortalTimer = 0;
 
-                        }
                         expansionInfo = true;
                     }
                     break;
@@ -782,20 +777,20 @@ void WorldState::Update(const uint32 diff)
         if ((elapsed > 0 && m_darkPortalTimer > 1500) || isOpen)
         {
             ///- Display a message every 12 hours, 1 hour, 5 minutes, 1 minute
-            if (isOpen || (m_darkPortalTimer < 15 * MINUTE * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % MINUTE) == 0) ||       // < 15 min; every 1 min
-                (m_darkPortalTimer < 60 * MINUTE * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % (5 * MINUTE)) == 0) || // < 30 min; every 5 min
-                (m_darkPortalTimer < 12 * HOUR * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % HOUR) == 0) ||           // < 12 h; every 1 h
-                (m_darkPortalTimer >= 12 * HOUR * IN_MILLISECONDS && ((m_darkPortalTimer / 1000) % (12 * HOUR * IN_MILLISECONDS)) == 0))     // >= 12 h; every 12 h
+            if (isOpen || ((m_darkPortalTimer / 1000) < 15 * MINUTE && ((m_darkPortalTimer / 1000) % MINUTE) == 0) ||       // < 15 min; every 1 min
+                ((m_darkPortalTimer / 1000) < 60 * MINUTE && ((m_darkPortalTimer / 1000) % (5 * MINUTE)) == 0) || // < 60 min; every 5 min
+                ((m_darkPortalTimer / 1000) < 12 * HOUR && ((m_darkPortalTimer / 1000) % HOUR) == 0) ||           // < 12 h; every 1 h
+                ((m_darkPortalTimer / 1000) >= 12 * HOUR && ((m_darkPortalTimer / 1000) % (12 * HOUR * IN_MILLISECONDS)) == 0))     // >= 12 h; every 12 h
             {
                 std::string str;
                 if (isOpen)
-                    str = "Heroes of Azeroth! The Dark Portal is open! It's time to strike back! Go forth to the realm of Outland!";
+                    str = "Heroes of Azeroth! Demons fall back! Go forth to the realm of Outland!";
                 else
                 {
                     if (urand(0, 1))
-                        str = "Heroes of Azeroth! Our world is under attack! Help defend it from the demons that come through The Dark Portal! In " + secsToTimeString(m_darkPortalTimer / IN_MILLISECONDS) + " the Portal will open and we will strike back!";
+                        str = "Heroes of Azeroth! Our world is under attack! Horrific creatures are swarming from Dark Portal! In " + secsToTimeString(m_darkPortalTimer / IN_MILLISECONDS) + " we gather our forces and bring the fight to their world... Outland!";
                     else
-                        str = "Heroes of Azeroth! Demons invaded Azeroth! In " + secsToTimeString(m_darkPortalTimer / IN_MILLISECONDS) + " The Dark Portal will fully open, defend our lands before we strike back!";
+                        str = "Heroes of Azeroth! Demons invaded Azeroth! Help defend our lands near Dark Portal and in " + secsToTimeString(m_darkPortalTimer / IN_MILLISECONDS) + " we strike back to Outland!";
                 }
 
                 sWorld.SendServerMessage(SERVER_MSG_CUSTOM, str.c_str(), nullptr);
@@ -803,18 +798,14 @@ void WorldState::Update(const uint32 diff)
         }
     }
 
-    if (m_highlordKruulSpawned && ((sWorld.GetUptime()) % (5 * MINUTE)) == 0)
+    if (m_highlordKruulSpawned && ((sWorld.GetUptime()) % (10 * MINUTE)) == 0)
     {
         time_t thisTime = time(nullptr);
         uint32 elapsed = uint32(thisTime - sWorld.GetGameTime());
 
         if (elapsed > 0)
         {
-            std::string str;
-            if (urand(0, 1))
-                str = "Heroes of Azeroth! The vicious Highlord Kruul brings terror to " + (std::string)highlordKruulSpawnNames[m_highlordKruulChosenPosition] + "! Stand together to take down the demon!";
-            else
-                str = "Heroes of Azeroth! The mighty Highlord Kruul is terrorizing " + (std::string)highlordKruulSpawnNames[m_highlordKruulChosenPosition] + ", watch out!";
+            std::string str = "Heroes of Azeroth! The mighty Highlord Kruul is terrorizing " + (std::string)highlordKruulSpawnNames[m_highlordKruulChosenPosition] + ", watch out!";
 
             sWorld.SendServerMessage(SERVER_MSG_CUSTOM, str.c_str(), nullptr);
         }
@@ -1503,7 +1494,6 @@ void WorldState::StartExpansionEvent()
     if (m_expansion == EXPANSION_NONE)
     {
         sGameEventMgr.StartEvent(GAME_EVENT_BEFORE_THE_STORM);
-        m_darkPortalOpen = false;
         m_darkPortalTimer = sWorld.getConfig(CONFIG_UINT32_DARK_PORTAL_EVENT_TIMER) * MINUTE * IN_MILLISECONDS;
         Save(SAVE_ID_EXPANSION_RELEASE); // save to DB right away
         RespawnHighlordKruul();

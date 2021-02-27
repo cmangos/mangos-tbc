@@ -46,6 +46,7 @@
 #include "Grids/CellImpl.h"
 #include "Movement/MoveSplineInit.h"
 #include "Entities/CreatureLinkingMgr.h"
+#include "Maps/SpawnManager.h"
 
 // apply implementation of the singletons
 #include "Policies/Singleton.h"
@@ -289,6 +290,9 @@ void Creature::RemoveCorpse(bool inPlace)
     UpdateObjectVisibility();
     SetVisibility(currentVis);                              // restore visibility state
     UpdateObjectVisibility();
+
+    if (IsUsingNewSpawningSystem())
+        AddObjectToRemoveList();
 }
 
 /**
@@ -1731,6 +1735,13 @@ void Creature::SetDeathState(DeathState s)
         // always save boss respawn time at death to prevent crash cheating
         if (sWorld.getConfig(CONFIG_BOOL_SAVE_RESPAWN_TIME_IMMEDIATELY) || IsWorldBoss())
             SaveRespawnTime();
+
+        if (IsUsingNewSpawningSystem())
+        {
+            m_respawnTime = std::numeric_limits<time_t>::max();
+            if (m_respawnDelay)
+                GetMap()->GetSpawnManager().AddCreature(m_respawnDelay, GetDbGuid());
+        }
     }
 
     Unit::SetDeathState(s);
@@ -2829,4 +2840,9 @@ void Creature::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* /*
             player->GetSession()->SendPacket(data);
         }
     }
+}
+
+bool Creature::IsUsingNewSpawningSystem() const
+{
+    return GetDbGuid() && GetDbGuid() != GetGUIDLow();
 }

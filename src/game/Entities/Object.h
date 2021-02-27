@@ -1136,6 +1136,8 @@ class WorldObject : public Object
         MovementInfo m_movementInfo;
         GenericTransport* m_transport;
 
+        virtual uint32 GetDbGuid() const { return 0; }
+        virtual HighGuid GetParentHigh() const { return HighGuid(0); }
     protected:
         explicit WorldObject();
 

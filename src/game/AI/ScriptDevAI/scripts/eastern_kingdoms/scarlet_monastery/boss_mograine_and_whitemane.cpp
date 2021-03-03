@@ -22,6 +22,7 @@ SDCategory: Scarlet Monastery
 EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/include/sc_instance.h"
 #include "Globals/SharedDefines.h"
 #include "scarlet_monastery.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
@@ -401,12 +402,15 @@ struct boss_high_inquisitor_whitemaneAI : public RangedCombatAI
 
     void EnterCombat(Unit* /*enemy*/) override
     {
-        SetCombatScriptStatus(false);
-        ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
-        ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
-        ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 100u);
-        SetMeleeEnabled(true);
-        SetReactState(REACT_AGGRESSIVE);
+        if (m_instance && m_instance->GetData(TYPE_MOGRAINE_AND_WHITE_EVENT) == IN_PROGRESS)
+        {
+            SetCombatScriptStatus(false);
+            ResetCombatAction(WHITEMANE_ACTION_HEAL, 10000u);
+            ResetCombatAction(WHITEMANE_ACTION_POWERWORD_SHIELD, 15000u);
+            ResetCombatAction(WHITEMANE_ACTION_HOLY_SMITE, 100u);
+            SetMeleeEnabled(true);
+            SetReactState(REACT_AGGRESSIVE);
+        }
     }
 
     void MovementInform(uint32 uiMotionType, uint32 uiPointId) override

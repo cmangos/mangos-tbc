@@ -331,7 +331,7 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* curr
     m_scriptValue(0)
 {
     MANGOS_ASSERT(target);
-    MANGOS_ASSERT(spellproto && spellproto == sSpellTemplate.LookupEntry<SpellEntry>(spellproto->Id) && "`info` must be pointer to sSpellTemplate element");
+    MANGOS_ASSERT(spellproto && spellproto == sSpellTemplate.LookupEntry(spellproto->Id) && "`info` must be pointer to sSpellTemplate element");
 
     m_currentBasePoints = currentBasePoints ? *currentBasePoints : spellproto->CalculateSimpleValue(eff);
 
@@ -507,7 +507,7 @@ Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const
 
     uint32 triggeredSpellId = spellproto->EffectTriggerSpell[eff];
 
-    if (SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(triggeredSpellId))
+    if (SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry(triggeredSpellId))
         for (unsigned int i : triggeredSpellInfo->EffectImplicitTargetA)
             if (i == TARGET_UNIT_CHANNEL_TARGET)
                 return new SingleEnemyTargetAura(spellproto, eff, currentDamage, currentBasePoints, holder, target, caster, castItem);
@@ -1118,7 +1118,7 @@ void Aura::TriggerSpell()
     // generic casting code with custom spells and target/caster customs
     uint32 trigger_spell_id = GetSpellProto()->EffectTriggerSpell[m_effIndex];
 
-    SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(trigger_spell_id);
+    SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry(trigger_spell_id);
     SpellEntry const* auraSpellInfo = GetSpellProto();
     uint32 auraId = auraSpellInfo->Id;
     Unit* target = GetTarget();
@@ -1893,7 +1893,7 @@ void Aura::TriggerSpell()
         }
 
         // Reget trigger spell proto
-        triggeredSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(trigger_spell_id);
+        triggeredSpellInfo = sSpellTemplate.LookupEntry(trigger_spell_id);
     }
     else 
     {
@@ -2152,7 +2152,7 @@ void Aura::TriggerSpellWithValue()
     uint32 trigger_spell_id = GetSpellProto()->EffectTriggerSpell[m_effIndex];
     int32 calculatedAmount = GetModifier()->m_amount;
 
-    SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(trigger_spell_id);
+    SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry(trigger_spell_id);
     int32 basePoints[3] = { 0,0,0 };
     // damage triggered from spell might not only be processed by first effect (but always EffectDieSides equal 1)
     if (triggeredSpellInfo)
@@ -3510,7 +3510,7 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
                             if (itr.second.state == PLAYERSPELL_REMOVED)
                                 continue;
 
-                            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
+                            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(itr.first);
                             if (spellInfo && spellInfo->SpellFamilyName == SPELLFAMILY_WARRIOR && spellInfo->SpellIconID == 139)
                                 Rage_val += target->CalculateSpellEffectValue(target, spellInfo, EFFECT_INDEX_0) * 10;
                         }
@@ -4337,7 +4337,7 @@ void Aura::HandleAuraModStun(bool apply, bool Real)
                     default: sLog.outError("Spell selection called for unexpected original spell %u, new spell for this spell family?", GetId()); return;
                 }
 
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell_id);
 
                 if (!spellInfo)
                     return;
@@ -6578,7 +6578,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             {
                 if (itr.second.state == PLAYERSPELL_REMOVED) continue;
                 if (itr.first == spellId1 || itr.first == spellId2) continue;
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(itr.first);
                 if (!spellInfo || !IsNeedCastSpellAtFormApply(spellInfo, form))
                     continue;
                 target->CastSpell(target, itr.first, TRIGGERED_OLD_TRIGGERED, nullptr, this);
@@ -6587,7 +6587,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             // Leader of the Pack
             if (((Player*)target)->HasSpell(17007))
             {
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(24932);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(24932);
                 if (spellInfo && spellInfo->Stances & (1 << (form - 1)))
                     target->CastSpell(target, 24932, TRIGGERED_OLD_TRIGGERED, nullptr, this);
             }
@@ -7983,7 +7983,7 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
     m_auraScript(SpellScriptMgr::GetAuraScript(spellproto->Id))
 {
     MANGOS_ASSERT(target);
-    MANGOS_ASSERT(spellproto && spellproto == sSpellTemplate.LookupEntry<SpellEntry>(spellproto->Id) && "`info` must be pointer to sSpellTemplate element");
+    MANGOS_ASSERT(spellproto && spellproto == sSpellTemplate.LookupEntry(spellproto->Id) && "`info` must be pointer to sSpellTemplate element");
 
     if (!caster)
         m_casterGuid = target->GetObjectGuid();
@@ -8260,7 +8260,7 @@ void SpellAuraHolder::CleanupTriggeredSpells()
         if (!tSpellId)
             continue;
 
-        SpellEntry const* tProto = sSpellTemplate.LookupEntry<SpellEntry>(tSpellId);
+        SpellEntry const* tProto = sSpellTemplate.LookupEntry(tSpellId);
         if (!tProto)
             continue;
 
@@ -8535,7 +8535,7 @@ void SpellAuraHolder::HandleSpellSpecificBoosts(bool apply)
         Unit* boostCaster = m_target;
         Unit* boostTarget = nullptr;
         ObjectGuid casterGuid = m_target->GetObjectGuid(); // caster can be nullptr, but guid is still valid for removal
-        SpellEntry const* boostEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+        SpellEntry const* boostEntry = sSpellTemplate.LookupEntry(spellId);
         for (uint32 target : boostEntry->EffectImplicitTargetA)
         {
             switch (target)

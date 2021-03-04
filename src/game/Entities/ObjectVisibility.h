@@ -20,35 +20,10 @@
 #define __OBJECT_VISIBILITY_H
 
 #include "Common.h"
+#include "ObjectVisibilityDefines.h"
 
 class WorldObject;
 class Unit;
-
-enum class VisibilityDistanceType : uint32
-{
-    Normal = 0,
-    Tiny = 1,
-    Small = 2,
-    Large = 3,
-    Gigantic = 4,
-    Infinite = 5,
-
-    Max
-};
-
-enum StealthType : uint32
-{
-    STEALTH_UNIT = 0,
-    STEALTH_TRAP = 1,
-    STEALTH_TYPE_MAX,
-};
-
-enum InvisibilityType : uint32
-{
-    INVISIBILITY_TRAP = 3,
-    INVISIBILITY_DRUNK = 6,
-    INVISIBILITY_TYPE_MAX = 32,
-};
 
 class VisibilityData
 {

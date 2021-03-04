@@ -1816,7 +1816,7 @@ uint32 BattleGroundMgr::CreateBattleGround(BattleGroundTypeId bgTypeId, bool IsA
 void BattleGroundMgr::CreateInitialBattleGrounds()
 {
     uint32 count = 0;
-    //                                                0   1                 2                 3      4      5                6             7 
+    //                                                0   1                 2                 3      4      5                6             7
     QueryResult* result = WorldDatabase.Query("SELECT id, MinPlayersPerTeam,MaxPlayersPerTeam,MinLvl,MaxLvl,AllianceStartLoc,HordeStartLoc,StartMaxDist FROM battleground_template");
 
     if (!result)
@@ -1870,7 +1870,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
 
         uint32 start1 = fields[5].GetUInt32();
 
-        WorldSafeLocsEntry const* start = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(start1);
+        WorldSafeLocsEntry const* start = sWorldSafeLocsStore.LookupEntry(start1);
         if (start)
         {
             allianceStartLoc[0] = start->x;
@@ -1893,7 +1893,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
 
         uint32 start2 = fields[6].GetUInt32();
 
-        start = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(start2);
+        start = sWorldSafeLocsStore.LookupEntry(start2);
         if (start)
         {
             hordeStartLoc[0] = start->x;

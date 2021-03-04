@@ -51,7 +51,7 @@ extern pEffect SpellEffects[MAX_SPELL_EFFECTS];
 
 bool IsQuestTameSpell(uint32 spellId)
 {
-    SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellId);
     if (!spellproto)
         return false;
 
@@ -318,7 +318,7 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     m_spellScript(SpellScriptMgr::GetSpellScript(info->Id)), m_spellLog(this), m_trueCaster(caster)
 {
     MANGOS_ASSERT(caster != nullptr && info != nullptr);
-    MANGOS_ASSERT(info == sSpellTemplate.LookupEntry<SpellEntry>(info->Id) && "`info` must be pointer to sSpellTemplate element");
+    MANGOS_ASSERT(info == sSpellTemplate.LookupEntry(info->Id) && "`info` must be pointer to sSpellTemplate element");
 
     m_spellInfo = info;
     m_triggeredBySpellInfo = triggeredBy;
@@ -3076,7 +3076,7 @@ void Spell::cast(bool skipCheck)
                     if (!itr.second.active || itr.second.disabled || itr.second.state == PLAYERSPELL_REMOVED)
                         continue;
 
-                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
+                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(itr.first);
                     if (!spellInfo)
                         continue;
 
@@ -4408,7 +4408,7 @@ void Spell::HandleEffect(Unit* pUnitTarget, Item* pItemTarget, GameObject* pGOTa
 
 void Spell::AddTriggeredSpell(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
 
     if (!spellInfo)
     {
@@ -4421,7 +4421,7 @@ void Spell::AddTriggeredSpell(uint32 spellId)
 
 void Spell::AddPrecastSpell(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
 
     if (!spellInfo)
     {
@@ -5031,7 +5031,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(m_spellInfo->EffectTriggerSpell[i]);
+                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry(m_spellInfo->EffectTriggerSpell[i]);
 
                 if (!learn_spellproto)
                     return SPELL_FAILED_NOT_KNOWN;
@@ -5054,7 +5054,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (!pet)
                     return SPELL_FAILED_NO_PET;
 
-                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(m_spellInfo->EffectTriggerSpell[i]);
+                SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry(m_spellInfo->EffectTriggerSpell[i]);
 
                 if (!learn_spellproto)
                     return SPELL_FAILED_NOT_KNOWN;
@@ -7199,7 +7199,7 @@ void Spell::SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpel
     if (skillval >= 225 && (spellId300 > 0 || spellId225 > 0))
     {
         uint32 spellid = skillval >= 300 ? spellId300 : spellId225;
-        SpellEntry const* pSpell = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+        SpellEntry const* pSpell = sSpellTemplate.LookupEntry(spellid);
         if (!pSpell)
         {
             sLog.outError("SelectMountByAreaAndSkill: unknown spell id %i by caster: %s", spellid, target->GetGuidStr().c_str());
@@ -7219,7 +7219,7 @@ void Spell::SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpel
             {
                 if (iter->second.state != PLAYERSPELL_REMOVED)
                 {
-                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(iter->first);
+                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(iter->first);
                     for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
                     {
                         if (spellInfo->EffectApplyAuraName[i] == SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED)
@@ -7380,7 +7380,7 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
 
 float Spell::GetCone()
 {
-    if (SpellCone const* coneData = sSpellCones.LookupEntry<SpellCone>(sSpellMgr.GetFirstSpellInChain(m_spellInfo->Id)))
+    if (SpellCone const* coneData = sSpellCones.LookupEntry(sSpellMgr.GetFirstSpellInChain(m_spellInfo->Id)))
         return G3D::toRadians(coneData->coneAngle);
 
     return M_PI_F / 3.f; // 60 degrees is default

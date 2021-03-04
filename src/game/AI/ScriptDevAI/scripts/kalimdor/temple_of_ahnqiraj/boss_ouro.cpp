@@ -435,7 +435,7 @@ struct PeriodicScarabTrigger : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
     {
-        data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_SUMMON_SCARABS);
+        data.spellInfo = sSpellTemplate.LookupEntry(SPELL_SUMMON_SCARABS);
         data.caster = aura->GetTarget();
         data.target = nullptr;
     }

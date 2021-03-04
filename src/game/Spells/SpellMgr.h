@@ -306,7 +306,7 @@ inline bool IsPassiveSpell(SpellEntry const* spellInfo)
 
 inline bool IsPassiveSpell(uint32 spellId)
 {
-    const SpellEntry* entry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    const SpellEntry* entry = sSpellTemplate.LookupEntry(spellId);
     return (entry && IsPassiveSpell(entry));
 }
 
@@ -325,7 +325,7 @@ inline bool IsAutocastable(SpellEntry const* spellInfo)
 
 inline bool IsAutocastable(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!spellInfo)
         return false;
     return IsAutocastable(spellInfo);
@@ -525,7 +525,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 37119:         // Spirit Particles (Spawn)
         case 37266:         // Disease Cloud
         case 37411:         // Skettis Corrupted Ghosts
-        case 37497:         // Shadowmoon Ghost Invisibility (Ghostrider of Karabor in SMV) 
+        case 37497:         // Shadowmoon Ghost Invisibility (Ghostrider of Karabor in SMV)
         case 37509:         // Ghostly Facade
         case 37816:         // Shadowform
         case 38732:         // Fire Shield
@@ -1037,7 +1037,7 @@ inline bool IsPositiveEffectTargetMode(const SpellEntry* entry, SpellEffectIndex
         // Its possible to go infinite cycle with triggered spells. We are interested to peek only at the first layer so far
         if (!recursive && spellid && (spellid != entry->Id))
         {
-            if (const SpellEntry* triggered = sSpellTemplate.LookupEntry<SpellEntry>(spellid))
+            if (const SpellEntry* triggered = sSpellTemplate.LookupEntry(spellid))
             {
                 for (uint32 i = EFFECT_INDEX_0; i < MAX_EFFECT_INDEX; ++i)
                 {
@@ -1250,7 +1250,7 @@ inline bool IsPositiveSpellTargetModeForSpecificTarget(uint32 spellId, uint8 eff
 {
     if (!spellId)
         return false;
-    return IsPositiveSpellTargetModeForSpecificTarget(sSpellTemplate.LookupEntry<SpellEntry>(spellId), effectMask, caster, target);
+    return IsPositiveSpellTargetModeForSpecificTarget(sSpellTemplate.LookupEntry(spellId), effectMask, caster, target);
 }
 
 inline bool IsPositiveSpellTargetMode(const SpellEntry* entry, const WorldObject* caster = nullptr, const WorldObject* target = nullptr)
@@ -1269,7 +1269,7 @@ inline bool IsPositiveSpellTargetMode(uint32 spellId, const WorldObject* caster,
 {
     if (!spellId)
         return false;
-    return IsPositiveSpellTargetMode(sSpellTemplate.LookupEntry<SpellEntry>(spellId), caster, target);
+    return IsPositiveSpellTargetMode(sSpellTemplate.LookupEntry(spellId), caster, target);
 }
 
 inline bool IsPositiveSpell(const SpellEntry* entry, const WorldObject* caster = nullptr, const WorldObject* target = nullptr)
@@ -1301,11 +1301,11 @@ inline bool IsPositiveSpell(uint32 spellId, const WorldObject* caster = nullptr,
 {
     if (!spellId)
         return false;
-    return IsPositiveSpell(sSpellTemplate.LookupEntry<SpellEntry>(spellId), caster, target);
+    return IsPositiveSpell(sSpellTemplate.LookupEntry(spellId), caster, target);
 }
 
 inline void GetChainJumpRange(SpellEntry const* spellInfo, SpellEffectIndex effIdx, float& minSearchRangeCaster, float& maxSearchRangeTarget)
-{ 
+{
     const SpellRangeEntry* range = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
     if (spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE)
         maxSearchRangeTarget = range->maxRange;
@@ -1599,7 +1599,7 @@ inline uint32 GetDispellMask(DispelType dispel)
 
 inline bool IsAuraAddedBySpell(uint32 auraType, uint32 spellId)
 {
-    SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellId);
     if (!spellproto) return false;
 
     for (int i = 0; i < 3; i++)
@@ -2070,7 +2070,7 @@ inline bool IsSimilarExistingAuraStronger(const Unit* caster, uint32 spellid, co
 {
     if (!spellid)
         return false;
-    return IsSimilarExistingAuraStronger(caster, sSpellTemplate.LookupEntry<SpellEntry>(spellid), existing);
+    return IsSimilarExistingAuraStronger(caster, sSpellTemplate.LookupEntry(spellid), existing);
 }
 
 // Diminishing Returns interaction with spells
@@ -2244,12 +2244,6 @@ struct SpellTargetPosition
     float  target_Orientation;
 };
 
-struct SpellCone
-{
-    uint32 spellId;
-    int32 coneAngle;
-};
-
 typedef std::unordered_map<uint32, SpellTargetPosition> SpellTargetPositionMap;
 
 // Spell pet auras
@@ -2396,7 +2390,7 @@ class SpellMgr
             SpellAffectMap::const_iterator itr = mSpellAffectMap.find((spellId << 8) + effectId);
             if (itr != mSpellAffectMap.end())
                 return ClassFamilyMask(itr->second);
-            if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId))
+            if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spellId))
                 return ClassFamilyMask(spellEntry->EffectItemType[effectId]);
             return ClassFamilyMask();
         }

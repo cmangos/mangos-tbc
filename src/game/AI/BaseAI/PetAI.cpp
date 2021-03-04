@@ -190,7 +190,7 @@ void PetAI::UpdateAI(const uint32 diff)
                      && m_unit->IsWithinLOSInMap(victim, true))
             {
                 uint32 spellId = charminfo->GetSpellOpener();
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
                 Spell* spell = new Spell(m_unit, spellInfo, TRIGGERED_NONE);
 
                 // Push back stored spell
@@ -208,7 +208,7 @@ void PetAI::UpdateAI(const uint32 diff)
                 if (!spellId)
                     continue;
 
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
                 if (!spellInfo)
                     continue;
 

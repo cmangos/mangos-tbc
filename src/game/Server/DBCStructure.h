@@ -23,10 +23,15 @@
 #include "MotionGenerators/Path.h"
 #include "Platform/Define.h"
 #include "Globals/SharedDefines.h"
+#include "Entities/ObjectVisibilityDefines.h"
+#include "Globals/Conditions.h"
 
 #include <map>
 #include <set>
 #include <vector>
+#include "Util.h"
+#include "Entities/ObjectGuid.h"
+#include "Entities/ItemPrototype.h"
 
 // Structures using to access raw DBC data and required packing to portability
 
@@ -220,7 +225,7 @@ struct CinematicSequencesEntry
 struct CreatureDisplayInfoEntry
 {
     uint32      Displayid;                                  // 0        m_ID
-    uint32      ModelId;                                    // 1        
+    uint32      ModelId;                                    // 1
     // 2        m_soundID
     uint32      ExtendedDisplayInfoID;                      // 3        m_extendedDisplayInfoID -> CreatureDisplayInfoExtraEntry::DisplayExtraId
     float       scale;                                      // 4        m_creatureModelScale
@@ -1254,13 +1259,6 @@ struct WorldSafeLocsEntry
 };
 */
 
-// GCC have alternative #pragma pack() syntax and old gcc version not support pack(pop), also any gcc version not support it at some platform
-#if defined( __GNUC__ )
-#pragma pack()
-#else
-#pragma pack(pop)
-#endif
-
 struct ItemCategorySpellPair
 {
     uint32 spellId;
@@ -1304,4 +1302,298 @@ typedef std::vector<TaxiPathNodeList> TaxiPathNodesByPath;
 
 #define TaxiMaskSize 16
 typedef uint32 TaxiMask[TaxiMaskSize];
+
+#define CREATURE_MAX_SPELLS 10
+#define MAX_KILL_CREDIT 2
+#define MAX_CREATURE_MODEL 4
+#define USE_DEFAULT_DATABASE_LEVEL  0                   // just used to show we don't want to force the new creature level and use the level stored in db
+#define MINIMUM_LOOTING_TIME (2 * MINUTE * IN_MILLISECONDS) // give player enough time to pick loot
+
+// from `creature_addon` and `creature_template_addon`tables
+struct CreatureDataAddon
+{
+    uint32 guidOrEntry;
+    uint32 mount;
+    uint32 bytes1;
+    uint8  sheath_state;                                    // SheathState
+    uint8  flags;                                           // UnitBytes2_Flags
+    uint32 emote;
+    uint32 move_flags;
+    uint32 const* auras;                                    // loaded as char* "spell1 spell2 ... "
+};
+
+// Bases values for given Level and UnitClass
+struct CreatureClassLvlStats
+{
+    uint32  BaseHealth;
+    uint32  BaseMana;
+    float   BaseDamage;
+    float   BaseMeleeAttackPower;
+    float   BaseRangedAttackPower;
+    uint32  BaseArmor;
+};
+
+struct CreatureModelInfo
+{
+    uint32 modelid;
+    float bounding_radius;
+    float combat_reach;
+    float SpeedWalk;
+    float SpeedRun;
+    uint8 gender;
+    uint32 modelid_other_gender;                            // The oposite gender for this modelid (male/female)
+    uint32 modelid_alternative;                             // An alternative model. Generally same gender(2)
+};
+
+struct CreatureModelRace
+{
+    uint32 modelid;                                         // Native model/base model the selection is for
+    uint32 racemask;                                        // Races it applies to (and then a player source must exist for selection)
+    uint32 creature_entry;                                  // Modelid from creature_template.entry will be selected
+    uint32 modelid_racial;                                  // Explicit modelid. Used if creature_template entry is not defined
+};
+
+struct CreatureConditionalSpawn
+{
+    uint32 Guid;
+    uint32 EntryAlliance;
+    uint32 EntryHorde;
+    // Note: future condition flags to be added
+};
+
+// from `creature_template` table
+struct CreatureInfo
+{
+    uint32  Entry;
+    char* Name;
+    char* SubName;
+    char* IconName;
+    uint32  MinLevel;
+    uint32  MaxLevel;
+    uint32  HeroicEntry;
+    uint32  ModelId[MAX_CREATURE_MODEL];
+    uint32  Faction;
+    float   Scale;
+    uint32  Family;                                        // enum CreatureFamily values (optional)
+    uint32  CreatureType;                                  // enum CreatureType values
+    uint32  InhabitType;
+    uint32  RegenerateStats;
+    bool    RacialLeader;
+    uint32  NpcFlags;
+    uint32  UnitFlags;                                     // enum UnitFlags mask values
+    uint32  DynamicFlags;
+    uint32  ExtraFlags;
+    uint32  CreatureTypeFlags;                             // enum CreatureTypeFlags mask values
+    float   SpeedWalk;
+    float   SpeedRun;
+    uint32  Detection;                                     // Detection Range for Line of Sight aggro
+    uint32  CallForHelp;
+    uint32  Pursuit;
+    uint32  Leash;
+    uint32  Timeout;
+    uint32  UnitClass;                                     // enum Classes. Note only 4 classes are known for creatures.
+    uint32  Rank;
+    int32   Expansion;                                     // creature expansion, important for stats, CAN BE -1 as marker for some invalid cases.
+    float   HealthMultiplier;
+    float   PowerMultiplier;
+    float   DamageMultiplier;
+    float   DamageVariance;
+    float   ArmorMultiplier;
+    float   ExperienceMultiplier;
+    uint32  MinLevelHealth;
+    uint32  MaxLevelHealth;
+    uint32  MinLevelMana;
+    uint32  MaxLevelMana;
+    float   MinMeleeDmg;
+    float   MaxMeleeDmg;
+    float   MinRangedDmg;
+    float   MaxRangedDmg;
+    uint32  Armor;
+    uint32  MeleeAttackPower;
+    uint32  RangedAttackPower;
+    uint32  MeleeBaseAttackTime;
+    uint32  RangedBaseAttackTime;
+    uint32  DamageSchool;
+    uint32  MinLootGold;
+    uint32  MaxLootGold;
+    uint32  LootId;
+    uint32  PickpocketLootId;
+    uint32  SkinningLootId;
+    uint32  KillCredit[MAX_KILL_CREDIT];
+    uint32  MechanicImmuneMask;
+    uint32  SchoolImmuneMask;
+    int32   ResistanceHoly;
+    int32   ResistanceFire;
+    int32   ResistanceNature;
+    int32   ResistanceFrost;
+    int32   ResistanceShadow;
+    int32   ResistanceArcane;
+    uint32  PetSpellDataId;
+    uint32  MovementType;
+    uint32  TrainerType;
+    uint32  TrainerSpell;
+    uint32  TrainerClass;
+    uint32  TrainerRace;
+    uint32  TrainerTemplateId;
+    uint32  VendorTemplateId;
+    uint32  EquipmentTemplateId;
+    uint32  GossipMenuId;
+    VisibilityDistanceType visibilityDistanceType;
+    char const* AIName;
+    uint32  ScriptID;
+
+    // helpers
+    static HighGuid GetHighGuid()
+    {
+        return HIGHGUID_UNIT;                               // in pre-3.x always HIGHGUID_UNIT
+    }
+
+    ObjectGuid GetObjectGuid(uint32 lowguid) const { return ObjectGuid(GetHighGuid(), Entry, lowguid); }
+
+    SkillType GetRequiredLootSkill() const
+    {
+        if (CreatureTypeFlags & CREATURE_TYPEFLAGS_HERBLOOT)
+            return SKILL_HERBALISM;
+        if (CreatureTypeFlags & CREATURE_TYPEFLAGS_MININGLOOT)
+            return SKILL_MINING;
+
+        return SKILL_SKINNING;                          // normal case
+    }
+
+    bool isTameable() const
+    {
+        return CreatureType == CREATURE_TYPE_BEAST && Family != 0 && (CreatureTypeFlags & CREATURE_TYPEFLAGS_TAMEABLE);
+    }
+};
+
+struct CreatureTemplateSpells
+{
+    uint32 entry;
+    uint32 setId;
+    uint32 spells[CREATURE_MAX_SPELLS];
+};
+
+struct CreatureCooldowns
+{
+    uint32 entry;
+    uint32 spellId;
+    uint32 cooldownMin;
+    uint32 cooldownMax;
+};
+
+struct EquipmentInfo
+{
+    uint32 entry;
+    uint32 equipentry[3];
+};
+
+// depricated old way
+struct EquipmentInfoRaw
+{
+    uint32  entry;
+    uint32  equipmodel[3];
+    uint32  equipinfo[3];
+    uint32  equipslot[3];
+};
+
+struct CreatureSpawnTemplate
+{
+    uint32 entry;
+    int64 unitFlags;
+    uint32 faction;
+    uint32 modelId;
+    int32 equipmentId;
+    uint32 curHealth;
+    uint32 curMana;
+    uint32 spawnFlags;
+
+    bool IsRunning() const { return (spawnFlags & SPAWN_FLAG_RUN_ON_SPAWN) != 0; }
+    bool IsHovering() const { return (spawnFlags & SPAWN_FLAG_HOVER) != 0; }
+};
+
+// from `creature` table
+struct CreatureData
+{
+    uint32 id;                                              // entry in creature_template
+    uint16 mapid;
+    uint32 modelid_override;                                // overrides any model defined in creature_template
+    int32 equipmentId;
+    float posX;
+    float posY;
+    float posZ;
+    float orientation;
+    uint32 spawntimesecsmin;
+    uint32 spawntimesecsmax;
+    float spawndist;
+    uint32 currentwaypoint;
+    uint32 curhealth;
+    uint32 curmana;
+    bool  is_dead;
+    uint8 movementType;
+    uint8 spawnMask;
+    int16 gameEvent;
+    uint16 GuidPoolId;
+    uint16 EntryPoolId;
+    uint16 OriginalZoneId;
+    CreatureSpawnTemplate const* spawnTemplate;
+
+    // helper function
+    ObjectGuid GetObjectGuid(uint32 lowguid) const { return ObjectGuid(CreatureInfo::GetHighGuid(), id, lowguid); }
+    uint32 GetRandomRespawnTime() const { return urand(spawntimesecsmin, spawntimesecsmax); }
+
+    // return false if it should be handled by GameEventMgr or PoolMgr
+    bool IsNotPartOfPoolOrEvent() const { return (!gameEvent && !GuidPoolId && !EntryPoolId); }
+};
+
+struct PageText
+{
+    uint32 Page_ID;
+    char* Text;
+
+    uint32 Next_Page;
+};
+
+struct InstanceTemplate
+{
+    uint32 map;                                             // instance map
+    uint32 parent;                                          // non-continent parent instance (for instance with entrance in another instances)
+    // or 0 (not related to continent 0 map id)
+    uint32 levelMin;
+    uint32 levelMax;
+    uint32 maxPlayers;
+    uint32 reset_delay;                                     // in days
+    uint32 script_id;
+    bool   mountAllowed;
+};
+
+struct WorldTemplate
+{
+    uint32 map;                                             // non-instance map
+    uint32 script_id;
+};
+
+struct SpellCone
+{
+    uint32 spellId;
+    int32 coneAngle;
+};
+
+struct WorldSafeLocsEntry
+{
+    uint32    ID;
+    uint32    map_id;
+    float     x;
+    float     y;
+    float     z;
+    float     o;
+    char* name;
+};
+
+// GCC have alternative #pragma pack() syntax and old gcc version not support pack(pop), also any gcc version not support it at some platform
+#if defined( __GNUC__ )
+#pragma pack()
+#else
+#pragma pack(pop)
+#endif
+
 #endif

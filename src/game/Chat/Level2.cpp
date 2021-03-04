@@ -464,7 +464,7 @@ bool ChatHandler::HandleGoGraveyardCommand(char* args)
     if (!ExtractUInt32(&args, gyId))
         return false;
 
-    WorldSafeLocsEntry const* gy = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(gyId);
+    WorldSafeLocsEntry const* gy = sWorldSafeLocsStore.LookupEntry(gyId);
     if (!gy)
     {
         PSendSysMessage(LANG_COMMAND_GRAVEYARDNOEXIST, gyId);
@@ -1442,7 +1442,7 @@ bool ChatHandler::HandleLookupFactionCommand(char* args)
 
     for (uint32 id = 0; id < sFactionStore.GetMaxEntry(); ++id)
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(id);
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry(id);
         if (factionEntry)
         {
             int loc = GetSessionDbcLocale();
@@ -1555,7 +1555,7 @@ bool ChatHandler::HandleModifyRepCommand(char* args)
         }
     }
 
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionId);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
 
     if (!factionEntry)
     {
@@ -3438,7 +3438,7 @@ bool ChatHandler::HandleCharacterReputationCommand(char* args)
     FactionStateList const& targetFSL = target->GetReputationMgr().GetStateList();
     for (const auto& itr : targetFSL)
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(itr.second.ID);
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry(itr.second.ID);
 
         ShowFactionListHelper(factionEntry, loc, &itr.second, target);
     }
@@ -3782,7 +3782,7 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
         if (skillLine->classmask && (skillLine->classmask & classmask) == 0)
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(skillLine->spellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(skillLine->spellId);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player, false))
             continue;
 

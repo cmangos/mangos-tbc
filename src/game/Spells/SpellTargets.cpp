@@ -307,7 +307,7 @@ void SpellTargetMgr::Initialize()
 {
     for (uint32 i = 0; i <= sSpellTemplate.GetMaxEntry(); ++i)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(i);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(i);
         if (!spellInfo)
             continue;
 

@@ -53,7 +53,7 @@ bool ItemUse_item_orb_of_draconic_energy(Player* pPlayer, Item* pItem, const Spe
     {
         pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
 
-        if (const SpellEntry* pSpellInfo = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_DOMINION_SOUL))
+        if (const SpellEntry* pSpellInfo = GetSpellStore()->LookupEntry(SPELL_DOMINION_SOUL))
             Spell::SendCastResult(pPlayer, pSpellInfo, 1, SPELL_FAILED_TARGET_AURASTATE);
 
         return true;
@@ -78,7 +78,7 @@ bool ItemUse_item_arcane_charges(Player* pPlayer, Item* pItem, const SpellCastTa
 
     pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
 
-    if (const SpellEntry* pSpellInfo = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_ARCANE_CHARGES))
+    if (const SpellEntry* pSpellInfo = GetSpellStore()->LookupEntry(SPELL_ARCANE_CHARGES))
         Spell::SendCastResult(pPlayer, pSpellInfo, 1, SPELL_FAILED_ERROR);
 
     return true;
@@ -121,7 +121,7 @@ bool ItemUse_item_gor_dreks_ointment(Player* pPlayer, Item* pItem, const SpellCa
     {
         pPlayer->SendEquipError(EQUIP_ERR_NONE, pItem, nullptr);
 
-        if (const SpellEntry* pSpellInfo = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_GORDREKS_OINTMENT))
+        if (const SpellEntry* pSpellInfo = GetSpellStore()->LookupEntry(SPELL_GORDREKS_OINTMENT))
             Spell::SendCastResult(pPlayer, pSpellInfo, 1, SPELL_FAILED_TARGET_AURASTATE);
 
         return true;

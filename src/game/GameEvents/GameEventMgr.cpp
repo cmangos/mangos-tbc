@@ -474,13 +474,13 @@ void GameEventMgr::LoadFromDB()
                 newData.entry_id = 0;
             }
 
-            if (newData.spell_id_start && !sSpellTemplate.LookupEntry<SpellEntry>(newData.spell_id_start))
+            if (newData.spell_id_start && !sSpellTemplate.LookupEntry(newData.spell_id_start))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with nonexistent spell_start %u, set to no start spell.", guid, newData.spell_id_start);
                 newData.spell_id_start = 0;
             }
 
-            if (newData.spell_id_end && !sSpellTemplate.LookupEntry<SpellEntry>(newData.spell_id_end))
+            if (newData.spell_id_end && !sSpellTemplate.LookupEntry(newData.spell_id_end))
             {
                 sLog.outErrorDb("Table `game_event_creature_data` have creature (Guid: %u) with nonexistent spell_end %u, set to no end spell.", guid, newData.spell_id_end);
                 newData.spell_id_end = 0;

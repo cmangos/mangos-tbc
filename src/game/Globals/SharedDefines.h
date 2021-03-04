@@ -2593,4 +2593,16 @@ enum MovementEvent
     EVENT_JUMP   = 10001, // TODO: Implement knockback using this
 };
 
+enum SpawnFlags
+{
+    SPAWN_FLAG_RUN_ON_SPAWN = 0x01,
+    SPAWN_FLAG_HOVER = 0x02,
+};
+
+enum SplineFlags
+{
+    SPLINEFLAG_WALKMODE = 0x0000100,
+    SPLINEFLAG_FLYING = 0x0000200,
+};
+
 #endif

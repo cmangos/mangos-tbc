@@ -98,6 +98,7 @@ class SQLStorageBase
         char* m_data;
 };
 
+template<typename ST>
 class SQLStorage : public SQLStorageBase
 {
         template<class DerivedLoader, class StorageClass> friend class SQLStorageLoaderBase;
@@ -109,12 +110,11 @@ class SQLStorage : public SQLStorageBase
 
         ~SQLStorage() { Free(); }
 
-        template<class T>
-        T const* LookupEntry(uint32 id) const
+        ST const* LookupEntry(uint32 id) const
         {
             if (id >= GetMaxEntry())
                 return nullptr;
-            return reinterpret_cast<T const*>(m_Index[id]);
+            return reinterpret_cast<ST const*>(m_Index[id]);
         }
 
         void Load(bool error_at_empty = true);
@@ -278,7 +278,8 @@ class SQLStorageLoaderBase
         void storeValue(char* value, StorageClass& store, char* record, uint32 field_pos, uint32& offset);
 };
 
-class SQLStorageLoader : public SQLStorageLoaderBase<SQLStorageLoader, SQLStorage>
+template <class T>
+class SQLStorageLoader : public SQLStorageLoaderBase<SQLStorageLoader<T>, SQLStorage<T>>
 {
 };
 

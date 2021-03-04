@@ -200,7 +200,7 @@ inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
     if (target->GetTypeId() == TYPEID_PLAYER && target != i_check && (((Player*) target)->IsGameMaster() || ((Player*)target)->GetVisibility() == VISIBILITY_OFF))
         return;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(i_dynobject.GetSpellId());
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(i_dynobject.GetSpellId());
     SpellEffectIndex eff_index  = i_dynobject.GetEffIndex();
     Unit* caster = i_dynobject.GetCaster();
 

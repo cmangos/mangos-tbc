@@ -686,7 +686,7 @@ bool Unit::IsTriggeredAtSpellProcEvent(ProcExecutionData& data, SpellAuraHolder*
 
 SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MAX_EFFECT_INDEX>& basepoints, uint32 triggeredSpellId, Item* castItem, Aura* triggeredByAura, uint32 cooldown)
 {
-    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry<SpellEntry>(triggeredSpellId);
+    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry(triggeredSpellId);
 
     if (!triggerEntry)
     {
@@ -1854,7 +1854,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         }
                     }
 
-                    SpellEntry const* windfurySpellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                    SpellEntry const* windfurySpellEntry = sSpellTemplate.LookupEntry(spellId);
                     if (!windfurySpellEntry)
                     {
                         sLog.outError("Unit::HandleDummyAuraProc: nonexistent spell id: %u (Windfury)", spellId);
@@ -2003,7 +2003,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 }
 
                 // Remove cooldown (Chain Lightning - have Category Recovery time)
-                SpellEntry const* procSpellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                SpellEntry const* procSpellEntry = sSpellTemplate.LookupEntry(spellId);
                 if (!procSpellEntry)
                 {
                     sLog.outError("Unit::HandleDummyAuraProc: nonexistent spell id: %u (Lightning Bolt and Chain Lightning)", spellId);
@@ -2509,7 +2509,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                             return SPELL_AURA_PROC_FAILED;
                     }
                 }
-                SpellEntry const* originalSpell = sSpellTemplate.LookupEntry<SpellEntry>(originalSpellId);
+                SpellEntry const* originalSpell = sSpellTemplate.LookupEntry(originalSpellId);
                 if (!originalSpell)
                 {
                     sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u unknown but selected as original in Illu", originalSpellId);
@@ -2664,7 +2664,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
     }
 
     // All ok. Check current trigger spell
-    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry<SpellEntry>(trigger_spell_id);
+    SpellEntry const* triggerEntry = sSpellTemplate.LookupEntry(trigger_spell_id);
     if (!triggerEntry)
     {
         // Not cast unknown spell

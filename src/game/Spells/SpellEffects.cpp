@@ -3046,7 +3046,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                             if (pEnchant->type[s] != ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL)
                                 continue;
 
-                            SpellEntry const* combatEntry = sSpellTemplate.LookupEntry<SpellEntry>(pEnchant->spellid[s]);
+                            SpellEntry const* combatEntry = sSpellTemplate.LookupEntry(pEnchant->spellid[s]);
                             if (!combatEntry || combatEntry->Dispel != DISPEL_POISON)
                                 continue;
 
@@ -3145,7 +3145,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 case 561:                                   // Judgement of command
                 {
                     if (unitTarget)
-                        if (SpellEntry const* spell_proto = sSpellTemplate.LookupEntry<SpellEntry>(m_currentBasePoints[eff_idx]))
+                        if (SpellEntry const* spell_proto = sSpellTemplate.LookupEntry(m_currentBasePoints[eff_idx]))
                             m_caster->CastSpell(unitTarget, spell_proto, TRIGGERED_OLD_TRIGGERED, nullptr);
 
                     return;
@@ -3212,7 +3212,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
                 }
 
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell_id);
 
                 if (!spellInfo)
                 {
@@ -3325,7 +3325,7 @@ void Spell::EffectTriggerSpellWithValue(SpellEffectIndex eff_idx)
     uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[eff_idx];
 
     // normal case
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(triggered_spell_id);
 
     if (!spellInfo)
     {
@@ -3349,7 +3349,7 @@ void Spell::EffectTriggerSpellWithValue(SpellEffectIndex eff_idx)
 void Spell::EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx)
 {
     uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[eff_idx];
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(triggered_spell_id);
 
     if (!spellInfo)
     {
@@ -3370,7 +3370,7 @@ void Spell::EffectForceCast(SpellEffectIndex effIndex)
     uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[effIndex];
 
     // normal case
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(triggered_spell_id);
 
     if (!spellInfo)
     {
@@ -3453,7 +3453,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
     }
 
     // normal case
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(triggered_spell_id);
     if (!spellInfo)
     {
         sLog.outError("EffectTriggerSpell of spell %u: triggering unknown spell id %i", m_spellInfo->Id, triggered_spell_id);
@@ -3527,7 +3527,7 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
     uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[effect_idx];
 
     // normal case
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(triggered_spell_id);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(triggered_spell_id);
 
     if (!spellInfo)
     {
@@ -4248,7 +4248,7 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
                 if (itr->second & (ELIXIR_UNSTABLE_MASK | ELIXIR_SHATTRATH_MASK))
                     continue;
 
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(itr->first);
                 if (spellInfo && (spellInfo->spellLevel < m_spellInfo->spellLevel || spellInfo->spellLevel > unitTarget->getLevel()))
                     continue;
 
@@ -5848,7 +5848,7 @@ void Spell::EffectLearnPetSpell(SpellEffectIndex eff_idx)
     if (!pet->IsAlive())
         return;
 
-    SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry<SpellEntry>(m_spellInfo->EffectTriggerSpell[eff_idx]);
+    SpellEntry const* learn_spellproto = sSpellTemplate.LookupEntry(m_spellInfo->EffectTriggerSpell[eff_idx]);
     if (!learn_spellproto)
         return;
 
@@ -5961,7 +5961,7 @@ void Spell::EffectWeaponDmg(SpellEffectIndex eff_idx)
                         if (!itr->second.active || itr->second.disabled || itr->second.state == PLAYERSPELL_REMOVED)
                             continue;
 
-                        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+                        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(itr->first);
                         if (!spellInfo)
                             continue;
 
@@ -8101,7 +8101,7 @@ void Spell::EffectStuck(SpellEffectIndex /*eff_idx*/)
     {
         player->TeleportToHomebind(TELE_TO_SPELL);
         // Trigger cooldown
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(8690);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(8690);
         if (!spellInfo)
             return;
         Spell spell(player, spellInfo, TRIGGERED_OLD_TRIGGERED);
@@ -8780,7 +8780,7 @@ void Spell::EffectReputation(SpellEffectIndex eff_idx)
     int32  rep_change = m_currentBasePoints[eff_idx];
     uint32 faction_id = m_spellInfo->EffectMiscValue[eff_idx];
 
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(faction_id);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction_id);
 
     if (!factionEntry)
         return;
@@ -9097,7 +9097,7 @@ void Spell::EffectDestroyAllTotems(SpellEffectIndex /*eff_idx*/)
             if (damage)
             {
                 uint32 spell_id = totem->GetUInt32Value(UNIT_CREATED_BY_SPELL);
-                if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id))
+                if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell_id))
                 {
                     uint32 manacost = spellInfo->manaCost + m_caster->GetCreateMana() * spellInfo->ManaCostPercentage / 100;
                     mana += manacost * damage / 100;

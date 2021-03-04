@@ -101,7 +101,7 @@ void CharacterDatabaseCleaner::CleanCharacterSkills()
 
 bool CharacterDatabaseCleaner::SpellCheck(uint32 spell_id)
 {
-    return !!sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+    return !!sSpellTemplate.LookupEntry(spell_id);
 }
 
 void CharacterDatabaseCleaner::CleanCharacterSpell()

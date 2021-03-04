@@ -130,7 +130,7 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* target, int32 school, int32 mech
     // Check if each spell is viable(set it to null if not)
     for (uint8 i = 0; i < 4; ++i)
     {
-        SpellEntry const* tempSpellInfo = GetSpellStore()->LookupEntry<SpellEntry>(m_creature->m_spells[i]);
+        SpellEntry const* tempSpellInfo = GetSpellStore()->LookupEntry(m_creature->m_spells[i]);
 
         // This spell doesn't exist
         if (!tempSpellInfo)
@@ -230,7 +230,7 @@ void FillSpellSummary()
         SpellSummary[i].Effects = 0;
         SpellSummary[i].Targets = 0;
 
-        SpellEntry const* tempSpell = GetSpellStore()->LookupEntry<SpellEntry>(i);
+        SpellEntry const* tempSpell = GetSpellStore()->LookupEntry(i);
         // This spell doesn't exist
         if (!tempSpell)
             continue;

@@ -98,7 +98,7 @@ void RangedCombatAI::AddMainSpell(uint32 spellId)
     if (!m_mainSpellId) // only for first
     {
         m_mainSpellId = spellId;
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_mainSpellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(m_mainSpellId);
         m_mainSpellCost = Spell::CalculatePowerCost(spellInfo, m_creature);
         m_mainSpellMinRange = GetSpellMinRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
         m_mainAttackMask = SpellSchoolMask(m_mainAttackMask + spellInfo->SchoolMask);

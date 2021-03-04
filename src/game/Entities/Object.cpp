@@ -2589,7 +2589,7 @@ bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const
 
 bool WorldObject::IsSpellReady(uint32 spellId, ItemPrototype const* itemProto /*= nullptr*/) const
 {
-    SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spellId);
     if (!spellEntry)
         return false;
 
@@ -2666,7 +2666,7 @@ void WorldObject::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
 
 void WorldObject::RemoveSpellCooldown(uint32 spellId, bool updateClient /*= true*/)
 {
-    SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spellId);
     if (!spellEntry)
         return;
 

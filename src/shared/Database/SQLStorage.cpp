@@ -120,50 +120,6 @@ void SQLStorageBase::Free()
     m_recordCount = 0;
 }
 
-// -----------------------------------  SQLStorage  -------------------------------------------- //
-
-void SQLStorage::EraseEntry(uint32 id)
-{
-    m_Index[id] = nullptr;
-}
-
-void SQLStorage::Free()
-{
-    SQLStorageBase::Free();
-    delete[] m_Index;
-    m_Index = nullptr;
-}
-
-void SQLStorage::Load(bool error_at_empty /*= true*/)
-{
-    SQLStorageLoader loader;
-    loader.Load(*this, error_at_empty);
-}
-
-SQLStorage::SQLStorage(const char* fmt, const char* _entry_field, const char* sqlname)
-{
-    Initialize(sqlname, _entry_field, fmt, fmt);
-    m_Index = nullptr;
-}
-
-SQLStorage::SQLStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname)
-{
-    Initialize(sqlname, _entry_field, src_fmt, dst_fmt);
-    m_Index = nullptr;
-}
-
-void SQLStorage::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint32 recordSize)
-{
-    // Clear (possible) old data and old index array
-    Free();
-
-    // Set index array
-    m_Index = new char* [maxRecordId];
-    memset(m_Index, 0, maxRecordId * sizeof(char*));
-
-    SQLStorageBase::prepareToLoad(maxRecordId, recordCount, recordSize);
-}
-
 // -----------------------------------  SQLHashStorage  ---------------------------------------- //
 void SQLHashStorage::Load()
 {

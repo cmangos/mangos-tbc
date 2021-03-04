@@ -355,4 +355,54 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
     delete result;
 }
 
+
+// -----------------------------------  SQLStorage  -------------------------------------------- //
+template<typename ST>
+void SQLStorage<ST>::EraseEntry(uint32 id)
+{
+    m_Index[id] = nullptr;
+}
+
+template<typename ST>
+void SQLStorage<ST>::Free()
+{
+    SQLStorageBase::Free();
+    delete[] m_Index;
+    m_Index = nullptr;
+}
+
+template<typename ST>
+void SQLStorage<ST>::Load(bool error_at_empty /*= true*/)
+{
+    SQLStorageLoader<ST> loader;
+    loader.Load(*this, error_at_empty);
+}
+
+template<typename ST>
+SQLStorage<ST>::SQLStorage(const char* fmt, const char* _entry_field, const char* sqlname)
+{
+    Initialize(sqlname, _entry_field, fmt, fmt);
+    m_Index = nullptr;
+}
+
+template<typename ST>
+SQLStorage<ST>::SQLStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname)
+{
+    Initialize(sqlname, _entry_field, src_fmt, dst_fmt);
+    m_Index = nullptr;
+}
+
+template<typename ST>
+void SQLStorage<ST>::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint32 recordSize)
+{
+    // Clear (possible) old data and old index array
+    Free();
+
+    // Set index array
+    m_Index = new char* [maxRecordId];
+    memset(m_Index, 0, maxRecordId * sizeof(char*));
+
+    SQLStorageBase::prepareToLoad(maxRecordId, recordCount, recordSize);
+}
+
 #endif

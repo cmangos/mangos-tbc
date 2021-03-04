@@ -2232,7 +2232,7 @@ class Player : public Unit
             auto spellCDItr = m_cooldownMap.begin();
             while (spellCDItr != m_cooldownMap.end())
             {
-                SpellEntry const* entry = sSpellTemplate.LookupEntry<SpellEntry>(spellCDItr->first);
+                SpellEntry const* entry = sSpellTemplate.LookupEntry(spellCDItr->first);
                 if (entry && check(*entry))
                 {
                     SendClearCooldown(spellCDItr->first, this);
@@ -2569,7 +2569,7 @@ void RemoveItemsSetItem(Player* player, ItemPrototype const* proto);
 // "the bodies of template functions must be made available in a header file"
 template <class T> void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell, bool finalUse)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!spellInfo || spellInfo->SpellFamilyName != GetSpellClass() || spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS)) return; // client condition
     int32 totalpct = 100;
     int32 totalflat = 0;

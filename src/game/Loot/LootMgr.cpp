@@ -128,7 +128,7 @@ void LootStore::LoadLootTable()
 
             if (conditionId)
             {
-                const ConditionEntry* condition = sConditionStorage.LookupEntry<ConditionEntry>(conditionId);
+                const ConditionEntry* condition = sConditionStorage.LookupEntry(conditionId);
                 if (!condition)
                 {
                     sLog.outErrorDb("Table `%s` for entry %u, item %u has condition_id %u that does not exist in `conditions`, ignoring", GetName(), entry, item, uint32(conditionId));
@@ -2220,7 +2220,7 @@ void Loot::PrintLootList(ChatHandler& chat, WorldSession* session) const
     for (auto lootItem : m_lootItems)
     {
         uint32 itemId = lootItem->itemId;
-        ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype >(itemId);
+        ItemPrototype const* pProto = sItemStorage.LookupEntry(itemId);
         if (!pProto)
             continue;
 
@@ -2631,7 +2631,7 @@ void LoadLootTemplates_Creature()
     // remove real entries and check existence loot
     for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
         {
             if (uint32 lootid = cInfo->LootId)
             {
@@ -2661,7 +2661,7 @@ void LoadLootTemplates_Disenchant()
     // remove real entries and check existence loot
     for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
     {
-        if (ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i))
+        if (ItemPrototype const* proto = sItemStorage.LookupEntry(i))
         {
             if (uint32 lootid = proto->DisenchantID)
             {
@@ -2729,7 +2729,7 @@ void LoadLootTemplates_Item()
     // remove real entries and check existence loot
     for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
     {
-        if (ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i))
+        if (ItemPrototype const* proto = sItemStorage.LookupEntry(i))
         {
             if (!(proto->Flags & ITEM_FLAG_HAS_LOOT))
                 continue;
@@ -2754,7 +2754,7 @@ void LoadLootTemplates_Pickpocketing()
     // remove real entries and check existence loot
     for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
         {
             if (uint32 lootid = cInfo->PickpocketLootId)
             {
@@ -2780,7 +2780,7 @@ void LoadLootTemplates_Prospecting()
     // remove real entries and check existence loot
     for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
     {
-        ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i);
+        ItemPrototype const* proto = sItemStorage.LookupEntry(i);
         if (!proto)
             continue;
 
@@ -2820,7 +2820,7 @@ void LoadLootTemplates_Skinning()
     // remove real entries and check existence loot
     for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
         {
             if (uint32 lootid = cInfo->SkinningLootId)
             {
@@ -3003,7 +3003,7 @@ void LootMgr::CheckDropStats(ChatHandler& chat, uint32 amountOfCheck, uint32 loo
     for (auto itemStat : sortedResult)
     {
         uint32 itemId = itemStat.first;
-        ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype >(itemId);
+        ItemPrototype const* pProto = sItemStorage.LookupEntry(itemId);
         if (!pProto)
             continue;
 

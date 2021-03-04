@@ -347,7 +347,7 @@ void LoadDBCStores(const std::string& dataPath)
         if (!skillLine)
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(skillLine->spellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(skillLine->spellId);
         if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG))
         {
             for (unsigned int i = 1; i < sCreatureFamilyStore.GetNumRows(); ++i)
@@ -376,7 +376,7 @@ void LoadDBCStores(const std::string& dataPath)
     //    for (uint32 k = 0; k < 3; ++k)
     //    {
     //        if (enchantEntry->spellid[k])
-    //            if (!sSpellTemplate.LookupEntry<SpellEntry>(enchantEntry->spellid[k]))
+    //            if (!sSpellTemplate.LookupEntry(enchantEntry->spellid[k]))
     //                sLog.outErrorDb("Spell ID %u found in spell item enchant %u does not exist.", enchantEntry->spellid[k], i);
     //    }
     //}
@@ -499,7 +499,7 @@ void LoadDBCStores(const std::string& dataPath)
     {
         std::set<uint32> spellPaths;
         for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry(); ++i)
-            if (SpellEntry const* sInfo = sSpellTemplate.LookupEntry<SpellEntry>(i))
+            if (SpellEntry const* sInfo = sSpellTemplate.LookupEntry(i))
                 for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
                     if (sInfo->Effect[j] == 123 /*SPELL_EFFECT_SEND_TAXI*/)
                         spellPaths.insert(sInfo->EffectMiscValue[j]);

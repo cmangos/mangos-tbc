@@ -1679,7 +1679,7 @@ enum
 // This is a first attempt to implement GO type 30 behaviour
 struct go_aura_generator_000AI : public GameObjectAI
 {
-    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000), m_spellInfo(sSpellTemplate.LookupEntry<SpellEntry>(SPELL_OSCILLATING_FREQUENCY_SCANNER)) {}
+    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000), m_spellInfo(sSpellTemplate.LookupEntry(SPELL_OSCILLATING_FREQUENCY_SCANNER)) {}
 
     uint32 m_auraSearchTimer;
     ObjectGuid m_player;

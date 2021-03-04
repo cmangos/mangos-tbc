@@ -118,7 +118,7 @@ bool ConditionEntry::Meets(WorldObject const* target, Map const* map, WorldObjec
         sLog.outErrorDb("CONDITION %u type %u used with bad parameters, called from %s, used with target: %s, map %i, source %s",
             m_entry, m_condition, conditionSourceToStr[conditionSourceType], target ? target->GetGuidStr().c_str() : "<nullptr>", map ? map->GetId() : -1, source ? source->GetGuidStr().c_str() : "<nullptr>");
         return false;
-    } 
+    }
 
     bool result = Evaluate(target, map, source, conditionSourceType);
 
@@ -136,28 +136,28 @@ bool inline ConditionEntry::Evaluate(WorldObject const* target, Map const* map, 
         case CONDITION_NOT:
         {
             // Checked on load
-            return !sConditionStorage.LookupEntry<ConditionEntry>(m_value1)->Meets(target, map, source, conditionSourceType);
+            return !sConditionStorage.LookupEntry(m_value1)->Meets(target, map, source, conditionSourceType);
         }
         case CONDITION_OR:
         {
             // Third and fourth condition are optional
-            if (m_value3 && sConditionStorage.LookupEntry<ConditionEntry>(m_value3)->Meets(target, map, source, conditionSourceType))
+            if (m_value3 && sConditionStorage.LookupEntry(m_value3)->Meets(target, map, source, conditionSourceType))
                 return true;
-            if (m_value4 && sConditionStorage.LookupEntry<ConditionEntry>(m_value4)->Meets(target, map, source, conditionSourceType))
+            if (m_value4 && sConditionStorage.LookupEntry(m_value4)->Meets(target, map, source, conditionSourceType))
                 return true;
-            
-            return sConditionStorage.LookupEntry<ConditionEntry>(m_value1)->Meets(target, map, source, conditionSourceType) || sConditionStorage.LookupEntry<ConditionEntry>(m_value2)->Meets(target, map, source, conditionSourceType);
+
+            return sConditionStorage.LookupEntry(m_value1)->Meets(target, map, source, conditionSourceType) || sConditionStorage.LookupEntry(m_value2)->Meets(target, map, source, conditionSourceType);
         }
         case CONDITION_AND:
         {
             // Third and fourth condition are optional
             bool extraConditionsSatisfied = true;
             if (m_value3)
-                extraConditionsSatisfied = extraConditionsSatisfied && sConditionStorage.LookupEntry<ConditionEntry>(m_value3)->Meets(target, map, source, conditionSourceType);
+                extraConditionsSatisfied = extraConditionsSatisfied && sConditionStorage.LookupEntry(m_value3)->Meets(target, map, source, conditionSourceType);
             if (m_value4)
-                extraConditionsSatisfied = extraConditionsSatisfied && sConditionStorage.LookupEntry<ConditionEntry>(m_value4)->Meets(target, map, source, conditionSourceType);
+                extraConditionsSatisfied = extraConditionsSatisfied && sConditionStorage.LookupEntry(m_value4)->Meets(target, map, source, conditionSourceType);
 
-            return extraConditionsSatisfied && sConditionStorage.LookupEntry<ConditionEntry>(m_value1)->Meets(target, map, source, conditionSourceType) && sConditionStorage.LookupEntry<ConditionEntry>(m_value2)->Meets(target, map, source, conditionSourceType);
+            return extraConditionsSatisfied && sConditionStorage.LookupEntry(m_value1)->Meets(target, map, source, conditionSourceType) && sConditionStorage.LookupEntry(m_value2)->Meets(target, map, source, conditionSourceType);
         }
         case CONDITION_NONE:
         {
@@ -184,7 +184,7 @@ bool inline ConditionEntry::Evaluate(WorldObject const* target, Map const* map, 
         }
         case CONDITION_REPUTATION_RANK_MIN:
         {
-            FactionEntry const* faction = sFactionStore.LookupEntry<FactionEntry>(m_value1);
+            FactionEntry const* faction = sFactionStore.LookupEntry(m_value1);
             return faction && static_cast<Player const*>(target)->GetReputationMgr().GetRank(faction) >= ReputationRank(m_value2);
         }
         case CONDITION_TEAM:
@@ -357,7 +357,7 @@ bool inline ConditionEntry::Evaluate(WorldObject const* target, Map const* map, 
         }
         case CONDITION_REPUTATION_RANK_MAX:
         {
-            FactionEntry const* faction = sFactionStore.LookupEntry<FactionEntry>(m_value1);;
+            FactionEntry const* faction = sFactionStore.LookupEntry(m_value1);;
             Player const* player = static_cast<Player const*>(target);
             return faction && player->GetReputationMgr().GetRank(faction) <= ReputationRank(m_value2);
         }
@@ -372,8 +372,8 @@ bool inline ConditionEntry::Evaluate(WorldObject const* target, Map const* map, 
             }
 
             uint32 completedEncounterMask = ((DungeonMap*)map)->GetPersistanceState()->GetCompletedEncountersMask();
-            DungeonEncounterEntry const* dbcEntry1 = sDungeonEncounterStore.LookupEntry<DungeonEncounterEntry>(m_value1);
-            DungeonEncounterEntry const* dbcEntry2 = sDungeonEncounterStore.LookupEntry<DungeonEncounterEntry>(m_value2);
+            DungeonEncounterEntry const* dbcEntry1 = sDungeonEncounterStore.LookupEntry(m_value1);
+            DungeonEncounterEntry const* dbcEntry2 = sDungeonEncounterStore.LookupEntry(m_value2);
             // Check that on proper map
             if (dbcEntry1->mapId != map->GetId())
             {
@@ -542,7 +542,7 @@ bool ConditionEntry::CheckParamRequirements(WorldObject const* target, Map const
                 return true;
             return false;
     }
-    
+
     return true;
 }
 
@@ -558,7 +558,7 @@ bool ConditionEntry::IsValid() const
                 sLog.outErrorDb("CONDITION_NOT (entry %u, type %d) has invalid value1 %u, must be lower than entry, skipped", m_entry, m_condition, m_value1);
                 return false;
             }
-            ConditionEntry const* condition1 = sConditionStorage.LookupEntry<ConditionEntry>(m_value1);
+            ConditionEntry const* condition1 = sConditionStorage.LookupEntry(m_value1);
             if (!condition1)
             {
                 sLog.outErrorDb("CONDITION_NOT (entry %u, type %d) has value1 %u without proper condition, skipped", m_entry, m_condition, m_value1);
@@ -579,13 +579,13 @@ bool ConditionEntry::IsValid() const
                 sLog.outErrorDb("CONDITION _AND or _OR (entry %u, type %d) has invalid value2 %u, must be lower than entry, skipped", m_entry, m_condition, m_value2);
                 return false;
             }
-            ConditionEntry const* condition1 = sConditionStorage.LookupEntry<ConditionEntry>(m_value1);
+            ConditionEntry const* condition1 = sConditionStorage.LookupEntry(m_value1);
             if (!condition1)
             {
                 sLog.outErrorDb("CONDITION _AND or _OR (entry %u, type %d) has value1 %u without proper condition, skipped", m_entry, m_condition, m_value1);
                 return false;
             }
-            ConditionEntry const* condition2 = sConditionStorage.LookupEntry<ConditionEntry>(m_value2);
+            ConditionEntry const* condition2 = sConditionStorage.LookupEntry(m_value2);
             if (!condition2)
             {
                 sLog.outErrorDb("CONDITION _AND or _OR (entry %u, type %d) has value2 %u without proper condition, skipped", m_entry, m_condition, m_value2);
@@ -598,7 +598,7 @@ bool ConditionEntry::IsValid() const
                     sLog.outErrorDb("CONDITION _AND or _OR (entry %u, type %d) has invalid value3 %u, must be lower than entry, skipped", m_entry, m_condition, m_value3);
                     return false;
                 }
-                ConditionEntry const* condition3 = sConditionStorage.LookupEntry<ConditionEntry>(m_value3);
+                ConditionEntry const* condition3 = sConditionStorage.LookupEntry(m_value3);
                 if (!condition3)
                 {
                     sLog.outErrorDb("CONDITION _AND or _OR (entry %u, type %d) has value3 %u without proper condition, skipped", m_entry, m_condition, m_value3);
@@ -612,7 +612,7 @@ bool ConditionEntry::IsValid() const
                     sLog.outErrorDb("CONDITION _AND or _OR (entry %u, type %d) has invalid value4 %u, must be lower than entry, skipped", m_entry, m_condition, m_value4);
                     return false;
                 }
-                ConditionEntry const* condition4 = sConditionStorage.LookupEntry<ConditionEntry>(m_value4);
+                ConditionEntry const* condition4 = sConditionStorage.LookupEntry(m_value4);
                 if (!condition4)
                 {
                     sLog.outErrorDb("CONDITION _AND or _OR (entry %u, type %d) has value4 %u without proper condition, skipped", m_entry, m_condition, m_value4);
@@ -623,7 +623,7 @@ bool ConditionEntry::IsValid() const
         }
         case CONDITION_AURA:
         {
-            if (!sSpellTemplate.LookupEntry<SpellEntry>(m_value1))
+            if (!sSpellTemplate.LookupEntry(m_value1))
             {
                 sLog.outErrorDb("Aura condition (entry %u, type %u) requires to have non existing spell (Id: %d), skipped", m_entry, m_condition, m_value1);
                 return false;
@@ -681,7 +681,7 @@ bool ConditionEntry::IsValid() const
         case CONDITION_REPUTATION_RANK_MIN:
         case CONDITION_REPUTATION_RANK_MAX:
         {
-            FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(m_value1);;
+            FactionEntry const* factionEntry = sFactionStore.LookupEntry(m_value1);;
             if (!factionEntry)
             {
                 sLog.outErrorDb("Reputation condition (entry %u, type %u) requires to have reputation non existing faction (%u), skipped", m_entry, m_condition, m_value1);
@@ -801,7 +801,7 @@ bool ConditionEntry::IsValid() const
         }
         case CONDITION_SPELL:
         {
-            if (!sSpellTemplate.LookupEntry<SpellEntry>(m_value1))
+            if (!sSpellTemplate.LookupEntry(m_value1))
             {
                 sLog.outErrorDb("Spell condition (entry %u, type %u) requires to have non existing spell (Id: %d), skipped", m_entry, m_condition, m_value1);
                 return false;
@@ -839,7 +839,7 @@ bool ConditionEntry::IsValid() const
         }
         case CONDITION_CREATURE_IN_RANGE:
         {
-            if (!sCreatureStorage.LookupEntry<CreatureInfo>(m_value1))
+            if (!sCreatureStorage.LookupEntry(m_value1))
             {
                 sLog.outErrorDb("Creature in range condition (entry %u, type %u) has an invalid value in value1. (Creature %u does not exist in the database), skipping.", m_entry, m_condition, m_value1);
                 return false;
@@ -853,8 +853,8 @@ bool ConditionEntry::IsValid() const
         }
         case CONDITION_COMPLETED_ENCOUNTER:
         {
-            DungeonEncounterEntry const* dbcEntry1 = sDungeonEncounterStore.LookupEntry<DungeonEncounterEntry>(m_value1);
-            DungeonEncounterEntry const* dbcEntry2 = sDungeonEncounterStore.LookupEntry<DungeonEncounterEntry>(m_value2);
+            DungeonEncounterEntry const* dbcEntry1 = sDungeonEncounterStore.LookupEntry(m_value1);
+            DungeonEncounterEntry const* dbcEntry2 = sDungeonEncounterStore.LookupEntry(m_value2);
             if (!dbcEntry1)
             {
                 sLog.outErrorDb("Completed Encounter condition (entry %u, type %u) has an unknown DungeonEncounter entry %u defined (in value1), skipping.", m_entry, m_condition, m_value1);
@@ -901,7 +901,7 @@ bool ConditionEntry::IsValid() const
         }
         case CONDITION_SPAWN_COUNT:
         {
-            if (!sCreatureStorage.LookupEntry<CreatureInfo>(m_value1))
+            if (!sCreatureStorage.LookupEntry(m_value1))
             {
                 sLog.outErrorDb("Spawn count condition (entry %u, type %u) has an invalid value in value1. (Creature %u does not exist in the database), skipping.", m_entry, m_condition, m_value1);
                 return false;
@@ -924,7 +924,7 @@ bool ConditionEntry::IsValid() const
 // Check if a condition can be used without providing a player param
 bool ConditionEntry::CanBeUsedWithoutPlayer(uint32 entry)
 {
-    ConditionEntry const* condition = sConditionStorage.LookupEntry<ConditionEntry>(entry);
+    ConditionEntry const* condition = sConditionStorage.LookupEntry(entry);
     if (!condition)
         return false;
 
@@ -944,7 +944,7 @@ bool ConditionEntry::CanBeUsedWithoutPlayer(uint32 entry)
 
 bool IsConditionSatisfied(uint32 conditionId, WorldObject const* target, Map const* map, WorldObject const* source, ConditionSource conditionSourceType)
 {
-    if (ConditionEntry const* condition = sConditionStorage.LookupEntry<ConditionEntry>(conditionId))
+    if (ConditionEntry const* condition = sConditionStorage.LookupEntry(conditionId))
         return condition->Meets(target, map, source, conditionSourceType);
 
     return false;

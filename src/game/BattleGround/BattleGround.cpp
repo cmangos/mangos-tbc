@@ -673,7 +673,7 @@ void BattleGround::RewardHonorToTeam(uint32 honor, Team teamId)
 */
 void BattleGround::RewardReputationToTeam(uint32 factionId, uint32 reputation, Team teamId)
 {
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionId);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
 
     if (!factionEntry)
         return;
@@ -1013,7 +1013,7 @@ void BattleGround::RewardSpellCast(Player* player, uint32 spellId) const
     if (player->GetDummyAura(SPELL_AURA_PLAYER_INACTIVE))
         return;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!spellInfo)
     {
         sLog.outError("Battleground reward casting spell %u not exist.", spellId);

@@ -85,7 +85,7 @@ void SpellScriptMgr::LoadScripts()
             uint32 spellId = fields[0].GetUInt32();
             std::string scriptName = fields[1].GetCppString();
 
-            if (!sSpellTemplate.LookupEntry<SpellEntry>(spellId))
+            if (!sSpellTemplate.LookupEntry(spellId))
             {
                 sLog.outErrorDb("Spell %u has script %s in spell_scripts but spell does not exist. Skipping.", spellId, scriptName.data());
                 continue;

@@ -2016,7 +2016,7 @@ void SpellMgr::LoadSpellScriptTarget()
     sSpellScriptTargetStorage.Load();
 
     // Check content
-    for (SQLMultiStorage::SQLSIterator<SpellTargetEntry> itr = sSpellScriptTargetStorage.getDataBegin<SpellTargetEntry>(); itr < sSpellScriptTargetStorage.getDataEnd<SpellTargetEntry>(); ++itr)
+    for (auto itr = sSpellScriptTargetStorage.getDataBegin(); itr < sSpellScriptTargetStorage.getDataEnd(); ++itr)
     {
         SpellEntry const* spellProto = sSpellTemplate.LookupEntry(itr->spellId);
         if (!spellProto)
@@ -2072,7 +2072,7 @@ void SpellMgr::LoadSpellScriptTarget()
                 if (!itr->targetEntry)
                     break;
 
-                if (!sGOStorage.LookupEntry<GameObjectInfo>(itr->targetEntry))
+                if (!sGOStorage.LookupEntry(itr->targetEntry))
                 {
                     sLog.outErrorDb("Table `spell_script_target`: gameobject template entry %u does not exist.", itr->targetEntry);
                     sSpellScriptTargetStorage.EraseEntry(itr->spellId);
@@ -2138,7 +2138,7 @@ void SpellMgr::LoadSpellScriptTarget()
                 if (spellInfo->Effect[j] && (spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
                                              (spellInfo->EffectImplicitTargetA[j] != TARGET_UNIT_CASTER && spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER)))
                 {
-                    SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(i);
+                    auto bounds = sSpellScriptTargetStorage.getBounds(i);
                     if (bounds.first == bounds.second)
                     {
                         sLog.outErrorDb("Spell (ID: %u) has effect EffectImplicitTargetA/EffectImplicitTargetB = %u (TARGET_UNIT_SCRIPT_NEAR_CASTER), but does not have record in `spell_script_target`", spellInfo->Id, TARGET_UNIT_SCRIPT_NEAR_CASTER);

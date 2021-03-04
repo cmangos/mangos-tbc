@@ -2704,7 +2704,7 @@ void LoadLootTemplates_Gameobject()
     LootTemplates_Gameobject.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+    for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
     {
         if (uint32 lootid = itr->GetLootId())
         {

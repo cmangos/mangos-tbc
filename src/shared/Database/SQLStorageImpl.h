@@ -405,4 +405,198 @@ void SQLStorage<ST>::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint3
     SQLStorageBase::prepareToLoad(maxRecordId, recordCount, recordSize);
 }
 
+// -----------------------------------  SQLStorageBase  ---------------------------------------- //
+template<typename ST>
+SQLStorageBase<ST>::SQLStorageBase() :
+    m_tableName(nullptr),
+    m_entry_field(nullptr),
+    m_src_format(nullptr),
+    m_dst_format(nullptr),
+    m_dstFieldCount(0),
+    m_srcFieldCount(0),
+    m_recordCount(0),
+    m_maxEntry(0),
+    m_recordSize(0),
+    m_data(nullptr)
+{}
+
+template<typename ST>
+void SQLStorageBase<ST>::Initialize(const char* tableName, const char* entry_field, const char* src_format, const char* dst_format)
+{
+    m_tableName = tableName;
+    m_entry_field = entry_field;
+    m_src_format = src_format;
+    m_dst_format = dst_format;
+
+    m_srcFieldCount = strlen(m_src_format);
+    m_dstFieldCount = strlen(m_dst_format);
+}
+
+template<typename ST>
+char* SQLStorageBase<ST>::createRecord(uint32 recordId)
+{
+    char* newRecord = &m_data[m_recordCount * m_recordSize];
+    ++m_recordCount;
+
+    JustCreatedRecord(recordId, newRecord);
+    return newRecord;
+}
+
+template<typename ST>
+void SQLStorageBase<ST>::prepareToLoad(uint32 maxEntry, uint32 recordCount, uint32 recordSize)
+{
+    m_maxEntry = maxEntry;
+    m_recordSize = recordSize;
+
+    delete[] m_data;
+    m_data = new char[recordCount * m_recordSize];
+    memset(m_data, 0, recordCount * m_recordSize);
+
+    m_recordCount = 0;
+}
+
+// Function to delete the data
+template<typename ST>
+void SQLStorageBase<ST>::Free()
+{
+    if (!m_data)
+        return;
+
+    uint32 offset = 0;
+    for (uint32 x = 0; x < m_dstFieldCount; ++x)
+    {
+        switch (m_dst_format[x])
+        {
+            case FT_LOGIC:
+                offset += sizeof(bool);
+                break;
+            case FT_STRING:
+            {
+                for (uint32 recordItr = 0; recordItr < m_recordCount; ++recordItr)
+                    delete[] * (char**)((char*)(m_data + (recordItr * m_recordSize)) + offset);
+
+                offset += sizeof(char*);
+                break;
+            }
+            case FT_NA:
+            case FT_INT:
+                offset += sizeof(uint32);
+                break;
+            case FT_BYTE:
+            case FT_NA_BYTE:
+                offset += sizeof(char);
+                break;
+            case FT_FLOAT:
+            case FT_NA_FLOAT:
+                offset += sizeof(float);
+                break;
+            case FT_NA_POINTER:
+                // TODO- possible (and small) memleak here possible
+                offset += sizeof(char*);
+                break;
+            case FT_64BITINT:
+                offset += sizeof(uint64);
+                break;
+            case FT_IND:
+            case FT_SORT:
+                assert(false && "SQL storage not have sort field types");
+                break;
+            default:
+                assert(false && "unknown format character");
+                break;
+        }
+    }
+    delete[] m_data;
+    m_data = nullptr;
+    m_recordCount = 0;
+}
+
+// -----------------------------------  SQLHashStorage  ---------------------------------------- //
+template<typename ST>
+void SQLHashStorage<ST>::Load()
+{
+    SQLHashStorageLoader loader;
+    loader.Load(*this);
+}
+
+template<typename ST>
+void SQLHashStorage<ST>::Free()
+{
+    SQLStorageBase::Free();
+    m_indexMap.clear();
+}
+
+template<typename ST>
+void SQLHashStorage<ST>::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint32 recordSize)
+{
+    // Clear (possible) old data and old index array
+    Free();
+
+    SQLStorageBase::prepareToLoad(maxRecordId, recordCount, recordSize);
+}
+
+template<typename ST>
+void SQLHashStorage<ST>::EraseEntry(uint32 id)
+{
+    // do not erase from m_records
+    RecordMap::iterator find = m_indexMap.find(id);
+    if (find != m_indexMap.end())
+        find->second = nullptr;
+}
+
+template<typename ST>
+SQLHashStorage<ST>::SQLHashStorage(const char* fmt, const char* _entry_field, const char* sqlname)
+{
+    Initialize(sqlname, _entry_field, fmt, fmt);
+}
+
+template<typename ST>
+SQLHashStorage<ST>::SQLHashStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname)
+{
+    Initialize(sqlname, _entry_field, src_fmt, dst_fmt);
+}
+
+// -----------------------------------  SQLMultiStorage  --------------------------------------- //
+template<typename ST>
+void SQLMultiStorage<ST>::Load()
+{
+    SQLMultiStorageLoader<ST> loader;
+    loader.Load(*this);
+}
+
+template<typename ST>
+void SQLMultiStorage<ST>::Free()
+{
+    SQLStorageBase<ST>::Free();
+    m_indexMultiMap.clear();
+}
+
+template<typename ST>
+void SQLMultiStorage<ST>::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint32 recordSize)
+{
+    // Clear (possible) old data and old index array
+    Free();
+
+    SQLStorageBase<ST>::prepareToLoad(maxRecordId, recordCount, recordSize);
+}
+
+template<typename ST>
+void SQLMultiStorage<ST>::EraseEntry(uint32 id)
+{
+    m_indexMultiMap.erase(id);
+}
+
+template<typename ST>
+SQLMultiStorage<ST>::SQLMultiStorage(const char* fmt, const char* _entry_field, const char* sqlname)
+{
+    Initialize(sqlname, _entry_field, fmt, fmt);
+}
+
+template<typename ST>
+SQLMultiStorage<ST>::SQLMultiStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname)
+{
+    Initialize(sqlname, _entry_field, src_fmt, dst_fmt);
+}
+
+
 #endif

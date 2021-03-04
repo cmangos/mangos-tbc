@@ -2223,17 +2223,6 @@ enum SpellTargetType
 
 #define MAX_SPELL_TARGET_TYPE 5
 
-// pre-defined targeting for spells
-struct SpellTargetEntry
-{
-    uint32 spellId;
-    uint32 type;
-    uint32 targetEntry;
-    uint32 inverseEffectMask;
-
-    bool CanNotHitWithSpellEffect(SpellEffectIndex effect) const { return (inverseEffectMask & (1 << effect)) != 0; }
-};
-
 // coordinates for spells (accessed using SpellMgr functions)
 struct SpellTargetPosition
 {

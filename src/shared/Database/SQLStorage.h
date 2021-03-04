@@ -23,6 +23,7 @@
 #include "Database/DatabaseEnv.h"
 #include "DBCFileLoader.h"
 
+template<typename T>
 class SQLStorageBase
 {
         template<class DerivedLoader, class StorageClass> friend class SQLStorageLoaderBase;
@@ -39,7 +40,6 @@ class SQLStorageBase
         uint32 GetMaxEntry() const { return m_maxEntry; };
         uint32 GetNumRows() const { return m_recordCount; };
 
-        template<typename T>
         class SQLSIterator
         {
                 friend class SQLStorageBase;
@@ -59,10 +59,8 @@ class SQLStorageBase
                 uint32 recordSize;
         };
 
-        template<typename T>
-        SQLSIterator<T> getDataBegin() const { return SQLSIterator<T>(m_data, m_recordSize); }
-        template<typename T>
-        SQLSIterator<T> getDataEnd() const { return SQLSIterator<T>(m_data + m_recordCount * m_recordSize, m_recordSize); }
+        SQLSIterator getDataBegin() const { return SQLSIterator(m_data, m_recordSize); }
+        SQLSIterator getDataEnd() const { return SQLSIterator(m_data + m_recordCount * m_recordSize, m_recordSize); }
 
     protected:
         SQLStorageBase();
@@ -99,7 +97,7 @@ class SQLStorageBase
 };
 
 template<typename ST>
-class SQLStorage : public SQLStorageBase
+class SQLStorage : public SQLStorageBase<ST>
 {
         template<class DerivedLoader, class StorageClass> friend class SQLStorageLoaderBase;
 
@@ -135,7 +133,8 @@ class SQLStorage : public SQLStorageBase
         char** m_Index;
 };
 
-class SQLHashStorage : public SQLStorageBase
+template<typename T>
+class SQLHashStorage : public SQLStorageBase<T>
 {
         template<class DerivedLoader, class StorageClass> friend class SQLStorageLoaderBase;
 
@@ -145,7 +144,6 @@ class SQLHashStorage : public SQLStorageBase
 
         ~SQLHashStorage() { Free(); }
 
-        template<class T>
         T const* LookupEntry(uint32 id) const
         {
             RecordMap::const_iterator find = m_indexMap.find(id);
@@ -172,7 +170,8 @@ class SQLHashStorage : public SQLStorageBase
         RecordMap m_indexMap;
 };
 
-class SQLMultiStorage : public SQLStorageBase
+template<typename T>
+class SQLMultiStorage : public SQLStorageBase<T>
 {
         template<class DerivedLoader, class StorageClass> friend class SQLStorageLoaderBase;
         template<typename T> friend class SQLMultiSIterator;
@@ -188,13 +187,12 @@ class SQLMultiStorage : public SQLStorageBase
         ~SQLMultiStorage() { Free(); }
 
         // forward declaration
-        template<typename T> class SQLMSIteratorBounds;
+        class SQLMSIteratorBounds;
 
-        template<typename T>
         class SQLMultiSIterator
         {
                 friend class SQLMultiStorage;
-                friend class SQLMSIteratorBounds<T>;
+                friend class SQLMSIteratorBounds;
 
             public:
                 T const* getValue() const { return reinterpret_cast<T const*>(citerator->second); }
@@ -211,21 +209,19 @@ class SQLMultiStorage : public SQLStorageBase
                 RecordMultiMap::const_iterator citerator;
         };
 
-        template<typename T>
         class SQLMSIteratorBounds
         {
                 friend class SQLMultiStorage;
 
             public:
-                const SQLMultiSIterator<T> first;
-                const SQLMultiSIterator<T> second;
+                const SQLMultiSIterator first;
+                const SQLMultiSIterator second;
 
             private:
                 SQLMSIteratorBounds(std::pair<RecordMultiMap::const_iterator, RecordMultiMap::const_iterator> pair) : first(pair.first), second(pair.second) {}
         };
 
-        template<typename T>
-        SQLMSIteratorBounds<T> getBounds(uint32 key) const { return SQLMSIteratorBounds<T>(m_indexMultiMap.equal_range(key)); }
+        SQLMSIteratorBounds getBounds(uint32 key) const { return SQLMSIteratorBounds(m_indexMultiMap.equal_range(key)); }
 
         void Load();
 
@@ -283,11 +279,13 @@ class SQLStorageLoader : public SQLStorageLoaderBase<SQLStorageLoader<T>, SQLSto
 {
 };
 
-class SQLHashStorageLoader : public SQLStorageLoaderBase<SQLHashStorageLoader, SQLHashStorage>
+template <class T>
+class SQLHashStorageLoader : public SQLStorageLoaderBase<SQLHashStorageLoader<T>, SQLHashStorage<T>>
 {
 };
 
-class SQLMultiStorageLoader : public SQLStorageLoaderBase<SQLMultiStorageLoader, SQLMultiStorage>
+template <class T>
+class SQLMultiStorageLoader : public SQLStorageLoaderBase<SQLMultiStorageLoader<T>, SQLMultiStorage<T>>
 {
 };
 

@@ -292,9 +292,9 @@ SpellTargetingData& SpellTargetMgr::GetSpellTargetingData(uint32 spellId)
 }
 
 // check if at least one target is different from different effIdx
-bool CheckBoundsEqualForEffects(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry>& bounds, SpellEffectIndex effIdxSource, SpellEffectIndex effIdxTarget)
+bool CheckBoundsEqualForEffects(SQLMultiStorage<SpellTargetEntry>::SQLMSIteratorBounds& bounds, SpellEffectIndex effIdxSource, SpellEffectIndex effIdxTarget)
 {
-    for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+    for (auto i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
     {
         SpellTargetEntry const* spellST = (*i_spellST);
         if (spellST->CanNotHitWithSpellEffect(effIdxSource) != spellST->CanNotHitWithSpellEffect(effIdxTarget))
@@ -446,7 +446,7 @@ void SpellTargetMgr::Initialize()
                                             continue;
                                         if (info.filter == TARGET_SCRIPT && effIdxSource != effIdxTarget)
                                         {
-                                            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(i);
+                                            auto bounds = sSpellScriptTargetStorage.getBounds(i);
                                             if (!CheckBoundsEqualForEffects(bounds, SpellEffectIndex(effIdxSource), SpellEffectIndex(effIdxTarget)))
                                                 continue;
                                         }

@@ -1091,7 +1091,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
 
         Unit::DealDamageMods(caster, spellDamageInfo.target, spellDamageInfo.damage, &spellDamageInfo.absorb, SPELL_DIRECT_DAMAGE, m_spellInfo);
 
-        // Send log damage message to client        
+        // Send log damage message to client
         if (reflectTarget)
             reflectTarget->SendSpellNonMeleeDamageLog(&spellDamageInfo);
         else
@@ -1993,7 +1993,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             if (tempTargetUnitMap.empty())
                 break;
 
-            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+            auto bounds = sSpellScriptTargetStorage.getBounds(m_spellInfo->Id);
             if (bounds.first != bounds.second)
                 CheckSpellScriptTargets(bounds, tempTargetUnitMap, tempUnitList, effIndex);
             else
@@ -2113,7 +2113,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC:
         {
             UnitList tempTargetUnitMap;
-            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+            auto bounds = sSpellScriptTargetStorage.getBounds(m_spellInfo->Id);
 
             // fill real target list if no spell script target defined
             FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : tempUnitList,
@@ -2152,7 +2152,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         case TARGET_ENUM_UNITS_SCRIPT_AOE_AT_DEST_LOC:
         {
             UnitList tempTargetUnitMap;
-            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+            auto bounds = sSpellScriptTargetStorage.getBounds(m_spellInfo->Id);
             // fill real target list if no spell script target defined
             FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : tempUnitList, radius, cone, PUSH_DEST_CENTER, SPELL_TARGETS_ALL);
 
@@ -2178,8 +2178,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
 
             std::set<uint32> entriesToUse;
 
-            SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
-            for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+            auto bounds = sSpellScriptTargetStorage.getBounds(m_spellInfo->Id);
+            for (auto i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
             {
                 if (i_spellST->CanNotHitWithSpellEffect(effIndex))
                     continue;
@@ -2336,7 +2336,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                 case TARGET_ENUM_UNITS_SCRIPT_IN_CONE_60:
                 {
                     UnitList tempTargetUnitMap;
-                    SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+                    auto bounds = sSpellScriptTargetStorage.getBounds(m_spellInfo->Id);
                     // fill real target list if no spell script target defined
                     FillAreaTargets(bounds.first != bounds.second ? tempTargetUnitMap : tempUnitList, radius, cone, PUSH_CONE, targetType);
                     if (!tempTargetUnitMap.empty())
@@ -2561,7 +2561,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
 
 SpellCastResult Spell::CheckScriptTargeting(SpellEffectIndex effIndex, uint32 chainTargets, float radius, uint32 targetMode, UnitList& tempUnitList, GameObjectList& tempGOList)
 {
-    SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(m_spellInfo->Id);
+    auto bounds = sSpellScriptTargetStorage.getBounds(m_spellInfo->Id);
 
     if (bounds.first == bounds.second)
     {
@@ -2585,7 +2585,7 @@ SpellCastResult Spell::CheckScriptTargeting(SpellEffectIndex effIndex, uint32 ch
     // corrections for numerous spells missing it
     uint32 targetCount = std::max(chainTargets, uint32(1));
 
-    for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+    for (auto i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
     {
         if (i_spellST->CanNotHitWithSpellEffect(effIndex))
             continue;
@@ -2756,7 +2756,7 @@ SpellCastResult Spell::CheckScriptTargeting(SpellEffectIndex effIndex, uint32 ch
     return SPELL_CAST_OK;
 }
 
-void Spell::CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry>& bounds, UnitList& tempTargetUnitMap, UnitList& targetUnitMap, SpellEffectIndex effIndex)
+void Spell::CheckSpellScriptTargets(SQLMultiStorage<SpellTargetEntry>::SQLMSIteratorBounds& bounds, UnitList& tempTargetUnitMap, UnitList& targetUnitMap, SpellEffectIndex effIndex)
 {
     for (UnitList::const_iterator iter = tempTargetUnitMap.begin(); iter != tempTargetUnitMap.end(); ++iter)
     {
@@ -2764,7 +2764,7 @@ void Spell::CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTa
         if (target->GetTypeId() != TYPEID_UNIT)
             continue;
 
-        for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+        for (auto i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
         {
             SpellTargetEntry const* spellST = (*i_spellST);
             if (spellST->CanNotHitWithSpellEffect(effIndex))
@@ -7134,7 +7134,7 @@ float Spell::GetSpellSpeed() const
         return 0.f;
     if (IsChanneledSpell(m_spellInfo))
         return 0.f;
-    
+
     return m_spellInfo->speed;
 }
 

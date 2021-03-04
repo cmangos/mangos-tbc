@@ -45,7 +45,7 @@ void TransportMgr::LoadTransportTemplates()
 {
     for (uint32 entry = 1; entry <= sGOStorage.GetMaxEntry(); ++entry)
     {
-        auto data = sGOStorage.LookupEntry<GameObjectInfo>(entry);
+        auto data = sGOStorage.LookupEntry(entry);
         if (data && data->type == GAMEOBJECT_TYPE_MO_TRANSPORT)
         {
             TransportTemplate& transportTemplate = m_transportTemplates[entry];

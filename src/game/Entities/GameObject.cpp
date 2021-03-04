@@ -430,7 +430,7 @@ void GameObject::Update(const uint32 diff)
                             {
                                 if (m_respawnTime > 0)
                                     valid = false;
-                                else // battlegrounds gameobjects has data2 == 0 && data5 == 3                                
+                                else // battlegrounds gameobjects has data2 == 0 && data5 == 3
                                     radius = float(goInfo->trap.cooldown);
                             }
                         }
@@ -1160,7 +1160,7 @@ void GameObject::TriggerLinkedGameObject(Unit* target) const
     if (!trapEntry)
         return;
 
-    GameObjectInfo const* trapInfo = sGOStorage.LookupEntry<GameObjectInfo>(trapEntry);
+    GameObjectInfo const* trapInfo = sGOStorage.LookupEntry(trapEntry);
     if (!trapInfo || trapInfo->type != GAMEOBJECT_TYPE_TRAP)
         return;
 

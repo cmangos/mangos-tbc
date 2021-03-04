@@ -2541,7 +2541,7 @@ void ObjectMgr::LoadItemRequiredTarget()
             {
                 if (Spell.SpellTrigger == ITEM_SPELLTRIGGER_ON_USE)
                 {
-                    SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(pSpellInfo->Id);
+                    auto bounds = sSpellScriptTargetStorage.getBounds(pSpellInfo->Id);
                     if (bounds.first != bounds.second)
                         break;
 
@@ -3503,7 +3503,7 @@ CreatureTemplateSpells const* ObjectMgr::GetCreatureTemplateSpellSet(uint32 entr
 /* ********************************************************************************************* */
 /* *                                Static Wrappers                                              */
 /* ********************************************************************************************* */
-GameObjectInfo const* ObjectMgr::GetGameObjectInfo(uint32 id) { return sGOStorage.LookupEntry<GameObjectInfo>(id); }
+GameObjectInfo const* ObjectMgr::GetGameObjectInfo(uint32 id) { return sGOStorage.LookupEntry(id); }
 Player* ObjectMgr::GetPlayer(const char* name) { return ObjectAccessor::FindPlayerByName(name); }
 Player* ObjectMgr::GetPlayer(ObjectGuid guid, bool inWorld /*=true*/) { return ObjectAccessor::FindPlayer(guid, inWorld); }
 CreatureInfo const* ObjectMgr::GetCreatureTemplate(uint32 id) { return sCreatureStorage.LookupEntry(id); }
@@ -4147,7 +4147,7 @@ void ObjectMgr::LoadQuests()
         for (int j = 0; j < QUEST_OBJECTIVES_COUNT; ++j)
         {
             int32 id = qinfo->ReqCreatureOrGOId[j];
-            if (id < 0 && !sGOStorage.LookupEntry<GameObjectInfo>(-id))
+            if (id < 0 && !sGOStorage.LookupEntry(-id))
             {
                 sLog.outErrorDb("Quest %u has `ReqCreatureOrGOId%d` = %i but gameobject %u does not exist, quest can't be done.",
                                 qinfo->GetQuestId(), j + 1, id, uint32(-id));
@@ -5318,7 +5318,7 @@ void ObjectMgr::LoadQuestgiverGreeting()
                 }
                 break;
             case QUESTGIVER_GAMEOBJECT:
-                if (!sGOStorage.LookupEntry<GameObjectInfo>(entry))
+                if (!sGOStorage.LookupEntry(entry))
                 {
                     sLog.outErrorEventAI("Table questgiver_greeting uses nonexistent gameobject entry %u. Skipping.", entry);
                     continue;
@@ -5386,7 +5386,7 @@ void ObjectMgr::LoadQuestgiverGreetingLocales()
                 }
                 break;
             case QUESTGIVER_GAMEOBJECT:
-                if (!sGOStorage.LookupEntry<GameObjectInfo>(entry))
+                if (!sGOStorage.LookupEntry(entry))
                 {
                     sLog.outErrorEventAI("Table questgiver_greeting uses nonexistent gameobject entry %u. Skipping.", entry);
                     continue;
@@ -6788,7 +6788,7 @@ void ObjectMgr::LoadGameObjectLocales()
     sLog.outString();
 }
 
-struct SQLGameObjectLoader : public SQLStorageLoaderBase<SQLGameObjectLoader, SQLHashStorage>
+struct SQLGameObjectLoader : public SQLStorageLoaderBase<SQLGameObjectLoader, SQLHashStorage<GameObjectInfo>>
 {
     template<class D>
     void convert_from_str(uint32 /*field_pos*/, char const* src, D& dst)
@@ -6808,7 +6808,7 @@ inline void CheckGOLockId(GameObjectInfo const* goInfo, uint32 dataN, uint32 N)
 
 inline void CheckGOLinkedTrapId(GameObjectInfo const* goInfo, uint32 dataN, uint32 N)
 {
-    if (GameObjectInfo const* trapInfo = sGOStorage.LookupEntry<GameObjectInfo>(dataN))
+    if (GameObjectInfo const* trapInfo = sGOStorage.LookupEntry(dataN))
     {
         if (trapInfo->type != GAMEOBJECT_TYPE_TRAP)
             sLog.outErrorDb("Gameobject (Entry: %u GoType: %u) have data%d=%u but GO (Entry %u) have not GAMEOBJECT_TYPE_TRAP (%u) type.",
@@ -6881,7 +6881,7 @@ std::vector<uint32> ObjectMgr::LoadGameobjectInfo()
     std::vector<uint32> transportDisplayIds;
 
     // some checks
-    for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+    for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
     {
         GameObjectInfo const* goInfo = itr.getValue();
 
@@ -7545,7 +7545,7 @@ void ObjectMgr::LoadPointsOfInterest()
 
 static char SERVER_SIDE_SPELL[] = "CMaNGOS server-side spell";
 
-struct SQLSpellLoader : public SQLStorageLoaderBase<SQLSpellLoader, SQLHashStorage>
+struct SQLSpellLoader : public SQLStorageLoaderBase<SQLSpellLoader, SQLHashStorage<SpellEntry>>
 {
     template<class S, class D>
     void default_fill(uint32 field_pos, S src, D& dst)
@@ -7575,7 +7575,7 @@ void ObjectMgr::LoadSpellTemplate()
     sSpellTemplate.Load();
 
     /* TODO add validation for spell_dbc */
-    for (SQLStorageBase::SQLSIterator<SpellEntry> itr = sSpellTemplate.getDataBegin<SpellEntry>(); itr < sSpellTemplate.getDataEnd<SpellEntry>(); ++itr)
+    for (auto itr = sSpellTemplate.getDataBegin(); itr < sSpellTemplate.getDataEnd(); ++itr)
     {
         if (!sSpellTemplate.LookupEntry(itr->Id))
         {
@@ -8164,7 +8164,7 @@ void ObjectMgr::LoadGameObjectForQuests()
     uint32 count = 0;
 
     // collect GO entries for GO that must activated
-    for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+    for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
     {
         bar.step();
         switch (itr->type)
@@ -9183,7 +9183,7 @@ void ObjectMgr::LoadGossipMenu(std::set<uint32>& gossipScriptSet)
 
     if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
     {
-        for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+        for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
             if (uint32 menuid = itr->GetGossipMenuId())
                 if (m_mGossipMenusMap.find(menuid) == m_mGossipMenusMap.end())
                     sLog.outErrorDb("Gameobject (Entry: %u) has gossip_menu_id = %u for nonexistent menu", itr->id, menuid);
@@ -9220,7 +9220,7 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
             if (itr->first)
                 menu_ids.insert(itr->first);
 
-        for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+        for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
             if (uint32 menuid = itr->GetGossipMenuId())
                 menu_ids.erase(menuid);
     }

@@ -41,9 +41,9 @@ extern SQLStorage<CreatureConditionalSpawn> sCreatureConditionalSpawnStore;
 extern SQLStorage<WorldSafeLocsEntry> sWorldSafeLocsStore;
 
 
-extern SQLHashStorage sGOStorage;
+extern SQLHashStorage<GameObjectInfo> sGOStorage;
 
-extern SQLMultiStorage sSpellScriptTargetStorage;
+extern SQLMultiStorage<SpellTargetEntry> sSpellScriptTargetStorage;
 
 
 // DBC stores in <>db

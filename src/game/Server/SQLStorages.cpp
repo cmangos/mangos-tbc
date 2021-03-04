@@ -63,9 +63,9 @@ SQLStorage<FactionEntry>             sFactionStore(FactionEntryfmt, "entry", "fa
 SQLStorage<CreatureConditionalSpawn> sCreatureConditionalSpawnStore(CreatureConditionalSpawnSrcFmt, CreatureConditionalSpawnDstFmt, "guid", "creature_conditional_spawn");
 SQLStorage<WorldSafeLocsEntry>       sWorldSafeLocsStore(WorldSafeLocsFmt, "id", "world_safe_locs");
 
-SQLHashStorage sGOStorage(GameObjectInfosrcfmt, GameObjectInfodstfmt, "entry", "gameobject_template");
+SQLHashStorage<GameObjectInfo> sGOStorage(GameObjectInfosrcfmt, GameObjectInfodstfmt, "entry", "gameobject_template");
 
-SQLMultiStorage sSpellScriptTargetStorage(SpellScriptTargetFmt, "entry", "spell_script_target");
+SQLMultiStorage<SpellTargetEntry> sSpellScriptTargetStorage(SpellScriptTargetFmt, "entry", "spell_script_target");
 
 SQLStorage<SpellEntry> const* GetSpellStore() { return &sSpellTemplate; }
 

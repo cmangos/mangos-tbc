@@ -1097,27 +1097,46 @@ bool ProcessEventId_naxxramas(uint32 eventId, Object* source, Object* /*target*/
     return false;
 }
 
+struct Location3DPoint
+{
+    float x, y, z;
+};
+
+static const Location3DPoint gargoyleResetCoords = {2963.f, -3476.f, 297.6f};
+
+enum
+{
+    SAY_GARGOYLE_NOISE = 10755,
+
+    SPELL_STONEFORM = 29154,
+    SPELL_STEALTH_DETECTION = 18950,
+    SPELL_STONESKIN = 28995,
+    SPELL_ACID_VOLLEY = 29325,
+
+    NPC_STONESKIN_GARGOYLE = 16168,
+};
 
 struct mob_naxxramasGargoyleAI : public ScriptedAI
 {
+
     mob_naxxramasGargoyleAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
         {
-            return y > -3476.f && x > 2963.f && z > 297.6f;
+            return x > gargoyleResetCoords.x && y > gargoyleResetCoords.y && z > gargoyleResetCoords.z;
         });
         Reset();
         goStoneform();
 
-        if (m_creature->GetDefaultMovementType() == IDLE_MOTION_TYPE && m_creature->GetEntry() == 16168)
-            DoCastSpellIfCan(m_creature, 18950, true); // stealth detection
+        if (m_creature->GetDefaultMovementType() == IDLE_MOTION_TYPE && m_creature->GetEntry() == NPC_STONESKIN_GARGOYLE)
+            DoCastSpellIfCan(m_creature, SPELL_STEALTH_DETECTION, true); // stealth detection
     }
 
     void goStoneform()
     {
-        if (m_creature->GetDefaultMovementType() == IDLE_MOTION_TYPE && m_creature->GetEntry() == 16168)
+        if (m_creature->GetDefaultMovementType() == IDLE_MOTION_TYPE && m_creature->GetEntry() == NPC_STONESKIN_GARGOYLE)
         {
-            DoCastSpellIfCan(m_creature, 29154, true);
+            DoCastSpellIfCan(m_creature, SPELL_STONEFORM, true);
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NON_ATTACKABLE);
         }
     }
@@ -1166,25 +1185,24 @@ struct mob_naxxramasGargoyleAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        if (m_creature->GetHealthPercent() < 30.0f && !m_creature->HasAura(28995))
+        if (m_creature->GetHealthPercent() < 30.0f && !m_creature->HasAura(SPELL_STONESKIN))
         {
-            if (DoCastSpellIfCan(m_creature, 28995) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature, SPELL_STONESKIN) == CAST_OK)
             {
-                DoCastSpellIfCan(m_creature, 28995, true); // Stoneskin
-                DoScriptText(10755, m_creature); // %s emits a strange noise.
+                DoScriptText(SAY_GARGOYLE_NOISE, m_creature); // %s emits a strange noise.
             }
         }
 
-        if (acidVolleyTimer < diff)
+        if (m_creature->GetGUIDLow() != 5330722)
         {
-            if (m_creature->GetGUIDLow() != 5330722)
+            if (acidVolleyTimer < diff)
             {
-                if (DoCastSpellIfCan(m_creature, 29325) == CAST_OK) // acid volley
+                if (DoCastSpellIfCan(m_creature, SPELL_ACID_VOLLEY) == CAST_OK) // acid volley
                     acidVolleyTimer = 8000;
             }
+            else
+                acidVolleyTimer -= diff;
         }
-        else
-            acidVolleyTimer -= diff;
 
         DoMeleeAttackIfReady();
     }

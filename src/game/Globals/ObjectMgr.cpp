@@ -693,7 +693,7 @@ void ObjectMgr::LoadCreatureTemplates()
 
     }
 
-    sLog.outString(">> Loaded %u creature definitions", sCreatureStorage.GetRecordCount());
+    sLog.outString(">> Loaded %u creature definitions", sCreatureStorage.GetNumRows());
     sLog.outString();
 }
 
@@ -812,7 +812,7 @@ void ObjectMgr::LoadCreatureAddons(SQLStorage<CreatureDataAddon>& creatureaddons
         ConvertCreatureAddonAuras(const_cast<CreatureDataAddon*>(addon), creatureaddons.GetTableName(), entryName);
     }
 
-    sLog.outString(">> Loaded %u %s", creatureaddons.GetRecordCount(), comment);
+    sLog.outString(">> Loaded %u %s", creatureaddons.GetNumRows(), comment);
 }
 
 void ObjectMgr::LoadCreatureAddons()
@@ -966,7 +966,7 @@ void ObjectMgr::LoadEquipmentTemplates()
         }
     }
 
-    sLog.outString(">> Loaded %u equipment template", sEquipmentStorage.GetRecordCount());
+    sLog.outString(">> Loaded %u equipment template", sEquipmentStorage.GetNumRows());
     sLog.outString();
 
     sEquipmentStorageRaw.Load(false);
@@ -975,7 +975,7 @@ void ObjectMgr::LoadEquipmentTemplates()
             if (sEquipmentStorage.LookupEntry(i))
                 sLog.outErrorDb("Table 'creature_equip_template_raw` have redundant data for ID %u ('creature_equip_template` already have data)", i);
 
-    sLog.outString(">> Loaded %u equipment template (deprecated format)", sEquipmentStorageRaw.GetRecordCount());
+    sLog.outString(">> Loaded %u equipment template (deprecated format)", sEquipmentStorageRaw.GetNumRows());
     sLog.outString();
 }
 
@@ -1127,7 +1127,7 @@ void ObjectMgr::LoadCreatureModelInfo()
             sLog.outErrorDb("Table `creature_model_info` expect have data for character race %u male model id %u", race, raceEntry->model_m);
     }
 
-    sLog.outString(">> Loaded %u creature model based info", sCreatureModelStorage.GetRecordCount());
+    sLog.outString(">> Loaded %u creature model based info", sCreatureModelStorage.GetNumRows());
     sLog.outString();
 }
 
@@ -1269,7 +1269,7 @@ void ObjectMgr::LoadCreatureConditionalSpawn()
         }
     }
 
-    sLog.outString(">> Loaded %u creature_conditional_spawn entries", sCreatureConditionalSpawnStore.GetRecordCount());
+    sLog.outString(">> Loaded %u creature_conditional_spawn entries", sCreatureConditionalSpawnStore.GetNumRows());
     sLog.outString();
 }
 
@@ -2493,7 +2493,7 @@ void ObjectMgr::LoadItemPrototypes()
     for (uint32 itr : notFoundOutfit)
     sLog.outErrorDb("Item (Entry: %u) not exist in `item_template` but referenced in `CharStartOutfit.dbc`", itr);
 
-    sLog.outString(">> Loaded %u item prototypes", sItemStorage.GetRecordCount());
+    sLog.outString(">> Loaded %u item prototypes", sItemStorage.GetNumRows());
     sLog.outString();
 }
 
@@ -4737,7 +4737,7 @@ void ObjectMgr::LoadItemTexts()
 void ObjectMgr::LoadPageTexts()
 {
     sPageTextStore.Load();
-    sLog.outString(">> Loaded %u page texts", sPageTextStore.GetRecordCount());
+    sLog.outString(">> Loaded %u page texts", sPageTextStore.GetNumRows());
     sLog.outString();
 
     for (uint32 i = 1; i < sPageTextStore.GetMaxEntry(); ++i)
@@ -4977,7 +4977,7 @@ void ObjectMgr::LoadInstanceTemplate()
         }
     }
 
-    sLog.outString(">> Loaded %u Instance Template definitions", sInstanceTemplate.GetRecordCount());
+    sLog.outString(">> Loaded %u Instance Template definitions", sInstanceTemplate.GetNumRows());
     sLog.outString();
 }
 
@@ -5016,7 +5016,7 @@ void ObjectMgr::LoadWorldTemplate()
         }
     }
 
-    sLog.outString(">> Loaded %u World Template definitions", sWorldTemplate.GetRecordCount());
+    sLog.outString(">> Loaded %u World Template definitions", sWorldTemplate.GetNumRows());
     sLog.outString();
 }
 
@@ -5060,7 +5060,7 @@ void ObjectMgr::LoadConditions()
         }
     }
 
-    sLog.outString(">> Loaded %u Condition definitions", sConditionStorage.GetRecordCount());
+    sLog.outString(">> Loaded %u Condition definitions", sConditionStorage.GetNumRows());
     sLog.outString();
 }
 
@@ -6324,7 +6324,7 @@ void ObjectMgr::SetGraveYardLinkTeam(uint32 id, uint32 locKey, Team team)
 void ObjectMgr::LoadWorldSafeLocs() const
 {
     sWorldSafeLocsStore.Load(true);
-    sLog.outString(">> Loaded %u world safe locs", sWorldSafeLocsStore.GetRecordCount());
+    sLog.outString(">> Loaded %u world safe locs", sWorldSafeLocsStore.GetNumRows());
 }
 
 void ObjectMgr::LoadAreaTriggerTeleports()
@@ -7046,7 +7046,7 @@ std::vector<uint32> ObjectMgr::LoadGameobjectInfo()
         }
     }
 
-    sLog.outString(">> Loaded %u game object templates", sGOStorage.GetRecordCount());
+    sLog.outString(">> Loaded %u game object templates", sGOStorage.GetNumRows());
     sLog.outString();
 
     return transportDisplayIds;
@@ -7597,11 +7597,11 @@ void ObjectMgr::LoadSpellTemplate()
 #endif
     }
 
-    sLog.outString(">> Loaded %u spell_template records", sSpellTemplate.GetRecordCount());
+    sLog.outString(">> Loaded %u spell_template records", sSpellTemplate.GetNumRows());
     sLog.outString();
 
     sSpellCones.Load();
-    sLog.outString(">> Loaded %u spell_cone records", sSpellCones.GetRecordCount());
+    sLog.outString(">> Loaded %u spell_cone records", sSpellCones.GetNumRows());
     sLog.outString();
 }
 
@@ -7645,7 +7645,7 @@ void ObjectMgr::LoadFactions()
         }
     }
 
-    sLog.outString(">> Loaded %u faction_store records", sFactionStore.GetRecordCount());
+    sLog.outString(">> Loaded %u faction_store records", sFactionStore.GetNumRows());
     sLog.outString();
 }
 
@@ -8160,7 +8160,7 @@ void ObjectMgr::LoadGameObjectForQuests()
         return;
     }
 
-    BarGoLink bar(sGOStorage.GetRecordCount());
+    BarGoLink bar(sGOStorage.GetNumRows());
     uint32 count = 0;
 
     // collect GO entries for GO that must activated

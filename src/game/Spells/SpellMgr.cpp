@@ -2149,7 +2149,7 @@ void SpellMgr::LoadSpellScriptTarget()
         }
     }
 
-    sLog.outString(">> Loaded %u spell_script_target definitions", sSpellScriptTargetStorage.GetRecordCount());
+    sLog.outString(">> Loaded %u spell_script_target definitions", sSpellScriptTargetStorage.GetNumRows());
     sLog.outString();
 }
 

@@ -37,7 +37,7 @@ class SQLStorageBase
         const char* GetSrcFormat() const { return m_src_format; };
 
         uint32 GetMaxEntry() const { return m_maxEntry; };
-        uint32 GetRecordCount() const { return m_recordCount; };
+        uint32 GetNumRows() const { return m_recordCount; };
 
         template<typename T>
         class SQLSIterator

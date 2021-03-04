@@ -44,6 +44,89 @@ extern SQLHashStorage sGOStorage;
 
 extern SQLMultiStorage sSpellScriptTargetStorage;
 
+
+// DBC stores in db
+extern SQLStorage sDBCAreaTable;
+extern SQLStorage sDBCAreaTrigger;
+extern SQLStorage sDBCAuctionHouse;
+extern SQLStorage sDBCBankBagSlotPrices;
+extern SQLStorage sDBCBattlemasterList;
+extern SQLStorage sDBCCharStartOutfit;
+extern SQLStorage sDBCCharTitles;
+extern SQLStorage sDBCChatChannels;
+extern SQLStorage sDBCChrClasses;
+extern SQLStorage sDBCChrRaces;
+extern SQLStorage sDBCCinematicCamera;
+extern SQLStorage sDBCCinematicSequences;
+extern SQLStorage sDBCCreatureDisplayInfo;
+extern SQLStorage sDBCCreatureDisplayInfoExtra;
+extern SQLStorage sDBCCreatureFamily;
+extern SQLStorage sDBCCreatureModelData;
+extern SQLStorage sDBCCreatureSpellData;
+extern SQLStorage sDBCCreatureType;
+extern SQLStorage sDBCDurabilityCosts;
+extern SQLStorage sDBCDurabilityQuality;
+extern SQLStorage sDBCEmotes;
+extern SQLStorage sDBCEmotesText;
+extern SQLStorage sDBCFactionTemplate;
+extern SQLStorage sDBCGameObjectDisplayInfo;
+extern SQLStorage sDBCGemProperties;
+extern SQLStorage sDBCGMSurveyCurrentSurvey;
+extern SQLStorage sDBCGMSurveyQuestions;
+extern SQLStorage sDBCGMSurveySurveys;
+extern SQLStorage sDBCGMTicketCategory;
+extern SQLStorage sDBCgtCombatRatings;
+extern SQLStorage sDBCgtChanceToMeleeCritBase;
+extern SQLStorage sDBCgtChanceToMeleeCrit;
+extern SQLStorage sDBCgtChanceToSpellCritBase;
+extern SQLStorage sDBCgtChanceToSpellCrit;
+extern SQLStorage sDBCgtOCTRegenHP;
+extern SQLStorage sDBCgtNPCManaCostScaler;
+extern SQLStorage sDBCgtRegenHPPerSpt;
+extern SQLStorage sDBCgtRegenMPPerSpt;
+extern SQLStorage sDBCItem;
+extern SQLStorage sDBCItemBagFamily;
+extern SQLStorage sDBCItemClass;
+extern SQLStorage sDBCItemExtendedCost;
+extern SQLStorage sDBCItemRandomProperties;
+extern SQLStorage sDBCItemRandomSuffix;
+extern SQLStorage sDBCItemSet;
+extern SQLStorage sDBCLiquidType;
+extern SQLStorage sDBCLock;
+extern SQLStorage sDBCMailTemplate;
+extern SQLStorage sDBCMap;
+extern SQLStorage sDBCQuestSort;
+extern SQLStorage sDBCRandPropPoints;
+extern SQLStorage sDBCSkillLine;
+extern SQLStorage sDBCSkillLineAbility;
+extern SQLStorage sDBCSkillRaceClassInfo;
+extern SQLStorage sDBCSkillTiers;
+extern SQLStorage sDBCSoundEntries;
+extern SQLStorage sDBCSpellCastTimes;
+extern SQLStorage sDBCSpellDuration;
+extern SQLStorage sDBCSpellFocusObject;
+extern SQLStorage sDBCSpellItemEnchantment;
+extern SQLStorage sDBCSpellItemEnchantmentCondition;
+extern SQLStorage sDBCSpellRadius;
+extern SQLStorage sDBCSpellRange;
+extern SQLStorage sDBCSpellShapeshiftForm;
+extern SQLStorage sDBCSpellVisual;
+extern SQLStorage sDBCStableSlotPrices;
+extern SQLStorage sDBCSummonProperties;
+extern SQLStorage sDBCTalent;
+extern SQLStorage sDBCTalentTab;
+extern SQLStorage sDBCTaxiNodes;
+extern SQLStorage sDBCTaxiPath;
+extern SQLStorage sDBCTaxiPathNode;
+extern SQLStorage sDBCTransportAnimation;
+extern SQLStorage sDBCTotemCategory;
+extern SQLStorage sDBCWorldMapArea;
+extern SQLStorage sDBCWMOAreaTable;
+
+void LoadDBCTables();
+
+
+
 SQLStorage                 const* GetSpellStore();
 
 #endif

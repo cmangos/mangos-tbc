@@ -159,8 +159,10 @@ struct boss_horsmenAI : public ScriptedAI
             m_instance->SetData(TYPE_FOUR_HORSEMEN, SPECIAL);
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
+        ScriptedAI::EnterEvadeMode();
+
         if (m_instance)
             m_instance->SetData(TYPE_FOUR_HORSEMEN, FAIL);
     }

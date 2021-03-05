@@ -141,6 +141,8 @@ class MotionMaster : private std::stack<MovementGenerator*>
         void MoveChase(Unit* target, float dist = 0.0f, float angle = 0.0f, bool moveFurther = false, bool walk = false, bool combat = true, bool delayed = false);
         void DistanceYourself(float dist);
         void MoveConfused();
+        void MoveSeekAssistance(float x, float y, float z, float o);
+        void MoveSeekAssistanceDistract(uint32 timer);
         void MoveFleeing(Unit* enemy, uint32 time = 0);
         void MovePoint(uint32 id, Position const& position, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE, float speed = 0.f, bool generatePath = true, ObjectGuid guid = ObjectGuid(), uint32 relayId = 0);
         void MovePoint(uint32 id, float x, float y, float z, ForcedMovement forcedMovement = FORCED_MOVEMENT_NONE, bool generatePath = true);

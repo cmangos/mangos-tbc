@@ -587,6 +587,8 @@ struct ItemPrototype
         return false;
     }
 
+    bool IsCurrencyToken() const { return BagFamily & BAG_FAMILY_MASK_CURRENCY_TOKENS; }
+
     uint32 GetMaxStackSize() const { return Stackable; }
 
     bool IsPotion() const { return Class == ITEM_CLASS_CONSUMABLE && SubClass == ITEM_SUBCLASS_POTION; }

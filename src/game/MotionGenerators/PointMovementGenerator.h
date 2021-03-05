@@ -56,6 +56,17 @@ class PointMovementGenerator : public MovementGenerator
         uint32 m_relayId;
 };
 
+class AssistanceMovementGenerator : public PointMovementGenerator
+{
+public:
+    AssistanceMovementGenerator(float x, float y, float z, float o) :
+        PointMovementGenerator(0, x, y, z, o, true) {}
+
+    MovementGeneratorType GetMovementGeneratorType() const override { return FLEEING_MOTION_TYPE; }
+    void Initialize(Unit& unit) override;
+    void Finalize(Unit&) override;
+};
+
 class RetreatMovementGenerator : public PointMovementGenerator
 {
     public:

@@ -209,6 +209,18 @@ ArenaTeam* ObjectMgr::GetArenaTeamByCaptain(ObjectGuid guid) const
     return nullptr;
 }
 
+void ObjectMgr::AddLocaleString(std::string const& s, LocaleConstant locale, StringVector& data)
+{
+    if (!s.empty())
+    {
+        if (data.size() <= size_t(locale))
+        {
+            data.resize(locale + 1);
+        }
+        data[locale] = s;
+    }
+}
+
 void ObjectMgr::LoadCreatureLocales()
 {
     mCreatureLocaleMap.clear();                             // need for reload case
@@ -8497,6 +8509,49 @@ bool ObjectMgr::IsEncounter(uint32 creditEntry, uint32 mapId) const
             return true;
     }
     return false;
+}
+
+int ObjectMgr::GetIndexForLocale(LocaleConstant loc)
+{
+    if (loc == LOCALE_enUS)
+    {
+        return -1;
+    }
+
+    for (size_t i = 0; i < m_LocalForIndex.size(); ++i)
+        if (m_LocalForIndex[i] == loc)
+        {
+            return i;
+        }
+
+    return -1;
+}
+
+LocaleConstant ObjectMgr::GetLocaleForIndex(int i)
+{
+    if (i < 0 || i >= (int32)m_LocalForIndex.size())
+    {
+        return LOCALE_enUS;
+    }
+
+    return m_LocalForIndex[i];
+}
+
+int ObjectMgr::GetOrNewIndexForLocale(LocaleConstant loc)
+{
+    if (loc == LOCALE_enUS)
+    {
+        return -1;
+    }
+
+    for (size_t i = 0; i < m_LocalForIndex.size(); ++i)
+        if (m_LocalForIndex[i] == loc)
+        {
+            return i;
+        }
+
+    m_LocalForIndex.push_back(loc);
+    return m_LocalForIndex.size() - 1;
 }
 
 void ObjectMgr::LoadGameObjectForQuests()

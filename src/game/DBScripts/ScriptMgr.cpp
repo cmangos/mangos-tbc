@@ -37,6 +37,9 @@
 #include "Entities/Transports.h"
 
 #include <string_view>
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
 
 INSTANTIATE_SINGLETON_1(ScriptMgr);
 

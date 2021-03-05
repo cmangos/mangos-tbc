@@ -467,6 +467,8 @@ struct TrainerSpellData
     void Clear() { spellList.clear(); }
 };
 
+typedef std::map<uint32, time_t> CreatureSpellCooldowns;
+
 // max different by z coordinate for creature aggro reaction
 #define CREATURE_Z_ATTACK_RANGE_MELEE  3
 #define CREATURE_Z_ATTACK_RANGE_RANGED 15
@@ -580,6 +582,7 @@ class Creature : public Unit
         bool IsCorpse() const { return GetDeathState() == CORPSE; }
         bool IsDespawned() const { return GetDeathState() == DEAD; }
         void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; } // in seconds
+        uint32 GetCorpseDelay() const { return m_corpseDelay; }
         void ReduceCorpseDecayTimer();
         TimePoint GetCorpseDecayTimer() const { return m_corpseExpirationTime; }
         bool CanRestockPickpocketLoot() const;
@@ -623,6 +626,8 @@ class Creature : public Unit
 
         uint32 GetLevelForTarget(Unit const* target) const override; // overwrite Unit::GetLevelForTarget for boss level support
 
+        bool IsInEvadeMode() const;
+
         bool AIM_Initialize();
 
         virtual UnitAI* AI() override
@@ -641,6 +646,10 @@ class Creature : public Unit
 
         // TODO: Research mob shield block values
         uint32 GetShieldBlockValue() const override { return (GetLevel() / 2 + uint32(GetStat(STAT_STRENGTH) / 20)); }
+
+        bool HasSpellCooldown(uint32 spell_id) const;
+        bool HasCategoryCooldown(uint32 spell_id) const;
+        uint32 GetCreatureSpellCooldownDelay(uint32 spellId) const;
 
         bool HasSpell(uint32 spellID) const override;
         void UpdateSpell(int32 index, int32 newSpellId);
@@ -714,9 +723,16 @@ class Creature : public Unit
         SpellEntry const* ReachWithSpellAttack(Unit* pVictim);
         SpellEntry const* ReachWithSpellCure(Unit* pVictim);
 
+        uint32 m_spells[CREATURE_MAX_SPELLS];
+        CreatureSpellCooldowns m_CreatureSpellCooldowns;
+        CreatureSpellCooldowns m_CreatureCategoryCooldowns;
+
+        void DoFleeToGetAssistance();
         void CallForHelp(float radius);
         void CallAssistance(Unit* enemy = nullptr);
         void SetNoCallAssistance(bool val) { m_AlreadyCallAssistance = val; }
+        void SetNoSearchAssistance(bool val) { m_AlreadySearchedAssistance = val; }
+        bool HasSearchedAssistance() { return m_AlreadySearchedAssistance; }
         bool CanAssistTo(const Unit* u, const Unit* enemy, bool checkfaction = true) const;
         bool CanInitiateAttack() const;
         bool CanCallForAssistance() const override { return m_canCallForAssistance; }
@@ -911,6 +927,7 @@ class Creature : public Unit
 
         // below fields has potential for optimization
         bool m_AlreadyCallAssistance;
+        bool m_AlreadySearchedAssistance;
         bool m_canCallForAssistance;
         uint32 m_temporaryFactionFlags;                     // used for real faction changes (not auras etc)
 

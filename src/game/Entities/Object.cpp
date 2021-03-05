@@ -44,6 +44,10 @@
 #include "Loot/LootMgr.h"
 #include "Spells/SpellMgr.h"
 #include "MotionGenerators/PathFinder.h"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#include "LuaEngine/ElunaEventMgr.h"
+#endif
 
 Object::Object(): m_updateFlag(0), m_itsNewObject(false), m_dbGuid(0)
 {
@@ -917,6 +921,14 @@ void Object::SetUInt32Value(uint16 index, uint32 value)
     }
 }
 
+void Object::UpdateUInt32Value(uint16 index, uint32 value)
+{
+    MANGOS_ASSERT(index < m_valuesCount || PrintIndexError(index, true));
+
+    m_uint32Values[index] = value;
+    m_changedValues[index] = true;
+}
+
 void Object::SetUInt64Value(uint16 index, const uint64& value)
 {
     MANGOS_ASSERT(index + 1 < m_valuesCount || PrintIndexError(index, true));
@@ -1188,12 +1200,23 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 }
 
 WorldObject::WorldObject() :
+#ifdef BUILD_ELUNA
+    elunaEvents(NULL),
+#endif
     m_transport(nullptr), m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_visibilityData(this), m_currMap(nullptr),
     m_mapId(0), m_InstanceId(0), m_phaseMask(1),
     m_isActiveObject(false), m_debugFlags(0), m_castCounter(0)
 {
 }
+
+#ifdef BUILD_ELUNA
+WorldObject::~WorldObject()
+{
+    delete elunaEvents;
+    elunaEvents = NULL;
+}
+#endif
 
 void WorldObject::CleanupsBeforeDelete()
 {
@@ -1203,6 +1226,9 @@ void WorldObject::CleanupsBeforeDelete()
 
 void WorldObject::Update(const uint32 diff)
 {
+#ifdef BUILD_ELUNA
+    elunaEvents->Update(diff);
+#endif
     m_heartBeatTimer.Update(diff);
     while (m_heartBeatTimer.Passed())
     {
@@ -1327,6 +1353,15 @@ float WorldObject::GetDistance(float x, float y, float z, DistanceCalculation di
         }
         default: return dist;
     }
+}
+
+float WorldObject::GetDistance2d(const WorldObject* obj) const
+{
+    float dx = GetPositionX() - obj->GetPositionX();
+    float dy = GetPositionY() - obj->GetPositionY();
+    float sizefactor = GetObjectBoundingRadius() + obj->GetObjectBoundingRadius();
+    float dist = sqrt((dx * dx) + (dy * dy)) - sizefactor;
+    return (dist > 0 ? dist : 0);
 }
 
 float WorldObject::GetDistance2d(float x, float y, DistanceCalculation distcalc) const
@@ -1981,6 +2016,10 @@ void WorldObject::SetMap(Map* map)
     // lets save current map's Id/instanceId
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
+#ifdef BUILD_ELUNA
+    if (!elunaEvents)
+        elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
+#endif
 }
 
 void WorldObject::AddToWorld()
@@ -2163,6 +2202,31 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
 Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject, bool setRun, uint32 pathId, uint32 faction, uint32 modelId, bool spawnCounting, bool forcedOnTop)
 {
     return WorldObject::SummonCreature(TempSpawnSettings(this, id, x, y, z, ang, spwtype, despwtime, asActiveObject, setRun, pathId, faction, modelId, spawnCounting, forcedOnTop), GetMap());
+}
+
+GameObject* WorldObject::SummonGameObject(uint32 id, float x, float y, float z, float angle, uint32 despwtime)
+{
+    GameObject* gameobject = new GameObject;
+
+    Map* map = GetMap();
+
+    if (!map)
+    {
+        return NULL;
+    }
+
+    if (!gameobject->Create(map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), id, map, x, y, z, angle))
+    {
+        delete gameobject;
+        return NULL;
+    }
+
+    gameobject->SetRespawnTime(despwtime / IN_MILLISECONDS);
+
+    map->Add(gameobject);
+    gameobject->AIM_Initialize();
+
+    return gameobject;
 }
 
 GameObject* WorldObject::SpawnGameObject(uint32 dbGuid, Map* map, uint32 forcedEntry)

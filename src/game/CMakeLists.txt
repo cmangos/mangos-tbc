@@ -40,6 +40,19 @@ if(NOT BUILD_SCRIPTDEV)
   endforeach()
 endif()
 
+if(NOT BUILD_ELUNA)
+  # exclude Eluna LUA Engine
+  set (EXCLUDE_DIR "LuaEngine/")
+  foreach (TMP_PATH ${LIBRARY_SRCS})
+      string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+      if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+          list(REMOVE_ITEM LIBRARY_SRCS ${TMP_PATH})
+      endif ()
+  endforeach()
+else()
+add_definitions(-DBUILD_ELUNA -DCMANGOS -DTBC)
+endif()
+
 if(NOT BUILD_PLAYERBOT)
   # exclude Playerbot folder
   set (EXCLUDE_DIR "PlayerBot/")
@@ -81,6 +94,7 @@ target_link_libraries(${LIBRARY_NAME}
   PRIVATE g3dlite
   PRIVATE detour
   PRIVATE zlib
+  PRIVATE lualib
 )
 
 # include additionals headers
@@ -91,6 +105,7 @@ set(ADDITIONAL_INCLUDE_DIRS
   ${CMAKE_CURRENT_SOURCE_DIR}/BattleGround
   ${CMAKE_CURRENT_SOURCE_DIR}/OutdoorPvP
   ${CMAKE_CURRENT_SOURCE_DIR}/PlayerBot
+  ${CMAKE_SOURCE_DIR}/dep/lualib
   ${CMAKE_BINARY_DIR}
 )
 
@@ -110,6 +125,11 @@ endif()
 # Define BUILD_SCRIPTDEV if need
 if (BUILD_SCRIPTDEV)
   add_definitions(-DBUILD_SCRIPTDEV)
+endif()
+
+# Define BUILD_ELUNA if need
+if (BUILD_ELUNA)
+  add_definitions(-DBUILD_ELUNA)
 endif()
 
 # Define BUILD_AHBOT if need

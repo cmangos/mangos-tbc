@@ -56,6 +56,9 @@
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 #include "Maps/InstanceData.h"
 #include "Entities/Transports.h"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
 
 pEffect SpellEffects[MAX_SPELL_EFFECTS] =
 {
@@ -7461,6 +7464,11 @@ void Spell::EffectDuel(SpellEffectIndex eff_idx)
 
     caster->SetGuidValue(PLAYER_DUEL_ARBITER, pGameObj->GetObjectGuid());
     target->SetGuidValue(PLAYER_DUEL_ARBITER, pGameObj->GetObjectGuid());
+
+#ifdef BUILD_ELUNA
+    // used by eluna
+    sEluna->OnDuelRequest(target, caster);
+#endif
 
     m_spellLog.AddLog(uint32(SPELL_EFFECT_DUEL), target->GetPackGUID());
 }

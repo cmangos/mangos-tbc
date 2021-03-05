@@ -450,6 +450,34 @@ void MotionMaster::MoveRetreat(float x, float y, float z, float o, uint32 delay)
     Mutate(new RetreatMovementGenerator(x, y, z, o, delay));
 }
 
+void MotionMaster::MoveSeekAssistance(float x, float y, float z, float o)
+{
+    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    {
+        sLog.outError("%s attempt to seek assistance", m_owner->GetGuidStr().c_str());
+    }
+    else
+    {
+        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s seek assistance (X: %f Y: %f Z: %f O: %f)",
+            m_owner->GetGuidStr().c_str(), x, y, z, o);
+        Mutate(new AssistanceMovementGenerator(x, y, z, o));
+    }
+}
+
+void MotionMaster::MoveSeekAssistanceDistract(uint32 time)
+{
+    if (m_owner->GetTypeId() == TYPEID_PLAYER)
+    {
+        sLog.outError("%s attempt to call distract after assistance", m_owner->GetGuidStr().c_str());
+    }
+    else
+    {
+        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s is distracted after assistance call (Time: %u)",
+            m_owner->GetGuidStr().c_str(), time);
+        Mutate(new AssistanceDistractMovementGenerator(time));
+    }
+}
+
 void MotionMaster::MoveFleeing(Unit* source, uint32 time)
 {
     if (!source)

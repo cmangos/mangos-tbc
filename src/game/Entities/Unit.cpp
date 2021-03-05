@@ -50,6 +50,9 @@
 #include "Tools/Formulas.h"
 #include "Entities/Transports.h"
 #include "Anticheat/Anticheat.hpp"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
 
 #ifdef BUILD_METRICS
  #include "Metric/Metric.h"
@@ -1159,6 +1162,15 @@ void Unit::Kill(Unit* killer, Unit* victim, DamageEffectType damagetype, SpellEn
         if (UnitAI* ai = killer->AI())
             ai->KilledUnit(victim);
 
+/*#ifdef BUILD_ELUNA
+        if (Creature* killer = ToCreature())
+        {
+            // used by eluna
+            if (Player* killed = victim->ToPlayer())
+                sEluna->OnPlayerKilledByCreature(killer, killed);
+        }
+#endif*/
+
         // Call AI OwnerKilledUnit (for any current summoned minipet/guardian/protector)
         killer->PetOwnerKilledUnit(victim);
     }
@@ -1227,6 +1239,10 @@ void Unit::Kill(Unit* killer, Unit* victim, DamageEffectType damagetype, SpellEn
                 if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(playerVictim->GetCachedZoneId()))
                     outdoorPvP->HandlePlayerKill(responsiblePlayer, playerVictim);
             }
+#ifdef BUILD_ELUNA
+            // used by eluna
+            sEluna->OnPVPKill(responsiblePlayer, playerVictim);
+#endif
         }
     }
     else                                                // Killed creature
@@ -1414,8 +1430,17 @@ void Unit::JustKilledCreature(Unit* killer, Creature* victim, Player* responsibl
         mapInstance->OnCreatureDeath(victim);
 
     if (responsiblePlayer)                                  // killedby Player, inform BG
+#ifdef BUILD_ELUNA
+    {
         if (BattleGround* bg = responsiblePlayer->GetBattleGround())
             bg->HandleKillUnit(victim, responsiblePlayer);
+        // used by eluna
+        sEluna->OnCreatureKill(responsiblePlayer, victim);
+    }
+#else
+        if (BattleGround* bg = responsiblePlayer->GetBattleGround())
+            bg->HandleKillUnit(victim, responsiblePlayer);
+#endif
 
     // Notify the outdoor pvp script
     if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(responsiblePlayer ? responsiblePlayer->GetCachedZoneId() : victim->GetZoneId()))
@@ -6593,6 +6618,243 @@ FactionTemplateEntry const* Unit::GetFactionTemplateEntry() const
     return entry;
 }
 
+bool Unit::IsHostileTo(Unit const* unit) const
+{
+    // always non-hostile to self
+    if (unit == this)
+        return false;
+
+    // always non-hostile to GM in GM mode
+    if (unit->GetTypeId() == TYPEID_PLAYER && ((Player const*)unit)->IsGameMaster())
+        return false;
+
+    // always hostile to enemy
+    if (GetVictim() == unit || unit->GetVictim() == this)
+        return true;
+
+    // test pet/charm masters instead pers/charmeds
+    Unit const* testerOwner = GetCharmerOrOwner();
+    Unit const* targetOwner = unit->GetCharmerOrOwner();
+
+    // always hostile to owner's enemy
+    if (testerOwner && (testerOwner->GetVictim() == unit || unit->GetVictim() == testerOwner))
+        return true;
+
+    // always hostile to enemy owner
+    if (targetOwner && (GetVictim() == targetOwner || targetOwner->GetVictim() == this))
+        return true;
+
+    // always hostile to owner of owner's enemy
+    if (testerOwner && targetOwner && (testerOwner->GetVictim() == targetOwner || targetOwner->GetVictim() == testerOwner))
+        return true;
+
+    Unit const* tester = testerOwner ? testerOwner : this;
+    Unit const* target = targetOwner ? targetOwner : unit;
+
+    // always non-hostile to target with common owner, or to owner/pet
+    if (tester == target)
+        return false;
+
+    // special cases (Duel, etc)
+    if (tester->GetTypeId() == TYPEID_PLAYER && target->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player const* pTester = (Player const*)tester;
+        Player const* pTarget = (Player const*)target;
+
+        // Duel
+        if (pTester->IsInDuelWith(pTarget))
+            return true;
+
+        // Group
+        if (pTester->GetGroup() && pTester->GetGroup() == pTarget->GetGroup())
+            return false;
+
+        // Sanctuary
+        if (pTarget->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY) && pTester->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY))
+            return false;
+
+        // PvP FFA state
+        if (pTester->IsPvPFreeForAll() && pTarget->IsPvPFreeForAll())
+            return true;
+
+        //= PvP states
+        // Green/Blue (can't attack)
+        if (pTester->GetTeam() == pTarget->GetTeam())
+            return false;
+
+        // Red (can attack) if true, Blue/Yellow (can't attack) in another case
+        return pTester->IsPvP() && pTarget->IsPvP();
+    }
+
+    // faction base cases
+    FactionTemplateEntry const* tester_faction = tester->GetFactionTemplateEntry();
+    FactionTemplateEntry const* target_faction = target->GetFactionTemplateEntry();
+    if (!tester_faction || !target_faction)
+        return false;
+
+    if (target->IsInCombat() && tester->IsContestedGuard())
+        return true;
+
+    // PvC forced reaction and reputation case
+    if (tester->GetTypeId() == TYPEID_PLAYER)
+    {
+        if (target_faction->faction)
+        {
+            // forced reaction
+            if (ReputationRank const* force = ((Player*)tester)->GetReputationMgr().GetForcedRankIfAny(target_faction))
+                return *force <= REP_HOSTILE;
+
+            // if faction have reputation then hostile state for tester at 100% dependent from at_war state
+            if (FactionEntry const* raw_target_faction = sFactionStore.LookupEntry<FactionEntry>(target_faction->faction))
+                if (FactionState const* factionState = ((Player*)tester)->GetReputationMgr().GetState(raw_target_faction))
+                    return !!(factionState->Flags & FACTION_FLAG_AT_WAR);
+        }
+    }
+    // CvP forced reaction and reputation case
+    else if (target->GetTypeId() == TYPEID_PLAYER)
+    {
+        if (tester_faction->faction)
+        {
+            // forced reaction
+            if (ReputationRank const* force = ((Player*)target)->GetReputationMgr().GetForcedRankIfAny(tester_faction))
+                return *force <= REP_HOSTILE;
+
+            // apply reputation state
+            FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry<FactionEntry>(tester_faction->faction);
+            if (raw_tester_faction && raw_tester_faction->reputationListID >= 0)
+                return ((Player const*)target)->GetReputationMgr().GetRank(raw_tester_faction) <= REP_HOSTILE;
+        }
+    }
+
+    // common faction based case (CvC,PvC,CvP)
+    return tester_faction->IsHostileTo(*target_faction);
+}
+
+bool Unit::IsFriendlyTo(Unit const* unit) const
+{
+    // always friendly to self
+    if (unit == this)
+        return true;
+
+    // always friendly to GM in GM mode
+    if (unit->GetTypeId() == TYPEID_PLAYER && ((Player const*)unit)->IsGameMaster())
+        return true;
+
+    // always non-friendly to enemy
+    if (GetVictim() == unit || unit->GetVictim() == this)
+        return false;
+
+    // test pet/charm masters instead pers/charmeds
+    Unit const* testerOwner = GetCharmerOrOwner();
+    Unit const* targetOwner = unit->GetCharmerOrOwner();
+
+    // always non-friendly to owner's enemy
+    if (testerOwner && (testerOwner->GetVictim() == unit || unit->GetVictim() == testerOwner))
+        return false;
+
+    // always non-friendly to enemy owner
+    if (targetOwner && (GetVictim() == targetOwner || targetOwner->GetVictim() == this))
+        return false;
+
+    // always non-friendly to owner of owner's enemy
+    if (testerOwner && targetOwner && (testerOwner->GetVictim() == targetOwner || targetOwner->GetVictim() == testerOwner))
+        return false;
+
+    Unit const* tester = testerOwner ? testerOwner : this;
+    Unit const* target = targetOwner ? targetOwner : unit;
+
+    // always friendly to target with common owner, or to owner/pet
+    if (tester == target)
+        return true;
+
+    // special cases (Duel)
+    if (tester->GetTypeId() == TYPEID_PLAYER && target->GetTypeId() == TYPEID_PLAYER)
+    {
+        Player const* pTester = (Player const*)tester;
+        Player const* pTarget = (Player const*)target;
+
+        // Duel
+        if (pTester->IsInDuelWith(pTarget))
+            return false;
+
+        // Group
+        if (pTester->GetGroup() && pTester->GetGroup() == pTarget->GetGroup())
+            return true;
+
+        // Sanctuary
+        if (pTarget->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY) && pTester->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_SANCTUARY))
+            return true;
+
+        // PvP FFA state
+        if (pTester->IsPvPFreeForAll() && pTarget->IsPvPFreeForAll())
+            return false;
+
+        //= PvP states
+        // Green/Blue (non-attackable)
+        if (pTester->GetTeam() == pTarget->GetTeam())
+            return true;
+
+        // Blue (friendly/non-attackable) if not PVP, or Yellow/Red in another case (attackable)
+        return !pTarget->IsPvP();
+    }
+
+    // faction base cases
+    FactionTemplateEntry const* tester_faction = tester->GetFactionTemplateEntry();
+    FactionTemplateEntry const* target_faction = target->GetFactionTemplateEntry();
+    if (!tester_faction || !target_faction)
+        return false;
+
+    if (target->isAttackingPlayer() && tester->IsContestedGuard())
+        return false;
+
+    // PvC forced reaction and reputation case
+    if (tester->GetTypeId() == TYPEID_PLAYER)
+    {
+        if (target_faction->faction)
+        {
+            // forced reaction
+            if (ReputationRank const* force = ((Player*)tester)->GetReputationMgr().GetForcedRankIfAny(target_faction))
+                return *force >= REP_FRIENDLY;
+
+            // if faction have reputation then friendly state for tester at 100% dependent from at_war state
+            if (FactionEntry const* raw_target_faction = sFactionStore.LookupEntry<FactionEntry>(target_faction->faction))
+                if (FactionState const* factionState = ((Player*)tester)->GetReputationMgr().GetState(raw_target_faction))
+                    return !(factionState->Flags & FACTION_FLAG_AT_WAR);
+        }
+    }
+    // CvP forced reaction and reputation case
+    else if (target->GetTypeId() == TYPEID_PLAYER)
+    {
+        if (tester_faction->faction)
+        {
+            // forced reaction
+            if (ReputationRank const* force = ((Player*)target)->GetReputationMgr().GetForcedRankIfAny(tester_faction))
+                return *force >= REP_FRIENDLY;
+
+            // apply reputation state
+            if (FactionEntry const* raw_tester_faction = sFactionStore.LookupEntry<FactionEntry>(tester_faction->faction))
+                if (raw_tester_faction->reputationListID >= 0)
+                    return ((Player const*)target)->GetReputationMgr().GetRank(raw_tester_faction) >= REP_FRIENDLY;
+        }
+    }
+
+    // common faction based case (CvC,PvC,CvP)
+    return tester_faction->IsFriendlyTo(*target_faction);
+}
+
+bool Unit::IsHostileToPlayers() const
+{
+    FactionTemplateEntry const* my_faction = GetFactionTemplateEntry();
+    if (!my_faction || !my_faction->faction)
+        return false;
+
+    FactionEntry const* raw_faction = sFactionStore.LookupEntry<FactionEntry>(my_faction->faction);
+    if (raw_faction && raw_faction->reputationListID >= 0)
+        return false;
+
+    return my_faction->IsHostileToPlayers();
+}
+
 bool Unit::IsNeutralToAll() const
 {
     FactionTemplateEntry const* my_faction = GetFactionTemplateEntry();
@@ -6785,6 +7047,20 @@ void Unit::CombatStopWithPets(bool includingCast, bool includingCombo)
 {
     CombatStop(includingCast, includingCombo);
     CallForAllControlledUnits(CombatStopWithPetsHelper(includingCast, includingCombo), CONTROLLED_PET | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
+}
+
+struct IsAttackingPlayerHelper
+{
+    explicit IsAttackingPlayerHelper() {}
+    bool operator()(Unit const* unit) const { return unit->isAttackingPlayer(); }
+};
+
+bool Unit::isAttackingPlayer() const
+{
+    if (hasUnitState(UNIT_STAT_MELEE_ATTACKING || UNIT_STAT_CHANNELING))
+        return true;
+
+    return CheckAllControlledUnits(IsAttackingPlayerHelper(), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
 }
 
 void Unit::RemoveAllAttackers()
@@ -8637,6 +8913,11 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
 
         TriggerAggroLinkingEvent(enemy);
     }
+#ifdef BUILD_ELUNA
+    // used by eluna
+    if (GetTypeId() == TYPEID_PLAYER)
+        sEluna->OnPlayerEnterCombat(ToPlayer(), enemy);
+#endif
 }
 
 void Unit::EngageInCombatWith(Unit* enemy)
@@ -8661,6 +8942,12 @@ void Unit::ClearInCombat()
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
 
+#ifdef BUILD_ELUNA
+    // used by eluna
+    if (GetTypeId() == TYPEID_PLAYER)
+        sEluna->OnPlayerLeaveCombat(ToPlayer());
+#endif
+
     if (GetTypeId() == TYPEID_PLAYER)
         static_cast<Player*>(this)->pvpInfo.inPvPCombat = false;
 }
@@ -8682,6 +8969,33 @@ void Unit::HandleExitCombat(bool customLeash, bool pvpCombat)
         CombatStop(false, !pvpCombat);
 
     CallForAllControlledUnits([customLeash, pvpCombat](Unit* unit) { unit->HandleExitCombat(customLeash, pvpCombat); }, CONTROLLED_PET | CONTROLLED_GUARDIANS | CONTROLLED_CHARM | CONTROLLED_TOTEMS);
+}
+
+bool Unit::IsTargetableForAttack(bool inverseAlive /*=false*/) const
+{
+    if (GetTypeId() == TYPEID_PLAYER && ((Player*)this)->IsGameMaster())
+    {
+        return false;
+    }
+
+    if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING | UNIT_FLAG_UNINTERACTIBLE))
+    {
+        return false;
+    }
+
+    // to be removed if unit by any reason enter combat
+    if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER))
+    {
+        return false;
+    }
+
+    // inversealive is needed for some spells which need to be casted at dead targets (aoe)
+    if (IsAlive() == inverseAlive)
+    {
+        return false;
+    }
+
+    return IsInWorld() && !hasUnitState(UNIT_STAT_FEIGN_DEATH) && !IsTaxiFlying();
 }
 
 int32 Unit::ModifyHealth(int32 dVal)

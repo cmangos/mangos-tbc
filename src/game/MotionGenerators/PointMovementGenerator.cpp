@@ -22,6 +22,7 @@
 #include "Entities/Creature.h"
 #include "Entities/TemporarySpawn.h"
 #include "AI/BaseAI/UnitAI.h"
+#include "World/World.h"
 
 //----- Point Movement Generator
 
@@ -125,6 +126,40 @@ void PointMovementGenerator::MovementInform(Unit& unit)
 
     if (m_relayId)
         unit.GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, m_relayId, &unit, m_guid ? unit.GetMap()->GetWorldObject(m_guid) : nullptr);
+}
+
+void AssistanceMovementGenerator::Initialize(Unit& unit)
+{
+    if (unit.hasUnitState(UNIT_STAT_CAN_NOT_REACT | UNIT_STAT_NOT_MOVE))
+    {
+        return;
+    }
+
+    if (!unit.IsStopped())
+    {
+        unit.StopMoving();
+    }
+
+    unit.addUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
+    Movement::MoveSplineInit init(unit);
+    init.MoveTo(m_x, m_y, m_z, m_generatePath);
+    //Slow down the mob that is running for assistance
+    //TODO: There are different speeds for the different mobs, isn't there?
+    //That should probably be taken into account here
+    init.SetWalk(true);
+    init.Launch();
+}
+
+void AssistanceMovementGenerator::Finalize(Unit& unit)
+{
+    unit.clearUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
+
+    ((Creature*)&unit)->SetNoCallAssistance(false);
+    ((Creature*)&unit)->CallAssistance();
+    if (unit.IsAlive())
+    {
+        unit.GetMotionMaster()->MoveSeekAssistanceDistract(sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY));
+    }
 }
 
 void RetreatMovementGenerator::Initialize(Unit& unit)

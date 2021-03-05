@@ -411,6 +411,7 @@ class WorldSession
         void SendPetitionShowList(ObjectGuid guid) const;
         void SendSaveGuildEmblem(uint32 msg) const;
         void SendBattleGroundOrArenaJoinError(uint8 err) const;
+        void SendGuildInvite(Player* player);
 
         // Looking For Group
         // TRUE values set by client sending CMSG_LFG_SET_AUTOJOIN and CMSG_LFM_CLEAR_AUTOFILL before player login

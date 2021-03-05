@@ -48,3 +48,15 @@ bool DistractMovementGenerator::Update(Unit& owner, const uint32& diff)
     return (owner.hasUnitState(UNIT_STAT_DISTRACTED) && !m_timer.Passed());
 }
 
+void AssistanceDistractMovementGenerator::Finalize(Unit& unit)
+{
+    unit.clearUnitState(UNIT_STAT_DISTRACTED);
+    if (Unit* victim = unit.GetVictim())
+    {
+        if (unit.IsAlive())
+        {
+            unit.AttackStop(true);
+            ((Creature*)&unit)->AI()->AttackStart(victim);
+        }
+    }
+}

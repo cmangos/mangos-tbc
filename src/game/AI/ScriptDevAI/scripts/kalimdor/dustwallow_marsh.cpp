@@ -34,7 +34,9 @@ EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "Common.h"
 #include "Entities/TemporarySpawn.h"
+#include "Globals/SharedDefines.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
 
@@ -1023,15 +1025,19 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 
     uint32 m_attackTimer;
     uint32 m_breakTimer;
+    uint32 m_sitTimer;
     bool m_bisAttacking;
+    bool m_bsitDown, m_bstandUp;
     Creature* attackableDummy;
 
     void Reset() override
     {
         SetRootSelf(true);
-        m_attackTimer = 30 * IN_MILLISECONDS;
+        m_attackTimer = 130 * IN_MILLISECONDS;
         m_breakTimer = 20 * IN_MILLISECONDS;
         m_bisAttacking = false;
+        m_bsitDown = false;
+        m_bstandUp = false;
         attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
         if (attackableDummy)
         {
@@ -1058,8 +1064,10 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                 if (m_attackTimer <= diff)
                 {
                     m_bisAttacking = false;
-                    m_attackTimer = urand(30, 35) * IN_MILLISECONDS;
+                    m_attackTimer = urand(120, 135) * IN_MILLISECONDS;
                     m_creature->CombatStop();
+                    m_bsitDown = true;
+                    m_sitTimer = 2 * IN_MILLISECONDS;
                 }
                 else
                 {
@@ -1075,8 +1083,26 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                     m_breakTimer = urand(20, 40) * IN_MILLISECONDS;
                     m_creature->AI()->AttackStart(attackableDummy);
                 }
+                else if (m_breakTimer <= 2 * IN_MILLISECONDS && m_bstandUp){
+                    m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+                    m_bstandUp = false;
+                    m_breakTimer -= diff;
+                }
                 else
                 {
+                    if (m_bsitDown)
+                    {
+                        if (m_sitTimer <= diff)
+                        {
+                            m_creature->SetStandState(UNIT_STAND_STATE_SIT);
+                            m_bsitDown = false;
+                            m_bstandUp = true;
+                        }
+                        else
+                        {
+                            m_sitTimer -= diff;
+                        }
+                    }
                     m_breakTimer -= diff;
                 }
             }

@@ -2593,16 +2593,12 @@ bool ChatHandler::HandleLookupCreatureCommand(char* args)
 
     uint32 counter = 0;
 
-    for (uint32 id = 0; id < sCreatureStorage.GetMaxEntry(); ++id)
+    for (auto cInfo : sCreatureStorage)
     {
-        CreatureInfo const* cInfo = sCreatureStorage.LookupEntry (id);
-        if (!cInfo)
-            continue;
-
         int loc_idx = GetSessionDbLocaleIndex();
 
         char const* name = "";                              // "" for avoid repeating check for default locale
-        sObjectMgr.GetCreatureLocaleStrings(id, loc_idx, &name);
+        sObjectMgr.GetCreatureLocaleStrings(cInfo->Entry, loc_idx, &name);
         if (!*name || !Utf8FitTo(name, wnamepart))
         {
             name = cInfo->Name;
@@ -2611,9 +2607,9 @@ bool ChatHandler::HandleLookupCreatureCommand(char* args)
         }
 
         if (m_session)
-            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CHAT, id, id, name);
+            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CHAT, cInfo->Entry, cInfo->Entry, name);
         else
-            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CONSOLE, id, name);
+            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CONSOLE, cInfo->Entry, name);
 
         ++counter;
     }
@@ -2640,7 +2636,7 @@ bool ChatHandler::HandleLookupObjectCommand(char* args)
 
     uint32 counter = 0;
 
-    for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
+    for (auto itr : sGOStorage)
     {
         int loc_idx = GetSessionDbLocaleIndex();
         if (loc_idx >= 0)

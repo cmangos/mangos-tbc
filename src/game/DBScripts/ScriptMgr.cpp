@@ -2499,7 +2499,7 @@ int32 ScriptMgr::GetRandomRelayDbscriptFromTemplate(uint32 id)
 void ScriptMgr::CollectPossibleEventIds(std::set<uint32>& eventIds)
 {
     // Load all possible script entries from gameobjects
-    for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
+    for (auto itr : sGOStorage)
     {
         switch (itr->type)
         {

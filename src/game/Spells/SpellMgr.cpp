@@ -2016,7 +2016,7 @@ void SpellMgr::LoadSpellScriptTarget()
     sSpellScriptTargetStorage.Load();
 
     // Check content
-    for (auto itr = sSpellScriptTargetStorage.getDataBegin(); itr < sSpellScriptTargetStorage.getDataEnd(); ++itr)
+    for (auto itr = sSpellScriptTargetStorage.begin(); itr < sSpellScriptTargetStorage.end(); ++itr)
     {
         SpellEntry const* spellProto = sSpellTemplate.LookupEntry(itr->spellId);
         if (!spellProto)

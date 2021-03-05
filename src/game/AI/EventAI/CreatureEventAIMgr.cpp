@@ -1123,17 +1123,14 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
         m_usedTextsAmount = usedTextIds.size();
 
         // post check
-        for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+        for (auto cInfo : sCreatureStorage)
         {
-            if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
-            {
-                bool ainame = strcmp(cInfo->AIName, "EventAI") == 0 || strcmp(cInfo->AIName, "GuardianAI") == 0;
-                bool hasevent = m_CreatureEventAI_Event_Map.find(i) != m_CreatureEventAI_Event_Map.end();
-                if (ainame && !hasevent)
-                    sLog.outErrorEventAI("EventAI not has script for creature entry (%u), but AIName = '%s'.", i, cInfo->AIName);
-                else if (!ainame && hasevent)
-                    sLog.outErrorEventAI("EventAI has script for creature entry (%u), but AIName = '%s' instead 'EventAI'.", i, cInfo->AIName);
-            }
+            bool ainame = strcmp(cInfo->AIName, "EventAI") == 0 || strcmp(cInfo->AIName, "GuardianAI") == 0;
+            bool hasevent = m_CreatureEventAI_Event_Map.find(cInfo->Entry) != m_CreatureEventAI_Event_Map.end();
+            if (ainame && !hasevent)
+                sLog.outErrorEventAI("EventAI not has script for creature entry (%u), but AIName = '%s'.", cInfo->Entry, cInfo->AIName);
+            else if (!ainame && hasevent)
+                sLog.outErrorEventAI("EventAI has script for creature entry (%u), but AIName = '%s' instead 'EventAI'.", cInfo->Entry, cInfo->AIName);
         }
 
         CheckUnusedAITexts();

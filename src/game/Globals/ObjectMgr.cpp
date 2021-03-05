@@ -437,24 +437,20 @@ void ObjectMgr::LoadCreatureTemplates()
     std::set<uint32> hasHeroicEntries;                      // already loaded creatures with heroic entry values
 
     // check data correctness
-    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    for (auto cInfo : sCreatureStorage)
     {
-        CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i);
-        if (!cInfo)
-            continue;
-
         if (cInfo->HeroicEntry)
         {
             CreatureInfo const* heroicInfo = GetCreatureTemplate(cInfo->HeroicEntry);
             if (!heroicInfo)
             {
-                sLog.outErrorDb("Creature (Entry: %u) have `heroic_entry`=%u but creature entry %u not exist.", i, cInfo->HeroicEntry, cInfo->HeroicEntry);
+                sLog.outErrorDb("Creature (Entry: %u) have `heroic_entry`=%u but creature entry %u not exist.", cInfo->Entry, cInfo->HeroicEntry, cInfo->HeroicEntry);
                 continue;
             }
 
-            if (heroicEntries.find(i) != heroicEntries.end())
+            if (heroicEntries.find(cInfo->Entry) != heroicEntries.end())
             {
-                sLog.outErrorDb("Creature (Entry: %u) listed as heroic but have value in `heroic_entry`.", i);
+                sLog.outErrorDb("Creature (Entry: %u) listed as heroic but have value in `heroic_entry`.", cInfo->Entry);
                 continue;
             }
 
@@ -466,59 +462,59 @@ void ObjectMgr::LoadCreatureTemplates()
 
             if (hasHeroicEntries.find(cInfo->HeroicEntry) != hasHeroicEntries.end())
             {
-                sLog.outErrorDb("Creature (Entry: %u) have `heroic_entry`=%u but creature entry %u have heroic entry also.", i, cInfo->HeroicEntry, cInfo->HeroicEntry);
+                sLog.outErrorDb("Creature (Entry: %u) have `heroic_entry`=%u but creature entry %u have heroic entry also.", cInfo->Entry, cInfo->HeroicEntry, cInfo->HeroicEntry);
                 continue;
             }
 
             if (cInfo->UnitClass != heroicInfo->UnitClass)
             {
-                sLog.outErrorDb("Creature (Entry: %u, class %u) has different `unit_class` in heroic mode (Entry: %u, class %u).", i, cInfo->UnitClass, cInfo->HeroicEntry, heroicInfo->UnitClass);
+                sLog.outErrorDb("Creature (Entry: %u, class %u) has different `unit_class` in heroic mode (Entry: %u, class %u).", cInfo->Entry, cInfo->UnitClass, cInfo->HeroicEntry, heroicInfo->UnitClass);
                 continue;
             }
 
             if (cInfo->NpcFlags != heroicInfo->NpcFlags)
             {
-                sLog.outErrorDb("Creature (Entry: %u) has different `npcflag` in heroic mode (Entry: %u).", i, cInfo->HeroicEntry);
+                sLog.outErrorDb("Creature (Entry: %u) has different `npcflag` in heroic mode (Entry: %u).", cInfo->Entry, cInfo->HeroicEntry);
                 continue;
             }
 
             if (cInfo->TrainerClass != heroicInfo->TrainerClass)
             {
-                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_class` in heroic mode (Entry: %u).", i, cInfo->HeroicEntry);
+                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_class` in heroic mode (Entry: %u).", cInfo->Entry, cInfo->HeroicEntry);
                 continue;
             }
 
             if (cInfo->TrainerRace != heroicInfo->TrainerRace)
             {
-                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_race` in heroic mode (Entry: %u).", i, cInfo->HeroicEntry);
+                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_race` in heroic mode (Entry: %u).", cInfo->Entry, cInfo->HeroicEntry);
                 continue;
             }
 
             if (cInfo->TrainerType != heroicInfo->TrainerType)
             {
-                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_type` in heroic mode (Entry: %u).", i, cInfo->HeroicEntry);
+                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_type` in heroic mode (Entry: %u).", cInfo->Entry, cInfo->HeroicEntry);
                 continue;
             }
 
             if (cInfo->TrainerSpell != heroicInfo->TrainerSpell)
             {
-                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_spell` in heroic mode (Entry: %u).", i, cInfo->HeroicEntry);
+                sLog.outErrorDb("Creature (Entry: %u) has different `trainer_spell` in heroic mode (Entry: %u).", cInfo->Entry, cInfo->HeroicEntry);
                 continue;
             }
 
             if (heroicInfo->AIName && *heroicInfo->AIName)
             {
-                sLog.outErrorDb("Heroic mode creature (Entry: %u) has `AIName`, but in any case will used normal mode creature (Entry: %u) AIName.", cInfo->HeroicEntry, i);
+                sLog.outErrorDb("Heroic mode creature (Entry: %u) has `AIName`, but in any case will used normal mode creature (Entry: %u) AIName.", cInfo->HeroicEntry, cInfo->Entry);
                 continue;
             }
 
             if (heroicInfo->ScriptID)
             {
-                sLog.outErrorDb("Heroic mode creature (Entry: %u) has `ScriptName`, but in any case will used normal mode creature (Entry: %u) ScriptName.", cInfo->HeroicEntry, i);
+                sLog.outErrorDb("Heroic mode creature (Entry: %u) has `ScriptName`, but in any case will used normal mode creature (Entry: %u) ScriptName.", cInfo->HeroicEntry, cInfo->Entry);
                 continue;
             }
 
-            hasHeroicEntries.insert(i);
+            hasHeroicEntries.insert(cInfo->Entry);
             heroicEntries.insert(cInfo->HeroicEntry);
         }
 
@@ -1401,10 +1397,11 @@ void ObjectMgr::LoadCreatures()
 
     // build single time for check creature data
     std::set<uint32> heroicCreatures;
-    for (uint32 i = 0; i < sCreatureStorage.GetMaxEntry(); ++i)
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
-            if (cInfo->HeroicEntry)
-                heroicCreatures.insert(cInfo->HeroicEntry);
+    for (auto cInfo : sCreatureStorage)
+    {
+        if (cInfo->HeroicEntry)
+            heroicCreatures.insert(cInfo->HeroicEntry);
+    }
 
     BarGoLink bar(result->GetRowCount());
 
@@ -4664,12 +4661,8 @@ void ObjectMgr::LoadPetCreateSpells()
 
     // fill data from DBC as more correct source if available
     uint32 dcount = 0;
-    for (uint32 cr_id = 1; cr_id < sCreatureStorage.GetMaxEntry(); ++cr_id)
+    for (auto cInfo : sCreatureStorage)
     {
-        CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(cr_id);
-        if (!cInfo)
-            continue;
-
         CreatureSpellDataEntry const* petSpellEntry = cInfo->PetSpellDataId ? sCreatureSpellDataStore.LookupEntry(cInfo->PetSpellDataId) : nullptr;
         if (!petSpellEntry)
             continue;
@@ -4689,7 +4682,7 @@ void ObjectMgr::LoadPetCreateSpells()
             PetCreateSpell.spellid[i] = petspell_id;
         }
 
-        mPetCreateSpell[cr_id] = PetCreateSpell;
+        mPetCreateSpell[cInfo->Entry] = PetCreateSpell;
         ++dcount;
     }
 
@@ -6881,10 +6874,8 @@ std::vector<uint32> ObjectMgr::LoadGameobjectInfo()
     std::vector<uint32> transportDisplayIds;
 
     // some checks
-    for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
+    for (auto goInfo : sGOStorage)
     {
-        GameObjectInfo const* goInfo = itr.getValue();
-
         if (goInfo->size <= 0.0f)                           // prevent use too small scales
         {
             ERROR_DB_STRICT_LOG("Gameobject (Entry: %u GoType: %u) have too small size=%f",
@@ -7575,7 +7566,7 @@ void ObjectMgr::LoadSpellTemplate()
     sSpellTemplate.Load();
 
     /* TODO add validation for spell_dbc */
-    for (auto itr = sSpellTemplate.getDataBegin(); itr < sSpellTemplate.getDataEnd(); ++itr)
+    for (auto itr = sSpellTemplate.begin(); itr < sSpellTemplate.end(); ++itr)
     {
         if (!sSpellTemplate.LookupEntry(itr->Id))
         {
@@ -8164,7 +8155,7 @@ void ObjectMgr::LoadGameObjectForQuests()
     uint32 count = 0;
 
     // collect GO entries for GO that must activated
-    for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
+    for (auto itr : sGOStorage)
     {
         bar.step();
         switch (itr->type)
@@ -8888,19 +8879,16 @@ void ObjectMgr::LoadTrainerTemplates()
     for (CacheTrainerSpellMap::const_iterator tItr = m_mCacheTrainerTemplateSpellMap.begin(); tItr != m_mCacheTrainerTemplateSpellMap.end(); ++tItr)
         trainer_ids.insert(tItr->first);
 
-    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    for (auto cInfo : sCreatureStorage)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
+        if (cInfo->TrainerTemplateId)
         {
-            if (cInfo->TrainerTemplateId)
+            if (m_mCacheTrainerTemplateSpellMap.find(cInfo->TrainerTemplateId) != m_mCacheTrainerTemplateSpellMap.end())
+                trainer_ids.erase(cInfo->TrainerTemplateId);
+            else
             {
-                if (m_mCacheTrainerTemplateSpellMap.find(cInfo->TrainerTemplateId) != m_mCacheTrainerTemplateSpellMap.end())
-                    trainer_ids.erase(cInfo->TrainerTemplateId);
-                else
-                {
-                    sLog.outErrorDb("Creature (Entry: %u) has TrainerTemplateId = %u for nonexistent trainer template", cInfo->Entry, cInfo->TrainerTemplateId);
-                    hasErrored = true;
-                }
+                sLog.outErrorDb("Creature (Entry: %u) has TrainerTemplateId = %u for nonexistent trainer template", cInfo->Entry, cInfo->TrainerTemplateId);
+                hasErrored = true;
             }
         }
     }
@@ -8976,17 +8964,14 @@ void ObjectMgr::LoadVendorTemplates()
     for (CacheVendorItemMap::const_iterator vItr = m_mCacheVendorTemplateItemMap.begin(); vItr != m_mCacheVendorTemplateItemMap.end(); ++vItr)
         vendor_ids.insert(vItr->first);
 
-    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    for (auto cInfo : sCreatureStorage)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
+        if (cInfo->VendorTemplateId)
         {
-            if (cInfo->VendorTemplateId)
-            {
-                if (m_mCacheVendorTemplateItemMap.find(cInfo->VendorTemplateId) !=  m_mCacheVendorTemplateItemMap.end())
-                    vendor_ids.erase(cInfo->VendorTemplateId);
-                else
-                    sLog.outErrorDb("Creature (Entry: %u) has VendorTemplateId = %u for nonexistent vendor template", cInfo->Entry, cInfo->VendorTemplateId);
-            }
+            if (m_mCacheVendorTemplateItemMap.find(cInfo->VendorTemplateId) != m_mCacheVendorTemplateItemMap.end())
+                vendor_ids.erase(cInfo->VendorTemplateId);
+            else
+                sLog.outErrorDb("Creature (Entry: %u) has VendorTemplateId = %u for nonexistent vendor template", cInfo->Entry, cInfo->VendorTemplateId);
         }
     }
 
@@ -9173,17 +9158,16 @@ void ObjectMgr::LoadGossipMenu(std::set<uint32>& gossipScriptSet)
     delete result;
 
     // post loading tests
-    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    for (auto cInfo : sCreatureStorage)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
-            if (cInfo->GossipMenuId)
-                if (m_mGossipMenusMap.find(cInfo->GossipMenuId) == m_mGossipMenusMap.end())
-                    sLog.outErrorDb("Creature (Entry: %u) has GossipMenuId = %u for nonexistent menu", cInfo->Entry, cInfo->GossipMenuId);
+        if (cInfo->GossipMenuId)
+            if (m_mGossipMenusMap.find(cInfo->GossipMenuId) == m_mGossipMenusMap.end())
+                sLog.outErrorDb("Creature (Entry: %u) has GossipMenuId = %u for nonexistent menu", cInfo->Entry, cInfo->GossipMenuId);
     }
 
     if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
     {
-        for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
+        for (auto itr : sGOStorage)
             if (uint32 menuid = itr->GetGossipMenuId())
                 if (m_mGossipMenusMap.find(menuid) == m_mGossipMenusMap.end())
                     sLog.outErrorDb("Gameobject (Entry: %u) has gossip_menu_id = %u for nonexistent menu", itr->id, menuid);
@@ -9220,7 +9204,7 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
             if (itr->first)
                 menu_ids.insert(itr->first);
 
-        for (auto itr = sGOStorage.getDataBegin(); itr < sGOStorage.getDataEnd(); ++itr)
+        for (auto itr : sGOStorage)
             if (uint32 menuid = itr->GetGossipMenuId())
                 menu_ids.erase(menuid);
     }
@@ -9233,16 +9217,17 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
     // prepare menuid -> CreatureInfo map for fast access
     typedef  std::multimap<uint32, const CreatureInfo*> Menu2CInfoMap;
     Menu2CInfoMap menu2CInfoMap;
-    for (uint32 i = 1;  i < sCreatureStorage.GetMaxEntry(); ++i)
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(i))
-            if (cInfo->GossipMenuId)
-            {
-                menu2CInfoMap.insert(Menu2CInfoMap::value_type(cInfo->GossipMenuId, cInfo));
+    for (auto cInfo : sCreatureStorage)
+    {
+        if (cInfo->GossipMenuId)
+        {
+            menu2CInfoMap.insert(Menu2CInfoMap::value_type(cInfo->GossipMenuId, cInfo));
 
-                // unused check data preparing part
-                if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
-                    menu_ids.erase(cInfo->GossipMenuId);
-            }
+            // unused check data preparing part
+            if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
+                menu_ids.erase(cInfo->GossipMenuId);
+        }
+    }
 
     do
     {

@@ -5130,7 +5130,7 @@ bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry co
 
     for (auto& itr : list)
         if (Creature* summon = WorldObject::SummonCreature(TempSpawnSettings(m_caster, creature_entry, itr.x, itr.y, itr.z, m_caster->GetOrientation(), summonType, m_duration, false,
-                IsSpellSetRun(m_spellInfo), 0, 0, false, false, m_spellInfo->Id), m_caster->GetMap()))
+                IsSpellSetRun(m_spellInfo), 0, 0, 0, false, false, m_spellInfo->Id), m_caster->GetMap()))
         {
             itr.creature = summon;
 

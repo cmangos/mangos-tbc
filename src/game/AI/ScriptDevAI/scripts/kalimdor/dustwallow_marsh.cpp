@@ -1024,9 +1024,9 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 {
     npc_theramore_practicing_guardAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        SetRootSelf(true);
         Reset();
         m_creature->SetNoCallAssistance(true);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
     }
 
     uint32 m_attackTimer;
@@ -1036,6 +1036,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 
     void Reset() override
     {
+        SetRootSelf(true);
         m_attackTimer = 30 * IN_MILLISECONDS;
         m_breakTimer = 20 * IN_MILLISECONDS;
         m_bisAttacking = false;
@@ -1051,12 +1052,6 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                 attackableDummy->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
             }
         }
-    }
-
-    void Aggro(Unit* victim) override
-    {
-        if (victim != attackableDummy)
-            return;
     }
 
     void UpdateAI(const uint32 diff) override

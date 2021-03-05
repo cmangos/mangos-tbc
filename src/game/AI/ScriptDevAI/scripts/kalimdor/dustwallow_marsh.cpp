@@ -32,9 +32,17 @@ at_nats_landing
 boss_tethyr
 EndContentData */
 
+#include "AI/BaseAI/UnitAI.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "AI/ScriptDevAI/include/sc_creature.h"
+#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
+#include "Common.h"
+#include "Entities/Creature.h"
 #include "Entities/TemporarySpawn.h"
+#include "Entities/Unit.h"
+#include "Entities/UpdateFields.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
 
@@ -1005,6 +1013,91 @@ UnitAI* GetAI_mob_invis_firework_helper(Creature* pCreature)
 }
 
 /*######
+## npc_theramore_practicing_guard
+######*/
+enum
+{
+    NPC_THERAMORE_COMBAT_DUMMY = 4952,
+};
+
+struct npc_theramore_practicing_guardAI : public ScriptedAI
+{
+    npc_theramore_practicing_guardAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        SetRootSelf(true);
+        Reset();
+        m_creature->SetNoCallAssistance(true);
+    }
+
+    uint32 m_attackTimer;
+    uint32 m_breakTimer;
+    bool m_bisAttacking;
+    Creature* attackableDummy;
+
+    void Reset() override
+    {
+        m_attackTimer = 30 * IN_MILLISECONDS;
+        m_breakTimer = 20 * IN_MILLISECONDS;
+        m_bisAttacking = false;
+        attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
+        if (attackableDummy)
+        {
+            CreatureAI* targetDummyAI = dynamic_cast<CreatureAI*>(attackableDummy->AI());
+            if (targetDummyAI)
+            {
+                targetDummyAI->SetDeathPrevention(true);
+                targetDummyAI->SetReactState(REACT_PASSIVE);
+                targetDummyAI->SetRootSelf(true);
+                attackableDummy->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+            }
+        }
+    }
+
+    void Aggro(Unit* victim) override
+    {
+        if (victim != attackableDummy)
+            return;
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (attackableDummy && m_creature->GetVictim() && m_creature->GetVictim()!= attackableDummy)
+            m_creature->CombatStop();
+
+        if (attackableDummy && attackableDummy->IsAlive())
+        {
+            if (m_bisAttacking)
+            {
+                if(m_attackTimer <= diff)
+                {
+                    m_bisAttacking = false;
+                    m_attackTimer = urand(30, 35) * IN_MILLISECONDS;
+                    m_creature->CombatStop();
+                }
+                else
+                {
+                    DoMeleeAttackIfReady();
+                    m_attackTimer -= diff;
+                }
+            }
+            else
+            {
+                if (m_breakTimer <= diff)
+                {
+                    m_bisAttacking = true;
+                    m_breakTimer = urand(20, 40) * IN_MILLISECONDS;
+                    m_creature->AI()->AttackStart(attackableDummy);
+                }
+                else
+                {
+                    m_breakTimer -= diff;
+                }
+            }
+        }
+    }
+};
+
+/*######
 ## boss_tethyr
 ######*/
 
@@ -1543,6 +1636,11 @@ void AddSC_dustwallow_marsh()
     pNewScript = new Script;
     pNewScript->Name = "mob_invis_firework_helper";
     pNewScript->GetAI = &GetAI_mob_invis_firework_helper;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_theramore_practicing_guard";
+    pNewScript->GetAI = &GetNewAIInstance<npc_theramore_practicing_guardAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

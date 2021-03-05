@@ -32,17 +32,9 @@ at_nats_landing
 boss_tethyr
 EndContentData */
 
-#include "AI/BaseAI/UnitAI.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
-#include "AI/ScriptDevAI/include/sc_creature.h"
-#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
-#include "Common.h"
-#include "Entities/Creature.h"
 #include "Entities/TemporarySpawn.h"
-#include "Entities/Unit.h"
-#include "Entities/UpdateFields.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
 

@@ -50,6 +50,7 @@ class SQLStorageBase
                 void operator ++() { pointer += recordSize; }
                 T const* operator *() const { return getValue(); }
                 T const* operator ->() const { return getValue(); }
+                bool operator!=(const SQLSIterator& other) const { return pointer != other.pointer; }
                 bool operator <(const SQLSIterator& r) const { return pointer < r.pointer; }
                 void operator =(const SQLSIterator& r) { pointer = r.pointer; recordSize = r.recordSize; }
 
@@ -59,8 +60,8 @@ class SQLStorageBase
                 uint32 recordSize;
         };
 
-        SQLSIterator getDataBegin() const { return SQLSIterator(m_data, m_recordSize); }
-        SQLSIterator getDataEnd() const { return SQLSIterator(m_data + m_recordCount * m_recordSize, m_recordSize); }
+        SQLSIterator begin() const { return SQLSIterator(m_data, m_recordSize); }
+        SQLSIterator end() const { return SQLSIterator(m_data + static_cast<uint32>(m_recordCount * m_recordSize), m_recordSize); }
 
     protected:
         SQLStorageBase();

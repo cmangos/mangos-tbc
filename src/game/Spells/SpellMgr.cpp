@@ -1869,13 +1869,9 @@ void SpellMgr::LoadSpellLearnSkills()
     // search auto-learned skills and add its to map also for use in unlearn spells/talents
     uint32 dbc_count = 0;
     BarGoLink bar(sSpellTemplate.GetMaxEntry());
-    for (uint32 spell = 0; spell < sSpellTemplate.GetMaxEntry(); ++spell)
+    for (auto entry : sSpellTemplate)
     {
         bar.step();
-        SpellEntry const* entry = sSpellTemplate.LookupEntry(spell);
-
-        if (!entry)
-            continue;
 
         for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
@@ -1888,7 +1884,7 @@ void SpellMgr::LoadSpellLearnSkills()
 
                 if (dbc_node.skill && dbc_node.step)
                 {
-                    mSpellLearnSkills[spell] = dbc_node;
+                    mSpellLearnSkills[entry->Id] = dbc_node;
                     ++dbc_count;
                     break;
                 }
@@ -2127,18 +2123,14 @@ void SpellMgr::LoadSpellScriptTarget()
     // Check all spells
     if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
     {
-        for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry(); ++i)
+        for (auto spellInfo : sSpellTemplate)
         {
-            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(i);
-            if (!spellInfo)
-                continue;
-
             for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
             {
                 if (spellInfo->Effect[j] && (spellInfo->EffectImplicitTargetA[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
                                              (spellInfo->EffectImplicitTargetA[j] != TARGET_UNIT_CASTER && spellInfo->EffectImplicitTargetB[j] == TARGET_UNIT_SCRIPT_NEAR_CASTER)))
                 {
-                    auto bounds = sSpellScriptTargetStorage.getBounds(i);
+                    auto bounds = sSpellScriptTargetStorage.getBounds(spellInfo->Id);
                     if (bounds.first == bounds.second)
                     {
                         sLog.outErrorDb("Spell (ID: %u) has effect EffectImplicitTargetA/EffectImplicitTargetB = %u (TARGET_UNIT_SCRIPT_NEAR_CASTER), but does not have record in `spell_script_target`", spellInfo->Id, TARGET_UNIT_SCRIPT_NEAR_CASTER);
@@ -2854,12 +2846,8 @@ void SpellMgr::CheckUsedSpells(char const* table) const
             ++countMasks;
 
             bool found = false;
-            for (uint32 spellId = 1; spellId < sSpellTemplate.GetMaxEntry(); ++spellId)
+            for (auto spellEntry : sSpellTemplate)
             {
-                SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spellId);
-                if (!spellEntry)
-                    continue;
-
                 if (family >= 0 && spellEntry->SpellFamilyName != uint32(family))
                     continue;
 
@@ -3291,12 +3279,8 @@ void SpellMgr::LoadSpellAffects()
     sLog.outString();
     sLog.outString(">> Loaded %u spell affect definitions", count);
 
-    for (uint32 id = 0; id < sSpellTemplate.GetMaxEntry(); ++id)
+    for (auto spellInfo : sSpellTemplate)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(id);
-        if (!spellInfo)
-            continue;
-
         for (int effectId = 0; effectId < MAX_EFFECT_INDEX; ++effectId)
         {
             if (spellInfo->Effect[effectId] != SPELL_EFFECT_APPLY_AURA || (
@@ -3309,10 +3293,10 @@ void SpellMgr::LoadSpellAffects()
             if (spellInfo->EffectItemType[effectId] != 0)
                 continue;
 
-            if (mSpellAffectMap.find((id << 8) + effectId) !=  mSpellAffectMap.end())
+            if (mSpellAffectMap.find((spellInfo->Id << 8) + effectId) !=  mSpellAffectMap.end())
                 continue;
 
-            sLog.outErrorDb("Spell %u (%s) misses spell_affect for effect %u", id, spellInfo->SpellName[sWorld.GetDefaultDbcLocale()], effectId);
+            sLog.outErrorDb("Spell %u (%s) misses spell_affect for effect %u", spellInfo->Id, spellInfo->SpellName[sWorld.GetDefaultDbcLocale()], effectId);
         }
     }
 }

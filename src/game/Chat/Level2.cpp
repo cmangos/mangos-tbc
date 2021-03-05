@@ -1440,39 +1440,35 @@ bool ChatHandler::HandleLookupFactionCommand(char* args)
 
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
-    for (uint32 id = 0; id < sFactionStore.GetMaxEntry(); ++id)
+    for (auto factionEntry : sFactionStore)
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry(id);
-        if (factionEntry)
+        int loc = GetSessionDbcLocale();
+        std::string name = factionEntry->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = factionEntry->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = factionEntry->name[loc];
-                    if (name.empty())
-                        continue;
+                name = factionEntry->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                FactionState const* repState = target ? target->GetReputationMgr().GetState(factionEntry) : nullptr;
-                ShowFactionListHelper(factionEntry, LocaleConstant(loc), repState, target);
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            FactionState const* repState = target ? target->GetReputationMgr().GetState(factionEntry) : nullptr;
+            ShowFactionListHelper(factionEntry, LocaleConstant(loc), repState, target);
+            ++counter;
         }
     }
 

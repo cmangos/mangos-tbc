@@ -498,11 +498,10 @@ void LoadDBCStores(const std::string& dataPath)
     // include existing nodes that have at least single not spell base (scripted) path
     {
         std::set<uint32> spellPaths;
-        for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry(); ++i)
-            if (SpellEntry const* sInfo = sSpellTemplate.LookupEntry(i))
-                for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
-                    if (sInfo->Effect[j] == 123 /*SPELL_EFFECT_SEND_TAXI*/)
-                        spellPaths.insert(sInfo->EffectMiscValue[j]);
+        for (auto sInfo : sSpellTemplate)
+            for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+                if (sInfo->Effect[j] == 123 /*SPELL_EFFECT_SEND_TAXI*/)
+                    spellPaths.insert(sInfo->EffectMiscValue[j]);
 
         memset(sTaxiNodesMask, 0, sizeof(sTaxiNodesMask));
         for (uint32 i = 1; i < sTaxiNodesStore.GetNumRows(); ++i)

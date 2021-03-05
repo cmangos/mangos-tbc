@@ -2657,17 +2657,14 @@ void LoadLootTemplates_Disenchant()
     LootTemplates_Disenchant.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
+    for (auto proto : sItemStorage)
     {
-        if (ItemPrototype const* proto = sItemStorage.LookupEntry(i))
+        if (uint32 lootid = proto->DisenchantID)
         {
-            if (uint32 lootid = proto->DisenchantID)
-            {
-                if (ids_set.find(lootid) == ids_set.end())
-                    LootTemplates_Disenchant.ReportNotExistedId(lootid);
-                else
-                    ids_setUsed.insert(lootid);
-            }
+            if (ids_set.find(lootid) == ids_set.end())
+                LootTemplates_Disenchant.ReportNotExistedId(lootid);
+            else
+                ids_setUsed.insert(lootid);
         }
     }
     for (uint32 itr : ids_setUsed)
@@ -2725,21 +2722,17 @@ void LoadLootTemplates_Item()
     LootTemplates_Item.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
+    for (auto proto : sItemStorage)
     {
-        if (ItemPrototype const* proto = sItemStorage.LookupEntry(i))
-        {
-            if (!(proto->Flags & ITEM_FLAG_HAS_LOOT))
-                continue;
+        if (!(proto->Flags & ITEM_FLAG_HAS_LOOT))
+            continue;
 
-            if (ids_set.find(proto->ItemId) != ids_set.end() || proto->MaxMoneyLoot > 0)
-                ids_set.erase(proto->ItemId);
-            // wdb have wrong data cases, so skip by default
-            else if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
-                LootTemplates_Item.ReportNotExistedId(proto->ItemId);
-        }
+        if (ids_set.find(proto->ItemId) != ids_set.end() || proto->MaxMoneyLoot > 0)
+            ids_set.erase(proto->ItemId);
+        // wdb have wrong data cases, so skip by default
+        else if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
+            LootTemplates_Item.ReportNotExistedId(proto->ItemId);
     }
-
     // output error for any still listed (not referenced from appropriate table) ids
     LootTemplates_Item.ReportUnusedIds(ids_set);
 }
@@ -2773,12 +2766,8 @@ void LoadLootTemplates_Prospecting()
     LootTemplates_Prospecting.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
+    for (auto proto : sItemStorage)
     {
-        ItemPrototype const* proto = sItemStorage.LookupEntry(i);
-        if (!proto)
-            continue;
-
         if (!(proto->Flags & ITEM_FLAG_IS_PROSPECTABLE))
             continue;
 

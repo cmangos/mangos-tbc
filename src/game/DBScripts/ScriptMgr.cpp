@@ -633,17 +633,18 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
                 {
                     uint32 taxiSpell = 0;
-                    for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry() && taxiSpell == 0; ++i)
+                    for (auto spell : sSpellTemplate)
                     {
-                        if (SpellEntry const* spell = sSpellTemplate.LookupEntry(i))
-                            for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+                        for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+                        {
+                            if (spell->Effect[j] == SPELL_EFFECT_SEND_TAXI && spell->EffectMiscValue[j] == int32(tmp.sendTaxiPath.taxiPathId))
                             {
-                                if (spell->Effect[j] == SPELL_EFFECT_SEND_TAXI && spell->EffectMiscValue[j] == int32(tmp.sendTaxiPath.taxiPathId))
-                                {
-                                    taxiSpell = i;
-                                    break;
-                                }
+                                taxiSpell = spell->Id;
+                                break;
                             }
+                        }
+                        if (taxiSpell)
+                            break;
                     }
 
                     if (taxiSpell)
@@ -2529,18 +2530,14 @@ void ScriptMgr::CollectPossibleEventIds(std::set<uint32>& eventIds)
     }
 
     // Load all possible script entries from spells
-    for (uint32 i = 1; i < sSpellTemplate.GetMaxEntry(); ++i)
+    for (auto spell : sSpellTemplate)
     {
-        SpellEntry const* spell = sSpellTemplate.LookupEntry(i);
-        if (spell)
+        for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
         {
-            for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+            if (spell->Effect[j] == SPELL_EFFECT_SEND_EVENT)
             {
-                if (spell->Effect[j] == SPELL_EFFECT_SEND_EVENT)
-                {
-                    if (spell->EffectMiscValue[j])
-                        eventIds.insert(spell->EffectMiscValue[j]);
-                }
+                if (spell->EffectMiscValue[j])
+                    eventIds.insert(spell->EffectMiscValue[j]);
             }
         }
     }

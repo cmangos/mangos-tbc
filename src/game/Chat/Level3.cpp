@@ -1410,12 +1410,8 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
         return false;
     }
 
-    for (uint32 i = 0; i < sSpellTemplate.GetMaxEntry(); i++)
+    for (auto spellInfo : sSpellTemplate)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(i);
-        if (!spellInfo)
-            continue;
-
         for (uint32 j = 0; j < MAX_EFFECT_INDEX; j++)
         {
             if ((spellInfo->Effect[j] == SPELL_EFFECT_LEARN_SPELL) &&
@@ -1792,12 +1788,8 @@ bool ChatHandler::HandleAddItemSetCommand(char* args)
     DETAIL_LOG(GetMangosString(LANG_ADDITEMSET), itemsetId);
 
     bool found = false;
-    for (uint32 id = 0; id < sItemStorage.GetMaxEntry(); ++id)
+    for (auto pProto : sItemStorage)
     {
-        ItemPrototype const* pProto = sItemStorage.LookupEntry(id);
-        if (!pProto)
-            continue;
-
         if (pProto->ItemSet == itemsetId)
         {
             found = true;
@@ -2235,20 +2227,16 @@ bool ChatHandler::HandleLookupItemCommand(char* args)
     uint32 counter = 0;
 
     // Search in `item_template`
-    for (uint32 id = 0; id < sItemStorage.GetMaxEntry(); ++id)
+    for (auto pProto : sItemStorage)
     {
-        ItemPrototype const* pProto = sItemStorage.LookupEntry(id);
-        if (!pProto)
-            continue;
-
         int loc_idx = GetSessionDbLocaleIndex();
 
         std::string name;                                   // "" for let later only single time check default locale name directly
-        sObjectMgr.GetItemLocaleStrings(id, loc_idx, &name);
+        sObjectMgr.GetItemLocaleStrings(pProto->ItemId, loc_idx, &name);
         if ((name.empty() || !Utf8FitTo(name, wnamepart)) && !Utf8FitTo(pProto->Name1, wnamepart))
             continue;
 
-        ShowItemListHelper(id, loc_idx, pl);
+        ShowItemListHelper(pProto->ItemId, loc_idx, pl);
         ++counter;
     }
 
@@ -2463,38 +2451,34 @@ bool ChatHandler::HandleLookupSpellCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in Spell.dbc
-    for (uint32 id = 0; id < sSpellTemplate.GetMaxEntry(); ++id)
+    for (auto spellInfo : sSpellTemplate)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(id);
-        if (spellInfo)
+        int loc = int(DEFAULT_LOCALE);
+        std::string name = spellInfo->SpellName[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = int(DEFAULT_LOCALE);
-            std::string name = spellInfo->SpellName[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = spellInfo->SpellName[loc];
-                    if (name.empty())
-                        continue;
+                name = spellInfo->SpellName[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                ShowSpellListHelper(target, spellInfo, LocaleConstant(loc));
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            ShowSpellListHelper(target, spellInfo, LocaleConstant(loc));
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -4486,12 +4470,8 @@ bool ChatHandler::HandleQuestAddCommand(char* args)
     }
 
     // check item starting quest (it can work incorrectly if added without item in inventory)
-    for (uint32 id = 0; id < sItemStorage.GetMaxEntry(); ++id)
+    for (auto pProto : sItemStorage)
     {
-        ItemPrototype const* pProto = sItemStorage.LookupEntry(id);
-        if (!pProto)
-            continue;
-
         if (pProto->StartQuest == entry)
         {
             PSendSysMessage(LANG_COMMAND_QUEST_STARTFROMITEM, entry, pProto->ItemId);

@@ -111,7 +111,7 @@ class SQLStorage : public SQLStorageBase<ST>
 
         ST const* LookupEntry(uint32 id) const
         {
-            if (id >= GetMaxEntry())
+            if (id >= SQLStorageBase<ST>::GetMaxEntry())
                 return nullptr;
             return reinterpret_cast<ST const*>(m_Index[id]);
         }
@@ -175,8 +175,8 @@ template<typename T>
 class SQLMultiStorage : public SQLStorageBase<T>
 {
         template<class DerivedLoader, class StorageClass> friend class SQLStorageLoaderBase;
-        template<typename T> friend class SQLMultiSIterator;
-        template<typename T> friend class SQLMSIteratorBounds;
+        friend class SQLMultiSIterator;
+        friend class SQLMSIteratorBounds;
 
     private:
         typedef std::multimap<uint32 /*recordId*/, char* /*record*/> RecordMultiMap;

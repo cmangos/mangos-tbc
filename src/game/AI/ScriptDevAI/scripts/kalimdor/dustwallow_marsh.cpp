@@ -34,9 +34,7 @@ EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
-#include "Common.h"
 #include "Entities/TemporarySpawn.h"
-#include "Globals/SharedDefines.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
 

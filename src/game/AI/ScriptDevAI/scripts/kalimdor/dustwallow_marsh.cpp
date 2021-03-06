@@ -1017,7 +1017,6 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     npc_theramore_practicing_guardAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
         Reset();
-        m_creature->SetNoCallAssistance(true);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
     }
 
@@ -1027,6 +1026,10 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     bool m_bisAttacking;
     bool m_bsitDown, m_bstandUp;
     Creature* attackableDummy;
+
+    void DoCallForHelp(float) override {}
+
+    void HandleAssistanceCall(Unit*, Unit*) override {}
 
     void Reset() override
     {
@@ -1116,7 +1119,7 @@ struct npc_theramore_combat_dummyAI : public ScriptedAI
     void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         if (damage >= m_creature->GetHealth()){
-            m_creature->SetHealth(std::min(damage + 1, m_creature->GetMaxHealth()));
+            m_creature->SetHealth(damage + 1);
         }
         damage = std::min(damage, m_creature->GetHealth() - 1);
     }

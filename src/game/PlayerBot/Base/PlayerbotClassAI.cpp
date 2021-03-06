@@ -236,7 +236,7 @@ bool PlayerbotClassAI::FindTargetAndHeal()
     if (m_ai.GetClassAI()->HealPlayer(targetToHeal) & RETURN_CONTINUE)
         return true;
 
-    return false;   
+    return false;
 }
 
 /**
@@ -402,7 +402,7 @@ bool PlayerbotClassAI::FleeFromAoEIfCan(uint32 spellId, Unit* pTarget)
 
     // Step 1: Get radius from hostile AoE spell
     float radius = 0;
-    SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellId);
     if (spellproto)
         radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellproto->EffectRadiusIndex[EFFECT_INDEX_0]));
 
@@ -426,7 +426,7 @@ bool PlayerbotClassAI::FleeFromTrapGOIfCan(uint32 goEntry, Unit* pTarget)
     if (!goEntry) return false;
 
     // Step 1: check if the GO exists and find its trap radius
-    GameObjectInfo const* trapInfo = sGOStorage.LookupEntry<GameObjectInfo>(goEntry);
+    GameObjectInfo const* trapInfo = sGOStorage.LookupEntry(goEntry);
     if (!trapInfo || trapInfo->type != GAMEOBJECT_TYPE_TRAP)
         return false;
 
@@ -463,7 +463,7 @@ bool PlayerbotClassAI::FleeFromNpcWithAuraIfCan(uint32 NpcEntry, uint32 spellId,
 
     // Step 1: Get radius from hostile aura spell
     float radius = 0;
-    SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellId);
     if (spellproto)
         radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellproto->EffectRadiusIndex[EFFECT_INDEX_0]));
 

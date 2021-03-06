@@ -32,8 +32,11 @@ at_nats_landing
 boss_tethyr
 EndContentData */
 
+#include "AI/BaseAI/UnitAI.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "AI/ScriptDevAI/include/sc_creature.h"
 #include "Common.h"
 #include "Entities/TemporarySpawn.h"
 #include "Globals/SharedDefines.h"
@@ -1039,17 +1042,6 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
         m_bsitDown = false;
         m_bstandUp = false;
         attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
-        if (attackableDummy)
-        {
-            CreatureAI* targetDummyAI = dynamic_cast<CreatureAI*>(attackableDummy->AI());
-            if (targetDummyAI)
-            {
-                targetDummyAI->SetDeathPrevention(true);
-                targetDummyAI->SetReactState(REACT_PASSIVE);
-                targetDummyAI->SetRootSelf(true);
-                attackableDummy->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-            }
-        }
     }
 
     void UpdateAI(const uint32 diff) override
@@ -1066,6 +1058,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                     m_bisAttacking = false;
                     m_attackTimer = urand(120, 135) * IN_MILLISECONDS;
                     m_creature->CombatStop();
+                    attackableDummy->CombatStop();
                     m_bsitDown = true;
                     m_sitTimer = 2 * IN_MILLISECONDS;
                 }
@@ -1107,6 +1100,35 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                 }
             }
         }
+    }
+};
+
+/*######
+## npc_theramore_combat_dummy
+######*/
+
+struct npc_theramore_combat_dummyAI : public ScriptedAI
+{
+    npc_theramore_combat_dummyAI(Creature* pCreature) : ScriptedAI(pCreature)
+    {
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+        SetReactState(REACT_PASSIVE);
+        SetRootSelf(true);
+    }
+
+    void Reset() override {}
+
+    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    {
+        if (damage >= m_creature->GetHealth()){
+            m_creature->SetHealth(std::min(damage + 1, m_creature->GetMaxHealth()));
+        }
+        damage = std::min(damage, m_creature->GetHealth() - 1);
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        return;
     }
 };
 
@@ -1654,6 +1676,11 @@ void AddSC_dustwallow_marsh()
     pNewScript = new Script;
     pNewScript->Name = "npc_theramore_practicing_guard";
     pNewScript->GetAI = &GetNewAIInstance<npc_theramore_practicing_guardAI>;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_theramore_combat_dummy";
+    pNewScript->GetAI = &GetNewAIInstance<npc_theramore_combat_dummyAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

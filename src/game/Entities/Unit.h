@@ -2427,6 +2427,8 @@ class Unit : public WorldObject
         void OverrideMountDisplayId(uint32 newDisplayId);
 
         void UpdateSplinePosition(bool relocateOnly = false);
+
+        virtual bool CanCallForAssistance() const { return true; }
     protected:
         bool MeetsSelectAttackingRequirement(Unit* target, SpellEntry const* spellInfo, uint32 selectFlags, SelectAttackingTargetParams params) const;
 

@@ -32,11 +32,8 @@ at_nats_landing
 boss_tethyr
 EndContentData */
 
-#include "AI/BaseAI/UnitAI.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
-#include "AI/ScriptDevAI/include/sc_creature.h"
 #include "Common.h"
 #include "Entities/TemporarySpawn.h"
 #include "Globals/SharedDefines.h"
@@ -1126,10 +1123,7 @@ struct npc_theramore_combat_dummyAI : public ScriptedAI
         damage = std::min(damage, m_creature->GetHealth() - 1);
     }
 
-    void UpdateAI(const uint32 diff) override
-    {
-        return;
-    }
+    void UpdateAI(const uint32 diff) override {}
 };
 
 /*######

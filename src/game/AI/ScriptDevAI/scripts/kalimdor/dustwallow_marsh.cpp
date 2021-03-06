@@ -1044,9 +1044,6 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
-        if (attackableDummy && m_creature->GetVictim() && m_creature->GetVictim() != attackableDummy)
-            m_creature->CombatStop();
-
         if (attackableDummy && attackableDummy->IsAlive())
         {
             if (m_bisAttacking)

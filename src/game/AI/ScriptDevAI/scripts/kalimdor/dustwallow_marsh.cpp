@@ -1051,7 +1051,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                 if (m_attackTimer <= diff)
                 {
                     m_bisAttacking = false;
-                    m_attackTimer = urand(120, 135) * IN_MILLISECONDS;
+                    m_attackTimer = urand(120, 145) * IN_MILLISECONDS;
                     m_creature->CombatStop();
                     attackableDummy->CombatStop();
                     m_bsitDown = true;
@@ -1068,7 +1068,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                 if (m_breakTimer <= diff)
                 {
                     m_bisAttacking = true;
-                    m_breakTimer = urand(20, 40) * IN_MILLISECONDS;
+                    m_breakTimer = urand(15, 60) * IN_MILLISECONDS;
                     m_creature->AI()->AttackStart(attackableDummy);
                 }
                 else if (m_breakTimer <= 2 * IN_MILLISECONDS && m_bstandUp){

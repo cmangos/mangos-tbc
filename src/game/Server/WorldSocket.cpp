@@ -384,7 +384,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     uint8 currentServerExpansion = sWorldState.GetExpansion();
     uint8 playerAddonLevel = fields[7].GetUInt8();
     uint8 expansion;
-    if (security >= SEC_GAMEMASTER)
+    if (security >= SEC_GAMEMASTER || !sWorldState.IsPortalOpen())
         expansion = std::min(playerAddonLevel, maxServerExpansion);
     else
         expansion = std::min(playerAddonLevel, currentServerExpansion);

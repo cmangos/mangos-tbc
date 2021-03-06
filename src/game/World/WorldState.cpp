@@ -1494,9 +1494,11 @@ void WorldState::StartExpansionEvent()
     if (m_expansion == EXPANSION_NONE)
     {
         sGameEventMgr.StartEvent(GAME_EVENT_BEFORE_THE_STORM);
-        m_darkPortalTimer = sWorld.getConfig(CONFIG_UINT32_DARK_PORTAL_EVENT_TIMER) * MINUTE * IN_MILLISECONDS;
+        if (!m_darkPortalTimer)
+            m_darkPortalTimer = sWorld.getConfig(CONFIG_UINT32_DARK_PORTAL_EVENT_TIMER) * MINUTE * IN_MILLISECONDS;
         Save(SAVE_ID_EXPANSION_RELEASE); // save to DB right away
         RespawnHighlordKruul();
+        m_darkPortalOpen = false;
     }
 }
 
@@ -1505,6 +1507,7 @@ void WorldState::StopExpansionEvent()
     if (m_expansion == EXPANSION_TBC)
     {
         sGameEventMgr.StopEvent(GAME_EVENT_BEFORE_THE_STORM);
+        m_darkPortalOpen = true;
     }
 }
 

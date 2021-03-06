@@ -349,6 +349,7 @@ class WorldState
         // Release events
         uint8 GetExpansion() const { return m_expansion; }
         bool SetExpansion(uint8 expansion);
+        bool IsPortalOpen() { return m_darkPortalOpen; }
 
         // Suns reach reclamation
         void AddSunsReachProgress(uint32 questId);

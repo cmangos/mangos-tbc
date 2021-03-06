@@ -2580,6 +2580,11 @@ void GameObject::GenerateLootFor(Player* player)
         m_loot = new Loot(player, this, LOOT_SKINNING, true);
 }
 
+void GameObject::SetCooldown(uint32 cooldown)
+{
+    m_cooldownTime = time(nullptr) + cooldown;
+}
+
 QuaternionData GameObject::GetWorldRotation() const
 {
     QuaternionData localRotation = GetLocalRotation();

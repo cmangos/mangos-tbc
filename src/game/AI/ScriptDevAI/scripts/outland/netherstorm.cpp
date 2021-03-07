@@ -181,7 +181,9 @@ struct npc_manaforge_spawnAI : public ScriptedAI
         Creature *manaforge;
 
         if (m_manaforgeGuid)
-            if ((manaforge = m_creature->GetMap()->GetCreature(m_manaforgeGuid)))
+        {
+            manaforge = m_creature->GetMap()->GetCreature(m_manaforgeGuid);
+            if (manaforge)
             {
                 uint32 uiManaforgeEntry = manaforge->GetEntry();
 
@@ -230,6 +232,7 @@ struct npc_manaforge_spawnAI : public ScriptedAI
                     m_creature->GetMotionMaster()->MovePoint(uiMPID, fX, fY, m_creature->GetPositionZ());
                 }
             }
+        }
     }
 
     void UpdateAI(const uint32 /*uiDiff*/) override

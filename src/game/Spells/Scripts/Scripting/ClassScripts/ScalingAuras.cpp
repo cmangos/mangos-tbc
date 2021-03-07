@@ -230,6 +230,7 @@ struct WarlockPetScaling4 : public AuraScript
                     if (owner->IsPlayer())
                         value = static_cast<Player*>(owner)->GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN) * 0.1f * 5.f;
                 break;
+            default: break;
         }
         return value;
     }
@@ -320,6 +321,7 @@ struct MagePetScaling4 : public AuraScript
                 if (Unit* owner = caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_SHADOW) * 0.4f);
                 break;
+            default: break;
         }
         return value;
     }
@@ -398,6 +400,7 @@ struct PriestPetScaling4 : public AuraScript
         {
             case EFFECT_INDEX_0: // resistance
                 break;
+            default: break;
         }
         return value;
     }
@@ -464,6 +467,7 @@ struct ElementalPetScaling4 : public AuraScript
         {
             case EFFECT_INDEX_0: // resistance
                 break;
+            default: break;
         }
         return value;
     }
@@ -542,6 +546,7 @@ struct DruidPetScaling4 : public AuraScript
         {
             case EFFECT_INDEX_0: // resistance
                 break;
+            default: break;
         }
         return value;
     }
@@ -665,6 +670,7 @@ struct InfernalPetScaling4 : public AuraScript
                 break;
             case EFFECT_INDEX_1: // mana regen
                 break;
+            default: break;
         }
         return value;
     }

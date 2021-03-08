@@ -233,3 +233,11 @@ uint32 Quest::GetCharTitleBitIndex() const
     CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(CharTitleId);
     return titleEntry ? titleEntry->bit_index : 0;
 }
+
+uint32 Quest::GetRewMoneyMaxLevel() const
+{
+    if (HasQuestFlag(QUEST_FLAGS_NO_MONEY_FROM_XP))
+        return 0;
+
+    return RewMoneyMaxLevel;
+}

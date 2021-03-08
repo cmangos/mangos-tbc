@@ -565,7 +565,7 @@ GridMapLiquidStatus GridMap::getLiquidStatus(float x, float y, float z, uint8 Re
         uint32 liqTypeIdx = liquidEntry->Type;
         if (entry < 21)
         {
-            if (AreaTableEntry const* area = sAreaStore.LookupEntry(getArea(x, y)))
+            if (AreaTableEntry const* area = sDBCAreaTable.LookupEntry(getArea(x, y)))
             {
                 uint32 overrideLiquid = area->LiquidTypeOverride[entry - 1];
                 if (!overrideLiquid && area->zone)
@@ -1126,7 +1126,7 @@ float TerrainInfo::GetWaterOrGroundLevel(float x, float y, float z, float& groun
                 // its shallow water so return ground under it
                 return groundZ;
             }
-            
+
             return liquid_status.level;
         }
 

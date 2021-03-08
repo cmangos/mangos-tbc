@@ -124,6 +124,33 @@ extern SQLStorage<TotemCategoryEntry> sDBCTotemCategory;
 extern SQLStorage<WorldMapAreaEntry> sDBCWorldMapArea;
 extern SQLStorage<WMOAreaTableEntry> sDBCWMOAreaTable;
 
+typedef std::map<uint16, uint32> AreaFlagByAreaID;
+typedef std::map<uint32, uint32> AreaFlagByMapID;
+
+struct WMOAreaTableTripple
+{
+    WMOAreaTableTripple(int32 r, int32 a, int32 g) : groupId(g), rootId(r), adtId(a)
+    {
+    }
+
+    bool operator <(const WMOAreaTableTripple& b) const
+    {
+        return memcmp(this, &b, sizeof(WMOAreaTableTripple)) < 0;
+    }
+
+    // ordered by entropy; that way memcmp will have a minimal medium runtime
+    int32 groupId;
+    int32 rootId;
+    int32 adtId;
+};
+
+typedef std::map<WMOAreaTableTripple, std::vector<WMOAreaTableEntry const*>> WMOAreaInfoByTripple;
+
+extern AreaFlagByAreaID sAreaFlagByAreaID;
+extern AreaFlagByMapID  sAreaFlagByMapID;                   // for instances without generated *.map files
+
+extern WMOAreaInfoByTripple sWMOAreaInfoByTripple;
+
 void LoadDBCTables();
 
 

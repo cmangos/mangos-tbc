@@ -2679,9 +2679,9 @@ void LoadLootTemplates_Fishing()
     LootTemplates_Fishing.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sAreaStore.GetNumRows(); ++i)
+    for (uint32 i = 1; i < sDBCAreaTable.GetNumRows(); ++i)
     {
-        if (AreaTableEntry const* areaEntry = sAreaStore.LookupEntry(i))
+        if (AreaTableEntry const* areaEntry = sDBCAreaTable.LookupEntry(i))
             if (ids_set.find(areaEntry->ID) != ids_set.end())
                 ids_set.erase(areaEntry->ID);
     }

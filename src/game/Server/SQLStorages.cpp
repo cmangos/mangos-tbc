@@ -70,7 +70,7 @@ SQLMultiStorage<SpellTargetEntry> sSpellScriptTargetStorage(SpellScriptTargetFmt
 SQLStorage<SpellEntry> const* GetSpellStore() { return &sSpellTemplate; }
 
 
-// DBC store in database                         0123456789012345678901234567890123456789
+// DBC store in database
 const char AreaTablefmt[]                     = "iiiiixxxxxissssssssssssssssxiiiiixx";
 const char AreaTriggerfmt[]                   = "iiffffffff";
 const char AuctionHousefmt[]                  = "iiiixxxxxxxxxxxxxxxxx";
@@ -225,6 +225,25 @@ SQLStorage<TotemCategoryEntry>                  sDBCTotemCategory(TotemCategoryf
 SQLStorage<WorldMapAreaEntry>                   sDBCWorldMapArea(WorldMapAreafmt, "ID", "dbc_worldmaparea");
 SQLStorage<WMOAreaTableEntry>                   sDBCWMOAreaTable(WMOAreaTablefmt, "ID", "dbc_wmoareatable");
 
+AreaFlagByAreaID sAreaFlagByAreaID;
+AreaFlagByMapID  sAreaFlagByMapID;                   // for instances without generated *.map files
+
+WMOAreaInfoByTripple sWMOAreaInfoByTripple;
+
+void InitializeDBC()
+{
+    // must be after sAreaStore loading
+    for (auto areaEntry : sDBCAreaTable)    // areaflag numbered from 0
+    {
+            // fill AreaId->DBC records
+            sAreaFlagByAreaID.insert(AreaFlagByAreaID::value_type(uint16(areaEntry->ID), areaEntry->exploreFlag));
+
+            // fill MapId->DBC records ( skip sub zones and continents )
+            if (areaEntry->zone == 0 && areaEntry->mapid != 0 && areaEntry->mapid != 1 && areaEntry->mapid != 530)
+                sAreaFlagByMapID.insert(AreaFlagByMapID::value_type(areaEntry->mapid, areaEntry->exploreFlag));
+    }
+}
+
 void LoadDBCTables()
 {
     sDBCAreaTable.Load();
@@ -304,6 +323,66 @@ void LoadDBCTables()
     sDBCWorldMapArea.Load();
     sDBCWMOAreaTable.Load();
 
+    InitializeDBC();
+
     sLog.outString(">> DBC loaded.");
     sLog.outString();
+}
+
+int32 GetAreaFlagByAreaID(uint32 area_id)
+{
+    AreaFlagByAreaID::iterator i = sAreaFlagByAreaID.find(area_id);
+    if (i == sAreaFlagByAreaID.end())
+        return -1;
+
+    return i->second;
+}
+
+uint32 GetAreaIdByLocalizedName(const std::string& name)
+{
+    for (auto areaEntry : sDBCAreaTable)
+    {
+        for (uint32 i = 0; i < MAX_LOCALE; ++i)
+        {
+            std::string area_name(areaEntry->area_name[i]);
+            if (area_name.size() > 0 && name.find(" - " + area_name) != std::string::npos)
+            {
+                return areaEntry->ID;
+            }
+        }
+    }
+    return 0;
+}
+
+std::vector<WMOAreaTableEntry const*>& GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid)
+{
+    return sWMOAreaInfoByTripple[WMOAreaTableTripple(rootid, adtid, groupid)];
+}
+
+AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id)
+{
+    int32 areaflag = GetAreaFlagByAreaID(area_id);
+    if (areaflag < 0)
+        return nullptr;
+
+    return sDBCAreaTable.LookupEntry(areaflag);
+}
+
+AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_id)
+{
+    if (area_flag)
+        return sDBCAreaTable.LookupEntry(area_flag);
+
+    if (MapEntry const* mapEntry = sMapStore.LookupEntry(map_id))
+        return GetAreaEntryByAreaID(mapEntry->linked_zone);
+
+    return nullptr;
+}
+
+uint32 GetAreaFlagByMapId(uint32 mapid)
+{
+    AreaFlagByMapID::iterator i = sAreaFlagByMapID.find(mapid);
+    if (i == sAreaFlagByMapID.end())
+        return 0;
+    return i->second;
 }

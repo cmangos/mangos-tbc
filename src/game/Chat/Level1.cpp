@@ -612,7 +612,7 @@ bool ChatHandler::HandleGonameCommand(char* args)
         // to point to see at target with same orientation
         float x, y, z;
         target->GetContactPoint(target, x, y, z);
-        
+
         if (GenericTransport* transport = target->GetTransport())
             transport->CalculatePassengerOffset(x, y, z);
         _player->TeleportTo(target->GetMapId(), x, y, z, _player->GetAngle(target), TELE_TO_GM_MODE, nullptr, target->GetTransport());
@@ -1331,9 +1331,9 @@ bool ChatHandler::HandleLookupAreaCommand(char* args)
     wstrToLower(wnamepart);
 
     // Search in AreaTable.dbc
-    for (uint32 areaflag = 0; areaflag < sAreaStore.GetNumRows(); ++areaflag)
+    for (uint32 areaflag = 0; areaflag < sDBCAreaTable.GetNumRows(); ++areaflag)
     {
-        AreaTableEntry const* areaEntry = sAreaStore.LookupEntry(areaflag);
+        AreaTableEntry const* areaEntry = sDBCAreaTable.LookupEntry(areaflag);
         if (areaEntry)
         {
             int loc = GetSessionDbcLocale();

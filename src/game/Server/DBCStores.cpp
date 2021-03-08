@@ -29,33 +29,33 @@
 
 #include <map>
 
-typedef std::map<uint16, uint32> AreaFlagByAreaID;
-typedef std::map<uint32, uint32> AreaFlagByMapID;
-
-struct WMOAreaTableTripple
-{
-    WMOAreaTableTripple(int32 r, int32 a, int32 g) : groupId(g), rootId(r), adtId(a)
-    {
-    }
-
-    bool operator <(const WMOAreaTableTripple& b) const
-    {
-        return memcmp(this, &b, sizeof(WMOAreaTableTripple)) < 0;
-    }
-
-    // ordered by entropy; that way memcmp will have a minimal medium runtime
-    int32 groupId;
-    int32 rootId;
-    int32 adtId;
-};
-
-typedef std::map<WMOAreaTableTripple, std::vector<WMOAreaTableEntry const*>> WMOAreaInfoByTripple;
-
-DBCStorage <AreaTableEntry> sAreaStore(AreaTableEntryfmt);
-static AreaFlagByAreaID sAreaFlagByAreaID;
-static AreaFlagByMapID  sAreaFlagByMapID;                   // for instances without generated *.map files
-
-static WMOAreaInfoByTripple sWMOAreaInfoByTripple;
+// typedef std::map<uint16, uint32> AreaFlagByAreaID;
+// typedef std::map<uint32, uint32> AreaFlagByMapID;
+//
+// struct WMOAreaTableTripple
+// {
+//     WMOAreaTableTripple(int32 r, int32 a, int32 g) : groupId(g), rootId(r), adtId(a)
+//     {
+//     }
+//
+//     bool operator <(const WMOAreaTableTripple& b) const
+//     {
+//         return memcmp(this, &b, sizeof(WMOAreaTableTripple)) < 0;
+//     }
+//
+//     // ordered by entropy; that way memcmp will have a minimal medium runtime
+//     int32 groupId;
+//     int32 rootId;
+//     int32 adtId;
+// };
+//
+// typedef std::map<WMOAreaTableTripple, std::vector<WMOAreaTableEntry const*>> WMOAreaInfoByTripple;
+//
+// DBCStorage <AreaTableEntry> sDBCAreaTable(AreaTableEntryfmt);
+// static AreaFlagByAreaID sAreaFlagByAreaID;
+// static AreaFlagByMapID  sAreaFlagByMapID;                   // for instances without generated *.map files
+//
+// static WMOAreaInfoByTripple sWMOAreaInfoByTripple;
 
 DBCStorage <AreaTriggerEntry> sAreaTriggerStore(AreaTriggerEntryfmt);
 DBCStorage <AuctionHouseEntry> sAuctionHouseStore(AuctionHouseEntryfmt);
@@ -250,21 +250,21 @@ void LoadDBCStores(const std::string& dataPath)
     // bitmask for index of fullLocaleNameList
     uint32 availableDbcLocales = 0xFFFFFFFF;
 
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sAreaStore,                dbcPath, "AreaTable.dbc");
-
-    // must be after sAreaStore loading
-    for (uint32 i = 0; i < sAreaStore.GetNumRows(); ++i)    // areaflag numbered from 0
-    {
-        if (AreaTableEntry const* area = sAreaStore.LookupEntry(i))
-        {
-            // fill AreaId->DBC records
-            sAreaFlagByAreaID.insert(AreaFlagByAreaID::value_type(uint16(area->ID), area->exploreFlag));
-
-            // fill MapId->DBC records ( skip sub zones and continents )
-            if (area->zone == 0 && area->mapid != 0 && area->mapid != 1 && area->mapid != 530)
-                sAreaFlagByMapID.insert(AreaFlagByMapID::value_type(area->mapid, area->exploreFlag));
-        }
-    }
+//     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCAreaTable,                dbcPath, "AreaTable.dbc");
+//
+//     // must be after sAreaStore loading
+//     for (uint32 i = 0; i < sDBCAreaTable.GetNumRows(); ++i)    // areaflag numbered from 0
+//     {
+//         if (AreaTableEntry const* area = sDBCAreaTable.LookupEntry(i))
+//         {
+//             // fill AreaId->DBC records
+//             sAreaFlagByAreaID.insert(AreaFlagByAreaID::value_type(uint16(area->ID), area->exploreFlag));
+//
+//             // fill MapId->DBC records ( skip sub zones and continents )
+//             if (area->zone == 0 && area->mapid != 0 && area->mapid != 1 && area->mapid != 530)
+//                 sAreaFlagByMapID.insert(AreaFlagByMapID::value_type(area->mapid, area->exploreFlag));
+//         }
+//     }
 
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sAreaTriggerStore,         dbcPath, "AreaTrigger.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sAuctionHouseStore,        dbcPath, "AuctionHouse.dbc");
@@ -574,7 +574,7 @@ void LoadDBCStores(const std::string& dataPath)
             !sGemPropertiesStore.LookupEntry(1127)     ||
             !sItemExtendedCostStore.LookupEntry(2425)  ||
             !sCharTitlesStore.LookupEntry(71)          ||
-            !sAreaStore.LookupEntry(1768))
+            !sDBCAreaTable.LookupEntry(1768))
     {
         sLog.outError("\nYou have _outdated_ DBC files. Please re-extract DBC files for one from client build: %s", AcceptableClientBuildsListStr().c_str());
         Log::WaitBeforeContinueIfNeed();
@@ -617,66 +617,7 @@ uint32 GetTalentSpellCost(uint32 spellId)
     return GetTalentSpellCost(GetTalentSpellPos(spellId));
 }
 
-int32 GetAreaFlagByAreaID(uint32 area_id)
-{
-    AreaFlagByAreaID::iterator i = sAreaFlagByAreaID.find(area_id);
-    if (i == sAreaFlagByAreaID.end())
-        return -1;
 
-    return i->second;
-}
-
-uint32 GetAreaIdByLocalizedName(const std::string& name)
-{
-    for (uint32 i = 0; i <= sAreaStore.GetNumRows(); i++)
-    {
-        if (AreaTableEntry const* AreaEntry = sAreaStore.LookupEntry(i))
-        {
-            for (uint32 i = 0; i < MAX_LOCALE; ++i)
-            {
-                std::string area_name(AreaEntry->area_name[i]);
-                if (area_name.size() > 0 && name.find(" - " + area_name) != std::string::npos)
-                {
-                    return AreaEntry->ID;
-                }
-            }
-        }
-    }
-    return 0;
-}
-
-std::vector<WMOAreaTableEntry const*>& GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid)
-{
-    return sWMOAreaInfoByTripple[WMOAreaTableTripple(rootid, adtid, groupid)];
-}
-
-AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id)
-{
-    int32 areaflag = GetAreaFlagByAreaID(area_id);
-    if (areaflag < 0)
-        return nullptr;
-
-    return sAreaStore.LookupEntry(areaflag);
-}
-
-AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_id)
-{
-    if (area_flag)
-        return sAreaStore.LookupEntry(area_flag);
-
-    if (MapEntry const* mapEntry = sMapStore.LookupEntry(map_id))
-        return GetAreaEntryByAreaID(mapEntry->linked_zone);
-
-    return nullptr;
-}
-
-uint32 GetAreaFlagByMapId(uint32 mapid)
-{
-    AreaFlagByMapID::iterator i = sAreaFlagByMapID.find(mapid);
-    if (i == sAreaFlagByMapID.end())
-        return 0;
-    return i->second;
-}
 
 uint32 GetVirtualMapForMapAndZone(uint32 mapid, uint32 zoneId)
 {

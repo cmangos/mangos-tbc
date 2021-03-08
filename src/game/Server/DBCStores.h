@@ -67,7 +67,7 @@ bool IsPointInAreaTriggerZone(AreaTriggerEntry const* atEntry, uint32 mapid, flo
 
 uint32 GetCreatureModelRace(uint32 model_id);
 
-extern DBCStorage <AreaTableEntry>               sAreaStore;// recommend access using functions
+//extern DBCStorage <AreaTableEntry>               sDBCAreaTable;// recommend access using functions
 extern DBCStorage <AreaTriggerEntry>             sAreaTriggerStore;
 extern DBCStorage <AuctionHouseEntry>            sAuctionHouseStore;
 extern DBCStorage <BankBagSlotPricesEntry>       sBankBagSlotPricesStore;

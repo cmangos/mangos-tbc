@@ -63,7 +63,7 @@
 //DBCStorage <BattlemasterListEntry> sDBCBattlemasterList(BattlemasterListEntryfmt);
 //DBCStorage <CharStartOutfitEntry> sDBCCharStartOutfit(CharStartOutfitEntryfmt);
 //DBCStorage <CharTitlesEntry> sDBCCharTitles(CharTitlesEntryfmt);
-DBCStorage <ChatChannelsEntry> sChatChannelsStore(ChatChannelsEntryfmt);
+//DBCStorage <ChatChannelsEntry> sDBCChatChannels(ChatChannelsEntryfmt);
 DBCStorage <ChrClassesEntry> sChrClassesStore(ChrClassesEntryfmt);
 DBCStorage <ChrRacesEntry> sChrRacesStore(ChrRacesEntryfmt);
 DBCStorage <CinematicCameraEntry> sCinematicCameraStore(CinematicCameraEntryfmt);
@@ -272,7 +272,7 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBattlemasterList,    dbcPath, "BattlemasterList.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharStartOutfit,     dbcPath, "CharStartOutfit.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharTitles,          dbcPath, "CharTitles.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChatChannelsStore,        dbcPath, "ChatChannels.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCChatChannels,        dbcPath, "ChatChannels.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrClassesStore,          dbcPath, "ChrClasses.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrRacesStore,            dbcPath, "ChrRaces.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCinematicCameraStore,     dbcPath, "CinematicCamera.dbc");
@@ -657,42 +657,39 @@ ChatChannelsEntry const* GetChatChannelsEntryFor(const std::string& name, uint32
         return nullptr;
 
     // not sorted, numbering index from 0
-    for (uint32 i = 0; i < sChatChannelsStore.GetNumRows(); ++i)
+    for (auto entry : sDBCChatChannels)
     {
-        if (ChatChannelsEntry const* entry = sChatChannelsStore.LookupEntry(i))
+        std::wstring wpattern;
+
+        // try to match by name first, avoid creating custom channels with same name
+        if (!wname.empty())
         {
-            std::wstring wpattern;
-
-            // try to match by name first, avoid creating custom channels with same name
-            if (!wname.empty())
+            for (uint32 i = 0; i < MAX_LOCALE; ++i)
             {
-                for (uint32 i = 0; i < MAX_LOCALE; ++i)
+                Utf8toWStr(entry->pattern[i], wpattern);
+
+                if (wpattern.empty())
+                    continue;
+
+                size_t argpos = wpattern.find(L"%s");
+
+                // formatting arg present: strip and attempt partial match
+                if (argpos != std::wstring::npos)
                 {
-                    Utf8toWStr(entry->pattern[i], wpattern);
+                    wpattern.replace(argpos, 2, L"");
 
-                    if (wpattern.empty())
-                        continue;
-
-                    size_t argpos = wpattern.find(L"%s");
-
-                    // formatting arg present: strip and attempt partial match
-                    if (argpos != std::wstring::npos)
-                    {
-                        wpattern.replace(argpos, 2, L"");
-
-                        if (wname.find(wpattern) != std::wstring::npos)
-                            return entry;
-                    }
-                    // attempt full match
-                    else if (wname.compare(wpattern) == 0)
+                    if (wname.find(wpattern) != std::wstring::npos)
                         return entry;
                 }
+                // attempt full match
+                else if (wname.compare(wpattern) == 0)
+                    return entry;
             }
-
-            // name still not found, but channel id is provided: possibly no dbc data for client locale
-            if (channel_id && channel_id == entry->ChannelID)
-                return entry;
         }
+
+        // name still not found, but channel id is provided: possibly no dbc data for client locale
+        if (channel_id && channel_id == entry->ChannelID)
+            return entry;
     }
     return nullptr;
 }

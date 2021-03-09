@@ -2679,11 +2679,10 @@ void LoadLootTemplates_Fishing()
     LootTemplates_Fishing.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sDBCAreaTable.GetNumRows(); ++i)
+    for (auto areaEntry : sDBCAreaTable)
     {
-        if (AreaTableEntry const* areaEntry = sDBCAreaTable.LookupEntry(i))
-            if (ids_set.find(areaEntry->ID) != ids_set.end())
-                ids_set.erase(areaEntry->ID);
+        if (ids_set.find(areaEntry->ID) != ids_set.end())
+            ids_set.erase(areaEntry->ID);
     }
 
     // by default (look config options) fishing at fail provide junk loot, entry 0 use for store this loot

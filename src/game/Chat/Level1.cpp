@@ -1331,46 +1331,42 @@ bool ChatHandler::HandleLookupAreaCommand(char* args)
     wstrToLower(wnamepart);
 
     // Search in AreaTable.dbc
-    for (uint32 areaflag = 0; areaflag < sDBCAreaTable.GetNumRows(); ++areaflag)
+    for (auto areaEntry : sDBCAreaTable)
     {
-        AreaTableEntry const* areaEntry = sDBCAreaTable.LookupEntry(areaflag);
-        if (areaEntry)
+        int loc = GetSessionDbcLocale();
+        std::string name = areaEntry->area_name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = areaEntry->area_name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = areaEntry->area_name[loc];
-                    if (name.empty())
-                        continue;
+                name = areaEntry->area_name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                // send area in "id - [name]" format
-                std::ostringstream ss;
-                if (m_session)
-                    ss << areaEntry->ID << " - |cffffffff|Harea:" << areaEntry->ID << "|h[" << name << " " << localeNames[loc] << "]|h|r";
-                else
-                    ss << areaEntry->ID << " - " << name << " " << localeNames[loc];
+        if (loc < MAX_LOCALE)
+        {
+            // send area in "id - [name]" format
+            std::ostringstream ss;
+            if (m_session)
+                ss << areaEntry->ID << " - |cffffffff|Harea:" << areaEntry->ID << "|h[" << name << " " << localeNames[loc] << "]|h|r";
+            else
+                ss << areaEntry->ID << " - " << name << " " << localeNames[loc];
 
-                SendSysMessage(ss.str().c_str());
+            SendSysMessage(ss.str().c_str());
 
-                ++counter;
-            }
+            ++counter;
         }
     }
 

@@ -460,7 +460,7 @@ void LoadDBCStores(const std::string& dataPath)
 //    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sTaxiPathStore,            dbcPath, "TaxiPath.dbc");
     for (auto entry : sDBCTaxiPath)
         sTaxiPathSetBySource[entry->from][entry->to] = TaxiPathBySourceAndDestination(entry->ID, entry->price);
-    uint32 pathCount = sDBCTaxiPath.GetNumRows();
+    uint32 pathCount = sDBCTaxiPath.GetMaxEntry();
 
     //## TaxiPathNode.dbc ## Loaded only for initialization different structures
  //   LoadDBC(availableDbcLocales, bar, bad_dbc_files, sTaxiPathNodeStore,        dbcPath, "TaxiPathNode.dbc");

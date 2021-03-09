@@ -25,6 +25,7 @@
 enum FieldFormat
 {
     FT_NA = 'x',                                            // ignore/ default, 4 byte size, in Source String means field is ignored, in Dest String means field is filled with default value
+    FT_NA2 = 'w',                                           // ignore 4 byte size, in Source and in Dest String
     FT_NA_BYTE = 'X',                                       // ignore/ default, 1 byte size, see above
     FT_NA_FLOAT = 'F',                                      // ignore/ default,  float size, see above
     FT_NA_POINTER = 'p',                                    // fill default value into dest, pointer size, Use this only with static data (otherwise mem-leak)

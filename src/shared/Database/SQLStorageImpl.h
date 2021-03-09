@@ -159,7 +159,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(V value, Stor
             offset += sizeof(uint64);
             break;
         case FT_SORT:
-            assert(false && "SQL storage not have sort field types");
+        case FT_NA2:
             break;
         default:
             assert(false && "unknown format character");
@@ -360,6 +360,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
             case FT_64BITINT:
                 recordsize += sizeof(uint64);  break;
             case FT_SORT:
+            case FT_NA2:
                 break;
             default:
                 assert(false && "unknown format character");
@@ -417,6 +418,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
                 case FT_STRING: storeValue((char const*)fields[y].GetString(), store, record, x, offset); ++x; break;
                 case FT_64BITINT: storeValue(fields[y].GetUInt64(), store, record, x, offset);            ++x; break;
                 case FT_SORT:
+                case FT_NA2:
                     ++x;
                     break;
 

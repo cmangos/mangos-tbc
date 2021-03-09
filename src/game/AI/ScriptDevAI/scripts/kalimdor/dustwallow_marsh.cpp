@@ -34,6 +34,7 @@ EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "AI/ScriptDevAI/include/sc_creature.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
@@ -1016,8 +1017,8 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 {
     npc_theramore_practicing_guardAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        getDummy();
         Reset();
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
     }
 
     uint32 m_attackTimer;
@@ -1025,27 +1026,81 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     uint32 m_sitTimer;
     bool m_bisAttacking;
     bool m_bsitDown, m_bstandUp;
+    bool m_binCombatWithPlayer;
     Creature* attackableDummy;
+
+    void getDummy()
+    {
+        attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
+    }
 
     void DoCallForHelp(float) override {}
 
     void HandleAssistanceCall(Unit*, Unit*) override {}
 
+    void EnterEvadeMode() override
+    {
+        ScriptedAI::EnterEvadeMode();
+        Reset();
+    }
+
+    void JustReachedHome() override
+    {
+        getDummy();
+        SetRootSelf(true);
+    }
+
+    void EnterCombat(Unit* who) override
+    {
+        if (who->GetEntry() == NPC_THERAMORE_COMBAT_DUMMY)
+            return;
+
+        if (who->GetObjectGuid() != attackableDummy->GetObjectGuid())
+        {
+            m_binCombatWithPlayer = true;
+            SetRootSelf(false);
+            ScriptedAI::EnterCombat(who);
+        }
+    }
+
+    void AttackedBy(Unit* who) override
+    {
+        if (who->GetObjectGuid() != attackableDummy->GetObjectGuid())
+        {
+            m_binCombatWithPlayer = true;
+            SetRootSelf(false);
+            ScriptedAI::AttackedBy(who);
+        }
+    }
+
     void Reset() override
     {
-        SetRootSelf(true);
         m_attackTimer = 130 * IN_MILLISECONDS;
         m_breakTimer = 20 * IN_MILLISECONDS;
         m_bisAttacking = false;
         m_bsitDown = false;
         m_bstandUp = false;
-        attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
+        m_binCombatWithPlayer = false;
+        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
     }
 
     void UpdateAI(const uint32 diff) override
     {
+        if (m_binCombatWithPlayer){
+            if(attackableDummy && attackableDummy->IsInCombat())
+            {
+                attackableDummy->CombatStop();
+            }
+            ScriptedAI::UpdateAI(diff);
+            return;
+        }
         if (attackableDummy && attackableDummy->IsAlive())
         {
+            Unit* pTarget = m_creature->GetTarget();
+            if(pTarget && pTarget->GetObjectGuid() != attackableDummy->GetObjectGuid()){
+                m_creature->CombatStop(true);
+            }
+
             if (m_bisAttacking)
             {
                 if (m_attackTimer <= diff)

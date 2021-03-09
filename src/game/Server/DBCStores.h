@@ -71,7 +71,7 @@ uint32 GetCreatureModelRace(uint32 model_id);
 //extern DBCStorage <AreaTriggerEntry>             sDBCAreaTrigger;
 //extern DBCStorage <AuctionHouseEntry>            sDBCAuctionHouse;
 //extern DBCStorage <BankBagSlotPricesEntry>       sDBCBankBagSlotPrices;
-extern DBCStorage <BattlemasterListEntry>        sBattlemasterListStore;
+//extern DBCStorage <BattlemasterListEntry>        sDBCBattlemasterList;
 // extern DBCStorage <ChatChannelsEntry>           sChatChannelsStore; -- accessed using function, no usable index
 extern DBCStorage <CharStartOutfitEntry>         sCharStartOutfitStore;
 extern DBCStorage <CharTitlesEntry>              sCharTitlesStore;

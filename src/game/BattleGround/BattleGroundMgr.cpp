@@ -1838,7 +1838,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
         uint32 resultedBgTypeId = fields[0].GetUInt32();
 
         // can be overwrite by values from DB
-        BattlemasterListEntry const* bl = sBattlemasterListStore.LookupEntry(resultedBgTypeId);
+        BattlemasterListEntry const* bl = sDBCBattlemasterList.LookupEntry(resultedBgTypeId);
         if (!bl)
         {
             sLog.outError("Battleground ID %u not found in BattlemasterList.dbc. Battleground not created.", resultedBgTypeId);
@@ -2541,7 +2541,7 @@ void BattleGroundMgr::LoadBattleMastersEntry()
 
         uint32 entry = fields[0].GetUInt32();
         uint32 bgTypeId  = fields[1].GetUInt32();
-        if (!sBattlemasterListStore.LookupEntry(bgTypeId))
+        if (!sDBCBattlemasterList.LookupEntry(bgTypeId))
         {
             sLog.outErrorDb("Table `battlemaster_entry` contain entry %u for nonexistent battleground type %u, ignored.", entry, bgTypeId);
             continue;

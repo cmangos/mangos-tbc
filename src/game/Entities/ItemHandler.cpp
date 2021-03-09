@@ -893,7 +893,7 @@ void WorldSession::HandleBuyBankSlotOpcode(WorldPacket& recvPacket)
 
     DETAIL_LOG("PLAYER: Buy bank bag slot, slot number = %u", slot);
 
-    BankBagSlotPricesEntry const* slotEntry = sBankBagSlotPricesStore.LookupEntry(slot);
+    BankBagSlotPricesEntry const* slotEntry = sDBCBankBagSlotPrices.LookupEntry(slot);
 
     WorldPacket data(SMSG_BUY_BANK_SLOT_RESULT, 4);
 

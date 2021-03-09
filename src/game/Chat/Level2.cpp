@@ -224,7 +224,7 @@ bool ChatHandler::HandleTriggerCommand(char* args)
         if (!atId)
             return false;
 
-        atEntry = sAreaTriggerStore.LookupEntry(atId);
+        atEntry = sDBCAreaTrigger.LookupEntry(atId);
 
         if (!atEntry)
         {
@@ -242,12 +242,8 @@ bool ChatHandler::HandleTriggerCommand(char* args)
         float dist2 = MAP_SIZE * MAP_SIZE;
 
         // Search triggers
-        for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+        for (auto atTestEntry : sDBCAreaTrigger)
         {
-            AreaTriggerEntry const* atTestEntry = sAreaTriggerStore.LookupEntry(id);
-            if (!atTestEntry)
-                continue;
-
             if (atTestEntry->mapid != m_session->GetPlayer()->GetMapId())
                 continue;
 
@@ -324,12 +320,8 @@ bool ChatHandler::HandleTriggerActiveCommand(char* /*args*/)
     Player* pl = m_session->GetPlayer();
 
     // Search in AreaTable.dbc
-    for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+    for (auto atEntry : sDBCAreaTrigger)
     {
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
-        if (!atEntry)
-            continue;
-
         if (!IsPointInAreaTriggerZone(atEntry, pl->GetMapId(), pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ()))
             continue;
 
@@ -353,12 +345,8 @@ bool ChatHandler::HandleTriggerNearCommand(char* args)
     Player* pl = m_session->GetPlayer();
 
     // Search triggers
-    for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+    for (auto atEntry : sDBCAreaTrigger)
     {
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
-        if (!atEntry)
-            continue;
-
         if (atEntry->mapid != m_session->GetPlayer()->GetMapId())
             continue;
 
@@ -374,12 +362,8 @@ bool ChatHandler::HandleTriggerNearCommand(char* args)
     }
 
     // Search trigger targets
-    for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+    for (auto atEntry : sDBCAreaTrigger)
     {
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
-        if (!atEntry)
-            continue;
-
         AreaTrigger const* at = sObjectMgr.GetAreaTrigger(atEntry->id);
         if (!at)
             continue;
@@ -429,7 +413,7 @@ bool ChatHandler::HandleGoTriggerCommand(char* args)
     if (!atId)
         return false;
 
-    AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(atId);
+    AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(atId);
     if (!atEntry)
     {
         PSendSysMessage(LANG_COMMAND_GOAREATRNOTFOUND, atId);

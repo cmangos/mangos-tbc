@@ -5675,7 +5675,7 @@ void ObjectMgr::LoadQuestAreaTriggers()
         uint32 trigger_ID = fields[0].GetUInt32();
         uint32 quest_ID   = fields[1].GetUInt32();
 
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(trigger_ID);
+        AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(trigger_ID);
         if (!atEntry)
         {
             sLog.outErrorDb("Table `areatrigger_involvedrelation` has area trigger (ID: %u) not listed in `AreaTrigger.dbc`.", trigger_ID);
@@ -5737,7 +5737,7 @@ void ObjectMgr::LoadTavernAreaTriggers()
 
         uint32 Trigger_ID      = fields[0].GetUInt32();
 
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(Trigger_ID);
+        AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(Trigger_ID);
         if (!atEntry)
         {
             sLog.outErrorDb("Table `areatrigger_tavern` has area trigger (ID:%u) not listed in `AreaTrigger.dbc`.", Trigger_ID);
@@ -6323,7 +6323,7 @@ void ObjectMgr::LoadAreaTriggerTeleports()
         at.conditionId          = fields[13].GetUInt32();
         at.status_failed_text   = fields[14].GetCppString();
 
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(at.entry);
+        AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(at.entry);
         if (!atEntry)
         {
             sLog.outErrorDb("Table `areatrigger_teleport` has area trigger (ID:%u) not listed in `AreaTrigger.dbc`.", at.entry);
@@ -6438,7 +6438,7 @@ AreaTrigger const* ObjectMgr::GetGoBackTrigger(uint32 map_id) const
         {
             ghostTrigger.push_back(&mAreaTrigger.second);
             // First run, only consider AreaTrigger that teleport in the proper map
-            if ((!compareTrigger || mAreaTrigger.second.IsLessOrEqualThan(compareTrigger)) && sAreaTriggerStore.LookupEntry(mAreaTrigger.first)->mapid == map_id)
+            if ((!compareTrigger || mAreaTrigger.second.IsLessOrEqualThan(compareTrigger)) && sDBCAreaTrigger.LookupEntry(mAreaTrigger.first)->mapid == map_id)
             {
                 if (mAreaTrigger.second.IsMinimal())
                     return &mAreaTrigger.second;

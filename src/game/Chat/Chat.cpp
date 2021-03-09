@@ -3140,7 +3140,7 @@ bool ChatHandler::ExtractLocationFromLink(char** text, uint32& mapid, float& x, 
             if (!ExtractUInt32(&idS, id))
                 return false;
 
-            AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
+            AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(id);
             if (!atEntry)
             {
                 PSendSysMessage(LANG_COMMAND_GOAREATRNOTFOUND, id);
@@ -3160,7 +3160,7 @@ bool ChatHandler::ExtractLocationFromLink(char** text, uint32& mapid, float& x, 
             if (!ExtractUInt32(&idS, id))
                 return false;
 
-            if (!sAreaTriggerStore.LookupEntry(id))
+            if (!sDBCAreaTrigger.LookupEntry(id))
             {
                 PSendSysMessage(LANG_COMMAND_GOAREATRNOTFOUND, id);
                 SetSentErrorMessage(true);

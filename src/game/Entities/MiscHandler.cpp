@@ -392,7 +392,7 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket& recv_data)
 
     _player->SetSelectionGuid(guid);
 
-    if (Unit* mover = _player->GetMover()) // when player has a mover and the mover is a 
+    if (Unit* mover = _player->GetMover()) // when player has a mover and the mover is a
         if (mover != _player)
             mover->SetSelectionGuid(guid);
 
@@ -703,7 +703,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
         return;
     }
 
-    AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(Trigger_ID);
+    AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(Trigger_ID);
     if (!atEntry)
     {
         DEBUG_LOG("Player '%s' (GUID: %u) send unknown (by DBC) Area Trigger ID: %u", player->GetName(), player->GetGUIDLow(), Trigger_ID);

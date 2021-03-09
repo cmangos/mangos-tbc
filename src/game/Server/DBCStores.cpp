@@ -58,7 +58,7 @@
 // static WMOAreaInfoByTripple sWMOAreaInfoByTripple;
 
 //DBCStorage <AreaTriggerEntry> sDBCAreaTrigger(AreaTriggerEntryfmt);
-DBCStorage <AuctionHouseEntry> sAuctionHouseStore(AuctionHouseEntryfmt);
+//DBCStorage <AuctionHouseEntry> sDBCAuctionHouse(AuctionHouseEntryfmt);
 DBCStorage <BankBagSlotPricesEntry> sBankBagSlotPricesStore(BankBagSlotPricesEntryfmt);
 DBCStorage <BattlemasterListEntry> sBattlemasterListStore(BattlemasterListEntryfmt);
 DBCStorage <CharStartOutfitEntry> sCharStartOutfitStore(CharStartOutfitEntryfmt);
@@ -267,7 +267,7 @@ void LoadDBCStores(const std::string& dataPath)
 //     }
 
 //    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCAreaTrigger,         dbcPath, "AreaTrigger.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sAuctionHouseStore,        dbcPath, "AuctionHouse.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCAuctionHouse,        dbcPath, "AuctionHouse.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sBankBagSlotPricesStore,   dbcPath, "BankBagSlotPrices.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sBattlemasterListStore,    dbcPath, "BattlemasterList.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharStartOutfitStore,     dbcPath, "CharStartOutfit.dbc");

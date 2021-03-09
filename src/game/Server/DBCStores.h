@@ -69,7 +69,7 @@ uint32 GetCreatureModelRace(uint32 model_id);
 
 //extern DBCStorage <AreaTableEntry>               sDBCAreaTable;// recommend access using functions
 //extern DBCStorage <AreaTriggerEntry>             sDBCAreaTrigger;
-extern DBCStorage <AuctionHouseEntry>            sAuctionHouseStore;
+//extern DBCStorage <AuctionHouseEntry>            sDBCAuctionHouse;
 extern DBCStorage <BankBagSlotPricesEntry>       sBankBagSlotPricesStore;
 extern DBCStorage <BattlemasterListEntry>        sBattlemasterListStore;
 // extern DBCStorage <ChatChannelsEntry>           sChatChannelsStore; -- accessed using function, no usable index

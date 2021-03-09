@@ -430,12 +430,12 @@ void AuctionHouseMgr::LoadAuctions()
                                        auction->itemTemplate, auction->itemCount, auction->itemRandomPropertyId, auction->itemGuidLow);
         }
 
-        auction->auctionHouseEntry = sAuctionHouseStore.LookupEntry(houseid);
+        auction->auctionHouseEntry = sDBCAuctionHouse.LookupEntry(houseid);
 
         if (!auction->auctionHouseEntry)
         {
             // need for send mail, use goblin auctionhouse
-            auction->auctionHouseEntry = sAuctionHouseStore.LookupEntry(7);
+            auction->auctionHouseEntry = sDBCAuctionHouse.LookupEntry(7);
 
             // Attempt send item back to owner
             std::ostringstream msgAuctionCanceledOwner;
@@ -566,7 +566,7 @@ AuctionHouseEntry const* AuctionHouseMgr::GetAuctionHouseEntry(Unit* unit)
         }
     }
 
-    return sAuctionHouseStore.LookupEntry(houseid);
+    return sDBCAuctionHouse.LookupEntry(houseid);
 }
 
 void AuctionHouseObject::Update()

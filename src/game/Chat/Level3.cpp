@@ -3858,7 +3858,7 @@ bool ChatHandler::HandleAuctionItemCommand(char* args)
             return false;
     }
 
-    AuctionHouseEntry const* auctionHouseEntry = sAuctionHouseStore.LookupEntry(houseid);
+    AuctionHouseEntry const* auctionHouseEntry = sDBCAuctionHouse.LookupEntry(houseid);
     AuctionHouseObject* auctionHouse = sAuctionMgr.GetAuctionsMap(auctionHouseEntry);
 
     if (!item_id)

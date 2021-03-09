@@ -7682,7 +7682,7 @@ bool PlayerbotAI::RemoveAuction(const uint32 auctionid)
             return false;
         }
 
-        auction->auctionHouseEntry = sAuctionHouseStore.LookupEntry(houseid);
+        auction->auctionHouseEntry = sDBCAuctionHouse.LookupEntry(houseid);
 
         // Attempt send item back to owner
         std::ostringstream msgAuctionCanceledOwner;

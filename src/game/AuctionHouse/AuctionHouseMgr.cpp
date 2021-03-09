@@ -536,7 +536,7 @@ AuctionHouseEntry const* AuctionHouseMgr::GetAuctionHouseEntry(Unit* unit)
                 case 1638: houseid = 2; break;              // exodar, alliance
                 default:                                    // for unknown case
                 {
-                    FactionTemplateEntry const* u_entry = sFactionTemplateStore.LookupEntry(factionTemplateId);
+                    FactionTemplateEntry const* u_entry = sDBCFactionTemplate.LookupEntry(factionTemplateId);
                     if (!u_entry)
                         houseid = 7;                        // goblin auction house
                     else if (u_entry->factionGroupMask & FACTION_GROUP_MASK_ALLIANCE)

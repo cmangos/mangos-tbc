@@ -1804,13 +1804,13 @@ bool ChatHandler::CheckEscapeSequences(const char* message)
 
                     if (propertyId > 0)
                     {
-                        itemProperty = sItemRandomPropertiesStore.LookupEntry(propertyId);
+                        itemProperty = sDBCItemRandomProperties.LookupEntry(propertyId);
                         if (!itemProperty)
                             return false;
                     }
                     else if (propertyId < 0)
                     {
-                        itemSuffix = sItemRandomSuffixStore.LookupEntry(-propertyId);
+                        itemSuffix = sDBCItemRandomSuffix.LookupEntry(-propertyId);
                         if (!itemSuffix)
                             return false;
                     }
@@ -1885,7 +1885,7 @@ bool ChatHandler::CheckEscapeSequences(const char* message)
                     if (reader.eof())                       // : must be
                         return false;
 
-                    TalentEntry const* talentInfo = sTalentStore.LookupEntry(atoi(buffer));
+                    TalentEntry const* talentInfo = sDBCTalent.LookupEntry(atoi(buffer));
                     if (!talentInfo)
                         return false;
 
@@ -1979,7 +1979,7 @@ bool ChatHandler::CheckEscapeSequences(const char* message)
                                 return false;
                             }
 
-                            SkillLineEntry const* skillLine = sSkillLineStore.LookupEntry(skillInfo->skillId);
+                            SkillLineEntry const* skillLine = sDBCSkillLine.LookupEntry(skillInfo->skillId);
                             if (!skillLine)
                             {
                                 return false;
@@ -2851,7 +2851,7 @@ uint32 ChatHandler::ExtractSpellIdFromLink(char** text)
         case SPELL_LINK_TALENT:
         {
             // talent
-            TalentEntry const* talentEntry = sTalentStore.LookupEntry(id);
+            TalentEntry const* talentEntry = sDBCTalent.LookupEntry(id);
             if (!talentEntry)
                 return 0;
 
@@ -3045,7 +3045,7 @@ bool ChatHandler::ExtractLocationFromLink(char** text, uint32& mapid, float& x, 
             if (!ExtractUInt32(&idS, id))
                 return false;
 
-            TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(id);
+            TaxiNodesEntry const* node = sDBCTaxiNodes.LookupEntry(id);
             if (!node)
                 return false;
             mapid = node->map_id;

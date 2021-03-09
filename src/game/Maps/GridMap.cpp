@@ -558,7 +558,7 @@ GridMapLiquidStatus GridMap::getLiquidStatus(float x, float y, float z, uint8 Re
     int idx = (x_int >> 3) * 16 + (y_int >> 3);
     uint8 type = m_liquidFlags ? m_liquidFlags[idx] : m_liquidGlobalFlags;
     uint32 entry = m_liquidEntry ? m_liquidEntry[idx] : m_liquidGlobalEntry;
-    if (LiquidTypeEntry const* liquidEntry = sLiquidTypeStore.LookupEntry(entry))
+    if (LiquidTypeEntry const* liquidEntry = sDBCLiquidType.LookupEntry(entry))
     {
         entry = liquidEntry->Id;
         type &= MAP_LIQUID_TYPE_DEEP_WATER;
@@ -575,7 +575,7 @@ GridMapLiquidStatus GridMap::getLiquidStatus(float x, float y, float z, uint8 Re
                         overrideLiquid = area->LiquidTypeOverride[entry - 1];
                 }
 
-                if (LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(overrideLiquid))
+                if (LiquidTypeEntry const* liq = sDBCLiquidType.LookupEntry(overrideLiquid))
                 {
                     entry = overrideLiquid;
                     liqTypeIdx = liq->Type;
@@ -992,7 +992,7 @@ GridMapLiquidStatus TerrainInfo::getLiquidStatus(float x, float y, float z, uint
             if (data)
             {
                 uint32 liquidFlagType = 0;
-                if (LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(liquid_type))
+                if (LiquidTypeEntry const* liq = sDBCLiquidType.LookupEntry(liquid_type))
                     liquidFlagType = liq->Type;
 
                 if (liquid_type && liquid_type < 21)
@@ -1007,7 +1007,7 @@ GridMapLiquidStatus TerrainInfo::getLiquidStatus(float x, float y, float z, uint
                                 overrideLiquid = area->LiquidTypeOverride[liquid_type - 1];
                         }
 
-                        if (LiquidTypeEntry const* liq = sLiquidTypeStore.LookupEntry(overrideLiquid))
+                        if (LiquidTypeEntry const* liq = sDBCLiquidType.LookupEntry(overrideLiquid))
                         {
                             liquid_type = overrideLiquid;
                             liquidFlagType = liq->Type;
@@ -1190,7 +1190,7 @@ GridMap* TerrainInfo::LoadMapAndVMap(const uint32 x, const uint32 y, bool mapOnl
     if (!VMAP::VMapFactory::createOrGetVMapManager()->IsTileLoaded(m_mapId, x, y))
     {
         // load VMAPs for current map/grid...
-        const MapEntry* i_mapEntry = sMapStore.LookupEntry(m_mapId);
+        const MapEntry* i_mapEntry = sDBCMap.LookupEntry(m_mapId);
         const char* mapName = i_mapEntry ? i_mapEntry->name[sWorld.GetDefaultDbcLocale()] : "UNNAMEDMAP\x0";
 
         int vmapLoadResult = VMAP::VMapFactory::createOrGetVMapManager()->loadMap((sWorld.GetDataPath() + "vmaps").c_str(), m_mapId, x, y);

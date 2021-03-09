@@ -401,7 +401,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
         {
             m_creature->SetFacingTo(m_fCurrentOrientation);
         }
-            
+
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
@@ -486,7 +486,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
             else
                 ++itr;
         }
-            
+
 
         if (lSquaresList.empty())
             return nullptr;
@@ -654,7 +654,7 @@ bool EffectDummyCreature_npc_chess_generic(Unit* pCaster, uint32 uiSpellId, Spel
             case NPC_ORC_WOLF:              uiMeleeSpell = SPELL_MELEE_WOLF;                break;
             case NPC_SUMMONED_DAEMON:       uiMeleeSpell = SPELL_MELEE_DAEMON;              break;
         }
-        
+
         pCreatureTarget->CastSpell(pCreatureTarget, uiMeleeSpell, TRIGGERED_OLD_TRIGGERED);
         return true;
     }
@@ -1745,7 +1745,7 @@ struct go_chessboard : public GameObjectAI
                     break;
                 }
             }
-            bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0]));
+            bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0]));
             if (!myHolder)
             {
                 if (isCloseEnough)

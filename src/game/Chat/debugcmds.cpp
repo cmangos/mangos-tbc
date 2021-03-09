@@ -223,7 +223,7 @@ bool ChatHandler::HandleDebugPlayCinematicCommand(char* args)
     if (!ExtractUInt32(&args, dwId))
         return false;
 
-    if (!sCinematicSequencesStore.LookupEntry(dwId))
+    if (!sDBCCinematicSequences.LookupEntry(dwId))
     {
         PSendSysMessage(LANG_CINEMATIC_NOT_EXIST, dwId);
         SetSentErrorMessage(true);
@@ -231,7 +231,7 @@ bool ChatHandler::HandleDebugPlayCinematicCommand(char* args)
     }
 
     // Dump camera locations
-    if (CinematicSequencesEntry const* cineSeq = sCinematicSequencesStore.LookupEntry(dwId))
+    if (CinematicSequencesEntry const* cineSeq = sDBCCinematicSequences.LookupEntry(dwId))
     {
         std::unordered_map<uint32, FlyByCameraCollection>::const_iterator itr = sFlyByCameraStore.find(cineSeq->cinematicCamera);
         if (itr != sFlyByCameraStore.end())
@@ -260,7 +260,7 @@ bool ChatHandler::HandleDebugPlaySoundCommand(char* args)
     if (!ExtractUInt32(&args, dwSoundId))
         return false;
 
-    if (!sSoundEntriesStore.LookupEntry(dwSoundId))
+    if (!sDBCSoundEntries.LookupEntry(dwSoundId))
     {
         PSendSysMessage(LANG_SOUND_NOT_EXIST, dwSoundId);
         SetSentErrorMessage(true);
@@ -293,7 +293,7 @@ bool ChatHandler::HandleDebugPlayMusicCommand(char* args)
     if (!ExtractUInt32(&args, dwMusicId))
         return false;
 
-    if (!sSoundEntriesStore.LookupEntry(dwMusicId))
+    if (!sDBCSoundEntries.LookupEntry(dwMusicId))
     {
         PSendSysMessage(LANG_SOUND_NOT_EXIST, dwMusicId);
         SetSentErrorMessage(true);

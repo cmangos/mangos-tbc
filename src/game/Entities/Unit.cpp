@@ -857,7 +857,7 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
             }
         }
     }
- 
+
     if (!damage)
     {
         // Rage from physical damage received - extend to all units
@@ -1184,7 +1184,7 @@ void Unit::HandleDamageDealt(Unit* dealer, Unit* victim, uint32& damage, CleanDa
         for (auto aura : cleanupHolder)
             victim->RemoveAurasDueToSpell(aura);
     }
-    
+
     if (dealer)
         dealer->InterruptOrDelaySpell(victim, damagetype);
 
@@ -2207,7 +2207,7 @@ void Unit::HandleEmote(uint32 emote_id)
 {
     if (!emote_id)
         HandleEmoteState(0);
-    else if (EmotesEntry const* emoteEntry = sEmotesStore.LookupEntry(emote_id))
+    else if (EmotesEntry const* emoteEntry = sDBCEmotes.LookupEntry(emote_id))
     {
         if (emoteEntry->EmoteType)                          // 1,2 states, 0 command
             HandleEmoteState(emote_id);
@@ -6173,7 +6173,7 @@ void Unit::SendAttackStateUpdate(CalcDamageInfo* calcDamageInfo) const
     SendMessageToSet(data, true);
 }
 
-void Unit::SendAttackStateUpdate(uint32 HitInfo, Unit* target, SpellSchoolMask damageSchoolMask, uint32 Damage, 
+void Unit::SendAttackStateUpdate(uint32 HitInfo, Unit* target, SpellSchoolMask damageSchoolMask, uint32 Damage,
                                  uint32 AbsorbDamage, int32 Resist, VictimState TargetState, uint32 BlockedAmount)
 {
     CalcDamageInfo dmgInfo;
@@ -6232,7 +6232,7 @@ void Unit::SetPowerType(Powers new_powertype)
 
 FactionTemplateEntry const* Unit::GetFactionTemplateEntry() const
 {
-    FactionTemplateEntry const* entry = sFactionTemplateStore.LookupEntry(getFaction());
+    FactionTemplateEntry const* entry = sDBCFactionTemplate.LookupEntry(getFaction());
     if (!entry)
     {
         static ObjectGuid guid;                             // prevent repeating spam same faction problem
@@ -6242,7 +6242,7 @@ FactionTemplateEntry const* Unit::GetFactionTemplateEntry() const
             guid = GetObjectGuid();
 
             if (guid.GetHigh() == HIGHGUID_PET)
-                sLog.outError("%s (base creature entry %u) have invalid faction template id %u, owner %s", 
+                sLog.outError("%s (base creature entry %u) have invalid faction template id %u, owner %s",
                     GetGuidStr().c_str(), GetEntry(), getFaction(), ((Pet*)this)->GetOwnerGuid().GetString().c_str());
             else
                 sLog.outError("%s have invalid faction template id %u", GetGuidStr().c_str(), getFaction());
@@ -7627,7 +7627,7 @@ bool Unit::IsImmuneToSpell(SpellEntry const* spellInfo, bool /*castOnSelf*/, uin
             return true;
 
     {
-        if (!spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) && 
+        if (!spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) &&
                 !spellInfo->HasAttribute(SPELL_ATTR_EX_DISPEL_AURAS_ON_IMMUNITY))
         {
             bool isPositive = IsPositiveEffectMask(spellInfo, effectMask);
@@ -9258,7 +9258,7 @@ uint32 Unit::GetCreatureType() const
 {
     if (GetTypeId() == TYPEID_PLAYER)
     {
-        SpellShapeshiftFormEntry const* ssEntry = sSpellShapeshiftFormStore.LookupEntry(GetShapeshiftForm());
+        SpellShapeshiftFormEntry const* ssEntry = sDBCSpellShapeshiftForm.LookupEntry(GetShapeshiftForm());
         if (ssEntry && ssEntry->creatureType > 0)
             return ssEntry->creatureType;
         return CREATURE_TYPE_HUMANOID;
@@ -9922,7 +9922,7 @@ void CharmInfo::InitCharmCreateSpells()
             m_charmspells[x].SetActionAndType(spellId, ACT_DISABLED);
 
             ActiveStates newstate;
-            bool onlyselfcast = true;            
+            bool onlyselfcast = true;
 
             for (uint32 i = 0; i < 3 && onlyselfcast; ++i)  // nonexistent spell will not make any problems as onlyselfcast would be false -> break right away
             {
@@ -11191,7 +11191,7 @@ bool Unit::IsShapeShifted() const
     // Mirroring clientside gameplay logic
     if (ShapeshiftForm form = GetShapeshiftForm())
     {
-        if (SpellShapeshiftFormEntry const* entry = sSpellShapeshiftFormStore.LookupEntry(form))
+        if (SpellShapeshiftFormEntry const* entry = sDBCSpellShapeshiftForm.LookupEntry(form))
             return !(entry->flags1 & SHAPESHIFT_FORM_FLAG_ALLOW_ACTIVITY);
     }
     return false;
@@ -11879,7 +11879,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
 
     // if charm expires mid evade clear evade since movement is also cleared
     // TODO: maybe should be done on HomeMovementGenerator::MovementExpires
-    charmed->GetCombatManager().SetEvadeState(EVADE_NONE); 
+    charmed->GetCombatManager().SetEvadeState(EVADE_NONE);
 
     if (charmed->GetTypeId() == TYPEID_UNIT)
     {
@@ -11987,7 +11987,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
                 Position const& pos = charmInfo->GetCharmStartPosition();
                 if (!pos.IsEmpty())
                     static_cast<Creature*>(charmed)->SetCombatStartPosition(pos);
-            }                
+            }
         }
     }
     else
@@ -12135,8 +12135,8 @@ float Unit::OCTRegenHPPerSpirit() const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtOCTRegenHPEntry     const* baseRatio = sGtOCTRegenHPStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
-    GtRegenHPPerSptEntry  const* moreRatio = sGtRegenHPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtOCTRegenHPEntry     const* baseRatio = sDBCgtOCTRegenHP.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtRegenHPPerSptEntry  const* moreRatio = sDBCgtRegenHPPerSpt.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (baseRatio == nullptr || moreRatio == nullptr)
         return 0.0f;
 
@@ -12157,7 +12157,7 @@ float Unit::OCTRegenMPPerSpirit() const
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
     //    GtOCTRegenMPEntry     const *baseRatio = sGtOCTRegenMPStore.LookupEntry((pclass-1)*GT_MAX_LEVEL + level-1);
-    GtRegenMPPerSptEntry  const* moreRatio = sGtRegenMPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtRegenMPPerSptEntry  const* moreRatio = sDBCgtRegenMPPerSpt.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (moreRatio == nullptr)
         return 0.0f;
 
@@ -12173,13 +12173,13 @@ float Unit::GetCollisionHeight() const
 
     if (IsMounted())
     {
-        if (CreatureDisplayInfoEntry const* mountDisplayInfo = sCreatureDisplayInfoStore.LookupEntry(GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID)))
+        if (CreatureDisplayInfoEntry const* mountDisplayInfo = sDBCCreatureDisplayInfo.LookupEntry(GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID)))
         {
-            if (CreatureModelDataEntry const* mountModelData = sCreatureModelDataStore.LookupEntry(mountDisplayInfo->ModelId))
+            if (CreatureModelDataEntry const* mountModelData = sDBCCreatureModelData.LookupEntry(mountDisplayInfo->ModelId))
             {
-                CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.LookupEntry(GetNativeDisplayId());
+                CreatureDisplayInfoEntry const* displayInfo = sDBCCreatureDisplayInfo.LookupEntry(GetNativeDisplayId());
                 MANGOS_ASSERT(displayInfo);
-                CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelId);
+                CreatureModelDataEntry const* modelData = sDBCCreatureModelData.LookupEntry(displayInfo->ModelId);
                 MANGOS_ASSERT(modelData);
                 float const collisionHeight = scaleMod * (mountModelData->MountHeight + modelData->CollisionHeight * modelData->Scale * displayInfo->scale * 0.5f);
                 return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
@@ -12188,9 +12188,9 @@ float Unit::GetCollisionHeight() const
     }
 
     //! Dismounting case - use basic default model data
-    CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.LookupEntry(GetNativeDisplayId());
+    CreatureDisplayInfoEntry const* displayInfo = sDBCCreatureDisplayInfo.LookupEntry(GetNativeDisplayId());
     MANGOS_ASSERT(displayInfo);
-    CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelId);
+    CreatureModelDataEntry const* modelData = sDBCCreatureModelData.LookupEntry(displayInfo->ModelId);
     MANGOS_ASSERT(modelData);
 
     float const collisionHeight = scaleMod * modelData->CollisionHeight * modelData->Scale * displayInfo->scale;

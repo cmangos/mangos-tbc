@@ -223,7 +223,7 @@ struct npc_building_triggerAI : public ScriptedAI
 {
     npc_building_triggerAI(Creature* creature) : ScriptedAI(creature){}
 
-    void Reset() override 
+    void Reset() override
     {
         m_creature->AI()->SetReactState(REACT_PASSIVE);
     }
@@ -307,7 +307,7 @@ struct RaiseDeadHyjal : public SpellScript
     {
         if (strict)
         {
-            float radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spell->m_spellInfo->rangeIndex));
+            float radius = GetSpellMaxRange(sDBCSpellRange.LookupEntry(spell->m_spellInfo->rangeIndex));
             UnitList tempUnitList;
             GameObjectList tempGOList;
             return spell->CheckScriptTargeting(EFFECT_INDEX_0, 1, radius, TARGET_LOCATION_SCRIPT_NEAR_CASTER, tempUnitList, tempGOList);

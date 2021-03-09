@@ -995,14 +995,14 @@ uint32 Player::GetSpec()
     Player* player = m_session->GetPlayer();
     uint32 classMask = player->getClassMask();
 
-    for (unsigned int i = 0; i < sTalentStore.GetNumRows(); ++i)
+    for (unsigned int i = 0; i < sDBCTalent.GetNumRows(); ++i)
     {
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
+        TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
 
         if (!talentInfo)
             continue;
 
-        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+        TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
 
         if (!talentTabInfo)
             continue;

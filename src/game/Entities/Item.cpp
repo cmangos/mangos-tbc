@@ -31,7 +31,7 @@ void AddItemsSetItem(Player* player, Item* item)
     ItemPrototype const* proto = item->GetProto();
     uint32 setid = proto->ItemSet;
 
-    ItemSetEntry const* set = sItemSetStore.LookupEntry(setid);
+    ItemSetEntry const* set = sDBCItemSet.LookupEntry(setid);
 
     if (!set)
     {
@@ -113,7 +113,7 @@ void RemoveItemsSetItem(Player* player, ItemPrototype const* proto)
 {
     uint32 setid = proto->ItemSet;
 
-    ItemSetEntry const* set = sItemSetStore.LookupEntry(setid);
+    ItemSetEntry const* set = sDBCItemSet.LookupEntry(setid);
 
     if (!set)
     {
@@ -693,7 +693,7 @@ int32 Item::GenerateItemRandomPropertyId(uint32 item_id)
     if (itemProto->RandomProperty)
     {
         uint32 randomPropId = GetItemEnchantMod(itemProto->RandomProperty);
-        ItemRandomPropertiesEntry const* random_id = sItemRandomPropertiesStore.LookupEntry(randomPropId);
+        ItemRandomPropertiesEntry const* random_id = sDBCItemRandomProperties.LookupEntry(randomPropId);
         if (!random_id)
         {
             sLog.outErrorDb("Enchantment id #%u used but it doesn't have records in 'ItemRandomProperties.dbc'", randomPropId);
@@ -704,7 +704,7 @@ int32 Item::GenerateItemRandomPropertyId(uint32 item_id)
     }
     // Random Suffix case
     uint32 randomPropId = GetItemEnchantMod(itemProto->RandomSuffix);
-    ItemRandomSuffixEntry const* random_id = sItemRandomSuffixStore.LookupEntry(randomPropId);
+    ItemRandomSuffixEntry const* random_id = sDBCItemRandomSuffix.LookupEntry(randomPropId);
     if (!random_id)
     {
         sLog.outErrorDb("Enchantment id #%u used but it doesn't have records in sItemRandomSuffixStore.", randomPropId);
@@ -721,7 +721,7 @@ void Item::SetItemRandomProperties(int32 randomPropId)
 
     if (randomPropId > 0)
     {
-        ItemRandomPropertiesEntry const* item_rand = sItemRandomPropertiesStore.LookupEntry(randomPropId);
+        ItemRandomPropertiesEntry const* item_rand = sDBCItemRandomProperties.LookupEntry(randomPropId);
         if (item_rand)
         {
             if (GetInt32Value(ITEM_FIELD_RANDOM_PROPERTIES_ID) != int32(item_rand->ID))
@@ -735,7 +735,7 @@ void Item::SetItemRandomProperties(int32 randomPropId)
     }
     else
     {
-        ItemRandomSuffixEntry const* item_rand = sItemRandomSuffixStore.LookupEntry(-randomPropId);
+        ItemRandomSuffixEntry const* item_rand = sDBCItemRandomSuffix.LookupEntry(-randomPropId);
         if (item_rand)
         {
             if (GetInt32Value(ITEM_FIELD_RANDOM_PROPERTIES_ID) != -int32(item_rand->ID) ||
@@ -893,7 +893,7 @@ bool Item::IsBoundByEnchant() const
         if (!enchant_id)
             continue;
 
-        SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
+        SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
         if (!enchantEntry)
             continue;
 
@@ -1012,7 +1012,7 @@ bool Item::GemsFitSockets() const
             continue;
         }
 
-        SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
+        SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
         if (!enchantEntry)
         {
             if (SocketColor) fits &= false;
@@ -1027,7 +1027,7 @@ bool Item::GemsFitSockets() const
             ItemPrototype const* gemProto = sItemStorage.LookupEntry(gemid);
             if (gemProto)
             {
-                GemPropertiesEntry const* gemProperty = sGemPropertiesStore.LookupEntry(gemProto->GemProperties);
+                GemPropertiesEntry const* gemProperty = sDBCGemProperties.LookupEntry(gemProto->GemProperties);
                 if (gemProperty)
                     GemColor = gemProperty->color;
             }
@@ -1047,7 +1047,7 @@ uint8 Item::GetGemCountWithID(uint32 GemID) const
         if (!enchant_id)
             continue;
 
-        SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
+        SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
         if (!enchantEntry)
             continue;
 

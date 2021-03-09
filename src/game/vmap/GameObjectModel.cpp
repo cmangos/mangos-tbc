@@ -126,7 +126,7 @@ bool GameObjectModel::initialize(const GameObject* const pGo, const GameObjectDi
 
 GameObjectModel* GameObjectModel::construct(const GameObject* const pGo)
 {
-    const GameObjectDisplayInfoEntry* info = sGameObjectDisplayInfoStore.LookupEntry(pGo->GetDisplayId());
+    const GameObjectDisplayInfoEntry* info = sDBCGameObjectDisplayInfo.LookupEntry(pGo->GetDisplayId());
     if (!info)
         return nullptr;
 

@@ -296,7 +296,7 @@ ReputationRank Unit::GetReactionTo(const Corpse* corpse) const
     {
         if (const uint32 corpseTemplateId = corpse->getFaction())
         {
-            if (const FactionTemplateEntry* corpseTemplate = sFactionTemplateStore.LookupEntry(corpseTemplateId))
+            if (const FactionTemplateEntry* corpseTemplate = sDBCFactionTemplate.LookupEntry(corpseTemplateId))
                 return GetFactionReaction(thisTemplate, corpseTemplate);
         }
     }
@@ -321,7 +321,7 @@ ReputationRank GameObject::GetReactionTo(Unit const* unit) const
 
     if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
     {
-        if (const FactionTemplateEntry* factionTemplate = sFactionTemplateStore.LookupEntry(faction))
+        if (const FactionTemplateEntry* factionTemplate = sDBCFactionTemplate.LookupEntry(faction))
             return GetFactionReaction(factionTemplate, unit);
     }
 
@@ -692,7 +692,7 @@ bool Unit::CanInteractNow(const Unit* unit) const
     // We can't interact with anyone while being shapeshifted, unless form flags allow us to do so
     if (IsShapeShifted())
     {
-        if (SpellShapeshiftFormEntry const* formEntry = sSpellShapeshiftFormStore.LookupEntry(GetShapeshiftForm()))
+        if (SpellShapeshiftFormEntry const* formEntry = sDBCSpellShapeshiftForm.LookupEntry(GetShapeshiftForm()))
         {
             if (!(formEntry->flags1 & SHAPESHIFT_FORM_FLAG_ALLOW_NPC_INTERACT))
                 return false;
@@ -872,7 +872,7 @@ bool GameObject::IsEnemy(Unit const* unit) const
 
     if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
     {
-        if (const FactionTemplateEntry* factionTemplate = sFactionTemplateStore.LookupEntry(faction))
+        if (const FactionTemplateEntry* factionTemplate = sDBCFactionTemplate.LookupEntry(faction))
             return (GetFactionReaction(factionTemplate, unit) < REP_UNFRIENDLY);
     }
 
@@ -896,7 +896,7 @@ bool GameObject::IsFriend(Unit const* unit) const
 
     if (const uint32 faction = GetUInt32Value(GAMEOBJECT_FACTION))
     {
-        if (const FactionTemplateEntry* factionTemplate = sFactionTemplateStore.LookupEntry(faction))
+        if (const FactionTemplateEntry* factionTemplate = sDBCFactionTemplate.LookupEntry(faction))
             return (GetFactionReaction(factionTemplate, unit) > REP_NEUTRAL);
     }
 
@@ -1021,7 +1021,7 @@ ReputationRank Player::GetReactionTo(const Corpse* corpse) const
             if (sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP) && IsInGroup(corpseOwner))
             {
                 uint32 id = (GetTeam() == ALLIANCE ? 1054 : 1495);
-                return GetFactionReaction(GetFactionTemplateEntry(), sFactionTemplateStore.LookupEntry(id));
+                return GetFactionReaction(GetFactionTemplateEntry(), sDBCFactionTemplate.LookupEntry(id));
             }
         }
     }

@@ -323,7 +323,7 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
             if (!petUnit->hasUnitState(UNIT_STAT_POSSESSED))
                 flags |= TRIGGERED_PET_CAST;
 
-            const SpellRangeEntry* sRange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
+            const SpellRangeEntry* sRange = sDBCSpellRange.LookupEntry(spellInfo->rangeIndex);
 
             if (!IsSpellRequireTarget(spellInfo))
                 unit_target = nullptr;

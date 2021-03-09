@@ -381,7 +381,7 @@ void WorldSession::HandleSetTargetOpcode(WorldPacket& recv_data)
     if (!unit)
         return;
 
-    if (FactionTemplateEntry const* factionTemplateEntry = sFactionTemplateStore.LookupEntry(unit->getFaction()))
+    if (FactionTemplateEntry const* factionTemplateEntry = sDBCFactionTemplate.LookupEntry(unit->getFaction()))
         _player->GetReputationMgr().SetVisible(factionTemplateEntry);
 }
 
@@ -401,7 +401,7 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket& recv_data)
     if (!unit)
         return;
 
-    if (FactionTemplateEntry const* factionTemplateEntry = sFactionTemplateStore.LookupEntry(unit->getFaction()))
+    if (FactionTemplateEntry const* factionTemplateEntry = sDBCFactionTemplate.LookupEntry(unit->getFaction()))
         _player->GetReputationMgr().SetVisible(factionTemplateEntry);
 }
 
@@ -759,7 +759,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
     if (!at)
         return;
 
-    MapEntry const* targetMapEntry = sMapStore.LookupEntry(at->target_mapId);
+    MapEntry const* targetMapEntry = sDBCMap.LookupEntry(at->target_mapId);
     if (!targetMapEntry)
         return;
 
@@ -1065,9 +1065,9 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recv_data)
             uint32 talentTabId = talentTabIds[i];
 
             // fill by real data
-            for (uint32 talentId = 0; talentId < sTalentStore.GetNumRows(); ++talentId)
+            for (uint32 talentId = 0; talentId < sDBCTalent.GetNumRows(); ++talentId)
             {
-                TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
+                TalentEntry const* talentInfo = sDBCTalent.LookupEntry(talentId);
                 if (!talentInfo)
                     continue;
 

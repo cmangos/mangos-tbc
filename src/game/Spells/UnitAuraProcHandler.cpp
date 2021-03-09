@@ -2797,7 +2797,7 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(ProcExecutionData& d
             triggered_spell_id = 28750;                     // Blessing of the Claw
             break;
         case 5497:                                          // Improved Mana Gems (Serpent-Coil Braid)
-            CastSpell(pVictim, 37445, TRIGGERED_NONE); // Mana Surge                   
+            CastSpell(pVictim, 37445, TRIGGERED_NONE); // Mana Surge
             return SPELL_AURA_PROC_OK;
         case 5510:                                          // Flexibility - T4 Holy Priest bonus
             RemoveAurasDueToSpell(37565);
@@ -2844,9 +2844,9 @@ SpellAuraProcResult Unit::HandleRaidProcFromChargeAuraProc(ProcExecutionData& da
     {
         float radius;
         if (spellProto->EffectRadiusIndex[effIdx])
-            radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
+            radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
         else
-            radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spellProto->rangeIndex));
+            radius = GetSpellMaxRange(sDBCSpellRange.LookupEntry(spellProto->rangeIndex));
 
         if (Unit* caster = triggeredByAura->GetCaster())
         {
@@ -2918,9 +2918,9 @@ SpellAuraProcResult Unit::HandleRaidProcFromChargeWithValueAuraProc(ProcExecutio
     {
         float radius;
         if (spellProto->EffectRadiusIndex[effIdx])
-            radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
+            radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
         else
-            radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spellProto->rangeIndex));
+            radius = GetSpellMaxRange(sDBCSpellRange.LookupEntry(spellProto->rangeIndex));
 
         if (Player* caster = static_cast<Player*>(triggeredByAura->GetCaster()))
         {

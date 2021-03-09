@@ -343,12 +343,12 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* curr
     {
         if (!damage && castItem && castItem->GetItemSuffixFactor())
         {
-            ItemRandomSuffixEntry const* item_rand_suffix = sItemRandomSuffixStore.LookupEntry(abs(castItem->GetItemRandomPropertyId()));
+            ItemRandomSuffixEntry const* item_rand_suffix = sDBCItemRandomSuffix.LookupEntry(abs(castItem->GetItemRandomPropertyId()));
             if (item_rand_suffix)
             {
                 for (int k = 0; k < 3; ++k)
                 {
-                    SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(item_rand_suffix->enchant_id[k]);
+                    SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(item_rand_suffix->enchant_id[k]);
                     if (pEnchant)
                     {
                         for (unsigned int t : pEnchant->spellid)
@@ -434,7 +434,7 @@ AreaAura::AreaAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 con
     // caster==nullptr in constructor args if target==caster in fact
     Unit* caster_ptr = caster ? caster : target;
 
-    m_radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellproto->EffectRadiusIndex[m_effIndex]));
+    m_radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spellproto->EffectRadiusIndex[m_effIndex]));
     if (Player* modOwner = caster_ptr->GetSpellModOwner())
         modOwner->ApplySpellMod(spellproto->Id, SPELLMOD_RADIUS, m_radius);
 
@@ -1528,7 +1528,7 @@ void Aura::TriggerSpell()
                         break;
                     }
 //                    // They Must Burn Bomb Aura
-//                    case 36344: break;        
+//                    case 36344: break;
                     case 36350:                             // They Must Burn Bomb Aura (self)
                         trigger_spell_id = 36325;           // They Must Burn Bomb Drop (DND)
                         break;
@@ -1895,7 +1895,7 @@ void Aura::TriggerSpell()
         // Reget trigger spell proto
         triggeredSpellInfo = sSpellTemplate.LookupEntry(trigger_spell_id);
     }
-    else 
+    else
     {
         // for channeled spell cast applied from aura owner to channel target (persistent aura affects already applied to true target)
         // come periodic casts applied to targets, so need select proper caster (ex. 15790)
@@ -3339,7 +3339,7 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
 
     ShapeshiftForm form = ShapeshiftForm(m_modifier.m_miscvalue);
 
-    SpellShapeshiftFormEntry const* ssEntry = sSpellShapeshiftFormStore.LookupEntry(form);
+    SpellShapeshiftFormEntry const* ssEntry = sDBCSpellShapeshiftForm.LookupEntry(form);
     if (!ssEntry)
     {
         sLog.outError("Unknown shapeshift form %u in spell %u", form, GetId());
@@ -6812,7 +6812,7 @@ void Aura::HandleSpiritOfRedemption(bool apply, bool Real)
         if (target->IsNonMeleeSpellCasted(false))
             target->InterruptNonMeleeSpells(false);
 
-        // set health and mana to maximum        
+        // set health and mana to maximum
         target->SetPower(POWER_MANA, target->GetMaxPower(POWER_MANA));
     }
     // die at aura end
@@ -7536,7 +7536,7 @@ void Aura::PeriodicDummyTick()
                 case 23487:                                 // Separation Anxiety (Garr)
                     if (Unit* caster = GetCaster())
                     {
-                        float m_radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spell->EffectRadiusIndex[m_effIndex]));
+                        float m_radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spell->EffectRadiusIndex[m_effIndex]));
                         if (caster->IsAlive() && !caster->IsWithinDistInMap(target, m_radius))
                             target->CastSpell(target, (spell->Id == 21094 ? 21095 : 23492), TRIGGERED_OLD_TRIGGERED, nullptr);      // Spell 21095: Separation Anxiety for Majordomo Executus' adds, 23492: Separation Anxiety for Garr's adds
                     }
@@ -7554,7 +7554,7 @@ void Aura::PeriodicDummyTick()
                 case 37025: // Coilfang Water
                     if (target->IsInSwimmableWater())
                         target->CastSpell(target, 37026, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                    return;          
+                    return;
                 case 39993: // Simon Game START timer, (DND)
                     target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, target);
                     break;
@@ -7915,7 +7915,7 @@ void Aura::HandleFactionOverride(bool apply, bool Real)
         return;
 
     Unit* target = GetTarget();
-    if (!target || !sFactionTemplateStore.LookupEntry(GetMiscValue()))
+    if (!target || !sDBCFactionTemplate.LookupEntry(GetMiscValue()))
         return;
 
     if (apply)
@@ -8908,7 +8908,7 @@ GameObjectAura::GameObjectAura(SpellEntry const* spellproto, SpellEffectIndex ef
 }
 
 GameObjectAura::~GameObjectAura()
-{    
+{
 }
 
 void GameObjectAura::Update(uint32 diff)

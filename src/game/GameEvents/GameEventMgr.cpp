@@ -164,7 +164,7 @@ void GameEventMgr::LoadFromDB()
                 gameEvent.start = time_t(FAR_FUTURE);
                 gameEvent.occurence = gameEvent.length;
             }
-			
+
             if (gameEvent.length == 0 && gameEvent.scheduleType != GAME_EVENT_SCHEDULE_SERVERSIDE) // length>0 is validity check
             {
                 sLog.outErrorDb("`game_event` game event id (%i) have length 0 and can't be used.", event_id);
@@ -608,7 +608,7 @@ void GameEventMgr::LoadFromDB()
                 continue;
             }
 
-            if (!sMailTemplateStore.LookupEntry(mail.mailTemplateId))
+            if (!sDBCMailTemplate.LookupEntry(mail.mailTemplateId))
             {
                 sLog.outErrorDb("Table `game_event_mail` have invalid mailTemplateId (%u) for game event %i that invalid not include any player races, ignoring.", mail.mailTemplateId, event_id);
                 continue;

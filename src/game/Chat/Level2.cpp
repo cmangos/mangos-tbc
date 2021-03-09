@@ -1117,7 +1117,7 @@ bool ChatHandler::HandleGameObjectAddCommand(char* args)
         return false;
     }
 
-    if (gInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(gInfo->displayId))
+    if (gInfo->displayId && !sDBCGameObjectDisplayInfo.LookupEntry(gInfo->displayId))
     {
         // report to DB errors log as in loading case
         sLog.outErrorDb("Gameobject (Entry %u GoType: %u) have invalid displayId (%u), not spawned.", id, gInfo->type, gInfo->displayId);
@@ -2051,7 +2051,7 @@ bool ChatHandler::HandleNpcFactionIdCommand(char* args)
 
     uint32 factionId = (uint32) atoi(args);
 
-    if (!sFactionTemplateStore.LookupEntry(factionId))
+    if (!sDBCFactionTemplate.LookupEntry(factionId))
     {
         PSendSysMessage(LANG_WRONG_FACTION, factionId);
         SetSentErrorMessage(true);
@@ -2432,7 +2432,7 @@ bool ChatHandler::HandleModifyMorphCommand(char* args)
 
     uint32 display_id = (uint32)atoi(args);
 
-    CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(display_id);
+    CreatureDisplayInfoEntry const* displayEntry = sDBCCreatureDisplayInfo.LookupEntry(display_id);
     if (!displayEntry)
     {
         SendSysMessage(LANG_BAD_VALUE);
@@ -3432,7 +3432,7 @@ bool ChatHandler::HandleModifyStandStateCommand(char* args)
     if (!ExtractUInt32(&args, anim_id))
         return false;
 
-    if (!sEmotesStore.LookupEntry(anim_id))
+    if (!sDBCEmotes.LookupEntry(anim_id))
         return false;
 
     m_session->GetPlayer()->HandleEmoteState(anim_id);
@@ -3740,12 +3740,8 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
 {
     uint32 classmask = player->getClassMask();
 
-    for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
+    for (auto skillLine : sDBCSkillLineAbility)
     {
-        SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
-        if (!skillLine)
-            continue;
-
         // wrong skill
         if (skillLine->skillId != skill_id)
             continue;
@@ -3772,12 +3768,8 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
 
 bool ChatHandler::HandleLearnAllCraftsCommand(char* /*args*/)
 {
-    for (uint32 i = 0; i < sSkillLineStore.GetNumRows(); ++i)
+    for (auto skillInfo : sDBCSkillLine)
     {
-        SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(i);
-        if (!skillInfo)
-            continue;
-
         if (skillInfo->categoryId == SKILL_CATEGORY_PROFESSION || skillInfo->categoryId == SKILL_CATEGORY_SECONDARY)
         {
             HandleLearnSkillRecipesHelper(m_session->GetPlayer(), skillInfo->id);
@@ -3814,12 +3806,8 @@ bool ChatHandler::HandleLearnAllRecipesCommand(char* args)
     std::string name;
 
     SkillLineEntry const* targetSkillInfo = nullptr;
-    for (uint32 i = 1; i < sSkillLineStore.GetNumRows(); ++i)
+    for (auto skillInfo : sDBCSkillLine)
     {
-        SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(i);
-        if (!skillInfo)
-            continue;
-
         if (skillInfo->categoryId != SKILL_CATEGORY_PROFESSION &&
                 skillInfo->categoryId != SKILL_CATEGORY_SECONDARY)
             continue;

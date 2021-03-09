@@ -92,7 +92,7 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
 
     HandleTargetedMovement(owner, time_diff);
 
-    if (owner.movespline->Finalized() && !i_targetReached) 
+    if (owner.movespline->Finalized() && !i_targetReached)
         HandleFinalizedMovement(owner);
 
     return true;
@@ -728,7 +728,7 @@ bool FollowMovementGenerator::IsBoostAllowed(Unit& owner) const
         return false;
 
     // Do not allow speed boosting when in pvp instances
-    if (const MapEntry* map = sMapStore.LookupEntry(owner.GetMapId()))
+    if (const MapEntry* map = sDBCMap.LookupEntry(owner.GetMapId()))
         if (map->IsBattleGroundOrArena())
             return false;
 

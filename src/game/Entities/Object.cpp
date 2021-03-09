@@ -2916,8 +2916,8 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
 
         if (damage)
         {
-            GtNPCManaCostScalerEntry const* spellScaler = sGtNPCManaCostScalerStore.LookupEntry(spellProto->spellLevel - 1);
-            GtNPCManaCostScalerEntry const* casterScaler = sGtNPCManaCostScalerStore.LookupEntry(unitCaster->getLevel() - 1);
+            GtNPCManaCostScalerEntry const* spellScaler = sDBCgtNPCManaCostScaler.LookupEntry(spellProto->spellLevel - 1);
+            GtNPCManaCostScalerEntry const* casterScaler = sDBCgtNPCManaCostScaler.LookupEntry(unitCaster->getLevel() - 1);
             if (spellScaler && casterScaler)
                 value *= casterScaler->ratio / spellScaler->ratio;
         }

@@ -367,7 +367,7 @@ uint32 PlayerbotAI::initSpell(uint32 spellId)
 
         // Add spell to spellrange map
         Spell* spell = new Spell(m_bot, pSpellInfo, false);
-        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(pSpellInfo->rangeIndex);
+        SpellRangeEntry const* srange = sDBCSpellRange.LookupEntry(pSpellInfo->rangeIndex);
         float range = GetSpellMaxRange(srange);
         if (Player* modOwner = m_bot->GetSpellModOwner())
             modOwner->ApplySpellMod(pSpellInfo->Id, SPELLMOD_RANGE, range, spell);
@@ -3962,7 +3962,7 @@ void PlayerbotAI::DoLoot()
 
             // check skill or lock on object
             uint32 lockId = go->GetGOInfo()->GetLockId();
-            LockEntry const* lockInfo = sLockStore.LookupEntry(lockId);
+            LockEntry const* lockInfo = sDBCLock.LookupEntry(lockId);
             if (lockInfo)
                 for (int i = 0; i < 8; ++i)
                 {
@@ -4503,7 +4503,7 @@ uint32 PlayerbotAI::EstRepair(uint16 pos)
     {
         ItemPrototype const* ditemProto = item->GetProto();
 
-        DurabilityCostsEntry const* dcost = sDurabilityCostsStore.LookupEntry(ditemProto->ItemLevel);
+        DurabilityCostsEntry const* dcost = sDBCDurabilityCosts.LookupEntry(ditemProto->ItemLevel);
         if (!dcost)
         {
             sLog.outError("RepairDurability: Wrong item lvl %u", ditemProto->ItemLevel);
@@ -4511,7 +4511,7 @@ uint32 PlayerbotAI::EstRepair(uint16 pos)
         }
 
         uint32 dQualitymodEntryId = (ditemProto->Quality + 1) * 2;
-        DurabilityQualityEntry const* dQualitymodEntry = sDurabilityQualityStore.LookupEntry(dQualitymodEntryId);
+        DurabilityQualityEntry const* dQualitymodEntry = sDBCDurabilityQuality.LookupEntry(dQualitymodEntryId);
         if (!dQualitymodEntry)
         {
             sLog.outError("RepairDurability: Wrong dQualityModEntry %u", dQualitymodEntryId);
@@ -5423,7 +5423,7 @@ bool PlayerbotAI::In_Range(Unit* Target, uint32 spellId)
     if (!pSpellInfo)
         return false;
 
-    SpellRangeEntry const* TempRange = GetSpellRangeStore()->LookupEntry(pSpellInfo->rangeIndex);
+    SpellRangeEntry const* TempRange = sDBCSpellRange.LookupEntry(pSpellInfo->rangeIndex);
 
     //Spell has invalid range store so we can't use it
     if (!TempRange)
@@ -5534,7 +5534,7 @@ SpellCastResult PlayerbotAI::CastSpell(uint32 spellId)
     float CastTime = 0.0f;
 
     // stop movement to prevent cancel spell casting
-    SpellCastTimesEntry const* castTimeEntry = sSpellCastTimesStore.LookupEntry(pSpellInfo->CastingTimeIndex);
+    SpellCastTimesEntry const* castTimeEntry = sDBCSpellCastTimes.LookupEntry(pSpellInfo->CastingTimeIndex);
     // stop movement to prevent cancel spell casting
     if (castTimeEntry && castTimeEntry->CastTime)
     {
@@ -6319,7 +6319,7 @@ void PlayerbotAI::MakeItemLink(const Item* item, std::ostringstream& out, bool I
         uint32 eId = item->GetEnchantmentId(EnchantmentSlot(slot));
         if (!eId) continue;
 
-        SpellItemEnchantmentEntry const* entry = sSpellItemEnchantmentStore.LookupEntry(eId);
+        SpellItemEnchantmentEntry const* entry = sDBCSpellItemEnchantment.LookupEntry(eId);
         if (!entry) continue;
 
         switch (slot - SOCK_ENCHANTMENT_SLOT)
@@ -7142,7 +7142,7 @@ void PlayerbotAI::UseItem(Item* item, uint32 targetFlag, ObjectGuid targetGUID)
         return;
     }
 
-    SpellCastTimesEntry const* castingTimeEntry = sSpellCastTimesStore.LookupEntry(spellInfo->CastingTimeIndex);
+    SpellCastTimesEntry const* castingTimeEntry = sDBCSpellCastTimes.LookupEntry(spellInfo->CastingTimeIndex);
     if (!castingTimeEntry)
     {
         TellMaster("Can't find casting time entry for spell %u with index %u", spellId, spellInfo->CastingTimeIndex);
@@ -9505,13 +9505,13 @@ void PlayerbotAI::_HandleCommandTalent(std::string& text, Player& fromPlayer)
                 uint32 talentTabId = talentTabIds[i];
                 uint32 classMask = m_bot->getClassMask();
 
-                for (uint32 ts = 0; ts < sTalentStore.GetNumRows(); ++ts)
+                for (uint32 ts = 0; ts < sDBCTalent.GetNumRows(); ++ts)
                 {
-                    TalentEntry const* talentInfo = sTalentStore.LookupEntry(ts);
+                    TalentEntry const* talentInfo = sDBCTalent.LookupEntry(ts);
                     if (!talentInfo)
                         continue;
 
-                    TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+                    TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
                     if (!talentTabInfo)
                         continue;
 
@@ -9536,7 +9536,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string& text, Player& fromPlayer)
                     // Check if it requires another previous talent
                     if (talentInfo->DependsOn > 0)
                     {
-                        if (TalentEntry const* depTalentInfo = sTalentStore.LookupEntry(talentInfo->DependsOn))
+                        if (TalentEntry const* depTalentInfo = sDBCTalent.LookupEntry(talentInfo->DependsOn))
                         {
                             bool hasEnoughRank = false;
                             for (int dor = talentInfo->DependsOnRank; dor < MAX_TALENT_RANK; ++dor)
@@ -9561,11 +9561,11 @@ void PlayerbotAI::_HandleCommandTalent(std::string& text, Player& fromPlayer)
                     uint32 tTab = talentInfo->TalentTab;
                     if (talentInfo->Row > 0)
                     {
-                        unsigned int numRows = sTalentStore.GetNumRows();
+                        unsigned int numRows = sDBCTalent.GetNumRows();
                         for (unsigned int i = 0; i < numRows; ++i)          // Loop through all talents.
                         {
                             // Someday, someone needs to revamp
-                            const TalentEntry* tmpTalent = sTalentStore.LookupEntry(i);
+                            const TalentEntry* tmpTalent = sDBCTalent.LookupEntry(i);
                             if (tmpTalent)                                  // the way talents are tracked
                             {
                                 if (tmpTalent->TalentTab == tTab)
@@ -10018,16 +10018,12 @@ void PlayerbotAI::_HandleCommandEnchant(std::string& text, Player& fromPlayer)
         ChatHandler ch(&fromPlayer);
         for (std::list<uint32>::iterator it = m_spellsToLearn.begin(); it != m_spellsToLearn.end(); ++it)
         {
-            SkillLineEntry const* SkillLine = sSkillLineStore.LookupEntry(*it);
+            SkillLineEntry const* SkillLine = sDBCSkillLine.LookupEntry(*it);
 
             if (SkillLine->categoryId == SKILL_CATEGORY_PROFESSION && *it == SKILL_ENCHANTING)
             {
-                for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
+                for (auto SkillAbility : sDBCSkillLineAbility)
                 {
-                    SkillLineAbilityEntry const* SkillAbility = sSkillLineAbilityStore.LookupEntry(j);
-                    if (!SkillAbility)
-                        continue;
-
                     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(SkillAbility->spellId);
                     if (!spellInfo)
                         continue;
@@ -10216,28 +10212,24 @@ void PlayerbotAI::_HandleCommandCraft(std::string& text, Player& fromPlayer)
     ChatHandler ch(&fromPlayer);
     for (std::list<uint32>::iterator it = m_spellsToLearn.begin(); it != m_spellsToLearn.end(); ++it)
     {
-        SkillLineEntry const* SkillLine = sSkillLineStore.LookupEntry(*it);
+        SkillLineEntry const* skillLine = sDBCSkillLine.LookupEntry(*it);
 
-        if (SkillLine->categoryId == category && *it == skill)
+        if (skillLine->categoryId == category && *it == skill)
         {
-            for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
+            for (auto skillAbility : sDBCSkillLineAbility)
             {
-                SkillLineAbilityEntry const* SkillAbility = sSkillLineAbilityStore.LookupEntry(j);
-                if (!SkillAbility)
-                    continue;
-
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(SkillAbility->spellId);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(skillAbility->spellId);
                 if (!spellInfo)
                     continue;
 
                 if (IsPrimaryProfessionSkill(*it) && spellInfo->Effect[EFFECT_INDEX_0] != SPELL_EFFECT_CREATE_ITEM)
                     continue;
 
-                if (SkillAbility->skillId == *it && m_bot->HasSpell(SkillAbility->spellId) && SkillAbility->forward_spellid == 0 && ((SkillAbility->classmask & m_bot->getClassMask()) == 0))
+                if (skillAbility->skillId == *it && m_bot->HasSpell(skillAbility->spellId) && skillAbility->forward_spellid == 0 && ((skillAbility->classmask & m_bot->getClassMask()) == 0))
                 {
                     MakeSpellLink(spellInfo, msg);
                     ++linkcount;
-                    if ((charges = GetSpellCharges(SkillAbility->spellId)) > 0)
+                    if ((charges = GetSpellCharges(skillAbility->spellId)) > 0)
                         msg << "[" << charges << "]";
                     if (linkcount >= 10)
                     {
@@ -10947,12 +10939,8 @@ void PlayerbotAI::_HandleCommandSkill(std::string& text, Player& fromPlayer)
         for (std::list<uint32>::iterator it = m_spellsToLearn.begin(); it != m_spellsToLearn.end(); ++it)
         {
             if (IsPrimaryProfessionSkill(*it))
-                for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
+                for (auto skillLine : sDBCSkillLineAbility)
                 {
-                    SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
-                    if (!skillLine)
-                        continue;
-
                     // has skill
                     if (skillLine->skillId == *it && skillLine->learnOnGetSkill == 0)
                     {
@@ -10977,16 +10965,12 @@ void PlayerbotAI::_HandleCommandSkill(std::string& text, Player& fromPlayer)
         msg << "\nMy Weapon skills: ";
         for (std::list<uint32>::iterator it = m_spellsToLearn.begin(); it != m_spellsToLearn.end(); ++it)
         {
-            SkillLineEntry const* SkillLine = sSkillLineStore.LookupEntry(*it);
+            SkillLineEntry const* SkillLine = sDBCSkillLine.LookupEntry(*it);
             // has weapon skill
             if (SkillLine->categoryId == SKILL_CATEGORY_WEAPON)
             {
-                for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
+                for (auto skillLine : sDBCSkillLineAbility)
                 {
-                    SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
-                    if (!skillLine)
-                        continue;
-
                     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(skillLine->spellId);
                     if (!spellInfo)
                         continue;

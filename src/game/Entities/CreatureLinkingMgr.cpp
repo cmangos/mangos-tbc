@@ -191,7 +191,7 @@ bool CreatureLinkingMgr::IsLinkingEntryValid(uint32 slaveEntry, CreatureLinkingI
             sLog.outErrorDb("`creature_linking_template` has a non existing master_entry (slave: %u, master %u), skipped", slaveEntry, pTmp->masterId);
             return false;
         }
-        if (pTmp->mapId && !sMapStore.LookupEntry(pTmp->mapId))
+        if (pTmp->mapId && !sDBCMap.LookupEntry(pTmp->mapId))
         {
             sLog.outErrorDb("`creature_linking_template` has a non existing map %u (slave %u, master %u), skipped", pTmp->mapId, slaveEntry, pTmp->masterId);
             return false;
@@ -461,7 +461,7 @@ void CreatureLinkingHolder::DoCreatureLinkingEvent(CreatureLinkingEvent eventTyp
         {
             Creature* pMaster = nullptr;
             if (pInfo->mapId != INVALID_MAP_ID)             // entry case
-            { 
+            {
                 BossGuidMapBounds finds = m_masterGuid.equal_range(pInfo->masterId);
                 for (BossGuidMap::const_iterator itr = finds.first; itr != finds.second; ++itr)
                 {
@@ -494,7 +494,7 @@ void CreatureLinkingHolder::DoCreatureLinkingEvent(CreatureLinkingEvent eventTyp
                             pEnemy->AddThreat(pMaster);
                             pEnemy->SetInCombatWith(pMaster);
                             pEnemy->GetCombatManager().TriggerCombatTimer(pMaster);
-                        }                            
+                        }
                         else
                             pMaster->AI()->AttackStart(pEnemy);
                         break;

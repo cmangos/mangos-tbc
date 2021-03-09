@@ -515,7 +515,7 @@ class Spell
                 return true;
 
             if (m_spellInfo->speed > 0.0f)
-                if (SpellVisualEntry const* spellVisual = sSpellVisualStore.LookupEntry(m_spellInfo->SpellVisual))
+                if (SpellVisualEntry const* spellVisual = sDBCSpellVisual.LookupEntry(m_spellInfo->SpellVisual))
                     if (spellVisual->HasMissile)
                         if (spellVisual->MissileModel == -4 || spellVisual->MissileModel == -5)
                             return true;

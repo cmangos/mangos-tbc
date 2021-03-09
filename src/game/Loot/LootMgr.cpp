@@ -1211,7 +1211,7 @@ void Loot::Release(Player* player)
                                 float chance_rate = sWorld.getConfig(CONFIG_FLOAT_RATE_MINING_NEXT);
 
                                 int32 ReqValue = 175;
-                                LockEntry const* lockInfo = sLockStore.LookupEntry(go->GetGOInfo()->chest.lockId);
+                                LockEntry const* lockInfo = sDBCLock.LookupEntry(go->GetGOInfo()->chest.lockId);
                                 if (lockInfo)
                                     ReqValue = lockInfo->Skill[0];
                                 float skill = float(player->GetSkillValue(SKILL_MINING)) / (ReqValue + 25);
@@ -2786,10 +2786,9 @@ void LoadLootTemplates_Mail()
     LootTemplates_Mail.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sMailTemplateStore.GetNumRows(); ++i)
-        if (sMailTemplateStore.LookupEntry(i))
-            if (ids_set.find(i) != ids_set.end())
-                ids_set.erase(i);
+    for (auto mailEntry : sDBCMailTemplate)
+        if (ids_set.find(mailEntry->ID) != ids_set.end())
+            ids_set.erase(mailEntry->ID);
 
     // output error for any still listed (not referenced from appropriate table) ids
     LootTemplates_Mail.ReportUnusedIds(ids_set);

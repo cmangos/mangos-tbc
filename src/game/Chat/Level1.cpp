@@ -212,7 +212,7 @@ bool ChatHandler::HandleGMMountUpCommand(char* args)
 
             if (ExtractUInt32(&args, displayid))
             {
-                if (sCreatureDisplayInfoStore.LookupEntry(displayid))
+                if (sDBCCreatureDisplayInfo.LookupEntry(displayid))
                 {
                     m_session->GetPlayer()->Mount(displayid);
                     return true;
@@ -300,7 +300,7 @@ bool ChatHandler::HandleGPSCommand(char* args)
     uint32 zone_id, area_id;
     obj->GetZoneAndAreaId(zone_id, area_id);
 
-    MapEntry const* mapEntry = sMapStore.LookupEntry(obj->GetMapId());
+    MapEntry const* mapEntry = sDBCMap.LookupEntry(obj->GetMapId());
     AreaTableEntry const* zoneEntry = GetAreaEntryByAreaID(zone_id);
     AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(area_id);
 
@@ -850,7 +850,7 @@ bool ChatHandler::HandleModifyFactionCommand(char* args)
     if (!ExtractUint32KeyFromLink(&args, "Hfaction", factionid))
         return false;
 
-    if (!sFactionTemplateStore.LookupEntry(factionid))
+    if (!sDBCFactionTemplate.LookupEntry(factionid))
     {
         PSendSysMessage(LANG_WRONG_FACTION, factionid);
         SetSentErrorMessage(true);
@@ -1750,7 +1750,7 @@ bool ChatHandler::HandleGoTaxinodeCommand(char* args)
     if (!ExtractUint32KeyFromLink(&args, "Htaxinode", nodeId))
         return false;
 
-    TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(nodeId);
+    TaxiNodesEntry const* node = sDBCTaxiNodes.LookupEntry(nodeId);
     if (!node)
     {
         PSendSysMessage(LANG_COMMAND_GOTAXINODENOTFOUND, nodeId);
@@ -1888,7 +1888,7 @@ bool ChatHandler::HandleGoZoneXYCommand(char* args)
     // update to parent zone if exist (client map show only zones without parents)
     AreaTableEntry const* zoneEntry = areaEntry->zone ? GetAreaEntryByAreaID(areaEntry->zone) : areaEntry;
 
-    MapEntry const* mapEntry = sMapStore.LookupEntry(zoneEntry->mapid);
+    MapEntry const* mapEntry = sDBCMap.LookupEntry(zoneEntry->mapid);
 
     if (mapEntry->Instanceable())
     {

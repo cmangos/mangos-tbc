@@ -1250,7 +1250,7 @@ bool ChatHandler::HandleSetSkillCommand(char* args)
         return false;
     }
 
-    SkillLineEntry const* sl = sSkillLineStore.LookupEntry(skill);
+    SkillLineEntry const* sl = sDBCSkillLine.LookupEntry(skill);
     if (!sl)
     {
         PSendSysMessage(LANG_INVALID_SKILL_ID, skill);
@@ -1524,12 +1524,8 @@ bool ChatHandler::HandleLearnAllMySpellsCommand(char* /*args*/)
         return true;
     uint32 family = clsEntry->spellfamily;
 
-    for (uint32 i = 0; i < sSkillLineAbilityStore.GetNumRows(); ++i)
+    for (auto entry : sDBCSkillLineAbility)
     {
-        SkillLineAbilityEntry const* entry = sSkillLineAbilityStore.LookupEntry(i);
-        if (!entry)
-            continue;
-
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(entry->spellId);
         if (!spellInfo)
             continue;
@@ -1567,13 +1563,13 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(char* /*args*/)
     Player* player = m_session->GetPlayer();
     uint32 classMask = player->getClassMask();
 
-    for (uint32 i = 0; i < sTalentStore.GetNumRows(); ++i)
+    for (uint32 i = 0; i < sDBCTalent.GetNumRows(); ++i)
     {
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
+        TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
         if (!talentInfo)
             continue;
 
-        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+        TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
         if (!talentTabInfo)
             continue;
 
@@ -2263,42 +2259,38 @@ bool ChatHandler::HandleLookupItemSetCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in ItemSet.dbc
-    for (uint32 id = 0; id < sItemSetStore.GetNumRows(); ++id)
+    for (auto set : sDBCItemSet)
     {
-        ItemSetEntry const* set = sItemSetStore.LookupEntry(id);
-        if (set)
+        int loc = GetSessionDbcLocale();
+        std::string name = set->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = set->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = set->name[loc];
-                    if (name.empty())
-                        continue;
+                name = set->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                // send item set in "id - [namedlink locale]" format
-                if (m_session)
-                    PSendSysMessage(LANG_ITEMSET_LIST_CHAT, id, id, name.c_str(), localeNames[loc]);
-                else
-                    PSendSysMessage(LANG_ITEMSET_LIST_CONSOLE, id, name.c_str(), localeNames[loc]);
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            // send item set in "id - [namedlink locale]" format
+            if (m_session)
+                PSendSysMessage(LANG_ITEMSET_LIST_CHAT, set->id, set->id, name.c_str(), localeNames[loc]);
+            else
+                PSendSysMessage(LANG_ITEMSET_LIST_CONSOLE, set->id, name.c_str(), localeNames[loc]);
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -2326,57 +2318,53 @@ bool ChatHandler::HandleLookupSkillCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in SkillLine.dbc
-    for (uint32 id = 0; id < sSkillLineStore.GetNumRows(); ++id)
+    for (auto skillInfo : sDBCSkillLine)
     {
-        SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(id);
-        if (skillInfo)
+        int loc = GetSessionDbcLocale();
+        std::string name = skillInfo->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = skillInfo->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = skillInfo->name[loc];
-                    if (name.empty())
-                        continue;
+                name = skillInfo->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
+            }
+        }
+
+        if (loc < MAX_LOCALE)
+        {
+            char valStr[50] = "";
+            char const* knownStr = "";
+            if (target && target->HasSkill(skillInfo->id))
+            {
+                knownStr = GetMangosString(LANG_KNOWN);
+                uint32 curValue = target->GetSkillValuePure(skillInfo->id);
+                uint32 maxValue = target->GetSkillMaxPure(skillInfo->id);
+                uint32 permValue = target->GetSkillBonusPermanent(skillInfo->id);
+                uint32 tempValue = target->GetSkillBonusTemporary(skillInfo->id);
+
+                char const* valFormat = GetMangosString(LANG_SKILL_VALUES);
+                snprintf(valStr, 50, valFormat, curValue, maxValue, permValue, tempValue);
             }
 
-            if (loc < MAX_LOCALE)
-            {
-                char valStr[50] = "";
-                char const* knownStr = "";
-                if (target && target->HasSkill(id))
-                {
-                    knownStr = GetMangosString(LANG_KNOWN);
-                    uint32 curValue = target->GetSkillValuePure(id);
-                    uint32 maxValue  = target->GetSkillMaxPure(id);
-                    uint32 permValue = target->GetSkillBonusPermanent(id);
-                    uint32 tempValue = target->GetSkillBonusTemporary(id);
+            // send skill in "id - [namedlink locale]" format
+            if (m_session)
+                PSendSysMessage(LANG_SKILL_LIST_CHAT, skillInfo->id, skillInfo->id, name.c_str(), localeNames[loc], knownStr, valStr);
+            else
+                PSendSysMessage(LANG_SKILL_LIST_CONSOLE, skillInfo->id, name.c_str(), localeNames[loc], knownStr, valStr);
 
-                    char const* valFormat = GetMangosString(LANG_SKILL_VALUES);
-                    snprintf(valStr, 50, valFormat, curValue, maxValue, permValue, tempValue);
-                }
-
-                // send skill in "id - [namedlink locale]" format
-                if (m_session)
-                    PSendSysMessage(LANG_SKILL_LIST_CHAT, id, id, name.c_str(), localeNames[loc], knownStr, valStr);
-                else
-                    PSendSysMessage(LANG_SKILL_LIST_CONSOLE, id, name.c_str(), localeNames[loc], knownStr, valStr);
-
-                ++counter;
-            }
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -2682,44 +2670,40 @@ bool ChatHandler::HandleLookupTaxiNodeCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in TaxiNodes.dbc
-    for (uint32 id = 0; id < sTaxiNodesStore.GetNumRows(); ++id)
+    for (auto nodeEntry : sDBCTaxiNodes)
     {
-        TaxiNodesEntry const* nodeEntry = sTaxiNodesStore.LookupEntry(id);
-        if (nodeEntry)
+        int loc = GetSessionDbcLocale();
+        std::string name = nodeEntry->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = nodeEntry->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = nodeEntry->name[loc];
-                    if (name.empty())
-                        continue;
+                name = nodeEntry->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                // send taxinode in "id - [name] (Map:m X:x Y:y Z:z)" format
-                if (m_session)
-                    PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CHAT, id, id, name.c_str(), localeNames[loc],
-                                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
-                else
-                    PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CONSOLE, id, name.c_str(), localeNames[loc],
-                                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            // send taxinode in "id - [name] (Map:m X:x Y:y Z:z)" format
+            if (m_session)
+                PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CHAT, nodeEntry->ID, nodeEntry->ID, name.c_str(), localeNames[loc],
+                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
+            else
+                PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CONSOLE, nodeEntry->ID, name.c_str(), localeNames[loc],
+                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -5737,7 +5721,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
         {
             DungeonPersistentState* state = itr->second.state;
             std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
-            if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
+            if (const MapEntry* entry = sDBCMap.LookupEntry(itr->first))
             {
                 PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
                                 itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
@@ -5760,7 +5744,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
             {
                 DungeonPersistentState* state = itr->second.state;
                 std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
-                if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
+                if (const MapEntry* entry = sDBCMap.LookupEntry(itr->first))
                 {
                     PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
                                     itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
@@ -5813,7 +5797,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(char* args)
                 DungeonPersistentState* save = itr->second.state;
                 std::string timeleft = secsToTimeString(save->GetResetTime() - time(nullptr), true);
 
-                if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
+                if (const MapEntry* entry = sDBCMap.LookupEntry(itr->first))
                 {
                     PSendSysMessage("unbinding map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
                                     itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
@@ -5939,7 +5923,7 @@ bool ChatHandler::ShowPlayerListHelper(QueryResult* result, uint32* limit, bool 
             uint8 class_     = fields[3].GetUInt8();
             uint32 level     = fields[4].GetUInt32();
 
-            ChrRacesEntry const* raceEntry = sChrRacesStore.LookupEntry(race);
+            ChrRacesEntry const* raceEntry = sDBCChrRaces.LookupEntry(race);
             ChrClassesEntry const* classEntry = sDBCChrClasses.LookupEntry(class_);
 
             char const* race_name = raceEntry   ? raceEntry->name[GetSessionDbcLocale()] : "<?>";

@@ -1045,7 +1045,7 @@ void WorldSession::HandleItemNameQueryOpcode(WorldPacket& recv_data)
     else
     {
         // listed in dbc or not expected to exist unknown item
-        if (sItemStore.LookupEntry(itemid))
+        if (sDBCItem.LookupEntry(itemid))
             sLog.outErrorDb("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (item listed in Item.dbc but not exist in DB)", itemid);
         else
             sLog.outError("WORLD: CMSG_ITEM_NAME_QUERY for item %u failed (unknown item, not listed in Item.dbc)", itemid);
@@ -1212,7 +1212,7 @@ void WorldSession::HandleSocketOpcode(WorldPacket& recv_data)
 
     GemPropertiesEntry const* GemProps[MAX_GEM_SOCKETS];
     for (int i = 0; i < MAX_GEM_SOCKETS; ++i)               // get geminfo from dbc storage
-        GemProps[i] = (Gems[i]) ? sGemPropertiesStore.LookupEntry(Gems[i]->GetProto()->GemProperties) : nullptr;
+        GemProps[i] = (Gems[i]) ? sDBCGemProperties.LookupEntry(Gems[i]->GetProto()->GemProperties) : nullptr;
 
     for (int i = 0; i < MAX_GEM_SOCKETS; ++i)               // check for hack maybe
     {
@@ -1267,7 +1267,7 @@ void WorldSession::HandleSocketOpcode(WorldPacket& recv_data)
                 }
                 else if (OldEnchants[j])
                 {
-                    if (SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(OldEnchants[j]))
+                    if (SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(OldEnchants[j]))
                     {
                         if (iGemProto->ItemId == enchantEntry->GemID)
                         {

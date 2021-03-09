@@ -620,7 +620,7 @@ struct ItemRandomSuffixEntry
 
 struct ItemSetEntry
 {
-    // uint32    id                                         // 0        m_ID
+    uint32    id;                                           // 0        m_ID
     char*     name[16];                                     // 1-16     m_name_lang
     // 17 string flags
     // uint32    itemId[17];                                // 18-34    m_itemID

@@ -27,9 +27,8 @@
 
 void TransportMgr::LoadTransportAnimationAndRotation()
 {
-    for (uint32 i = 0; i < sTransportAnimationStore.GetNumRows(); ++i)
-        if (TransportAnimationEntry const* anim = sTransportAnimationStore.LookupEntry(i))
-            AddPathNodeToTransport(anim->TransportEntry, anim->TimeSeg, anim);
+    for (auto anim : sDBCTransportAnimation)
+        AddPathNodeToTransport(anim->TransportEntry, anim->TimeSeg, anim);
 }
 
 TransportTemplate* TransportMgr::GetTransportTemplate(uint32 entry)
@@ -127,12 +126,12 @@ bool TransportMgr::GenerateWaypoints(GameObjectInfo const* goinfo, TransportTemp
     if (transportTemplate.mapsUsed.size() > 1)
     {
         for (const auto itr : transportTemplate.mapsUsed)
-            MANGOS_ASSERT(!sMapStore.LookupEntry(itr)->Instanceable());
+            MANGOS_ASSERT(!sDBCMap.LookupEntry(itr)->Instanceable());
 
         transportTemplate.inInstance = false;
     }
     else
-        transportTemplate.inInstance = sMapStore.LookupEntry(*transportTemplate.mapsUsed.begin())->Instanceable();
+        transportTemplate.inInstance = sDBCMap.LookupEntry(*transportTemplate.mapsUsed.begin())->Instanceable();
 
     // last to first is always "teleport", even for closed paths
     keyFrames.back().Teleport = true;

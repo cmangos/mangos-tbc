@@ -115,7 +115,7 @@ const char ItemClassfmt[]                     = "nxxssssssssssssssssx";
 const char ItemExtendedCostfmt[]              = "niiiiiiiiiiiii";
 const char ItemRandomPropertiesfmt[]          = "nxiiixxssssssssssssssssx";
 const char ItemRandomSuffixfmt[]              = "nssssssssssssssssxxiiiiii";
-const char ItemSetfmt[]                       = "dssssssssssssssssxxxxxxxxxxxxxxxxxxiiiiiiiiiiiiiiiiii";
+const char ItemSetfmt[]                       = "nssssssssssssssssxxxxxxxxxxxxxxxxxxiiiiiiiiiiiiiiiiii";
 const char LiquidTypefmt[]                    = "niii";
 const char Lockfmt[]                          = "niiiiiiiiiiiiiiiiiiiiiiiixxxxxxxx";
 const char MailTemplatefmt[]                  = "nxxxxxxxxxxxxxxxxxssssssssssssssssx";
@@ -142,8 +142,8 @@ const char Talentfmt[]                        = "niiiiiiiixxxxixxixxxi";
 const char TalentTabfmt[]                     = "nxxxxxxxxxxxxxxxxxxxiix";
 const char TaxiNodesfmt[]                     = "nifffssssssssssssssssxii";
 const char TaxiPathfmt[]                      = "niii";
-const char TaxiPathNodefmt[]                  = "niiifffiiii";
-const char TransportAnimationfmt[]            = "niifffx";
+const char TaxiPathNodefmt[]                  = "diiifffiiii";
+const char TransportAnimationfmt[]            = "diifffx";
 const char TotemCategoryfmt[]                 = "nxxxxxxxxxxxxxxxxxii";
 const char WorldMapAreafmt[]                  = "diixffffi";
 const char WMOAreaTablefmt[]                  = "niiixxxxxiixxxxxxxxxxxxxxxxx";
@@ -264,8 +264,8 @@ void LoadDBCTables()
     sDBCCreatureModelData.Load();
     sDBCCreatureSpellData.Load();
     sDBCCreatureType.Load();
-    sDBCDurabilityCosts.Load();
     sDBCDurabilityQuality.Load();
+    sDBCDurabilityCosts.Load();
     sDBCEmotes.Load();
     sDBCEmotesText.Load();
     sDBCFactionTemplate.Load();
@@ -373,7 +373,7 @@ AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_
     if (area_flag)
         return sDBCAreaTable.LookupEntry(area_flag);
 
-    if (MapEntry const* mapEntry = sMapStore.LookupEntry(map_id))
+    if (MapEntry const* mapEntry = sDBCMap.LookupEntry(map_id))
         return GetAreaEntryByAreaID(mapEntry->linked_zone);
 
     return nullptr;

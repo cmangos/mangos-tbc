@@ -63,7 +63,7 @@ extern SQLStorage<CreatureDisplayInfoEntry> sDBCCreatureDisplayInfo;
 extern SQLStorage<CreatureDisplayInfoExtraEntry> sDBCCreatureDisplayInfoExtra;
 extern SQLStorage<CreatureFamilyEntry> sDBCCreatureFamily;
 extern SQLStorage<CreatureModelDataEntry> sDBCCreatureModelData;
-extern SQLStorage<CreatureSpellDataEntry> sDBCCreatureSpellData;
+extern SQLStorage<CreatureSpellDataEntry> sDBCCreatureSpellData; // todo not used?
 extern SQLStorage<CreatureTypeEntry> sDBCCreatureType;
 extern SQLStorage<DurabilityCostsEntry> sDBCDurabilityCosts;
 extern SQLStorage<DurabilityQualityEntry> sDBCDurabilityQuality;

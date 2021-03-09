@@ -56,7 +56,7 @@ MapPersistentState::~MapPersistentState()
 
 MapEntry const* MapPersistentState::GetMapEntry() const
 {
-    return sMapStore.LookupEntry(m_mapid);
+    return sDBCMap.LookupEntry(m_mapid);
 }
 
 /* true if the instance state is still valid */
@@ -281,7 +281,7 @@ InstanceTemplate const* DungeonPersistentState::GetTemplate() const
 time_t DungeonPersistentState::GetResetTimeForDB() const
 {
     // only state the reset time for normal instances
-    const MapEntry* entry = sMapStore.LookupEntry(GetMapId());
+    const MapEntry* entry = sDBCMap.LookupEntry(GetMapId());
     if (!entry || entry->map_type == MAP_RAID || GetDifficulty() == DUNGEON_DIFFICULTY_HEROIC)
         return 0;
     return GetResetTime();
@@ -362,7 +362,7 @@ void DungeonResetScheduler::LoadResetTimes()
                 uint32 id = (*result)[0].GetUInt32();
                 uint32 mapid = (*result)[1].GetUInt32();
 
-                MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
+                MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
 
                 if (!mapEntry || !mapEntry->IsDungeon())
                 {
@@ -406,7 +406,7 @@ void DungeonResetScheduler::LoadResetTimes()
 
     // load the global respawn times for raid/heroic instances
     uint32 diff = sWorld.getConfig(CONFIG_UINT32_INSTANCE_RESET_TIME_HOUR) * HOUR;
-    m_resetTimeByMapId.resize(sMapStore.GetNumRows() + 1);
+    m_resetTimeByMapId.resize(sDBCMap.GetNumRows() + 1);
     result = CharacterDatabase.Query("SELECT mapid, resettime FROM instance_reset");
     if (result)
     {
@@ -416,7 +416,7 @@ void DungeonResetScheduler::LoadResetTimes()
 
             uint32 mapid            = fields[0].GetUInt32();
 
-            MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
+            MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
 
             if (!mapEntry || !mapEntry->IsDungeon() || !ObjectMgr::GetInstanceTemplate(mapid))
             {
@@ -450,7 +450,7 @@ void DungeonResetScheduler::LoadResetTimes()
             continue;
 
         // only raid/heroic maps have a global reset time
-        MapEntry const* mapEntry = sMapStore.LookupEntry(temp->map);
+        MapEntry const* mapEntry = sDBCMap.LookupEntry(temp->map);
         if (!mapEntry || !mapEntry->IsDungeon() || !mapEntry->HasResetTime())
             continue;
 
@@ -898,7 +898,7 @@ struct MapPersistantStateWarnWorker
 void MapPersistentStateManager::_ResetOrWarnAll(uint32 mapid, bool warn, uint32 timeLeft)
 {
     // global reset for all instances of the given map
-    MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
+    MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
     if (!mapEntry->IsDungeon())
         return;
 
@@ -976,10 +976,9 @@ void MapPersistentStateManager::_CleanupExpiredInstancesAtTime(time_t t)
 void MapPersistentStateManager::InitWorldMaps()
 {
     MapPersistentState* state = nullptr;                       // need any from created for shared pool state
-    for (uint32 mapid = 0; mapid < sMapStore.GetNumRows(); ++mapid)
-        if (MapEntry const* entry = sMapStore.LookupEntry(mapid))
-            if (!entry->Instanceable())
-                state = AddPersistentState(entry, 0, REGULAR_DIFFICULTY, 0, false, false);
+    for (auto entry : sDBCMap)
+        if (!entry->Instanceable())
+            state = AddPersistentState(entry, 0, REGULAR_DIFFICULTY, 0, false, false);
 }
 
 void MapPersistentStateManager::LoadCreatureRespawnTimes()
@@ -1019,7 +1018,7 @@ void MapPersistentStateManager::LoadCreatureRespawnTimes()
         if (!data)
             continue;
 
-        MapEntry const* mapEntry = sMapStore.LookupEntry(data->mapid);
+        MapEntry const* mapEntry = sDBCMap.LookupEntry(data->mapid);
         if (!mapEntry)
             continue;
 
@@ -1091,7 +1090,7 @@ void MapPersistentStateManager::LoadGameobjectRespawnTimes()
         if (!data)
             continue;
 
-        MapEntry const* mapEntry = sMapStore.LookupEntry(data->mapid);
+        MapEntry const* mapEntry = sDBCMap.LookupEntry(data->mapid);
         if (!mapEntry)
             continue;
 

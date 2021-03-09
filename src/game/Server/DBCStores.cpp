@@ -267,12 +267,12 @@ void LoadDBCStores(const std::string& dataPath)
 //     }
 
 //    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCAreaTrigger,         dbcPath, "AreaTrigger.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCAuctionHouse,        dbcPath, "AuctionHouse.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBankBagSlotPrices,   dbcPath, "BankBagSlotPrices.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBattlemasterList,    dbcPath, "BattlemasterList.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharStartOutfit,     dbcPath, "CharStartOutfit.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharTitles,          dbcPath, "CharTitles.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCChatChannels,        dbcPath, "ChatChannels.dbc");
+//    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCAuctionHouse,        dbcPath, "AuctionHouse.dbc");
+//    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBankBagSlotPrices,   dbcPath, "BankBagSlotPrices.dbc");
+//    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBattlemasterList,    dbcPath, "BattlemasterList.dbc");
+//    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharStartOutfit,     dbcPath, "CharStartOutfit.dbc");
+//    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharTitles,          dbcPath, "CharTitles.dbc");
+//    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCChatChannels,        dbcPath, "ChatChannels.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrClassesStore,          dbcPath, "ChrClasses.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrRacesStore,            dbcPath, "ChrRaces.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCinematicCameraStore,     dbcPath, "CinematicCamera.dbc");

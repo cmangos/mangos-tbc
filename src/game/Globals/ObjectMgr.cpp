@@ -2452,12 +2452,8 @@ void ObjectMgr::LoadItemPrototypes()
 
     // check some dbc referenced items (avoid duplicate reports)
     std::set<uint32> notFoundOutfit;
-    for (uint32 i = 1; i < sCharStartOutfitStore.GetNumRows(); ++i)
+    for (auto entry : sDBCCharStartOutfit)
     {
-        CharStartOutfitEntry const* entry = sCharStartOutfitStore.LookupEntry(i);
-        if (!entry)
-            continue;
-
         for (int j : entry->ItemId)
         {
             if (j <= 0)

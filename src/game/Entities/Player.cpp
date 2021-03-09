@@ -832,15 +832,12 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
     uint32 raceClassGender = GetUInt32Value(UNIT_FIELD_BYTES_0) & 0x00FFFFFF;
 
     CharStartOutfitEntry const* oEntry = nullptr;
-    for (uint32 i = 1; i < sCharStartOutfitStore.GetNumRows(); ++i)
+    for (auto entry : sDBCCharStartOutfit)
     {
-        if (CharStartOutfitEntry const* entry = sCharStartOutfitStore.LookupEntry(i))
+        if (entry->RaceClassGender == raceClassGender)
         {
-            if (entry->RaceClassGender == raceClassGender)
-            {
-                oEntry = entry;
-                break;
-            }
+            oEntry = entry;
+            break;
         }
     }
 

@@ -61,7 +61,7 @@
 //DBCStorage <AuctionHouseEntry> sDBCAuctionHouse(AuctionHouseEntryfmt);
 //DBCStorage <BankBagSlotPricesEntry> sDBCBankBagSlotPrices(BankBagSlotPricesEntryfmt);
 //DBCStorage <BattlemasterListEntry> sDBCBattlemasterList(BattlemasterListEntryfmt);
-DBCStorage <CharStartOutfitEntry> sCharStartOutfitStore(CharStartOutfitEntryfmt);
+//DBCStorage <CharStartOutfitEntry> sDBCCharStartOutfit(CharStartOutfitEntryfmt);
 DBCStorage <CharTitlesEntry> sCharTitlesStore(CharTitlesEntryfmt);
 DBCStorage <ChatChannelsEntry> sChatChannelsStore(ChatChannelsEntryfmt);
 DBCStorage <ChrClassesEntry> sChrClassesStore(ChrClassesEntryfmt);
@@ -270,7 +270,7 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCAuctionHouse,        dbcPath, "AuctionHouse.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBankBagSlotPrices,   dbcPath, "BankBagSlotPrices.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBattlemasterList,    dbcPath, "BattlemasterList.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharStartOutfitStore,     dbcPath, "CharStartOutfit.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharStartOutfit,     dbcPath, "CharStartOutfit.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharTitlesStore,          dbcPath, "CharTitles.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChatChannelsStore,        dbcPath, "ChatChannels.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrClassesStore,          dbcPath, "ChrClasses.dbc");

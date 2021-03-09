@@ -396,11 +396,8 @@ void LoadDBCStores(const std::string& dataPath)
         // store in with (row,col,talent)->size key for correct sorting by (row,col)
         typedef std::map<uint32, uint32> TalentBitSize;
         TalentBitSize sTalentBitSize;
-        for (uint32 i = 1; i < sDBCTalent.GetNumRows(); ++i)
+        for (auto talentInfo : sDBCTalent)
         {
-            TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
-            if (!talentInfo) continue;
-
             TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
             if (!talentTabInfo)
                 continue;
@@ -421,12 +418,8 @@ void LoadDBCStores(const std::string& dataPath)
         }
 
         // now have all max ranks (and then bit amount used for store talent ranks in inspect)
-        for (uint32 talentTabId = 1; talentTabId < sDBCTalentTab.GetNumRows(); ++talentTabId)
+        for (auto talentTabInfo : sDBCTalentTab)
         {
-            TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentTabId);
-            if (!talentTabInfo)
-                continue;
-
             // prevent memory corruption; otherwise cls will become 12 below
             if ((talentTabInfo->ClassMask & CLASSMASK_ALL_PLAYABLE) == 0)
                 continue;
@@ -435,7 +428,7 @@ void LoadDBCStores(const std::string& dataPath)
             uint32 cls = 1;
             for (uint32 m = 1; !(m & talentTabInfo->ClassMask) && cls < MAX_CLASSES; m <<= 1, ++cls) {}
 
-            sTalentTabPages[cls][talentTabInfo->tabpage] = talentTabId;
+            sTalentTabPages[cls][talentTabInfo->tabpage] = talentTabInfo->TalentTabID;
 
             // add total amount bits for first rank starting from talent tab first talent rank pos.
             uint32 pos = 0;
@@ -446,7 +439,7 @@ void LoadDBCStores(const std::string& dataPath)
                 if (!talentInfo)
                     continue;
 
-                if (talentInfo->TalentTab != talentTabId)
+                if (talentInfo->TalentTab != talentTabInfo->TalentTabID)
                     continue;
 
                 sTalentPosInInspect[talentId] = pos;

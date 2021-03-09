@@ -1563,12 +1563,8 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(char* /*args*/)
     Player* player = m_session->GetPlayer();
     uint32 classMask = player->getClassMask();
 
-    for (uint32 i = 0; i < sDBCTalent.GetNumRows(); ++i)
+    for (auto talentInfo : sDBCTalent)
     {
-        TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
-        if (!talentInfo)
-            continue;
-
         TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
         if (!talentTabInfo)
             continue;

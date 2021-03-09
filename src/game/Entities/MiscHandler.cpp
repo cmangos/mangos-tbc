@@ -1065,12 +1065,8 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recv_data)
             uint32 talentTabId = talentTabIds[i];
 
             // fill by real data
-            for (uint32 talentId = 0; talentId < sDBCTalent.GetNumRows(); ++talentId)
+            for (auto talentInfo : sDBCTalent)
             {
-                TalentEntry const* talentInfo = sDBCTalent.LookupEntry(talentId);
-                if (!talentInfo)
-                    continue;
-
                 // skip another tab talents
                 if (talentInfo->TalentTab != talentTabId)
                     continue;
@@ -1091,7 +1087,7 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recv_data)
                     continue;
 
                 // 1 rank talent bit index
-                uint32 curtalent_index = talentTabPos + GetTalentInspectBitPosInTab(talentId);
+                uint32 curtalent_index = talentTabPos + GetTalentInspectBitPosInTab(talentInfo->TalentID);
 
                 uint32 curtalent_rank_index = curtalent_index + curtalent_maxrank - 1;
 

@@ -995,13 +995,8 @@ uint32 Player::GetSpec()
     Player* player = m_session->GetPlayer();
     uint32 classMask = player->getClassMask();
 
-    for (unsigned int i = 0; i < sDBCTalent.GetNumRows(); ++i)
+    for (auto talentInfo : sDBCTalent)
     {
-        TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
-
-        if (!talentInfo)
-            continue;
-
         TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
 
         if (!talentTabInfo)

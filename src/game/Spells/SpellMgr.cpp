@@ -1521,12 +1521,8 @@ void SpellMgr::LoadSpellChains()
     mSpellChainsNext.clear();                               // need for reload case
 
     // load known data for talents
-    for (unsigned int i = 0; i < sDBCTalent.GetNumRows(); ++i)
+    for (auto talentInfo : sDBCTalent)
     {
-        TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
-        if (!talentInfo)
-            continue;
-
         // not add ranks for 1 ranks talents (if exist non ranks spells then it will included in table data)
         if (!talentInfo->RankID[1])
             continue;
@@ -2624,19 +2620,15 @@ void SpellMgr::LoadSkillLineAbilityMaps()
     mSkillLineAbilityMapBySpellId.clear();
     mSkillLineAbilityMapBySkillId.clear();
 
-    const uint32 rows = sDBCSkillLineAbility.GetNumRows();
     uint32 count = 0;
 
-    BarGoLink bar(rows);
-    for (uint32 row = 0; row < rows; ++row)
+    BarGoLink bar(sDBCSkillLineAbility.GetNumRows());
+    for (auto entry : sDBCSkillLineAbility)
     {
         bar.step();
-        if (SkillLineAbilityEntry const* entry = sDBCSkillLineAbility.LookupEntry(row))
-        {
-            mSkillLineAbilityMapBySpellId.insert(SkillLineAbilityMap::value_type(entry->spellId, entry));
-            mSkillLineAbilityMapBySkillId.insert(SkillLineAbilityMap::value_type(entry->skillId, entry));
-            ++count;
-        }
+        mSkillLineAbilityMapBySpellId.insert(SkillLineAbilityMap::value_type(entry->spellId, entry));
+        mSkillLineAbilityMapBySkillId.insert(SkillLineAbilityMap::value_type(entry->skillId, entry));
+        ++count;
     }
 
     sLog.outString(">> Loaded %u SkillLineAbility MultiMaps Data", count);

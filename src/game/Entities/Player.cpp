@@ -3274,11 +3274,8 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
         {
             // Check if a spell is learned by a talent first
             bool talent = false;
-            for (uint32 i = 0; i < sDBCTalent.GetNumRows(); ++i)
+            for (auto talentInfo : sDBCTalent)
             {
-                TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
-                if (!talentInfo)
-                    continue;
                 TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
                 if (!talentTabInfo || !(getClassMask() & talentTabInfo->ClassMask))
                     continue;
@@ -3784,13 +3781,8 @@ bool Player::resetTalents(bool no_cost)
         }
     }
 
-    for (unsigned int i = 0; i < sDBCTalent.GetNumRows(); ++i)
+    for (auto talentInfo : sDBCTalent)
     {
-        TalentEntry const* talentInfo = sDBCTalent.LookupEntry(i);
-
-        if (!talentInfo)
-            continue;
-
         TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
 
         if (!talentTabInfo)
@@ -21166,23 +21158,18 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank)
     uint32 tTab = talentInfo->TalentTab;
     if (talentInfo->Row > 0)
     {
-        unsigned int numRows = sDBCTalent.GetNumRows();
-        for (unsigned int i = 0; i < numRows; ++i)          // Loop through all talents.
+        for (auto tmpTalent : sDBCTalent)          // Loop through all talents.
         {
             // Someday, someone needs to revamp
-            const TalentEntry* tmpTalent = sDBCTalent.LookupEntry(i);
-            if (tmpTalent)                                  // the way talents are tracked
+            if (tmpTalent->TalentTab == tTab)
             {
-                if (tmpTalent->TalentTab == tTab)
+                for (int j = 0; j < MAX_TALENT_RANK; ++j)
                 {
-                    for (int j = 0; j < MAX_TALENT_RANK; ++j)
+                    if (tmpTalent->RankID[j] != 0)
                     {
-                        if (tmpTalent->RankID[j] != 0)
+                        if (HasSpell(tmpTalent->RankID[j]))
                         {
-                            if (HasSpell(tmpTalent->RankID[j]))
-                            {
-                                spentPoints += j + 1;
-                            }
+                            spentPoints += j + 1;
                         }
                     }
                 }

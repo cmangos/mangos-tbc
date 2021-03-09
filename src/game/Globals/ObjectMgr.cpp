@@ -2729,7 +2729,7 @@ void ObjectMgr::LoadPlayerInfo()
                 continue;
             }
 
-            ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(current_class);
+            ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(current_class);
             if (!cEntry || !((1 << (current_class - 1)) & CLASSMASK_ALL_PLAYABLE))
             {
                 sLog.outErrorDb("Wrong class %u in `playercreateinfo` table, ignoring.", current_class);
@@ -2806,7 +2806,7 @@ void ObjectMgr::LoadPlayerInfo()
                     continue;
                 }
 
-                ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(current_class);
+                ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(current_class);
                 if (!cEntry || !((1 << (current_class - 1)) & CLASSMASK_ALL_PLAYABLE))
                 {
                     sLog.outErrorDb("Wrong class %u in `playercreateinfo_item` table, ignoring.", current_class);
@@ -2988,7 +2988,7 @@ void ObjectMgr::LoadPlayerInfo()
                     continue;
                 }
 
-                ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(current_class);
+                ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(current_class);
                 if (!cEntry || !((1 << (current_class - 1)) & CLASSMASK_ALL_PLAYABLE))
                 {
                     sLog.outErrorDb("Wrong class %u in `playercreateinfo_spell` table, ignoring.", current_class);
@@ -3050,7 +3050,7 @@ void ObjectMgr::LoadPlayerInfo()
                     continue;
                 }
 
-                ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(current_class);
+                ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(current_class);
                 if (!cEntry || !((1 << (current_class - 1)) & CLASSMASK_ALL_PLAYABLE))
                 {
                     sLog.outErrorDb("Wrong class %u in `playercreateinfo_action` table, ignoring.", current_class);
@@ -3153,7 +3153,7 @@ void ObjectMgr::LoadPlayerInfo()
     for (int class_ = 0; class_ < MAX_CLASSES; ++class_)
     {
         // skip nonexistent classes
-        if (!sChrClassesStore.LookupEntry(class_))
+        if (!sDBCChrClasses.LookupEntry(class_))
             continue;
 
         PlayerClassInfo* pClassInfo = &playerClassInfo[class_];
@@ -3211,7 +3211,7 @@ void ObjectMgr::LoadPlayerInfo()
                 continue;
             }
 
-            ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(current_class);
+            ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(current_class);
             if (!cEntry || !((1 << (current_class - 1)) & CLASSMASK_ALL_PLAYABLE))
             {
                 sLog.outErrorDb("Wrong class %u in `player_levelstats` table, ignoring.", current_class);
@@ -3262,7 +3262,7 @@ void ObjectMgr::LoadPlayerInfo()
         for (int class_ = 1; class_ < MAX_CLASSES; ++class_)
         {
             // skip nonexistent classes
-            if (!((1 << (class_ - 1)) & CLASSMASK_ALL_PLAYABLE) || !sChrClassesStore.LookupEntry(class_))
+            if (!((1 << (class_ - 1)) & CLASSMASK_ALL_PLAYABLE) || !sDBCChrClasses.LookupEntry(class_))
                 continue;
 
             PlayerInfo* pInfo = &playerInfo[race][class_];

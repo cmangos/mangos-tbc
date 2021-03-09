@@ -76,7 +76,7 @@ uint32 GetCreatureModelRace(uint32 model_id);
 //extern DBCStorage <CharStartOutfitEntry>         sDBCCharStartOutfit;
 //extern DBCStorage <CharTitlesEntry>              sDBCCharTitles;
 //extern DBCStorage <ChatChannelsEntry>            sDBCChatChannels;
-extern DBCStorage <ChrClassesEntry>              sChrClassesStore;
+//extern DBCStorage <ChrClassesEntry>              sDBCChrClasses;
 extern DBCStorage <ChrRacesEntry>                sChrRacesStore;
 extern DBCStorage <CinematicCameraEntry>         sCinematicCameraStore;
 extern DBCStorage <CinematicSequencesEntry>      sCinematicSequencesStore;

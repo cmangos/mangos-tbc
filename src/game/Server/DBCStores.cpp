@@ -64,7 +64,7 @@
 //DBCStorage <CharStartOutfitEntry> sDBCCharStartOutfit(CharStartOutfitEntryfmt);
 //DBCStorage <CharTitlesEntry> sDBCCharTitles(CharTitlesEntryfmt);
 //DBCStorage <ChatChannelsEntry> sDBCChatChannels(ChatChannelsEntryfmt);
-DBCStorage <ChrClassesEntry> sChrClassesStore(ChrClassesEntryfmt);
+//DBCStorage <ChrClassesEntry> sDBCChrClasses(ChrClassesEntryfmt);
 DBCStorage <ChrRacesEntry> sChrRacesStore(ChrRacesEntryfmt);
 DBCStorage <CinematicCameraEntry> sCinematicCameraStore(CinematicCameraEntryfmt);
 DBCStorage <CinematicSequencesEntry> sCinematicSequencesStore(CinematicSequencesEntryfmt);
@@ -273,7 +273,7 @@ void LoadDBCStores(const std::string& dataPath)
 //    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharStartOutfit,     dbcPath, "CharStartOutfit.dbc");
 //    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharTitles,          dbcPath, "CharTitles.dbc");
 //    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCChatChannels,        dbcPath, "ChatChannels.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrClassesStore,          dbcPath, "ChrClasses.dbc");
+//    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCChrClasses,          dbcPath, "ChrClasses.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrRacesStore,            dbcPath, "ChrRaces.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCinematicCameraStore,     dbcPath, "CinematicCamera.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCinematicSequencesStore,  dbcPath, "CinematicSequences.dbc");

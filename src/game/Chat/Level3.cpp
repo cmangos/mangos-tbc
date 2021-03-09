@@ -1519,7 +1519,7 @@ bool ChatHandler::HandleLearnAllMyClassCommand(char* /*args*/)
 bool ChatHandler::HandleLearnAllMySpellsCommand(char* /*args*/)
 {
     Player* player = m_session->GetPlayer();
-    ChrClassesEntry const* clsEntry = sChrClassesStore.LookupEntry(player->getClass());
+    ChrClassesEntry const* clsEntry = sDBCChrClasses.LookupEntry(player->getClass());
     if (!clsEntry)
         return true;
     uint32 family = clsEntry->spellfamily;
@@ -4157,7 +4157,7 @@ bool ChatHandler::HandleResetHonorCommand(char* args)
 
 static bool HandleResetStatsOrLevelHelper(Player* player)
 {
-    ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(player->getClass());
+    ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(player->getClass());
     if (!cEntry)
     {
         sLog.outError("Class %u not found in DBC (Wrong DBC files?)", player->getClass());
@@ -5940,7 +5940,7 @@ bool ChatHandler::ShowPlayerListHelper(QueryResult* result, uint32* limit, bool 
             uint32 level     = fields[4].GetUInt32();
 
             ChrRacesEntry const* raceEntry = sChrRacesStore.LookupEntry(race);
-            ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(class_);
+            ChrClassesEntry const* classEntry = sDBCChrClasses.LookupEntry(class_);
 
             char const* race_name = raceEntry   ? raceEntry->name[GetSessionDbcLocale()] : "<?>";
             char const* class_name = classEntry ? classEntry->name[GetSessionDbcLocale()] : "<?>";

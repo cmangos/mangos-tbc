@@ -726,7 +726,7 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
         return false;
     }
 
-    ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(class_);
+    ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(class_);
     if (!cEntry)
     {
         sLog.outError("Class %u not found in DBC (Wrong DBC files?)", class_);
@@ -18542,7 +18542,7 @@ void Player::InitDataForForm(bool reapplyMods)
         }
         default:                                            // 0, for example
         {
-            ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(getClass());
+            ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(getClass());
             if (cEntry && cEntry->powerType < MAX_POWERS && uint32(GetPowerType()) != cEntry->powerType)
                 SetPowerType(Powers(cEntry->powerType));
             break;

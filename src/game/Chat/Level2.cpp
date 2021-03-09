@@ -4453,52 +4453,48 @@ bool ChatHandler::HandleLookupTitleCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in CharTitles.dbc
-    for (uint32 id = 0; id < sCharTitlesStore.GetNumRows(); ++id)
+    for (auto titleInfo : sDBCCharTitles)
     {
-        CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
-        if (titleInfo)
+        int loc = GetSessionDbcLocale();
+        std::string name = titleInfo->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = titleInfo->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = titleInfo->name[loc];
-                    if (name.empty())
-                        continue;
+                name = titleInfo->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                char const* knownStr = target && target->HasTitle(titleInfo) ? GetMangosString(LANG_KNOWN) : "";
+        if (loc < MAX_LOCALE)
+        {
+            char const* knownStr = target && target->HasTitle(titleInfo) ? GetMangosString(LANG_KNOWN) : "";
 
-                char const* activeStr = target && target->GetUInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->bit_index
-                                        ? GetMangosString(LANG_ACTIVE)
-                                        : "";
+            char const* activeStr = target && target->GetUInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->bit_index
+                ? GetMangosString(LANG_ACTIVE)
+                : "";
 
-                char titleNameStr[80];
-                snprintf(titleNameStr, 80, name.c_str(), targetName);
+            char titleNameStr[80];
+            snprintf(titleNameStr, 80, name.c_str(), targetName);
 
-                // send title in "id (idx:idx) - [namedlink locale]" format
-                if (m_session)
-                    PSendSysMessage(LANG_TITLE_LIST_CHAT, id, titleInfo->bit_index, id, titleNameStr, localeNames[loc], knownStr, activeStr);
-                else
-                    PSendSysMessage(LANG_TITLE_LIST_CONSOLE, id, titleInfo->bit_index, titleNameStr, localeNames[loc], knownStr, activeStr);
+            // send title in "id (idx:idx) - [namedlink locale]" format
+            if (m_session)
+                PSendSysMessage(LANG_TITLE_LIST_CHAT, titleInfo->ID, titleInfo->bit_index, titleInfo->ID, titleNameStr, localeNames[loc], knownStr, activeStr);
+            else
+                PSendSysMessage(LANG_TITLE_LIST_CONSOLE, titleInfo->ID, titleInfo->bit_index, titleNameStr, localeNames[loc], knownStr, activeStr);
 
-                ++counter;
-            }
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -4532,7 +4528,7 @@ bool ChatHandler::HandleTitlesAddCommand(char* args)
     if (HasLowerSecurity(target))
         return false;
 
-    CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
+    CharTitlesEntry const* titleInfo = sDBCCharTitles.LookupEntry(id);
     if (!titleInfo)
     {
         PSendSysMessage(LANG_INVALID_TITLE_ID, id);
@@ -4578,7 +4574,7 @@ bool ChatHandler::HandleTitlesRemoveCommand(char* args)
     if (HasLowerSecurity(target))
         return false;
 
-    CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
+    CharTitlesEntry const* titleInfo = sDBCCharTitles.LookupEntry(id);
     if (!titleInfo)
     {
         PSendSysMessage(LANG_INVALID_TITLE_ID, id);
@@ -4629,9 +4625,8 @@ bool ChatHandler::HandleTitlesSetMaskCommand(char* args)
 
     uint64 titles2 = titles;
 
-    for (uint32 i = 1; i < sCharTitlesStore.GetNumRows(); ++i)
-        if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(i))
-            titles2 &= ~(uint64(1) << tEntry->bit_index);
+    for (auto tEntry : sDBCCharTitles)
+        titles2 &= ~(uint64(1) << tEntry->bit_index);
 
     titles &= ~titles2;                                     // remove nonexistent titles
 
@@ -4666,13 +4661,13 @@ bool ChatHandler::HandleTitlesSwapCommand(char* /*args*/)
     if (!foundTitle)
         return false;
 
-    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
         target->SetTitle(tEntry, true);
     if (foundTitle > 14)
         foundTitle -= 14;
     else
         foundTitle += 14;
-    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
         target->SetTitle(tEntry, false);
 
     return true;
@@ -4689,10 +4684,9 @@ bool ChatHandler::HandleCharacterTitlesCommand(char* args)
     char const* knownStr = GetMangosString(LANG_KNOWN);
 
     // Search in CharTitles.dbc
-    for (uint32 id = 0; id < sCharTitlesStore.GetNumRows(); ++id)
+    for (auto titleInfo : sDBCCharTitles)
     {
-        CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
-        if (titleInfo && target->HasTitle(titleInfo))
+        if (target->HasTitle(titleInfo))
         {
             std::string name = titleInfo->name[loc];
             if (name.empty())
@@ -4707,9 +4701,9 @@ bool ChatHandler::HandleCharacterTitlesCommand(char* args)
 
             // send title in "id (idx:idx) - [namedlink locale]" format
             if (m_session)
-                PSendSysMessage(LANG_TITLE_LIST_CHAT, id, titleInfo->bit_index, id, titleNameStr, localeNames[loc], knownStr, activeStr);
+                PSendSysMessage(LANG_TITLE_LIST_CHAT, titleInfo->ID, titleInfo->bit_index, titleInfo->ID, titleNameStr, localeNames[loc], knownStr, activeStr);
             else
-                PSendSysMessage(LANG_TITLE_LIST_CONSOLE, id, titleInfo->bit_index, name.c_str(), localeNames[loc], knownStr, activeStr);
+                PSendSysMessage(LANG_TITLE_LIST_CONSOLE, titleInfo->ID, titleInfo->bit_index, name.c_str(), localeNames[loc], knownStr, activeStr);
         }
     }
     return true;
@@ -4741,7 +4735,7 @@ bool ChatHandler::HandleTitlesCurrentCommand(char* args)
     if (HasLowerSecurity(target))
         return false;
 
-    CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
+    CharTitlesEntry const* titleInfo = sDBCCharTitles.LookupEntry(id);
     if (!titleInfo)
     {
         PSendSysMessage(LANG_INVALID_TITLE_ID, id);

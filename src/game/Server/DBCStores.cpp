@@ -62,7 +62,7 @@
 //DBCStorage <BankBagSlotPricesEntry> sDBCBankBagSlotPrices(BankBagSlotPricesEntryfmt);
 //DBCStorage <BattlemasterListEntry> sDBCBattlemasterList(BattlemasterListEntryfmt);
 //DBCStorage <CharStartOutfitEntry> sDBCCharStartOutfit(CharStartOutfitEntryfmt);
-DBCStorage <CharTitlesEntry> sCharTitlesStore(CharTitlesEntryfmt);
+//DBCStorage <CharTitlesEntry> sDBCCharTitles(CharTitlesEntryfmt);
 DBCStorage <ChatChannelsEntry> sChatChannelsStore(ChatChannelsEntryfmt);
 DBCStorage <ChrClassesEntry> sChrClassesStore(ChrClassesEntryfmt);
 DBCStorage <ChrRacesEntry> sChrRacesStore(ChrRacesEntryfmt);
@@ -271,7 +271,7 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBankBagSlotPrices,   dbcPath, "BankBagSlotPrices.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCBattlemasterList,    dbcPath, "BattlemasterList.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharStartOutfit,     dbcPath, "CharStartOutfit.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharTitlesStore,          dbcPath, "CharTitles.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDBCCharTitles,          dbcPath, "CharTitles.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChatChannelsStore,        dbcPath, "ChatChannels.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrClassesStore,          dbcPath, "ChrClasses.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrRacesStore,            dbcPath, "ChrRaces.dbc");
@@ -573,7 +573,7 @@ void LoadDBCStores(const std::string& dataPath)
             !sMapStore.LookupEntry(598)                ||
             !sGemPropertiesStore.LookupEntry(1127)     ||
             !sItemExtendedCostStore.LookupEntry(2425)  ||
-            !sCharTitlesStore.LookupEntry(71)          ||
+            !sDBCCharTitles.LookupEntry(71)          ||
             !sDBCAreaTable.LookupEntry(1768))
     {
         sLog.outError("\nYou have _outdated_ DBC files. Please re-extract DBC files for one from client build: %s", AcceptableClientBuildsListStr().c_str());

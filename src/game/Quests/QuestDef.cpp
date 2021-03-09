@@ -230,7 +230,7 @@ uint32 Quest::GetCharTitleBitIndex() const
 {
     if (!CharTitleId)
         return 0;
-    CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(CharTitleId);
+    CharTitlesEntry const* titleEntry = sDBCCharTitles.LookupEntry(CharTitleId);
     return titleEntry ? titleEntry->bit_index : 0;
 }
 

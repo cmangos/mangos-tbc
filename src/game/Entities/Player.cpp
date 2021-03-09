@@ -13358,7 +13358,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     // title reward
     if (pQuest->GetCharTitleId())
     {
-        if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(pQuest->GetCharTitleId()))
+        if (CharTitlesEntry const* titleEntry = sDBCCharTitles.LookupEntry(pQuest->GetCharTitleId()))
             SetTitle(titleEntry);
     }
 
@@ -14879,13 +14879,13 @@ void Player::_LoadIntoDataField(const char* data, uint32 startOffset, uint32 cou
     if (foundTitle > 14 && (raceMask & RACEMASK_HORDE) != 0)
         return;
 
-    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
         SetTitle(tEntry, true, false);
     if (foundTitle > 14)
         foundTitle -= 14;
     else
         foundTitle += 14;
-    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
         SetTitle(tEntry, false, false);
 }
 
@@ -16068,7 +16068,7 @@ void Player::_LoadQuestStatus(QueryResult* result)
                     // set rewarded title if any
                     if (pQuest->GetCharTitleId())
                     {
-                        if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(pQuest->GetCharTitleId()))
+                        if (CharTitlesEntry const* titleEntry = sDBCCharTitles.LookupEntry(pQuest->GetCharTitleId()))
                             SetTitle(titleEntry);
                     }
                 }
@@ -20758,7 +20758,7 @@ bool Player::HasTitle(uint32 bitIndex) const
 
 void Player::SetTitle(uint32 titleId, bool lost)
 {
-    if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(titleId))
+    if (CharTitlesEntry const* titleEntry = sDBCCharTitles.LookupEntry(titleId))
         SetTitle(titleEntry, lost);
 }
 

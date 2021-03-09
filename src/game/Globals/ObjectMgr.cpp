@@ -3978,7 +3978,7 @@ void ObjectMgr::LoadQuests()
             // warning
         }
 
-        if (qinfo->CharTitleId && !sCharTitlesStore.LookupEntry(qinfo->CharTitleId))
+        if (qinfo->CharTitleId && !sDBCCharTitles.LookupEntry(qinfo->CharTitleId))
         {
             sLog.outErrorDb("Quest %u has `CharTitleId` = %u but CharTitle Id %u does not exist, quest can't be rewarded with title.",
                             qinfo->GetQuestId(), qinfo->GetCharTitleId(), qinfo->GetCharTitleId());

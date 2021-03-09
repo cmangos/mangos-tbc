@@ -2168,7 +2168,7 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
     }
     CharTitlesEntry const* titleEntries[5]; // optimization
     for (uint32 i = 0; i < 5; ++i)
-        titleEntries[i] = sCharTitlesStore.LookupEntry(titles[i]);
+        titleEntries[i] = sDBCCharTitles.LookupEntry(titles[i]);
 
     // Remove titles from online players
     // Only Rank 1 titles are permanent

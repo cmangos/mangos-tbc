@@ -104,6 +104,7 @@ class SQLStorage : public SQLStorageBase<ST>
 
     public:
         SQLStorage(const char* fmt, const char* _entry_field, const char* sqlname);
+        SQLStorage(const char* fmt, const char* sqlname);
 
         SQLStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname);
 

@@ -1017,7 +1017,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 {
     npc_theramore_practicing_guardAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        getDummy();
+        attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
         Reset();
     }
 
@@ -1029,11 +1029,6 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     bool m_binCombatWithPlayer;
     Creature* attackableDummy;
 
-    void getDummy()
-    {
-        attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
-    }
-
     void DoCallForHelp(float) override {}
 
     void HandleAssistanceCall(Unit*, Unit*) override {}
@@ -1041,12 +1036,12 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     void EnterEvadeMode() override
     {
         ScriptedAI::EnterEvadeMode();
-        Reset();
+        m_binCombatWithPlayer = false;
     }
 
     void JustReachedHome() override
     {
-        getDummy();
+        Reset();
         SetRootSelf(true);
     }
 

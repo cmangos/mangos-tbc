@@ -58,7 +58,6 @@
 #include "DBScripts/ScriptMgr.h"
 #include "Social/SocialMgr.h"
 #include "Mails/Mail.h"
-#include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 #include "World/WorldStateDefines.h"
@@ -3247,7 +3246,7 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
             }
     }
 
-    TalentSpellPos const* talentPos = GetTalentSpellPos(spell_id);
+    TalentSpellPos const* talentPos = ObjectMgr::GetTalentSpellPos(spell_id);
 
     if (!disabled_case) // skip new spell adding if spell already known (disabled spells case)
     {
@@ -3374,7 +3373,7 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
     if (talentPos)
     {
         // update used talent points count
-        m_usedTalentCount += GetTalentSpellCost(talentPos);
+        m_usedTalentCount += ObjectMgr::GetTalentSpellCost(talentPos);
         UpdateFreeTalentPoints(false);
     }
 
@@ -3493,13 +3492,13 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     if (playerSpell.state == PLAYERSPELL_REMOVED || (disabled && playerSpell.disabled))
         return;
 
-    if (disabled && GetTalentSpellPos(spell_id))
+    if (disabled && ObjectMgr::GetTalentSpellPos(spell_id))
         disabled = false; // talents should never be marked as disabled
 
     // unlearn non talent higher ranks (recursive)
     SpellChainMapNext const& nextMap = sSpellMgr.GetSpellChainNext();
     for (SpellChainMapNext::const_iterator itr2 = nextMap.lower_bound(spell_id); itr2 != nextMap.upper_bound(spell_id); ++itr2)
-        if (HasSpell(itr2->second) && !GetTalentSpellPos(itr2->second))
+        if (HasSpell(itr2->second) && !ObjectMgr::GetTalentSpellPos(itr2->second))
             removeSpell(itr2->second, !IsPassiveSpell(itr2->second), false, sendUpdate);
 
     // re-search, it can be corrupted in prev loop
@@ -3531,11 +3530,11 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     if (PetAura const* petSpell = sSpellMgr.GetPetAura(spell_id))
         RemovePetAura(petSpell);
 
-    TalentSpellPos const* talentPos = GetTalentSpellPos(spell_id);
+    TalentSpellPos const* talentPos = ObjectMgr::GetTalentSpellPos(spell_id);
     if (talentPos)
     {
         // free talent points
-        uint32 talentCosts = GetTalentSpellCost(talentPos);
+        uint32 talentCosts = ObjectMgr::GetTalentSpellCost(talentPos);
 
         if (talentCosts < m_usedTalentCount)
             m_usedTalentCount -= talentCosts;
@@ -4952,7 +4951,7 @@ void Player::RepopAtGraveyard()
     // note: this can be called also when the player is alive
     // for example from WorldSession::HandleMovementOpcodes
 
-    AreaTableEntry const* zone = GetAreaEntryByAreaID(GetAreaId());
+    AreaTableEntry const* zone = TerrainManager::GetAreaEntryByAreaID(GetAreaId());
 
     // Such zones are considered unreachable as a ghost and the player must be automatically revived
     if ((!IsAlive() && zone && zone->flags & AREA_FLAG_NEED_FLY) || GetTransport())
@@ -5015,7 +5014,7 @@ void Player::UpdateLocalChannels(uint32 newZone)
     if (m_channels.empty())
         return;
 
-    AreaTableEntry const* current_zone = GetAreaEntryByAreaID(newZone);
+    AreaTableEntry const* current_zone = TerrainManager::GetAreaEntryByAreaID(newZone);
     if (!current_zone)
         return;
 
@@ -6408,7 +6407,7 @@ void Player::CheckAreaExploreAndOutdoor()
         if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) && GetRestType() == REST_TYPE_IN_TAVERN)
         {
             AreaTriggerEntry const* at = sDBCAreaTrigger.LookupEntry(inn_trigger_id);
-            if (!at || !IsPointInAreaTriggerZone(at, GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ()))
+            if (!at || !Map::IsPointInAreaTriggerZone(at, GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ()))
             {
                 // Player left inn (REST_TYPE_IN_CITY overrides REST_TYPE_IN_TAVERN, so just clear rest)
                 SetRestType(REST_TYPE_NO);
@@ -6448,7 +6447,7 @@ void Player::CheckAreaExploreAndOutdoor()
     {
         SetUInt32Value(PLAYER_EXPLORED_ZONES_1 + offset, (uint32)(currFields | val));
 
-        AreaTableEntry const* p = GetAreaEntryByAreaFlagAndMap(areaFlag, GetMapId());
+        AreaTableEntry const* p = TerrainManager::GetAreaEntryByAreaFlagAndMap(areaFlag, GetMapId());
         if (!p)
         {
             sLog.outError("PLAYER: Player %u discovered unknown area (x: %f y: %f map: %u", GetGUIDLow(), GetPositionX(), GetPositionY(), GetMapId());
@@ -6979,7 +6978,7 @@ void Player::UpdateArea(uint32 newArea)
 {
     m_areaUpdateId    = newArea;
 
-    AreaTableEntry const* area = GetAreaEntryByAreaID(newArea);
+    AreaTableEntry const* area = TerrainManager::GetAreaEntryByAreaID(newArea);
 
     // FFA_PVP flags are area and not zone id dependent
     // so apply them accordingly
@@ -7012,7 +7011,7 @@ bool Player::CanUseCapturePoint() const
 
 void Player::UpdateZone(uint32 newZone, uint32 newArea, bool force)
 {
-    AreaTableEntry const* zone = GetAreaEntryByAreaID(newZone);
+    AreaTableEntry const* zone = TerrainManager::GetAreaEntryByAreaID(newZone);
     if (!zone)
         return;
 
@@ -9004,6 +9003,26 @@ InventoryResult Player::_CanTakeMoreSimilarItems(uint32 entry, uint32 count, Ite
 
 
     return EQUIP_ERR_OK;
+}
+
+bool Player::IsTotemCategoryCompatiableWith(uint32 itemTotemCategoryId, uint32 requiredTotemCategoryId)
+{
+    if (requiredTotemCategoryId == 0)
+        return true;
+    if (itemTotemCategoryId == 0)
+        return false;
+
+    TotemCategoryEntry const* itemEntry = sDBCTotemCategory.LookupEntry(itemTotemCategoryId);
+    if (!itemEntry)
+        return false;
+    TotemCategoryEntry const* reqEntry = sDBCTotemCategory.LookupEntry(requiredTotemCategoryId);
+    if (!reqEntry)
+        return false;
+
+    if (itemEntry->categoryType != reqEntry->categoryType)
+        return false;
+
+    return (itemEntry->categoryMask & reqEntry->categoryMask) == reqEntry->categoryMask;
 }
 
 bool Player::HasItemTotemCategory(uint32 TotemCategory) const
@@ -16191,7 +16210,7 @@ void Player::_LoadSpells(QueryResult* result)
             uint32 spell_id = fields[0].GetUInt32();
             bool active = fields[1].GetBool();
             bool disabled = fields[2].GetBool();
-            TalentSpellPos const* talentPos = GetTalentSpellPos(spell_id);
+            TalentSpellPos const* talentPos = ObjectMgr::GetTalentSpellPos(spell_id);
             if (!talentPos)
                 spells.push_back(std::tuple<uint32, bool, bool>{ spell_id, active, disabled });
             else

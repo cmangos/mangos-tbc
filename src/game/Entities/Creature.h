@@ -471,6 +471,7 @@ class Creature : public Unit
         CreatureDataAddon const* GetCreatureAddon() const;
 
         static uint32 ChooseDisplayId(const CreatureInfo* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
+        static uint32 GetCreatureModelRace(uint32 model_id);
 
         std::string GetAIName() const;
         std::string GetScriptName() const;

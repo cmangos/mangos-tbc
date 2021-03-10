@@ -2597,3 +2597,115 @@ void Map::RemoveFromSpawnCount(const ObjectGuid& guid)
 {
     m_spawnedCount[guid.GetEntry()].erase(guid);
 }
+
+bool Map::MapCoordinateVsZoneCheck(float x, float y, uint32 mapid, uint32 zone)
+{
+    WorldMapAreaEntry const* WmaEntry = sDBCWorldMapArea.LookupEntry(zone);
+    if (WmaEntry && mapid == WmaEntry->map_id &&
+        x >= WmaEntry->x2 && x <= WmaEntry->x1 && y >= WmaEntry->y2 && y <= WmaEntry->y1)
+        return true;
+    return false;
+}
+
+bool Map::Zone2MapCoordinates(float& x, float& y, uint32 zone)
+{
+    WorldMapAreaEntry const* maEntry = sDBCWorldMapArea.LookupEntry(zone);
+
+    // if not listed then map coordinates (instance)
+    if (!maEntry || maEntry->x2 == maEntry->x1 || maEntry->y2 == maEntry->y1)
+        return false;
+
+    std::swap(x, y);                                        // at client map coords swapped
+    x = x * ((maEntry->x2 - maEntry->x1) / 100) + maEntry->x1;
+    y = y * ((maEntry->y2 - maEntry->y1) / 100) + maEntry->y1; // client y coord from top to down
+
+    return true;
+}
+
+bool Map::Map2ZoneCoordinates(float& x, float& y, uint32 zone)
+{
+    WorldMapAreaEntry const* maEntry = sDBCWorldMapArea.LookupEntry(zone);
+
+    // if not listed then map coordinates (instance)
+    if (!maEntry || maEntry->x2 == maEntry->x1 || maEntry->y2 == maEntry->y1)
+        return false;
+
+    x = (x - maEntry->x1) / ((maEntry->x2 - maEntry->x1) / 100);
+    y = (y - maEntry->y1) / ((maEntry->y2 - maEntry->y1) / 100); // client y coord from top to down
+    std::swap(x, y);                                        // client have map coords swapped
+
+    return true;
+}
+
+bool Map::IsPointInAreaTriggerZone(AreaTriggerEntry const* atEntry, uint32 mapid, float x, float y, float z, float delta)
+{
+    if (mapid != atEntry->mapid)
+        return false;
+
+    if (atEntry->radius > 0)
+    {
+        // if we have radius check it
+        float dist2 = (x - atEntry->x) * (x - atEntry->x) + (y - atEntry->y) * (y - atEntry->y) + (z - atEntry->z) * (z - atEntry->z);
+        if (dist2 > (atEntry->radius + delta) * (atEntry->radius + delta))
+            return false;
+    }
+    else
+    {
+        // we have only extent
+
+        // rotate the players position instead of rotating the whole cube, that way we can make a simplified
+        // is-in-cube check and we have to calculate only one point instead of 4
+
+        // 2PI = 360, keep in mind that ingame orientation is counter-clockwise
+        double rotation = 2 * M_PI - atEntry->box_orientation;
+        double sinVal = sin(rotation);
+        double cosVal = cos(rotation);
+
+        float playerBoxDistX = x - atEntry->x;
+        float playerBoxDistY = y - atEntry->y;
+
+        float rotPlayerX = float(atEntry->x + playerBoxDistX * cosVal - playerBoxDistY * sinVal);
+        float rotPlayerY = float(atEntry->y + playerBoxDistY * cosVal + playerBoxDistX * sinVal);
+
+        // box edges are parallel to coordiante axis, so we can treat every dimension independently :D
+        float dz = z - atEntry->z;
+        float dx = rotPlayerX - atEntry->x;
+        float dy = rotPlayerY - atEntry->y;
+        if ((fabs(dx) > atEntry->box_x / 2 + delta) ||
+            (fabs(dy) > atEntry->box_y / 2 + delta) ||
+            (fabs(dz) > atEntry->box_z / 2 + delta))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+uint32 Map::GetVirtualMapForMapAndZone(uint32 mapid, uint32 zoneId)
+{
+    if (mapid != 530)                                       // speed for most cases
+        return mapid;
+
+    if (WorldMapAreaEntry const* wma = sDBCWorldMapArea.LookupEntry(zoneId))
+        return wma->virtual_map_id >= 0 ? wma->virtual_map_id : wma->map_id;
+
+    return mapid;
+}
+
+ContentLevels Map::GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId)
+{
+    mapid = GetVirtualMapForMapAndZone(mapid, zoneId);
+    if (mapid < 2)
+        return CONTENT_1_60;
+
+    MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
+    if (!mapEntry)
+        return CONTENT_1_60;
+
+    switch (mapEntry->Expansion())
+    {
+        default: return CONTENT_1_60;
+        case 1:  return CONTENT_61_70;
+    }
+}

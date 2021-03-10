@@ -570,7 +570,7 @@ GridMapLiquidStatus GridMap::getLiquidStatus(float x, float y, float z, uint8 Re
                 uint32 overrideLiquid = area->LiquidTypeOverride[entry - 1];
                 if (!overrideLiquid && area->zone)
                 {
-                    area = GetAreaEntryByAreaID(area->zone);
+                    area = TerrainManager::GetAreaEntryByAreaID(area->zone);
                     if (area)
                         overrideLiquid = area->LiquidTypeOverride[entry - 1];
                 }
@@ -919,10 +919,10 @@ uint16 TerrainInfo::GetAreaFlag(float x, float y, float z, bool* isOutdoors) con
     if (GetAreaInfo(x, y, z, mogpFlags, adtId, rootId, groupId))
     {
         haveAreaInfo = true;
-        auto wmoEntries = GetWMOAreaTableEntriesByTripple(rootId, adtId, groupId);
+        auto wmoEntries = TerrainManager::GetWMOAreaTableEntriesByTripple(rootId, adtId, groupId);
         for (auto wmoEntry : wmoEntries)
         {
-            auto areaEntry = GetAreaEntryByAreaID(wmoEntry->areaId);
+            auto areaEntry = TerrainManager::GetAreaEntryByAreaID(wmoEntry->areaId);
             if (areaEntry && areaEntry->mapid == GetMapId())
             {
                 atEntry = areaEntry;
@@ -939,7 +939,7 @@ uint16 TerrainInfo::GetAreaFlag(float x, float y, float z, bool* isOutdoors) con
             areaflag = gmap->getArea(x, y);
         // this used while not all *.map files generated (instances)
         else
-            areaflag = GetAreaFlagByMapId(GetMapId());
+            areaflag = TerrainManager::GetAreaFlagByMapId(GetMapId());
     }
 
     if (isOutdoors)
@@ -997,12 +997,12 @@ GridMapLiquidStatus TerrainInfo::getLiquidStatus(float x, float y, float z, uint
 
                 if (liquid_type && liquid_type < 21)
                 {
-                    if (AreaTableEntry const* area = GetAreaEntryByAreaFlagAndMap(GetAreaFlag(x, y, z), GetMapId()))
+                    if (AreaTableEntry const* area = TerrainManager::GetAreaEntryByAreaFlagAndMap(GetAreaFlag(x, y, z), GetMapId()))
                     {
                         uint32 overrideLiquid = area->LiquidTypeOverride[liquid_type - 1];
                         if (!overrideLiquid && area->zone)
                         {
-                            area = GetAreaEntryByAreaID(area->zone);
+                            area = TerrainManager::GetAreaEntryByAreaID(area->zone);
                             if (area)
                                 overrideLiquid = area->LiquidTypeOverride[liquid_type - 1];
                         }
@@ -1330,4 +1330,62 @@ void TerrainManager::GetZoneAndAreaIdByAreaFlag(uint32& zoneid, uint32& areaid, 
 
     areaid = entry ? entry->ID : 0;
     zoneid = entry ? ((entry->zone != 0) ? entry->zone : entry->ID) : 0;
+}
+
+int32 TerrainManager::GetAreaFlagByAreaID(uint32 area_id)
+{
+    AreaFlagByAreaID::iterator i = sAreaFlagByAreaID.find(area_id);
+    if (i == sAreaFlagByAreaID.end())
+        return -1;
+
+    return i->second;
+}
+
+uint32 TerrainManager::GetAreaIdByLocalizedName(const std::string& name)
+{
+    for (auto areaEntry : sDBCAreaTable)
+    {
+        for (uint32 i = 0; i < MAX_LOCALE; ++i)
+        {
+            std::string area_name(areaEntry->area_name[i]);
+            if (area_name.size() > 0 && name.find(" - " + area_name) != std::string::npos)
+            {
+                return areaEntry->ID;
+            }
+        }
+    }
+    return 0;
+}
+
+std::vector<WMOAreaTableEntry const*>& TerrainManager::GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid)
+{
+    return sWMOAreaInfoByTripple[WMOAreaTableTripple(rootid, adtid, groupid)];
+}
+
+AreaTableEntry const* TerrainManager::GetAreaEntryByAreaID(uint32 area_id)
+{
+    int32 areaflag = GetAreaFlagByAreaID(area_id);
+    if (areaflag < 0)
+        return nullptr;
+
+    return sDBCAreaTable.LookupEntry(areaflag);
+}
+
+AreaTableEntry const* TerrainManager::GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_id)
+{
+    if (area_flag)
+        return sDBCAreaTable.LookupEntry(area_flag);
+
+    if (MapEntry const* mapEntry = sDBCMap.LookupEntry(map_id))
+        return GetAreaEntryByAreaID(mapEntry->linked_zone);
+
+    return nullptr;
+}
+
+uint32 TerrainManager::GetAreaFlagByMapId(uint32 mapid)
+{
+    AreaFlagByMapID::iterator i = sAreaFlagByMapID.find(mapid);
+    if (i == sAreaFlagByMapID.end())
+        return 0;
+    return i->second;
 }

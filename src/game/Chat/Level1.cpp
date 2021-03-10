@@ -301,13 +301,13 @@ bool ChatHandler::HandleGPSCommand(char* args)
     obj->GetZoneAndAreaId(zone_id, area_id);
 
     MapEntry const* mapEntry = sDBCMap.LookupEntry(obj->GetMapId());
-    AreaTableEntry const* zoneEntry = GetAreaEntryByAreaID(zone_id);
-    AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(area_id);
+    AreaTableEntry const* zoneEntry = TerrainManager::GetAreaEntryByAreaID(zone_id);
+    AreaTableEntry const* areaEntry = TerrainManager::GetAreaEntryByAreaID(area_id);
 
     float zone_x = obj->GetPositionX();
     float zone_y = obj->GetPositionY();
 
-    if (!Map2ZoneCoordinates(zone_x, zone_y, zone_id))
+    if (!Map::Map2ZoneCoordinates(zone_x, zone_y, zone_id))
     {
         zone_x = 0;
         zone_y = 0;
@@ -1876,7 +1876,7 @@ bool ChatHandler::HandleGoZoneXYCommand(char* args)
     else
         areaid = _player->GetZoneId();
 
-    AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(areaid);
+    AreaTableEntry const* areaEntry = TerrainManager::GetAreaEntryByAreaID(areaid);
 
     if (x < 0 || x > 100 || y < 0 || y > 100 || !areaEntry)
     {
@@ -1886,7 +1886,7 @@ bool ChatHandler::HandleGoZoneXYCommand(char* args)
     }
 
     // update to parent zone if exist (client map show only zones without parents)
-    AreaTableEntry const* zoneEntry = areaEntry->zone ? GetAreaEntryByAreaID(areaEntry->zone) : areaEntry;
+    AreaTableEntry const* zoneEntry = areaEntry->zone ? TerrainManager::GetAreaEntryByAreaID(areaEntry->zone) : areaEntry;
 
     MapEntry const* mapEntry = sDBCMap.LookupEntry(zoneEntry->mapid);
 
@@ -1898,7 +1898,7 @@ bool ChatHandler::HandleGoZoneXYCommand(char* args)
         return false;
     }
 
-    if (!Zone2MapCoordinates(x, y, zoneEntry->ID))
+    if (!Map::Zone2MapCoordinates(x, y, zoneEntry->ID))
     {
         PSendSysMessage(LANG_INVALID_ZONE_MAP, areaEntry->ID, areaEntry->area_name[GetSessionDbcLocale()],
                         mapEntry->MapID, mapEntry->name[GetSessionDbcLocale()]);

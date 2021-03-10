@@ -1426,7 +1426,7 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
 
                 // skip spells with first rank learned as talent (and all talents then also)
                 uint32 firstRankId = sSpellMgr.GetFirstSpellInChain(spellId);
-                if (GetTalentSpellCost(firstRankId) > 0)
+                if (ObjectMgr::GetTalentSpellCost(firstRankId) > 0)
                     continue;
 
                 if (!IsSpellHaveEffect(newSpell, SPELL_EFFECT_PROFICIENCY))
@@ -1544,7 +1544,7 @@ bool ChatHandler::HandleLearnAllMySpellsCommand(char* /*args*/)
 
         // skip spells with first rank learned as talent (and all talents then also)
         uint32 first_rank = sSpellMgr.GetFirstSpellInChain(spellInfo->Id);
-        if (GetTalentSpellCost(first_rank) > 0)
+        if (ObjectMgr::GetTalentSpellCost(first_rank) > 0)
             continue;
 
         // skip broken spells
@@ -2375,7 +2375,7 @@ void ChatHandler::ShowSpellListHelper(Player* target, SpellEntry const* spellInf
     bool known = target && target->HasSpell(id);
     bool learn = (spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_LEARN_SPELL);
 
-    uint32 talentCost = GetTalentSpellCost(id);
+    uint32 talentCost = ObjectMgr::GetTalentSpellCost(id);
 
     bool talent = (talentCost > 0);
     bool passive = IsPassiveSpell(spellInfo);
@@ -3202,7 +3202,7 @@ bool ChatHandler::HandleLinkGraveCommand(char* args)
 
     uint32 zoneId = player->GetZoneId();
 
-    AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(zoneId);
+    AreaTableEntry const* areaEntry = TerrainManager::GetAreaEntryByAreaID(zoneId);
     if (!areaEntry || areaEntry->zone != 0)
     {
         PSendSysMessage(LANG_COMMAND_GRAVEYARDWRONGZONE, g_id, zoneId);
@@ -3711,7 +3711,7 @@ bool ChatHandler::HandleShowAreaCommand(char* args)
         return false;
     }
 
-    int area = GetAreaFlagByAreaID(atoi(args));
+    int area = TerrainManager::GetAreaFlagByAreaID(atoi(args));
     int offset = area / 32;
     uint32 val = (uint32)(1 << (area % 32));
 
@@ -3742,7 +3742,7 @@ bool ChatHandler::HandleHideAreaCommand(char* args)
         return false;
     }
 
-    int area = GetAreaFlagByAreaID(atoi(args));
+    int area = TerrainManager::GetAreaFlagByAreaID(atoi(args));
     int offset = area / 32;
     uint32 val = (uint32)(1 << (area % 32));
 
@@ -4018,7 +4018,7 @@ bool ChatHandler::HandleListAurasCommand(char* args)
         PSendSysMessage(LANG_COMMAND_TARGET_LISTAURAS, uAuras.size());
         for (Unit::SpellAuraHolderMap::const_iterator itr = uAuras.begin(); itr != uAuras.end(); ++itr)
         {
-            bool talent = GetTalentSpellCost(itr->second->GetId()) > 0;
+            bool talent = ObjectMgr::GetTalentSpellCost(itr->second->GetId()) > 0;
 
             SpellAuraHolder* holder = itr->second;
             char const* name = holder->GetSpellProto()->SpellName[GetSessionDbcLocale()];
@@ -4060,7 +4060,7 @@ bool ChatHandler::HandleListAurasCommand(char* args)
         PSendSysMessage(LANG_COMMAND_TARGET_LISTAURATYPE, uAuraList.size(), i);
         for (Unit::AuraList::const_iterator itr = uAuraList.begin(); itr != uAuraList.end(); ++itr)
         {
-            bool talent = GetTalentSpellCost((*itr)->GetId()) > 0;
+            bool talent = ObjectMgr::GetTalentSpellCost((*itr)->GetId()) > 0;
 
             char const* name = (*itr)->GetSpellProto()->SpellName[GetSessionDbcLocale()];
 
@@ -4103,7 +4103,7 @@ bool ChatHandler::HandleListTalentsCommand(char* /*args*/)
         if (uSpell.second.state == PLAYERSPELL_REMOVED || uSpell.second.disabled)
             continue;
 
-        uint32 cost_itr = GetTalentSpellCost(uSpell.first);
+        uint32 cost_itr = ObjectMgr::GetTalentSpellCost(uSpell.first);
 
         if (cost_itr == 0)
             continue;

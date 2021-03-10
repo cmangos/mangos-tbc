@@ -26,6 +26,8 @@
 
 #include <map>
 
+struct ChatChannelsEntry;
+
 enum ChatNotify : uint8
 {
     CHAT_JOINED_NOTICE                = 0x00,               //+ "%s joined channel.";
@@ -210,6 +212,8 @@ class Channel
 
         // Make a custom channel acquire global-like properties
         bool SetStatic(bool state, bool command = false);
+
+        static ChatChannelsEntry const* GetChatChannelsEntryFor(const std::string& name, uint32 channel_id = 0);
 
     private:
         void SendToOne(WorldPacket const& data, ObjectGuid receiver) const;

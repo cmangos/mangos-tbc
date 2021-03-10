@@ -330,6 +330,13 @@ class Map : public GridRefManager<NGridType>
 
         bool CanSpawn(TypeID typeId, uint32 dbGuid);
 
+        static bool MapCoordinateVsZoneCheck(float x, float y, uint32 mapid, uint32 zone);
+        static bool Zone2MapCoordinates(float& x, float& y, uint32 zone);
+        static bool Map2ZoneCoordinates(float& x, float& y, uint32 zone);
+        static bool IsPointInAreaTriggerZone(AreaTriggerEntry const* atEntry, uint32 mapid, float x, float y, float z, float delta = 0.0f);
+        static uint32 GetVirtualMapForMapAndZone(uint32 mapid, uint32 zoneId);
+        static ContentLevels GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId);
+
     private:
         void LoadMapAndVMap(int gx, int gy);
 

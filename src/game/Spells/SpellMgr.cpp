@@ -504,7 +504,7 @@ SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 f
 {
     // talents that learn spells can have stance requirements that need ignore
     // (this requirement only for client-side stance show in talent description)
-    if (GetTalentSpellCost(spellInfo->Id) > 0 &&
+    if (ObjectMgr::GetTalentSpellCost(spellInfo->Id) > 0 &&
             (spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_LEARN_SPELL || spellInfo->Effect[EFFECT_INDEX_1] == SPELL_EFFECT_LEARN_SPELL || spellInfo->Effect[EFFECT_INDEX_2] == SPELL_EFFECT_LEARN_SPELL))
         return SPELL_CAST_OK;
 
@@ -1737,7 +1737,7 @@ void SpellMgr::LoadSpellChains()
         }
 
         // talents not required data in spell chain for work, but must be checked if present for integrity
-        if (TalentSpellPos const* pos = GetTalentSpellPos(spell_id))
+        if (TalentSpellPos const* pos = ObjectMgr::GetTalentSpellPos(spell_id))
         {
             if (node.rank != pos->rank + 1)
             {
@@ -1936,7 +1936,7 @@ void SpellMgr::LoadSpellLearnSpells()
             continue;
         }
 
-        if (GetTalentSpellCost(node.spell))
+        if (ObjectMgr::GetTalentSpellCost(node.spell))
         {
             sLog.outErrorDb("Spell %u listed in `spell_learn_spell` attempt learning talent spell %u, skipped", spell_id, node.spell);
             continue;
@@ -1974,7 +1974,7 @@ void SpellMgr::LoadSpellLearnSpells()
                 // talent or passive spells or skill-step spells auto-casted and not need dependent learning,
                 // pet teaching spells don't must be dependent learning (casted)
                 // other required explicit dependent learning
-                dbc_node.autoLearned = entry->EffectImplicitTargetA[i] == TARGET_UNIT_CASTER_PET || GetTalentSpellCost(spell) > 0 || IsPassiveSpell(entry) || IsSpellHaveEffect(entry, SPELL_EFFECT_SKILL_STEP);
+                dbc_node.autoLearned = entry->EffectImplicitTargetA[i] == TARGET_UNIT_CASTER_PET || ObjectMgr::GetTalentSpellCost(spell) > 0 || IsPassiveSpell(entry) || IsSpellHaveEffect(entry, SPELL_EFFECT_SKILL_STEP);
 
                 SpellLearnSpellMapBounds db_node_bounds = GetSpellLearnSpellMapBounds(spell);
 
@@ -2368,7 +2368,7 @@ void SpellMgr::LoadSpellAreas()
             }
         }
 
-        if (spellArea.areaId && !GetAreaEntryByAreaID(spellArea.areaId))
+        if (spellArea.areaId && !TerrainManager::GetAreaEntryByAreaID(spellArea.areaId))
         {
             sLog.outErrorDb("Spell %u listed in `spell_area` have wrong area (%u) requirement", spell, spellArea.areaId);
             continue;
@@ -2515,7 +2515,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
     // continent limitation (virtual continent), ignore for GM
     if (spellInfo->HasAttribute(SPELL_ATTR_EX4_CAST_ONLY_IN_OUTLAND) && !(player && player->IsGameMaster()))
     {
-        uint32 v_map = GetVirtualMapForMapAndZone(map_id, zone_id);
+        uint32 v_map = Map::GetVirtualMapForMapAndZone(map_id, zone_id);
         MapEntry const* mapEntry = sDBCMap.LookupEntry(v_map);
         if (!mapEntry || mapEntry->addon < 1 || !mapEntry->IsContinent())
             return SPELL_FAILED_REQUIRES_AREA;

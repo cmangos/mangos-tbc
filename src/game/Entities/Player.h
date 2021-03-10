@@ -1133,6 +1133,7 @@ class Player : public Unit
         InventoryResult CanUnequipItem(uint16 pos, bool swap) const;
         InventoryResult CanBankItem(uint8 bag, uint8 slot, ItemPosCountVec& dest, Item* pItem, bool swap, bool not_loading = true) const;
         InventoryResult CanUseItem(Item* pItem, bool direct_action = true) const;
+        static bool IsTotemCategoryCompatiableWith(uint32 itemTotemCategoryId, uint32 requiredTotemCategoryId);
         bool HasItemTotemCategory(uint32 TotemCategory) const;
         InventoryResult CanUseItem(ItemPrototype const* pProto) const;
         InventoryResult CanUseAmmo(uint32 item) const;

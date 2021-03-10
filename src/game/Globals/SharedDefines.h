@@ -2605,4 +2605,10 @@ enum SplineFlags
     SPLINEFLAG_FLYING = 0x0000200,
 };
 
+enum ContentLevels
+{
+    CONTENT_1_60 = 0,
+    CONTENT_61_70
+};
+
 #endif

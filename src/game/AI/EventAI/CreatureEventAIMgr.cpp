@@ -388,7 +388,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                                 sLog.outErrorEventAI("Creature %u are using spawned event(%u) with param1 = %u 'map specific' but map (param2: %u) does not exist. Event will never repeat.", temp.creature_id, i, temp.spawned.condition, temp.spawned.conditionValue1);
                             break;
                         case SPAWNED_EVENT_ZONE:
-                            if (!GetAreaEntryByAreaID(temp.spawned.conditionValue1))
+                            if (!TerrainManager::GetAreaEntryByAreaID(temp.spawned.conditionValue1))
                                 sLog.outErrorEventAI("Creature %u are using spawned event(%u) with param1 = %u 'area specific' but area (param2: %u) does not exist. Event will never repeat.", temp.creature_id, i, temp.spawned.condition, temp.spawned.conditionValue1);
                             break;
                         default:

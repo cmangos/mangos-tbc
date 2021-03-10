@@ -2338,7 +2338,7 @@ void ObjectMgr::LoadItemPrototypes()
             const_cast<ItemPrototype*>(proto)->ItemSet = 0;
         }
 
-        if (proto->Area && !GetAreaEntryByAreaID(proto->Area))
+        if (proto->Area && !TerrainManager::GetAreaEntryByAreaID(proto->Area))
             sLog.outErrorDb("Item (Entry: %u) has wrong Area (%u)", proto->ItemId, proto->Area);
 
         if (proto->Map && !sDBCMap.LookupEntry(proto->Map))
@@ -3858,7 +3858,7 @@ void ObjectMgr::LoadQuests()
         // client quest log visual (area case)
         if (qinfo->ZoneOrSort > 0)
         {
-            if (!GetAreaEntryByAreaID(qinfo->ZoneOrSort))
+            if (!TerrainManager::GetAreaEntryByAreaID(qinfo->ZoneOrSort))
             {
                 sLog.outErrorDb("Quest %u has `ZoneOrSort` = %u (zone case) but zone with this id does not exist.",
                                 qinfo->GetQuestId(), qinfo->ZoneOrSort);
@@ -5989,7 +5989,7 @@ void ObjectMgr::LoadGraveyardZones()
             continue;
         }
 
-        if (linkKind == GRAVEYARD_AREALINK && GetAreaEntryByAreaID(locId) == nullptr)
+        if (linkKind == GRAVEYARD_AREALINK && TerrainManager::GetAreaEntryByAreaID(locId) == nullptr)
         {
             sLog.outErrorDb("Table `game_graveyard_zone` has record for nonexistent area id (%u), skipped.", locId);
             continue;
@@ -8393,7 +8393,7 @@ void ObjectMgr::LoadFishingBaseSkillLevel()
         uint32 entry  = fields[0].GetUInt32();
         int32 skill   = fields[1].GetInt32();
 
-        AreaTableEntry const* fArea = GetAreaEntryByAreaID(entry);
+        AreaTableEntry const* fArea = TerrainManager::GetAreaEntryByAreaID(entry);
         if (!fArea)
         {
             sLog.outErrorDb("AreaId %u defined in `skill_fishing_base_level` does not exist", entry);
@@ -9877,4 +9877,59 @@ bool DoDisplayText(WorldObject* source, int32 entry, Unit const* target /*=nullp
 
     source->MonsterText(data, target);
     return true;
+}
+
+TalentSpellPos const* ObjectMgr::GetTalentSpellPos(uint32 spellId)
+{
+    TalentSpellPosMap::const_iterator itr = sTalentSpellPosMap.find(spellId);
+    if (itr == sTalentSpellPosMap.end())
+        return nullptr;
+
+    return &itr->second;
+}
+
+uint32 ObjectMgr::GetTalentSpellCost(TalentSpellPos const* pos)
+{
+    if (pos)
+        return pos->rank + 1;
+
+    return 0;
+}
+
+uint32 ObjectMgr::GetTalentSpellCost(uint32 spellId)
+{
+    return GetTalentSpellCost(GetTalentSpellPos(spellId));
+}
+
+uint32 ObjectMgr::GetTalentInspectBitPosInTab(uint32 talentId)
+{
+    TalentInspectMap::const_iterator itr = sTalentPosInInspect.find(talentId);
+    if (itr == sTalentPosInInspect.end())
+        return 0;
+
+    return itr->second;
+}
+
+uint32 ObjectMgr::GetTalentTabInspectBitSize(uint32 talentTabId)
+{
+    TalentInspectMap::const_iterator itr = sTalentTabSizeInInspect.find(talentTabId);
+    if (itr == sTalentTabSizeInInspect.end())
+        return 0;
+
+    return itr->second;
+}
+
+uint32 const* ObjectMgr::GetTalentTabPages(uint32 cls)
+{
+    return sTalentTabPages[cls];
+}
+
+char const* ObjectMgr::GetPetName(uint32 petfamily, uint32 dbclang)
+{
+    if (!petfamily)
+        return nullptr;
+    CreatureFamilyEntry const* pet_family = sDBCCreatureFamily.LookupEntry(petfamily);
+    if (!pet_family)
+        return nullptr;
+    return pet_family->Name[dbclang] ? pet_family->Name[dbclang] : nullptr;
 }

@@ -640,6 +640,10 @@ class World
         Messager<World>& GetMessager() { return m_messager; }
 
         void IncrementOpcodeCounter(uint32 opcodeId); // thread safe due to atomics
+
+        static bool IsAcceptableClientBuild(uint32 build);
+        static std::string AcceptableClientBuildsListStr();
+
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters

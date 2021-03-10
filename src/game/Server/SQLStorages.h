@@ -46,7 +46,7 @@ extern SQLHashStorage<GameObjectInfo> sGOStorage;
 extern SQLMultiStorage<SpellTargetEntry> sSpellScriptTargetStorage;
 
 
-// DBC stores in <>db
+// DBC stores in db
 extern SQLStorage<AreaTableEntry> sDBCAreaTable;
 extern SQLStorage<AreaTriggerEntry> sDBCAreaTrigger;
 extern SQLStorage<AuctionHouseEntry> sDBCAuctionHouse;
@@ -150,6 +150,19 @@ extern AreaFlagByAreaID sAreaFlagByAreaID;
 extern AreaFlagByMapID  sAreaFlagByMapID;                   // for instances without generated *.map files
 
 extern WMOAreaInfoByTripple sWMOAreaInfoByTripple;
+
+extern SpellCategoryStore                        sSpellCategoryStore;
+extern ItemSpellCategoryStore                    sItemSpellCategoryStore;
+extern PetFamilySpellsStore                      sPetFamilySpellsStore;
+extern TaxiMask                                  sTaxiNodesMask;
+extern TaxiPathSetBySource                       sTaxiPathSetBySource;
+extern TaxiPathNodesByPath                       sTaxiPathNodesByPath;
+
+typedef std::map<uint32, uint32> TalentInspectMap;
+extern TalentInspectMap sTalentPosInInspect;
+extern TalentInspectMap sTalentTabSizeInInspect;
+extern uint32 sTalentTabPages[12/*MAX_CLASSES*/][3];
+extern TalentSpellPosMap sTalentSpellPosMap;
 
 void LoadDBCTables();
 

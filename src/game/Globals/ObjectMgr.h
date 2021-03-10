@@ -1171,6 +1171,15 @@ class ObjectMgr
         * Qualifier: const
         **/
         CreatureClassLvlStats const* GetCreatureClassLvlStats(uint32 level, uint32 unitClass, int32 expansion) const;
+
+        static uint32 GetTalentSpellCost(uint32 spellId);
+        static uint32 GetTalentSpellCost(TalentSpellPos const* pos);
+        static TalentSpellPos const* GetTalentSpellPos(uint32 spellId);
+        static uint32 GetTalentInspectBitPosInTab(uint32 talentId);
+        static uint32 GetTalentTabInspectBitSize(uint32 talentTabId);
+        static uint32 const* /*[3]*/ GetTalentTabPages(uint32 cls);
+        static char const* GetPetName(uint32 petfamily, uint32 dbclang);
+
     protected:
 
         // current locale settings

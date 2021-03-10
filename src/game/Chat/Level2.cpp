@@ -322,7 +322,7 @@ bool ChatHandler::HandleTriggerActiveCommand(char* /*args*/)
     // Search in AreaTable.dbc
     for (auto atEntry : sDBCAreaTrigger)
     {
-        if (!IsPointInAreaTriggerZone(atEntry, pl->GetMapId(), pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ()))
+        if (!Map::IsPointInAreaTriggerZone(atEntry, pl->GetMapId(), pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ()))
             continue;
 
         ShowTriggerListHelper(atEntry);

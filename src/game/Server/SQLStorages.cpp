@@ -18,6 +18,7 @@
 
 #include "Server/SQLStorages.h"
 #include "DBCStructure.h"
+#include "World/World.h"
 
 const char CreatureInfosrcfmt[] = "nsssiiiiiiiifiiiiliiiiiffiiiiiiiiffffffiiiiffffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiss";
 const char CreatureInfodstfmt[] = "nsssiiiiiiiifiiiiliiiiiffiiiiiiiiffffffiiiiffffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiisi";
@@ -230,6 +231,20 @@ AreaFlagByMapID  sAreaFlagByMapID;                   // for instances without ge
 
 WMOAreaInfoByTripple sWMOAreaInfoByTripple;
 
+SpellCategoryStore sSpellCategoryStore;
+ItemSpellCategoryStore sItemSpellCategoryStore;
+PetFamilySpellsStore sPetFamilySpellsStore;
+
+// store absolute bit position for first rank for talent inspect
+TalentInspectMap sTalentPosInInspect;
+TalentInspectMap sTalentTabSizeInInspect;
+uint32 sTalentTabPages[12/*MAX_CLASSES*/][3];
+TalentSpellPosMap sTalentSpellPosMap;
+
+TaxiMask sTaxiNodesMask;
+TaxiPathSetBySource sTaxiPathSetBySource;
+TaxiPathNodesByPath sTaxiPathNodesByPath;// DBC store data but sTaxiPathNodesByPath used for fast access to entries (it's not owner pointed data).
+
 void InitializeDBC()
 {
     // must be after sAreaStore loading
@@ -241,6 +256,161 @@ void InitializeDBC()
             // fill MapId->DBC records ( skip sub zones and continents )
             if (areaEntry->zone == 0 && areaEntry->mapid != 0 && areaEntry->mapid != 1 && areaEntry->mapid != 530)
                 sAreaFlagByMapID.insert(AreaFlagByMapID::value_type(areaEntry->mapid, areaEntry->exploreFlag));
+    }
+
+    for (auto skillLine : sDBCSkillLineAbility)
+    {
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(skillLine->spellId);
+        if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG))
+        {
+            for (auto cFamily : sDBCCreatureFamily)
+            {
+                if (skillLine->skillId != cFamily->skillLine[0] && skillLine->skillId != cFamily->skillLine[1])
+                    continue;
+
+                sPetFamilySpellsStore[cFamily->ID].insert(spellInfo->Id);
+            }
+        }
+    }
+
+    // create talent spells set
+    for (auto talentInfo : sDBCTalent)
+    {
+        for (int j = 0; j < 5; ++j)
+            if (talentInfo->RankID[j])
+                sTalentSpellPosMap[talentInfo->RankID[j]] = TalentSpellPos(talentInfo->TalentID, j);
+    }
+
+    // prepare fast data access to bit pos of talent ranks for use at inspecting
+    {
+        // fill table by amount of talent ranks and fill sTalentTabBitSizeInInspect
+        // store in with (row,col,talent)->size key for correct sorting by (row,col)
+        typedef std::map<uint32, uint32> TalentBitSize;
+        TalentBitSize sTalentBitSize;
+        for (auto talentInfo : sDBCTalent)
+        {
+            TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
+            if (!talentTabInfo)
+                continue;
+
+            // find talent rank
+            uint32 curtalent_maxrank = 0;
+            for (uint32 k = 5; k > 0; --k)
+            {
+                if (talentInfo->RankID[k - 1])
+                {
+                    curtalent_maxrank = k;
+                    break;
+                }
+            }
+
+            sTalentBitSize[(talentInfo->Row << 24) + (talentInfo->Col << 16) + talentInfo->TalentID] = curtalent_maxrank;
+            sTalentTabSizeInInspect[talentInfo->TalentTab] += curtalent_maxrank;
+        }
+
+        // now have all max ranks (and then bit amount used for store talent ranks in inspect)
+        for (auto talentTabInfo : sDBCTalentTab)
+        {
+            // prevent memory corruption; otherwise cls will become 12 below
+            if ((talentTabInfo->ClassMask & CLASSMASK_ALL_PLAYABLE) == 0)
+                continue;
+
+            // store class talent tab pages
+            uint32 cls = 1;
+            for (uint32 m = 1; !(m & talentTabInfo->ClassMask) && cls < MAX_CLASSES; m <<= 1, ++cls) {}
+
+            sTalentTabPages[cls][talentTabInfo->tabpage] = talentTabInfo->TalentTabID;
+
+            // add total amount bits for first rank starting from talent tab first talent rank pos.
+            uint32 pos = 0;
+            for (TalentBitSize::iterator itr = sTalentBitSize.begin(); itr != sTalentBitSize.end(); ++itr)
+            {
+                uint32 talentId = itr->first & 0xFFFF;
+                TalentEntry const* talentInfo = sDBCTalent.LookupEntry(talentId);
+                if (!talentInfo)
+                    continue;
+
+                if (talentInfo->TalentTab != talentTabInfo->TalentTabID)
+                    continue;
+
+                sTalentPosInInspect[talentId] = pos;
+                pos += itr->second;
+            }
+        }
+    }
+
+    for (auto entry : sDBCTaxiPath)
+        sTaxiPathSetBySource[entry->from][entry->to] = TaxiPathBySourceAndDestination(entry->ID, entry->price);
+    uint32 pathCount = sDBCTaxiPath.GetMaxEntry();
+
+    std::vector<uint32> pathLength;
+    pathLength.resize(pathCount);                           // 0 and some other indexes not used
+    for (auto entry : sDBCTaxiPathNode)
+    {
+        if (pathLength[entry->path] < entry->index + 1)
+            pathLength[entry->path] = entry->index + 1;
+    }
+    // Set path length
+    sTaxiPathNodesByPath.resize(pathCount);                 // 0 and some other indexes not used
+    for (uint32 i = 1; i < sTaxiPathNodesByPath.size(); ++i)
+        sTaxiPathNodesByPath[i].resize(pathLength[i]);
+    // fill data (pointers to sTaxiPathNodeStore elements
+    for (auto entry : sDBCTaxiPathNode)
+        sTaxiPathNodesByPath[entry->path].set(entry->index, entry);
+
+    // Initialize global taxinodes mask
+    // include existing nodes that have at least single not spell base (scripted) path
+    {
+        std::set<uint32> spellPaths;
+        for (auto sInfo : sSpellTemplate)
+            for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+                if (sInfo->Effect[j] == 123 /*SPELL_EFFECT_SEND_TAXI*/)
+                    spellPaths.insert(sInfo->EffectMiscValue[j]);
+
+        memset(sTaxiNodesMask, 0, sizeof(sTaxiNodesMask));
+        for (auto node : sDBCTaxiNodes)
+        {
+            TaxiPathSetBySource::const_iterator src_i = sTaxiPathSetBySource.find(node->ID);
+            if (src_i != sTaxiPathSetBySource.end() && !src_i->second.empty())
+            {
+                bool ok = false;
+                for (const auto& dest_i : src_i->second)
+                {
+                    // not spell path
+                    if (spellPaths.find(dest_i.second.ID) == spellPaths.end())
+                    {
+                        ok = true;
+                        break;
+                    }
+                }
+
+                if (!ok)
+                    continue;
+            }
+
+            // valid taxi network node
+            uint8  field = (uint8)((node->ID - 1) / 32);
+            uint32 submask = 1 << ((node->ID - 1) % 32);
+            sTaxiNodesMask[field] |= submask;
+        }
+    }
+
+    for (auto entry : sDBCWMOAreaTable)
+    {
+        sWMOAreaInfoByTripple[WMOAreaTableTripple(entry->rootId, entry->adtId, entry->groupId)].push_back(entry);
+    }
+
+    // Check loaded DBC files proper version
+    if (!sDBCSkillLineAbility.LookupEntry(17514) ||
+        !sDBCMap.LookupEntry(598) ||
+        !sDBCGemProperties.LookupEntry(1127) ||
+        !sDBCItemExtendedCost.LookupEntry(2425) ||
+        !sDBCCharTitles.LookupEntry(71) ||
+        !sDBCAreaTable.LookupEntry(1768))
+    {
+        sLog.outError("\nYou have _outdated_ DBC files. Please re-extract DBC files for one from client build: %s", World::AcceptableClientBuildsListStr().c_str());
+        Log::WaitBeforeContinueIfNeed();
+        exit(1);
     }
 }
 
@@ -329,60 +499,4 @@ void LoadDBCTables()
     sLog.outString();
 }
 
-int32 GetAreaFlagByAreaID(uint32 area_id)
-{
-    AreaFlagByAreaID::iterator i = sAreaFlagByAreaID.find(area_id);
-    if (i == sAreaFlagByAreaID.end())
-        return -1;
 
-    return i->second;
-}
-
-uint32 GetAreaIdByLocalizedName(const std::string& name)
-{
-    for (auto areaEntry : sDBCAreaTable)
-    {
-        for (uint32 i = 0; i < MAX_LOCALE; ++i)
-        {
-            std::string area_name(areaEntry->area_name[i]);
-            if (area_name.size() > 0 && name.find(" - " + area_name) != std::string::npos)
-            {
-                return areaEntry->ID;
-            }
-        }
-    }
-    return 0;
-}
-
-std::vector<WMOAreaTableEntry const*>& GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid)
-{
-    return sWMOAreaInfoByTripple[WMOAreaTableTripple(rootid, adtid, groupid)];
-}
-
-AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id)
-{
-    int32 areaflag = GetAreaFlagByAreaID(area_id);
-    if (areaflag < 0)
-        return nullptr;
-
-    return sDBCAreaTable.LookupEntry(areaflag);
-}
-
-AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_id)
-{
-    if (area_flag)
-        return sDBCAreaTable.LookupEntry(area_flag);
-
-    if (MapEntry const* mapEntry = sDBCMap.LookupEntry(map_id))
-        return GetAreaEntryByAreaID(mapEntry->linked_zone);
-
-    return nullptr;
-}
-
-uint32 GetAreaFlagByMapId(uint32 mapid)
-{
-    AreaFlagByMapID::iterator i = sAreaFlagByMapID.find(mapid);
-    if (i == sAreaFlagByMapID.end())
-        return 0;
-    return i->second;
-}

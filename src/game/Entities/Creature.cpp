@@ -546,7 +546,7 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
     {
         if (factionTemplate->factionFlags & FACTION_TEMPLATE_FLAG_PVP)
         {
-            const AreaTableEntry* zone = GetAreaEntryByAreaID(GetAreaId());
+            const AreaTableEntry* zone = TerrainManager::GetAreaEntryByAreaID(GetAreaId());
             const bool sanctuary = (zone && (zone->flags & AREA_FLAG_SANCTUARY));
             SetPvP(!sanctuary);
         }
@@ -642,6 +642,15 @@ uint32 Creature::ChooseDisplayId(const CreatureInfo* cinfo, const CreatureData* 
     }
 
     return display_id;
+}
+
+uint32 Creature::GetCreatureModelRace(uint32 model_id)
+{
+    CreatureDisplayInfoEntry const* displayEntry = sDBCCreatureDisplayInfo.LookupEntry(model_id);
+    if (!displayEntry)
+        return 0;
+    CreatureDisplayInfoExtraEntry const* extraEntry = sDBCCreatureDisplayInfoExtra.LookupEntry(displayEntry->ExtendedDisplayInfoID);
+    return extraEntry ? extraEntry->Race : 0;
 }
 
 void Creature::Update(const uint32 diff)

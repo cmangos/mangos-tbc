@@ -221,7 +221,7 @@ bool inline ConditionEntry::Evaluate(WorldObject const* target, Map const* map, 
         case CONDITION_AREA_FLAG:
         {
             WorldObject const* searcher = source ? source : target;
-            if (AreaTableEntry const* pAreaEntry = GetAreaEntryByAreaID(searcher->GetAreaId()))
+            if (AreaTableEntry const* pAreaEntry = TerrainManager::GetAreaEntryByAreaID(searcher->GetAreaId()))
             {
                 if ((!m_value1 || (pAreaEntry->flags & m_value1)) && (!m_value2 || !(pAreaEntry->flags & m_value2)))
                     return true;
@@ -664,7 +664,7 @@ bool ConditionEntry::IsValid() const
         }
         case CONDITION_AREAID:
         {
-            AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(m_value1);
+            AreaTableEntry const* areaEntry = TerrainManager::GetAreaEntryByAreaID(m_value1);
             if (!areaEntry)
             {
                 sLog.outErrorDb("Zone condition (entry %u, type %u) requires to be in non existing area (%u), skipped", m_entry, m_condition, m_value1);

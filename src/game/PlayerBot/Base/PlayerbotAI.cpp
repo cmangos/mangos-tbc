@@ -9498,7 +9498,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string& text, Player& fromPlayer)
             out << "The talents I can learn:\r";
 
             // find class talent tabs (all players have 3 talent tabs)
-            uint32 const* talentTabIds = GetTalentTabPages(m_bot->getClass());
+            uint32 const* talentTabIds = ObjectMgr::GetTalentTabPages(m_bot->getClass());
 
             for (uint32 i = 0; i < 3; ++i)
             {

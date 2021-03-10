@@ -1134,3 +1134,50 @@ bool Channel::SetStatic(bool state, bool command/* = false*/)
 
     return true;
 }
+
+ChatChannelsEntry const* Channel::GetChatChannelsEntryFor(const std::string& name, uint32 channel_id/* = 0*/)
+{
+    std::wstring wname;
+
+    Utf8toWStr(name, wname);
+
+    if (!channel_id && wname.empty())
+        return nullptr;
+
+    // not sorted, numbering index from 0
+    for (auto entry : sDBCChatChannels)
+    {
+        std::wstring wpattern;
+
+        // try to match by name first, avoid creating custom channels with same name
+        if (!wname.empty())
+        {
+            for (uint32 i = 0; i < MAX_LOCALE; ++i)
+            {
+                Utf8toWStr(entry->pattern[i], wpattern);
+
+                if (wpattern.empty())
+                    continue;
+
+                size_t argpos = wpattern.find(L"%s");
+
+                // formatting arg present: strip and attempt partial match
+                if (argpos != std::wstring::npos)
+                {
+                    wpattern.replace(argpos, 2, L"");
+
+                    if (wname.find(wpattern) != std::wstring::npos)
+                        return entry;
+                }
+                // attempt full match
+                else if (wname.compare(wpattern) == 0)
+                    return entry;
+            }
+        }
+
+        // name still not found, but channel id is provided: possibly no dbc data for client locale
+        if (channel_id && channel_id == entry->ChannelID)
+            return entry;
+    }
+    return nullptr;
+}

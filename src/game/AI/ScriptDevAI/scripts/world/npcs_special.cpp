@@ -1091,7 +1091,7 @@ bool GossipHello_npc_innkeeper(Player* pPlayer, Creature* pCreature)
         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_TRICK_OR_TREAT, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
 
     // Should only apply to innkeeper close to start areas.
-    if (AreaTableEntry const* pAreaEntry = GetAreaEntryByAreaID(pCreature->GetAreaId()))
+    if (AreaTableEntry const* pAreaEntry = TerrainManager::GetAreaEntryByAreaID(pCreature->GetAreaId()))
     {
         if (pAreaEntry->flags & AREA_FLAG_LOWLEVEL)
             pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_WHAT_TO_DO, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);

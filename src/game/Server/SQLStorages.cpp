@@ -20,55 +20,54 @@
 #include "DBCStructure.h"
 #include "World/World.h"
 
-const char CreatureInfosrcfmt[] = "nsssiiiiiiiifiiiiliiiiiffiiiiiiiiffffffiiiiffffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiss";
-const char CreatureInfodstfmt[] = "nsssiiiiiiiifiiiiliiiiiffiiiiiiiiffffffiiiiffffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiisi";
-const char CreatureDataAddonInfofmt[] = "niibbiis";
-const char CreatureConditionalSpawnSrcFmt[] = "niix";
-const char CreatureConditionalSpawnDstFmt[] = "nii";
-const char CreatureModelfmt[] = "nffffbii";
-const char CreatureInfoAddonInfofmt[] = "niibbiis";
-const char EquipmentInfofmt[] = "niii";
-const char EquipmentInfoRawfmt[] = "niiiiiiiii";
-const char GameObjectInfosrcfmt[] = "niisssiiifiiiiiiiiiiiiiiiiiiiiiiiiiiis";
-const char GameObjectInfodstfmt[] = "niisssiiifiiiiiiiiiiiiiiiiiiiiiiiiiiii";
-const char ItemPrototypesrcfmt[] = "niiisiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffiffiffiffiffiiiiiiiiiifiiifiiiiiifiiiiiifiiiiiifiiiiiifiiiisiiiiiiiiiiiiiiiiiiiiiiiiifsiiiiii";
-const char ItemPrototypedstfmt[] = "niiisiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffiffiffiffiffiiiiiiiiiifiiifiiiiiifiiiiiifiiiiiifiiiiiifiiiisiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiii";
-const char PageTextfmt[] = "nsi";
-const char InstanceTemplatesrcfmt[] = "niiiiisl";
-const char InstanceTemplatedstfmt[] = "niiiiiil";
-const char WorldTemplatesrcfmt[] = "ns";
-const char WorldTemplatedstfmt[] = "ni";
-const char ConditionsFmt[] = "niiiiiix";
-const char SpellScriptTargetFmt[] = "niii";
-const char SpellEntryfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiifffiiiissssssssssssssssssssssssssssssssiiiiiLiiiifffiiiiiiiii";
-const char SpellConefmt[] = "ni";
-const char DungeonEncounterFmt[] = "niiiissssssssssssssssii";
-const char FactionEntryfmt[] = "niiiiiiiiiiiiiiiiiiffiissssssssssssssss";
-const char WorldSafeLocsFmt[] = "niffffs";
+const char CreatureInfosrcfmt[]               = "nsssiiiiiiiifiiiiliiiiiffiiiiiiiiffffffiiiiffffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiss";
+const char CreatureInfodstfmt[]               = "nsssiiiiiiiifiiiiliiiiiffiiiiiiiiffffffiiiiffffiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiisi";
+const char CreatureDataAddonInfofmt[]         = "niibbiis";
+const char CreatureConditionalSpawnSrcFmt[]   = "niix";
+const char CreatureConditionalSpawnDstFmt[]   = "nii";
+const char CreatureModelfmt[]                 = "nffffbii";
+const char CreatureInfoAddonInfofmt[]         = "niibbiis";
+const char EquipmentInfofmt[]                 = "niii";
+const char EquipmentInfoRawfmt[]              = "niiiiiiiii";
+const char GameObjectInfosrcfmt[]             = "niisssiiifiiiiiiiiiiiiiiiiiiiiiiiiiiis";
+const char GameObjectInfodstfmt[]             = "niisssiiifiiiiiiiiiiiiiiiiiiiiiiiiiiii";
+const char ItemPrototypesrcfmt[]              = "niiisiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffiffiffiffiffiiiiiiiiiifiiifiiiiiifiiiiiifiiiiiifiiiiiifiiiisiiiiiiiiiiiiiiiiiiiiiiiiifsiiiiii";
+const char ItemPrototypedstfmt[]              = "niiisiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffiffiffiffiffiiiiiiiiiifiiifiiiiiifiiiiiifiiiiiifiiiiiifiiiisiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiii";
+const char PageTextfmt[]                      = "nsi";
+const char InstanceTemplatesrcfmt[]           = "niiiiisl";
+const char InstanceTemplatedstfmt[]           = "niiiiiil";
+const char WorldTemplatesrcfmt[]              = "ns";
+const char WorldTemplatedstfmt[]              = "ni";
+const char ConditionsFmt[]                    = "niiiiiix";
+const char SpellScriptTargetFmt[]             = "niii";
+const char SpellEntryfmt[]                    = "niiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiifiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiffffffiiiiiiiiiiiiiiiiiiiiifffiiiiiiiiiiiiiiifffiiiissssssssssssssssssssssssssssssssiiiiiLiiiifffiiiiiiiii";
+const char SpellConefmt[]                     = "ni";
+const char DungeonEncounterFmt[]              = "niiiissssssssssssssssii";
+const char FactionEntryfmt[]                  = "niiiiiiiiiiiiiiiiiiffiissssssssssssssss";
+const char WorldSafeLocsFmt[]                 = "niffffs";
 
-SQLStorage<CreatureInfo>             sCreatureStorage(CreatureInfosrcfmt, CreatureInfodstfmt, "", "creature_template");
-SQLStorage<CreatureDataAddon>        sCreatureDataAddonStorage(CreatureDataAddonInfofmt, "creature_addon");
-SQLStorage<CreatureDataAddon>        sCreatureInfoAddonStorage(CreatureInfoAddonInfofmt, "creature_template_addon");
-SQLStorage<CreatureModelInfo>        sCreatureModelStorage(CreatureModelfmt, "creature_model_info");
-SQLStorage<EquipmentInfo>            sEquipmentStorage(EquipmentInfofmt, "creature_equip_template");
-SQLStorage<EquipmentInfoRaw>         sEquipmentStorageRaw(EquipmentInfoRawfmt, "creature_equip_template_raw");
-SQLStorage<PageText>                 sPageTextStore(PageTextfmt, "page_text");
-SQLStorage<ItemPrototype>            sItemStorage(ItemPrototypesrcfmt, ItemPrototypedstfmt, "", "item_template");
-SQLStorage<InstanceTemplate>         sInstanceTemplate(InstanceTemplatesrcfmt, InstanceTemplatedstfmt, "", "instance_template");
-SQLStorage<WorldTemplate>            sWorldTemplate(WorldTemplatesrcfmt, WorldTemplatedstfmt, "", "world_template");
-SQLStorage<ConditionEntry>           sConditionStorage(ConditionsFmt, "conditions");
-SQLStorage<SpellEntry>               sSpellTemplate(SpellEntryfmt, "spell_template");
-SQLStorage<SpellCone>                sSpellCones(SpellConefmt, "spell_cone");
-SQLStorage<DungeonEncounterEntry>    sDungeonEncounterStore(DungeonEncounterFmt, "instance_dungeon_encounters");
-SQLStorage<FactionEntry>             sFactionStore(FactionEntryfmt, "faction_store");
-SQLStorage<CreatureConditionalSpawn> sCreatureConditionalSpawnStore(CreatureConditionalSpawnSrcFmt, CreatureConditionalSpawnDstFmt, "", "creature_conditional_spawn");
-SQLStorage<WorldSafeLocsEntry>       sWorldSafeLocsStore(WorldSafeLocsFmt, "world_safe_locs");
+SQLStorage<CreatureInfo>                      sCreatureStorage(CreatureInfosrcfmt, CreatureInfodstfmt, "", "creature_template");
+SQLStorage<CreatureDataAddon>                 sCreatureDataAddonStorage(CreatureDataAddonInfofmt, "creature_addon");
+SQLStorage<CreatureDataAddon>                 sCreatureInfoAddonStorage(CreatureInfoAddonInfofmt, "creature_template_addon");
+SQLStorage<CreatureModelInfo>                 sCreatureModelStorage(CreatureModelfmt, "creature_model_info");
+SQLStorage<EquipmentInfo>                     sEquipmentStorage(EquipmentInfofmt, "creature_equip_template");
+SQLStorage<EquipmentInfoRaw>                  sEquipmentStorageRaw(EquipmentInfoRawfmt, "creature_equip_template_raw");
+SQLStorage<PageText>                          sPageTextStore(PageTextfmt, "page_text");
+SQLStorage<ItemPrototype>                     sItemStorage(ItemPrototypesrcfmt, ItemPrototypedstfmt, "", "item_template");
+SQLStorage<InstanceTemplate>                  sInstanceTemplate(InstanceTemplatesrcfmt, InstanceTemplatedstfmt, "", "instance_template");
+SQLStorage<WorldTemplate>                     sWorldTemplate(WorldTemplatesrcfmt, WorldTemplatedstfmt, "", "world_template");
+SQLStorage<ConditionEntry>                    sConditionStorage(ConditionsFmt, "conditions");
+SQLStorage<SpellEntry>                        sSpellTemplate(SpellEntryfmt, "spell_template");
+SQLStorage<SpellCone>                         sSpellCones(SpellConefmt, "spell_cone");
+SQLStorage<DungeonEncounterEntry>             sDungeonEncounterStore(DungeonEncounterFmt, "instance_dungeon_encounters");
+SQLStorage<FactionEntry>                      sFactionStore(FactionEntryfmt, "faction_store");
+SQLStorage<CreatureConditionalSpawn>          sCreatureConditionalSpawnStore(CreatureConditionalSpawnSrcFmt, CreatureConditionalSpawnDstFmt, "", "creature_conditional_spawn");
+SQLStorage<WorldSafeLocsEntry>                sWorldSafeLocsStore(WorldSafeLocsFmt, "world_safe_locs");
 
-SQLHashStorage<GameObjectInfo> sGOStorage(GameObjectInfosrcfmt, GameObjectInfodstfmt, "entry", "gameobject_template");
+SQLHashStorage<GameObjectInfo>                sGOStorage(GameObjectInfosrcfmt, GameObjectInfodstfmt, "entry", "gameobject_template");
+SQLMultiStorage<SpellTargetEntry>             sSpellScriptTargetStorage(SpellScriptTargetFmt, "entry", "spell_script_target");
 
-SQLMultiStorage<SpellTargetEntry> sSpellScriptTargetStorage(SpellScriptTargetFmt, "entry", "spell_script_target");
-
-SQLStorage<SpellEntry> const* GetSpellStore() { return &sSpellTemplate; }
+SQLStorage<SpellEntry> const*                 GetSpellStore() { return &sSpellTemplate; }
 
 
 // DBC store in database
@@ -498,5 +497,4 @@ void LoadDBCTables()
     sLog.outString(">> DBC loaded.");
     sLog.outString();
 }
-
 

@@ -40,7 +40,8 @@ void instance_scarlet_monastery::OnCreatureCreate(Creature* pCreature)
     switch (pCreature->GetEntry())
     {
         case NPC_MOGRAINE:
-            DoOrSimulateScriptTextForThisInstance(SAY_ASHBRINGER_ENTRANCE, NPC_MOGRAINE);
+            if (GetData(TYPE_ASHBRINGER_EVENT) == IN_PROGRESS)
+                DoOrSimulateScriptTextForThisInstance(SAY_ASHBRINGER_ENTRANCE, NPC_MOGRAINE);
         case NPC_WHITEMANE:
         case NPC_VORREL:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();

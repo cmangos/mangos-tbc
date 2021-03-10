@@ -155,6 +155,7 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
                 {
                     player->GetMap()->ScriptsStart(sRelayScripts, ASHBRINGER_RELAY_SCRIPT_ID, m_creature, player);
                     m_instance->SetData(TYPE_ASHBRINGER_EVENT, DONE);
+                    return;
                 }
             }
         }

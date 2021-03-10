@@ -192,7 +192,7 @@ void CreatureEventAI::InitAI()
                                     m_mainSpellId = i.action[actionIdx].cast.spellId;
                                     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(m_mainSpellId);
                                     m_mainSpellCost = Spell::CalculatePowerCost(spellInfo, m_creature);
-                                    m_mainSpellMinRange = GetSpellMinRange(sDBCSpellRange.LookupEntry(spellInfo->rangeIndex));
+                                    m_mainSpellMinRange = GetSpellMinRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
                                     m_mainAttackMask = SpellSchoolMask(m_mainAttackMask + spellInfo->SchoolMask);
                                     m_mainSpellInfo = spellInfo;
                                 }

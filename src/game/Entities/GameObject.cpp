@@ -1922,7 +1922,7 @@ void GameObject::SetGoState(GOState state)
 void GameObject::SetDisplayId(uint32 modelId)
 {
     SetUInt32Value(GAMEOBJECT_DISPLAYID, modelId);
-    m_displayInfo = sDBCGameObjectDisplayInfo.LookupEntry(modelId);
+    m_displayInfo = sGameObjectDisplayInfoStore.LookupEntry(modelId);
     UpdateModel();
 }
 
@@ -2439,14 +2439,14 @@ bool GameObject::IsAtInteractDistance(Player const* player, uint32 maxRange) con
     {
         if (maxRange == 0.f)
         {
-            SpellRangeEntry const* srange = sDBCSpellRange.LookupEntry(spellInfo->rangeIndex);
+            SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
             maxRange = GetSpellMaxRange(srange);
         }
 
         if (GetGoType() == GAMEOBJECT_TYPE_SPELL_FOCUS)
             return maxRange * maxRange >= GetDistance(player, true, DIST_CALC_NONE);
 
-        if (sDBCGameObjectDisplayInfo.LookupEntry(GetGOInfo()->displayId))
+        if (sGameObjectDisplayInfoStore.LookupEntry(GetGOInfo()->displayId))
             return IsAtInteractDistance(player->GetPosition(), maxRange);
     }
 
@@ -2499,7 +2499,7 @@ SpellEntry const* GameObject::GetSpellForLock(Player const* player) const
     if (!lockId)
         return nullptr;
 
-    LockEntry const* lock = sDBCLock.LookupEntry(lockId);
+    LockEntry const* lock = sLockStore.LookupEntry(lockId);
     if (!lock)
         return nullptr;
 

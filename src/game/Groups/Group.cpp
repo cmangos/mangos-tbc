@@ -1259,7 +1259,7 @@ void Group::ResetInstances(InstanceResetMethod method, Player* SendMsgTo)
     for (BoundInstancesMap::iterator itr = m_boundInstances[diff].begin(); itr != m_boundInstances[diff].end();)
     {
         DungeonPersistentState* state = itr->second.state;
-        const MapEntry* entry = sDBCMap.LookupEntry(itr->first);
+        const MapEntry* entry = sMapStore.LookupEntry(itr->first);
         if (!entry || (!state->CanReset() && method != INSTANCE_RESET_GROUP_DISBAND))
         {
             ++itr;
@@ -1329,7 +1329,7 @@ void Group::ResetInstances(InstanceResetMethod method, Player* SendMsgTo)
 
 InstanceGroupBind* Group::GetBoundInstance(uint32 mapid)
 {
-    MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
+    MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
     if (!mapEntry)
         return nullptr;
 
@@ -1486,8 +1486,8 @@ void Group::RewardGroupAtKill(Unit* pVictim, Player* player_tap)
         uint32 xp = (PvP || !not_gray_member_with_max_level || pVictim->GetTypeId() != TYPEID_UNIT) ? 0 : MaNGOS::XP::Gain(not_gray_member_with_max_level, static_cast<Creature*>(pVictim));
 
         /// skip in check PvP case (for speed, not used)
-        bool is_raid = PvP ? false : sDBCMap.LookupEntry(pVictim->GetMapId())->IsRaid() && isRaidGroup();
-        bool is_dungeon = PvP ? false : sDBCMap.LookupEntry(pVictim->GetMapId())->IsDungeon();
+        bool is_raid = PvP ? false : sMapStore.LookupEntry(pVictim->GetMapId())->IsRaid() && isRaidGroup();
+        bool is_dungeon = PvP ? false : sMapStore.LookupEntry(pVictim->GetMapId())->IsDungeon();
         float group_rate = MaNGOS::XP::xp_in_group_rate(count, is_raid);
 
         for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())

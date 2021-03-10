@@ -225,7 +225,7 @@ void AuctionHouseBot::Update()
                     continue; // don't put up items we don't know the value of
                 uint32 bidPrice = buyoutPrice * (urand(m_auctionBidMin, m_auctionBidMax)) / 100;
                 if (item)
-                    auctionHouse->AddAuction(sDBCAuctionHouse.LookupEntry(houseType == AUCTION_HOUSE_ALLIANCE ? 1 : (houseType == AUCTION_HOUSE_HORDE ? 6 : 7)), item, urand(m_auctionTimeMin, m_auctionTimeMax) * HOUR, bidPrice, buyoutPrice);
+                    auctionHouse->AddAuction(sAuctionHouseStore.LookupEntry(houseType == AUCTION_HOUSE_ALLIANCE ? 1 : (houseType == AUCTION_HOUSE_HORDE ? 6 : 7)), item, urand(m_auctionTimeMin, m_auctionTimeMax) * HOUR, bidPrice, buyoutPrice);
             }
         }
     } else if (m_houseAction >= MAX_AUCTION_HOUSE_TYPE && urand(0, 99) < m_chanceBuy)

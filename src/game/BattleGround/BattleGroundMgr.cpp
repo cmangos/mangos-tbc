@@ -1838,7 +1838,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
         uint32 resultedBgTypeId = fields[0].GetUInt32();
 
         // can be overwrite by values from DB
-        BattlemasterListEntry const* bl = sDBCBattlemasterList.LookupEntry(resultedBgTypeId);
+        BattlemasterListEntry const* bl = sBattlemasterListStore.LookupEntry(resultedBgTypeId);
         if (!bl)
         {
             sLog.outError("Battleground ID %u not found in BattlemasterList.dbc. Battleground not created.", resultedBgTypeId);
@@ -2168,7 +2168,7 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
     }
     CharTitlesEntry const* titleEntries[5]; // optimization
     for (uint32 i = 0; i < 5; ++i)
-        titleEntries[i] = sDBCCharTitles.LookupEntry(titles[i]);
+        titleEntries[i] = sCharTitlesStore.LookupEntry(titles[i]);
 
     // Remove titles from online players
     // Only Rank 1 titles are permanent
@@ -2541,7 +2541,7 @@ void BattleGroundMgr::LoadBattleMastersEntry()
 
         uint32 entry = fields[0].GetUInt32();
         uint32 bgTypeId  = fields[1].GetUInt32();
-        if (!sDBCBattlemasterList.LookupEntry(bgTypeId))
+        if (!sBattlemasterListStore.LookupEntry(bgTypeId))
         {
             sLog.outErrorDb("Table `battlemaster_entry` contain entry %u for nonexistent battleground type %u, ignored.", entry, bgTypeId);
             continue;

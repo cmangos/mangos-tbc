@@ -839,7 +839,7 @@ void WorldSession::HandleBuyStableSlot(WorldPacket& recv_data)
 
     if (GetPlayer()->m_stableSlots < MAX_PET_STABLES)
     {
-        StableSlotPricesEntry const* SlotPrice = sDBCStableSlotPrices.LookupEntry(GetPlayer()->m_stableSlots + 1);
+        StableSlotPricesEntry const* SlotPrice = sStableSlotPricesStore.LookupEntry(GetPlayer()->m_stableSlots + 1);
         if (_player->GetMoney() >= SlotPrice->Price)
         {
             ++GetPlayer()->m_stableSlots;

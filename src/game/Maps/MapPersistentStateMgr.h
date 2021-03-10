@@ -378,7 +378,7 @@ class MapPersistentStateManager : public MaNGOS::Singleton<MapPersistentStateMan
 template<typename Do>
 inline void MapPersistentStateManager::DoForAllStatesWithMapId(uint32 mapId, Do& _do)
 {
-    MapEntry const* mapEntry = sDBCMap.LookupEntry(mapId);
+    MapEntry const* mapEntry = sMapStore.LookupEntry(mapId);
     if (!mapEntry)
         return;
 

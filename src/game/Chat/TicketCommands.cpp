@@ -199,7 +199,7 @@ bool ChatHandler::HandleTicketSortCommand(char* args)
     if (!ExtractUInt32(&args, categoryId))
         return false;
 
-    if (GMTicketCategoryEntry const* category = sDBCGMTicketCategory.LookupEntry(categoryId))
+    if (GMTicketCategoryEntry const* category = sGMTicketCategoryStore.LookupEntry(categoryId))
     {
         if (!HandleTicketMgrCommandResult(*this, ticketId, sTicketMgr.Sort(sTicketMgr.GetTicketById(ticketId), *category, m_session)))
         {
@@ -265,7 +265,7 @@ bool ChatHandler::HandleTicketsListCommand(char* args)
             max = arg1;
         else
         {
-            category = sDBCGMTicketCategory.LookupEntry(arg1);
+            category = sGMTicketCategoryStore.LookupEntry(arg1);
 
             if (!category)
             {

@@ -404,7 +404,7 @@ bool PlayerbotClassAI::FleeFromAoEIfCan(uint32 spellId, Unit* pTarget)
     float radius = 0;
     SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellId);
     if (spellproto)
-        radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spellproto->EffectRadiusIndex[EFFECT_INDEX_0]));
+        radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellproto->EffectRadiusIndex[EFFECT_INDEX_0]));
 
     // Step 2: Get current bot position to move from it
     float curr_x, curr_y, curr_z;
@@ -465,7 +465,7 @@ bool PlayerbotClassAI::FleeFromNpcWithAuraIfCan(uint32 NpcEntry, uint32 spellId,
     float radius = 0;
     SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellId);
     if (spellproto)
-        radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spellproto->EffectRadiusIndex[EFFECT_INDEX_0]));
+        radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellproto->EffectRadiusIndex[EFFECT_INDEX_0]));
 
     if (radius == 0)
         return false;

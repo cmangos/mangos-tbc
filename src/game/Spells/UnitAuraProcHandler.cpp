@@ -2844,9 +2844,9 @@ SpellAuraProcResult Unit::HandleRaidProcFromChargeAuraProc(ProcExecutionData& da
     {
         float radius;
         if (spellProto->EffectRadiusIndex[effIdx])
-            radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
+            radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
         else
-            radius = GetSpellMaxRange(sDBCSpellRange.LookupEntry(spellProto->rangeIndex));
+            radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spellProto->rangeIndex));
 
         if (Unit* caster = triggeredByAura->GetCaster())
         {
@@ -2918,9 +2918,9 @@ SpellAuraProcResult Unit::HandleRaidProcFromChargeWithValueAuraProc(ProcExecutio
     {
         float radius;
         if (spellProto->EffectRadiusIndex[effIdx])
-            radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
+            radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(spellProto->EffectRadiusIndex[effIdx]));
         else
-            radius = GetSpellMaxRange(sDBCSpellRange.LookupEntry(spellProto->rangeIndex));
+            radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spellProto->rangeIndex));
 
         if (Player* caster = static_cast<Player*>(triggeredByAura->GetCaster()))
         {

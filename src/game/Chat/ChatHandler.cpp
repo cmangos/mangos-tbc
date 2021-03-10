@@ -624,7 +624,7 @@ void WorldSession::HandleTextEmoteOpcode(WorldPacket& recv_data)
     recv_data >> emoteNum;
     recv_data >> guid;
 
-    EmotesTextEntry const* em = sDBCEmotesText.LookupEntry(text_emote);
+    EmotesTextEntry const* em = sEmotesTextStore.LookupEntry(text_emote);
     if (!em)
         return;
 

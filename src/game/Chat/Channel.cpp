@@ -1145,7 +1145,7 @@ ChatChannelsEntry const* Channel::GetChatChannelsEntryFor(const std::string& nam
         return nullptr;
 
     // not sorted, numbering index from 0
-    for (auto entry : sDBCChatChannels)
+    for (auto entry : sChatChannelsStore)
     {
         std::wstring wpattern;
 

@@ -29,7 +29,7 @@
 
 bool IsPrimaryProfessionSkill(uint32 skill)
 {
-    SkillLineEntry const* pSkill = sDBCSkillLine.LookupEntry(skill);
+    SkillLineEntry const* pSkill = sSkillLineStore.LookupEntry(skill);
     if (!pSkill)
         return false;
 
@@ -57,7 +57,7 @@ int32 GetSpellDuration(SpellEntry const* spellInfo)
 {
     if (!spellInfo)
         return 0;
-    SpellDurationEntry const* du = sDBCSpellDuration.LookupEntry(spellInfo->DurationIndex);
+    SpellDurationEntry const* du = sSpellDurationStore.LookupEntry(spellInfo->DurationIndex);
     if (!du)
         return 0;
     return (du->Duration[0] == -1) ? -1 : abs(du->Duration[0]);
@@ -67,7 +67,7 @@ int32 GetSpellMaxDuration(SpellEntry const* spellInfo)
 {
     if (!spellInfo)
         return 0;
-    SpellDurationEntry const* du = sDBCSpellDuration.LookupEntry(spellInfo->DurationIndex);
+    SpellDurationEntry const* du = sSpellDurationStore.LookupEntry(spellInfo->DurationIndex);
     if (!du)
         return 0;
     return (du->Duration[2] == -1) ? -1 : abs(du->Duration[2]);
@@ -136,7 +136,7 @@ uint32 GetSpellCastTime(SpellEntry const* spellInfo, WorldObject* caster, Spell*
                         return 0;
     }
 
-    SpellCastTimesEntry const* spellCastTimeEntry = sDBCSpellCastTimes.LookupEntry(spellInfo->CastingTimeIndex);
+    SpellCastTimesEntry const* spellCastTimeEntry = sSpellCastTimesStore.LookupEntry(spellInfo->CastingTimeIndex);
 
     // not all spells have cast time index and this is all is passive abilities
     if (!spellCastTimeEntry)
@@ -519,7 +519,7 @@ SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 f
     bool actAsShifted = false;
     if (form > 0)
     {
-        SpellShapeshiftFormEntry const* shapeInfo = sDBCSpellShapeshiftForm.LookupEntry(form);
+        SpellShapeshiftFormEntry const* shapeInfo = sSpellShapeshiftFormStore.LookupEntry(form);
         if (!shapeInfo)
         {
             sLog.outError("GetErrorAtShapeshiftedCast: unknown shapeshift %u", form);
@@ -580,7 +580,7 @@ void SpellMgr::LoadSpellTargetPositions()
         st.target_Z           = fields[4].GetFloat();
         st.target_Orientation = fields[5].GetFloat();
 
-        MapEntry const* mapEntry = sDBCMap.LookupEntry(st.target_mapId);
+        MapEntry const* mapEntry = sMapStore.LookupEntry(st.target_mapId);
         if (!mapEntry)
         {
             sLog.outErrorDb("Spell (ID:%u) target map (ID: %u) does not exist in `Map.dbc`.", Spell_ID, st.target_mapId);
@@ -1521,7 +1521,7 @@ void SpellMgr::LoadSpellChains()
     mSpellChainsNext.clear();                               // need for reload case
 
     // load known data for talents
-    for (auto talentInfo : sDBCTalent)
+    for (auto talentInfo : sTalentStore)
     {
         // not add ranks for 1 ranks talents (if exist non ranks spells then it will included in table data)
         if (!talentInfo->RankID[1])
@@ -1746,7 +1746,7 @@ void SpellMgr::LoadSpellChains()
                 continue;
             }
 
-            if (TalentEntry const* talentEntry = sDBCTalent.LookupEntry(pos->talent_id))
+            if (TalentEntry const* talentEntry = sTalentStore.LookupEntry(pos->talent_id))
             {
                 if (node.first != talentEntry->RankID[0])
                 {
@@ -2516,7 +2516,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
     if (spellInfo->HasAttribute(SPELL_ATTR_EX4_CAST_ONLY_IN_OUTLAND) && !(player && player->IsGameMaster()))
     {
         uint32 v_map = Map::GetVirtualMapForMapAndZone(map_id, zone_id);
-        MapEntry const* mapEntry = sDBCMap.LookupEntry(v_map);
+        MapEntry const* mapEntry = sMapStore.LookupEntry(v_map);
         if (!mapEntry || mapEntry->addon < 1 || !mapEntry->IsContinent())
             return SPELL_FAILED_REQUIRES_AREA;
     }
@@ -2524,7 +2524,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
     // raid instance limitation
     if (spellInfo->HasAttribute(SPELL_ATTR_EX6_NOT_IN_RAID_INSTANCE))
     {
-        MapEntry const* mapEntry = sDBCMap.LookupEntry(map_id);
+        MapEntry const* mapEntry = sMapStore.LookupEntry(map_id);
         if (!mapEntry || mapEntry->IsRaid())
             return SPELL_FAILED_REQUIRES_AREA;
     }
@@ -2580,7 +2580,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
         case 24171:                                         // Resurrection Impact Visual
         case 44535:                                         // Spirit Heal (mana)
         {
-            MapEntry const* mapEntry = sDBCMap.LookupEntry(map_id);
+            MapEntry const* mapEntry = sMapStore.LookupEntry(map_id);
             if (!mapEntry)
                 return SPELL_FAILED_REQUIRES_AREA;
             return mapEntry->IsBattleGround() ? SPELL_CAST_OK : SPELL_FAILED_ONLY_BATTLEGROUNDS;
@@ -2622,8 +2622,8 @@ void SpellMgr::LoadSkillLineAbilityMaps()
 
     uint32 count = 0;
 
-    BarGoLink bar(sDBCSkillLineAbility.GetNumRows());
-    for (auto entry : sDBCSkillLineAbility)
+    BarGoLink bar(sSkillLineAbilityStore.GetNumRows());
+    for (auto entry : sSkillLineAbilityStore)
     {
         bar.step();
         mSkillLineAbilityMapBySpellId.insert(SkillLineAbilityMap::value_type(entry->spellId, entry));
@@ -2639,15 +2639,15 @@ void SpellMgr::LoadSkillRaceClassInfoMap()
 {
     mSkillRaceClassInfoMap.clear();
 
-    BarGoLink bar(sDBCSkillRaceClassInfo.GetNumRows());
+    BarGoLink bar(sSkillRaceClassInfoStore.GetNumRows());
     uint32 count = 0;
 
-    for (auto skillRCInfo : sDBCSkillRaceClassInfo)
+    for (auto skillRCInfo : sSkillRaceClassInfoStore)
     {
         bar.step();
 
         // not all skills really listed in ability skills list
-        if (!sDBCSkillLine.LookupEntry(skillRCInfo->skillId))
+        if (!sSkillLineStore.LookupEntry(skillRCInfo->skillId))
             continue;
 
         mSkillRaceClassInfoMap.insert(SkillRaceClassInfoMap::value_type(skillRCInfo->skillId, skillRCInfo));

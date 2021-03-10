@@ -251,8 +251,8 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
         }
     }
 
-    ChrClassesEntry const* classEntry = sDBCChrClasses.LookupEntry(class_);
-    ChrRacesEntry const* raceEntry = sDBCChrRaces.LookupEntry(race_);
+    ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(class_);
+    ChrRacesEntry const* raceEntry = sChrRacesStore.LookupEntry(race_);
 
     if (!classEntry || !raceEntry)
     {
@@ -681,7 +681,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     {
         pCurrChar->setCinematic(1);
 
-        if (ChrRacesEntry const* rEntry = sDBCChrRaces.LookupEntry(pCurrChar->getRace()))
+        if (ChrRacesEntry const* rEntry = sChrRacesStore.LookupEntry(pCurrChar->getRace()))
             pCurrChar->SendCinematicStart(rEntry->CinematicSequence);
     }
 
@@ -692,7 +692,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     else
     {
         // Some basic checks in case of a map without areatrigger
-        MapEntry const* mapEntry = sDBCMap.LookupEntry(pCurrChar->GetMapId());
+        MapEntry const* mapEntry = sMapStore.LookupEntry(pCurrChar->GetMapId());
         if (!mapEntry)
             lockStatus = AREA_LOCKSTATUS_UNKNOWN_ERROR;
         else if (pCurrChar->GetSession()->GetExpansion() < mapEntry->Expansion())

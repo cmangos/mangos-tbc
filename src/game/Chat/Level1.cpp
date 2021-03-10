@@ -212,7 +212,7 @@ bool ChatHandler::HandleGMMountUpCommand(char* args)
 
             if (ExtractUInt32(&args, displayid))
             {
-                if (sDBCCreatureDisplayInfo.LookupEntry(displayid))
+                if (sCreatureDisplayInfoStore.LookupEntry(displayid))
                 {
                     m_session->GetPlayer()->Mount(displayid);
                     return true;
@@ -300,7 +300,7 @@ bool ChatHandler::HandleGPSCommand(char* args)
     uint32 zone_id, area_id;
     obj->GetZoneAndAreaId(zone_id, area_id);
 
-    MapEntry const* mapEntry = sDBCMap.LookupEntry(obj->GetMapId());
+    MapEntry const* mapEntry = sMapStore.LookupEntry(obj->GetMapId());
     AreaTableEntry const* zoneEntry = TerrainManager::GetAreaEntryByAreaID(zone_id);
     AreaTableEntry const* areaEntry = TerrainManager::GetAreaEntryByAreaID(area_id);
 
@@ -850,7 +850,7 @@ bool ChatHandler::HandleModifyFactionCommand(char* args)
     if (!ExtractUint32KeyFromLink(&args, "Hfaction", factionid))
         return false;
 
-    if (!sDBCFactionTemplate.LookupEntry(factionid))
+    if (!sFactionTemplateStore.LookupEntry(factionid))
     {
         PSendSysMessage(LANG_WRONG_FACTION, factionid);
         SetSentErrorMessage(true);
@@ -1331,7 +1331,7 @@ bool ChatHandler::HandleLookupAreaCommand(char* args)
     wstrToLower(wnamepart);
 
     // Search in AreaTable.dbc
-    for (auto areaEntry : sDBCAreaTable)
+    for (auto areaEntry : sAreaTableStore)
     {
         int loc = GetSessionDbcLocale();
         std::string name = areaEntry->area_name[loc];
@@ -1750,7 +1750,7 @@ bool ChatHandler::HandleGoTaxinodeCommand(char* args)
     if (!ExtractUint32KeyFromLink(&args, "Htaxinode", nodeId))
         return false;
 
-    TaxiNodesEntry const* node = sDBCTaxiNodes.LookupEntry(nodeId);
+    TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(nodeId);
     if (!node)
     {
         PSendSysMessage(LANG_COMMAND_GOTAXINODENOTFOUND, nodeId);
@@ -1888,7 +1888,7 @@ bool ChatHandler::HandleGoZoneXYCommand(char* args)
     // update to parent zone if exist (client map show only zones without parents)
     AreaTableEntry const* zoneEntry = areaEntry->zone ? TerrainManager::GetAreaEntryByAreaID(areaEntry->zone) : areaEntry;
 
-    MapEntry const* mapEntry = sDBCMap.LookupEntry(zoneEntry->mapid);
+    MapEntry const* mapEntry = sMapStore.LookupEntry(zoneEntry->mapid);
 
     if (mapEntry->Instanceable())
     {

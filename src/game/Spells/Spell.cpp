@@ -421,7 +421,7 @@ template<typename T>
 WorldObject* Spell::FindCorpseUsing()
 {
     // non-standard target selection
-    SpellRangeEntry const* srange = sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex);
+    SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex);
     float max_range = GetSpellMaxRange(srange);
 
     WorldObject* result = nullptr;
@@ -1761,7 +1761,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
         }
         case TARGET_LOCATION_CASTER_FRONT_LEAP:
         {
-            float dist = GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
+            float dist = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
             const float IN_OR_UNDER_LIQUID_RANGE = 0.8f;                // range to make player under liquid or on liquid surface from liquid level
 
             G3D::Vector3 prevPos, nextPos;
@@ -1925,8 +1925,8 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             float x, y, z;
             // special code for fishing bobber (TARGET_LOCATION_CASTER_FISHING_SPOT), should not try to avoid objects
             // nor try to find ground level, but randomly vary in angle
-            float min_dis = GetSpellMinRange(sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex));
-            float max_dis = GetSpellMaxRange(sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex));
+            float min_dis = GetSpellMinRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+            float max_dis = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
             float dis = rand_norm_f() * (max_dis - min_dis) + min_dis;
             // calculate angle variation for roughly equal dimensions of target area
             float max_angle = (max_dis - min_dis) / (max_dis + m_caster->GetObjectBoundingRadius());
@@ -4917,7 +4917,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 if (m_targets.m_targetMask & (TARGET_FLAG_DEST_LOCATION | TARGET_FLAG_SOURCE_LOCATION))
                 {
                     UnitList targetsCombat;
-                    float radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
+                    float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[i]));
 
                     FillAreaTargets(targetsCombat, radius, 0.f, PUSH_DEST_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
 
@@ -5112,7 +5112,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 if (Unit* target = m_targets.getUnitTarget())
                 {
-                    float range = GetSpellMaxRange(sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex));
+                    float range = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
 
                     Position pos;
                     target->GetFirstCollisionPosition(pos, target->GetCombatReach(), target->GetAngle(m_caster));
@@ -5276,7 +5276,7 @@ SpellCastResult Spell::CheckCast(bool strict)
             // These won't show up in m_caster->GetPetGUID()
             case SPELL_EFFECT_SUMMON:
             {
-                if (SummonPropertiesEntry const* summon_prop = sDBCSummonProperties.LookupEntry(m_spellInfo->EffectMiscValueB[i]))
+                if (SummonPropertiesEntry const* summon_prop = sSummonPropertiesStore.LookupEntry(m_spellInfo->EffectMiscValueB[i]))
                 {
                     if (summon_prop->Group == SUMMON_PROP_GROUP_PETS)
                     {
@@ -5348,7 +5348,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                     return SPELL_FAILED_BAD_TARGETS;
 
                 uint32 mapId = m_caster->GetMapId();
-                const MapEntry* map = sDBCMap.LookupEntry(mapId);
+                const MapEntry* map = sMapStore.LookupEntry(mapId);
                 if (map->IsDungeon())
                 {
                     // pre 2.4 - could not summon to instance
@@ -5371,7 +5371,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
                 // check if our map is dungeon
                 uint32 mapId = m_caster->GetMapId();
-                const MapEntry* map = sDBCMap.LookupEntry(mapId);
+                const MapEntry* map = sMapStore.LookupEntry(mapId);
                 if (map->IsDungeon())
                 {
                     // pre 2.4 - could not summon to instance
@@ -5915,7 +5915,7 @@ std::pair<float, float> Spell::GetMinMaxRange(bool strict)
 
     Unit* caster = dynamic_cast<Unit*>(m_caster); // preparation for GO casting
 
-    SpellRangeEntry const* spellRange = sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex);
+    SpellRangeEntry const* spellRange = sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex);
     if (spellRange)
     {
         Unit* target = m_targets.getUnitTarget();
@@ -5977,7 +5977,7 @@ SpellCastResult Spell::CheckRange(bool strict)
     std::tie(minRange, maxRange) = GetMinMaxRange(strict);
 
     // non strict spell tolerance
-    if (SpellRangeEntry const* spellRange = sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex))
+    if (SpellRangeEntry const* spellRange = sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex))
         if ((spellRange->Flags & SPELL_RANGE_FLAG_MELEE) == 0 && !strict)
             maxRange += std::min(3.f, maxRange * 0.1f); // 10% but no more than MAX_SPELL_RANGE_TOLERANCE
 
@@ -6111,8 +6111,8 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
 
     if (spellInfo->HasAttribute(SPELL_ATTR_LEVEL_DAMAGE_CALCULATION))
     {
-        GtNPCManaCostScalerEntry const* spellScaler = sDBCgtNPCManaCostScaler.LookupEntry(spellInfo->spellLevel - 1);
-        GtNPCManaCostScalerEntry const* casterScaler = sDBCgtNPCManaCostScaler.LookupEntry(caster->getLevel() - 1);
+        GtNPCManaCostScalerEntry const* spellScaler = sgtNPCManaCostScalerStore.LookupEntry(spellInfo->spellLevel - 1);
+        GtNPCManaCostScalerEntry const* casterScaler = sgtNPCManaCostScalerStore.LookupEntry(caster->getLevel() - 1);
         if (spellScaler && casterScaler)
             powerCost *= casterScaler->ratio / spellScaler->ratio;
     }
@@ -6389,7 +6389,7 @@ SpellCastResult Spell::CheckItems()
                 if (targetItem->GetOwner() != m_caster)
                 {
                     uint32 enchant_id = m_spellInfo->EffectMiscValue[i];
-                    SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+                    SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
                     if (!pEnchant)
                         return SPELL_FAILED_ERROR;
                     if (pEnchant->slot & ENCHANTMENT_CAN_SOULBOUND)
@@ -6406,7 +6406,7 @@ SpellCastResult Spell::CheckItems()
                 if (item->GetOwner() != m_caster)
                 {
                     uint32 enchant_id = m_spellInfo->EffectMiscValue[i];
-                    SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+                    SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
                     if (!pEnchant)
                         return SPELL_FAILED_ERROR;
                     if (pEnchant->slot & ENCHANTMENT_CAN_SOULBOUND)
@@ -6967,7 +6967,7 @@ SpellCastResult Spell::CanOpenLock(SpellEffectIndex effIndex, uint32 lockId, Ski
         return SPELL_CAST_OK;
 
     // Get LockInfo
-    LockEntry const* lockInfo = sDBCLock.LookupEntry(lockId);
+    LockEntry const* lockInfo = sLockStore.LookupEntry(lockId);
 
     if (!lockInfo)
         return SPELL_FAILED_BAD_TARGETS;
@@ -7269,9 +7269,9 @@ void Spell::ClearCastItem()
 void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, bool targetB, uint32& EffectChainTarget)
 {
     if (m_spellInfo->EffectRadiusIndex[effIndex])
-        radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
+        radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[effIndex]));
     else
-        radius = GetSpellMaxRange(sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex));
+        radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
 
     uint32 targetMode;
     if (!targetB)

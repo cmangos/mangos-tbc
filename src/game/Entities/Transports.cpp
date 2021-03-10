@@ -83,7 +83,7 @@ void MapManager::LoadTransports()
             continue;
         }
 
-        const MapEntry* pMapInfo = sDBCMap.LookupEntry(transportTemplate->keyFrames.begin()->Node->mapid);
+        const MapEntry* pMapInfo = sMapStore.LookupEntry(transportTemplate->keyFrames.begin()->Node->mapid);
         if (!pMapInfo)
             continue;
 
@@ -189,7 +189,7 @@ bool Transport::Create(uint32 guidlow, uint32 mapid, float x, float y, float z, 
 
     SetDisplayId(goinfo->displayId);
     SetUInt32Value(GAMEOBJECT_DISPLAYID, goinfo->displayId);
-    m_displayInfo = sDBCGameObjectDisplayInfo.LookupEntry(goinfo->displayId);
+    m_displayInfo = sGameObjectDisplayInfoStore.LookupEntry(goinfo->displayId);
 
     SetGoState(GO_STATE_READY);
     SetGoType(GameobjectTypes(goinfo->type));

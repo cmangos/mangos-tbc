@@ -231,13 +231,13 @@ void WorldSession::HandleGMSurveySubmitOpcode(WorldPacket& recv_data)
 
     // Perform some sanity checks on the input:
 
-    GMSurveyCurrentSurveyEntry const* currentSurvey = sDBCGMSurveyCurrentSurvey.LookupEntry(uint32(m_sessionDbcLocale));
+    GMSurveyCurrentSurveyEntry const* currentSurvey = sGMSurveyCurrentSurveyStore.LookupEntry(uint32(m_sessionDbcLocale));
 
     // Check if survey id is correct
     if (!currentSurvey || currentSurvey->surveyID != surveyId)
         return;
 
-    GMSurveyEntry const* survey = sDBCGMSurveySurveys.LookupEntry(surveyId);
+    GMSurveyEntry const* survey = sGMSurveySurveysStore.LookupEntry(surveyId);
 
     // Check if survey entry with provided id exists
     if (!survey)

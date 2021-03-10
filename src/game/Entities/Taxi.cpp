@@ -171,7 +171,7 @@ bool Tracker::AddRoute(PathID pathID, float discountMulti /*= 0.0f*/, bool requi
     if (m_state > TRACKER_STAGING)
         return false;
 
-    TaxiPathEntry const* entry = sDBCTaxiPath.LookupEntry(pathID);
+    TaxiPathEntry const* entry = sTaxiPathStore.LookupEntry(pathID);
 
     return (entry && AddRoute(entry, discountMulti, requireModel));
 }
@@ -273,7 +273,7 @@ bool Tracker::Prepare(Index nodeResume /*= 0*/)
                 if (prev && (*j)->mapid != prev->mapid)
                 {
                     // Detect map change and advance atlas by adding a new map
-                    if (sDBCMap.LookupEntry((*j)->mapid))
+                    if (sMapStore.LookupEntry((*j)->mapid))
                     {
                         // Bugcheck: latest finished map spline is suspiciously short
                         MANGOS_ASSERT(m_atlas.back().size() > 2);
@@ -416,7 +416,7 @@ bool Tracker::Trim(Route& first, Route& second)
     // Try to trim dynamically if data is not available or incomplete
     TaxiPathNodeList const& waypoints1 = sTaxiPathNodesByPath[first.pathID];
     TaxiPathNodeList const& waypoints2 = sTaxiPathNodesByPath[second.pathID];
-    TaxiNodesEntry const* destination = sDBCTaxiNodes.LookupEntry(first.destEnd);
+    TaxiNodesEntry const* destination = sTaxiNodesStore.LookupEntry(first.destEnd);
 
     if (destination && waypoints1 != waypoints2)
     {

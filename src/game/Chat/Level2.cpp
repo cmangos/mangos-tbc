@@ -224,7 +224,7 @@ bool ChatHandler::HandleTriggerCommand(char* args)
         if (!atId)
             return false;
 
-        atEntry = sDBCAreaTrigger.LookupEntry(atId);
+        atEntry = sAreaTriggerStore.LookupEntry(atId);
 
         if (!atEntry)
         {
@@ -242,7 +242,7 @@ bool ChatHandler::HandleTriggerCommand(char* args)
         float dist2 = MAP_SIZE * MAP_SIZE;
 
         // Search triggers
-        for (auto atTestEntry : sDBCAreaTrigger)
+        for (auto atTestEntry : sAreaTriggerStore)
         {
             if (atTestEntry->mapid != m_session->GetPlayer()->GetMapId())
                 continue;
@@ -320,7 +320,7 @@ bool ChatHandler::HandleTriggerActiveCommand(char* /*args*/)
     Player* pl = m_session->GetPlayer();
 
     // Search in AreaTable.dbc
-    for (auto atEntry : sDBCAreaTrigger)
+    for (auto atEntry : sAreaTriggerStore)
     {
         if (!Map::IsPointInAreaTriggerZone(atEntry, pl->GetMapId(), pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ()))
             continue;
@@ -345,7 +345,7 @@ bool ChatHandler::HandleTriggerNearCommand(char* args)
     Player* pl = m_session->GetPlayer();
 
     // Search triggers
-    for (auto atEntry : sDBCAreaTrigger)
+    for (auto atEntry : sAreaTriggerStore)
     {
         if (atEntry->mapid != m_session->GetPlayer()->GetMapId())
             continue;
@@ -362,7 +362,7 @@ bool ChatHandler::HandleTriggerNearCommand(char* args)
     }
 
     // Search trigger targets
-    for (auto atEntry : sDBCAreaTrigger)
+    for (auto atEntry : sAreaTriggerStore)
     {
         AreaTrigger const* at = sObjectMgr.GetAreaTrigger(atEntry->id);
         if (!at)
@@ -413,7 +413,7 @@ bool ChatHandler::HandleGoTriggerCommand(char* args)
     if (!atId)
         return false;
 
-    AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(atId);
+    AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(atId);
     if (!atEntry)
     {
         PSendSysMessage(LANG_COMMAND_GOAREATRNOTFOUND, atId);
@@ -1117,7 +1117,7 @@ bool ChatHandler::HandleGameObjectAddCommand(char* args)
         return false;
     }
 
-    if (gInfo->displayId && !sDBCGameObjectDisplayInfo.LookupEntry(gInfo->displayId))
+    if (gInfo->displayId && !sGameObjectDisplayInfoStore.LookupEntry(gInfo->displayId))
     {
         // report to DB errors log as in loading case
         sLog.outErrorDb("Gameobject (Entry %u GoType: %u) have invalid displayId (%u), not spawned.", id, gInfo->type, gInfo->displayId);
@@ -2051,7 +2051,7 @@ bool ChatHandler::HandleNpcFactionIdCommand(char* args)
 
     uint32 factionId = (uint32) atoi(args);
 
-    if (!sDBCFactionTemplate.LookupEntry(factionId))
+    if (!sFactionTemplateStore.LookupEntry(factionId))
     {
         PSendSysMessage(LANG_WRONG_FACTION, factionId);
         SetSentErrorMessage(true);
@@ -2432,7 +2432,7 @@ bool ChatHandler::HandleModifyMorphCommand(char* args)
 
     uint32 display_id = (uint32)atoi(args);
 
-    CreatureDisplayInfoEntry const* displayEntry = sDBCCreatureDisplayInfo.LookupEntry(display_id);
+    CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(display_id);
     if (!displayEntry)
     {
         SendSysMessage(LANG_BAD_VALUE);
@@ -3432,7 +3432,7 @@ bool ChatHandler::HandleModifyStandStateCommand(char* args)
     if (!ExtractUInt32(&args, anim_id))
         return false;
 
-    if (!sDBCEmotes.LookupEntry(anim_id))
+    if (!sEmotesStore.LookupEntry(anim_id))
         return false;
 
     m_session->GetPlayer()->HandleEmoteState(anim_id);
@@ -3740,7 +3740,7 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
 {
     uint32 classmask = player->getClassMask();
 
-    for (auto skillLine : sDBCSkillLineAbility)
+    for (auto skillLine : sSkillLineAbilityStore)
     {
         // wrong skill
         if (skillLine->skillId != skill_id)
@@ -3768,7 +3768,7 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
 
 bool ChatHandler::HandleLearnAllCraftsCommand(char* /*args*/)
 {
-    for (auto skillInfo : sDBCSkillLine)
+    for (auto skillInfo : sSkillLineStore)
     {
         if (skillInfo->categoryId == SKILL_CATEGORY_PROFESSION || skillInfo->categoryId == SKILL_CATEGORY_SECONDARY)
         {
@@ -3806,7 +3806,7 @@ bool ChatHandler::HandleLearnAllRecipesCommand(char* args)
     std::string name;
 
     SkillLineEntry const* targetSkillInfo = nullptr;
-    for (auto skillInfo : sDBCSkillLine)
+    for (auto skillInfo : sSkillLineStore)
     {
         if (skillInfo->categoryId != SKILL_CATEGORY_PROFESSION &&
                 skillInfo->categoryId != SKILL_CATEGORY_SECONDARY)
@@ -4441,7 +4441,7 @@ bool ChatHandler::HandleLookupTitleCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in CharTitles.dbc
-    for (auto titleInfo : sDBCCharTitles)
+    for (auto titleInfo : sCharTitlesStore)
     {
         int loc = GetSessionDbcLocale();
         std::string name = titleInfo->name[loc];
@@ -4516,7 +4516,7 @@ bool ChatHandler::HandleTitlesAddCommand(char* args)
     if (HasLowerSecurity(target))
         return false;
 
-    CharTitlesEntry const* titleInfo = sDBCCharTitles.LookupEntry(id);
+    CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
     if (!titleInfo)
     {
         PSendSysMessage(LANG_INVALID_TITLE_ID, id);
@@ -4562,7 +4562,7 @@ bool ChatHandler::HandleTitlesRemoveCommand(char* args)
     if (HasLowerSecurity(target))
         return false;
 
-    CharTitlesEntry const* titleInfo = sDBCCharTitles.LookupEntry(id);
+    CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
     if (!titleInfo)
     {
         PSendSysMessage(LANG_INVALID_TITLE_ID, id);
@@ -4613,7 +4613,7 @@ bool ChatHandler::HandleTitlesSetMaskCommand(char* args)
 
     uint64 titles2 = titles;
 
-    for (auto tEntry : sDBCCharTitles)
+    for (auto tEntry : sCharTitlesStore)
         titles2 &= ~(uint64(1) << tEntry->bit_index);
 
     titles &= ~titles2;                                     // remove nonexistent titles
@@ -4649,13 +4649,13 @@ bool ChatHandler::HandleTitlesSwapCommand(char* /*args*/)
     if (!foundTitle)
         return false;
 
-    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
         target->SetTitle(tEntry, true);
     if (foundTitle > 14)
         foundTitle -= 14;
     else
         foundTitle += 14;
-    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
         target->SetTitle(tEntry, false);
 
     return true;
@@ -4672,7 +4672,7 @@ bool ChatHandler::HandleCharacterTitlesCommand(char* args)
     char const* knownStr = GetMangosString(LANG_KNOWN);
 
     // Search in CharTitles.dbc
-    for (auto titleInfo : sDBCCharTitles)
+    for (auto titleInfo : sCharTitlesStore)
     {
         if (target->HasTitle(titleInfo))
         {
@@ -4723,7 +4723,7 @@ bool ChatHandler::HandleTitlesCurrentCommand(char* args)
     if (HasLowerSecurity(target))
         return false;
 
-    CharTitlesEntry const* titleInfo = sDBCCharTitles.LookupEntry(id);
+    CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
     if (!titleInfo)
     {
         PSendSysMessage(LANG_INVALID_TITLE_ID, id);

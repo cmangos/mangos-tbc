@@ -384,7 +384,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         case SPAWNED_EVENT_ALWAY:
                             break;
                         case SPAWNED_EVENT_MAP:
-                            if (!sDBCMap.LookupEntry(temp.spawned.conditionValue1))
+                            if (!sMapStore.LookupEntry(temp.spawned.conditionValue1))
                                 sLog.outErrorEventAI("Creature %u are using spawned event(%u) with param1 = %u 'map specific' but map (param2: %u) does not exist. Event will never repeat.", temp.creature_id, i, temp.spawned.condition, temp.spawned.conditionValue1);
                             break;
                         case SPAWNED_EVENT_ZONE:
@@ -473,7 +473,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
 
                 case EVENT_T_RECEIVE_EMOTE:
                 {
-                    if (!sDBCEmotesText.LookupEntry(temp.receive_emote.emoteId))
+                    if (!sEmotesTextStore.LookupEntry(temp.receive_emote.emoteId))
                     {
                         sLog.outErrorEventAI("Creature %u using event %u: param1 (EmoteTextId: %u) are not valid.", temp.creature_id, i, temp.receive_emote.emoteId);
                         continue;
@@ -646,7 +646,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         break;
                     }
                     case ACTION_T_SET_FACTION:
-                        if (action.set_faction.factionId != 0 && !sDBCFactionTemplate.LookupEntry(action.set_faction.factionId))
+                        if (action.set_faction.factionId != 0 && !sFactionTemplateStore.LookupEntry(action.set_faction.factionId))
                         {
                             sLog.outErrorEventAI("Event %u Action %u uses nonexistent FactionId %u.", i, j + 1, action.set_faction.factionId);
                             action.set_faction.factionId = 0;
@@ -668,7 +668,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                                     sLog.outErrorEventAI("Event %u Action %u have unused ModelId %u with also set creature id %u.", i, j + 1, action.morph.modelId, action.morph.creatureId);
                                     action.morph.modelId = 0;
                                 }
-                                else if (!sDBCCreatureDisplayInfo.LookupEntry(action.morph.modelId))
+                                else if (!sCreatureDisplayInfoStore.LookupEntry(action.morph.modelId))
                                 {
                                     sLog.outErrorEventAI("Event %u Action %u uses nonexistent ModelId %u.", i, j + 1, action.morph.modelId);
                                     action.morph.modelId = 0;
@@ -677,27 +677,27 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         }
                         break;
                     case ACTION_T_SOUND:
-                        if (!sDBCSoundEntries.LookupEntry(action.sound.soundId))
+                        if (!sSoundEntriesStore.LookupEntry(action.sound.soundId))
                             sLog.outErrorEventAI("Event %u Action %u uses nonexistent SoundID %u.", i, j + 1, action.sound.soundId);
                         break;
                     case ACTION_T_EMOTE:
-                        if (!sDBCEmotes.LookupEntry(action.emote.emoteId))
+                        if (!sEmotesStore.LookupEntry(action.emote.emoteId))
                             sLog.outErrorEventAI("Event %u Action %u param1 (EmoteId: %u) are not valid.", i, j + 1, action.emote.emoteId);
                         break;
                     case ACTION_T_RANDOM_SOUND:
-                        if (!sDBCSoundEntries.LookupEntry(action.random_sound.soundId1))
+                        if (!sSoundEntriesStore.LookupEntry(action.random_sound.soundId1))
                             sLog.outErrorEventAI("Event %u Action %u param1 uses nonexistent SoundID %u.", i, j + 1, action.random_sound.soundId1);
-                        if (action.random_sound.soundId2 >= 0 && !sDBCSoundEntries.LookupEntry(action.random_sound.soundId2))
+                        if (action.random_sound.soundId2 >= 0 && !sSoundEntriesStore.LookupEntry(action.random_sound.soundId2))
                             sLog.outErrorEventAI("Event %u Action %u param2 uses nonexistent SoundID %u.", i, j + 1, action.random_sound.soundId2);
-                        if (action.random_sound.soundId3 >= 0 && !sDBCSoundEntries.LookupEntry(action.random_sound.soundId3))
+                        if (action.random_sound.soundId3 >= 0 && !sSoundEntriesStore.LookupEntry(action.random_sound.soundId3))
                             sLog.outErrorEventAI("Event %u Action %u param3 uses nonexistent SoundID %u.", i, j + 1, action.random_sound.soundId3);
                         break;
                     case ACTION_T_RANDOM_EMOTE:
-                        if (!sDBCEmotes.LookupEntry(action.random_emote.emoteId1))
+                        if (!sEmotesStore.LookupEntry(action.random_emote.emoteId1))
                             sLog.outErrorEventAI("Event %u Action %u param1 (EmoteId: %u) are not valid.", i, j + 1, action.random_emote.emoteId1);
-                        if (action.random_emote.emoteId2 >= 0 && !sDBCEmotes.LookupEntry(action.random_emote.emoteId2))
+                        if (action.random_emote.emoteId2 >= 0 && !sEmotesStore.LookupEntry(action.random_emote.emoteId2))
                             sLog.outErrorEventAI("Event %u Action %u param2 (EmoteId: %u) are not valid.", i, j + 1, action.random_emote.emoteId2);
-                        if (action.random_emote.emoteId3 >= 0 && !sDBCEmotes.LookupEntry(action.random_emote.emoteId3))
+                        if (action.random_emote.emoteId3 >= 0 && !sEmotesStore.LookupEntry(action.random_emote.emoteId3))
                             sLog.outErrorEventAI("Event %u Action %u param3 (EmoteId: %u) are not valid.", i, j + 1, action.random_emote.emoteId3);
                         break;
                     case ACTION_T_CAST:
@@ -908,7 +908,7 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                                     sLog.outErrorEventAI("Event %u Action %u have unused ModelId %u with also set creature id %u.", i, j + 1, action.mount.modelId, action.mount.creatureId);
                                     action.mount.modelId = 0;
                                 }
-                                else if (!sDBCCreatureDisplayInfo.LookupEntry(action.mount.modelId))
+                                else if (!sCreatureDisplayInfoStore.LookupEntry(action.mount.modelId))
                                 {
                                     sLog.outErrorEventAI("Event %u Action %u uses nonexistent ModelId %u.", i, j + 1, action.mount.modelId);
                                     action.mount.modelId = 0;

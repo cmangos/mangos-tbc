@@ -725,7 +725,7 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
         return false;
     }
 
-    ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(class_);
+    ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(class_);
     if (!cEntry)
     {
         sLog.outError("Class %u not found in DBC (Wrong DBC files?)", class_);
@@ -831,7 +831,7 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
     uint32 raceClassGender = GetUInt32Value(UNIT_FIELD_BYTES_0) & 0x00FFFFFF;
 
     CharStartOutfitEntry const* oEntry = nullptr;
-    for (auto entry : sDBCCharStartOutfit)
+    for (auto entry : sCharStartOutfitStore)
     {
         if (entry->RaceClassGender == raceClassGender)
         {
@@ -1750,7 +1750,7 @@ bool Player::BuildEnumData(QueryResult* result, WorldPacket& p_data)
             if (!enchantId)
                 continue;
 
-            enchant = sDBCSpellItemEnchantment.LookupEntry(enchantId);
+            enchant = sSpellItemEnchantmentStore.LookupEntry(enchantId);
             if (enchant)
                 break;
         }
@@ -1872,7 +1872,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         return false;
     }
 
-    MapEntry const* mEntry = sDBCMap.LookupEntry(mapid);  // Validity checked in IsValidMapCoord
+    MapEntry const* mEntry = sMapStore.LookupEntry(mapid);  // Validity checked in IsValidMapCoord
 
 #ifdef BUILD_PLAYERBOT
     // If this user has bots, tell them to stop following master
@@ -3253,7 +3253,7 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
         // talent: unlearn all lower talent ranks
         if (talentPos)
         {
-            if (TalentEntry const* talentInfo = sDBCTalent.LookupEntry(talentPos->talent_id))
+            if (TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentPos->talent_id))
             {
                 for (unsigned int rankSpellId : talentInfo->RankID)
                 {
@@ -3273,9 +3273,9 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
         {
             // Check if a spell is learned by a talent first
             bool talent = false;
-            for (auto talentInfo : sDBCTalent)
+            for (auto talentInfo : sTalentStore)
             {
-                TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
+                TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
                 if (!talentTabInfo || !(getClassMask() & talentTabInfo->ClassMask))
                     continue;
                 uint32 parent = 0;
@@ -3780,9 +3780,9 @@ bool Player::resetTalents(bool no_cost)
         }
     }
 
-    for (auto talentInfo : sDBCTalent)
+    for (auto talentInfo : sTalentStore)
     {
-        TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
+        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
 
         if (!talentTabInfo)
             continue;
@@ -4623,7 +4623,7 @@ std::pair<bool, AreaTrigger const*> Player::CheckAndRevivePlayerOnDungeonEnter(M
         if (AreaTrigger const* corpseAt = sObjectMgr.GetMapEntranceTrigger(corpseMapId))
         {
             resultingAt = corpseAt;
-            targetMapEntry = sDBCMap.LookupEntry(targetMapId);
+            targetMapEntry = sMapStore.LookupEntry(targetMapId);
             if (!targetMapEntry)
                 return { false, nullptr };
         }
@@ -4643,7 +4643,7 @@ void Player::KillPlayer()
     // SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_IN_PVP );
 
     SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);
-    ApplyModByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER, !sDBCMap.LookupEntry(GetMapId())->Instanceable());
+    ApplyModByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER, !sMapStore.LookupEntry(GetMapId())->Instanceable());
 
     // 6 minutes until repop at graveyard
     m_deathTimer = 6 * MINUTE * IN_MILLISECONDS;
@@ -4871,7 +4871,7 @@ uint32 Player::DurabilityRepair(uint16 pos, bool cost, float discountMod, bool g
         {
             ItemPrototype const* ditemProto = item->GetProto();
 
-            DurabilityCostsEntry const* dcost = sDBCDurabilityCosts.LookupEntry(ditemProto->ItemLevel);
+            DurabilityCostsEntry const* dcost = sDurabilityCostsStore.LookupEntry(ditemProto->ItemLevel);
             if (!dcost)
             {
                 sLog.outError("RepairDurability: Wrong item lvl %u", ditemProto->ItemLevel);
@@ -4879,7 +4879,7 @@ uint32 Player::DurabilityRepair(uint16 pos, bool cost, float discountMod, bool g
             }
 
             uint32 dQualitymodEntryId = (ditemProto->Quality + 1) * 2;
-            DurabilityQualityEntry const* dQualitymodEntry = sDBCDurabilityQuality.LookupEntry(dQualitymodEntryId);
+            DurabilityQualityEntry const* dQualitymodEntry = sDurabilityQualityStore.LookupEntry(dQualitymodEntryId);
             if (!dQualitymodEntry)
             {
                 sLog.outError("RepairDurability: Wrong dQualityModEntry %u", dQualitymodEntryId);
@@ -5159,8 +5159,8 @@ float Player::GetMeleeCritFromAgility() const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtChanceToMeleeCritBaseEntry const* critBase  = sDBCgtChanceToMeleeCritBase.LookupEntry(pclass - 1);
-    GtChanceToMeleeCritEntry     const* critRatio = sDBCgtChanceToMeleeCrit.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtChanceToMeleeCritBaseEntry const* critBase  = sgtChanceToMeleeCritBaseStore.LookupEntry(pclass - 1);
+    GtChanceToMeleeCritEntry     const* critRatio = sgtChanceToMeleeCritStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (critBase == nullptr || critRatio == nullptr)
         return 0.0f;
 
@@ -5194,7 +5194,7 @@ float Player::GetDodgeFromAgility(float amount) const
     const uint32 index = ((pclass - 1) * GT_MAX_LEVEL) + (level - 1);
 
     // Dodge per agility is proportional to crit per agility, which is available from DBC files
-    const GtChanceToMeleeCritEntry* entry = sDBCgtChanceToMeleeCrit.LookupEntry(index);
+    const GtChanceToMeleeCritEntry* entry = sgtChanceToMeleeCritStore.LookupEntry(index);
     if (!entry)
         return 0.0f;
     return (100.0f * amount * entry->ratio * PLAYER_AGI_TO_CRIT_TO_DODGE[pclass]);
@@ -5207,8 +5207,8 @@ float Player::GetSpellCritFromIntellect() const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtChanceToSpellCritBaseEntry const* critBase  = sDBCgtChanceToSpellCritBase.LookupEntry(pclass - 1);
-    GtChanceToSpellCritEntry     const* critRatio = sDBCgtChanceToSpellCrit.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtChanceToSpellCritBaseEntry const* critBase  = sgtChanceToSpellCritBaseStore.LookupEntry(pclass - 1);
+    GtChanceToSpellCritEntry     const* critRatio = sgtChanceToSpellCritStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (critBase == nullptr || critRatio == nullptr)
         return 0.0f;
 
@@ -5222,7 +5222,7 @@ float Player::GetRatingMultiplier(CombatRating cr) const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtCombatRatingsEntry const* Rating = sDBCgtCombatRatings.LookupEntry(cr * GT_MAX_LEVEL + level - 1);
+    GtCombatRatingsEntry const* Rating = sgtCombatRatingsStore.LookupEntry(cr * GT_MAX_LEVEL + level - 1);
     if (!Rating)
         return 1.0f;                                        // By default use minimum coefficient (not must be called)
 
@@ -5704,7 +5704,7 @@ void Player::SetSkill(uint16 id, uint16 value, uint16 max, uint16 step/* = 0*/)
     {
         if (!exists)
         {
-            SkillLineEntry const* entry = sDBCSkillLine.LookupEntry(id);
+            SkillLineEntry const* entry = sSkillLineStore.LookupEntry(id);
             if (!entry)
             {
                 sLog.outError("Skill not found in SkillLineStore: skill #%u", id);
@@ -5793,7 +5793,7 @@ void Player::SetSkillStep(uint16 id, uint16 step)
         {
             if (entry.skillTierId)
             {
-                if (SkillTiersEntry const* steps = sDBCSkillTiers.LookupEntry(entry.skillTierId))
+                if (SkillTiersEntry const* steps = sSkillTiersStore.LookupEntry(entry.skillTierId))
                 {
                     val = uint16(steps->skillValue[(step - 1)]);
                     max = uint16(steps->maxSkillValue[(step - 1)]);
@@ -5894,7 +5894,7 @@ void Player::UpdateSkillsForLevel(bool maximize/* = false*/)
 
         uint16 skillId = uint16(pair.first);
 
-        SkillLineEntry const* pSkill = sDBCSkillLine.LookupEntry(skillId);
+        SkillLineEntry const* pSkill = sSkillLineStore.LookupEntry(skillId);
         if (!pSkill)
             continue;
 
@@ -6001,7 +6001,7 @@ void Player::UpdateSpellTrainedSkills(uint32 spellId, bool apply)
         {
             SkillLineAbilityEntry const* info = itr->second;
 
-            SkillLineEntry const* pSkill = sDBCSkillLine.LookupEntry(info->skillId);
+            SkillLineEntry const* pSkill = sSkillLineStore.LookupEntry(info->skillId);
             if (!pSkill)
                 continue;
 
@@ -6084,7 +6084,7 @@ void Player::LearnDefaultSkills()
         uint16 max = 0;
         uint16 step = 0;
 
-        if (SkillLineEntry const* entry = sDBCSkillLine.LookupEntry(tskill.SkillId))
+        if (SkillLineEntry const* entry = sSkillLineStore.LookupEntry(tskill.SkillId))
         {
             switch (GetSkillRangeType(entry, false))
             {
@@ -6106,7 +6106,7 @@ void Player::LearnDefaultSkills()
                     {
                         if (entry.skillTierId)
                         {
-                            if (SkillTiersEntry const* steps = sDBCSkillTiers.LookupEntry(entry.skillTierId))
+                            if (SkillTiersEntry const* steps = sSkillTiersStore.LookupEntry(entry.skillTierId))
                             {
                                 value = 1;
                                 max = uint16(steps->maxSkillValue[stepIndex]);
@@ -6383,7 +6383,7 @@ void Player::SendCinematicStart(uint32 CinematicSequenceId)
     data << uint32(CinematicSequenceId);
     SendDirectMessage(data);
 
-    if (CinematicSequencesEntry const* sequence = sDBCCinematicSequences.LookupEntry(CinematicSequenceId))
+    if (CinematicSequencesEntry const* sequence = sCinematicSequencesStore.LookupEntry(CinematicSequenceId))
     {
         // we can start server side dynamic follow
         m_cinematicMgr.reset(new CinematicMgr(this));
@@ -6406,7 +6406,7 @@ void Player::CheckAreaExploreAndOutdoor()
     {
         if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) && GetRestType() == REST_TYPE_IN_TAVERN)
         {
-            AreaTriggerEntry const* at = sDBCAreaTrigger.LookupEntry(inn_trigger_id);
+            AreaTriggerEntry const* at = sAreaTriggerStore.LookupEntry(inn_trigger_id);
             if (!at || !Map::IsPointInAreaTriggerZone(at, GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ()))
             {
                 // Player left inn (REST_TYPE_IN_CITY overrides REST_TYPE_IN_TAVERN, so just clear rest)
@@ -6492,7 +6492,7 @@ void Player::CheckAreaExploreAndOutdoor()
 
 Team Player::TeamForRace(uint8 race)
 {
-    ChrRacesEntry const* rEntry = sDBCChrRaces.LookupEntry(race);
+    ChrRacesEntry const* rEntry = sChrRacesStore.LookupEntry(race);
     if (!rEntry)
     {
         sLog.outError("Race %u not found in DBC: wrong DBC files?", uint32(race));
@@ -6511,7 +6511,7 @@ Team Player::TeamForRace(uint8 race)
 
 uint32 Player::getFactionForRace(uint8 race)
 {
-    ChrRacesEntry const* rEntry = sDBCChrRaces.LookupEntry(race);
+    ChrRacesEntry const* rEntry = sChrRacesStore.LookupEntry(race);
     if (!rEntry)
     {
         sLog.outError("Race %u not found in DBC: wrong DBC files?", uint32(race));
@@ -7780,7 +7780,7 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType, bool sp
     for (int e_slot = 0; e_slot < MAX_ENCHANTMENT_SLOT; ++e_slot)
     {
         uint32 enchant_id = item->GetEnchantmentId(EnchantmentSlot(e_slot));
-        SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+        SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
         if (!pEnchant) continue;
         for (int s = 0; s < 3; ++s)
         {
@@ -9012,10 +9012,10 @@ bool Player::IsTotemCategoryCompatiableWith(uint32 itemTotemCategoryId, uint32 r
     if (itemTotemCategoryId == 0)
         return false;
 
-    TotemCategoryEntry const* itemEntry = sDBCTotemCategory.LookupEntry(itemTotemCategoryId);
+    TotemCategoryEntry const* itemEntry = sTotemCategoryStore.LookupEntry(itemTotemCategoryId);
     if (!itemEntry)
         return false;
-    TotemCategoryEntry const* reqEntry = sDBCTotemCategory.LookupEntry(requiredTotemCategoryId);
+    TotemCategoryEntry const* reqEntry = sTotemCategoryStore.LookupEntry(requiredTotemCategoryId);
     if (!reqEntry)
         return false;
 
@@ -11826,7 +11826,7 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
     if (!enchant_id)
         return;
 
-    SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+    SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
     if (!pEnchant)
         return;
 
@@ -11878,7 +11878,7 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                             // Random Property Exist - try found basepoints for spell (basepoints depends from item suffix factor)
                             if (item->GetItemRandomPropertyId())
                             {
-                                ItemRandomSuffixEntry const* item_rand = sDBCItemRandomSuffix.LookupEntry(abs(item->GetItemRandomPropertyId()));
+                                ItemRandomSuffixEntry const* item_rand = sItemRandomSuffixStore.LookupEntry(abs(item->GetItemRandomPropertyId()));
                                 if (item_rand)
                                 {
                                     // Search enchant_amount
@@ -11906,7 +11906,7 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                 case ITEM_ENCHANTMENT_TYPE_RESISTANCE:
                     if (!enchant_amount)
                     {
-                        ItemRandomSuffixEntry const* item_rand = sDBCItemRandomSuffix.LookupEntry(abs(item->GetItemRandomPropertyId()));
+                        ItemRandomSuffixEntry const* item_rand = sItemRandomSuffixStore.LookupEntry(abs(item->GetItemRandomPropertyId()));
                         if (item_rand)
                         {
                             for (int k = 0; k < 3; ++k)
@@ -11926,7 +11926,7 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                 {
                     if (!enchant_amount)
                     {
-                        ItemRandomSuffixEntry const* item_rand_suffix = sDBCItemRandomSuffix.LookupEntry(abs(item->GetItemRandomPropertyId()));
+                        ItemRandomSuffixEntry const* item_rand_suffix = sItemRandomSuffixStore.LookupEntry(abs(item->GetItemRandomPropertyId()));
                         if (item_rand_suffix)
                         {
                             for (int k = 0; k < 3; ++k)
@@ -13369,7 +13369,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     // title reward
     if (pQuest->GetCharTitleId())
     {
-        if (CharTitlesEntry const* titleEntry = sDBCCharTitles.LookupEntry(pQuest->GetCharTitleId()))
+        if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(pQuest->GetCharTitleId()))
             SetTitle(titleEntry);
     }
 
@@ -14890,13 +14890,13 @@ void Player::_LoadIntoDataField(const char* data, uint32 startOffset, uint32 cou
     if (foundTitle > 14 && (raceMask & RACEMASK_HORDE) != 0)
         return;
 
-    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
         SetTitle(tEntry, true, false);
     if (foundTitle > 14)
         foundTitle -= 14;
     else
         foundTitle += 14;
-    if (CharTitlesEntry const* tEntry = sDBCCharTitles.LookupEntry(foundTitle))
+    if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(foundTitle))
         SetTitle(tEntry, false, false);
 }
 
@@ -15110,7 +15110,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     }
     else
     {
-        MapEntry const* mapEntry = sDBCMap.LookupEntry(GetMapId());
+        MapEntry const* mapEntry = sMapStore.LookupEntry(GetMapId());
         // if server restart after player save in BG or area
         // player can have current coordinates in to BG/Arena map, fix this
         if (!mapEntry || mapEntry->IsBattleGroundOrArena())
@@ -15177,7 +15177,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
         }
         if (transport)
         {
-            MapEntry const* transMapEntry = sDBCMap.LookupEntry(transport->GetMapId());
+            MapEntry const* transMapEntry = sMapStore.LookupEntry(transport->GetMapId());
             // client without expansion support
             if (GetSession()->GetExpansion() < transMapEntry->Expansion())
                 DEBUG_LOG("Player %s using client without required expansion tried login at transport at non accessible map %u", GetName(), transport->GetMapId());
@@ -15205,7 +15205,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     }
     else                                                    // not transport case
     {
-        MapEntry const* mapEntry = sDBCMap.LookupEntry(GetMapId());
+        MapEntry const* mapEntry = sMapStore.LookupEntry(GetMapId());
         // client without expansion support
         if (GetSession()->GetExpansion() < mapEntry->Expansion())
         {
@@ -15385,7 +15385,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     if (!m_taxiTracker.Load(taxi_nodes, destOrphan))
     {
         // problems with taxi path loading
-        TaxiNodesEntry const* nodeEntry = (destOrphan ? sDBCTaxiNodes.LookupEntry(destOrphan) : nullptr);
+        TaxiNodesEntry const* nodeEntry = (destOrphan ? sTaxiNodesStore.LookupEntry(destOrphan) : nullptr);
 
         if (!nodeEntry)                                     // don't know taxi start node, to homebind
         {
@@ -15416,7 +15416,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
         // save source node as recall coord to prevent recall and fall from sky
         if (uint32 destSource = m_taxiTracker.GetRoute().destStart)
         {
-            TaxiNodesEntry const* destination = sDBCTaxiNodes.LookupEntry(destSource);
+            TaxiNodesEntry const* destination = sTaxiNodesStore.LookupEntry(destSource);
             MANGOS_ASSERT(destination);
             m_recallMap = destination->map_id;
             m_recallX = destination->x;
@@ -15664,7 +15664,7 @@ void Player::LoadCorpse()
     {
         if (Corpse* corpse = GetCorpse())
         {
-            ApplyModByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER, corpse && !sDBCMap.LookupEntry(corpse->GetMapId())->Instanceable());
+            ApplyModByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER, corpse && !sMapStore.LookupEntry(corpse->GetMapId())->Instanceable());
 
             // [XFACTION]: Alter values update if detected crossfaction group interaction:
             if (sWorld.getConfig(CONFIG_BOOL_ALLOW_TWO_SIDE_INTERACTION_GROUP) && GetGroup())
@@ -15952,7 +15952,7 @@ void Player::_LoadMails(QueryResult* result)
         m->mailTemplateId = fields[12].GetInt16();
         m->has_items = fields[13].GetBool();                // true, if mail have items or mail have template and items generated (maybe none)
 
-        if (m->mailTemplateId && !sDBCMailTemplate.LookupEntry(m->mailTemplateId))
+        if (m->mailTemplateId && !sMailTemplateStore.LookupEntry(m->mailTemplateId))
         {
             sLog.outError("Player::_LoadMail - Mail (%u) have nonexistent MailTemplateId (%u), remove at load", m->messageID, m->mailTemplateId);
             m->mailTemplateId = 0;
@@ -16079,7 +16079,7 @@ void Player::_LoadQuestStatus(QueryResult* result)
                     // set rewarded title if any
                     if (pQuest->GetCharTitleId())
                     {
-                        if (CharTitlesEntry const* titleEntry = sDBCCharTitles.LookupEntry(pQuest->GetCharTitleId()))
+                        if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(pQuest->GetCharTitleId()))
                             SetTitle(titleEntry);
                     }
                 }
@@ -16277,7 +16277,7 @@ void Player::_LoadBoundInstances(QueryResult* result)
             // so the value read from the DB may be wrong here but only if the InstanceSave is loaded
             // and in that case it is not used
 
-            MapEntry const* mapEntry = sDBCMap.LookupEntry(mapId);
+            MapEntry const* mapEntry = sMapStore.LookupEntry(mapId);
             if (!mapEntry || !mapEntry->IsDungeon())
             {
                 sLog.outError("_LoadBoundInstances: player %s(%d) has bind to nonexistent or not dungeon map %d", GetName(), GetGUIDLow(), mapId);
@@ -16313,7 +16313,7 @@ void Player::_LoadBoundInstances(QueryResult* result)
 InstancePlayerBind* Player::GetBoundInstance(uint32 mapid, Difficulty difficulty)
 {
     // some instances only have one difficulty
-    const MapEntry* entry = sDBCMap.LookupEntry(mapid);
+    const MapEntry* entry = sMapStore.LookupEntry(mapid);
     if (!entry || !entry->SupportsHeroicMode())
         difficulty = DUNGEON_DIFFICULTY_NORMAL;
 
@@ -16383,7 +16383,7 @@ InstancePlayerBind* Player::BindToInstance(DungeonPersistentState* state, bool p
 
 DungeonPersistentState* Player::GetBoundInstanceSaveForSelfOrGroup(uint32 mapid)
 {
-    MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
+    MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
     if (!mapEntry)
         return nullptr;
 
@@ -16549,7 +16549,7 @@ bool Player::_LoadHomeBind(QueryResult* result)
         m_homebindZ = fields[4].GetFloat();
         delete result;
 
-        MapEntry const* bindMapEntry = sDBCMap.LookupEntry(m_homebindMapId);
+        MapEntry const* bindMapEntry = sMapStore.LookupEntry(m_homebindMapId);
 
         // accept saved data only for valid position (and non instanceable), and accessable
         if (MapManager::IsValidMapCoord(m_homebindMapId, m_homebindX, m_homebindY, m_homebindZ) &&
@@ -17476,7 +17476,7 @@ void Player::ResetInstances(InstanceResetMethod method)
     for (BoundInstancesMap::iterator itr = m_boundInstances[diff].begin(); itr != m_boundInstances[diff].end();)
     {
         DungeonPersistentState* state = itr->second.state;
-        const MapEntry* entry = sDBCMap.LookupEntry(itr->first);
+        const MapEntry* entry = sMapStore.LookupEntry(itr->first);
         if (!entry || !state->CanReset())
         {
             ++itr;
@@ -18196,7 +18196,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
     uint32 sourcenode = nodes[0];
 
     // starting node too far away (cheat?)
-    TaxiNodesEntry const* node = sDBCTaxiNodes.LookupEntry(sourcenode);
+    TaxiNodesEntry const* node = sTaxiNodesStore.LookupEntry(sourcenode);
     if (!node)
     {
         GetSession()->SendActivateTaxiReply(ERR_TAXINOSUCHPATH);
@@ -18262,7 +18262,7 @@ bool Player::ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc 
 
 bool Player::ActivateTaxiPathTo(uint32 path_id, uint32 spellid /*= 0*/)
 {
-    TaxiPathEntry const* entry = sDBCTaxiPath.LookupEntry(path_id);
+    TaxiPathEntry const* entry = sTaxiPathStore.LookupEntry(path_id);
     if (!entry)
         return false;
 
@@ -18319,7 +18319,7 @@ void Player::OnTaxiFlightStart(const TaxiPathEntry* /*path*/)
 void Player::OnTaxiFlightEnd(const TaxiPathEntry* path)
 {
     // Final destination
-    if (const TaxiNodesEntry* destination = sDBCTaxiNodes.LookupEntry(path->to))
+    if (const TaxiNodesEntry* destination = sTaxiNodesStore.LookupEntry(path->to))
         TeleportTo(GetMap()->GetId(), destination->x, destination->y, destination->z, GetOrientation());
 
     if (pvpInfo.inPvPEnforcedArea)
@@ -18411,7 +18411,7 @@ void Player::OnTaxiFlightSplineStart(const TaxiPathNodeEntry* node)
     if (m_taxiTracker.GetState() == Taxi::TRACKER_TRANSFER)
         UpdateClientControl(this, false);
 
-    if (sDBCTaxiPath.LookupEntry(node->path))
+    if (sTaxiPathStore.LookupEntry(node->path))
         Mount(m_taxiTracker.GetMountDisplayId());
 
     getHostileRefManager().updateOnlineOfflineState(false);
@@ -18481,7 +18481,7 @@ void Player::OnTaxiFlightRouteStart(uint32 pathID, bool initial)
     {
         ModifyMoney(-int32(m_taxiTracker.GetCost()));
 
-        if (const TaxiPathEntry* path = sDBCTaxiPath.LookupEntry(pathID))
+        if (const TaxiPathEntry* path = sTaxiPathStore.LookupEntry(pathID))
             OnTaxiFlightStart(path);
     }
 }
@@ -18490,7 +18490,7 @@ void Player::OnTaxiFlightRouteEnd(uint32 pathID, bool final)
 {
     if (final)
     {
-        if (const TaxiPathEntry* path = sDBCTaxiPath.LookupEntry(pathID))
+        if (const TaxiPathEntry* path = sTaxiPathStore.LookupEntry(pathID))
             OnTaxiFlightEnd(path);
     }
     else
@@ -18526,7 +18526,7 @@ void Player::InitDataForForm(bool reapplyMods)
 {
     ShapeshiftForm form = GetShapeshiftForm();
 
-    SpellShapeshiftFormEntry const* ssEntry = sDBCSpellShapeshiftForm.LookupEntry(form);
+    SpellShapeshiftFormEntry const* ssEntry = sSpellShapeshiftFormStore.LookupEntry(form);
     if (ssEntry && ssEntry->attackSpeed)
     {
         SetAttackTime(BASE_ATTACK, ssEntry->attackSpeed);
@@ -18553,7 +18553,7 @@ void Player::InitDataForForm(bool reapplyMods)
         }
         default:                                            // 0, for example
         {
-            ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(getClass());
+            ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(getClass());
             if (cEntry && cEntry->powerType < MAX_POWERS && uint32(GetPowerType()) != cEntry->powerType)
                 SetPowerType(Powers(cEntry->powerType));
             break;
@@ -18598,7 +18598,7 @@ void Player::InitDisplayIds()
 
 void Player::TakeExtendedCost(uint32 extendedCostId, uint32 count)
 {
-    ItemExtendedCostEntry const* extendedCost = sDBCItemExtendedCost.LookupEntry(extendedCostId);
+    ItemExtendedCostEntry const* extendedCost = sItemExtendedCostStore.LookupEntry(extendedCostId);
 
     if (extendedCost->reqhonorpoints)
         ModifyHonorPoints(-int32(extendedCost->reqhonorpoints * count));
@@ -18684,7 +18684,7 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
     if (uint32 extendedCostId = crItem->ExtendedCost)
     {
-        ItemExtendedCostEntry const* iece = sDBCItemExtendedCost.LookupEntry(extendedCostId);
+        ItemExtendedCostEntry const* iece = sItemExtendedCostStore.LookupEntry(extendedCostId);
         if (!iece)
         {
             sLog.outError("Item %u have wrong ExtendedCost field value %u", pProto->ItemId, extendedCostId);
@@ -18942,7 +18942,7 @@ bool Player::EnchantmentFitsRequirements(uint32 enchantmentcondition, int8 slot)
     if (!enchantmentcondition)
         return true;
 
-    SpellItemEnchantmentConditionEntry const* Condition = sDBCSpellItemEnchantmentCondition.LookupEntry(enchantmentcondition);
+    SpellItemEnchantmentConditionEntry const* Condition = sSpellItemEnchantmentConditionStore.LookupEntry(enchantmentcondition);
 
     if (!Condition)
         return true;
@@ -18963,7 +18963,7 @@ bool Player::EnchantmentFitsRequirements(uint32 enchantmentcondition, int8 slot)
                 if (!enchant_id)
                     continue;
 
-                SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+                SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
                 if (!enchantEntry)
                     continue;
 
@@ -18975,7 +18975,7 @@ bool Player::EnchantmentFitsRequirements(uint32 enchantmentcondition, int8 slot)
                 if (!gemProto)
                     continue;
 
-                GemPropertiesEntry const* gemProperty = sDBCGemProperties.LookupEntry(gemProto->GemProperties);
+                GemPropertiesEntry const* gemProperty = sGemPropertiesStore.LookupEntry(gemProto->GemProperties);
                 if (!gemProperty)
                     continue;
 
@@ -19041,7 +19041,7 @@ void Player::CorrectMetaGemEnchants(uint8 exceptslot, bool apply)
             if (!enchant_id)
                 continue;
 
-            SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+            SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
             if (!enchantEntry)
                 continue;
 
@@ -19084,7 +19084,7 @@ void Player::ToggleMetaGemsActive(uint8 exceptslot, bool apply)
             if (!enchant_id)                                // if no enchant go to next enchant(slot)
                 continue;
 
-            SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+            SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
             if (!enchantEntry)
                 continue;
 
@@ -20652,7 +20652,7 @@ void Player::UpdateTerainEnvironmentFlags(Map* m, float x, float y, float z)
 
     if (uint32 liqEntry = liquid_status.entry)
     {
-        LiquidTypeEntry const* liquid = sDBCLiquidType.LookupEntry(liqEntry);
+        LiquidTypeEntry const* liquid = sLiquidTypeStore.LookupEntry(liqEntry);
         if (m_lastLiquid && m_lastLiquid->SpellId && m_lastLiquid->Id != liqEntry)
             RemoveAurasDueToSpell(m_lastLiquid->SpellId);
 
@@ -20769,7 +20769,7 @@ bool Player::HasTitle(uint32 bitIndex) const
 
 void Player::SetTitle(uint32 titleId, bool lost)
 {
-    if (CharTitlesEntry const* titleEntry = sDBCCharTitles.LookupEntry(titleId))
+    if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(titleId))
         SetTitle(titleEntry, lost);
 }
 
@@ -20933,7 +20933,7 @@ void Player::_LoadSkills(QueryResult* result)
             uint16 value    = fields[1].GetUInt16();
             uint16 max      = fields[2].GetUInt16();
 
-            SkillLineEntry const* pSkill = sDBCSkillLine.LookupEntry(skill);
+            SkillLineEntry const* pSkill = sSkillLineStore.LookupEntry(skill);
             if (!pSkill)
             {
                 sLog.outError("Character %u has skill %u that does not exist.", GetGUIDLow(), skill);
@@ -20984,7 +20984,7 @@ void Player::_LoadSkills(QueryResult* result)
                 if (entry->flags & SKILL_FLAG_MAXIMIZED)
                     value = max = GetSkillMaxForLevel();
 
-                if (SkillTiersEntry const* steps = sDBCSkillTiers.LookupEntry(entry->skillTierId))
+                if (SkillTiersEntry const* steps = sSkillTiersStore.LookupEntry(entry->skillTierId))
                 {
                     for (uint16 i = 0; (i < MAX_SKILL_STEP && !step && steps->maxSkillValue[i]); ++i)
                     {
@@ -21034,7 +21034,7 @@ InventoryResult Player::CanEquipUniqueItem(Item* pItem, uint8 eslot) const
         uint32 enchant_id = pItem->GetEnchantmentId(EnchantmentSlot(enchant_slot));
         if (!enchant_id)
             continue;
-        SpellItemEnchantmentEntry const* enchantEntry = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+        SpellItemEnchantmentEntry const* enchantEntry = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
         if (!enchantEntry)
             continue;
 
@@ -21116,12 +21116,12 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank)
     if (talentRank >= MAX_TALENT_RANK)
         return;
 
-    TalentEntry const* talentInfo = sDBCTalent.LookupEntry(talentId);
+    TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
 
     if (!talentInfo)
         return;
 
-    TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
+    TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
 
     if (!talentTabInfo)
         return;
@@ -21152,7 +21152,7 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank)
     // Check if it requires another talent
     if (talentInfo->DependsOn > 0)
     {
-        if (TalentEntry const* depTalentInfo = sDBCTalent.LookupEntry(talentInfo->DependsOn))
+        if (TalentEntry const* depTalentInfo = sTalentStore.LookupEntry(talentInfo->DependsOn))
         {
             bool hasEnoughRank = false;
             for (int i = talentInfo->DependsOnRank; i < MAX_TALENT_RANK; ++i)
@@ -21177,7 +21177,7 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank)
     uint32 tTab = talentInfo->TalentTab;
     if (talentInfo->Row > 0)
     {
-        for (auto tmpTalent : sDBCTalent)          // Loop through all talents.
+        for (auto tmpTalent : sTalentStore)          // Loop through all talents.
         {
             // Someday, someone needs to revamp
             if (tmpTalent->TalentTab == tTab)
@@ -21460,7 +21460,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
     if (!at)
         return AREA_LOCKSTATUS_UNKNOWN_ERROR;
 
-    MapEntry const* mapEntry = sDBCMap.LookupEntry(at->target_mapId);
+    MapEntry const* mapEntry = sMapStore.LookupEntry(at->target_mapId);
     if (!mapEntry)
         return AREA_LOCKSTATUS_UNKNOWN_ERROR;
 

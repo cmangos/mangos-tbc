@@ -455,7 +455,7 @@ const std::string GMTicketMgr::PrintMailResponse(GMTicket const& ticket, bool re
 
 const char* GMTicketMgr::PrintTicketCategory(GMTicket const& ticket, LocaleConstant locale/* = LOCALE_DEFAULT*/)
 {
-    if (GMTicketCategoryEntry const* entry = sDBCGMTicketCategory.LookupEntry(ticket.GetCategory()))
+    if (GMTicketCategoryEntry const* entry = sGMTicketCategoryStore.LookupEntry(ticket.GetCategory()))
     {
         if (!std::string(entry->name[locale]).empty())
             return entry->name[locale];

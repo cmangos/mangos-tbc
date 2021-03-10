@@ -1250,7 +1250,7 @@ bool ChatHandler::HandleSetSkillCommand(char* args)
         return false;
     }
 
-    SkillLineEntry const* sl = sDBCSkillLine.LookupEntry(skill);
+    SkillLineEntry const* sl = sSkillLineStore.LookupEntry(skill);
     if (!sl)
     {
         PSendSysMessage(LANG_INVALID_SKILL_ID, skill);
@@ -1519,12 +1519,12 @@ bool ChatHandler::HandleLearnAllMyClassCommand(char* /*args*/)
 bool ChatHandler::HandleLearnAllMySpellsCommand(char* /*args*/)
 {
     Player* player = m_session->GetPlayer();
-    ChrClassesEntry const* clsEntry = sDBCChrClasses.LookupEntry(player->getClass());
+    ChrClassesEntry const* clsEntry = sChrClassesStore.LookupEntry(player->getClass());
     if (!clsEntry)
         return true;
     uint32 family = clsEntry->spellfamily;
 
-    for (auto entry : sDBCSkillLineAbility)
+    for (auto entry : sSkillLineAbilityStore)
     {
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(entry->spellId);
         if (!spellInfo)
@@ -1563,9 +1563,9 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(char* /*args*/)
     Player* player = m_session->GetPlayer();
     uint32 classMask = player->getClassMask();
 
-    for (auto talentInfo : sDBCTalent)
+    for (auto talentInfo : sTalentStore)
     {
-        TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
+        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
         if (!talentTabInfo)
             continue;
 
@@ -2255,7 +2255,7 @@ bool ChatHandler::HandleLookupItemSetCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in ItemSet.dbc
-    for (auto set : sDBCItemSet)
+    for (auto set : sItemSetStore)
     {
         int loc = GetSessionDbcLocale();
         std::string name = set->name[loc];
@@ -2314,7 +2314,7 @@ bool ChatHandler::HandleLookupSkillCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in SkillLine.dbc
-    for (auto skillInfo : sDBCSkillLine)
+    for (auto skillInfo : sSkillLineStore)
     {
         int loc = GetSessionDbcLocale();
         std::string name = skillInfo->name[loc];
@@ -2666,7 +2666,7 @@ bool ChatHandler::HandleLookupTaxiNodeCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in TaxiNodes.dbc
-    for (auto nodeEntry : sDBCTaxiNodes)
+    for (auto nodeEntry : sTaxiNodesStore)
     {
         int loc = GetSessionDbcLocale();
         std::string name = nodeEntry->name[loc];
@@ -3838,7 +3838,7 @@ bool ChatHandler::HandleAuctionItemCommand(char* args)
             return false;
     }
 
-    AuctionHouseEntry const* auctionHouseEntry = sDBCAuctionHouse.LookupEntry(houseid);
+    AuctionHouseEntry const* auctionHouseEntry = sAuctionHouseStore.LookupEntry(houseid);
     AuctionHouseObject* auctionHouse = sAuctionMgr.GetAuctionsMap(auctionHouseEntry);
 
     if (!item_id)
@@ -4137,7 +4137,7 @@ bool ChatHandler::HandleResetHonorCommand(char* args)
 
 static bool HandleResetStatsOrLevelHelper(Player* player)
 {
-    ChrClassesEntry const* cEntry = sDBCChrClasses.LookupEntry(player->getClass());
+    ChrClassesEntry const* cEntry = sChrClassesStore.LookupEntry(player->getClass());
     if (!cEntry)
     {
         sLog.outError("Class %u not found in DBC (Wrong DBC files?)", player->getClass());
@@ -5717,7 +5717,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
         {
             DungeonPersistentState* state = itr->second.state;
             std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
-            if (const MapEntry* entry = sDBCMap.LookupEntry(itr->first))
+            if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
             {
                 PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
                                 itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
@@ -5740,7 +5740,7 @@ bool ChatHandler::HandleInstanceListBindsCommand(char* /*args*/)
             {
                 DungeonPersistentState* state = itr->second.state;
                 std::string timeleft = secsToTimeString(state->GetResetTime() - time(nullptr), true);
-                if (const MapEntry* entry = sDBCMap.LookupEntry(itr->first))
+                if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
                 {
                     PSendSysMessage("map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
                                     itr->first, entry->name[GetSessionDbcLocale()], state->GetInstanceId(), itr->second.perm ? "yes" : "no",
@@ -5793,7 +5793,7 @@ bool ChatHandler::HandleInstanceUnbindCommand(char* args)
                 DungeonPersistentState* save = itr->second.state;
                 std::string timeleft = secsToTimeString(save->GetResetTime() - time(nullptr), true);
 
-                if (const MapEntry* entry = sDBCMap.LookupEntry(itr->first))
+                if (const MapEntry* entry = sMapStore.LookupEntry(itr->first))
                 {
                     PSendSysMessage("unbinding map: %d (%s) inst: %d perm: %s diff: %s canReset: %s TTR: %s",
                                     itr->first, entry->name[GetSessionDbcLocale()], save->GetInstanceId(), itr->second.perm ? "yes" : "no",
@@ -5919,8 +5919,8 @@ bool ChatHandler::ShowPlayerListHelper(QueryResult* result, uint32* limit, bool 
             uint8 class_     = fields[3].GetUInt8();
             uint32 level     = fields[4].GetUInt32();
 
-            ChrRacesEntry const* raceEntry = sDBCChrRaces.LookupEntry(race);
-            ChrClassesEntry const* classEntry = sDBCChrClasses.LookupEntry(class_);
+            ChrRacesEntry const* raceEntry = sChrRacesStore.LookupEntry(race);
+            ChrClassesEntry const* classEntry = sChrClassesStore.LookupEntry(class_);
 
             char const* race_name = raceEntry   ? raceEntry->name[GetSessionDbcLocale()] : "<?>";
             char const* class_name = classEntry ? classEntry->name[GetSessionDbcLocale()] : "<?>";

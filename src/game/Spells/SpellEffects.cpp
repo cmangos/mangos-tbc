@@ -1702,7 +1702,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     if (unitTarget->IsAlive())
                      {
-                        float radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+                        float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
                         unitTarget->GetMotionMaster()->MoveFollow(m_caster, radius, 0);
                     }
                     return;
@@ -3037,7 +3037,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     // all poison enchantments is temporary
                     if (uint32 enchant_id = item->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT))
                     {
-                        SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+                        SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
                         if (!pEnchant)
                             return;
 
@@ -3594,7 +3594,7 @@ void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)   // TODO - Use target
     else if (unitTarget->GetTypeId() == TYPEID_PLAYER)
     {
         Player* player = static_cast<Player*>(unitTarget);
-        MapEntry const* targetMapEntry = sDBCMap.LookupEntry(m_targets.m_mapId);
+        MapEntry const* targetMapEntry = sMapStore.LookupEntry(m_targets.m_mapId);
         if (!targetMapEntry)
             return;
         if (!player->IsAlive() && targetMapEntry->IsDungeon())
@@ -4141,7 +4141,7 @@ void Spell::EffectPersistentAA(SpellEffectIndex eff_idx)
     if (!caster)
         caster = m_caster;
 
-    float radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+    float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
 
     if (Player* modOwner = caster->GetSpellModOwner())
         modOwner->ApplySpellMod(m_spellInfo->Id, SPELLMOD_RADIUS, radius, this);
@@ -4502,7 +4502,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
     // TODO add script for 35679 and 34877
 
     uint32 prop_id = m_spellInfo->EffectMiscValueB[eff_idx];
-    SummonPropertiesEntry const* summon_prop = sDBCSummonProperties.LookupEntry(prop_id);
+    SummonPropertiesEntry const* summon_prop = sSummonPropertiesStore.LookupEntry(prop_id);
     if (!summon_prop)
     {
         sLog.outError("EffectSummonType: Unhandled summon type %u", prop_id);
@@ -4614,7 +4614,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
     }
 
     // Set summon positions
-    float radius = GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+    float radius = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
     CreatureSummonPositions::iterator itr = summonPositions.begin();
     for (++itr; itr != summonPositions.end(); ++itr)        // In case of multiple summons around position for not-fist positions
     {
@@ -5440,7 +5440,7 @@ void Spell::EffectEnchantItemPerm(SpellEffectIndex eff_idx)
     if (!enchant_id)
         return;
 
-    SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+    SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
     if (!pEnchant)
         return;
 
@@ -5537,7 +5537,7 @@ void Spell::EffectEnchantItemTmp(SpellEffectIndex eff_idx)
         return;
     }
 
-    SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+    SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
     if (!pEnchant)
     {
         sLog.outError("Spell %u Effect %u (SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY) have nonexistent enchanting id %u ", m_spellInfo->Id, eff_idx, enchant_id);
@@ -8445,7 +8445,7 @@ void Spell::EffectEnchantHeldItem(SpellEffectIndex eff_idx)
         if (!duration)
             duration = 10;                                  // 10 seconds for enchants which don't have listed duration
 
-        SpellItemEnchantmentEntry const* pEnchant = sDBCSpellItemEnchantment.LookupEntry(enchant_id);
+        SpellItemEnchantmentEntry const* pEnchant = sSpellItemEnchantmentStore.LookupEntry(enchant_id);
         if (!pEnchant)
             return;
 
@@ -9199,13 +9199,13 @@ void Spell::EffectTransmitted(SpellEffectIndex eff_idx)
     // FIXME: this can be better check for most objects but still hack
     else if (m_spellInfo->EffectRadiusIndex[eff_idx] && m_spellInfo->speed == 0)
     {
-        float dis = GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
+        float dis = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[eff_idx]));
         m_caster->GetClosePoint(fx, fy, fz, DEFAULT_WORLD_OBJECT_SIZE, dis);
     }
     else
     {
-        float min_dis = GetSpellMinRange(sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex));
-        float max_dis = GetSpellMaxRange(sDBCSpellRange.LookupEntry(m_spellInfo->rangeIndex));
+        float min_dis = GetSpellMinRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
+        float max_dis = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
         float dis = rand_norm_f() * (max_dis - min_dis) + min_dis;
 
         // special code for fishing bobber (TARGET_LOCATION_CASTER_FISHING_SPOT), should not try to avoid objects
@@ -9478,7 +9478,7 @@ void Spell::EffectPlaySound(SpellEffectIndex eff_idx)
         return;
 
     uint32 soundId = m_spellInfo->EffectMiscValue[eff_idx];
-    if (!sDBCSoundEntries.LookupEntry(soundId))
+    if (!sSoundEntriesStore.LookupEntry(soundId))
     {
         sLog.outError("EffectPlaySound: Sound (Id: %u) in spell %u does not exist.", soundId, m_spellInfo->Id);
         return;
@@ -9493,7 +9493,7 @@ void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
         return;
 
     uint32 soundId = m_spellInfo->EffectMiscValue[eff_idx];
-    if (!sDBCSoundEntries.LookupEntry(soundId))
+    if (!sSoundEntriesStore.LookupEntry(soundId))
     {
         sLog.outError("EffectPlayMusic: Sound (Id: %u) in spell %u does not exist.", soundId, m_spellInfo->Id);
         return;

@@ -1745,7 +1745,7 @@ struct go_chessboard : public GameObjectAI
                     break;
                 }
             }
-            bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < GetSpellRadius(sDBCSpellRadius.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0]));
+            bool isCloseEnough = player->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) < GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->EffectRadiusIndex[EFFECT_INDEX_0]));
             if (!myHolder)
             {
                 if (isCloseEnough)

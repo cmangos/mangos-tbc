@@ -143,7 +143,7 @@ void Map::LoadMapAndVMap(int gx, int gy)
 }
 
 Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
-    : i_mapEntry(sDBCMap.LookupEntry(id)), i_spawnMode(SpawnMode),
+    : i_mapEntry(sMapStore.LookupEntry(id)), i_spawnMode(SpawnMode),
       i_id(id), i_InstanceId(InstanceId), m_unloadTimer(0),
       m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_persistentState(nullptr),
       m_activeNonPlayersIter(m_activeNonPlayers.end()), m_onEventNotifiedIter(m_onEventNotifiedObjects.end()),
@@ -2600,7 +2600,7 @@ void Map::RemoveFromSpawnCount(const ObjectGuid& guid)
 
 bool Map::MapCoordinateVsZoneCheck(float x, float y, uint32 mapid, uint32 zone)
 {
-    WorldMapAreaEntry const* WmaEntry = sDBCWorldMapArea.LookupEntry(zone);
+    WorldMapAreaEntry const* WmaEntry = sWorldMapAreaStore.LookupEntry(zone);
     if (WmaEntry && mapid == WmaEntry->map_id &&
         x >= WmaEntry->x2 && x <= WmaEntry->x1 && y >= WmaEntry->y2 && y <= WmaEntry->y1)
         return true;
@@ -2609,7 +2609,7 @@ bool Map::MapCoordinateVsZoneCheck(float x, float y, uint32 mapid, uint32 zone)
 
 bool Map::Zone2MapCoordinates(float& x, float& y, uint32 zone)
 {
-    WorldMapAreaEntry const* maEntry = sDBCWorldMapArea.LookupEntry(zone);
+    WorldMapAreaEntry const* maEntry = sWorldMapAreaStore.LookupEntry(zone);
 
     // if not listed then map coordinates (instance)
     if (!maEntry || maEntry->x2 == maEntry->x1 || maEntry->y2 == maEntry->y1)
@@ -2624,7 +2624,7 @@ bool Map::Zone2MapCoordinates(float& x, float& y, uint32 zone)
 
 bool Map::Map2ZoneCoordinates(float& x, float& y, uint32 zone)
 {
-    WorldMapAreaEntry const* maEntry = sDBCWorldMapArea.LookupEntry(zone);
+    WorldMapAreaEntry const* maEntry = sWorldMapAreaStore.LookupEntry(zone);
 
     // if not listed then map coordinates (instance)
     if (!maEntry || maEntry->x2 == maEntry->x1 || maEntry->y2 == maEntry->y1)
@@ -2687,7 +2687,7 @@ uint32 Map::GetVirtualMapForMapAndZone(uint32 mapid, uint32 zoneId)
     if (mapid != 530)                                       // speed for most cases
         return mapid;
 
-    if (WorldMapAreaEntry const* wma = sDBCWorldMapArea.LookupEntry(zoneId))
+    if (WorldMapAreaEntry const* wma = sWorldMapAreaStore.LookupEntry(zoneId))
         return wma->virtual_map_id >= 0 ? wma->virtual_map_id : wma->map_id;
 
     return mapid;
@@ -2699,7 +2699,7 @@ ContentLevels Map::GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId)
     if (mapid < 2)
         return CONTENT_1_60;
 
-    MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
+    MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
     if (!mapEntry)
         return CONTENT_1_60;
 

@@ -542,7 +542,7 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
         faction = data->spawnTemplate->faction;
 
     // checked and error show at loading templates
-    if (FactionTemplateEntry const* factionTemplate = sDBCFactionTemplate.LookupEntry(faction))
+    if (FactionTemplateEntry const* factionTemplate = sFactionTemplateStore.LookupEntry(faction))
     {
         if (factionTemplate->factionFlags & FACTION_TEMPLATE_FLAG_PVP)
         {
@@ -646,10 +646,10 @@ uint32 Creature::ChooseDisplayId(const CreatureInfo* cinfo, const CreatureData* 
 
 uint32 Creature::GetCreatureModelRace(uint32 model_id)
 {
-    CreatureDisplayInfoEntry const* displayEntry = sDBCCreatureDisplayInfo.LookupEntry(model_id);
+    CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(model_id);
     if (!displayEntry)
         return 0;
-    CreatureDisplayInfoExtraEntry const* extraEntry = sDBCCreatureDisplayInfoExtra.LookupEntry(displayEntry->ExtendedDisplayInfoID);
+    CreatureDisplayInfoExtraEntry const* extraEntry = sCreatureDisplayInfoExtraStore.LookupEntry(displayEntry->ExtendedDisplayInfoID);
     return extraEntry ? extraEntry->Race : 0;
 }
 
@@ -1891,7 +1891,7 @@ SpellEntry const* Creature::ReachWithSpellAttack(Unit* pVictim)
 
         if (spellInfo->manaCost > GetPower(POWER_MANA))
             continue;
-        SpellRangeEntry const* srange = sDBCSpellRange.LookupEntry(spellInfo->rangeIndex);
+        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
         float range = GetSpellMaxRange(srange);
         float minrange = GetSpellMinRange(srange);
 
@@ -1940,7 +1940,7 @@ SpellEntry const* Creature::ReachWithSpellCure(Unit* pVictim)
 
         if (spellInfo->manaCost > GetPower(POWER_MANA))
             continue;
-        SpellRangeEntry const* srange = sDBCSpellRange.LookupEntry(spellInfo->rangeIndex);
+        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
         float range = GetSpellMaxRange(srange);
         float minrange = GetSpellMinRange(srange);
 
@@ -2290,14 +2290,14 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
 
         if (selectFlags & SELECT_FLAG_USE_EFFECT_RADIUS)
         {
-            SpellRadiusEntry const* srange = sDBCSpellRadius.LookupEntry(pSpellInfo->EffectRadiusIndex[0]);
+            SpellRadiusEntry const* srange = sSpellRadiusStore.LookupEntry(pSpellInfo->EffectRadiusIndex[0]);
             float max_range = GetSpellRadius(srange);
             float dist = pTarget->GetDistance(GetPositionX(), GetPositionY(), GetPositionZ(), DIST_CALC_COMBAT_REACH);
             return dist < max_range;
         }
         else
         {
-            SpellRangeEntry const* srange = sDBCSpellRange.LookupEntry(pSpellInfo->rangeIndex);
+            SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(pSpellInfo->rangeIndex);
             float max_range = GetSpellMaxRange(srange);
             float min_range = GetSpellMinRange(srange);
             float dist = GetDistance(pTarget, true, DIST_CALC_COMBAT_REACH);

@@ -299,7 +299,7 @@ void WorldSession::HandleCorpseQueryOpcode(WorldPacket& /*recv_data*/)
     if (corpsemapid != _player->GetMapId())
     {
         // search entrance map for proper show entrance
-        if (MapEntry const* corpseMapEntry = sDBCMap.LookupEntry(corpsemapid))
+        if (MapEntry const* corpseMapEntry = sMapStore.LookupEntry(corpsemapid))
         {
             if (corpseMapEntry->IsDungeon() && corpseMapEntry->ghost_entrance_map >= 0)
             {

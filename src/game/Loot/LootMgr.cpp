@@ -1211,7 +1211,7 @@ void Loot::Release(Player* player)
                                 float chance_rate = sWorld.getConfig(CONFIG_FLOAT_RATE_MINING_NEXT);
 
                                 int32 ReqValue = 175;
-                                LockEntry const* lockInfo = sDBCLock.LookupEntry(go->GetGOInfo()->chest.lockId);
+                                LockEntry const* lockInfo = sLockStore.LookupEntry(go->GetGOInfo()->chest.lockId);
                                 if (lockInfo)
                                     ReqValue = lockInfo->Skill[0];
                                 float skill = float(player->GetSkillValue(SKILL_MINING)) / (ReqValue + 25);
@@ -2679,7 +2679,7 @@ void LoadLootTemplates_Fishing()
     LootTemplates_Fishing.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (auto areaEntry : sDBCAreaTable)
+    for (auto areaEntry : sAreaTableStore)
     {
         if (ids_set.find(areaEntry->ID) != ids_set.end())
             ids_set.erase(areaEntry->ID);
@@ -2786,7 +2786,7 @@ void LoadLootTemplates_Mail()
     LootTemplates_Mail.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (auto mailEntry : sDBCMailTemplate)
+    for (auto mailEntry : sMailTemplateStore)
         if (ids_set.find(mailEntry->ID) != ids_set.end())
             ids_set.erase(mailEntry->ID);
 

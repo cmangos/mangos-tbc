@@ -165,7 +165,7 @@ void LoadM2Cameras(std::string const& dataPath)
     sFlyByCameraStore.clear();
 
     uint32 oldMSTime = WorldTimer::getMSTime();
-    for (auto dbcentry : sDBCCinematicCamera)
+    for (auto dbcentry : sCinematicCameraStore)
     {
         std::string filename = dataPath;
         filename.append(dbcentry->Model);

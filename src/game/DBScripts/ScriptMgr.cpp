@@ -269,14 +269,14 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             }
             case SCRIPT_COMMAND_EMOTE:                      // 1
             {
-                if (!sDBCEmotes.LookupEntry(tmp.emote.emoteId))
+                if (!sEmotesStore.LookupEntry(tmp.emote.emoteId))
                 {
                     sLog.outErrorDb("Table `%s` has invalid emote id (datalong = %u) in SCRIPT_COMMAND_EMOTE for script id %u", tablename, tmp.emote.emoteId, tmp.id);
                     continue;
                 }
                 for (int i = 0; i < MAX_TEXT_ID; ++i)
                 {
-                    if (tmp.textId[i] && !sDBCEmotes.LookupEntry(tmp.textId[i]))
+                    if (tmp.textId[i] && !sEmotesStore.LookupEntry(tmp.textId[i]))
                     {
                         sLog.outErrorDb("Table `%s` has invalid emote id (text_id%u = %u) in SCRIPT_COMMAND_EMOTE for script id %u", tablename, i + 1, tmp.textId[i], tmp.id);
                     }
@@ -290,7 +290,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 break;
             case SCRIPT_COMMAND_TELEPORT_TO:                // 6
             {
-                if (!sDBCMap.LookupEntry(tmp.teleportTo.mapId))
+                if (!sMapStore.LookupEntry(tmp.teleportTo.mapId))
                 {
                     sLog.outErrorDb("Table `%s` has invalid map (Id: %u) in SCRIPT_COMMAND_TELEPORT_TO for script id %u", tablename, tmp.teleportTo.mapId, tmp.id);
                     continue;
@@ -483,7 +483,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             }
             case SCRIPT_COMMAND_PLAY_SOUND:                 // 16
             {
-                if (!sDBCSoundEntries.LookupEntry(tmp.playSound.soundId))
+                if (!sSoundEntriesStore.LookupEntry(tmp.playSound.soundId))
                 {
                     sLog.outErrorDb("Table `%s` using nonexistent sound (id: %u) in SCRIPT_COMMAND_PLAY_SOUND for script id %u",
                                     tablename, tmp.playSound.soundId, tmp.id);
@@ -538,7 +538,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 break;
             case SCRIPT_COMMAND_SET_FACTION:                // 22
             {
-                if (tmp.faction.factionId && !sDBCFactionTemplate.LookupEntry(tmp.faction.factionId))
+                if (tmp.faction.factionId && !sFactionTemplateStore.LookupEntry(tmp.faction.factionId))
                 {
                     sLog.outErrorDb("Table `%s` has datalong = %u in SCRIPT_COMMAND_SET_FACTION for script id %u, but this faction-template does not exist.", tablename, tmp.faction.factionId, tmp.id);
                     continue;
@@ -550,7 +550,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             {
                 if (tmp.data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL)
                 {
-                    if (tmp.morph.creatureOrModelEntry && !sDBCCreatureDisplayInfo.LookupEntry(tmp.morph.creatureOrModelEntry))
+                    if (tmp.morph.creatureOrModelEntry && !sCreatureDisplayInfoStore.LookupEntry(tmp.morph.creatureOrModelEntry))
                     {
                         sLog.outErrorDb("Table `%s` has datalong2 = %u in SCRIPT_COMMAND_MORPH_TO_ENTRY_OR_MODEL for script id %u, but this model does not exist.", tablename, tmp.morph.creatureOrModelEntry, tmp.id);
                         continue;
@@ -571,7 +571,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             {
                 if (tmp.data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL)
                 {
-                    if (tmp.mount.creatureOrModelEntry && !sDBCCreatureDisplayInfo.LookupEntry(tmp.mount.creatureOrModelEntry))
+                    if (tmp.mount.creatureOrModelEntry && !sCreatureDisplayInfoStore.LookupEntry(tmp.mount.creatureOrModelEntry))
                     {
                         sLog.outErrorDb("Table `%s` has datalong2 = %u in SCRIPT_COMMAND_MOUNT_TO_ENTRY_OR_MODEL for script id %u, but this model does not exist.", tablename, tmp.mount.creatureOrModelEntry, tmp.id);
                         continue;
@@ -624,7 +624,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             }
             case SCRIPT_COMMAND_SEND_TAXI_PATH:             // 30
             {
-                if (!sDBCTaxiPath.LookupEntry(tmp.sendTaxiPath.taxiPathId))
+                if (!sTaxiPathStore.LookupEntry(tmp.sendTaxiPath.taxiPathId))
                 {
                     sLog.outErrorDb("Table `%s` has datalong = %u in SCRIPT_COMMAND_SEND_TAXI_PATH for script id %u, but this taxi path does not exist.", tablename, tmp.sendTaxiPath.taxiPathId, tmp.id);
                     continue;
@@ -702,7 +702,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             }
             case SCRIPT_COMMAND_SEND_MAIL:                  // 38
             {
-                if (!sDBCMailTemplate.LookupEntry(tmp.sendMail.mailTemplateId))
+                if (!sMailTemplateStore.LookupEntry(tmp.sendMail.mailTemplateId))
                 {
                     sLog.outErrorDb("Table `%s` has invalid mailTemplateId (datalong = %u) in SCRIPT_COMMAND_SEND_MAIL for script id %u", tablename, tmp.sendMail.mailTemplateId, tmp.id);
                     continue;

@@ -148,82 +148,82 @@ const char TotemCategoryfmt[]                 = "nwwwwwwwwwwwwwwwwwii";
 const char WorldMapAreafmt[]                  = "diiwffffi";
 const char WMOAreaTablefmt[]                  = "niiiwwwwwiiwwwwwwwwwwwwwwwww";
 
-SQLStorage<AreaTableEntry>                      sDBCAreaTable(AreaTablefmt, "dbc_areatable");
-SQLStorage<AreaTriggerEntry>                    sDBCAreaTrigger(AreaTriggerfmt, "dbc_areatrigger");
-SQLStorage<AuctionHouseEntry>                   sDBCAuctionHouse(AuctionHousefmt, "dbc_auctionhouse");
-SQLStorage<BankBagSlotPricesEntry>              sDBCBankBagSlotPrices(BankBagSlotPricesfmt, "dbc_bankbagslotprices");
-SQLStorage<BattlemasterListEntry>               sDBCBattlemasterList(BattlemasterListfmt, "dbc_battlemasterlist");
-SQLStorage<CharStartOutfitEntry>                sDBCCharStartOutfit(CharStartOutfitfmt, "dbc_charstartoutfit");
-SQLStorage<CharTitlesEntry>                     sDBCCharTitles(CharTitlesfmt, "dbc_chartitles");
-SQLStorage<ChatChannelsEntry>                   sDBCChatChannels(ChatChannelsfmt, "dbc_chatchannels");
-SQLStorage<ChrClassesEntry>                     sDBCChrClasses(ChrClassesfmt, "dbc_chrclasses");
-SQLStorage<ChrRacesEntry>                       sDBCChrRaces(ChrRacesfmt, "dbc_chrraces");
-SQLStorage<CinematicCameraEntry>                sDBCCinematicCamera(CinematicCamerafmt, "dbc_cinematiccamera");
-SQLStorage<CinematicSequencesEntry>             sDBCCinematicSequences(CinematicSequencesfmt, "dbc_cinematicsequences");
-SQLStorage<CreatureDisplayInfoEntry>            sDBCCreatureDisplayInfo(CreatureDisplayInfofmt, "dbc_creaturedisplayinfo");
-SQLStorage<CreatureDisplayInfoExtraEntry>       sDBCCreatureDisplayInfoExtra(CreatureDisplayInfoExtrafmt, "dbc_creaturedisplayinfoextra");
-SQLStorage<CreatureFamilyEntry>                 sDBCCreatureFamily(CreatureFamilyfmt, "dbc_creaturefamily");
-SQLStorage<CreatureModelDataEntry>              sDBCCreatureModelData(CreatureModelDatafmt, "dbc_creaturemodeldata");
-SQLStorage<CreatureSpellDataEntry>              sDBCCreatureSpellData(CreatureSpellDatafmt, "dbc_creaturespelldata");
-SQLStorage<CreatureTypeEntry>                   sDBCCreatureType(CreatureTypefmt, "dbc_creaturetype");
-SQLStorage<DurabilityCostsEntry>                sDBCDurabilityCosts(DurabilityCostsfmt, "dbc_durabilitycosts");
-SQLStorage<DurabilityQualityEntry>              sDBCDurabilityQuality(DurabilityQualityfmt, "dbc_durabilityquality");
-SQLStorage<EmotesEntry>                         sDBCEmotes(Emotesfmt, "dbc_emotes");
-SQLStorage<EmotesTextEntry>                     sDBCEmotesText(EmotesTextfmt, "dbc_emotestext");
-SQLStorage<FactionTemplateEntry>                sDBCFactionTemplate(FactionTemplatefmt, "dbc_factiontemplate");
-SQLStorage<GameObjectDisplayInfoEntry>          sDBCGameObjectDisplayInfo(GameObjectDisplayInfofmt, "dbc_gameobjectdisplayinfo");
-SQLStorage<GemPropertiesEntry>                  sDBCGemProperties(GemPropertiesfmt, "dbc_gemproperties");
-SQLStorage<GMSurveyCurrentSurveyEntry>          sDBCGMSurveyCurrentSurvey(GMSurveyCurrentSurveyfmt, "dbc_gmsurveycurrentsurvey");
-SQLStorage<GMSurveyQuestionsEntry>              sDBCGMSurveyQuestions(GMSurveyQuestionsfmt, "dbc_gmsurveyquestions");
-SQLStorage<GMSurveyEntry>                       sDBCGMSurveySurveys(GMSurveySurveysfmt, "dbc_gmsurveysurveys");
-SQLStorage<GMTicketCategoryEntry>               sDBCGMTicketCategory(GMTicketCategoryfmt, "dbc_gmticketcategory");
-SQLStorage<GtCombatRatingsEntry>                sDBCgtCombatRatings(gtCombatRatingsfmt, "dbc_gtcombatratings");
-SQLStorage<GtChanceToMeleeCritBaseEntry>        sDBCgtChanceToMeleeCritBase(gtChanceToMeleeCritBasefmt, "dbc_gtchancetomeleecritbase");
-SQLStorage<GtChanceToMeleeCritEntry>            sDBCgtChanceToMeleeCrit(gtChanceToMeleeCritfmt, "dbc_gtchancetomeleecrit");
-SQLStorage<GtChanceToSpellCritBaseEntry>        sDBCgtChanceToSpellCritBase(gtChanceToSpellCritBasefmt, "dbc_gtchancetospellcritbase");
-SQLStorage<GtChanceToSpellCritEntry>            sDBCgtChanceToSpellCrit(gtChanceToSpellCritfmt, "dbc_gtchancetospellcrit");
-SQLStorage<GtOCTRegenHPEntry>                   sDBCgtOCTRegenHP(gtOCTRegenHPfmt, "dbc_gtoctregenhp");
-SQLStorage<GtNPCManaCostScalerEntry>            sDBCgtNPCManaCostScaler(gtNPCManaCostScalerfmt, "dbc_gtnpcmanacostscaler");
-SQLStorage<GtRegenHPPerSptEntry>                sDBCgtRegenHPPerSpt(gtRegenHPPerSptfmt, "dbc_gtregenhpperspt");
-SQLStorage<GtRegenMPPerSptEntry>                sDBCgtRegenMPPerSpt(gtRegenMPPerSptfmt, "dbc_gtregenmpperspt");
-SQLStorage<ItemEntry>                           sDBCItem(Itemfmt, "dbc_item");
-SQLStorage<ItemBagFamilyEntry>                  sDBCItemBagFamily(ItemBagFamilyfmt, "dbc_itembagfamily");
-SQLStorage<ItemClassEntry>                      sDBCItemClass(ItemClassfmt, "dbc_itemclass");
-SQLStorage<ItemExtendedCostEntry>               sDBCItemExtendedCost(ItemExtendedCostfmt, "dbc_itemextendedcost");
-SQLStorage<ItemRandomPropertiesEntry>           sDBCItemRandomProperties(ItemRandomPropertiesfmt, "dbc_itemrandomproperties");
-SQLStorage<ItemRandomSuffixEntry>               sDBCItemRandomSuffix(ItemRandomSuffixfmt, "dbc_itemrandomsuffix");
-SQLStorage<ItemSetEntry>                        sDBCItemSet(ItemSetfmt, "dbc_itemset");
-SQLStorage<LiquidTypeEntry>                     sDBCLiquidType(LiquidTypefmt, "dbc_liquidtype");
-SQLStorage<LockEntry>                           sDBCLock(Lockfmt, "dbc_lock");
-SQLStorage<MailTemplateEntry>                   sDBCMailTemplate(MailTemplatefmt, "dbc_mailtemplate");
-SQLStorage<MapEntry>                            sDBCMap(Mapfmt, "dbc_map");
-SQLStorage<QuestSortEntry>                      sDBCQuestSort(QuestSortfmt, "dbc_questsort");
-SQLStorage<RandomPropertiesPointsEntry>         sDBCRandPropPoints(RandPropPointsfmt, "dbc_randproppoints");
-SQLStorage<SkillLineEntry>                      sDBCSkillLine(SkillLinefmt, "dbc_skillline");
-SQLStorage<SkillLineAbilityEntry>               sDBCSkillLineAbility(SkillLineAbilityfmt, "dbc_skilllineability");
-SQLStorage<SkillRaceClassInfoEntry>             sDBCSkillRaceClassInfo(SkillRaceClassInfofmt, "dbc_skillraceclassinfo");
-SQLStorage<SkillTiersEntry>                     sDBCSkillTiers(SkillTiersfmt, "dbc_skilltiers");
-SQLStorage<SoundEntriesEntry>                   sDBCSoundEntries(SoundEntriesfmt, "dbc_soundentries");
-SQLStorage<SpellCastTimesEntry>                 sDBCSpellCastTimes(SpellCastTimesfmt, "dbc_spellcasttimes");
-SQLStorage<SpellDurationEntry>                  sDBCSpellDuration(SpellDurationfmt, "dbc_spellduration");
-SQLStorage<SpellFocusObjectEntry>               sDBCSpellFocusObject(SpellFocusObjectfmt, "dbc_spellfocusobject");
-SQLStorage<SpellItemEnchantmentEntry>           sDBCSpellItemEnchantment(SpellItemEnchantmentfmt, "dbc_spellitemenchantment");
-SQLStorage<SpellItemEnchantmentConditionEntry>  sDBCSpellItemEnchantmentCondition(SpellItemEnchantmentConditionfmt, "dbc_spellitemenchantmentcondition");
-SQLStorage<SpellRadiusEntry>                    sDBCSpellRadius(SpellRadiusfmt, "dbc_spellradius");
-SQLStorage<SpellRangeEntry>                     sDBCSpellRange(SpellRangefmt, "dbc_spellrange");
-SQLStorage<SpellShapeshiftFormEntry>            sDBCSpellShapeshiftForm(SpellShapeshiftFormfmt, "dbc_spellshapeshiftform");
-SQLStorage<SpellVisualEntry>                    sDBCSpellVisual(SpellVisualfmt, "dbc_spellvisual");
-SQLStorage<StableSlotPricesEntry>               sDBCStableSlotPrices(StableSlotPricesfmt, "dbc_stableslotprices");
-SQLStorage<SummonPropertiesEntry>               sDBCSummonProperties(SummonPropertiesfmt, "dbc_summonproperties");
-SQLStorage<TalentEntry>                         sDBCTalent(Talentfmt, "dbc_talent");
-SQLStorage<TalentTabEntry>                      sDBCTalentTab(TalentTabfmt, "dbc_talenttab");
-SQLStorage<TaxiNodesEntry>                      sDBCTaxiNodes(TaxiNodesfmt, "dbc_taxinodes");
-SQLStorage<TaxiPathEntry>                       sDBCTaxiPath(TaxiPathfmt, "dbc_taxipath");
-SQLStorage<TaxiPathNodeEntry>                   sDBCTaxiPathNode(TaxiPathNodefmt, "dbc_taxipathnode");
-SQLStorage<TransportAnimationEntry>             sDBCTransportAnimation(TransportAnimationfmt, "dbc_transportanimation");
-SQLStorage<TotemCategoryEntry>                  sDBCTotemCategory(TotemCategoryfmt, "dbc_totemcategory");
-SQLStorage<WorldMapAreaEntry>                   sDBCWorldMapArea(WorldMapAreafmt, "dbc_worldmaparea");
-SQLStorage<WMOAreaTableEntry>                   sDBCWMOAreaTable(WMOAreaTablefmt, "dbc_wmoareatable");
+SQLStorage<AreaTableEntry>                      sAreaTableStore(AreaTablefmt, "areatable_store");
+SQLStorage<AreaTriggerEntry>                    sAreaTriggerStore(AreaTriggerfmt, "areatrigger_store");
+SQLStorage<AuctionHouseEntry>                   sAuctionHouseStore(AuctionHousefmt, "auctionhouse_store");
+SQLStorage<BankBagSlotPricesEntry>              sBankBagSlotPricesStore(BankBagSlotPricesfmt, "bankbagslotprices_store");
+SQLStorage<BattlemasterListEntry>               sBattlemasterListStore(BattlemasterListfmt, "battlemasterlist_store");
+SQLStorage<CharStartOutfitEntry>                sCharStartOutfitStore(CharStartOutfitfmt, "charstartoutfit_store");
+SQLStorage<CharTitlesEntry>                     sCharTitlesStore(CharTitlesfmt, "chartitles_store");
+SQLStorage<ChatChannelsEntry>                   sChatChannelsStore(ChatChannelsfmt, "chatchannels_store");
+SQLStorage<ChrClassesEntry>                     sChrClassesStore(ChrClassesfmt, "chrclasses_store");
+SQLStorage<ChrRacesEntry>                       sChrRacesStore(ChrRacesfmt, "chrraces_store");
+SQLStorage<CinematicCameraEntry>                sCinematicCameraStore(CinematicCamerafmt, "cinematiccamera_store");
+SQLStorage<CinematicSequencesEntry>             sCinematicSequencesStore(CinematicSequencesfmt, "cinematicsequences_store");
+SQLStorage<CreatureDisplayInfoEntry>            sCreatureDisplayInfoStore(CreatureDisplayInfofmt, "creaturedisplayinfo_store");
+SQLStorage<CreatureDisplayInfoExtraEntry>       sCreatureDisplayInfoExtraStore(CreatureDisplayInfoExtrafmt, "creaturedisplayinfoextra_store");
+SQLStorage<CreatureFamilyEntry>                 sCreatureFamilyStore(CreatureFamilyfmt, "creaturefamily_store");
+SQLStorage<CreatureModelDataEntry>              sCreatureModelDataStore(CreatureModelDatafmt, "creaturemodeldata_store");
+SQLStorage<CreatureSpellDataEntry>              sCreatureSpellDataStore(CreatureSpellDatafmt, "creaturespelldata_store");
+SQLStorage<CreatureTypeEntry>                   sCreatureTypeStore(CreatureTypefmt, "creaturetype_store");
+SQLStorage<DurabilityCostsEntry>                sDurabilityCostsStore(DurabilityCostsfmt, "durabilitycosts_store");
+SQLStorage<DurabilityQualityEntry>              sDurabilityQualityStore(DurabilityQualityfmt, "durabilityquality_store");
+SQLStorage<EmotesEntry>                         sEmotesStore(Emotesfmt, "emotes_store");
+SQLStorage<EmotesTextEntry>                     sEmotesTextStore(EmotesTextfmt, "emotestext_store");
+SQLStorage<FactionTemplateEntry>                sFactionTemplateStore(FactionTemplatefmt, "factiontemplate_store");
+SQLStorage<GameObjectDisplayInfoEntry>          sGameObjectDisplayInfoStore(GameObjectDisplayInfofmt, "gameobjectdisplayinfo_store");
+SQLStorage<GemPropertiesEntry>                  sGemPropertiesStore(GemPropertiesfmt, "gemproperties_store");
+SQLStorage<GMSurveyCurrentSurveyEntry>          sGMSurveyCurrentSurveyStore(GMSurveyCurrentSurveyfmt, "gmsurveycurrentsurvey_store");
+SQLStorage<GMSurveyQuestionsEntry>              sGMSurveyQuestionsStore(GMSurveyQuestionsfmt, "gmsurveyquestions_store");
+SQLStorage<GMSurveyEntry>                       sGMSurveySurveysStore(GMSurveySurveysfmt, "gmsurveysurveys_store");
+SQLStorage<GMTicketCategoryEntry>               sGMTicketCategoryStore(GMTicketCategoryfmt, "gmticketcategory_store");
+SQLStorage<GtCombatRatingsEntry>                sgtCombatRatingsStore(gtCombatRatingsfmt, "gtcombatratings_store");
+SQLStorage<GtChanceToMeleeCritBaseEntry>        sgtChanceToMeleeCritBaseStore(gtChanceToMeleeCritBasefmt, "gtchancetomeleecritbase_store");
+SQLStorage<GtChanceToMeleeCritEntry>            sgtChanceToMeleeCritStore(gtChanceToMeleeCritfmt, "gtchancetomeleecrit_store");
+SQLStorage<GtChanceToSpellCritBaseEntry>        sgtChanceToSpellCritBaseStore(gtChanceToSpellCritBasefmt, "gtchancetospellcritbase_store");
+SQLStorage<GtChanceToSpellCritEntry>            sgtChanceToSpellCritStore(gtChanceToSpellCritfmt, "gtchancetospellcrit_store");
+SQLStorage<GtOCTRegenHPEntry>                   sgtOCTRegenHPStore(gtOCTRegenHPfmt, "gtoctregenhp_store");
+SQLStorage<GtNPCManaCostScalerEntry>            sgtNPCManaCostScalerStore(gtNPCManaCostScalerfmt, "gtnpcmanacostscaler_store");
+SQLStorage<GtRegenHPPerSptEntry>                sgtRegenHPPerSptStore(gtRegenHPPerSptfmt, "gtregenhpperspt_store");
+SQLStorage<GtRegenMPPerSptEntry>                sgtRegenMPPerSptStore(gtRegenMPPerSptfmt, "gtregenmpperspt_store");
+SQLStorage<ItemEntry>                           sItemStore(Itemfmt, "item_store");
+SQLStorage<ItemBagFamilyEntry>                  sItemBagFamilyStore(ItemBagFamilyfmt, "itembagfamily_store");
+SQLStorage<ItemClassEntry>                      sItemClassStore(ItemClassfmt, "itemclass_store");
+SQLStorage<ItemExtendedCostEntry>               sItemExtendedCostStore(ItemExtendedCostfmt, "itemextendedcost_store");
+SQLStorage<ItemRandomPropertiesEntry>           sItemRandomPropertiesStore(ItemRandomPropertiesfmt, "itemrandomproperties_store");
+SQLStorage<ItemRandomSuffixEntry>               sItemRandomSuffixStore(ItemRandomSuffixfmt, "itemrandomsuffix_store");
+SQLStorage<ItemSetEntry>                        sItemSetStore(ItemSetfmt, "itemset_store");
+SQLStorage<LiquidTypeEntry>                     sLiquidTypeStore(LiquidTypefmt, "liquidtype_store");
+SQLStorage<LockEntry>                           sLockStore(Lockfmt, "lock_store");
+SQLStorage<MailTemplateEntry>                   sMailTemplateStore(MailTemplatefmt, "mailtemplate_store");
+SQLStorage<MapEntry>                            sMapStore(Mapfmt, "map_store");
+SQLStorage<QuestSortEntry>                      sQuestSortStore(QuestSortfmt, "questsort_store");
+SQLStorage<RandomPropertiesPointsEntry>         sRandPropPointsStore(RandPropPointsfmt, "randproppoints_store");
+SQLStorage<SkillLineEntry>                      sSkillLineStore(SkillLinefmt, "skillline_store");
+SQLStorage<SkillLineAbilityEntry>               sSkillLineAbilityStore(SkillLineAbilityfmt, "skilllineability_store");
+SQLStorage<SkillRaceClassInfoEntry>             sSkillRaceClassInfoStore(SkillRaceClassInfofmt, "skillraceclassinfo_store");
+SQLStorage<SkillTiersEntry>                     sSkillTiersStore(SkillTiersfmt, "skilltiers_store");
+SQLStorage<SoundEntriesEntry>                   sSoundEntriesStore(SoundEntriesfmt, "soundentries_store");
+SQLStorage<SpellCastTimesEntry>                 sSpellCastTimesStore(SpellCastTimesfmt, "spellcasttimes_store");
+SQLStorage<SpellDurationEntry>                  sSpellDurationStore(SpellDurationfmt, "spellduration_store");
+SQLStorage<SpellFocusObjectEntry>               sSpellFocusObjectStore(SpellFocusObjectfmt, "spellfocusobject_store");
+SQLStorage<SpellItemEnchantmentEntry>           sSpellItemEnchantmentStore(SpellItemEnchantmentfmt, "spellitemenchantment_store");
+SQLStorage<SpellItemEnchantmentConditionEntry>  sSpellItemEnchantmentConditionStore(SpellItemEnchantmentConditionfmt, "spellitemenchantmentcondition_store");
+SQLStorage<SpellRadiusEntry>                    sSpellRadiusStore(SpellRadiusfmt, "spellradius_store");
+SQLStorage<SpellRangeEntry>                     sSpellRangeStore(SpellRangefmt, "spellrange_store");
+SQLStorage<SpellShapeshiftFormEntry>            sSpellShapeshiftFormStore(SpellShapeshiftFormfmt, "spellshapeshiftform_store");
+SQLStorage<SpellVisualEntry>                    sSpellVisualStore(SpellVisualfmt, "spellvisual_store");
+SQLStorage<StableSlotPricesEntry>               sStableSlotPricesStore(StableSlotPricesfmt, "stableslotprices_store");
+SQLStorage<SummonPropertiesEntry>               sSummonPropertiesStore(SummonPropertiesfmt, "summonproperties_store");
+SQLStorage<TalentEntry>                         sTalentStore(Talentfmt, "talent_store");
+SQLStorage<TalentTabEntry>                      sTalentTabStore(TalentTabfmt, "talenttab_store");
+SQLStorage<TaxiNodesEntry>                      sTaxiNodesStore(TaxiNodesfmt, "taxinodes_store");
+SQLStorage<TaxiPathEntry>                       sTaxiPathStore(TaxiPathfmt, "taxipath_store");
+SQLStorage<TaxiPathNodeEntry>                   sTaxiPathNodeStore(TaxiPathNodefmt, "taxipathnode_store");
+SQLStorage<TransportAnimationEntry>             sTransportAnimationStore(TransportAnimationfmt, "transportanimation_store");
+SQLStorage<TotemCategoryEntry>                  sTotemCategoryStore(TotemCategoryfmt, "totemcategory_store");
+SQLStorage<WorldMapAreaEntry>                   sWorldMapAreaStore(WorldMapAreafmt, "worldmaparea_store");
+SQLStorage<WMOAreaTableEntry>                   sWMOAreaTableStore(WMOAreaTablefmt, "wmoareatable_store");
 
 AreaFlagByAreaID sAreaFlagByAreaID;
 AreaFlagByMapID  sAreaFlagByMapID;                   // for instances without generated *.map files
@@ -247,7 +247,7 @@ TaxiPathNodesByPath sTaxiPathNodesByPath;// DBC store data but sTaxiPathNodesByP
 void InitializeDBC()
 {
     // must be after sAreaStore loading
-    for (auto areaEntry : sDBCAreaTable)    // areaflag numbered from 0
+    for (auto areaEntry : sAreaTableStore)    // areaflag numbered from 0
     {
             // fill AreaId->DBC records
             sAreaFlagByAreaID.insert(AreaFlagByAreaID::value_type(uint16(areaEntry->ID), areaEntry->exploreFlag));
@@ -257,12 +257,12 @@ void InitializeDBC()
                 sAreaFlagByMapID.insert(AreaFlagByMapID::value_type(areaEntry->mapid, areaEntry->exploreFlag));
     }
 
-    for (auto skillLine : sDBCSkillLineAbility)
+    for (auto skillLine : sSkillLineAbilityStore)
     {
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(skillLine->spellId);
         if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG))
         {
-            for (auto cFamily : sDBCCreatureFamily)
+            for (auto cFamily : sCreatureFamilyStore)
             {
                 if (skillLine->skillId != cFamily->skillLine[0] && skillLine->skillId != cFamily->skillLine[1])
                     continue;
@@ -273,7 +273,7 @@ void InitializeDBC()
     }
 
     // create talent spells set
-    for (auto talentInfo : sDBCTalent)
+    for (auto talentInfo : sTalentStore)
     {
         for (int j = 0; j < 5; ++j)
             if (talentInfo->RankID[j])
@@ -286,9 +286,9 @@ void InitializeDBC()
         // store in with (row,col,talent)->size key for correct sorting by (row,col)
         typedef std::map<uint32, uint32> TalentBitSize;
         TalentBitSize sTalentBitSize;
-        for (auto talentInfo : sDBCTalent)
+        for (auto talentInfo : sTalentStore)
         {
-            TalentTabEntry const* talentTabInfo = sDBCTalentTab.LookupEntry(talentInfo->TalentTab);
+            TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
             if (!talentTabInfo)
                 continue;
 
@@ -308,7 +308,7 @@ void InitializeDBC()
         }
 
         // now have all max ranks (and then bit amount used for store talent ranks in inspect)
-        for (auto talentTabInfo : sDBCTalentTab)
+        for (auto talentTabInfo : sTalentTabStore)
         {
             // prevent memory corruption; otherwise cls will become 12 below
             if ((talentTabInfo->ClassMask & CLASSMASK_ALL_PLAYABLE) == 0)
@@ -325,7 +325,7 @@ void InitializeDBC()
             for (TalentBitSize::iterator itr = sTalentBitSize.begin(); itr != sTalentBitSize.end(); ++itr)
             {
                 uint32 talentId = itr->first & 0xFFFF;
-                TalentEntry const* talentInfo = sDBCTalent.LookupEntry(talentId);
+                TalentEntry const* talentInfo = sTalentStore.LookupEntry(talentId);
                 if (!talentInfo)
                     continue;
 
@@ -338,13 +338,13 @@ void InitializeDBC()
         }
     }
 
-    for (auto entry : sDBCTaxiPath)
+    for (auto entry : sTaxiPathStore)
         sTaxiPathSetBySource[entry->from][entry->to] = TaxiPathBySourceAndDestination(entry->ID, entry->price);
-    uint32 pathCount = sDBCTaxiPath.GetMaxEntry();
+    uint32 pathCount = sTaxiPathStore.GetMaxEntry();
 
     std::vector<uint32> pathLength;
     pathLength.resize(pathCount);                           // 0 and some other indexes not used
-    for (auto entry : sDBCTaxiPathNode)
+    for (auto entry : sTaxiPathNodeStore)
     {
         if (pathLength[entry->path] < entry->index + 1)
             pathLength[entry->path] = entry->index + 1;
@@ -354,7 +354,7 @@ void InitializeDBC()
     for (uint32 i = 1; i < sTaxiPathNodesByPath.size(); ++i)
         sTaxiPathNodesByPath[i].resize(pathLength[i]);
     // fill data (pointers to sTaxiPathNodeStore elements
-    for (auto entry : sDBCTaxiPathNode)
+    for (auto entry : sTaxiPathNodeStore)
         sTaxiPathNodesByPath[entry->path].set(entry->index, entry);
 
     // Initialize global taxinodes mask
@@ -367,7 +367,7 @@ void InitializeDBC()
                     spellPaths.insert(sInfo->EffectMiscValue[j]);
 
         memset(sTaxiNodesMask, 0, sizeof(sTaxiNodesMask));
-        for (auto node : sDBCTaxiNodes)
+        for (auto node : sTaxiNodesStore)
         {
             TaxiPathSetBySource::const_iterator src_i = sTaxiPathSetBySource.find(node->ID);
             if (src_i != sTaxiPathSetBySource.end() && !src_i->second.empty())
@@ -394,18 +394,18 @@ void InitializeDBC()
         }
     }
 
-    for (auto entry : sDBCWMOAreaTable)
+    for (auto entry : sWMOAreaTableStore)
     {
         sWMOAreaInfoByTripple[WMOAreaTableTripple(entry->rootId, entry->adtId, entry->groupId)].push_back(entry);
     }
 
     // Check loaded DBC files proper version
-    if (!sDBCSkillLineAbility.LookupEntry(17514) ||
-        !sDBCMap.LookupEntry(598) ||
-        !sDBCGemProperties.LookupEntry(1127) ||
-        !sDBCItemExtendedCost.LookupEntry(2425) ||
-        !sDBCCharTitles.LookupEntry(71) ||
-        !sDBCAreaTable.LookupEntry(1768))
+    if (!sSkillLineAbilityStore.LookupEntry(17514) ||
+        !sMapStore.LookupEntry(598) ||
+        !sGemPropertiesStore.LookupEntry(1127) ||
+        !sItemExtendedCostStore.LookupEntry(2425) ||
+        !sCharTitlesStore.LookupEntry(71) ||
+        !sAreaTableStore.LookupEntry(1768))
     {
         sLog.outError("\nYou have _outdated_ DBC files. Please re-extract DBC files for one from client build: %s", World::AcceptableClientBuildsListStr().c_str());
         Log::WaitBeforeContinueIfNeed();
@@ -415,82 +415,82 @@ void InitializeDBC()
 
 void LoadDBCTables()
 {
-    sDBCAreaTable.Load();
-    sDBCAreaTrigger.Load();
-    sDBCAuctionHouse.Load();
-    sDBCBankBagSlotPrices.Load();
-    sDBCBattlemasterList.Load();
-    sDBCCharStartOutfit.Load();
-    sDBCCharTitles.Load();
-    sDBCChatChannels.Load();
-    sDBCChrClasses.Load();
-    sDBCChrRaces.Load();
-    sDBCCinematicCamera.Load();
-    sDBCCinematicSequences.Load();
-    sDBCCreatureDisplayInfo.Load();
-    sDBCCreatureDisplayInfoExtra.Load();
-    sDBCCreatureFamily.Load();
-    sDBCCreatureModelData.Load();
-    sDBCCreatureSpellData.Load();
-    sDBCCreatureType.Load();
-    sDBCDurabilityQuality.Load();
-    sDBCDurabilityCosts.Load();
-    sDBCEmotes.Load();
-    sDBCEmotesText.Load();
-    sDBCFactionTemplate.Load();
-    sDBCGameObjectDisplayInfo.Load();
-    sDBCGemProperties.Load();
-    sDBCGMSurveyCurrentSurvey.Load();
-    sDBCGMSurveyQuestions.Load();
-    sDBCGMSurveySurveys.Load();
-    sDBCGMTicketCategory.Load();
-    sDBCgtCombatRatings.Load();
-    sDBCgtChanceToMeleeCritBase.Load();
-    sDBCgtChanceToMeleeCrit.Load();
-    sDBCgtChanceToSpellCritBase.Load();
-    sDBCgtChanceToSpellCrit.Load();
-    sDBCgtOCTRegenHP.Load();
-    sDBCgtNPCManaCostScaler.Load();
-    sDBCgtRegenHPPerSpt.Load();
-    sDBCgtRegenMPPerSpt.Load();
-    sDBCItem.Load();
-    sDBCItemBagFamily.Load();
-    sDBCItemClass.Load();
-    sDBCItemExtendedCost.Load();
-    sDBCItemRandomProperties.Load();
-    sDBCItemRandomSuffix.Load();
-    sDBCItemSet.Load();
-    sDBCLiquidType.Load();
-    sDBCLock.Load();
-    sDBCMailTemplate.Load();
-    sDBCMap.Load();
-    sDBCQuestSort.Load();
-    sDBCRandPropPoints.Load();
-    sDBCSkillLine.Load();
-    sDBCSkillLineAbility.Load();
-    sDBCSkillRaceClassInfo.Load();
-    sDBCSkillTiers.Load();
-    sDBCSoundEntries.Load();
-    sDBCSpellCastTimes.Load();
-    sDBCSpellDuration.Load();
-    sDBCSpellFocusObject.Load();
-    sDBCSpellItemEnchantment.Load();
-    sDBCSpellItemEnchantmentCondition.Load();
-    sDBCSpellRadius.Load();
-    sDBCSpellRange.Load();
-    sDBCSpellShapeshiftForm.Load();
-    sDBCSpellVisual.Load();
-    sDBCStableSlotPrices.Load();
-    sDBCSummonProperties.Load();
-    sDBCTalent.Load();
-    sDBCTalentTab.Load();
-    sDBCTaxiNodes.Load();
-    sDBCTaxiPath.Load();
-    sDBCTaxiPathNode.Load();
-    sDBCTransportAnimation.Load();
-    sDBCTotemCategory.Load();
-    sDBCWorldMapArea.Load();
-    sDBCWMOAreaTable.Load();
+    sAreaTableStore.Load();
+    sAreaTriggerStore.Load();
+    sAuctionHouseStore.Load();
+    sBankBagSlotPricesStore.Load();
+    sBattlemasterListStore.Load();
+    sCharStartOutfitStore.Load();
+    sCharTitlesStore.Load();
+    sChatChannelsStore.Load();
+    sChrClassesStore.Load();
+    sChrRacesStore.Load();
+    sCinematicCameraStore.Load();
+    sCinematicSequencesStore.Load();
+    sCreatureDisplayInfoStore.Load();
+    sCreatureDisplayInfoExtraStore.Load();
+    sCreatureFamilyStore.Load();
+    sCreatureModelDataStore.Load();
+    sCreatureSpellDataStore.Load();
+    sCreatureTypeStore.Load();
+    sDurabilityQualityStore.Load();
+    sDurabilityCostsStore.Load();
+    sEmotesStore.Load();
+    sEmotesTextStore.Load();
+    sFactionTemplateStore.Load();
+    sGameObjectDisplayInfoStore.Load();
+    sGemPropertiesStore.Load();
+    sGMSurveyCurrentSurveyStore.Load();
+    sGMSurveyQuestionsStore.Load();
+    sGMSurveySurveysStore.Load();
+    sGMTicketCategoryStore.Load();
+    sgtCombatRatingsStore.Load();
+    sgtChanceToMeleeCritBaseStore.Load();
+    sgtChanceToMeleeCritStore.Load();
+    sgtChanceToSpellCritBaseStore.Load();
+    sgtChanceToSpellCritStore.Load();
+    sgtOCTRegenHPStore.Load();
+    sgtNPCManaCostScalerStore.Load();
+    sgtRegenHPPerSptStore.Load();
+    sgtRegenMPPerSptStore.Load();
+    sItemStore.Load();
+    sItemBagFamilyStore.Load();
+    sItemClassStore.Load();
+    sItemExtendedCostStore.Load();
+    sItemRandomPropertiesStore.Load();
+    sItemRandomSuffixStore.Load();
+    sItemSetStore.Load();
+    sLiquidTypeStore.Load();
+    sLockStore.Load();
+    sMailTemplateStore.Load();
+    sMapStore.Load();
+    sQuestSortStore.Load();
+    sRandPropPointsStore.Load();
+    sSkillLineStore.Load();
+    sSkillLineAbilityStore.Load();
+    sSkillRaceClassInfoStore.Load();
+    sSkillTiersStore.Load();
+    sSoundEntriesStore.Load();
+    sSpellCastTimesStore.Load();
+    sSpellDurationStore.Load();
+    sSpellFocusObjectStore.Load();
+    sSpellItemEnchantmentStore.Load();
+    sSpellItemEnchantmentConditionStore.Load();
+    sSpellRadiusStore.Load();
+    sSpellRangeStore.Load();
+    sSpellShapeshiftFormStore.Load();
+    sSpellVisualStore.Load();
+    sStableSlotPricesStore.Load();
+    sSummonPropertiesStore.Load();
+    sTalentStore.Load();
+    sTalentTabStore.Load();
+    sTaxiNodesStore.Load();
+    sTaxiPathStore.Load();
+    sTaxiPathNodeStore.Load();
+    sTransportAnimationStore.Load();
+    sTotemCategoryStore.Load();
+    sWorldMapAreaStore.Load();
+    sWMOAreaTableStore.Load();
 
     InitializeDBC();
 

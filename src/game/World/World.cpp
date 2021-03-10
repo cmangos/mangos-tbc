@@ -1409,7 +1409,7 @@ void World::DetectDBCLang()
         m_lang_confid = DEFAULT_LOCALE;
     }
 
-    ChrRacesEntry const* race = sDBCChrRaces.LookupEntry(RACE_HUMAN);
+    ChrRacesEntry const* race = sChrRacesStore.LookupEntry(RACE_HUMAN);
     MANGOS_ASSERT(race);
 
     std::string availableLocalsStr;

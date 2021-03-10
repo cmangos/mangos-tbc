@@ -1306,7 +1306,7 @@ inline bool IsPositiveSpell(uint32 spellId, const WorldObject* caster = nullptr,
 
 inline void GetChainJumpRange(SpellEntry const* spellInfo, SpellEffectIndex effIdx, float& minSearchRangeCaster, float& maxSearchRangeTarget)
 {
-    const SpellRangeEntry* range = sDBCSpellRange.LookupEntry(spellInfo->rangeIndex);
+    const SpellRangeEntry* range = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
     if (spellInfo->DmgClass == SPELL_DAMAGE_CLASS_MELEE)
         maxSearchRangeTarget = range->maxRange;
     else

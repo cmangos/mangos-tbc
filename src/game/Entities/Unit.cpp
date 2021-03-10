@@ -2207,7 +2207,7 @@ void Unit::HandleEmote(uint32 emote_id)
 {
     if (!emote_id)
         HandleEmoteState(0);
-    else if (EmotesEntry const* emoteEntry = sDBCEmotes.LookupEntry(emote_id))
+    else if (EmotesEntry const* emoteEntry = sEmotesStore.LookupEntry(emote_id))
     {
         if (emoteEntry->EmoteType)                          // 1,2 states, 0 command
             HandleEmoteState(emote_id);
@@ -6232,7 +6232,7 @@ void Unit::SetPowerType(Powers new_powertype)
 
 FactionTemplateEntry const* Unit::GetFactionTemplateEntry() const
 {
-    FactionTemplateEntry const* entry = sDBCFactionTemplate.LookupEntry(getFaction());
+    FactionTemplateEntry const* entry = sFactionTemplateStore.LookupEntry(getFaction());
     if (!entry)
     {
         static ObjectGuid guid;                             // prevent repeating spam same faction problem
@@ -9258,7 +9258,7 @@ uint32 Unit::GetCreatureType() const
 {
     if (GetTypeId() == TYPEID_PLAYER)
     {
-        SpellShapeshiftFormEntry const* ssEntry = sDBCSpellShapeshiftForm.LookupEntry(GetShapeshiftForm());
+        SpellShapeshiftFormEntry const* ssEntry = sSpellShapeshiftFormStore.LookupEntry(GetShapeshiftForm());
         if (ssEntry && ssEntry->creatureType > 0)
             return ssEntry->creatureType;
         return CREATURE_TYPE_HUMANOID;
@@ -11191,7 +11191,7 @@ bool Unit::IsShapeShifted() const
     // Mirroring clientside gameplay logic
     if (ShapeshiftForm form = GetShapeshiftForm())
     {
-        if (SpellShapeshiftFormEntry const* entry = sDBCSpellShapeshiftForm.LookupEntry(form))
+        if (SpellShapeshiftFormEntry const* entry = sSpellShapeshiftFormStore.LookupEntry(form))
             return !(entry->flags1 & SHAPESHIFT_FORM_FLAG_ALLOW_ACTIVITY);
     }
     return false;
@@ -12135,8 +12135,8 @@ float Unit::OCTRegenHPPerSpirit() const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtOCTRegenHPEntry     const* baseRatio = sDBCgtOCTRegenHP.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
-    GtRegenHPPerSptEntry  const* moreRatio = sDBCgtRegenHPPerSpt.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtOCTRegenHPEntry     const* baseRatio = sgtOCTRegenHPStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtRegenHPPerSptEntry  const* moreRatio = sgtRegenHPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (baseRatio == nullptr || moreRatio == nullptr)
         return 0.0f;
 
@@ -12157,7 +12157,7 @@ float Unit::OCTRegenMPPerSpirit() const
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
     //    GtOCTRegenMPEntry     const *baseRatio = sGtOCTRegenMPStore.LookupEntry((pclass-1)*GT_MAX_LEVEL + level-1);
-    GtRegenMPPerSptEntry  const* moreRatio = sDBCgtRegenMPPerSpt.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtRegenMPPerSptEntry  const* moreRatio = sgtRegenMPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (moreRatio == nullptr)
         return 0.0f;
 
@@ -12173,13 +12173,13 @@ float Unit::GetCollisionHeight() const
 
     if (IsMounted())
     {
-        if (CreatureDisplayInfoEntry const* mountDisplayInfo = sDBCCreatureDisplayInfo.LookupEntry(GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID)))
+        if (CreatureDisplayInfoEntry const* mountDisplayInfo = sCreatureDisplayInfoStore.LookupEntry(GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID)))
         {
-            if (CreatureModelDataEntry const* mountModelData = sDBCCreatureModelData.LookupEntry(mountDisplayInfo->ModelId))
+            if (CreatureModelDataEntry const* mountModelData = sCreatureModelDataStore.LookupEntry(mountDisplayInfo->ModelId))
             {
-                CreatureDisplayInfoEntry const* displayInfo = sDBCCreatureDisplayInfo.LookupEntry(GetNativeDisplayId());
+                CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.LookupEntry(GetNativeDisplayId());
                 MANGOS_ASSERT(displayInfo);
-                CreatureModelDataEntry const* modelData = sDBCCreatureModelData.LookupEntry(displayInfo->ModelId);
+                CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelId);
                 MANGOS_ASSERT(modelData);
                 float const collisionHeight = scaleMod * (mountModelData->MountHeight + modelData->CollisionHeight * modelData->Scale * displayInfo->scale * 0.5f);
                 return collisionHeight == 0.0f ? DEFAULT_COLLISION_HEIGHT : collisionHeight;
@@ -12188,9 +12188,9 @@ float Unit::GetCollisionHeight() const
     }
 
     //! Dismounting case - use basic default model data
-    CreatureDisplayInfoEntry const* displayInfo = sDBCCreatureDisplayInfo.LookupEntry(GetNativeDisplayId());
+    CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.LookupEntry(GetNativeDisplayId());
     MANGOS_ASSERT(displayInfo);
-    CreatureModelDataEntry const* modelData = sDBCCreatureModelData.LookupEntry(displayInfo->ModelId);
+    CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelId);
     MANGOS_ASSERT(modelData);
 
     float const collisionHeight = scaleMod * modelData->CollisionHeight * modelData->Scale * displayInfo->scale;

@@ -567,7 +567,7 @@ struct PoolMapChecker
 
     bool CheckAndRemember(uint32 mapid, uint32 pool_id, char const* tableName, char const* elementName)
     {
-        MapEntry const* mapEntry = sDBCMap.LookupEntry(mapid);
+        MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
         if (!mapEntry)
             return false;
 

@@ -381,7 +381,7 @@ void WorldSession::HandleSetTargetOpcode(WorldPacket& recv_data)
     if (!unit)
         return;
 
-    if (FactionTemplateEntry const* factionTemplateEntry = sDBCFactionTemplate.LookupEntry(unit->getFaction()))
+    if (FactionTemplateEntry const* factionTemplateEntry = sFactionTemplateStore.LookupEntry(unit->getFaction()))
         _player->GetReputationMgr().SetVisible(factionTemplateEntry);
 }
 
@@ -401,7 +401,7 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket& recv_data)
     if (!unit)
         return;
 
-    if (FactionTemplateEntry const* factionTemplateEntry = sDBCFactionTemplate.LookupEntry(unit->getFaction()))
+    if (FactionTemplateEntry const* factionTemplateEntry = sFactionTemplateStore.LookupEntry(unit->getFaction()))
         _player->GetReputationMgr().SetVisible(factionTemplateEntry);
 }
 
@@ -703,7 +703,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
         return;
     }
 
-    AreaTriggerEntry const* atEntry = sDBCAreaTrigger.LookupEntry(Trigger_ID);
+    AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(Trigger_ID);
     if (!atEntry)
     {
         DEBUG_LOG("Player '%s' (GUID: %u) send unknown (by DBC) Area Trigger ID: %u", player->GetName(), player->GetGUIDLow(), Trigger_ID);
@@ -759,7 +759,7 @@ void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
     if (!at)
         return;
 
-    MapEntry const* targetMapEntry = sDBCMap.LookupEntry(at->target_mapId);
+    MapEntry const* targetMapEntry = sMapStore.LookupEntry(at->target_mapId);
     if (!targetMapEntry)
         return;
 
@@ -1065,7 +1065,7 @@ void WorldSession::HandleInspectOpcode(WorldPacket& recv_data)
             uint32 talentTabId = talentTabIds[i];
 
             // fill by real data
-            for (auto talentInfo : sDBCTalent)
+            for (auto talentInfo : sTalentStore)
             {
                 // skip another tab talents
                 if (talentInfo->TalentTab != talentTabId)

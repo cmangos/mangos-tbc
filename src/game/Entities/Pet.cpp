@@ -650,7 +650,7 @@ void Pet::SetDeathState(DeathState s)                       // overwrite virtual
         if (getPetType() != SUMMON_PET)
         {
             // lose happiness when died and not in BG/Arena
-            MapEntry const* mapEntry = sDBCMap.LookupEntry(GetMapId());
+            MapEntry const* mapEntry = sMapStore.LookupEntry(GetMapId());
             if (!mapEntry || (mapEntry->map_type != MAP_ARENA && mapEntry->map_type != MAP_BATTLEGROUND))
                 ModifyPower(POWER_HAPPINESS, -HAPPINESS_LEVEL_SIZE);
         }
@@ -1195,7 +1195,7 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
     SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, sObjectMgr.GetXPForPetLevel(creature->getLevel()));
     SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
 
-    if (CreatureFamilyEntry const* cFamily = sDBCCreatureFamily.LookupEntry(cInfo->Family))
+    if (CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cInfo->Family))
         SetName(cFamily->Name[sWorld.GetDefaultDbcLocale()]);
     else
         SetName(creature->GetNameForLocaleIdx(sObjectMgr.GetDbc2StorageLocaleIndex()));
@@ -1258,7 +1258,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     {
         case HUNTER_PET:
         {
-            CreatureFamilyEntry const* cFamily = sDBCCreatureFamily.LookupEntry(cInfo->Family);
+            CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cInfo->Family);
 
             if (cFamily && cFamily->minScale > 0.0f)
             {
@@ -1527,7 +1527,7 @@ bool Pet::HaveInDiet(ItemPrototype const* item) const
     if (!cInfo)
         return false;
 
-    CreatureFamilyEntry const* cFamily = sDBCCreatureFamily.LookupEntry(cInfo->Family);
+    CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cInfo->Family);
     if (!cFamily)
         return false;
 
@@ -2089,7 +2089,7 @@ void Pet::InitPetCreateSpells()
 
             addSpell(petspellid);
 
-            SkillLineAbilityEntry const* skla = sDBCSkillLineAbility.LookupEntry(learn_spellproto->EffectTriggerSpell[0]);
+            SkillLineAbilityEntry const* skla = sSkillLineAbilityStore.LookupEntry(learn_spellproto->EffectTriggerSpell[0]);
             if (skla)
                 usedtrainpoints += skla->reqtrainpoints;
         }
@@ -2248,7 +2248,7 @@ void Pet::LearnPetPassives()
     if (!cInfo)
         return;
 
-    CreatureFamilyEntry const* cFamily = sDBCCreatureFamily.LookupEntry(cInfo->Family);
+    CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cInfo->Family);
     if (!cFamily)
         return;
 

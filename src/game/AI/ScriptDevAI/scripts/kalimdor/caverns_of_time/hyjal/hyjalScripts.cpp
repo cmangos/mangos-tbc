@@ -307,7 +307,7 @@ struct RaiseDeadHyjal : public SpellScript
     {
         if (strict)
         {
-            float radius = GetSpellMaxRange(sDBCSpellRange.LookupEntry(spell->m_spellInfo->rangeIndex));
+            float radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spell->m_spellInfo->rangeIndex));
             UnitList tempUnitList;
             GameObjectList tempGOList;
             return spell->CheckScriptTargeting(EFFECT_INDEX_0, 1, radius, TARGET_LOCATION_SCRIPT_NEAR_CASTER, tempUnitList, tempGOList);

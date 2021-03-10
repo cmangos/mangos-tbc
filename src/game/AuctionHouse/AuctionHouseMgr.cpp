@@ -430,12 +430,12 @@ void AuctionHouseMgr::LoadAuctions()
                                        auction->itemTemplate, auction->itemCount, auction->itemRandomPropertyId, auction->itemGuidLow);
         }
 
-        auction->auctionHouseEntry = sDBCAuctionHouse.LookupEntry(houseid);
+        auction->auctionHouseEntry = sAuctionHouseStore.LookupEntry(houseid);
 
         if (!auction->auctionHouseEntry)
         {
             // need for send mail, use goblin auctionhouse
-            auction->auctionHouseEntry = sDBCAuctionHouse.LookupEntry(7);
+            auction->auctionHouseEntry = sAuctionHouseStore.LookupEntry(7);
 
             // Attempt send item back to owner
             std::ostringstream msgAuctionCanceledOwner;
@@ -536,7 +536,7 @@ AuctionHouseEntry const* AuctionHouseMgr::GetAuctionHouseEntry(Unit* unit)
                 case 1638: houseid = 2; break;              // exodar, alliance
                 default:                                    // for unknown case
                 {
-                    FactionTemplateEntry const* u_entry = sDBCFactionTemplate.LookupEntry(factionTemplateId);
+                    FactionTemplateEntry const* u_entry = sFactionTemplateStore.LookupEntry(factionTemplateId);
                     if (!u_entry)
                         houseid = 7;                        // goblin auction house
                     else if (u_entry->factionGroupMask & FACTION_GROUP_MASK_ALLIANCE)
@@ -566,7 +566,7 @@ AuctionHouseEntry const* AuctionHouseMgr::GetAuctionHouseEntry(Unit* unit)
         }
     }
 
-    return sDBCAuctionHouse.LookupEntry(houseid);
+    return sAuctionHouseStore.LookupEntry(houseid);
 }
 
 void AuctionHouseObject::Update()

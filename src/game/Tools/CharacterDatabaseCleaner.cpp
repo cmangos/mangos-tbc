@@ -91,7 +91,7 @@ void CharacterDatabaseCleaner::CheckUnique(const char* column, const char* table
 
 bool CharacterDatabaseCleaner::SkillCheck(uint32 skill)
 {
-    return sDBCSkillLine.LookupEntry(skill) != nullptr;
+    return sSkillLineStore.LookupEntry(skill) != nullptr;
 }
 
 void CharacterDatabaseCleaner::CleanCharacterSkills()

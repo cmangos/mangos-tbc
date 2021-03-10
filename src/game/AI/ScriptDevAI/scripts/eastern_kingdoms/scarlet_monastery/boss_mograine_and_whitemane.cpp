@@ -159,7 +159,8 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
                 return;
             }
         }
-        ScriptedAI::MoveInLineOfSight(pWho);
+        if (m_instance->GetData(TYPE_ASHBRINGER_EVENT) != DONE)
+            ScriptedAI::MoveInLineOfSight(pWho);
     }
 
     void Aggro(Unit* /*pWho*/) override

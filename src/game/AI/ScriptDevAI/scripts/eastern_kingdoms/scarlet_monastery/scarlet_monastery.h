@@ -44,6 +44,7 @@ class instance_scarlet_monastery : public ScriptedInstance
 
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
+        CreatureList monasteryNPCs;
 };
 
 #endif

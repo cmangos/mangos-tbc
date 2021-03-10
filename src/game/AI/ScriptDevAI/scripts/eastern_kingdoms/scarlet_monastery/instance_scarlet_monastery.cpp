@@ -40,14 +40,18 @@ void instance_scarlet_monastery::OnCreatureCreate(Creature* pCreature)
     switch (pCreature->GetEntry())
     {
         case NPC_MOGRAINE:
-            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
-            if (GetData(TYPE_ASHBRINGER_EVENT) == IN_PROGRESS)
-                DoOrSimulateScriptTextForThisInstance(SAY_ASHBRINGER_ENTRANCE, NPC_MOGRAINE);
-            break;
+            DoOrSimulateScriptTextForThisInstance(SAY_ASHBRINGER_ENTRANCE, NPC_MOGRAINE);
         case NPC_WHITEMANE:
         case NPC_VORREL:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
+    }
+    if (!pCreature->IsCritter()){
+        monasteryNPCs.push_back(pCreature);
+        if (GetData(TYPE_ASHBRINGER_EVENT) == IN_PROGRESS)
+        {
+            pCreature->SetFactionTemporary(35, TEMPFACTION_RESTORE_RESPAWN);
+        }
     }
 }
 
@@ -70,7 +74,13 @@ void instance_scarlet_monastery::OnObjectCreate(GameObject* pGo)
 void instance_scarlet_monastery::OnPlayerEnter(Player* pPlayer)
 {
     if (pPlayer->HasItemOrGemWithIdEquipped(ITEM_CORRUPTED_ASHRBRINGER, 1) && GetData(TYPE_ASHBRINGER_EVENT) == NOT_STARTED)
+    {
         SetData(TYPE_ASHBRINGER_EVENT, IN_PROGRESS);
+        for (Creature* creature : monasteryNPCs)
+        {
+            creature->SetFactionTemporary(35, TEMPFACTION_RESTORE_RESPAWN);
+        }
+    }
 }
 
 void instance_scarlet_monastery::SetData(uint32 uiType, uint32 uiData)

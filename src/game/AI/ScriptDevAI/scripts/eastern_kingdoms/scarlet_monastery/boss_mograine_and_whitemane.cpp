@@ -150,7 +150,7 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
             if (pWho->GetTypeId() == TYPEID_PLAYER)
             {
                 Player* player = static_cast<Player*>(pWho);
-                if (player->HasItemOrGemWithIdEquipped(ITEM_CORRUPTED_ASHBRINGER, 1) && m_creature->IsWithinDist(player, 20.0f))
+                if (player->HasItemOrGemWithIdEquipped(ITEM_CORRUPTED_ASHBRINGER, 1) && m_creature->IsWithinDist(player, INTERACTION_DISTANCE))
                 {
                     player->GetMap()->ScriptsStart(sRelayScripts, ASHBRINGER_RELAY_SCRIPT_ID, m_creature, player);
                     m_instance->SetData(TYPE_ASHBRINGER_EVENT, DONE);

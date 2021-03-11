@@ -63,6 +63,14 @@ void instance_scarlet_monastery::OnObjectCreate(GameObject* pGo)
 {
     if (pGo->GetEntry() == GO_WHITEMANE_DOOR)
         m_goEntryGuidStore[GO_WHITEMANE_DOOR] = pGo->GetObjectGuid();
+    if (pGo->GetEntry() == GO_CHAPEL_DOOR)
+    {
+        if (GetData(TYPE_ASHBRINGER_EVENT) == IN_PROGRESS)
+        {
+            pGo->SetGoState(GO_STATE_ACTIVE);
+        }
+        m_goEntryGuidStore[GO_CHAPEL_DOOR] = pGo->GetObjectGuid();
+    }
 }
 
 void instance_scarlet_monastery::OnPlayerEnter(Player* pPlayer)
@@ -72,6 +80,10 @@ void instance_scarlet_monastery::OnPlayerEnter(Player* pPlayer)
         SetData(TYPE_ASHBRINGER_EVENT, IN_PROGRESS);
         int32 basepoints = ReputationRank(REP_FRIENDLY);
         pPlayer->CastCustomSpell(nullptr, SPELL_ASHBRINGER_EFFECT_001, &basepoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+        if (GameObject* chapelDoor = GetSingleGameObjectFromStorage(GO_CHAPEL_DOOR))
+        {
+            chapelDoor->SetGoState(GO_STATE_ACTIVE);
+        }
     }
 }
 

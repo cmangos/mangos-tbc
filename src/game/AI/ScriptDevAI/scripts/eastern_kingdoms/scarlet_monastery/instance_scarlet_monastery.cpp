@@ -47,13 +47,6 @@ void instance_scarlet_monastery::OnCreatureCreate(Creature* pCreature)
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
     }
-    if (!pCreature->IsCritter()){
-        monasteryNPCs.push_back(pCreature);
-        if (GetData(TYPE_ASHBRINGER_EVENT) == IN_PROGRESS)
-        {
-            pCreature->SetFactionTemporary(35, TEMPFACTION_RESTORE_RESPAWN);
-        }
-    }
 }
 
 void instance_scarlet_monastery::OnCreatureDeath(Creature* pCreature)
@@ -77,10 +70,8 @@ void instance_scarlet_monastery::OnPlayerEnter(Player* pPlayer)
     if (pPlayer->HasItemOrGemWithIdEquipped(ITEM_CORRUPTED_ASHRBRINGER, 1) && GetData(TYPE_ASHBRINGER_EVENT) == NOT_STARTED)
     {
         SetData(TYPE_ASHBRINGER_EVENT, IN_PROGRESS);
-        for (Creature* creature : monasteryNPCs)
-        {
-            creature->SetFactionTemporary(35, TEMPFACTION_RESTORE_RESPAWN);
-        }
+        int32 basepoints = ReputationRank(REP_FRIENDLY);
+        pPlayer->CastCustomSpell(nullptr, SPELL_ASHBRINGER_EFFECT_001, &basepoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
     }
 }
 

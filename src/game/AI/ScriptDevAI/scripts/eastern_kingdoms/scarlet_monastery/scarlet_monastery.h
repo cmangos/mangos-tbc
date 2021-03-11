@@ -24,6 +24,7 @@ enum
 
     ITEM_CORRUPTED_ASHRBRINGER      = 22691,
     SAY_ASHBRINGER_ENTRANCE         = -1189036,
+    SPELL_ASHBRINGER_EFFECT_001     = 28442,
 };
 
 class instance_scarlet_monastery : public ScriptedInstance

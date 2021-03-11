@@ -22,7 +22,6 @@ SDCategory: Scarlet Monastery
 EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
-#include "Globals/SharedDefines.h"
 #include "scarlet_monastery.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 
@@ -155,6 +154,7 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
                 {
                     player->GetMap()->ScriptsStart(sRelayScripts, ASHBRINGER_RELAY_SCRIPT_ID, m_creature, player);
                     m_instance->SetData(TYPE_ASHBRINGER_EVENT, DONE);
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 }
                 return;
             }

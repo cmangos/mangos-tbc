@@ -17,6 +17,7 @@
  */
 
 #include "Entities/Item.h"
+#include "Database/SqlPreparedStatement.h"
 #include "Globals/ObjectMgr.h"
 #include "Entities/ObjectGuid.h"
 #include "WorldPacket.h"
@@ -301,7 +302,7 @@ void Item::SaveToDB()
         case ITEM_NEW:
         case ITEM_CHANGED:
         {
-            static SqlStatementID insItem;
+            SqlStatementID insItem;
             SqlStatement stmt = CharacterDatabase.CreateStatement(insItem, uState == ITEM_NEW ?
                 "REPLACE INTO item_instance (owner_guid, itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, guid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)" :
                 "UPDATE item_instance SET owner_guid = ?, itemEntry = ?, creatorGuid = ?, giftCreatorGuid = ?, count = ?, duration = ?, charges = ?, flags = ?, enchantments = ?, randomPropertyId = ?, durability = ?, itemTextId = ? WHERE guid = ?"

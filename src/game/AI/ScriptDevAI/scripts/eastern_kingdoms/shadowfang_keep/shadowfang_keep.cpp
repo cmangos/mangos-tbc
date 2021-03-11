@@ -86,7 +86,11 @@ struct npc_shadowfang_prisonerAI : public npc_escortAI
                 break;
             case 12:
                 if (m_uiNpcEntry == NPC_ASH)
-                    DoCastSpellIfCan(m_creature, SPELL_UNLOCK);
+                    {
+                        m_creature->GetMotionMaster()->PauseWaypoints(2000);
+                        DoCastSpellIfCan(m_creature, SPELL_UNLOCK);
+                        m_creature->SetFacingToObject(m_pInstance->GetSingleGameObjectFromStorage(GO_COURTYARD_DOOR));
+                    }
                 else
                     DoScriptText(EMOTE_UNLOCK_DOOR_AD, m_creature);
                 break;
@@ -113,8 +117,10 @@ struct npc_shadowfang_prisonerAI : public npc_escortAI
                 }
                 break;
             case 16:
-                if (m_uiNpcEntry == NPC_ASH)
+                if (m_uiNpcEntry == NPC_ASH){
                     DoScriptText(EMOTE_VANISH_AS, m_creature);
+                    m_creature->ForcedDespawn();
+                }
                 break;
         }
     }

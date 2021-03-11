@@ -117,7 +117,8 @@ struct npc_shadowfang_prisonerAI : public npc_escortAI
                 }
                 break;
             case 16:
-                if (m_uiNpcEntry == NPC_ASH){
+                if (m_uiNpcEntry == NPC_ASH)
+                {
                     DoScriptText(EMOTE_VANISH_AS, m_creature);
                     m_creature->ForcedDespawn();
                 }

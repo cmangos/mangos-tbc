@@ -17,7 +17,6 @@
  */
 
 #include "Entities/Item.h"
-#include "Database/SqlPreparedStatement.h"
 #include "Globals/ObjectMgr.h"
 #include "Entities/ObjectGuid.h"
 #include "WorldPacket.h"

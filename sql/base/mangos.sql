@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2430_01_mangos_creature_immunity` bit(1) DEFAULT NULL
+  `required_s2431_01_mangos_corpse_decay` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -1414,6 +1414,7 @@ CREATE TABLE `creature_template` (
   `EquipmentTemplateId` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `GossipMenuId` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `VisibilityDistanceType` TINYINT NOT NULL DEFAULT '0',
+  `CorpseDecay` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Time before corpse despawns',
   `AIName` char(64) NOT NULL DEFAULT '',
   `ScriptName` char(64) NOT NULL DEFAULT '',
   PRIMARY KEY (`entry`)

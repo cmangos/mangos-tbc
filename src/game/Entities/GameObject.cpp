@@ -430,7 +430,7 @@ void GameObject::Update(const uint32 diff)
                             {
                                 if (m_respawnTime > 0)
                                     valid = false;
-                                else // battlegrounds gameobjects has data2 == 0 && data5 == 3                                
+                                else // battlegrounds gameobjects has data2 == 0 && data5 == 3
                                     radius = float(goInfo->trap.cooldown);
                             }
                         }
@@ -1160,7 +1160,7 @@ void GameObject::TriggerLinkedGameObject(Unit* target) const
     if (!trapEntry)
         return;
 
-    GameObjectInfo const* trapInfo = sGOStorage.LookupEntry<GameObjectInfo>(trapEntry);
+    GameObjectInfo const* trapInfo = sGOStorage.LookupEntry(trapEntry);
     if (!trapInfo || trapInfo->type != GAMEOBJECT_TYPE_TRAP)
         return;
 
@@ -1857,7 +1857,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
     if (!spellId)
         return;
 
-    SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* triggeredSpellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!triggeredSpellInfo)
     {
         sLog.outError("WORLD: unknown spell id %u at use action for gameobject (Entry: %u GoType: %u )", spellId, GetEntry(), GetGoType());
@@ -2509,14 +2509,14 @@ SpellEntry const* GameObject::GetSpellForLock(Player const* player) const
             continue;
 
         if (lock->Type[i] == LOCK_KEY_SPELL)
-            if (SpellEntry const* spell = sSpellTemplate.LookupEntry<SpellEntry>(lock->Index[i]))
+            if (SpellEntry const* spell = sSpellTemplate.LookupEntry(lock->Index[i]))
                 return spell;
 
         if (lock->Type[i] != LOCK_KEY_SKILL)
             break;
 
         for (auto&& playerSpell : player->GetSpellMap())
-            if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(playerSpell.first))
+            if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(playerSpell.first))
                 for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
                     if (spellInfo->Effect[i] == SPELL_EFFECT_OPEN_LOCK && ((uint32)spellInfo->EffectMiscValue[i]) == lock->Index[i])
                         if (player->CalculateSpellEffectValue(nullptr, spellInfo, SpellEffectIndex(i), nullptr) >= int32(lock->Skill[i]))
@@ -2528,7 +2528,7 @@ SpellEntry const* GameObject::GetSpellForLock(Player const* player) const
 
 SpellCastResult GameObject::CastSpell(Unit* temporaryCaster, Unit* Victim, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
-    return CastSpell(temporaryCaster, Victim, sSpellTemplate.LookupEntry<SpellEntry>(spellId), triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
+    return CastSpell(temporaryCaster, Victim, sSpellTemplate.LookupEntry(spellId), triggeredFlags, castItem, triggeredByAura, originalCaster, triggeredBy);
 }
 
 SpellCastResult GameObject::CastSpell(Unit* temporaryCaster, Unit* Victim, SpellEntry const* spellInfo, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)

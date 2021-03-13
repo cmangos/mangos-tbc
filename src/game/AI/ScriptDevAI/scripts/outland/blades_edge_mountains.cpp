@@ -1024,7 +1024,7 @@ struct npc_obelisk_triggerAI : public ScriptedAI
             else
                 m_uiCheckTimer -= uiDiff;
         }
-        
+
         if (m_uiActiveObelisk == 5)
         {
             if (m_uiActivateTimer)
@@ -1644,7 +1644,7 @@ bool AreaTrigger_at_raven_prophecy(Player* pPlayer, AreaTriggerEntry const* pAt)
                     {
                         DoScriptText(prophecy.text, whisper, pPlayer);
 
-                        //giving credit for the game object automatically negates the id, so we don't have to negate it 
+                        //giving credit for the game object automatically negates the id, so we don't have to negate it
                         pPlayer->KilledMonsterCredit(prophecy.creature);
                     }
                 }
@@ -1679,7 +1679,7 @@ enum
 // This is a first attempt to implement GO type 30 behaviour
 struct go_aura_generator_000AI : public GameObjectAI
 {
-    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000), m_spellInfo(sSpellTemplate.LookupEntry<SpellEntry>(SPELL_OSCILLATING_FREQUENCY_SCANNER)) {}
+    go_aura_generator_000AI(GameObject* go) : GameObjectAI(go), m_auraSearchTimer(1000), m_spellInfo(sSpellTemplate.LookupEntry(SPELL_OSCILLATING_FREQUENCY_SCANNER)) {}
 
     uint32 m_auraSearchTimer;
     ObjectGuid m_player;
@@ -1828,7 +1828,7 @@ struct npc_fel_cannon : public Scripted_NoMovementAI
     uint32 m_uiCannonBlastTimer;
 
     bool m_bMCed;
-    
+
     void Reset() override
     {
         m_uiCannonBlastTimer = 1000;
@@ -1869,7 +1869,7 @@ struct npc_fel_cannon : public Scripted_NoMovementAI
     void UpdateAI(const uint32 uiDiff) override
     {
         if (m_bMCed && !m_creature->HasCharmer())
-        {            
+        {
             Scripted_NoMovementAI::EnterEvadeMode();
             m_creature->FixateTarget(nullptr);
             return;
@@ -1900,7 +1900,7 @@ UnitAI* GetAI_npc_fel_cannon(Creature* pCreature)
 ## npc_warp_gate
 ######*/
 
-static float impSpawns[2][4] = 
+static float impSpawns[2][4] =
 {
     { 2188.340f, 5476.629f, 155.069f, 5.259f }, // north
     { 1981.730f, 5315.390f, 156.600f, 0.262f} // south
@@ -1936,7 +1936,7 @@ struct npc_warp_gate : public Scripted_NoMovementAI
     ObjectGuid m_guidSmoke;
 
     std::vector<ObjectGuid> m_vImpGuids;
-    
+
     void Reset() override
     {
         m_uiHitCounter = 0;
@@ -1972,7 +1972,7 @@ struct npc_warp_gate : public Scripted_NoMovementAI
                 }
                 m_guidFelCannon = pCaster->GetObjectGuid();
             }
-            
+
             uint32 spellId;
 
             switch (m_uiHitCounter)
@@ -2332,7 +2332,7 @@ struct npc_soulgrinderAI : public ScriptedAI
                             for (ObjectGuid& guid : m_ogreSpirits)
                                 if (Creature* spirit = m_creature->GetMap()->GetCreature(guid))
                                     spirit->ForcedDespawn();
-                            
+
                             m_creature->CastSpell(nullptr, SPELL_SCARE_SOULGRINDER_GHOST, TRIGGERED_NONE);
                             if (Creature* gronn = m_creature->GetMap()->GetCreature(m_skullocSoulgrinder))
                             {

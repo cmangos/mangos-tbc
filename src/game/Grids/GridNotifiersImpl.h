@@ -200,15 +200,15 @@ inline void MaNGOS::DynamicObjectUpdater::VisitHelper(Unit* target)
     if (target->GetTypeId() == TYPEID_PLAYER && target != i_check && (((Player*) target)->IsGameMaster() || ((Player*)target)->GetVisibility() == VISIBILITY_OFF))
         return;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(i_dynobject.GetSpellId());
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(i_dynobject.GetSpellId());
     SpellEffectIndex eff_index  = i_dynobject.GetEffIndex();
     Unit* caster = i_dynobject.GetCaster();
 
-    SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry> bounds = sSpellScriptTargetStorage.getBounds<SpellTargetEntry>(spellInfo->Id);
+    auto bounds = sSpellScriptTargetStorage.getBounds(spellInfo->Id);
     if (bounds.first != bounds.second)
     {
         bool found = false;
-        for (SQLMultiStorage::SQLMultiSIterator<SpellTargetEntry> i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
+        for (auto i_spellST = bounds.first; i_spellST != bounds.second; ++i_spellST)
         {
             if (i_spellST->CanNotHitWithSpellEffect(eff_index))
                 continue;

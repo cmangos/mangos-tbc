@@ -85,7 +85,7 @@ void LoadSkillDiscoveryTable()
 
         if (reqSkillOrSpell > 0)                            // spell case
         {
-            SpellEntry const* reqSpellEntry = sSpellTemplate.LookupEntry<SpellEntry>(reqSkillOrSpell);
+            SpellEntry const* reqSpellEntry = sSpellTemplate.LookupEntry(reqSkillOrSpell);
             if (!reqSpellEntry)
             {
                 if (reportedReqSpells.find(reqSkillOrSpell) == reportedReqSpells.end())

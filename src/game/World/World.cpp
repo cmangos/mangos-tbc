@@ -891,10 +891,11 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading world safe locs ...");
     sObjectMgr.LoadWorldSafeLocs();
-    
+
     ///- Load the DBC files
     sLog.outString("Initialize DBC data stores...");
-    LoadDBCStores(m_dataPath);
+    LoadDBCTables();
+    //LoadDBCStores(m_dataPath);
     DetectDBCLang();
     sObjectMgr.SetDbc2StorageLocaleIndex(GetDefaultDbcLocale());    // Get once for all the locale index of DBC language (console/broadcasts)
 
@@ -2622,4 +2623,23 @@ void World::GeneratePacketMetrics()
     meas_players.add_field("mage", std::to_string(GetOnlineClassPlayers(CLASS_MAGE)));
     meas_players.add_field("warlock", std::to_string(GetOnlineClassPlayers(CLASS_WARLOCK)));
     meas_players.add_field("druid", std::to_string(GetOnlineClassPlayers(CLASS_DRUID)));
+}
+
+bool World::IsAcceptableClientBuild(uint32 build)
+{
+    int accepted_versions[] = EXPECTED_MANGOSD_CLIENT_BUILD;
+    for (int i = 0; accepted_versions[i]; ++i)
+        if (int(build) == accepted_versions[i])
+            return true;
+
+    return false;
+}
+
+std::string World::AcceptableClientBuildsListStr()
+{
+    std::ostringstream data;
+    int accepted_versions[] = EXPECTED_MANGOSD_CLIENT_BUILD;
+    for (int i = 0; accepted_versions[i]; ++i)
+        data << accepted_versions[i] << " ";
+    return data.str();
 }

@@ -150,7 +150,7 @@ CanCastResult UnitAI::DoCastSpellIfCan(Unit* target, uint32 spellId, uint32 cast
     // Allowed to cast only if not casting (unless we interrupt ourself) or if spell is triggered
     if (!caster->IsNonMeleeSpellCasted(false) || (castFlags & (CAST_TRIGGERED | CAST_INTERRUPT_PREVIOUS)))
     {
-        if (const SpellEntry* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId))
+        if (const SpellEntry* spellInfo = sSpellTemplate.LookupEntry(spellId))
         {
             // If cast flag CAST_AURA_NOT_PRESENT is active, check if target already has aura on them
             if (castFlags & CAST_AURA_NOT_PRESENT)

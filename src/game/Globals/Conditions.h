@@ -139,6 +139,8 @@ class ConditionEntry
 
         // Checks if the condition is met
         bool Meets(WorldObject const* target, Map const* map, WorldObject const* source, ConditionSource conditionSourceType) const;
+        uint32 GetEntry() const { return m_entry; }
+
     private:
         void DisableCondition() { m_condition = CONDITION_NONE; m_flags ^= CONDITION_FLAG_REVERSE_RESULT; }
         bool CheckParamRequirements(WorldObject const* target, Map const* map, WorldObject const* source) const;

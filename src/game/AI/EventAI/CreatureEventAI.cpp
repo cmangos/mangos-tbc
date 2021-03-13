@@ -190,7 +190,7 @@ void CreatureEventAI::InitAI()
                                 if (!m_mainSpellId)
                                 {
                                     m_mainSpellId = i.action[actionIdx].cast.spellId;
-                                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_mainSpellId);
+                                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(m_mainSpellId);
                                     m_mainSpellCost = Spell::CalculatePowerCost(spellInfo, m_creature);
                                     m_mainSpellMinRange = GetSpellMinRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
                                     m_mainAttackMask = SpellSchoolMask(m_mainAttackMask + spellInfo->SchoolMask);
@@ -465,18 +465,18 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
             {
                 if (!m_creature->IsInCombat())
                     return false;
-                
+
                 DoFindFriendlyMissingBuff(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId, false);
             }
-            else if (event.friendly_buff.inCombat == 1)            
-                DoFindFriendlyMissingBuff(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId, true);            
+            else if (event.friendly_buff.inCombat == 1)
+                DoFindFriendlyMissingBuff(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId, true);
             else if (event.friendly_buff.inCombat == 2)
             {
                 if (m_creature->IsInCombat())
                     return false;
-                                
+
                 DoFindFriendlyMissingBuff(pList, (float)event.friendly_buff.radius, event.friendly_buff.spellId, true);
-            }            
+            }
 
             // List is empty
             if (pList.empty())
@@ -830,7 +830,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             if (!(action.cast.castFlags & (CAST_TRIGGERED | CAST_FORCE_CAST | CAST_FORCE_TARGET_SELF)))
             {
                 spellId = action.cast.spellId;
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
                 if (!spellInfo)
                     return false;
                 if (!IsIgnoreLosSpellCast(spellInfo))

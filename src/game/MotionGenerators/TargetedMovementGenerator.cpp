@@ -92,7 +92,7 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
 
     HandleTargetedMovement(owner, time_diff);
 
-    if (owner.movespline->Finalized() && !i_targetReached) 
+    if (owner.movespline->Finalized() && !i_targetReached)
         HandleFinalizedMovement(owner);
 
     return true;

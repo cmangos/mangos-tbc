@@ -102,7 +102,7 @@ void ScriptedAI::DoPlaySoundToSet(WorldObject* source, uint32 soundId)
     if (!source)
         return;
 
-    if (!GetSoundEntriesStore()->LookupEntry(soundId))
+    if (!sSoundEntriesStore.LookupEntry(soundId))
     {
         script_error_log("Invalid soundId %u used in DoPlaySoundToSet (Source: TypeId %u, GUID %u)", soundId, source->GetTypeId(), source->GetGUIDLow());
         return;
@@ -130,7 +130,7 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* target, int32 school, int32 mech
     // Check if each spell is viable(set it to null if not)
     for (uint8 i = 0; i < 4; ++i)
     {
-        SpellEntry const* tempSpellInfo = GetSpellStore()->LookupEntry<SpellEntry>(m_creature->m_spells[i]);
+        SpellEntry const* tempSpellInfo = GetSpellStore()->LookupEntry(m_creature->m_spells[i]);
 
         // This spell doesn't exist
         if (!tempSpellInfo)
@@ -165,7 +165,7 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* target, int32 school, int32 mech
             continue;
 
         // Get the Range
-        SpellRangeEntry const* tempRange = GetSpellRangeStore()->LookupEntry(tempSpellInfo->rangeIndex);
+        SpellRangeEntry const* tempRange = sSpellRangeStore.LookupEntry(tempSpellInfo->rangeIndex);
 
         // Spell has invalid range store so we can't use it
         if (!tempRange)
@@ -208,7 +208,7 @@ bool ScriptedAI::CanCast(Unit* target, SpellEntry const* spellInfo, bool trigger
     if (!triggered && m_creature->GetPower((Powers)spellInfo->powerType) < spellInfo->manaCost)
         return false;
 
-    SpellRangeEntry const* tempRange = GetSpellRangeStore()->LookupEntry(spellInfo->rangeIndex);
+    SpellRangeEntry const* tempRange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
 
     // Spell has invalid range store so we can't use it
     if (!tempRange)
@@ -230,7 +230,7 @@ void FillSpellSummary()
         SpellSummary[i].Effects = 0;
         SpellSummary[i].Targets = 0;
 
-        SpellEntry const* tempSpell = GetSpellStore()->LookupEntry<SpellEntry>(i);
+        SpellEntry const* tempSpell = GetSpellStore()->LookupEntry(i);
         // This spell doesn't exist
         if (!tempSpell)
             continue;
@@ -333,7 +333,7 @@ CreatureList ScriptedAI::DoFindFriendlyCC(float range)
 CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 spellId, bool inCombat)
 {
     CreatureList creatureList;
-    
+
     if (inCombat == false)
     {
         MaNGOS::FriendlyMissingBuffInRangeInCombatCheck u_check(m_creature, range, spellId);
@@ -346,7 +346,7 @@ CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 spellId, 
         MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck> searcher(creatureList, u_check);
 
         Cell::VisitGridObjects(m_creature, searcher, range);
-    }    
+    }
 
     return creatureList;
 }

@@ -188,8 +188,6 @@ enum UnitRename
 
 // byte flags value (UNIT_FIELD_BYTES_2,3)                  See enum ShapeshiftForm in SharedDefines.h
 
-#define CREATURE_MAX_SPELLS     10
-
 enum Swing
 {
     NOSWING                    = 0,
@@ -1995,7 +1993,7 @@ class Unit : public WorldObject
         void UpdateVisibilityAndView() override;            // overwrite WorldObject::UpdateVisibilityAndView()
 
         // common function for visibility checks for player/creatures with detection code
-        bool IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, bool detect, bool inVisibleList = false, bool is3dDistance = true, bool spell = false) const;     
+        bool IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, bool detect, bool inVisibleList = false, bool is3dDistance = true, bool spell = false) const;
 
         // virtual functions for all world objects types
         bool isVisibleForInState(Player const* u, WorldObject const* viewPoint, bool inVisibleList) const override;
@@ -2336,7 +2334,7 @@ class Unit : public WorldObject
 
         uint32 GetDamageDoneByOthers() { return m_damageByOthers; }
         uint32 GetModifierXpBasedOnDamageReceived(uint32 xp);
-        
+
         void OverrideMountDisplayId(uint32 newDisplayId);
 
         void UpdateSplinePosition();

@@ -221,7 +221,7 @@ struct boss_curatorAI : public CombatAI
                 uint32 randomSpell = astralFlareSpells[urand(0, 3)];
                 DoCastSpellIfCan(nullptr, randomSpell);
                 ResetCombatAction(action, GetSubsequentActionTimer(action));
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(randomSpell);
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(randomSpell);
                 // supposed to happen right away not on next oom
                 if (m_creature->GetPower((Powers)spellInfo->powerType) < Spell::CalculatePowerCost(spellInfo, m_creature))
                 {

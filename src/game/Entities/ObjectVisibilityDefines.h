@@ -16,6 +16,35 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "SQLStorage.h"
+#ifndef __OBJECT_VISIBILITY_DEFINES_H
+#define __OBJECT_VISIBILITY_DEFINES_H
 
+#include "Common.h"
 
+enum class VisibilityDistanceType : uint32
+{
+    Normal = 0,
+    Tiny = 1,
+    Small = 2,
+    Large = 3,
+    Gigantic = 4,
+    Infinite = 5,
+
+    Max
+};
+
+enum StealthType : uint32
+{
+    STEALTH_UNIT = 0,
+    STEALTH_TRAP = 1,
+    STEALTH_TYPE_MAX,
+};
+
+enum InvisibilityType : uint32
+{
+    INVISIBILITY_TRAP = 3,
+    INVISIBILITY_DRUNK = 6,
+    INVISIBILITY_TYPE_MAX = 32,
+};
+
+#endif

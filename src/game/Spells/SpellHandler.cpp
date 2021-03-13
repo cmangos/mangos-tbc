@@ -112,7 +112,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
     {
         for (const auto& Spell : proto->Spells)
         {
-            if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(Spell.SpellId))
+            if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(Spell.SpellId))
             {
                 if (IsNonCombatSpell(spellInfo))
                 {
@@ -157,7 +157,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
         }
 
         // send spell error
-        if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid))
+        if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellid))
             Spell::SendCastResult(_player, spellInfo, cast_count, SPELL_FAILED_BAD_TARGETS);
         return;
     }
@@ -335,7 +335,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     DEBUG_LOG("WORLD: CMSG_CAST_SPELL, spellId - %u, cast_count: %u data length = " SIZEFMTD,
               spellId, cast_count, recvPacket.size());
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!spellInfo)
     {
         sLog.outError("WORLD: unknown spell id %u", spellId);
@@ -441,7 +441,7 @@ void WorldSession::HandleCancelAuraOpcode(WorldPacket& recvPacket)
     uint32 spellId;
     recvPacket >> spellId;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!spellInfo)
         return;
 
@@ -510,7 +510,7 @@ void WorldSession::HandlePetCancelAuraOpcode(WorldPacket& recvPacket)
     if (!_player->IsSelfMover())
         return;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!spellInfo)
     {
         sLog.outError("WORLD: unknown PET spell id %u", spellId);
@@ -590,7 +590,7 @@ void WorldSession::HandleSelfResOpcode(WorldPacket& /*recv_data*/)
 
     if (_player->GetUInt32Value(PLAYER_SELF_RES_SPELL))
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(_player->GetUInt32Value(PLAYER_SELF_RES_SPELL));
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(_player->GetUInt32Value(PLAYER_SELF_RES_SPELL));
         if (spellInfo)
             _player->CastSpell(_player, spellInfo, TRIGGERED_NONE);
 

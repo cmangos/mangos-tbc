@@ -323,7 +323,7 @@ CombatManeuverReturns PlayerbotHunterAI::DoNextCombatManeuverPVE(Unit* pTarget)
             if (m_bot.isAttackReady(RANGED_ATTACK))
                 m_bot.CastSpell(pTarget, AUTO_SHOT, TRIGGERED_OLD_TRIGGERED);
 
-            const SpellEntry* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(AUTO_SHOT);
+            const SpellEntry* spellInfo = sSpellTemplate.LookupEntry(AUTO_SHOT);
             if (!spellInfo)
                 return RETURN_CONTINUE;
 

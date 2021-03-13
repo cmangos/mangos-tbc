@@ -399,7 +399,7 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
                 LoadEquipment(data->spawnTemplate->equipmentId);
         }
         else if (data->equipmentId != -1)
-            LoadEquipment(data->equipmentId);        
+            LoadEquipment(data->equipmentId);
     }
 
     if (eventData && eventData->vendor_id)
@@ -546,7 +546,7 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
     {
         if (factionTemplate->factionFlags & FACTION_TEMPLATE_FLAG_PVP)
         {
-            const AreaTableEntry* zone = GetAreaEntryByAreaID(GetAreaId());
+            const AreaTableEntry* zone = TerrainManager::GetAreaEntryByAreaID(GetAreaId());
             const bool sanctuary = (zone && (zone->flags & AREA_FLAG_SANCTUARY));
             SetPvP(!sanctuary);
         }
@@ -642,6 +642,15 @@ uint32 Creature::ChooseDisplayId(const CreatureInfo* cinfo, const CreatureData* 
     }
 
     return display_id;
+}
+
+uint32 Creature::GetCreatureModelRace(uint32 model_id)
+{
+    CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(model_id);
+    if (!displayEntry)
+        return 0;
+    CreatureDisplayInfoExtraEntry const* extraEntry = sCreatureDisplayInfoExtraStore.LookupEntry(displayEntry->ExtendedDisplayInfoID);
+    return extraEntry ? extraEntry->Race : 0;
 }
 
 void Creature::Update(const uint32 diff)
@@ -1858,7 +1867,7 @@ SpellEntry const* Creature::ReachWithSpellAttack(Unit* pVictim)
     {
         if (!m_spell)
             continue;
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_spell);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(m_spell);
         if (!spellInfo)
         {
             sLog.outError("WORLD: unknown spell id %i", m_spell);
@@ -1910,7 +1919,7 @@ SpellEntry const* Creature::ReachWithSpellCure(Unit* pVictim)
     {
         if (!m_spell)
             continue;
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_spell);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(m_spell);
         if (!spellInfo)
         {
             sLog.outError("WORLD: unknown spell id %i", m_spell);
@@ -2301,7 +2310,7 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
 
 Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, uint32 spellId, uint32 selectFlags, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
 {
-    return SelectAttackingTarget(target, position, sSpellTemplate.LookupEntry<SpellEntry>(spellId), selectFlags, params);
+    return SelectAttackingTarget(target, position, sSpellTemplate.LookupEntry(spellId), selectFlags, params);
 }
 
 Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, SpellEntry const* spellInfo /*= nullptr*/, uint32 selectFlags/*= 0*/, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
@@ -2416,7 +2425,7 @@ Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, S
 
 void Creature::SelectAttackingTargets(std::vector<Unit*>& selectedTargets, AttackingTarget target, uint32 position, uint32 spellId, uint32 selectFlags/*= 0*/, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
 {
-    SelectAttackingTargets(selectedTargets, target, position, sSpellTemplate.LookupEntry<SpellEntry>(spellId), selectFlags, params);
+    SelectAttackingTargets(selectedTargets, target, position, sSpellTemplate.LookupEntry(spellId), selectFlags, params);
 }
 
 void Creature::SelectAttackingTargets(std::vector<Unit*>& selectedTargets, AttackingTarget target, uint32 position, SpellEntry const* spellInfo /*= nullptr*/, uint32 selectFlags/*= 0*/, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
@@ -2708,7 +2717,7 @@ void Creature::ApplyGameEventSpells(GameEventCreatureData const* eventData, bool
     uint32 remove_spell = activated ? eventData->spell_id_end : eventData->spell_id_start;
 
     if (remove_spell)
-        if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(remove_spell))
+        if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(remove_spell))
             if (IsSpellAppliesAura(spellEntry))
                 RemoveAurasDueToSpell(remove_spell);
 

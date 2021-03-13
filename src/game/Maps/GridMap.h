@@ -36,6 +36,8 @@ class InstanceData;
 class Group;
 class BattleGround;
 class Map;
+struct AreaTableEntry;
+struct WMOAreaTableEntry;
 
 class GridMap
 {
@@ -233,6 +235,13 @@ class TerrainManager : public MaNGOS::Singleton<TerrainManager, MaNGOS::ClassLev
         static uint32 GetAreaIdByAreaFlag(uint16 areaflag, uint32 map_id);
         static uint32 GetZoneIdByAreaFlag(uint16 areaflag, uint32 map_id);
         static void GetZoneAndAreaIdByAreaFlag(uint32& zoneid, uint32& areaid, uint16 areaflag, uint32 map_id);
+
+        static int32 GetAreaFlagByAreaID(uint32 area_id);                  // -1 if not found
+        static uint32 GetAreaIdByLocalizedName(const std::string& name);
+        static uint32 GetAreaFlagByMapId(uint32 mapid);
+        static std::vector<WMOAreaTableEntry const*>& GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid);
+        static AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id);
+        static AreaTableEntry const* GetAreaEntryByAreaFlagAndMap(uint32 area_flag, uint32 map_id);
 
     private:
         TerrainManager();

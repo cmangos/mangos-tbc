@@ -223,7 +223,7 @@ struct npc_building_triggerAI : public ScriptedAI
 {
     npc_building_triggerAI(Creature* creature) : ScriptedAI(creature){}
 
-    void Reset() override 
+    void Reset() override
     {
         m_creature->AI()->SetReactState(REACT_PASSIVE);
     }

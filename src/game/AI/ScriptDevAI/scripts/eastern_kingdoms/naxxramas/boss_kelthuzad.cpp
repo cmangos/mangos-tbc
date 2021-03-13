@@ -708,7 +708,7 @@ struct GuardianPeriodic : public AuraScript
         if (Unit* target = aura->GetTarget())
         {
             if (target->HasAuraType(SPELL_AURA_MOD_STUN))   // Shackle Undead applies SPELL_AURA_MOD_STUN, so we cover all ranks of the spell this way
-                data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_GUARDIAN_SHACKLE); // Summon Ice Block
+                data.spellInfo = sSpellTemplate.LookupEntry(SPELL_GUARDIAN_SHACKLE); // Summon Ice Block
         }
     }
 };

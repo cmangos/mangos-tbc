@@ -664,7 +664,7 @@ struct PeriodicRotate : public AuraScript
             target->SetFacingTo(newAngle);
             target->SetOrientation(newAngle);
 
-            data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_DARK_GLARE);
+            data.spellInfo = sSpellTemplate.LookupEntry(SPELL_DARK_GLARE);
             data.caster = aura->GetCaster();
             data.target = nullptr;
         }

@@ -417,7 +417,7 @@ void WorldSession::HandlePageTextQueryOpcode(WorldPacket& recv_data)
 
     while (pageID)
     {
-        PageText const* pPage = sPageTextStore.LookupEntry<PageText>(pageID);
+        PageText const* pPage = sPageTextStore.LookupEntry(pageID);
         // guess size
         WorldPacket data(SMSG_PAGE_TEXT_QUERY_RESPONSE, 50);
         data << pageID;

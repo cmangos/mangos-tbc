@@ -376,7 +376,7 @@ struct npc_corrupted_lightning_totemAI : public ScriptedAI
 	void JustRespawned() override
 	{
 		m_creature->SetInCombatWithZone();
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_LIGHTNING);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(SPELL_LIGHTNING);
         m_creature->AddCooldown(*spellInfo);
 	}
 

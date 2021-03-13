@@ -66,25 +66,6 @@ class Transport;
 #pragma pack(push,1)
 #endif
 
-struct InstanceTemplate
-{
-    uint32 map;                                             // instance map
-    uint32 parent;                                          // non-continent parent instance (for instance with entrance in another instances)
-    // or 0 (not related to continent 0 map id)
-    uint32 levelMin;
-    uint32 levelMax;
-    uint32 maxPlayers;
-    uint32 reset_delay;                                     // in days
-    uint32 script_id;
-    bool   mountAllowed;
-};
-
-struct WorldTemplate
-{
-    uint32 map;                                             // non-instance map
-    uint32 script_id;
-};
-
 enum LevelRequirementVsMode
 {
     LEVELREQUIREMENT_HEROIC = 70
@@ -348,6 +329,13 @@ class Map : public GridRefManager<NGridType>
         void RemoveTransport(Transport* transport);
 
         bool CanSpawn(TypeID typeId, uint32 dbGuid);
+
+        static bool MapCoordinateVsZoneCheck(float x, float y, uint32 mapid, uint32 zone);
+        static bool Zone2MapCoordinates(float& x, float& y, uint32 zone);
+        static bool Map2ZoneCoordinates(float& x, float& y, uint32 zone);
+        static bool IsPointInAreaTriggerZone(AreaTriggerEntry const* atEntry, uint32 mapid, float x, float y, float z, float delta = 0.0f);
+        static uint32 GetVirtualMapForMapAndZone(uint32 mapid, uint32 zoneId);
+        static ContentLevels GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId);
 
     private:
         void LoadMapAndVMap(int gx, int gy);

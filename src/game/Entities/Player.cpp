@@ -58,7 +58,6 @@
 #include "DBScripts/ScriptMgr.h"
 #include "Social/SocialMgr.h"
 #include "Mails/Mail.h"
-#include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 #include "World/WorldStateDefines.h"
@@ -351,7 +350,7 @@ SpellModifier::SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, A
 
 bool SpellModifier::isAffectedOnSpell(SpellEntry const* spell) const
 {
-    SpellEntry const* affect_spell = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* affect_spell = sSpellTemplate.LookupEntry(spellId);
     // False if affect_spell == nullptr or spellFamily not equal
     if (!affect_spell || affect_spell->SpellFamilyName != spell->SpellFamilyName)
         return false;
@@ -832,15 +831,12 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
     uint32 raceClassGender = GetUInt32Value(UNIT_FIELD_BYTES_0) & 0x00FFFFFF;
 
     CharStartOutfitEntry const* oEntry = nullptr;
-    for (uint32 i = 1; i < sCharStartOutfitStore.GetNumRows(); ++i)
+    for (auto entry : sCharStartOutfitStore)
     {
-        if (CharStartOutfitEntry const* entry = sCharStartOutfitStore.LookupEntry(i))
+        if (entry->RaceClassGender == raceClassGender)
         {
-            if (entry->RaceClassGender == raceClassGender)
-            {
-                oEntry = entry;
-                break;
-            }
+            oEntry = entry;
+            break;
         }
     }
 
@@ -1715,7 +1711,7 @@ bool Player::BuildEnumData(QueryResult* result, WorldPacket& p_data)
         if (result && !(playerFlags & PLAYER_FLAGS_GHOST) && (pClass == CLASS_WARLOCK || pClass == CLASS_HUNTER))
         {
             uint32 entry = fields[16].GetUInt32();
-            CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(entry);
+            CreatureInfo const* cInfo = sCreatureStorage.LookupEntry(entry);
             if (cInfo)
             {
                 petDisplayId = fields[17].GetUInt32();
@@ -3115,7 +3111,7 @@ static inline bool IsUnlearnSpellsPacketNeededForSpell(uint32 spellId)
 
 bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependent, bool disabled)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell_id);
     if (!spellInfo)
     {
         // do character spell book cleanup (all characters)
@@ -3250,7 +3246,7 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
             }
     }
 
-    TalentSpellPos const* talentPos = GetTalentSpellPos(spell_id);
+    TalentSpellPos const* talentPos = ObjectMgr::GetTalentSpellPos(spell_id);
 
     if (!disabled_case) // skip new spell adding if spell already known (disabled spells case)
     {
@@ -3277,11 +3273,8 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
         {
             // Check if a spell is learned by a talent first
             bool talent = false;
-            for (uint32 i = 0; i < sTalentStore.GetNumRows(); ++i)
+            for (auto talentInfo : sTalentStore)
             {
-                TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
-                if (!talentInfo)
-                    continue;
                 TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
                 if (!talentTabInfo || !(getClassMask() & talentTabInfo->ClassMask))
                     continue;
@@ -3380,7 +3373,7 @@ bool Player::addSpell(uint32 spell_id, bool active, bool learning, bool dependen
     if (talentPos)
     {
         // update used talent points count
-        m_usedTalentCount += GetTalentSpellCost(talentPos);
+        m_usedTalentCount += ObjectMgr::GetTalentSpellCost(talentPos);
         UpdateFreeTalentPoints(false);
     }
 
@@ -3499,13 +3492,13 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     if (playerSpell.state == PLAYERSPELL_REMOVED || (disabled && playerSpell.disabled))
         return;
 
-    if (disabled && GetTalentSpellPos(spell_id))
+    if (disabled && ObjectMgr::GetTalentSpellPos(spell_id))
         disabled = false; // talents should never be marked as disabled
 
     // unlearn non talent higher ranks (recursive)
     SpellChainMapNext const& nextMap = sSpellMgr.GetSpellChainNext();
     for (SpellChainMapNext::const_iterator itr2 = nextMap.lower_bound(spell_id); itr2 != nextMap.upper_bound(spell_id); ++itr2)
-        if (HasSpell(itr2->second) && !GetTalentSpellPos(itr2->second))
+        if (HasSpell(itr2->second) && !ObjectMgr::GetTalentSpellPos(itr2->second))
             removeSpell(itr2->second, !IsPassiveSpell(itr2->second), false, sendUpdate);
 
     // re-search, it can be corrupted in prev loop
@@ -3537,11 +3530,11 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     if (PetAura const* petSpell = sSpellMgr.GetPetAura(spell_id))
         RemovePetAura(petSpell);
 
-    TalentSpellPos const* talentPos = GetTalentSpellPos(spell_id);
+    TalentSpellPos const* talentPos = ObjectMgr::GetTalentSpellPos(spell_id);
     if (talentPos)
     {
         // free talent points
-        uint32 talentCosts = GetTalentSpellCost(talentPos);
+        uint32 talentCosts = ObjectMgr::GetTalentSpellCost(talentPos);
 
         if (talentCosts < m_usedTalentCount)
             m_usedTalentCount -= talentCosts;
@@ -3610,7 +3603,7 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     // for shaman Dual-wield
     if (CanDualWield())
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell_id);
 
         if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_DUAL_WIELD))
             SetCanDualWield(false);
@@ -3655,7 +3648,7 @@ void Player::_LoadSpellCooldowns(QueryResult* result)
             uint64 cat_time = fields[3].GetUInt64();
             uint32 item_id = fields[4].GetUInt32();
 
-            SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+            SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spell_id);
             if (!spellEntry)
             {
                 sLog.outError("%s has unknown spell %u in `character_spell_cooldown`, skipping.", GetGuidStr().c_str(), spell_id);
@@ -3787,13 +3780,8 @@ bool Player::resetTalents(bool no_cost)
         }
     }
 
-    for (unsigned int i = 0; i < sTalentStore.GetNumRows(); ++i)
+    for (auto talentInfo : sTalentStore)
     {
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
-
-        if (!talentInfo)
-            continue;
-
         TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
 
         if (!talentTabInfo)
@@ -4129,7 +4117,7 @@ TrainerSpellState Player::GetTrainerSpellState(TrainerSpell const* trainer_spell
             return TRAINER_SPELL_RED;
 
     // exist, already checked at loading
-    SpellEntry const* spell = sSpellTemplate.LookupEntry<SpellEntry>(trainer_spell->learnedSpell);
+    SpellEntry const* spell = sSpellTemplate.LookupEntry(trainer_spell->learnedSpell);
 
     // secondary prof. or not prof. spell
     uint32 skill = spell->EffectMiscValue[1];
@@ -4247,7 +4235,7 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
                     if (has_items)
                     {
                         // data needs to be at first place for Item::LoadFromDB
-                        //                                                          0          1            2                3      4         5        6      7             8                 9           10          11         12             
+                        //                                                          0          1            2                3      4         5        6      7             8                 9           10          11         12
                         QueryResult* resultItems = CharacterDatabase.PQuery("SELECT itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, item_guid, item_template FROM mail_items JOIN item_instance ON item_guid = guid WHERE mail_id='%u'", mail_id);
                         if (resultItems)
                         {
@@ -4963,7 +4951,7 @@ void Player::RepopAtGraveyard()
     // note: this can be called also when the player is alive
     // for example from WorldSession::HandleMovementOpcodes
 
-    AreaTableEntry const* zone = GetAreaEntryByAreaID(GetAreaId());
+    AreaTableEntry const* zone = TerrainManager::GetAreaEntryByAreaID(GetAreaId());
 
     // Such zones are considered unreachable as a ghost and the player must be automatically revived
     if ((!IsAlive() && zone && zone->flags & AREA_FLAG_NEED_FLY) || GetTransport())
@@ -5026,7 +5014,7 @@ void Player::UpdateLocalChannels(uint32 newZone)
     if (m_channels.empty())
         return;
 
-    AreaTableEntry const* current_zone = GetAreaEntryByAreaID(newZone);
+    AreaTableEntry const* current_zone = TerrainManager::GetAreaEntryByAreaID(newZone);
     if (!current_zone)
         return;
 
@@ -5171,8 +5159,8 @@ float Player::GetMeleeCritFromAgility() const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtChanceToMeleeCritBaseEntry const* critBase  = sGtChanceToMeleeCritBaseStore.LookupEntry(pclass - 1);
-    GtChanceToMeleeCritEntry     const* critRatio = sGtChanceToMeleeCritStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtChanceToMeleeCritBaseEntry const* critBase  = sgtChanceToMeleeCritBaseStore.LookupEntry(pclass - 1);
+    GtChanceToMeleeCritEntry     const* critRatio = sgtChanceToMeleeCritStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (critBase == nullptr || critRatio == nullptr)
         return 0.0f;
 
@@ -5206,7 +5194,7 @@ float Player::GetDodgeFromAgility(float amount) const
     const uint32 index = ((pclass - 1) * GT_MAX_LEVEL) + (level - 1);
 
     // Dodge per agility is proportional to crit per agility, which is available from DBC files
-    const GtChanceToMeleeCritEntry* entry = sGtChanceToMeleeCritStore.LookupEntry(index);
+    const GtChanceToMeleeCritEntry* entry = sgtChanceToMeleeCritStore.LookupEntry(index);
     if (!entry)
         return 0.0f;
     return (100.0f * amount * entry->ratio * PLAYER_AGI_TO_CRIT_TO_DODGE[pclass]);
@@ -5219,8 +5207,8 @@ float Player::GetSpellCritFromIntellect() const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtChanceToSpellCritBaseEntry const* critBase  = sGtChanceToSpellCritBaseStore.LookupEntry(pclass - 1);
-    GtChanceToSpellCritEntry     const* critRatio = sGtChanceToSpellCritStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtChanceToSpellCritBaseEntry const* critBase  = sgtChanceToSpellCritBaseStore.LookupEntry(pclass - 1);
+    GtChanceToSpellCritEntry     const* critRatio = sgtChanceToSpellCritStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (critBase == nullptr || critRatio == nullptr)
         return 0.0f;
 
@@ -5234,7 +5222,7 @@ float Player::GetRatingMultiplier(CombatRating cr) const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtCombatRatingsEntry const* Rating = sGtCombatRatingsStore.LookupEntry(cr * GT_MAX_LEVEL + level - 1);
+    GtCombatRatingsEntry const* Rating = sgtCombatRatingsStore.LookupEntry(cr * GT_MAX_LEVEL + level - 1);
     if (!Rating)
         return 1.0f;                                        // By default use minimum coefficient (not must be called)
 
@@ -5440,7 +5428,7 @@ bool Player::UpdateCraftSkill(uint32 spellid)
             uint32 SkillValue = GetSkillValuePure(skill->skillId);
 
             // Alchemy Discoveries here
-            SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+            SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spellid);
             if (spellEntry && spellEntry->Mechanic == MECHANIC_DISCOVERY)
             {
                 if (uint32 discoveredSpell = GetSkillDiscoverySpell(skill->skillId, spellid, this))
@@ -6203,7 +6191,7 @@ bool Player::IsActionButtonDataValid(uint8 button, uint32 action, uint8 type, Pl
     {
         case ACTION_BUTTON_SPELL:
         {
-            SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(action);
+            SpellEntry const* spellProto = sSpellTemplate.LookupEntry(action);
             if (!spellProto)
             {
                 if (player)
@@ -6419,7 +6407,7 @@ void Player::CheckAreaExploreAndOutdoor()
         if (HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) && GetRestType() == REST_TYPE_IN_TAVERN)
         {
             AreaTriggerEntry const* at = sAreaTriggerStore.LookupEntry(inn_trigger_id);
-            if (!at || !IsPointInAreaTriggerZone(at, GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ()))
+            if (!at || !Map::IsPointInAreaTriggerZone(at, GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ()))
             {
                 // Player left inn (REST_TYPE_IN_CITY overrides REST_TYPE_IN_TAVERN, so just clear rest)
                 SetRestType(REST_TYPE_NO);
@@ -6431,7 +6419,7 @@ void Player::CheckAreaExploreAndOutdoor()
         {
             if (itr.second.state == PLAYERSPELL_REMOVED)
                 continue;
-            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
+            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(itr.first);
             if (!spellInfo || !IsNeedCastSpellAtOutdoor(spellInfo) || HasAura(itr.first))
                 continue;
             if ((spellInfo->Stances || spellInfo->StancesNot) && !IsNeedCastSpellAtFormApply(spellInfo, GetShapeshiftForm()))
@@ -6459,7 +6447,7 @@ void Player::CheckAreaExploreAndOutdoor()
     {
         SetUInt32Value(PLAYER_EXPLORED_ZONES_1 + offset, (uint32)(currFields | val));
 
-        AreaTableEntry const* p = GetAreaEntryByAreaFlagAndMap(areaFlag, GetMapId());
+        AreaTableEntry const* p = TerrainManager::GetAreaEntryByAreaFlagAndMap(areaFlag, GetMapId());
         if (!p)
         {
             sLog.outError("PLAYER: Player %u discovered unknown area (x: %f y: %f map: %u", GetGUIDLow(), GetPositionX(), GetPositionY(), GetMapId());
@@ -6541,7 +6529,7 @@ void Player::setFactionForRace(uint8 race)
 
 ReputationRank Player::GetReputationRank(uint32 faction) const
 {
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(faction);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction);
     return GetReputationMgr().GetRank(factionEntry);
 }
 
@@ -6616,7 +6604,7 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
 
     if (source == REPUTATION_SOURCE_QUEST && result && faction)
     {
-        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(faction))
+        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(faction))
         {
             int32 current = GetReputationMgr().GetReputation(factionEntry);
 
@@ -6651,7 +6639,7 @@ void Player::RewardReputation(Creature* victim, float rate)
     {
         int32 donerep1 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue1, 0, Rep->repfaction1, victim->getLevel());
         donerep1 = int32(donerep1 * rate);
-        FactionEntry const* factionEntry1 = sFactionStore.LookupEntry<FactionEntry>(Rep->repfaction1);
+        FactionEntry const* factionEntry1 = sFactionStore.LookupEntry(Rep->repfaction1);
         uint32 current_reputation_rank1 = GetReputationMgr().GetRank(factionEntry1);
         if (factionEntry1 && current_reputation_rank1 <= Rep->reputation_max_cap1)
             GetReputationMgr().ModifyReputation(factionEntry1, donerep1);
@@ -6659,7 +6647,7 @@ void Player::RewardReputation(Creature* victim, float rate)
         // Wiki: Team factions value divided by 2
         if (factionEntry1 && Rep->is_teamaward1)
         {
-            FactionEntry const* team1_factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionEntry1->team);
+            FactionEntry const* team1_factionEntry = sFactionStore.LookupEntry(factionEntry1->team);
             if (team1_factionEntry)
                 GetReputationMgr().ModifyReputation(team1_factionEntry, donerep1 / 2);
         }
@@ -6669,7 +6657,7 @@ void Player::RewardReputation(Creature* victim, float rate)
     {
         int32 donerep2 = CalculateReputationGain(REPUTATION_SOURCE_KILL, Rep->repvalue2, 0, Rep->repfaction2, victim->getLevel());
         donerep2 = int32(donerep2 * rate);
-        FactionEntry const* factionEntry2 = sFactionStore.LookupEntry<FactionEntry>(Rep->repfaction2);
+        FactionEntry const* factionEntry2 = sFactionStore.LookupEntry(Rep->repfaction2);
         uint32 current_reputation_rank2 = GetReputationMgr().GetRank(factionEntry2);
         if (factionEntry2 && current_reputation_rank2 <= Rep->reputation_max_cap2)
             GetReputationMgr().ModifyReputation(factionEntry2, donerep2);
@@ -6677,7 +6665,7 @@ void Player::RewardReputation(Creature* victim, float rate)
         // Wiki: Team factions value divided by 2
         if (factionEntry2 && Rep->is_teamaward2)
         {
-            FactionEntry const* team2_factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionEntry2->team);
+            FactionEntry const* team2_factionEntry = sFactionStore.LookupEntry(factionEntry2->team);
             if (team2_factionEntry)
                 GetReputationMgr().ModifyReputation(team2_factionEntry, donerep2 / 2);
         }
@@ -6697,7 +6685,7 @@ void Player::RewardReputation(Quest const* pQuest)
         {
             int32 rep = CalculateReputationGain(REPUTATION_SOURCE_QUEST, pQuest->RewRepValue[i], pQuest->RewMaxRepValue[i], pQuest->RewRepFaction[i], GetQuestLevelForPlayer(pQuest));
 
-            if (FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(pQuest->RewRepFaction[i]))
+            if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(pQuest->RewRepFaction[i]))
                 GetReputationMgr().ModifyReputation(factionEntry, rep);
         }
     }
@@ -6990,7 +6978,7 @@ void Player::UpdateArea(uint32 newArea)
 {
     m_areaUpdateId    = newArea;
 
-    AreaTableEntry const* area = GetAreaEntryByAreaID(newArea);
+    AreaTableEntry const* area = TerrainManager::GetAreaEntryByAreaID(newArea);
 
     // FFA_PVP flags are area and not zone id dependent
     // so apply them accordingly
@@ -7023,7 +7011,7 @@ bool Player::CanUseCapturePoint() const
 
 void Player::UpdateZone(uint32 newZone, uint32 newArea, bool force)
 {
-    AreaTableEntry const* zone = GetAreaEntryByAreaID(newZone);
+    AreaTableEntry const* zone = TerrainManager::GetAreaEntryByAreaID(newZone);
     if (!zone)
         return;
 
@@ -7582,7 +7570,7 @@ void Player::ApplyItemEquipSpell(Item* item, bool apply, bool form_change)
         }
 
         // check if it is valid spell
-        SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellData.SpellId);
+        SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellData.SpellId);
         if (!spellproto)
             continue;
 
@@ -7757,7 +7745,7 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType, bool sp
         if (spellData.SpellTrigger != ITEM_SPELLTRIGGER_CHANCE_ON_HIT)
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellData.SpellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellData.SpellId);
         if (!spellInfo)
         {
             sLog.outError("WORLD: unknown Item spellid %i", spellData.SpellId);
@@ -7801,7 +7789,7 @@ void Player::CastItemCombatSpell(Unit* Target, WeaponAttackType attType, bool sp
             if (pEnchant->type[s] != ITEM_ENCHANTMENT_TYPE_COMBAT_SPELL)
                 continue;
 
-            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(proc_spell_id);
+            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(proc_spell_id);
             if (!spellInfo)
             {
                 sLog.outError("Player::CastItemCombatSpell Enchant %i, cast unknown spell %i", pEnchant->ID, proc_spell_id);
@@ -7847,7 +7835,7 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets& targets, uint8 cast_
         uint32 learn_spell_id = proto->Spells[0].SpellId;
         uint32 learning_spell_id = proto->Spells[1].SpellId;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(learn_spell_id);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(learn_spell_id);
         if (!spellInfo)
         {
             sLog.outError("Player::CastItemUseSpell: Item (Entry: %u) in have wrong spell id %u, ignoring ", proto->ItemId, learn_spell_id);
@@ -7882,7 +7870,7 @@ void Player::CastItemUseSpell(Item* item, SpellCastTargets& targets, uint8 cast_
         if (i != spell_index)
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellData.SpellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellData.SpellId);
         if (!spellInfo)
         {
             sLog.outError("Player::CastItemUseSpell: Item (Entry: %u) in have wrong spell id %u, ignoring", proto->ItemId, spellData.SpellId);
@@ -8308,7 +8296,7 @@ uint8 Player::FindEquipSlot(ItemPrototype const* proto, uint32 slot, bool swap) 
                 // in both scenarios, a swap is required
                 if (currentSlot == EQUIPMENT_SLOT_OFFHAND && (IsTwoHandUsed() || proto->InventoryType == INVTYPE_2HWEAPON))
                     continue;
-                
+
                 return currentSlot;
             }
         }
@@ -9015,6 +9003,26 @@ InventoryResult Player::_CanTakeMoreSimilarItems(uint32 entry, uint32 count, Ite
 
 
     return EQUIP_ERR_OK;
+}
+
+bool Player::IsTotemCategoryCompatiableWith(uint32 itemTotemCategoryId, uint32 requiredTotemCategoryId)
+{
+    if (requiredTotemCategoryId == 0)
+        return true;
+    if (itemTotemCategoryId == 0)
+        return false;
+
+    TotemCategoryEntry const* itemEntry = sTotemCategoryStore.LookupEntry(itemTotemCategoryId);
+    if (!itemEntry)
+        return false;
+    TotemCategoryEntry const* reqEntry = sTotemCategoryStore.LookupEntry(requiredTotemCategoryId);
+    if (!reqEntry)
+        return false;
+
+    if (itemEntry->categoryType != reqEntry->categoryType)
+        return false;
+
+    return (itemEntry->categoryMask & reqEntry->categoryMask) == reqEntry->categoryMask;
 }
 
 bool Player::HasItemTotemCategory(uint32 TotemCategory) const
@@ -10517,7 +10525,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
                 if (getClass() == CLASS_ROGUE)
                     cooldownSpell = SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_0s;
 
-                SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(cooldownSpell);
+                SpellEntry const* spellProto = sSpellTemplate.LookupEntry(cooldownSpell);
 
                 if (!spellProto)
                     sLog.outError("Weapon switch cooldown spell %u couldn't be found in Spell.dbc", cooldownSpell);
@@ -13160,7 +13168,7 @@ void Player::AddQuest(Quest const* pQuest, Object* questGiver)
     }
 
     if (pQuest->GetRepObjectiveFaction())
-        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(pQuest->GetRepObjectiveFaction()))
+        if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(pQuest->GetRepObjectiveFaction()))
             GetReputationMgr().SetVisible(factionEntry);
 
     uint32 qtime = 0;
@@ -13412,7 +13420,7 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
 
     if (spellId)
     {
-        if (SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellId))
+        if (SpellEntry const* spellProto = sSpellTemplate.LookupEntry(spellId))
         {
             Unit* caster = this;
 
@@ -14470,11 +14478,11 @@ void Player::ReputationChanged(FactionEntry const* factionEntry)
         case FACTION_STORMPIKE_GUARD:
         case FACTION_SILVERWING_SENTINELS:
         {
-            FactionEntry const* factionEntryArathor = sFactionStore.LookupEntry<FactionEntry>(FACTION_LEAGUE_OF_ARATHOR);
+            FactionEntry const* factionEntryArathor = sFactionStore.LookupEntry(FACTION_LEAGUE_OF_ARATHOR);
             if (repMgr.GetRank(factionEntryArathor) < REP_EXALTED) break;
-            FactionEntry const* factionEntryStormpike = sFactionStore.LookupEntry<FactionEntry>(FACTION_STORMPIKE_GUARD);
+            FactionEntry const* factionEntryStormpike = sFactionStore.LookupEntry(FACTION_STORMPIKE_GUARD);
             if (repMgr.GetRank(factionEntryStormpike) < REP_EXALTED) break;
-            FactionEntry const* factionEntrySentinels = sFactionStore.LookupEntry<FactionEntry>(FACTION_SILVERWING_SENTINELS);
+            FactionEntry const* factionEntrySentinels = sFactionStore.LookupEntry(FACTION_SILVERWING_SENTINELS);
             if (repMgr.GetRank(factionEntrySentinels) < REP_EXALTED) break;
             SetTitle(TITLE_JUSTICAR);
             break;
@@ -14483,11 +14491,11 @@ void Player::ReputationChanged(FactionEntry const* factionEntry)
         case FACTION_FROSTWOLF_CLAN:
         case FACTION_WARSONG_OUTRIDERS:
         {
-            FactionEntry const* factionEntryDefilers = sFactionStore.LookupEntry<FactionEntry>(FACTION_DEFILERS);
+            FactionEntry const* factionEntryDefilers = sFactionStore.LookupEntry(FACTION_DEFILERS);
             if (repMgr.GetRank(factionEntryDefilers) < REP_EXALTED) break;
-            FactionEntry const* factionEntryFrostwolf = sFactionStore.LookupEntry<FactionEntry>(FACTION_FROSTWOLF_CLAN);
+            FactionEntry const* factionEntryFrostwolf = sFactionStore.LookupEntry(FACTION_FROSTWOLF_CLAN);
             if (repMgr.GetRank(factionEntryFrostwolf) < REP_EXALTED) break;
-            FactionEntry const* factionEntryWarsong = sFactionStore.LookupEntry<FactionEntry>(FACTION_WARSONG_OUTRIDERS);
+            FactionEntry const* factionEntryWarsong = sFactionStore.LookupEntry(FACTION_WARSONG_OUTRIDERS);
             if (repMgr.GetRank(factionEntryWarsong) < REP_EXALTED) break;
             SetTitle(TITLE_CONQUEROR);
             break;
@@ -15150,7 +15158,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
         ObjectGuid guid(HIGHGUID_MO_TRANSPORT, transGUID);
         if (GameObjectData const* data = sObjectMgr.GetGOData(transGUID))
         {
-            GameObjectInfo const* transportInfo = sGOStorage.LookupEntry<GameObjectInfo>(data->id);
+            GameObjectInfo const* transportInfo = sGOStorage.LookupEntry(data->id);
             if (transportInfo->type == GAMEOBJECT_TYPE_TRANSPORT)
                 guid = ObjectGuid(HIGHGUID_GAMEOBJECT, data->id, transGUID);
         }
@@ -15578,7 +15586,7 @@ void Player::_LoadAuras(QueryResult* result, uint32 timediff)
             int32 remaintime = fields[12].GetInt32();
             uint32 effIndexMask = fields[13].GetUInt32();
 
-            SpellEntry const* spellproto = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+            SpellEntry const* spellproto = sSpellTemplate.LookupEntry(spellid);
             if (!spellproto)
             {
                 sLog.outError("Unknown spell (spellid %u), ignore.", spellid);
@@ -16202,7 +16210,7 @@ void Player::_LoadSpells(QueryResult* result)
             uint32 spell_id = fields[0].GetUInt32();
             bool active = fields[1].GetBool();
             bool disabled = fields[2].GetBool();
-            TalentSpellPos const* talentPos = GetTalentSpellPos(spell_id);
+            TalentSpellPos const* talentPos = ObjectMgr::GetTalentSpellPos(spell_id);
             if (!talentPos)
                 spells.push_back(std::tuple<uint32, bool, bool>{ spell_id, active, disabled });
             else
@@ -18963,7 +18971,7 @@ bool Player::EnchantmentFitsRequirements(uint32 enchantmentcondition, int8 slot)
                 if (!gemid)
                     continue;
 
-                ItemPrototype const* gemProto = sItemStorage.LookupEntry<ItemPrototype>(gemid);
+                ItemPrototype const* gemProto = sItemStorage.LookupEntry(gemid);
                 if (!gemProto)
                     continue;
 
@@ -19591,7 +19599,7 @@ void Player::ApplyEquipCooldown(Item* pItem)
         if (spellData.SpellTrigger != ITEM_SPELLTRIGGER_ON_USE)
             continue;
 
-        SpellEntry const* spellentry = sSpellTemplate.LookupEntry<SpellEntry>(spellData.SpellId);
+        SpellEntry const* spellentry = sSpellTemplate.LookupEntry(spellData.SpellId);
         if (!spellentry)
             continue;
 
@@ -19645,7 +19653,7 @@ void Player::learnQuestRewardedSpells(Quest const* quest)
     if (!spell_id)
         return;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell_id);
     if (!spellInfo)
         return;
 
@@ -19673,7 +19681,7 @@ void Player::learnQuestRewardedSpells(Quest const* quest)
         if (!HasSpell(first_spell))
             return;
 
-        SpellEntry const* learnedInfo = sSpellTemplate.LookupEntry<SpellEntry>(learned_0);
+        SpellEntry const* learnedInfo = sSpellTemplate.LookupEntry(learned_0);
         if (!learnedInfo)
             return;
 
@@ -19686,7 +19694,7 @@ void Player::learnQuestRewardedSpells(Quest const* quest)
                 if (itr->second.state == PLAYERSPELL_REMOVED || itr->first == learned_0)
                     continue;
 
-                SpellEntry const* itrInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
+                SpellEntry const* itrInfo = sSpellTemplate.LookupEntry(itr->first);
                 if (!itrInfo)
                     return;
 
@@ -20432,7 +20440,7 @@ struct UpdateZoneDependentPetsHelper
     {
         if (unit->GetTypeId() == TYPEID_UNIT && ((Creature*)unit)->IsPet() && !((Pet*)unit)->isControlled())
             if (uint32 spell_id = unit->GetUInt32Value(UNIT_CREATED_BY_SPELL))
-                if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spell_id))
+                if (SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spell_id))
                     if (sSpellMgr.GetSpellAllowedInLocationError(spellEntry, owner->GetMapId(), zone_id, area_id, owner) != SPELL_CAST_OK)
                         ((Pet*)unit)->Unsummon(PET_SAVE_AS_DELETED, owner);
     }
@@ -21169,23 +21177,18 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank)
     uint32 tTab = talentInfo->TalentTab;
     if (talentInfo->Row > 0)
     {
-        unsigned int numRows = sTalentStore.GetNumRows();
-        for (unsigned int i = 0; i < numRows; ++i)          // Loop through all talents.
+        for (auto tmpTalent : sTalentStore)          // Loop through all talents.
         {
             // Someday, someone needs to revamp
-            const TalentEntry* tmpTalent = sTalentStore.LookupEntry(i);
-            if (tmpTalent)                                  // the way talents are tracked
+            if (tmpTalent->TalentTab == tTab)
             {
-                if (tmpTalent->TalentTab == tTab)
+                for (int j = 0; j < MAX_TALENT_RANK; ++j)
                 {
-                    for (int j = 0; j < MAX_TALENT_RANK; ++j)
+                    if (tmpTalent->RankID[j] != 0)
                     {
-                        if (tmpTalent->RankID[j] != 0)
+                        if (HasSpell(tmpTalent->RankID[j]))
                         {
-                            if (HasSpell(tmpTalent->RankID[j]))
-                            {
-                                spentPoints += j + 1;
-                            }
+                            spentPoints += j + 1;
                         }
                     }
                 }
@@ -21807,7 +21810,7 @@ void Player::LockOutSpells(SpellSchoolMask schoolMask, uint32 duration)
             continue;
 
         uint32 unSpellId = ownerSpellItr.first;
-        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(unSpellId);
+        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(unSpellId);
 
         // Not send cooldown for this spells
         if (spellEntry->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
@@ -21843,7 +21846,7 @@ void Player::RemoveSpellLockout(SpellSchoolMask spellSchoolMask, std::set<uint32
             continue;
 
         uint32 unSpellId = ownerSpellItr.first;
-        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(unSpellId);
+        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(unSpellId);
 
         // Not send cooldown for this spells
         if (!spellEntry || !(GetSpellSchoolMask(spellEntry) & spellSchoolMask) || spellEntry->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))

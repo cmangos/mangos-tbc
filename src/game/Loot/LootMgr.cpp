@@ -128,7 +128,7 @@ void LootStore::LoadLootTable()
 
             if (conditionId)
             {
-                const ConditionEntry* condition = sConditionStorage.LookupEntry<ConditionEntry>(conditionId);
+                const ConditionEntry* condition = sConditionStorage.LookupEntry(conditionId);
                 if (!condition)
                 {
                     sLog.outErrorDb("Table `%s` for entry %u, item %u has condition_id %u that does not exist in `conditions`, ignoring", GetName(), entry, item, uint32(conditionId));
@@ -2220,7 +2220,7 @@ void Loot::PrintLootList(ChatHandler& chat, WorldSession* session) const
     for (auto lootItem : m_lootItems)
     {
         uint32 itemId = lootItem->itemId;
-        ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype >(itemId);
+        ItemPrototype const* pProto = sItemStorage.LookupEntry(itemId);
         if (!pProto)
             continue;
 
@@ -2629,19 +2629,17 @@ void LoadLootTemplates_Creature()
     LootTemplates_Creature.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    for (auto cInfo : sCreatureStorage)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        if (uint32 lootid = cInfo->LootId)
         {
-            if (uint32 lootid = cInfo->LootId)
-            {
-                if (ids_set.find(lootid) == ids_set.end())
-                    LootTemplates_Creature.ReportNotExistedId(lootid);
-                else
-                    ids_setUsed.insert(lootid);
-            }
+            if (ids_set.find(lootid) == ids_set.end())
+                LootTemplates_Creature.ReportNotExistedId(lootid);
+            else
+                ids_setUsed.insert(lootid);
         }
     }
+
     for (uint32 itr : ids_setUsed)
         ids_set.erase(itr);
 
@@ -2659,17 +2657,14 @@ void LoadLootTemplates_Disenchant()
     LootTemplates_Disenchant.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
+    for (auto proto : sItemStorage)
     {
-        if (ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i))
+        if (uint32 lootid = proto->DisenchantID)
         {
-            if (uint32 lootid = proto->DisenchantID)
-            {
-                if (ids_set.find(lootid) == ids_set.end())
-                    LootTemplates_Disenchant.ReportNotExistedId(lootid);
-                else
-                    ids_setUsed.insert(lootid);
-            }
+            if (ids_set.find(lootid) == ids_set.end())
+                LootTemplates_Disenchant.ReportNotExistedId(lootid);
+            else
+                ids_setUsed.insert(lootid);
         }
     }
     for (uint32 itr : ids_setUsed)
@@ -2684,11 +2679,10 @@ void LoadLootTemplates_Fishing()
     LootTemplates_Fishing.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sAreaStore.GetNumRows(); ++i)
+    for (auto areaEntry : sAreaTableStore)
     {
-        if (AreaTableEntry const* areaEntry = sAreaStore.LookupEntry(i))
-            if (ids_set.find(areaEntry->ID) != ids_set.end())
-                ids_set.erase(areaEntry->ID);
+        if (ids_set.find(areaEntry->ID) != ids_set.end())
+            ids_set.erase(areaEntry->ID);
     }
 
     // by default (look config options) fishing at fail provide junk loot, entry 0 use for store this loot
@@ -2704,7 +2698,7 @@ void LoadLootTemplates_Gameobject()
     LootTemplates_Gameobject.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+    for (auto itr : sGOStorage)
     {
         if (uint32 lootid = itr->GetLootId())
         {
@@ -2727,21 +2721,17 @@ void LoadLootTemplates_Item()
     LootTemplates_Item.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
+    for (auto proto : sItemStorage)
     {
-        if (ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i))
-        {
-            if (!(proto->Flags & ITEM_FLAG_HAS_LOOT))
-                continue;
+        if (!(proto->Flags & ITEM_FLAG_HAS_LOOT))
+            continue;
 
-            if (ids_set.find(proto->ItemId) != ids_set.end() || proto->MaxMoneyLoot > 0)
-                ids_set.erase(proto->ItemId);
-            // wdb have wrong data cases, so skip by default
-            else if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
-                LootTemplates_Item.ReportNotExistedId(proto->ItemId);
-        }
+        if (ids_set.find(proto->ItemId) != ids_set.end() || proto->MaxMoneyLoot > 0)
+            ids_set.erase(proto->ItemId);
+        // wdb have wrong data cases, so skip by default
+        else if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
+            LootTemplates_Item.ReportNotExistedId(proto->ItemId);
     }
-
     // output error for any still listed (not referenced from appropriate table) ids
     LootTemplates_Item.ReportUnusedIds(ids_set);
 }
@@ -2752,17 +2742,14 @@ void LoadLootTemplates_Pickpocketing()
     LootTemplates_Pickpocketing.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    for (auto cInfo : sCreatureStorage)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        if (uint32 lootid = cInfo->PickpocketLootId)
         {
-            if (uint32 lootid = cInfo->PickpocketLootId)
-            {
-                if (ids_set.find(lootid) == ids_set.end())
-                    LootTemplates_Pickpocketing.ReportNotExistedId(lootid);
-                else
-                    ids_setUsed.insert(lootid);
-            }
+            if (ids_set.find(lootid) == ids_set.end())
+                LootTemplates_Pickpocketing.ReportNotExistedId(lootid);
+            else
+                ids_setUsed.insert(lootid);
         }
     }
     for (uint32 itr : ids_setUsed)
@@ -2778,12 +2765,8 @@ void LoadLootTemplates_Prospecting()
     LootTemplates_Prospecting.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sItemStorage.GetMaxEntry(); ++i)
+    for (auto proto : sItemStorage)
     {
-        ItemPrototype const* proto = sItemStorage.LookupEntry<ItemPrototype>(i);
-        if (!proto)
-            continue;
-
         if (!(proto->Flags & ITEM_FLAG_IS_PROSPECTABLE))
             continue;
 
@@ -2803,10 +2786,9 @@ void LoadLootTemplates_Mail()
     LootTemplates_Mail.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sMailTemplateStore.GetNumRows(); ++i)
-        if (sMailTemplateStore.LookupEntry(i))
-            if (ids_set.find(i) != ids_set.end())
-                ids_set.erase(i);
+    for (auto mailEntry : sMailTemplateStore)
+        if (ids_set.find(mailEntry->ID) != ids_set.end())
+            ids_set.erase(mailEntry->ID);
 
     // output error for any still listed (not referenced from appropriate table) ids
     LootTemplates_Mail.ReportUnusedIds(ids_set);
@@ -2818,17 +2800,14 @@ void LoadLootTemplates_Skinning()
     LootTemplates_Skinning.LoadAndCollectLootIds(ids_set);
 
     // remove real entries and check existence loot
-    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    for (auto cInfo : sCreatureStorage)
     {
-        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        if (uint32 lootid = cInfo->SkinningLootId)
         {
-            if (uint32 lootid = cInfo->SkinningLootId)
-            {
-                if (ids_set.find(lootid) == ids_set.end())
-                    LootTemplates_Skinning.ReportNotExistedId(lootid);
-                else
-                    ids_setUsed.insert(lootid);
-            }
+            if (ids_set.find(lootid) == ids_set.end())
+                LootTemplates_Skinning.ReportNotExistedId(lootid);
+            else
+                ids_setUsed.insert(lootid);
         }
     }
     for (uint32 itr : ids_setUsed)
@@ -3003,7 +2982,7 @@ void LootMgr::CheckDropStats(ChatHandler& chat, uint32 amountOfCheck, uint32 loo
     for (auto itemStat : sortedResult)
     {
         uint32 itemId = itemStat.first;
-        ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype >(itemId);
+        ItemPrototype const* pProto = sItemStorage.LookupEntry(itemId);
         if (!pProto)
             continue;
 

@@ -406,7 +406,7 @@ void DungeonResetScheduler::LoadResetTimes()
 
     // load the global respawn times for raid/heroic instances
     uint32 diff = sWorld.getConfig(CONFIG_UINT32_INSTANCE_RESET_TIME_HOUR) * HOUR;
-    m_resetTimeByMapId.resize(sMapStore.GetNumRows() + 1);
+    m_resetTimeByMapId.resize(sMapStore.GetMaxEntry());
     result = CharacterDatabase.Query("SELECT mapid, resettime FROM instance_reset");
     if (result)
     {
@@ -443,12 +443,8 @@ void DungeonResetScheduler::LoadResetTimes()
 
     // calculate new global reset times for expired instances and those that have never been reset yet
     // add the global reset times to the priority queue
-    for (uint32 i = 0; i < sInstanceTemplate.GetMaxEntry(); i++)
+    for (auto temp : sInstanceTemplate)
     {
-        InstanceTemplate const* temp = ObjectMgr::GetInstanceTemplate(i);
-        if (!temp)
-            continue;
-
         // only raid/heroic maps have a global reset time
         MapEntry const* mapEntry = sMapStore.LookupEntry(temp->map);
         if (!mapEntry || !mapEntry->IsDungeon() || !mapEntry->HasResetTime())
@@ -976,10 +972,9 @@ void MapPersistentStateManager::_CleanupExpiredInstancesAtTime(time_t t)
 void MapPersistentStateManager::InitWorldMaps()
 {
     MapPersistentState* state = nullptr;                       // need any from created for shared pool state
-    for (uint32 mapid = 0; mapid < sMapStore.GetNumRows(); ++mapid)
-        if (MapEntry const* entry = sMapStore.LookupEntry(mapid))
-            if (!entry->Instanceable())
-                state = AddPersistentState(entry, 0, REGULAR_DIFFICULTY, 0, false, false);
+    for (auto entry : sMapStore)
+        if (!entry->Instanceable())
+            state = AddPersistentState(entry, 0, REGULAR_DIFFICULTY, 0, false, false);
 }
 
 void MapPersistentStateManager::LoadCreatureRespawnTimes()

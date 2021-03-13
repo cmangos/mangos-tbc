@@ -20,6 +20,7 @@
 #define MANGOS_FORMULAS_H
 
 #include "World/World.h"
+#include "Maps/Map.h"
 
 namespace MaNGOS
 {
@@ -134,7 +135,7 @@ namespace MaNGOS
             if (target->IsTotem() || target->IsPet() || target->IsNoXp() || target->IsCritter())
                 return 0;
 
-            uint32 xp_gain = BaseGain(unit->getLevel(), target->getLevel(), GetContentLevelsForMapAndZone(unit->GetMapId(), unit->GetZoneId()));
+            uint32 xp_gain = BaseGain(unit->getLevel(), target->getLevel(), Map::GetContentLevelsForMapAndZone(unit->GetMapId(), unit->GetZoneId()));
             if (xp_gain == 0.0f)
                 return 0;
 

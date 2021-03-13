@@ -347,7 +347,7 @@ struct SpoutTurning : public AuraScript
         target->SetFacingTo(newAngle);
         target->SetOrientation(newAngle);
 
-        data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_SPOUT_DAMAGE);
+        data.spellInfo = sSpellTemplate.LookupEntry(SPELL_SPOUT_DAMAGE);
         data.caster = target;
         data.target = nullptr;
     }

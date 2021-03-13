@@ -57,6 +57,7 @@
 #include "Loot/LootMgr.h"
 #include "World/WorldState.h"
 #include "Arena/ArenaTeam.h"
+#include "Database/SQLStorage.h"
 
 #ifdef BUILD_AHBOT
 #include "AuctionHouseBot/AuctionHouseBot.h"
@@ -1351,7 +1352,7 @@ bool ChatHandler::HandleCooldownClearCommand(char* args)
         if (!spell_id)
             return false;
 
-        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
+        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(spell_id);
         if (!spellEntry)
         {
             PSendSysMessage(LANG_UNKNOWN_SPELL, target == m_session->GetPlayer() ? GetMangosString(LANG_YOU) : tNameLink.c_str());
@@ -1409,19 +1410,15 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
         return false;
     }
 
-    for (uint32 i = 0; i < sSpellTemplate.GetMaxEntry(); i++)
+    for (auto spellInfo : sSpellTemplate)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(i);
-        if (!spellInfo)
-            continue;
-
         for (uint32 j = 0; j < MAX_EFFECT_INDEX; j++)
         {
             if ((spellInfo->Effect[j] == SPELL_EFFECT_LEARN_SPELL) &&
                 (spellInfo->EffectImplicitTargetA[j] == TARGET_NONE))
             {
                 uint32 spellId = spellInfo->EffectTriggerSpell[j];
-                SpellEntry const* newSpell = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+                SpellEntry const* newSpell = sSpellTemplate.LookupEntry(spellId);
 
                 // skip broken spells
                 if (!SpellMgr::IsSpellValid(newSpell, player, false))
@@ -1429,9 +1426,9 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
 
                 // skip spells with first rank learned as talent (and all talents then also)
                 uint32 firstRankId = sSpellMgr.GetFirstSpellInChain(spellId);
-                if (GetTalentSpellCost(firstRankId) > 0)
+                if (ObjectMgr::GetTalentSpellCost(firstRankId) > 0)
                     continue;
-                
+
                 if (!IsSpellHaveEffect(newSpell, SPELL_EFFECT_PROFICIENCY))
                 {
                     // only class spells
@@ -1498,7 +1495,7 @@ bool ChatHandler::HandleLearnAllGMCommand(char* /*args*/)
 
     for (uint32 spell : gmSpellList)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, m_session->GetPlayer()))
         {
             PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spell);
@@ -1527,13 +1524,9 @@ bool ChatHandler::HandleLearnAllMySpellsCommand(char* /*args*/)
         return true;
     uint32 family = clsEntry->spellfamily;
 
-    for (uint32 i = 0; i < sSkillLineAbilityStore.GetNumRows(); ++i)
+    for (auto entry : sSkillLineAbilityStore)
     {
-        SkillLineAbilityEntry const* entry = sSkillLineAbilityStore.LookupEntry(i);
-        if (!entry)
-            continue;
-
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(entry->spellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(entry->spellId);
         if (!spellInfo)
             continue;
 
@@ -1551,7 +1544,7 @@ bool ChatHandler::HandleLearnAllMySpellsCommand(char* /*args*/)
 
         // skip spells with first rank learned as talent (and all talents then also)
         uint32 first_rank = sSpellMgr.GetFirstSpellInChain(spellInfo->Id);
-        if (GetTalentSpellCost(first_rank) > 0)
+        if (ObjectMgr::GetTalentSpellCost(first_rank) > 0)
             continue;
 
         // skip broken spells
@@ -1570,12 +1563,8 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(char* /*args*/)
     Player* player = m_session->GetPlayer();
     uint32 classMask = player->getClassMask();
 
-    for (uint32 i = 0; i < sTalentStore.GetNumRows(); ++i)
+    for (auto talentInfo : sTalentStore)
     {
-        TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
-        if (!talentInfo)
-            continue;
-
         TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
         if (!talentTabInfo)
             continue;
@@ -1598,7 +1587,7 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(char* /*args*/)
         if (!spellid)                                       // ??? none spells in talent
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellid);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player, false))
             continue;
 
@@ -1650,14 +1639,14 @@ bool ChatHandler::HandleLearnCommand(char* args)
 
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spell = ExtractSpellIdFromLink(&args);
-    if (!spell || !sSpellTemplate.LookupEntry<SpellEntry>(spell))
+    if (!spell || !sSpellTemplate.LookupEntry(spell))
         return false;
 
     bool allRanks = ExtractLiteralArg(&args, "all") != nullptr;
     if (!allRanks && *args)                                 // can be fail also at syntax error
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell);
     if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player))
     {
         PSendSysMessage(LANG_COMMAND_SPELL_BROKEN, spell);
@@ -1791,12 +1780,8 @@ bool ChatHandler::HandleAddItemSetCommand(char* args)
     DETAIL_LOG(GetMangosString(LANG_ADDITEMSET), itemsetId);
 
     bool found = false;
-    for (uint32 id = 0; id < sItemStorage.GetMaxEntry(); ++id)
+    for (auto pProto : sItemStorage)
     {
-        ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype>(id);
-        if (!pProto)
-            continue;
-
         if (pProto->ItemSet == itemsetId)
         {
             found = true;
@@ -2194,7 +2179,7 @@ bool ChatHandler::HandleListCreatureCommand(char* args)
 
 void ChatHandler::ShowItemListHelper(uint32 itemId, int loc_idx, Player* target /*=nullptr*/)
 {
-    ItemPrototype const* itemProto = sItemStorage.LookupEntry<ItemPrototype >(itemId);
+    ItemPrototype const* itemProto = sItemStorage.LookupEntry(itemId);
     if (!itemProto)
         return;
 
@@ -2234,20 +2219,16 @@ bool ChatHandler::HandleLookupItemCommand(char* args)
     uint32 counter = 0;
 
     // Search in `item_template`
-    for (uint32 id = 0; id < sItemStorage.GetMaxEntry(); ++id)
+    for (auto pProto : sItemStorage)
     {
-        ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype >(id);
-        if (!pProto)
-            continue;
-
         int loc_idx = GetSessionDbLocaleIndex();
 
         std::string name;                                   // "" for let later only single time check default locale name directly
-        sObjectMgr.GetItemLocaleStrings(id, loc_idx, &name);
+        sObjectMgr.GetItemLocaleStrings(pProto->ItemId, loc_idx, &name);
         if ((name.empty() || !Utf8FitTo(name, wnamepart)) && !Utf8FitTo(pProto->Name1, wnamepart))
             continue;
 
-        ShowItemListHelper(id, loc_idx, pl);
+        ShowItemListHelper(pProto->ItemId, loc_idx, pl);
         ++counter;
     }
 
@@ -2274,42 +2255,38 @@ bool ChatHandler::HandleLookupItemSetCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in ItemSet.dbc
-    for (uint32 id = 0; id < sItemSetStore.GetNumRows(); ++id)
+    for (auto set : sItemSetStore)
     {
-        ItemSetEntry const* set = sItemSetStore.LookupEntry(id);
-        if (set)
+        int loc = GetSessionDbcLocale();
+        std::string name = set->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = set->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = set->name[loc];
-                    if (name.empty())
-                        continue;
+                name = set->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                // send item set in "id - [namedlink locale]" format
-                if (m_session)
-                    PSendSysMessage(LANG_ITEMSET_LIST_CHAT, id, id, name.c_str(), localeNames[loc]);
-                else
-                    PSendSysMessage(LANG_ITEMSET_LIST_CONSOLE, id, name.c_str(), localeNames[loc]);
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            // send item set in "id - [namedlink locale]" format
+            if (m_session)
+                PSendSysMessage(LANG_ITEMSET_LIST_CHAT, set->id, set->id, name.c_str(), localeNames[loc]);
+            else
+                PSendSysMessage(LANG_ITEMSET_LIST_CONSOLE, set->id, name.c_str(), localeNames[loc]);
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -2337,57 +2314,53 @@ bool ChatHandler::HandleLookupSkillCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in SkillLine.dbc
-    for (uint32 id = 0; id < sSkillLineStore.GetNumRows(); ++id)
+    for (auto skillInfo : sSkillLineStore)
     {
-        SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(id);
-        if (skillInfo)
+        int loc = GetSessionDbcLocale();
+        std::string name = skillInfo->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = skillInfo->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = skillInfo->name[loc];
-                    if (name.empty())
-                        continue;
+                name = skillInfo->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
+            }
+        }
+
+        if (loc < MAX_LOCALE)
+        {
+            char valStr[50] = "";
+            char const* knownStr = "";
+            if (target && target->HasSkill(skillInfo->id))
+            {
+                knownStr = GetMangosString(LANG_KNOWN);
+                uint32 curValue = target->GetSkillValuePure(skillInfo->id);
+                uint32 maxValue = target->GetSkillMaxPure(skillInfo->id);
+                uint32 permValue = target->GetSkillBonusPermanent(skillInfo->id);
+                uint32 tempValue = target->GetSkillBonusTemporary(skillInfo->id);
+
+                char const* valFormat = GetMangosString(LANG_SKILL_VALUES);
+                snprintf(valStr, 50, valFormat, curValue, maxValue, permValue, tempValue);
             }
 
-            if (loc < MAX_LOCALE)
-            {
-                char valStr[50] = "";
-                char const* knownStr = "";
-                if (target && target->HasSkill(id))
-                {
-                    knownStr = GetMangosString(LANG_KNOWN);
-                    uint32 curValue = target->GetSkillValuePure(id);
-                    uint32 maxValue  = target->GetSkillMaxPure(id);
-                    uint32 permValue = target->GetSkillBonusPermanent(id);
-                    uint32 tempValue = target->GetSkillBonusTemporary(id);
+            // send skill in "id - [namedlink locale]" format
+            if (m_session)
+                PSendSysMessage(LANG_SKILL_LIST_CHAT, skillInfo->id, skillInfo->id, name.c_str(), localeNames[loc], knownStr, valStr);
+            else
+                PSendSysMessage(LANG_SKILL_LIST_CONSOLE, skillInfo->id, name.c_str(), localeNames[loc], knownStr, valStr);
 
-                    char const* valFormat = GetMangosString(LANG_SKILL_VALUES);
-                    snprintf(valStr, 50, valFormat, curValue, maxValue, permValue, tempValue);
-                }
-
-                // send skill in "id - [namedlink locale]" format
-                if (m_session)
-                    PSendSysMessage(LANG_SKILL_LIST_CHAT, id, id, name.c_str(), localeNames[loc], knownStr, valStr);
-                else
-                    PSendSysMessage(LANG_SKILL_LIST_CONSOLE, id, name.c_str(), localeNames[loc], knownStr, valStr);
-
-                ++counter;
-            }
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -2402,7 +2375,7 @@ void ChatHandler::ShowSpellListHelper(Player* target, SpellEntry const* spellInf
     bool known = target && target->HasSpell(id);
     bool learn = (spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_LEARN_SPELL);
 
-    uint32 talentCost = GetTalentSpellCost(id);
+    uint32 talentCost = ObjectMgr::GetTalentSpellCost(id);
 
     bool talent = (talentCost > 0);
     bool passive = IsPassiveSpell(spellInfo);
@@ -2462,38 +2435,34 @@ bool ChatHandler::HandleLookupSpellCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in Spell.dbc
-    for (uint32 id = 0; id < sSpellTemplate.GetMaxEntry(); ++id)
+    for (auto spellInfo : sSpellTemplate)
     {
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(id);
-        if (spellInfo)
+        int loc = int(DEFAULT_LOCALE);
+        std::string name = spellInfo->SpellName[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = int(DEFAULT_LOCALE);
-            std::string name = spellInfo->SpellName[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = spellInfo->SpellName[loc];
-                    if (name.empty())
-                        continue;
+                name = spellInfo->SpellName[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                ShowSpellListHelper(target, spellInfo, LocaleConstant(loc));
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            ShowSpellListHelper(target, spellInfo, LocaleConstant(loc));
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -2592,16 +2561,12 @@ bool ChatHandler::HandleLookupCreatureCommand(char* args)
 
     uint32 counter = 0;
 
-    for (uint32 id = 0; id < sCreatureStorage.GetMaxEntry(); ++id)
+    for (auto cInfo : sCreatureStorage)
     {
-        CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo> (id);
-        if (!cInfo)
-            continue;
-
         int loc_idx = GetSessionDbLocaleIndex();
 
         char const* name = "";                              // "" for avoid repeating check for default locale
-        sObjectMgr.GetCreatureLocaleStrings(id, loc_idx, &name);
+        sObjectMgr.GetCreatureLocaleStrings(cInfo->Entry, loc_idx, &name);
         if (!*name || !Utf8FitTo(name, wnamepart))
         {
             name = cInfo->Name;
@@ -2610,9 +2575,9 @@ bool ChatHandler::HandleLookupCreatureCommand(char* args)
         }
 
         if (m_session)
-            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CHAT, id, id, name);
+            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CHAT, cInfo->Entry, cInfo->Entry, name);
         else
-            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CONSOLE, id, name);
+            PSendSysMessage(LANG_CREATURE_ENTRY_LIST_CONSOLE, cInfo->Entry, name);
 
         ++counter;
     }
@@ -2639,7 +2604,7 @@ bool ChatHandler::HandleLookupObjectCommand(char* args)
 
     uint32 counter = 0;
 
-    for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+    for (auto itr : sGOStorage)
     {
         int loc_idx = GetSessionDbLocaleIndex();
         if (loc_idx >= 0)
@@ -2701,44 +2666,40 @@ bool ChatHandler::HandleLookupTaxiNodeCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in TaxiNodes.dbc
-    for (uint32 id = 0; id < sTaxiNodesStore.GetNumRows(); ++id)
+    for (auto nodeEntry : sTaxiNodesStore)
     {
-        TaxiNodesEntry const* nodeEntry = sTaxiNodesStore.LookupEntry(id);
-        if (nodeEntry)
+        int loc = GetSessionDbcLocale();
+        std::string name = nodeEntry->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = nodeEntry->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = nodeEntry->name[loc];
-                    if (name.empty())
-                        continue;
+                name = nodeEntry->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                // send taxinode in "id - [name] (Map:m X:x Y:y Z:z)" format
-                if (m_session)
-                    PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CHAT, id, id, name.c_str(), localeNames[loc],
-                                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
-                else
-                    PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CONSOLE, id, name.c_str(), localeNames[loc],
-                                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            // send taxinode in "id - [name] (Map:m X:x Y:y Z:z)" format
+            if (m_session)
+                PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CHAT, nodeEntry->ID, nodeEntry->ID, name.c_str(), localeNames[loc],
+                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
+            else
+                PSendSysMessage(LANG_TAXINODE_ENTRY_LIST_CONSOLE, nodeEntry->ID, name.c_str(), localeNames[loc],
+                    nodeEntry->map_id, nodeEntry->x, nodeEntry->y, nodeEntry->z);
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -3088,7 +3049,7 @@ bool ChatHandler::HandleDamageCommand(char* args)
 
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spellid = ExtractSpellIdFromLink(&args);
-    if (!spellid || !sSpellTemplate.LookupEntry<SpellEntry>(spellid))
+    if (!spellid || !sSpellTemplate.LookupEntry(spellid))
         return false;
 
     player->SpellNonMeleeDamageLog(target, spellid, damage);
@@ -3149,7 +3110,7 @@ bool ChatHandler::HandleAuraCommand(char* args)
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spellID = ExtractSpellIdFromLink(&args);
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellID);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellID);
     if (!spellInfo)
         return false;
 
@@ -3229,7 +3190,7 @@ bool ChatHandler::HandleLinkGraveCommand(char* args)
     else
         return false;
 
-    WorldSafeLocsEntry const* graveyard = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(g_id);
+    WorldSafeLocsEntry const* graveyard = sWorldSafeLocsStore.LookupEntry(g_id);
     if (!graveyard)
     {
         PSendSysMessage(LANG_COMMAND_GRAVEYARDNOEXIST, g_id);
@@ -3241,7 +3202,7 @@ bool ChatHandler::HandleLinkGraveCommand(char* args)
 
     uint32 zoneId = player->GetZoneId();
 
-    AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(zoneId);
+    AreaTableEntry const* areaEntry = TerrainManager::GetAreaEntryByAreaID(zoneId);
     if (!areaEntry || areaEntry->zone != 0)
     {
         PSendSysMessage(LANG_COMMAND_GRAVEYARDWRONGZONE, g_id, zoneId);
@@ -3750,7 +3711,7 @@ bool ChatHandler::HandleShowAreaCommand(char* args)
         return false;
     }
 
-    int area = GetAreaFlagByAreaID(atoi(args));
+    int area = TerrainManager::GetAreaFlagByAreaID(atoi(args));
     int offset = area / 32;
     uint32 val = (uint32)(1 << (area % 32));
 
@@ -3781,7 +3742,7 @@ bool ChatHandler::HandleHideAreaCommand(char* args)
         return false;
     }
 
-    int area = GetAreaFlagByAreaID(atoi(args));
+    int area = TerrainManager::GetAreaFlagByAreaID(atoi(args));
     int offset = area / 32;
     uint32 val = (uint32)(1 << (area % 32));
 
@@ -4057,7 +4018,7 @@ bool ChatHandler::HandleListAurasCommand(char* args)
         PSendSysMessage(LANG_COMMAND_TARGET_LISTAURAS, uAuras.size());
         for (Unit::SpellAuraHolderMap::const_iterator itr = uAuras.begin(); itr != uAuras.end(); ++itr)
         {
-            bool talent = GetTalentSpellCost(itr->second->GetId()) > 0;
+            bool talent = ObjectMgr::GetTalentSpellCost(itr->second->GetId()) > 0;
 
             SpellAuraHolder* holder = itr->second;
             char const* name = holder->GetSpellProto()->SpellName[GetSessionDbcLocale()];
@@ -4099,7 +4060,7 @@ bool ChatHandler::HandleListAurasCommand(char* args)
         PSendSysMessage(LANG_COMMAND_TARGET_LISTAURATYPE, uAuraList.size(), i);
         for (Unit::AuraList::const_iterator itr = uAuraList.begin(); itr != uAuraList.end(); ++itr)
         {
-            bool talent = GetTalentSpellCost((*itr)->GetId()) > 0;
+            bool talent = ObjectMgr::GetTalentSpellCost((*itr)->GetId()) > 0;
 
             char const* name = (*itr)->GetSpellProto()->SpellName[GetSessionDbcLocale()];
 
@@ -4142,12 +4103,12 @@ bool ChatHandler::HandleListTalentsCommand(char* /*args*/)
         if (uSpell.second.state == PLAYERSPELL_REMOVED || uSpell.second.disabled)
             continue;
 
-        uint32 cost_itr = GetTalentSpellCost(uSpell.first);
+        uint32 cost_itr = ObjectMgr::GetTalentSpellCost(uSpell.first);
 
         if (cost_itr == 0)
             continue;
 
-        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry<SpellEntry>(uSpell.first);
+        SpellEntry const* spellEntry = sSpellTemplate.LookupEntry(uSpell.first);
         if (!spellEntry)
             continue;
 
@@ -4489,12 +4450,8 @@ bool ChatHandler::HandleQuestAddCommand(char* args)
     }
 
     // check item starting quest (it can work incorrectly if added without item in inventory)
-    for (uint32 id = 0; id < sItemStorage.GetMaxEntry(); ++id)
+    for (auto pProto : sItemStorage)
     {
-        ItemPrototype const* pProto = sItemStorage.LookupEntry<ItemPrototype>(id);
-        if (!pProto)
-            continue;
-
         if (pProto->StartQuest == entry)
         {
             PSendSysMessage(LANG_COMMAND_QUEST_STARTFROMITEM, entry, pProto->ItemId);
@@ -4638,7 +4595,7 @@ bool ChatHandler::HandleQuestCompleteCommand(char* args)
         uint32 repValue = pQuest->GetRepObjectiveValue();
         uint32 curRep = player->GetReputationMgr().GetReputation(repFaction);
         if (curRep < repValue)
-            if (FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(repFaction))
+            if (FactionEntry const* factionEntry = sFactionStore.LookupEntry(repFaction))
                 player->GetReputationMgr().SetReputation(factionEntry, repValue);
     }
 
@@ -5556,7 +5513,7 @@ bool ChatHandler::HandleCastCommand(char* args)
     if (!spell)
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell);
     if (!spellInfo)
         return false;
 
@@ -5595,7 +5552,7 @@ bool ChatHandler::HandleCastBackCommand(char* args)
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spell = ExtractSpellIdFromLink(&args);
-    if (!spell || !sSpellTemplate.LookupEntry<SpellEntry>(spell))
+    if (!spell || !sSpellTemplate.LookupEntry(spell))
         return false;
 
     bool triggered = ExtractLiteralArg(&args, "triggered") != nullptr;
@@ -5621,7 +5578,7 @@ bool ChatHandler::HandleCastDistCommand(char* args)
     if (!spell)
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell);
     if (!spellInfo)
         return false;
 
@@ -5669,7 +5626,7 @@ bool ChatHandler::HandleCastTargetCommand(char* args)
 
     // number or [name] Shift-click form |color|Hspell:spell_id|h[name]|h|r or Htalent form
     uint32 spell = ExtractSpellIdFromLink(&args);
-    if (!spell || !sSpellTemplate.LookupEntry<SpellEntry>(spell))
+    if (!spell || !sSpellTemplate.LookupEntry(spell))
         return false;
 
     bool triggered = ExtractLiteralArg(&args, "triggered") != nullptr;
@@ -5726,7 +5683,7 @@ bool ChatHandler::HandleCastSelfCommand(char* args)
     if (!spell)
         return false;
 
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spell);
     if (!spellInfo)
         return false;
 
@@ -6922,7 +6879,7 @@ bool ChatHandler::ModifyStatCommandHelper(char* args, char const* statName, uint
 {
     if (!*args)
         return false;
-    
+
     Unit* target = getSelectedUnit();
 
     if (!target)
@@ -7017,7 +6974,7 @@ bool ChatHandler::HandleModifyArcaneCommand(char *args)
 
 bool ChatHandler::HandleModifyMeleeApCommand(char *args)
 {
-   
+
     return ModifyStatCommandHelper(args, "Melee Attack Power", SPELL_MOD_MELEE_AP);
 }
 

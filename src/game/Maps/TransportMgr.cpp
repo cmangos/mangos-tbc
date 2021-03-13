@@ -27,9 +27,8 @@
 
 void TransportMgr::LoadTransportAnimationAndRotation()
 {
-    for (uint32 i = 0; i < sTransportAnimationStore.GetNumRows(); ++i)
-        if (TransportAnimationEntry const* anim = sTransportAnimationStore.LookupEntry(i))
-            AddPathNodeToTransport(anim->TransportEntry, anim->TimeSeg, anim);
+    for (auto anim : sTransportAnimationStore)
+        AddPathNodeToTransport(anim->TransportEntry, anim->TimeSeg, anim);
 }
 
 TransportTemplate* TransportMgr::GetTransportTemplate(uint32 entry)
@@ -43,15 +42,14 @@ TransportTemplate* TransportMgr::GetTransportTemplate(uint32 entry)
 
 void TransportMgr::LoadTransportTemplates()
 {
-    for (uint32 entry = 1; entry <= sGOStorage.GetMaxEntry(); ++entry)
+    for (auto data : sGOStorage)
     {
-        auto data = sGOStorage.LookupEntry<GameObjectInfo>(entry);
-        if (data && data->type == GAMEOBJECT_TYPE_MO_TRANSPORT)
+        if (data->type == GAMEOBJECT_TYPE_MO_TRANSPORT)
         {
-            TransportTemplate& transportTemplate = m_transportTemplates[entry];
-            transportTemplate.entry = entry;
+            TransportTemplate& transportTemplate = m_transportTemplates[data->id];
+            transportTemplate.entry = data->id;
             if (!GenerateWaypoints(data, transportTemplate))
-                m_transportTemplates.erase(entry);
+                m_transportTemplates.erase(data->id);
         }
     }
 }

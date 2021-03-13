@@ -22,6 +22,7 @@
 #include "ProgressBar.h"
 #include "Log.h"
 #include "DBCFileLoader.h"
+#include <string>
 
 template<class DerivedLoader, class StorageClass>
 template<class S, class D>                                  // S source-type, D destination-type
@@ -129,6 +130,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(V value, Stor
             offset += sizeof(char);
             break;
         case FT_INT:
+        case FT_IND:
             subclass->convert(x, value, *((uint32*)(&p[offset])));
             offset += sizeof(uint32);
             break;
@@ -156,9 +158,8 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(V value, Stor
             subclass->default_fill(x, value, *((uint64*)(&p[offset])));
             offset += sizeof(uint64);
             break;
-        case FT_IND:
         case FT_SORT:
-            assert(false && "SQL storage not have sort field types");
+        case FT_NA2:
             break;
         default:
             assert(false && "unknown format character");
@@ -181,6 +182,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(char const* v
             offset += sizeof(char);
             break;
         case FT_INT:
+        case FT_IND:
             subclass->convert_from_str(x, value, *((uint32*)(&p[offset])));
             offset += sizeof(uint32);
             break;
@@ -200,7 +202,6 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(char const* v
             subclass->convert_from_str(x, value, *((uint64*)(&p[offset])));
             offset += sizeof(uint64);
             break;
-        case FT_IND:
         case FT_SORT:
             assert(false && "SQL storage not have sort field types");
             break;
@@ -213,8 +214,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::storeValue(char const* v
 template<class DerivedLoader, class StorageClass>
 void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store, bool error_at_empty /*= true*/)
 {
-    Field* fields = nullptr;
-    QueryResult* result  = WorldDatabase.PQuery("SELECT MAX(%s) FROM %s", store.EntryFieldName(), store.GetTableName());
+    QueryResult* result = WorldDatabase.PQuery("SHOW COLUMNS FROM %s", store.GetTableName());
     if (!result)
     {
         sLog.outError("Error loading %s table (not exist?)\n", store.GetTableName());
@@ -222,21 +222,95 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
         exit(1);                                            // Stop server at loading non exited table or not accessable table
     }
 
-    uint32 maxRecordId = (*result)[0].GetUInt32() + 1;
+    std::vector<std::string> colNameList;
+    colNameList.reserve(result->GetRowCount());
+    do
+    {
+        Field* fields = result->Fetch();
+        colNameList.push_back(fields[0].GetString());
+    } while (result->NextRow());
+
+    delete result;
+
+    int32 indexPos = -1;
+    std::string indexName = store.EntryFieldName();
+    if (indexName.empty())
+    {
+        for (int32 i = 0; i < int32(store.GetDstFieldCount()); ++i)
+        {
+            auto format = store.GetSrcFormat(i);
+            if (format == FT_IND || format == FT_SORT)
+            {
+                indexPos = i;
+                break;
+            }
+        }
+
+        if (indexPos >= 0)
+        {
+            if (indexPos >= colNameList.size())
+            {
+                sLog.outError("Error loading %s table, provided index position is greater than column number\n", store.GetTableName());
+                Log::WaitBeforeContinueIfNeed();
+                exit(1);
+            }
+            indexName = colNameList[indexPos];
+        }
+    }
+    else
+    {
+        std::transform(indexName.begin(), indexName.end(), indexName.begin(), [](char c) { return std::tolower(c); });
+        for (uint32 i = 0; i < colNameList.size(); ++i)
+        {
+            std::string colName = colNameList[i];
+            std::transform(colName.begin(), colName.end(), colName.begin(), [](char c) { return std::tolower(c); });
+            if (indexName == colName)
+            {
+                indexName = colNameList[i];
+                indexPos = i;
+                break;
+            }
+        }
+
+        if (indexPos < 0)
+        {
+            sLog.outError("Error loading %s table (Entry field is not found in column name list)\n", store.GetTableName());
+            Log::WaitBeforeContinueIfNeed();
+            exit(1);
+        }
+    }
+
+    Field* fields = nullptr;
+    uint32 maxRecordId = 0;
     uint32 recordCount = 0;
     uint32 recordsize = 0;
-    delete result;
 
     result = WorldDatabase.PQuery("SELECT COUNT(*) FROM %s", store.GetTableName());
     if (result)
     {
-        fields = result->Fetch();
-        recordCount = fields[0].GetUInt32();
+        recordCount = result[0][0].GetUInt32();
+        delete result;
+    }
+
+    if (indexPos < 0)
+    {
+        maxRecordId = recordCount;
+    }
+    else
+    {
+        result = WorldDatabase.PQuery("SELECT MAX(%s) FROM %s", indexName.c_str(), store.GetTableName());
+        if (!result)
+        {
+            sLog.outError("Error loading %s table (not exist?)\n", store.GetTableName());
+            Log::WaitBeforeContinueIfNeed();
+            exit(1);                                            // Stop server at loading non exited table or not accessable table
+        }
+
+        maxRecordId = (*result)[0].GetUInt32() + 1;
         delete result;
     }
 
     result = WorldDatabase.PQuery("SELECT * FROM %s", store.GetTableName());
-
     if (!result)
     {
         if (error_at_empty)
@@ -245,6 +319,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
             sLog.outString("%s table is empty!\n", store.GetTableName());
 
         recordCount = 0;
+        maxRecordId = 0;
         return;
     }
 
@@ -268,6 +343,7 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
             case FT_BYTE:
                 recordsize += sizeof(char);   break;
             case FT_INT:
+            case FT_IND:
                 recordsize += sizeof(uint32); break;
             case FT_FLOAT:
                 recordsize += sizeof(float);  break;
@@ -283,9 +359,8 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
                 recordsize += sizeof(char*);  break;
             case FT_64BITINT:
                 recordsize += sizeof(uint64);  break;
-            case FT_IND:
             case FT_SORT:
-                assert(false && "SQL storage not have sort field types");
+            case FT_NA2:
                 break;
             default:
                 assert(false && "unknown format character");
@@ -296,13 +371,20 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
     // Prepare data storage and lookup storage
     store.prepareToLoad(maxRecordId, recordCount, recordsize);
 
+    uint32 generatedId = 0;
     BarGoLink bar(recordCount);
     do
     {
         fields = result->Fetch();
         bar.step();
 
-        char* record = store.createRecord(fields[0].GetUInt32());
+        uint32 id = 0;
+        if (indexPos < 0)
+            id = generatedId++;
+        else
+            id = fields[indexPos].GetUInt32();
+
+        char* record = store.createRecord(id);
         offset = 0;
 
         // dependend on dest-size
@@ -330,17 +412,21 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
             {
                 case FT_LOGIC:  storeValue((bool)(fields[y].GetUInt32() > 0), store, record, x, offset);  ++x; break;
                 case FT_BYTE:   storeValue((char)fields[y].GetUInt8(), store, record, x, offset);         ++x; break;
+                case FT_IND:
                 case FT_INT:    storeValue((uint32)fields[y].GetUInt32(), store, record, x, offset);      ++x; break;
                 case FT_FLOAT:  storeValue((float)fields[y].GetFloat(), store, record, x, offset);        ++x; break;
                 case FT_STRING: storeValue((char const*)fields[y].GetString(), store, record, x, offset); ++x; break;
                 case FT_64BITINT: storeValue(fields[y].GetUInt64(), store, record, x, offset);            ++x; break;
+                case FT_SORT:
+                case FT_NA2:
+                    ++x;
+                    break;
+
                 case FT_NA:
                 case FT_NA_BYTE:
                 case FT_NA_FLOAT:
                     // Do Not increase x
                     break;
-                case FT_IND:
-                case FT_SORT:
                 case FT_NA_POINTER:
                     assert(false && "SQL storage not have sort or pointer field types");
                     break;
@@ -354,5 +440,255 @@ void SQLStorageLoaderBase<DerivedLoader, StorageClass>::Load(StorageClass& store
 
     delete result;
 }
+
+
+// -----------------------------------  SQLStorage  -------------------------------------------- //
+template<typename ST>
+void SQLStorage<ST>::EraseEntry(uint32 id)
+{
+    m_Index[id] = nullptr;
+}
+
+template<typename ST>
+void SQLStorage<ST>::Free()
+{
+    SQLStorageBase<ST>::Free();
+    delete[] m_Index;
+    m_Index = nullptr;
+}
+
+template<typename ST>
+void SQLStorage<ST>::Load(bool error_at_empty /*= true*/)
+{
+    SQLStorageLoader<ST> loader;
+    loader.Load(*this, error_at_empty);
+}
+
+template<typename ST>
+SQLStorage<ST>::SQLStorage(const char* fmt, const char* sqlname)
+{
+    SQLStorage<ST>::Initialize(sqlname, "",fmt, fmt);
+    m_Index = nullptr;
+}
+
+template<typename ST>
+SQLStorage<ST>::SQLStorage(const char* fmt, const char* _entry_field, const char* sqlname)
+{
+    SQLStorage<ST>::Initialize(sqlname, _entry_field, fmt, fmt);
+    m_Index = nullptr;
+}
+
+template<typename ST>
+SQLStorage<ST>::SQLStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname)
+{
+    SQLStorage<ST>::Initialize(sqlname, _entry_field, src_fmt, dst_fmt);
+    m_Index = nullptr;
+}
+
+template<typename ST>
+void SQLStorage<ST>::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint32 recordSize)
+{
+    // Clear (possible) old data and old index array
+    Free();
+
+    // Set index array
+    m_Index = new char* [maxRecordId];
+    memset(m_Index, 0, maxRecordId * sizeof(char*));
+
+    SQLStorageBase<ST>::prepareToLoad(maxRecordId, recordCount, recordSize);
+}
+
+// -----------------------------------  SQLStorageBase  ---------------------------------------- //
+template<typename ST>
+SQLStorageBase<ST>::SQLStorageBase() :
+    m_tableName(nullptr),
+    m_entry_field(nullptr),
+    m_src_format(nullptr),
+    m_dst_format(nullptr),
+    m_dstFieldCount(0),
+    m_srcFieldCount(0),
+    m_recordCount(0),
+    m_maxEntry(0),
+    m_recordSize(0),
+    m_data(nullptr)
+{}
+
+template<typename ST>
+void SQLStorageBase<ST>::Initialize(const char* tableName, const char* entry_field, const char* src_format, const char* dst_format)
+{
+    m_tableName = tableName;
+    m_entry_field = entry_field;
+    m_src_format = src_format;
+    m_dst_format = dst_format;
+
+    m_srcFieldCount = strlen(m_src_format);
+    m_dstFieldCount = strlen(m_dst_format);
+}
+
+template<typename ST>
+char* SQLStorageBase<ST>::createRecord(uint32 recordId)
+{
+    char* newRecord = &m_data[m_recordCount * m_recordSize];
+    ++m_recordCount;
+
+    JustCreatedRecord(recordId, newRecord);
+    return newRecord;
+}
+
+template<typename ST>
+void SQLStorageBase<ST>::prepareToLoad(uint32 maxEntry, uint32 recordCount, uint32 recordSize)
+{
+    m_maxEntry = maxEntry;
+    m_recordSize = recordSize;
+
+    delete[] m_data;
+    m_data = new char[recordCount * m_recordSize];
+    memset(m_data, 0, recordCount * m_recordSize);
+
+    m_recordCount = 0;
+}
+
+// Function to delete the data
+template<typename ST>
+void SQLStorageBase<ST>::Free()
+{
+    if (!m_data)
+        return;
+
+    uint32 offset = 0;
+    for (uint32 x = 0; x < m_dstFieldCount; ++x)
+    {
+        switch (m_dst_format[x])
+        {
+            case FT_LOGIC:
+                offset += sizeof(bool);
+                break;
+            case FT_STRING:
+            {
+                for (uint32 recordItr = 0; recordItr < m_recordCount; ++recordItr)
+                    delete[] * (char**)((char*)(m_data + (recordItr * m_recordSize)) + offset);
+
+                offset += sizeof(char*);
+                break;
+            }
+            case FT_NA:
+            case FT_IND:
+            case FT_INT:
+                offset += sizeof(uint32);
+                break;
+            case FT_BYTE:
+            case FT_NA_BYTE:
+                offset += sizeof(char);
+                break;
+            case FT_FLOAT:
+            case FT_NA_FLOAT:
+                offset += sizeof(float);
+                break;
+            case FT_NA_POINTER:
+                // TODO- possible (and small) memleak here possible
+                offset += sizeof(char*);
+                break;
+            case FT_64BITINT:
+                offset += sizeof(uint64);
+                break;
+            case FT_SORT:
+                break;
+            default:
+                assert(false && "unknown format character");
+                break;
+        }
+    }
+    delete[] m_data;
+    m_data = nullptr;
+    m_recordCount = 0;
+}
+
+// -----------------------------------  SQLHashStorage  ---------------------------------------- //
+template<typename ST>
+void SQLHashStorage<ST>::Load()
+{
+    SQLHashStorageLoader<ST> loader;
+    loader.Load(*this);
+}
+
+template<typename ST>
+void SQLHashStorage<ST>::Free()
+{
+    SQLStorageBase<ST>::Free();
+    m_indexMap.clear();
+}
+
+template<typename ST>
+void SQLHashStorage<ST>::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint32 recordSize)
+{
+    // Clear (possible) old data and old index array
+    Free();
+
+    SQLStorageBase<ST>::prepareToLoad(maxRecordId, recordCount, recordSize);
+}
+
+template<typename ST>
+void SQLHashStorage<ST>::EraseEntry(uint32 id)
+{
+    // do not erase from m_records
+    RecordMap::iterator find = m_indexMap.find(id);
+    if (find != m_indexMap.end())
+        find->second = nullptr;
+}
+
+template<typename ST>
+SQLHashStorage<ST>::SQLHashStorage(const char* fmt, const char* _entry_field, const char* sqlname)
+{
+    SQLHashStorage<ST>::Initialize(sqlname, _entry_field, fmt, fmt);
+}
+
+template<typename ST>
+SQLHashStorage<ST>::SQLHashStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname)
+{
+    SQLHashStorage<ST>::Initialize(sqlname, _entry_field, src_fmt, dst_fmt);
+}
+
+// -----------------------------------  SQLMultiStorage  --------------------------------------- //
+template<typename ST>
+void SQLMultiStorage<ST>::Load()
+{
+    SQLMultiStorageLoader<ST> loader;
+    loader.Load(*this);
+}
+
+template<typename ST>
+void SQLMultiStorage<ST>::Free()
+{
+    SQLStorageBase<ST>::Free();
+    m_indexMultiMap.clear();
+}
+
+template<typename ST>
+void SQLMultiStorage<ST>::prepareToLoad(uint32 maxRecordId, uint32 recordCount, uint32 recordSize)
+{
+    // Clear (possible) old data and old index array
+    Free();
+
+    SQLStorageBase<ST>::prepareToLoad(maxRecordId, recordCount, recordSize);
+}
+
+template<typename ST>
+void SQLMultiStorage<ST>::EraseEntry(uint32 id)
+{
+    m_indexMultiMap.erase(id);
+}
+
+template<typename ST>
+SQLMultiStorage<ST>::SQLMultiStorage(const char* fmt, const char* _entry_field, const char* sqlname)
+{
+    SQLMultiStorage<ST>::Initialize(sqlname, _entry_field, fmt, fmt);
+}
+
+template<typename ST>
+SQLMultiStorage<ST>::SQLMultiStorage(const char* src_fmt, const char* dst_fmt, const char* _entry_field, const char* sqlname)
+{
+    SQLMultiStorage<ST>::Initialize(sqlname, _entry_field, src_fmt, dst_fmt);
+}
+
 
 #endif

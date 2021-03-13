@@ -857,7 +857,7 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
             }
         }
     }
- 
+
     if (!damage)
     {
         // Rage from physical damage received - extend to all units
@@ -1184,7 +1184,7 @@ void Unit::HandleDamageDealt(Unit* dealer, Unit* victim, uint32& damage, CleanDa
         for (auto aura : cleanupHolder)
             victim->RemoveAurasDueToSpell(aura);
     }
-    
+
     if (dealer)
         dealer->InterruptOrDelaySpell(victim, damagetype);
 
@@ -1278,7 +1278,7 @@ void Unit::JustKilledCreature(Unit* killer, Creature* victim, Player* responsibl
     }
 
     // Interrupt channeling spell when a Possessed Summoned is killed
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(victim->GetUInt32Value(UNIT_CREATED_BY_SPELL));
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(victim->GetUInt32Value(UNIT_CREATED_BY_SPELL));
     if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX_FARSIGHT) && spellInfo->HasAttribute(SPELL_ATTR_EX_CHANNELED_1))
     {
         Unit* creator = victim->GetMap()->GetUnit(victim->GetCreatorGuid());
@@ -1372,7 +1372,7 @@ void Unit::CastStop(uint32 except_spellid)
 
 SpellCastResult Unit::CastSpell(Unit* Victim, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
 
     if (!spellInfo)
     {
@@ -1426,7 +1426,7 @@ SpellCastResult Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint3
 
 SpellCastResult Unit::CastCustomSpell(Unit* Victim, uint32 spellId, int32 const* bp0, int32 const* bp1, int32 const* bp2, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
 
     if (!spellInfo)
     {
@@ -1489,7 +1489,7 @@ SpellCastResult Unit::CastCustomSpell(Unit* Victim, SpellEntry const* spellInfo,
 // used for scripting
 SpellCastResult Unit::CastSpell(float x, float y, float z, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
 
     if (!spellInfo)
     {
@@ -1611,7 +1611,7 @@ SpellCastResult Unit::CastCustomSpell(SpellCastTargets& targets, SpellEntry cons
 // Obsolete func need remove, here only for comotability vs another patches
 uint32 Unit::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellID);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellID);
     SpellNonMeleeDamage spellDamageInfo(this, pVictim, spellInfo->Id, SpellSchoolMask(spellInfo->SchoolMask));
     CalculateSpellDamage(&spellDamageInfo, damage, spellInfo);
     spellDamageInfo.target->CalculateAbsorbResistBlock(this, &spellDamageInfo, spellInfo);
@@ -1695,7 +1695,7 @@ void Unit::DealSpellDamage(SpellNonMeleeDamage* spellDamageInfo, bool durability
     if (!pVictim->IsAlive() || pVictim->IsTaxiFlying() || pVictim->GetCombatManager().IsInEvadeMode())
         return;
 
-    SpellEntry const* spellProto = sSpellTemplate.LookupEntry<SpellEntry>(spellDamageInfo->SpellID);
+    SpellEntry const* spellProto = sSpellTemplate.LookupEntry(spellDamageInfo->SpellID);
     if (spellProto == nullptr)
     {
         sLog.outError("Unit::DealSpellDamage have wrong damageInfo->SpellID: %u", spellDamageInfo->SpellID);
@@ -2583,7 +2583,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
                     case 31229:
                     case 31230:
                     {
-                        SpellEntry const* cheatDeath = sSpellTemplate.LookupEntry<SpellEntry>(31231);
+                        SpellEntry const* cheatDeath = sSpellTemplate.LookupEntry(31231);
                         CastSpell(this, cheatDeath, TRIGGERED_OLD_TRIGGERED);
                         AddCooldown(*cheatDeath, nullptr, false, 60 * IN_MILLISECONDS); // TODO this may be removed by fixing cooldown value in spell template
                         // with health > 10% lost health until health==10%, in other case no losses
@@ -4920,7 +4920,7 @@ void Unit::AddAuraToModList(Aura* aura)
 
 void Unit::RemoveRankAurasDueToSpell(uint32 spellId)
 {
-    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
     if (!spellInfo)
         return;
     SpellAuraHolderMap::const_iterator next;
@@ -5785,7 +5785,7 @@ void Unit::AddGameObject(GameObject* gameObj)
 
     if (gameObj->GetSpellId())
     {
-        SpellEntry const* createBySpell = sSpellTemplate.LookupEntry<SpellEntry>(gameObj->GetSpellId());
+        SpellEntry const* createBySpell = sSpellTemplate.LookupEntry(gameObj->GetSpellId());
         // Need disable spell use for owner
         if (createBySpell && createBySpell->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
             // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existing cases)
@@ -5824,7 +5824,7 @@ void Unit::RemoveGameObject(GameObject* gameObj, bool del)
 
         if (GetTypeId() == TYPEID_PLAYER)
         {
-            SpellEntry const* createBySpell = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
+            SpellEntry const* createBySpell = sSpellTemplate.LookupEntry(spellid);
             // Need activate spell use for owner
             if (createBySpell && createBySpell->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
                 // note: item based cooldowns and cooldown spell mods with charges ignored (unknown existing cases)
@@ -6173,7 +6173,7 @@ void Unit::SendAttackStateUpdate(CalcDamageInfo* calcDamageInfo) const
     SendMessageToSet(data, true);
 }
 
-void Unit::SendAttackStateUpdate(uint32 HitInfo, Unit* target, SpellSchoolMask damageSchoolMask, uint32 Damage, 
+void Unit::SendAttackStateUpdate(uint32 HitInfo, Unit* target, SpellSchoolMask damageSchoolMask, uint32 Damage,
                                  uint32 AbsorbDamage, int32 Resist, VictimState TargetState, uint32 BlockedAmount)
 {
     CalcDamageInfo dmgInfo;
@@ -6242,7 +6242,7 @@ FactionTemplateEntry const* Unit::GetFactionTemplateEntry() const
             guid = GetObjectGuid();
 
             if (guid.GetHigh() == HIGHGUID_PET)
-                sLog.outError("%s (base creature entry %u) have invalid faction template id %u, owner %s", 
+                sLog.outError("%s (base creature entry %u) have invalid faction template id %u, owner %s",
                     GetGuidStr().c_str(), GetEntry(), getFaction(), ((Pet*)this)->GetOwnerGuid().GetString().c_str());
             else
                 sLog.outError("%s have invalid faction template id %u", GetGuidStr().c_str(), getFaction());
@@ -6257,7 +6257,7 @@ bool Unit::IsNeutralToAll() const
     if (!my_faction || !my_faction->faction)
         return true;
 
-    FactionEntry const* raw_faction = sFactionStore.LookupEntry<FactionEntry>(my_faction->faction);
+    FactionEntry const* raw_faction = sFactionStore.LookupEntry(my_faction->faction);
     if (raw_faction && raw_faction->reputationListID >= 0)
         return false;
 
@@ -6496,7 +6496,7 @@ void Unit::ModifyAuraState(AuraState flag, bool apply)
                 for (const auto& itr : sp_list)
                 {
                     if (itr.second.state == PLAYERSPELL_REMOVED) continue;
-                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
+                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(itr.first);
                     if (!spellInfo || !IsPassiveSpell(spellInfo)) continue;
                     if (AuraState(spellInfo->CasterAuraState) == flag)
                         CastSpell(this, itr.first, TRIGGERED_OLD_TRIGGERED, nullptr);
@@ -7627,7 +7627,7 @@ bool Unit::IsImmuneToSpell(SpellEntry const* spellInfo, bool /*castOnSelf*/, uin
             return true;
 
     {
-        if (!spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) && 
+        if (!spellInfo->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) &&
                 !spellInfo->HasAttribute(SPELL_ATTR_EX_DISPEL_AURAS_ON_IMMUNITY))
         {
             bool isPositive = IsPositiveEffectMask(spellInfo, effectMask);
@@ -9911,7 +9911,7 @@ void CharmInfo::InitCharmCreateSpells()
         if (spellId == 2) // hardcoded spell id 2 attack - only for possesss
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(spellId);
         if (IsPassiveSpell(spellInfo))
         {
             m_unit->CastSpell(m_unit, spellId, TRIGGERED_OLD_TRIGGERED);
@@ -9922,7 +9922,7 @@ void CharmInfo::InitCharmCreateSpells()
             m_charmspells[x].SetActionAndType(spellId, ACT_DISABLED);
 
             ActiveStates newstate;
-            bool onlyselfcast = true;            
+            bool onlyselfcast = true;
 
             for (uint32 i = 0; i < 3 && onlyselfcast; ++i)  // nonexistent spell will not make any problems as onlyselfcast would be false -> break right away
             {
@@ -10062,7 +10062,7 @@ void CharmInfo::LoadPetActionBar(const std::string& data)
         // check correctness
         if (PetActionBar[index].IsActionBarForSpell())
         {
-            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(PetActionBar[index].GetAction());
+            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(PetActionBar[index].GetAction());
             if (!spellInfo)
                 SetActionBar(index, 0, ACT_DISABLED);
             else if (!IsAutocastable(spellInfo))
@@ -11238,7 +11238,7 @@ bool Unit::IsAllowedDamageInArea(Unit* pVictim) const
         return true;
 
     // can't damage player controlled unit by player controlled unit in sanctuary
-    AreaTableEntry const* area = GetAreaEntryByAreaID(pVictim->GetAreaId());
+    AreaTableEntry const* area = TerrainManager::GetAreaEntryByAreaID(pVictim->GetAreaId());
     return !(area && area->flags & AREA_FLAG_SANCTUARY);
 }
 
@@ -11879,7 +11879,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
 
     // if charm expires mid evade clear evade since movement is also cleared
     // TODO: maybe should be done on HomeMovementGenerator::MovementExpires
-    charmed->GetCombatManager().SetEvadeState(EVADE_NONE); 
+    charmed->GetCombatManager().SetEvadeState(EVADE_NONE);
 
     if (charmed->GetTypeId() == TYPEID_UNIT)
     {
@@ -11987,7 +11987,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
                 Position const& pos = charmInfo->GetCharmStartPosition();
                 if (!pos.IsEmpty())
                     static_cast<Creature*>(charmed)->SetCombatStartPosition(pos);
-            }                
+            }
         }
     }
     else
@@ -12135,8 +12135,8 @@ float Unit::OCTRegenHPPerSpirit() const
 
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
-    GtOCTRegenHPEntry     const* baseRatio = sGtOCTRegenHPStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
-    GtRegenHPPerSptEntry  const* moreRatio = sGtRegenHPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtOCTRegenHPEntry     const* baseRatio = sgtOCTRegenHPStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtRegenHPPerSptEntry  const* moreRatio = sgtRegenHPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (baseRatio == nullptr || moreRatio == nullptr)
         return 0.0f;
 
@@ -12157,7 +12157,7 @@ float Unit::OCTRegenMPPerSpirit() const
     if (level > GT_MAX_LEVEL) level = GT_MAX_LEVEL;
 
     //    GtOCTRegenMPEntry     const *baseRatio = sGtOCTRegenMPStore.LookupEntry((pclass-1)*GT_MAX_LEVEL + level-1);
-    GtRegenMPPerSptEntry  const* moreRatio = sGtRegenMPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
+    GtRegenMPPerSptEntry  const* moreRatio = sgtRegenMPPerSptStore.LookupEntry((pclass - 1) * GT_MAX_LEVEL + level - 1);
     if (moreRatio == nullptr)
         return 0.0f;
 

@@ -242,12 +242,8 @@ bool ChatHandler::HandleTriggerCommand(char* args)
         float dist2 = MAP_SIZE * MAP_SIZE;
 
         // Search triggers
-        for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+        for (auto atTestEntry : sAreaTriggerStore)
         {
-            AreaTriggerEntry const* atTestEntry = sAreaTriggerStore.LookupEntry(id);
-            if (!atTestEntry)
-                continue;
-
             if (atTestEntry->mapid != m_session->GetPlayer()->GetMapId())
                 continue;
 
@@ -324,13 +320,9 @@ bool ChatHandler::HandleTriggerActiveCommand(char* /*args*/)
     Player* pl = m_session->GetPlayer();
 
     // Search in AreaTable.dbc
-    for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+    for (auto atEntry : sAreaTriggerStore)
     {
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
-        if (!atEntry)
-            continue;
-
-        if (!IsPointInAreaTriggerZone(atEntry, pl->GetMapId(), pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ()))
+        if (!Map::IsPointInAreaTriggerZone(atEntry, pl->GetMapId(), pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ()))
             continue;
 
         ShowTriggerListHelper(atEntry);
@@ -353,12 +345,8 @@ bool ChatHandler::HandleTriggerNearCommand(char* args)
     Player* pl = m_session->GetPlayer();
 
     // Search triggers
-    for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+    for (auto atEntry : sAreaTriggerStore)
     {
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
-        if (!atEntry)
-            continue;
-
         if (atEntry->mapid != m_session->GetPlayer()->GetMapId())
             continue;
 
@@ -374,12 +362,8 @@ bool ChatHandler::HandleTriggerNearCommand(char* args)
     }
 
     // Search trigger targets
-    for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+    for (auto atEntry : sAreaTriggerStore)
     {
-        AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
-        if (!atEntry)
-            continue;
-
         AreaTrigger const* at = sObjectMgr.GetAreaTrigger(atEntry->id);
         if (!at)
             continue;
@@ -464,7 +448,7 @@ bool ChatHandler::HandleGoGraveyardCommand(char* args)
     if (!ExtractUInt32(&args, gyId))
         return false;
 
-    WorldSafeLocsEntry const* gy = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(gyId);
+    WorldSafeLocsEntry const* gy = sWorldSafeLocsStore.LookupEntry(gyId);
     if (!gy)
     {
         PSendSysMessage(LANG_COMMAND_GRAVEYARDNOEXIST, gyId);
@@ -1440,39 +1424,35 @@ bool ChatHandler::HandleLookupFactionCommand(char* args)
 
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
-    for (uint32 id = 0; id < sFactionStore.GetMaxEntry(); ++id)
+    for (auto factionEntry : sFactionStore)
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(id);
-        if (factionEntry)
+        int loc = GetSessionDbcLocale();
+        std::string name = factionEntry->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = factionEntry->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = factionEntry->name[loc];
-                    if (name.empty())
-                        continue;
+                name = factionEntry->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                FactionState const* repState = target ? target->GetReputationMgr().GetState(factionEntry) : nullptr;
-                ShowFactionListHelper(factionEntry, LocaleConstant(loc), repState, target);
-                ++counter;
-            }
+        if (loc < MAX_LOCALE)
+        {
+            FactionState const* repState = target ? target->GetReputationMgr().GetState(factionEntry) : nullptr;
+            ShowFactionListHelper(factionEntry, LocaleConstant(loc), repState, target);
+            ++counter;
         }
     }
 
@@ -1555,7 +1535,7 @@ bool ChatHandler::HandleModifyRepCommand(char* args)
         }
     }
 
-    FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(factionId);
+    FactionEntry const* factionEntry = sFactionStore.LookupEntry(factionId);
 
     if (!factionEntry)
     {
@@ -3438,7 +3418,7 @@ bool ChatHandler::HandleCharacterReputationCommand(char* args)
     FactionStateList const& targetFSL = target->GetReputationMgr().GetStateList();
     for (const auto& itr : targetFSL)
     {
-        FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(itr.second.ID);
+        FactionEntry const* factionEntry = sFactionStore.LookupEntry(itr.second.ID);
 
         ShowFactionListHelper(factionEntry, loc, &itr.second, target);
     }
@@ -3760,12 +3740,8 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
 {
     uint32 classmask = player->getClassMask();
 
-    for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
+    for (auto skillLine : sSkillLineAbilityStore)
     {
-        SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
-        if (!skillLine)
-            continue;
-
         // wrong skill
         if (skillLine->skillId != skill_id)
             continue;
@@ -3782,7 +3758,7 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
         if (skillLine->classmask && (skillLine->classmask & classmask) == 0)
             continue;
 
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(skillLine->spellId);
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry(skillLine->spellId);
         if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player, false))
             continue;
 
@@ -3792,12 +3768,8 @@ void ChatHandler::HandleLearnSkillRecipesHelper(Player* player, uint32 skill_id)
 
 bool ChatHandler::HandleLearnAllCraftsCommand(char* /*args*/)
 {
-    for (uint32 i = 0; i < sSkillLineStore.GetNumRows(); ++i)
+    for (auto skillInfo : sSkillLineStore)
     {
-        SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(i);
-        if (!skillInfo)
-            continue;
-
         if (skillInfo->categoryId == SKILL_CATEGORY_PROFESSION || skillInfo->categoryId == SKILL_CATEGORY_SECONDARY)
         {
             HandleLearnSkillRecipesHelper(m_session->GetPlayer(), skillInfo->id);
@@ -3834,12 +3806,8 @@ bool ChatHandler::HandleLearnAllRecipesCommand(char* args)
     std::string name;
 
     SkillLineEntry const* targetSkillInfo = nullptr;
-    for (uint32 i = 1; i < sSkillLineStore.GetNumRows(); ++i)
+    for (auto skillInfo : sSkillLineStore)
     {
-        SkillLineEntry const* skillInfo = sSkillLineStore.LookupEntry(i);
-        if (!skillInfo)
-            continue;
-
         if (skillInfo->categoryId != SKILL_CATEGORY_PROFESSION &&
                 skillInfo->categoryId != SKILL_CATEGORY_SECONDARY)
             continue;
@@ -4473,52 +4441,48 @@ bool ChatHandler::HandleLookupTitleCommand(char* args)
     uint32 counter = 0;                                     // Counter for figure out that we found smth.
 
     // Search in CharTitles.dbc
-    for (uint32 id = 0; id < sCharTitlesStore.GetNumRows(); ++id)
+    for (auto titleInfo : sCharTitlesStore)
     {
-        CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
-        if (titleInfo)
+        int loc = GetSessionDbcLocale();
+        std::string name = titleInfo->name[loc];
+        if (name.empty())
+            continue;
+
+        if (!Utf8FitTo(name, wnamepart))
         {
-            int loc = GetSessionDbcLocale();
-            std::string name = titleInfo->name[loc];
-            if (name.empty())
-                continue;
-
-            if (!Utf8FitTo(name, wnamepart))
+            loc = 0;
+            for (; loc < MAX_LOCALE; ++loc)
             {
-                loc = 0;
-                for (; loc < MAX_LOCALE; ++loc)
-                {
-                    if (loc == GetSessionDbcLocale())
-                        continue;
+                if (loc == GetSessionDbcLocale())
+                    continue;
 
-                    name = titleInfo->name[loc];
-                    if (name.empty())
-                        continue;
+                name = titleInfo->name[loc];
+                if (name.empty())
+                    continue;
 
-                    if (Utf8FitTo(name, wnamepart))
-                        break;
-                }
+                if (Utf8FitTo(name, wnamepart))
+                    break;
             }
+        }
 
-            if (loc < MAX_LOCALE)
-            {
-                char const* knownStr = target && target->HasTitle(titleInfo) ? GetMangosString(LANG_KNOWN) : "";
+        if (loc < MAX_LOCALE)
+        {
+            char const* knownStr = target && target->HasTitle(titleInfo) ? GetMangosString(LANG_KNOWN) : "";
 
-                char const* activeStr = target && target->GetUInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->bit_index
-                                        ? GetMangosString(LANG_ACTIVE)
-                                        : "";
+            char const* activeStr = target && target->GetUInt32Value(PLAYER_CHOSEN_TITLE) == titleInfo->bit_index
+                ? GetMangosString(LANG_ACTIVE)
+                : "";
 
-                char titleNameStr[80];
-                snprintf(titleNameStr, 80, name.c_str(), targetName);
+            char titleNameStr[80];
+            snprintf(titleNameStr, 80, name.c_str(), targetName);
 
-                // send title in "id (idx:idx) - [namedlink locale]" format
-                if (m_session)
-                    PSendSysMessage(LANG_TITLE_LIST_CHAT, id, titleInfo->bit_index, id, titleNameStr, localeNames[loc], knownStr, activeStr);
-                else
-                    PSendSysMessage(LANG_TITLE_LIST_CONSOLE, id, titleInfo->bit_index, titleNameStr, localeNames[loc], knownStr, activeStr);
+            // send title in "id (idx:idx) - [namedlink locale]" format
+            if (m_session)
+                PSendSysMessage(LANG_TITLE_LIST_CHAT, titleInfo->ID, titleInfo->bit_index, titleInfo->ID, titleNameStr, localeNames[loc], knownStr, activeStr);
+            else
+                PSendSysMessage(LANG_TITLE_LIST_CONSOLE, titleInfo->ID, titleInfo->bit_index, titleNameStr, localeNames[loc], knownStr, activeStr);
 
-                ++counter;
-            }
+            ++counter;
         }
     }
     if (counter == 0)                                       // if counter == 0 then we found nth
@@ -4649,9 +4613,8 @@ bool ChatHandler::HandleTitlesSetMaskCommand(char* args)
 
     uint64 titles2 = titles;
 
-    for (uint32 i = 1; i < sCharTitlesStore.GetNumRows(); ++i)
-        if (CharTitlesEntry const* tEntry = sCharTitlesStore.LookupEntry(i))
-            titles2 &= ~(uint64(1) << tEntry->bit_index);
+    for (auto tEntry : sCharTitlesStore)
+        titles2 &= ~(uint64(1) << tEntry->bit_index);
 
     titles &= ~titles2;                                     // remove nonexistent titles
 
@@ -4709,10 +4672,9 @@ bool ChatHandler::HandleCharacterTitlesCommand(char* args)
     char const* knownStr = GetMangosString(LANG_KNOWN);
 
     // Search in CharTitles.dbc
-    for (uint32 id = 0; id < sCharTitlesStore.GetNumRows(); ++id)
+    for (auto titleInfo : sCharTitlesStore)
     {
-        CharTitlesEntry const* titleInfo = sCharTitlesStore.LookupEntry(id);
-        if (titleInfo && target->HasTitle(titleInfo))
+        if (target->HasTitle(titleInfo))
         {
             std::string name = titleInfo->name[loc];
             if (name.empty())
@@ -4727,9 +4689,9 @@ bool ChatHandler::HandleCharacterTitlesCommand(char* args)
 
             // send title in "id (idx:idx) - [namedlink locale]" format
             if (m_session)
-                PSendSysMessage(LANG_TITLE_LIST_CHAT, id, titleInfo->bit_index, id, titleNameStr, localeNames[loc], knownStr, activeStr);
+                PSendSysMessage(LANG_TITLE_LIST_CHAT, titleInfo->ID, titleInfo->bit_index, titleInfo->ID, titleNameStr, localeNames[loc], knownStr, activeStr);
             else
-                PSendSysMessage(LANG_TITLE_LIST_CONSOLE, id, titleInfo->bit_index, name.c_str(), localeNames[loc], knownStr, activeStr);
+                PSendSysMessage(LANG_TITLE_LIST_CONSOLE, titleInfo->ID, titleInfo->bit_index, name.c_str(), localeNames[loc], knownStr, activeStr);
         }
     }
     return true;

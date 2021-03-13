@@ -41,6 +41,8 @@
 class Group;
 class ArenaTeam;
 class Item;
+
+template <typename T>
 class SQLStorage;
 
 struct GameTele
@@ -353,17 +355,6 @@ struct GraveYardData
 #define GRAVEYARD_MAPLINK   1
 typedef std::multimap < uint32 /*locId*/, GraveYardData > GraveYardMap;
 typedef std::pair<GraveYardMap::const_iterator, GraveYardMap::const_iterator> GraveYardMapBounds;
-
-struct WorldSafeLocsEntry
-{
-    uint32    ID;
-    uint32    map_id;
-    float     x;
-    float     y;
-    float     z;
-    float     o;
-    char*     name;
-};
 
 struct QuestgiverGreeting
 {
@@ -1180,6 +1171,15 @@ class ObjectMgr
         * Qualifier: const
         **/
         CreatureClassLvlStats const* GetCreatureClassLvlStats(uint32 level, uint32 unitClass, int32 expansion) const;
+
+        static uint32 GetTalentSpellCost(uint32 spellId);
+        static uint32 GetTalentSpellCost(TalentSpellPos const* pos);
+        static TalentSpellPos const* GetTalentSpellPos(uint32 spellId);
+        static uint32 GetTalentInspectBitPosInTab(uint32 talentId);
+        static uint32 GetTalentTabInspectBitSize(uint32 talentTabId);
+        static uint32 const* /*[3]*/ GetTalentTabPages(uint32 cls);
+        static char const* GetPetName(uint32 petfamily, uint32 dbclang);
+
     protected:
 
         // current locale settings
@@ -1237,7 +1237,7 @@ class ObjectMgr
         GossipMenuItemsMap  m_mGossipMenuItemsMap;
 
         std::unordered_map<uint32, std::vector<uint32>> mCreatureSpawnEntryMap;
-		
+
         PointOfInterestMap  mPointsOfInterest;
 
         PetCreateSpellMap   mPetCreateSpell;
@@ -1265,7 +1265,7 @@ class ObjectMgr
         QuestRelationsMap       m_GOQuestInvolvedRelations;
 
     private:
-        void LoadCreatureAddons(SQLStorage& creatureaddons, char const* entryName, char const* comment);
+        void LoadCreatureAddons(SQLStorage<CreatureDataAddon>& creatureaddons, char const* entryName, char const* comment);
         void ConvertCreatureAddonAuras(CreatureDataAddon* addon, char const* table, char const* guidEntryStr);
         void LoadQuestRelationsHelper(QuestRelationsMap& map, char const* table);
         void LoadVendors(char const* tableName, bool isTemplates);

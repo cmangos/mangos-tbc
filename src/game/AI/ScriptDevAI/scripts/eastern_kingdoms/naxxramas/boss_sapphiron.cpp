@@ -350,7 +350,7 @@ struct PeriodicIceBolt : public AuraScript
             if (target->IsAlive() && !target->HasAura(SPELL_ICEBOLT_IMMUNITY))
             {
                 target->CastSpell(target, SPELL_ICEBOLT_IMMUNITY, TRIGGERED_OLD_TRIGGERED);     // Icebolt which causes immunity to frost dmg
-                data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_ICEBLOCK_SUMMON); // Summon Ice Block
+                data.spellInfo = sSpellTemplate.LookupEntry(SPELL_ICEBLOCK_SUMMON); // Summon Ice Block
             }
         }
     }
@@ -386,7 +386,7 @@ struct DespawnBuffet : public AuraScript
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
     {
         if (Unit* target =  aura->GetTarget())
-            data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_DESPAWN_BUFFET_EFFECT); // Summon Ice Block
+            data.spellInfo = sSpellTemplate.LookupEntry(SPELL_DESPAWN_BUFFET_EFFECT); // Summon Ice Block
     }
 };
 

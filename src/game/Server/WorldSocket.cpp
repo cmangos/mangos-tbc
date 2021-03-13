@@ -304,7 +304,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
               clientSeed);
 
     // Check the version of client trying to connect
-    if (!IsAcceptableClientBuild(ClientBuild))
+    if (!World::IsAcceptableClientBuild(ClientBuild))
     {
         packet.Initialize(SMSG_AUTH_RESPONSE, 1);
         packet << uint8(AUTH_VERSION_MISMATCH);

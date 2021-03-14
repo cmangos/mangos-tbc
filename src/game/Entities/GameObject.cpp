@@ -645,8 +645,6 @@ void GameObject::Update(const uint32 diff)
             if (!m_respawnDelay)
                 return;
 
-            m_forcedDespawn = false;
-
             if (AI())
                 AI()->JustDespawned();
 
@@ -654,7 +652,7 @@ void GameObject::Update(const uint32 diff)
             {
                 // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
                 if (IsSpawnedByDefault())
-                    if (GameObjectData const* data = sObjectMgr.GetGOData(GetObjectGuid().GetCounter()))
+                    if (GameObjectData const* data = sObjectMgr.GetGOData(GetDbGuid()))
                         m_respawnDelay = data->GetRandomRespawnTime();
             }
             else if (m_respawnOverrideOnce)
@@ -679,8 +677,12 @@ void GameObject::Update(const uint32 diff)
                 m_respawnTime = std::numeric_limits<time_t>::max();
                 if (m_respawnDelay)
                     GetMap()->GetSpawnManager().AddGameObject(m_respawnDelay, GetDbGuid());
-                AddObjectToRemoveList();
+
+                if (m_respawnDelay || !m_spawnedByDefault || m_forcedDespawn)
+                    AddObjectToRemoveList();
             }
+
+            m_forcedDespawn = false;
 
             break;
         }

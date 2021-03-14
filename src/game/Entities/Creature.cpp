@@ -2854,8 +2854,3 @@ void Creature::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* /*
         }
     }
 }
-
-bool Creature::IsUsingNewSpawningSystem() const
-{
-    return GetDbGuid() && GetDbGuid() != GetGUIDLow();
-}

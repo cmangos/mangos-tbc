@@ -2983,3 +2983,8 @@ bool operator!=(const Position& left, const Position& right)
 {
     return left.x != right.x || left.y != right.y || left.z != right.z || left.o != right.o;
 }
+
+bool WorldObject::IsUsingNewSpawningSystem() const
+{
+    return GetDbGuid() && GetDbGuid() != GetGUIDLow();
+}

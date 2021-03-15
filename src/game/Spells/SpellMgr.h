@@ -1079,6 +1079,7 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
 
     switch (spellproto->Id) // Spells whose effects are always positive
     {
+        case 1725:  // Rogue Distract
         case 24742: // Magic Wings
         case 29880: // Mana Shield - Arcane Anomaly 16488
         case 42867:

@@ -1547,7 +1547,6 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case NPC_MOARG_TORMENTER:
                 creature->GetCombatManager().SetLeashingDisable(true);
             case NPC_VIMGOL_VISUAL_BUNNY:
-            case PHASE_0_SHARTUUL_DISABLED:
             case NPC_SKYGUARD_TARGET:
                 m_npcEntryGuidCollection[creature->GetEntry()].push_back(creature->GetObjectGuid());
                 break;

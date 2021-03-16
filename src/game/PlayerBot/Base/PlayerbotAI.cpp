@@ -9610,7 +9610,7 @@ void PlayerbotAI::_HandleCommandTalent(std::string& text, Player& fromPlayer)
                         bot_spell_to_learn = spellInfo->SpellName[0];
                     }
 
-                    out << "|cff4e96f7|Htalent:" << talentInfo->RankID[curtalent_maxrank] << ":" << curtalent_maxrank << "|h[" << bot_spell_to_learn << "]|h|r";
+                    out << "|cff4e96f7|Htalent:" << talentInfo->TalentID << ":" << curtalent_maxrank << "|h[" << bot_spell_to_learn << "]|h|r";
                 }
             }
             SendWhisper(out.str(), fromPlayer);

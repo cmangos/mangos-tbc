@@ -6195,7 +6195,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                             break;
                         case 30013:                                 // Disarm - Ethereal Thief 16544
                         case 37317:                                 // Knockback - Tempest Falconer 20037
-                            pct = -99;
+                        case 10101:
+                            pct = -100;
                             break;
                     }
                     m_caster->getThreatManager().modifyThreatPercent(unitTarget, pct);

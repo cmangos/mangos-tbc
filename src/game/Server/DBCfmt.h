@@ -25,7 +25,7 @@ const char AuctionHouseEntryfmt[] = "niiixxxxxxxxxxxxxxxxx";
 const char BankBagSlotPricesEntryfmt[] = "ni";
 const char BattlemasterListEntryfmt[] = "niiiiiiiiiiiixxssssssssssssssssxx";
 char const CharSectionsEntryfmt[] = "diiiiixxxi";
-char const CharacterFacialHairStylesfmt[] = "iiixxxxxx";
+char const CharacterFacialHairStylesfmt[] = "iiixxxxxxxx";
 const char CharStartOutfitEntryfmt[] = "diiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxx";
 // 3*12 new item fields in 3.0.x
 // const char CharStartOutfitEntryfmt[]="diiiiiiiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";

@@ -162,7 +162,7 @@ struct CharacterFacialHairStylesEntry
     uint32 RaceID;                                          // 0
     uint32 SexID;                                           // 1
     uint32 VariationID;                                     // 2
-  //uint32 Geoset[6];                                       // 3-8
+  //uint32 Geoset[5];                                       // 3-7
 };
 
 enum CharSectionFlags
@@ -255,7 +255,7 @@ struct CinematicSequencesEntry
 struct CreatureDisplayInfoEntry
 {
     uint32      Displayid;                                  // 0        m_ID
-    uint32      ModelId;                                    // 1        
+    uint32      ModelId;                                    // 1
     // 2        m_soundID
     uint32      ExtendedDisplayInfoID;                      // 3        m_extendedDisplayInfoID -> CreatureDisplayInfoExtraEntry::DisplayExtraId
     float       scale;                                      // 4        m_creatureModelScale

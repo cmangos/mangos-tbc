@@ -303,7 +303,13 @@ void Item::SaveToDB()
         {
             static SqlStatementID insItem, updItem;
 
-            SqlStatement stmt = CharacterDatabase.CreateStatement(uState == ITEM_NEW ? insItem : updItem, uState == ITEM_NEW ? "REPLACE INTO item_instance (owner_guid, itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, guid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)" : "UPDATE item_instance SET owner_guid = ?, itemEntry = ?, creatorGuid = ?, giftCreatorGuid = ?, count = ?, duration = ?, charges = ?, flags = ?, enchantments = ?, randomPropertyId = ?, durability = ?, itemTextId = ? WHERE guid = ?");
+            SqlStatement stmt = CharacterDatabase.CreateStatement(
+                uState == ITEM_NEW ? insItem : updItem,
+                uState == ITEM_NEW ?
+                    "REPLACE INTO item_instance (owner_guid, itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, guid) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+                    :
+                    "UPDATE item_instance SET owner_guid = ?, itemEntry = ?, creatorGuid = ?, giftCreatorGuid = ?, count = ?, duration = ?, charges = ?, flags = ?, enchantments = ?, randomPropertyId = ?, durability = ?, itemTextId = ? WHERE guid = ?"
+            );
 
             stmt.addUInt32(GetOwnerGuid().GetCounter());
             stmt.addUInt32(GetEntry());

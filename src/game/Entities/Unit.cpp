@@ -9027,7 +9027,7 @@ bool Unit::SelectHostileTarget()
         // NOTE: path alrteady generated from AttackStart()
         if (AI()->IsCombatMovement())
         {
-            if (!GetMotionMaster()->GetCurrent()->IsReachable() || !target->isInAccessablePlaceFor(this))
+            if (!GetMotionMaster()->GetCurrent()->IsReachable())
             {
                 if (!GetCombatManager().IsInEvadeMode())
                     GetCombatManager().StartEvadeTimer();

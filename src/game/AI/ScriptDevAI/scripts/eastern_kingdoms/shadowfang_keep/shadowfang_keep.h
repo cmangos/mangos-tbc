@@ -7,6 +7,7 @@
 
 #include "AI/ScriptDevAI/include/sc_instance.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
+
 enum
 {
     MAX_ENCOUNTER           = 6,
@@ -21,12 +22,15 @@ enum
     SAY_BOSS_DIE_AD         = -1033007,
     SAY_BOSS_DIE_AS         = -1033008,
     YELL_PACK_DEAD          = -1033020,
-    SAY_ARUGAL_INTRO_1             = -1033009,
-    SAY_ARUGAL_INTRO_2             = -1033010,
-    SAY_ARUGAL_INTRO_3             = -1033011,
-    SAY_ARUGAL_INTRO_4             = -1033012,
+    SAY_ARUGAL_INTRO_1      = -1033009,
+    SAY_ARUGAL_INTRO_2      = -1033010,
+    SAY_ARUGAL_INTRO_3      = -1033011,
+    SAY_ARUGAL_INTRO_4      = -1033012,
 
-    YELL_FENRUS                     = -1033013,
+    YELL_FENRUS             = -1033013,
+    YELL_AGGRO              = -1033017,
+    YELL_KILLED_PLAYER      = -1033018,
+    YELL_COMBAT             = -1033019,
 
     SPELL_SPAWN             = 7741,
     SPELL_FIRE              = 6422,

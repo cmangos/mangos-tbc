@@ -269,43 +269,45 @@ void instance_shadowfang_keep::JustDidDialogueStep(int32 iEntry)
     {
         case VINCENT_DEATH:
             if (Creature* pVincent = GetSingleCreatureFromStorage(NPC_VINCENT))
+            {
                 pVincent->SetStandState(UNIT_STAND_STATE_DEAD);
+            }
             break;
         case ARUGAL_VISIBLE:
-        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-        {
-            pCreature->SetVisibility(VISIBILITY_ON);
-        }
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+            {
+                pCreature->SetVisibility(VISIBILITY_ON);
+            }
             break;
         case ARUGAL_TELEPORT_IN:
-        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-        {
-            pCreature->AI()->DoCastSpellIfCan(pCreature, SPELL_SPAWN);
-        }
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+            {
+                pCreature->AI()->DoCastSpellIfCan(pCreature, SPELL_SPAWN);
+            }
             break;
         case ARUGAL_EMOTE_POINT:
-        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-        {
-            pCreature->HandleEmote(EMOTE_ONESHOT_POINT);
-        }
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+            {
+                pCreature->HandleEmote(EMOTE_ONESHOT_POINT);
+            }
             break;
         case ARUGAL_EMOTE_EXCLAMATION:
-        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-        {
-            pCreature->HandleEmote(EMOTE_ONESHOT_EXCLAMATION);
-        }
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+            {
+                pCreature->HandleEmote(EMOTE_ONESHOT_EXCLAMATION);
+            }
             break;
         case ARUGAL_EMOTE_LAUGH:
-        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-        {
-            pCreature->HandleEmote(EMOTE_ONESHOT_LAUGH);
-        }
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+            {
+                pCreature->HandleEmote(EMOTE_ONESHOT_LAUGH);
+            }
             break;
         case ARUGAL_TELEPORT_OUT:
-        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-        {
-            pCreature->AI()->DoCastSpellIfCan(pCreature, SPELL_SPAWN);
-        }
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+            {
+                pCreature->AI()->DoCastSpellIfCan(pCreature, SPELL_SPAWN);
+            }
             break;
         case ARUGAL_INTRO_DONE:
             SetData(TYPE_INTRO, DONE);
@@ -369,6 +371,8 @@ void instance_shadowfang_keep::JustDidDialogueStep(int32 iEntry)
                     }
                 }
             }
+            break;
+        default:
             break;
     }
 }

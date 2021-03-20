@@ -297,10 +297,6 @@ enum
     SPELL_SHADOW_PORT_STAIRS        = 7136,
     SPELL_ARUGALS_CURSE             = 7621,
     SPELL_THUNDERSHOCK              = 7803,
-
-    YELL_AGGRO                      = -1033017,
-    YELL_KILLED_PLAYER              = -1033018,
-    YELL_COMBAT                     = -1033019
 };
 
 enum ArugalPosition

@@ -355,19 +355,17 @@ struct boss_arugalAI : public ScriptedAI
 
     ScriptedInstance* m_pInstance;
     ArugalPosition m_posPosition;
-    uint32 m_uiTeleportTimer, m_uiCurseTimer, m_uiVoidboltTimer, m_uiThundershockTimer, m_uiYellTimer, m_uiSpeechTimer;
-    uint8 m_uiSpeechStep;
+    uint32 m_uiTeleportTimer, m_uiCurseTimer, m_uiVoidboltTimer, m_uiThundershockTimer, m_uiYellTimer;
     bool m_bAttacking, m_bEventMode;
 
     void Reset() override
     {
         m_uiTeleportTimer = urand(22000, 26000);
         m_uiCurseTimer = urand(20000, 30000);
-        m_uiVoidboltTimer = m_uiThundershockTimer = m_uiSpeechTimer = 0;
+        m_uiVoidboltTimer = m_uiThundershockTimer = 0;
         m_uiYellTimer = urand(32000, 46000);
         m_bAttacking = true;
         m_posPosition = POSITION_SPAWN_LEDGE;
-        m_uiSpeechStep = 1;
     }
 
     void Aggro(Unit* pWho) override

@@ -266,27 +266,6 @@ struct mob_arugal_voidwalkerAI : public mob_arugal_voidwalker_baseAI
             script_error_log("mob_arugal_voidwalker for %s: has more buddies than expected (%u expected, found: %u).", m_creature->GetGuidStr().c_str(), MAX_VOID_WALKERS, position);
     }
 
-    void SetLeader()
-    {
-        // No leader found or already dead: set ourselves and start following the waypoints
-        m_leaderGuid = m_creature->GetObjectGuid();
-        m_position = 0;
-        m_creature->GetMotionMaster()->Clear();
-        m_creature->GetMotionMaster()->MoveWaypoint(0);
-    }
-
-    void SetFollower(ObjectGuid leaderGuid, uint8 position)
-    {
-        m_leaderGuid = leaderGuid;
-        m_position = position;
-
-        // Start following the leader
-        if (Creature* leader = m_creature->GetMap()->GetCreature(m_leaderGuid))
-            m_creature->GetMotionMaster()->MoveFollow(leader, 1.0f, M_PI / 2 * m_position);
-        else
-            script_error_log("mob_arugal_voidwalker for %s: tried to follow master but master not found in map.", m_creature->GetGuidStr().c_str());
-    }
-
     void ExecuteAction(uint32 action) override
     {
         if (action == VOIDWALKER_DARKOFFERING)

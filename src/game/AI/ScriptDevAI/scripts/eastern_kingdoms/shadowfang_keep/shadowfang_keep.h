@@ -124,6 +124,7 @@ class instance_shadowfang_keep : public ScriptedInstance, public DialogueHelper
 
 struct mob_arugal_voidwalker_baseAI : virtual CombatAI
 {
+    mob_arugal_voidwalker_baseAI() {};
     int8 m_position;           // 0 - leader, 1 - behind-right, 2 - behind, 3 - behind-left
     ObjectGuid m_leaderGuid;
 

@@ -318,7 +318,6 @@ void instance_shadowfang_keep::JustDidDialogueStep(int32 iEntry)
         case YELL_FENRUS:
             if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARCHMAGE_ARUGAL))
             {
-                sLog.outError("Yell Fenrus");
                 pCreature->SetVisibility(VISIBILITY_ON);
             }
             break;
@@ -334,7 +333,6 @@ void instance_shadowfang_keep::JustDidDialogueStep(int32 iEntry)
                 if (GameObject* pLighting = GetSingleGameObjectFromStorage(GO_ARUGAL_FOCUS))
                 {
                     pLighting->Use(pCreature);
-                    sLog.outError("Lighting used");
                 }
             }
             break;

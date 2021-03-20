@@ -22,9 +22,38 @@ SDCategory: Shadowfang Keep
 EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/include/sc_instance.h"
+#include "Entities/Creature.h"
+#include "Entities/Unit.h"
+#include "Globals/ObjectMgr.h"
+#include "Globals/SharedDefines.h"
 #include "shadowfang_keep.h"
 
-instance_shadowfang_keep::instance_shadowfang_keep(Map* pMap) : ScriptedInstance(pMap)
+static const DialogueEntry aArugalDialogue[] =
+{
+    {NPC_VINCENT,                      0,   2000},
+    {VINCENT_DEATH,          NPC_VINCENT,   8000},
+    {ARUGAL_VISIBLE,          NPC_ARUGAL,    500},
+    {ARUGAL_TELEPORT_IN,      NPC_ARUGAL,   2000},
+    {SAY_ARUGAL_INTRO_1,      NPC_ARUGAL,   1750},
+    {ARUGAL_EMOTE_POINT,      NPC_ARUGAL,   1750},
+    {SAY_ARUGAL_INTRO_2,      NPC_ARUGAL,   1750},
+    {ARUGAL_EMOTE_EXCLAMATION,NPC_ARUGAL,   1750},
+    {SAY_ARUGAL_INTRO_3,      NPC_ARUGAL,   1750},
+    {ARUGAL_EMOTE_LAUGH,      NPC_ARUGAL,   1750},
+    {SAY_ARUGAL_INTRO_4,      NPC_ARUGAL,   2000},
+    {ARUGAL_TELEPORT_OUT,     NPC_ARUGAL,    500},
+    {ARUGAL_INTRO_DONE,       NPC_ARUGAL,      0},
+    {NPC_ARCHMAGE_ARUGAL,              0,    100},
+    {YELL_FENRUS,    NPC_ARCHMAGE_ARUGAL,   2000},
+    {ARCHMAGE_FIRE,  NPC_ARCHMAGE_ARUGAL,   5000},
+    {ARCHMAGE_LIGHTNING, NPC_ARCHMAGE_ARUGAL, 5000},
+    {ARCHMAGE_INVIS, NPC_ARCHMAGE_ARUGAL,    500},
+    {ARCHMAGE_VOIDWALKERS, NPC_ARCHMAGE_ARUGAL, 0},
+    {0, 0, 0},
+};
+
+instance_shadowfang_keep::instance_shadowfang_keep(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aArugalDialogue)
 {
     Initialize();
 }
@@ -32,6 +61,7 @@ instance_shadowfang_keep::instance_shadowfang_keep(Map* pMap) : ScriptedInstance
 void instance_shadowfang_keep::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+    InitializeDialogueHelper(this);
 }
 
 void instance_shadowfang_keep::OnCreatureCreate(Creature* pCreature)
@@ -47,6 +77,8 @@ void instance_shadowfang_keep::OnCreatureCreate(Creature* pCreature)
             // If Arugal has done the intro, make Vincent dead!
             if (m_auiEncounter[4] == DONE)
                 pCreature->SetStandState(UNIT_STAND_STATE_DEAD);
+            else
+                StartNextDialogueText(NPC_VINCENT);
             break;
         case NPC_LUPINE_HORROR:
         case NPC_WOLFGUARD_WORG:
@@ -55,6 +87,12 @@ void instance_shadowfang_keep::OnCreatureCreate(Creature* pCreature)
             // Only store the wolves/worgs that are static spawn on the top level of the instance
             if (pCreature->GetPositionZ() > nandosMovement.fZ && !pCreature->IsTemporarySummon())
                 m_lNandosWolvesGuids.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_ARUGAL:
+            pCreature->SetVisibility(VISIBILITY_OFF);
+            break;
+        case NPC_ARCHMAGE_ARUGAL:
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         default:
             return;
@@ -150,6 +188,7 @@ void instance_shadowfang_keep::SetData(uint32 uiType, uint32 uiData)
             {
                 if (Creature* pFenrus = GetSingleCreatureFromStorage(NPC_FENRUS))
                     pFenrus->SummonCreature(NPC_ARCHMAGE_ARUGAL, -136.89f, 2169.17f, 136.58f, 2.794f, TEMPSPAWN_TIMED_DESPAWN, 30000);
+                StartNextDialogueText(NPC_ARCHMAGE_ARUGAL);
             }
             m_auiEncounter[2] = uiData;
             break;
@@ -222,6 +261,122 @@ void instance_shadowfang_keep::Load(const char* chrIn)
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
+}
+
+void instance_shadowfang_keep::JustDidDialogueStep(int32 iEntry)
+{
+    switch(iEntry)
+    {
+        case VINCENT_DEATH:
+            if (Creature* pVincent = GetSingleCreatureFromStorage(NPC_VINCENT))
+                pVincent->SetStandState(UNIT_STAND_STATE_DEAD);
+            break;
+        case ARUGAL_VISIBLE:
+        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+        {
+            pCreature->SetVisibility(VISIBILITY_ON);
+        }
+            break;
+        case ARUGAL_TELEPORT_IN:
+        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+        {
+            pCreature->AI()->DoCastSpellIfCan(pCreature, SPELL_SPAWN);
+        }
+            break;
+        case ARUGAL_EMOTE_POINT:
+        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+        {
+            pCreature->HandleEmote(EMOTE_ONESHOT_POINT);
+        }
+            break;
+        case ARUGAL_EMOTE_EXCLAMATION:
+        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+        {
+            pCreature->HandleEmote(EMOTE_ONESHOT_EXCLAMATION);
+        }
+            break;
+        case ARUGAL_EMOTE_LAUGH:
+        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+        {
+            pCreature->HandleEmote(EMOTE_ONESHOT_LAUGH);
+        }
+            break;
+        case ARUGAL_TELEPORT_OUT:
+        if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+        {
+            pCreature->AI()->DoCastSpellIfCan(pCreature, SPELL_SPAWN);
+        }
+            break;
+        case ARUGAL_INTRO_DONE:
+            SetData(TYPE_INTRO, DONE);
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARUGAL))
+            {
+                pCreature->SetVisibility(VISIBILITY_OFF);
+                pCreature->ForcedDespawn();
+            }
+            break;
+        case YELL_FENRUS:
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARCHMAGE_ARUGAL))
+            {
+                sLog.outError("Yell Fenrus");
+                pCreature->SetVisibility(VISIBILITY_ON);
+            }
+            break;
+        case ARCHMAGE_FIRE:
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARCHMAGE_ARUGAL))
+            {
+                pCreature->AI()->DoCastSpellIfCan(pCreature, SPELL_FIRE);
+            }
+            break;
+        case ARCHMAGE_LIGHTNING:
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARCHMAGE_ARUGAL))
+            {
+                if (GameObject* pLighting = GetSingleGameObjectFromStorage(GO_ARUGAL_FOCUS))
+                {
+                    pLighting->Use(pCreature);
+                    sLog.outError("Lighting used");
+                }
+            }
+            break;
+        case ARCHMAGE_INVIS:
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARCHMAGE_ARUGAL))
+            {
+                pCreature->SetVisibility(VISIBILITY_OFF);
+            }
+            break;
+        case ARCHMAGE_VOIDWALKERS:
+            if (Creature* pCreature = GetSingleCreatureFromStorage(NPC_ARCHMAGE_ARUGAL))
+            {
+                ObjectGuid leaderGuid;
+
+                for (uint8 i = 0; i < 4; ++i)
+                {
+                    // No suitable spell was found for this in DBC files, so summoning the hard way
+                    if (Creature* voidwalker = pCreature->SummonCreature(NPC_VOIDWALKER, VWSpawns[i].fX, VWSpawns[i].fY, VWSpawns[i].fZ, VWSpawns[i].fO, TEMPSPAWN_DEAD_DESPAWN, 1))
+                    {
+                        // Set Voidwalker's home to the middle of the room to avoid evade in an unreachable place
+                        voidwalker->SetRespawnCoord(voidwalkerHome.fX, voidwalkerHome.fY, voidwalkerHome.fZ, voidwalker->GetOrientation());
+
+                        if (!i)
+                        {
+                            leaderGuid = voidwalker->GetObjectGuid();
+                            if (mob_arugal_voidwalker_baseAI* voidwalkerAI = dynamic_cast<mob_arugal_voidwalker_baseAI*>(voidwalker->AI()))
+                                voidwalkerAI->SetLeader();
+                        }
+                        else
+                        {
+                            if (mob_arugal_voidwalker_baseAI* voidwalkerAI = dynamic_cast<mob_arugal_voidwalker_baseAI*>(voidwalker->AI()))
+                                voidwalkerAI->SetFollower(leaderGuid, i);
+                        }
+                    }
+                }
+            }
+            break;
+    }
+}
+
+void instance_shadowfang_keep::Update(uint32 uiDiff){
+    DialogueUpdate(uiDiff);
 }
 
 InstanceData* GetInstanceData_instance_shadowfang_keep(Map* pMap)

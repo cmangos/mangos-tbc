@@ -20735,7 +20735,7 @@ void Player::UpdateTerainEnvironmentFlags(Map* m, float x, float y, float z)
                                     CastSpell(this, liquidSpellId, TRIGGERED_OLD_TRIGGERED);
                                 else
                                 {
-                                    if (this->IsInSwimmableWater() && this->GetPositionZ() < -20.f)
+                                    if (IsInSwimmableWater())
                                         SummonCreature(21508, 0, 0, 0, 0, TEMPSPAWN_TIMED_OOC_DESPAWN, 2000);
                                     // Special update timer for the SSC water
                                     m_positionStatusUpdateTimer = 2000;

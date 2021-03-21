@@ -1696,7 +1696,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000343','Pitiful mortal, Onyxia answers to no one!','0','1','0','0','22285','smolderwing SAY_1'),
 ('-1000344','Your pathetic challenge has not gone unnoticed. I shall enjoy toying with you before you die.','0','1','0','0','22286','smolderwing SAY_2'),
 
--- REUSE 345-347
+('-1000345','%s disappears back into the swamp.','0','2','0','0','1619','Stinky end emote'),
+-- REUSE 346-347
 
 ('-1000348','Ah...the wondrous sound of kodos.  I love the way they make the ground shake... inspect the beast for me.','0','0','0','0','7303','kodo round SAY_SMEED_HOME_1'),
 ('-1000349','Hey, look out with that kodo! You had better inspect that beast before I give you credit!','0','0','0','0','7301','kodo round SAY_SMEED_HOME_2'),
@@ -2469,7 +2470,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1001213','Get back to Blood Watch. I''ll see you there...','0','0','0','1','14665','demolitionist_legoso SAY_ESCORT_COMPLETE_2'),
 ('-1001214','%s becomes unstable with brimming energy!','0','2','0','0','24001','Living flare EMOTE'),
 ('-1001215','%s releases its energy, engulfing its surroundings in flames!','0','2','0','0','24002','Unstable flare EMOTE'),
--- TODO backport TBC quest with living flare
 ('-1001216','The last thing I remember is the ship falling and us getting into the pods.  I''ll go see how I can help.  Thank you!','0','0','7','0','13408','draenei_survivor SAY_HEAL1'),
 ('-1001217','Where am I?  Who are you?  Oh no!  What happened to the ship?','0','0','7','0','13409','draenei_survivor SAY_HEAL2'),
 ('-1001218','$C, you saved me!  I owe you a debt that I can never repay.  I''ll go see if I can help the others.','0','0','7','0','12451','draenei_survivor SAY_HEAL3'),

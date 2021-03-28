@@ -8235,7 +8235,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
                     if (PvP || creatureNotInCombat)
                         enemy->GetCombatManager().TriggerCombatTimer(controller);
                 }
-                else
+                else if (controller->AI())
                     controller->AI()->AttackStart(enemy);
             }
         }

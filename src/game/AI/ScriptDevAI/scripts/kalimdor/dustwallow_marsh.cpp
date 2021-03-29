@@ -1038,8 +1038,12 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     void GetNearbyDummyIfNotExist()
     {
         if (!attackableDummy)
+        {
             if (Unit* nearbyDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f))
+            {
                 attackableDummy = nearbyDummy->GetObjectGuid();
+            }
+        }
     }
 
     void EnterEvadeMode() override
@@ -1091,9 +1095,11 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
-        if (Unit* nearbyDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f))
-            attackableDummy = nearbyDummy->GetObjectGuid();
+        if (!attackableDummy && !m_creature->IsInCombat() && !m_creature->IsMoving())
+            GetNearbyDummyIfNotExist();
+
         Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
+
         if (m_binCombatWithPlayer){
             if(myDummy && myDummy->IsInCombat())
             {

@@ -35,6 +35,8 @@ EndContentData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/include/sc_creature.h"
+#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
+#include "Entities/Object.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
@@ -1017,8 +1019,8 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 {
     npc_theramore_practicing_guardAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
-        attackableDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f);
         Reset();
+        GetNearbyDummyIfNotExist();
     }
 
     uint32 m_attackTimer;
@@ -1027,11 +1029,18 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     bool m_bisAttacking;
     bool m_bsitDown, m_bstandUp;
     bool m_binCombatWithPlayer;
-    Creature* attackableDummy;
+    ObjectGuid attackableDummy;
 
     void DoCallForHelp(float) override {}
 
     void HandleAssistanceCall(Unit*, Unit*) override {}
+
+    void GetNearbyDummyIfNotExist()
+    {
+        if (!attackableDummy)
+            if (Unit* nearbyDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f))
+                attackableDummy = nearbyDummy->GetObjectGuid();
+    }
 
     void EnterEvadeMode() override
     {
@@ -1043,6 +1052,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     {
         Reset();
         SetRootSelf(true);
+        GetNearbyDummyIfNotExist();
     }
 
     void EnterCombat(Unit* who) override
@@ -1050,7 +1060,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
         if (who->GetEntry() == NPC_THERAMORE_COMBAT_DUMMY)
             return;
 
-        if (who->GetObjectGuid() != attackableDummy->GetObjectGuid())
+        if (who->GetObjectGuid() != attackableDummy)
         {
             m_binCombatWithPlayer = true;
             SetRootSelf(false);
@@ -1060,7 +1070,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 
     void AttackedBy(Unit* who) override
     {
-        if (who->GetObjectGuid() != attackableDummy->GetObjectGuid())
+        if (who->GetObjectGuid() != attackableDummy)
         {
             m_binCombatWithPlayer = true;
             SetRootSelf(false);
@@ -1081,18 +1091,21 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
+        if (Unit* nearbyDummy = GetClosestCreatureWithEntry(m_creature, NPC_THERAMORE_COMBAT_DUMMY, 2.f))
+            attackableDummy = nearbyDummy->GetObjectGuid();
+        Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
         if (m_binCombatWithPlayer){
-            if(attackableDummy && attackableDummy->IsInCombat())
+            if(myDummy && myDummy->IsInCombat())
             {
-                attackableDummy->CombatStop();
+                myDummy->CombatStop();
             }
             ScriptedAI::UpdateAI(diff);
             return;
         }
-        if (attackableDummy && attackableDummy->IsAlive())
+        if (myDummy && myDummy->IsAlive())
         {
             Unit* pTarget = m_creature->GetTarget();
-            if(pTarget && pTarget->GetObjectGuid() != attackableDummy->GetObjectGuid()){
+            if(pTarget && pTarget->GetObjectGuid() != attackableDummy){
                 m_creature->CombatStop(true);
             }
 
@@ -1103,7 +1116,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                     m_bisAttacking = false;
                     m_attackTimer = urand(120, 145) * IN_MILLISECONDS;
                     m_creature->CombatStop();
-                    attackableDummy->CombatStop();
+                    myDummy->CombatStop();
                     m_bsitDown = true;
                     m_sitTimer = 2 * IN_MILLISECONDS;
                 }
@@ -1119,7 +1132,7 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
                 {
                     m_bisAttacking = true;
                     m_breakTimer = urand(15, 60) * IN_MILLISECONDS;
-                    m_creature->AI()->AttackStart(attackableDummy);
+                    m_creature->AI()->AttackStart(myDummy);
                 }
                 else if (m_breakTimer <= 2 * IN_MILLISECONDS && m_bstandUp){
                     m_creature->SetStandState(UNIT_STAND_STATE_STAND);

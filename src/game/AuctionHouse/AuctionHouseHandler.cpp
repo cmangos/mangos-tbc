@@ -459,11 +459,11 @@ void WorldSession::HandleAuctionRemoveItem(WorldPacket& recv_data)
     SendAuctionCommandResult(auction, AUCTION_REMOVED, AUCTION_OK);
     // Now remove the auction
     CharacterDatabase.BeginTransaction();
-    auction->DeleteFromDB();
+    // auction->DeleteFromDB();
     pl->SaveInventoryAndGoldToDB();
     CharacterDatabase.CommitTransaction();
-    sAuctionMgr.RemoveAItem(auction->itemGuidLow);
-    auctionHouse->RemoveAuction(auction->Id);
+    // sAuctionMgr.RemoveAItem(auction->itemGuidLow);
+    // auctionHouse->RemoveAuction(auction->Id);
     delete auction;
 }
 

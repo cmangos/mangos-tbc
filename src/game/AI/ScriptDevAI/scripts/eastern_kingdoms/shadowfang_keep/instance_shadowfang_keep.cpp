@@ -26,15 +26,16 @@ EndScriptData */
 
 static const DialogueEntry aArugalDialogue[] =
 {
-    {NPC_VINCENT,                      0,   2000},
+    {NPC_VINCENT,                      0,   3000},
     {VINCENT_DEATH,          NPC_VINCENT,   8000},
     {ARUGAL_VISIBLE,          NPC_ARUGAL,    100},
-    {ARUGAL_TELEPORT_IN,      NPC_ARUGAL,   3500},
-    {SAY_ARUGAL_INTRO_1,      NPC_ARUGAL,    100},
-    {ARUGAL_EMOTE_POINT,      NPC_ARUGAL,   3900},
-    {SAY_ARUGAL_INTRO_2,      NPC_ARUGAL,   2500},
-    {ARUGAL_EMOTE_EXCLAMATION,NPC_ARUGAL,   2500},
-    {SAY_ARUGAL_INTRO_3,      NPC_ARUGAL,   2500},
+    {ARUGAL_TELEPORT_IN,      NPC_ARUGAL,   3200},
+    {ARUGAL_TURN_TO_VINCENT,  NPC_ARUGAL,    100},
+    {SAY_ARUGAL_INTRO_1,      NPC_ARUGAL,   3500},
+    {ARUGAL_EMOTE_POINT,      NPC_ARUGAL,   2000},
+    {SAY_ARUGAL_INTRO_2,      NPC_ARUGAL,   1500},
+    {ARUGAL_EMOTE_EXCLAMATION,NPC_ARUGAL,   3000},
+    {SAY_ARUGAL_INTRO_3,      NPC_ARUGAL,   3000},
     {ARUGAL_EMOTE_LAUGH,      NPC_ARUGAL,   2500},
     {SAY_ARUGAL_INTRO_4,      NPC_ARUGAL,   2500},
     {ARUGAL_TELEPORT_OUT,     NPC_ARUGAL,   2000},
@@ -276,7 +277,7 @@ void instance_shadowfang_keep::JustDidDialogueStep(int32 entry)
             if (Creature* creature = GetSingleCreatureFromStorage(NPC_ARUGAL))
                 creature->AI()->DoCastSpellIfCan(creature, SPELL_SPAWN);
             break;
-        case SAY_ARUGAL_INTRO_1:
+        case ARUGAL_TURN_TO_VINCENT:
             if (Creature* creatureA = GetSingleCreatureFromStorage(NPC_ARUGAL))
                 if (Creature* creatureV = GetSingleCreatureFromStorage(NPC_VINCENT))
                     creatureA->SetFacingToObject(creatureV);

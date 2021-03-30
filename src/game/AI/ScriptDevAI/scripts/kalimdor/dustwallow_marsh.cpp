@@ -35,6 +35,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
+#include "Common.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
@@ -1051,6 +1052,20 @@ struct npc_theramore_practicing_guardAI : public CombatAI
         });
 
         SetRootSelf(true);
+        GetNearbyDummyIfNotExist();
+    }
+
+    uint32 GetSubsequentActionTimer(uint32 action)
+    {
+        switch (action)
+        {
+            case GUARD_ACTION_PAUSE: return urand(120, 145) * IN_MILLISECONDS;
+            case GUARD_ACTION_ATTACK: return 3 * IN_MILLISECONDS;
+            case GUARD_ACTION_SIT_DOWN: return 2 * IN_MILLISECONDS;
+            case GUARD_ACTION_STAND_UP: return urand (15, 60) * IN_MILLISECONDS;
+            case GUARD_ACTION_GET_DUMMY: return 1 * IN_MILLISECONDS;
+            default: return 0;
+        }
     }
 
     ObjectGuid attackableDummy;
@@ -1086,8 +1101,8 @@ struct npc_theramore_practicing_guardAI : public CombatAI
 
     void AttackDummy()
     {
-        if (!attackableDummy && !m_creature->IsInCombat() && !m_creature->IsMoving())
-            GetNearbyDummyIfNotExist();
+        if (m_creature->IsMoving())
+            return;
 
         Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
         if ((myDummy) && myDummy->IsAlive())
@@ -1095,13 +1110,13 @@ struct npc_theramore_practicing_guardAI : public CombatAI
             m_creature->AI()->AttackStart(myDummy);
         }
 
-        ResetTimer(GUARD_ACTION_PAUSE, urand(120, 145) * IN_MILLISECONDS);
+        ResetTimer(GUARD_ACTION_PAUSE, GetSubsequentActionTimer(GUARD_ACTION_PAUSE));
     }
 
     void TakePause()
     {
-        ResetTimer(GUARD_ACTION_SIT_DOWN, 2 * IN_MILLISECONDS);
-        ResetTimer(GUARD_ACTION_STAND_UP, urand(15, 60) * IN_MILLISECONDS);
+        ResetTimer(GUARD_ACTION_SIT_DOWN, GetSubsequentActionTimer(GUARD_ACTION_SIT_DOWN));
+        ResetTimer(GUARD_ACTION_STAND_UP, GetSubsequentActionTimer(GUARD_ACTION_STAND_UP));
         m_creature->CombatStop();
         if (attackableDummy)
         {
@@ -1120,7 +1135,7 @@ struct npc_theramore_practicing_guardAI : public CombatAI
     void HandleStandUp()
     {
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        ResetTimer(GUARD_ACTION_ATTACK, 3 * IN_MILLISECONDS);
+        ResetTimer(GUARD_ACTION_ATTACK, GetSubsequentActionTimer(GUARD_ACTION_ATTACK));
     }
 
     void JustReachedHome() override
@@ -1155,8 +1170,8 @@ struct npc_theramore_practicing_guardAI : public CombatAI
     void Reset() override
     {
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        ResetTimer(GUARD_ACTION_ATTACK, urand(15, 20) * IN_MILLISECONDS);
-        ResetTimer(GUARD_ACTION_GET_DUMMY, 1 * IN_MILLISECONDS);
+        ResetTimer(GUARD_ACTION_ATTACK, GetSubsequentActionTimer(GUARD_ACTION_ATTACK));
+        ResetTimer(GUARD_ACTION_GET_DUMMY, GetSubsequentActionTimer(GUARD_ACTION_GET_DUMMY));
     }
 
     void ExecuteAction(uint32 action) override { }

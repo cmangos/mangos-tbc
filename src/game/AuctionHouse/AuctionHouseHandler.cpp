@@ -348,23 +348,25 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     AuctionEntry* auction = auctionHouse->GetAuction(auctionId);
     Player* pl = GetPlayer();
 
-    if (!auction || auction->owner == pl->GetGUIDLow())
-    {
-        // you cannot bid your own auction:
-        SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
-        return;
-    }
+    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
 
-    ObjectGuid ownerGuid = ObjectGuid(HIGHGUID_PLAYER, auction->owner);
+    // if (!auction || auction->owner == pl->GetGUIDLow())
+    // {
+    //     // you cannot bid your own auction:
+    //     SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
+    //     return;
+    // }
 
-    // impossible have online own another character (use this for speedup check in case online owner)
-    Player* auction_owner = sObjectMgr.GetPlayer(ownerGuid);
-    if (!auction_owner && sObjectMgr.GetPlayerAccountIdByGUID(ownerGuid) == pl->GetSession()->GetAccountId())
-    {
-        // you cannot bid your another character auction:
-        SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
-        return;
-    }
+    // ObjectGuid ownerGuid = ObjectGuid(HIGHGUID_PLAYER, auction->owner);
+
+    // // impossible have online own another character (use this for speedup check in case online owner)
+    // Player* auction_owner = sObjectMgr.GetPlayer(ownerGuid);
+    // if (!auction_owner && sObjectMgr.GetPlayerAccountIdByGUID(ownerGuid) == pl->GetSession()->GetAccountId())
+    // {
+    //     // you cannot bid your another character auction:
+    //     SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
+    //     return;
+    // }
 
     // cheating or client lags
     // if (price <= auction->bid)

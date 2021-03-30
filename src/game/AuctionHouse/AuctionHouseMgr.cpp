@@ -971,18 +971,18 @@ void AuctionEntry::SaveToDB() const
 
 void AuctionEntry::AuctionBidWinning(Player* newbidder)
 {
-    sAuctionMgr.SendAuctionSalePendingMail(this);
-    sAuctionMgr.SendAuctionSuccessfulMail(this);
-    sAuctionMgr.SendAuctionWonMail(this);
+    // sAuctionMgr.SendAuctionSalePendingMail(this);
+    // sAuctionMgr.SendAuctionSuccessfulMail(this);
+    // sAuctionMgr.SendAuctionWonMail(this);
 
     // sAuctionMgr.RemoveAItem(this->itemGuidLow);
     // sAuctionMgr.GetAuctionsMap(this->auctionHouseEntry)->RemoveAuction(this->Id);
 
-    CharacterDatabase.BeginTransaction();
+    // CharacterDatabase.BeginTransaction();
     // this->DeleteFromDB();
-    if (newbidder)
-        newbidder->SaveInventoryAndGoldToDB();
-    CharacterDatabase.CommitTransaction();
+    // if (newbidder)
+    //     newbidder->SaveInventoryAndGoldToDB();
+    // CharacterDatabase.CommitTransaction();
 
     delete this;
 }

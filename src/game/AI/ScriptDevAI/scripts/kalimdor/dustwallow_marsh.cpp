@@ -1053,6 +1053,8 @@ struct npc_theramore_practicing_guardAI : public CombatAI
 
     ObjectGuid attackableDummy;
 
+    static constexpr uint32 actionToggle[] = {GUARD_ACTION_ATTACK, GUARD_ACTION_PAUSE, GUARD_ACTION_SIT_DOWN, GUARD_ACTION_STAND_UP};
+
     void DoCallForHelp(float) override { }
 
     void HandleAssistanceCall(Unit*, Unit*) override { }
@@ -1077,10 +1079,9 @@ struct npc_theramore_practicing_guardAI : public CombatAI
             myDummy->CombatStop();
             m_creature->getThreatManager().modifyThreatPercent(myDummy, -101.f);
         }
-        DisableTimer(GUARD_ACTION_STAND_UP);
-        DisableTimer(GUARD_ACTION_SIT_DOWN);
-        DisableTimer(GUARD_ACTION_ATTACK);
-        DisableTimer(GUARD_ACTION_PAUSE);
+
+        for (uint32 action : actionToggle)
+            DisableTimer(action);
     }
 
     void AttackDummy()
@@ -1155,7 +1156,7 @@ struct npc_theramore_practicing_guardAI : public CombatAI
     {
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
         ResetTimer(GUARD_ACTION_ATTACK, urand(15, 20) * IN_MILLISECONDS);
-        ResetTimer(GUARD_ACTION_GET_DUMMY, 2 * IN_MILLISECONDS);
+        ResetTimer(GUARD_ACTION_GET_DUMMY, 1 * IN_MILLISECONDS);
     }
 
     void ExecuteAction(uint32 action) override { }

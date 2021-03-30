@@ -1158,10 +1158,7 @@ struct npc_theramore_practicing_guardAI : public CombatAI
         ResetTimer(GUARD_ACTION_GET_DUMMY, 2 * IN_MILLISECONDS);
     }
 
-    void ExecuteAction(uint32 action) override
-    {
-
-    }
+    void ExecuteAction(uint32 action) override { }
 };
 
 /*######

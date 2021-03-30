@@ -975,11 +975,11 @@ void AuctionEntry::AuctionBidWinning(Player* newbidder)
     sAuctionMgr.SendAuctionSuccessfulMail(this);
     sAuctionMgr.SendAuctionWonMail(this);
 
-    sAuctionMgr.RemoveAItem(this->itemGuidLow);
-    sAuctionMgr.GetAuctionsMap(this->auctionHouseEntry)->RemoveAuction(this->Id);
+    // sAuctionMgr.RemoveAItem(this->itemGuidLow);
+    // sAuctionMgr.GetAuctionsMap(this->auctionHouseEntry)->RemoveAuction(this->Id);
 
     CharacterDatabase.BeginTransaction();
-    this->DeleteFromDB();
+    // this->DeleteFromDB();
     if (newbidder)
         newbidder->SaveInventoryAndGoldToDB();
     CharacterDatabase.CommitTransaction();

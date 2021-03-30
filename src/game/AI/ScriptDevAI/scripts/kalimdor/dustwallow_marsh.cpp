@@ -36,7 +36,7 @@ EndContentData */
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/include/sc_creature.h"
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
-#include "Entities/Object.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
@@ -1015,25 +1015,49 @@ enum
     NPC_THERAMORE_COMBAT_DUMMY = 4952,
 };
 
-struct npc_theramore_practicing_guardAI : public ScriptedAI
+enum PracticingGuardActions
 {
-    npc_theramore_practicing_guardAI(Creature* pCreature) : ScriptedAI(pCreature)
+    GUARD_ACTION_MAX,
+    GUARD_ACTION_ATTACK,
+    GUARD_ACTION_PAUSE,
+    GUARD_ACTION_GET_DUMMY,
+    GUARD_ACTION_SIT_DOWN,
+    GUARD_ACTION_STAND_UP,
+};
+
+struct npc_theramore_practicing_guardAI : public CombatAI
+{
+    npc_theramore_practicing_guardAI(Creature* pCreature) : CombatAI(pCreature, GUARD_ACTION_MAX)
     {
-        Reset();
-        GetNearbyDummyIfNotExist();
+        AddCustomAction(GUARD_ACTION_GET_DUMMY, true, [&]()
+        {
+            GetNearbyDummyIfNotExist();
+        });
+        AddCustomAction(GUARD_ACTION_ATTACK, true, [&]()
+        {
+            AttackDummy();
+        });
+        AddCustomAction(GUARD_ACTION_PAUSE, true, [&]()
+        {
+            TakePause();
+        });
+        AddCustomAction(GUARD_ACTION_SIT_DOWN, true, [&]()
+        {
+            HandleSitDown();
+        });
+        AddCustomAction(GUARD_ACTION_STAND_UP, true, [&]()
+        {
+            HandleStandUp();
+        });
+
+        SetRootSelf(true);
     }
 
-    uint32 m_attackTimer;
-    uint32 m_breakTimer;
-    uint32 m_sitTimer;
-    bool m_bisAttacking;
-    bool m_bsitDown, m_bstandUp;
-    bool m_binCombatWithPlayer;
     ObjectGuid attackableDummy;
 
-    void DoCallForHelp(float) override {}
+    void DoCallForHelp(float) override { }
 
-    void HandleAssistanceCall(Unit*, Unit*) override {}
+    void HandleAssistanceCall(Unit*, Unit*) override { }
 
     void GetNearbyDummyIfNotExist()
     {
@@ -1046,28 +1070,76 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
         }
     }
 
-    void EnterEvadeMode() override
+    void HandleCombatWithPlayer()
     {
-        ScriptedAI::EnterEvadeMode();
-        m_binCombatWithPlayer = false;
+        SetRootSelf(false);
+        Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
+        if(myDummy && myDummy->IsInCombat())
+        {
+            myDummy->CombatStop();
+            m_creature->getThreatManager().modifyThreatPercent(myDummy, -101.f);
+        }
+        DisableTimer(GUARD_ACTION_STAND_UP);
+        DisableTimer(GUARD_ACTION_SIT_DOWN);
+        DisableTimer(GUARD_ACTION_ATTACK);
+        DisableTimer(GUARD_ACTION_PAUSE);
+    }
+
+    void AttackDummy()
+    {
+        if (!attackableDummy && !m_creature->IsInCombat() && !m_creature->IsMoving())
+            GetNearbyDummyIfNotExist();
+
+        Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
+        if ((myDummy) && myDummy->IsAlive())
+        {
+            m_creature->AI()->AttackStart(myDummy);
+        }
+
+        ResetTimer(GUARD_ACTION_PAUSE, urand(120, 145) * IN_MILLISECONDS);
+    }
+
+    void TakePause()
+    {
+        ResetTimer(GUARD_ACTION_SIT_DOWN, 2 * IN_MILLISECONDS);
+        ResetTimer(GUARD_ACTION_STAND_UP, urand(15, 60) * IN_MILLISECONDS);
+        m_creature->CombatStop();
+        if (attackableDummy)
+        {
+            if (Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy))
+            {
+                myDummy->CombatStop();
+            }
+        }
+    }
+
+    void HandleSitDown()
+    {
+        m_creature->SetStandState(UNIT_STAND_STATE_SIT);
+    }
+
+    void HandleStandUp()
+    {
+        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+        ResetTimer(GUARD_ACTION_ATTACK, 3 * IN_MILLISECONDS);
     }
 
     void JustReachedHome() override
     {
-        Reset();
         SetRootSelf(true);
-        GetNearbyDummyIfNotExist();
+        Reset();
     }
 
     void EnterCombat(Unit* who) override
     {
-        if (who->GetEntry() == NPC_THERAMORE_COMBAT_DUMMY)
-            return;
-
         if (who->GetObjectGuid() != attackableDummy)
         {
-            m_binCombatWithPlayer = true;
-            SetRootSelf(false);
+            if (who->GetEntry() == NPC_THERAMORE_COMBAT_DUMMY)
+            {
+                m_creature->CombatStop();
+                return;
+            }
+            HandleCombatWithPlayer();
             ScriptedAI::EnterCombat(who);
         }
     }
@@ -1076,94 +1148,21 @@ struct npc_theramore_practicing_guardAI : public ScriptedAI
     {
         if (who->GetObjectGuid() != attackableDummy)
         {
-            m_binCombatWithPlayer = true;
-            SetRootSelf(false);
+            HandleCombatWithPlayer();
             ScriptedAI::AttackedBy(who);
         }
     }
 
     void Reset() override
     {
-        m_attackTimer = 130 * IN_MILLISECONDS;
-        m_breakTimer = 20 * IN_MILLISECONDS;
-        m_bisAttacking = false;
-        m_bsitDown = false;
-        m_bstandUp = false;
-        m_binCombatWithPlayer = false;
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+        ResetTimer(GUARD_ACTION_ATTACK, urand(15, 20) * IN_MILLISECONDS);
+        ResetTimer(GUARD_ACTION_GET_DUMMY, 2 * IN_MILLISECONDS);
     }
 
-    void UpdateAI(const uint32 diff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (!attackableDummy && !m_creature->IsInCombat() && !m_creature->IsMoving())
-            GetNearbyDummyIfNotExist();
 
-        Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
-
-        if (m_binCombatWithPlayer){
-            if(myDummy && myDummy->IsInCombat())
-            {
-                myDummy->CombatStop();
-            }
-            ScriptedAI::UpdateAI(diff);
-            return;
-        }
-        if (myDummy && myDummy->IsAlive())
-        {
-            Unit* pTarget = m_creature->GetTarget();
-            if(pTarget && pTarget->GetObjectGuid() != attackableDummy){
-                m_creature->CombatStop(true);
-            }
-
-            if (m_bisAttacking)
-            {
-                if (m_attackTimer <= diff)
-                {
-                    m_bisAttacking = false;
-                    m_attackTimer = urand(120, 145) * IN_MILLISECONDS;
-                    m_creature->CombatStop();
-                    myDummy->CombatStop();
-                    m_bsitDown = true;
-                    m_sitTimer = 2 * IN_MILLISECONDS;
-                }
-                else
-                {
-                    DoMeleeAttackIfReady();
-                    m_attackTimer -= diff;
-                }
-            }
-            else
-            {
-                if (m_breakTimer <= diff)
-                {
-                    m_bisAttacking = true;
-                    m_breakTimer = urand(15, 60) * IN_MILLISECONDS;
-                    m_creature->AI()->AttackStart(myDummy);
-                }
-                else if (m_breakTimer <= 2 * IN_MILLISECONDS && m_bstandUp){
-                    m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                    m_bstandUp = false;
-                    m_breakTimer -= diff;
-                }
-                else
-                {
-                    if (m_bsitDown)
-                    {
-                        if (m_sitTimer <= diff)
-                        {
-                            m_creature->SetStandState(UNIT_STAND_STATE_SIT);
-                            m_bsitDown = false;
-                            m_bstandUp = true;
-                        }
-                        else
-                        {
-                            m_sitTimer -= diff;
-                        }
-                    }
-                    m_breakTimer -= diff;
-                }
-            }
-        }
     }
 };
 
@@ -1175,12 +1174,14 @@ struct npc_theramore_combat_dummyAI : public ScriptedAI
 {
     npc_theramore_combat_dummyAI(Creature* pCreature) : ScriptedAI(pCreature)
     {
+        Reset();
+    }
+
+    void Reset() override {
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
         SetReactState(REACT_PASSIVE);
         SetRootSelf(true);
     }
-
-    void Reset() override {}
 
     void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
@@ -1190,7 +1191,7 @@ struct npc_theramore_combat_dummyAI : public ScriptedAI
         damage = std::min(damage, m_creature->GetHealth() - 1);
     }
 
-    void UpdateAI(const uint32 diff) override {}
+    void UpdateAI(const uint32 diff) override { }
 };
 
 /*######

@@ -1023,6 +1023,8 @@ enum PracticingGuardActions
     GUARD_ACTION_STAND_UP,
 };
 
+static const uint32 actionToggle[] = {GUARD_ACTION_ATTACK, GUARD_ACTION_PAUSE, GUARD_ACTION_SIT_DOWN, GUARD_ACTION_STAND_UP};
+
 struct npc_theramore_practicing_guardAI : public CombatAI
 {
     npc_theramore_practicing_guardAI(Creature* pCreature) : CombatAI(pCreature, GUARD_ACTION_MAX)
@@ -1052,8 +1054,6 @@ struct npc_theramore_practicing_guardAI : public CombatAI
     }
 
     ObjectGuid attackableDummy;
-
-    static constexpr uint32 actionToggle[] = {GUARD_ACTION_ATTACK, GUARD_ACTION_PAUSE, GUARD_ACTION_SIT_DOWN, GUARD_ACTION_STAND_UP};
 
     void DoCallForHelp(float) override { }
 

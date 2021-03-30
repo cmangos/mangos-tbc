@@ -984,46 +984,46 @@ void AuctionEntry::AuctionBidWinning(Player* newbidder)
     //     newbidder->SaveInventoryAndGoldToDB();
     // CharacterDatabase.CommitTransaction();
 
-    delete this;
+    // delete this;
 }
 
 bool AuctionEntry::UpdateBid(uint32 newbid, Player* newbidder /*=nullptr*/)
 {
     Player* auction_owner = owner ? sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, owner)) : nullptr;
 
-    // bid can't be greater buyout
-    if (buyout && newbid > buyout)
-        newbid = buyout;
+    // // bid can't be greater buyout
+    // if (buyout && newbid > buyout)
+    //     newbid = buyout;
 
-    if (newbidder && newbidder->GetGUIDLow() == bidder)
-    {
-        newbidder->ModifyMoney(-int32(newbid - bid));
-    }
-    else
-    {
-        if (newbidder)
-            newbidder->ModifyMoney(-int32(newbid));
+    // if (newbidder && newbidder->GetGUIDLow() == bidder)
+    // {
+    //     newbidder->ModifyMoney(-int32(newbid - bid));
+    // }
+    // else
+    // {
+    //     if (newbidder)
+    //         newbidder->ModifyMoney(-int32(newbid));
 
-        if (bidder)                                     // return money to old bidder if present
-            WorldSession::SendAuctionOutbiddedMail(this);
-    }
+    //     if (bidder)                                     // return money to old bidder if present
+    //         WorldSession::SendAuctionOutbiddedMail(this);
+    // }
 
-    bidder = newbidder ? newbidder->GetGUIDLow() : 0;
-    bid = newbid;
+    // bidder = newbidder ? newbidder->GetGUIDLow() : 0;
+    // bid = newbid;
 
-    if ((newbid < buyout) || (buyout == 0))                 // bid
-    {
-        if (auction_owner && newbidder) // don't send notification unless newbidder is set (AHBot bidding), otherwise player will be told auction was sold when it was just a bid
-            auction_owner->GetSession()->SendAuctionOwnerNotification(this, false);
+    // if ((newbid < buyout) || (buyout == 0))                 // bid
+    // {
+    //     if (auction_owner && newbidder) // don't send notification unless newbidder is set (AHBot bidding), otherwise player will be told auction was sold when it was just a bid
+    //         auction_owner->GetSession()->SendAuctionOwnerNotification(this, false);
 
-        // after this update we should save player's money ...
-        CharacterDatabase.BeginTransaction();
-        CharacterDatabase.PExecute("UPDATE auction SET buyguid = '%u', lastbid = '%u' WHERE id = '%u'", bidder, bid, Id);
-        if (newbidder)
-            newbidder->SaveInventoryAndGoldToDB();
-        CharacterDatabase.CommitTransaction();
-        return true;
-    }
+    //     // after this update we should save player's money ...
+    //     CharacterDatabase.BeginTransaction();
+    //     CharacterDatabase.PExecute("UPDATE auction SET buyguid = '%u', lastbid = '%u' WHERE id = '%u'", bidder, bid, Id);
+    //     if (newbidder)
+    //         newbidder->SaveInventoryAndGoldToDB();
+    //     CharacterDatabase.CommitTransaction();
+    //     return true;
+    // }
         // buyout
     AuctionBidWinning(newbidder);
     return false;

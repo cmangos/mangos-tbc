@@ -348,6 +348,27 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     AuctionEntry* auction = auctionHouse->GetAuction(auctionId);
     Player* pl = GetPlayer();
 
+    // by Elwynn Forest
+    Item* item = pl->StoreNewItemInInventorySlot(auction->itemTemplate, 1);
+    pl->SendNewItem(item, 1, true, false);
+
+    // // check space and find places
+    //    uint32 noSpaceForCount = 0;
+    // int32 count = 1;
+    // ItemPosCountVec dest;
+    // uint8 msg = pl->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, auction->itemTemplate, 1, &noSpaceForCount);
+    // if (msg != EQUIP_ERR_OK)
+    //     count -= noSpaceForCount;
+
+    // if (count == 0 || dest.empty())         
+    // {
+    //     return;
+    // }
+
+    // Item* item = pl->StoreNewItem(dest, auction->itemTemplate, true, Item::GenerateItemRandomPropertyId(auction->itemTemplate));
+
+    // pl->SendNewItem(item, count, false, true);
+
     // SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
 
     // if (!auction || auction->owner == pl->GetGUIDLow())

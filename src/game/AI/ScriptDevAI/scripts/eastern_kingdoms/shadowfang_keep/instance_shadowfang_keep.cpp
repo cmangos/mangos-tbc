@@ -21,7 +21,6 @@ SDComment:
 SDCategory: Shadowfang Keep
 EndScriptData */
 
-#include "AI/BaseAI/UnitAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "shadowfang_keep.h"
 

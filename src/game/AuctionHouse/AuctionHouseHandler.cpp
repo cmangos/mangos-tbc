@@ -348,7 +348,7 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     AuctionEntry* auction = auctionHouse->GetAuction(auctionId);
     Player* pl = GetPlayer();
 
-    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
+    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
 
     // if (!auction || auction->owner == pl->GetGUIDLow())
     // {
@@ -396,9 +396,9 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     // if (price < auction->startbid)
     //     return;
 
-    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
+    // SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
 
-    auction->UpdateBid(price, pl);
+    // auction->UpdateBid(price, pl);
 }
 
 // this void is called when auction_owner cancels his auction

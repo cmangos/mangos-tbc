@@ -348,7 +348,7 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     AuctionEntry* auction = auctionHouse->GetAuction(auctionId);
     Player* pl = GetPlayer();
 
-    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
+    // SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
 
     // if (!auction || auction->owner == pl->GetGUIDLow())
     // {

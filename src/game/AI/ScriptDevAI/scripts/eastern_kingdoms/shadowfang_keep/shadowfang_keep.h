@@ -29,7 +29,8 @@ enum
     YELL_KILLED_PLAYER      = -1033018,
     YELL_WORGEN_CURSE       = -1033019,
 
-    SPELL_SPAWN             = 10418,
+    SPELL_SPAWN             = 7741,
+    SPELL_ARUGAL_TELEPORT   = 7136,
     SPELL_FIRE              = 6422,
 
     NPC_ASH                 = 3850,

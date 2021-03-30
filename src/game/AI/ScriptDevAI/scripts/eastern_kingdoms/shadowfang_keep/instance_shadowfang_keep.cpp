@@ -28,16 +28,16 @@ static const DialogueEntry aArugalDialogue[] =
 {
     {NPC_VINCENT,                      0,   2000},
     {VINCENT_DEATH,          NPC_VINCENT,   8000},
-    {ARUGAL_VISIBLE,          NPC_ARUGAL,   1800},
-    {ARUGAL_TELEPORT_IN,      NPC_ARUGAL,   3000},
+    {ARUGAL_VISIBLE,          NPC_ARUGAL,    100},
+    {ARUGAL_TELEPORT_IN,      NPC_ARUGAL,   3500},
     {SAY_ARUGAL_INTRO_1,      NPC_ARUGAL,    100},
-    {ARUGAL_EMOTE_POINT,      NPC_ARUGAL,   2500},
+    {ARUGAL_EMOTE_POINT,      NPC_ARUGAL,   3900},
     {SAY_ARUGAL_INTRO_2,      NPC_ARUGAL,   2500},
     {ARUGAL_EMOTE_EXCLAMATION,NPC_ARUGAL,   2500},
     {SAY_ARUGAL_INTRO_3,      NPC_ARUGAL,   2500},
     {ARUGAL_EMOTE_LAUGH,      NPC_ARUGAL,   2500},
     {SAY_ARUGAL_INTRO_4,      NPC_ARUGAL,   2500},
-    {ARUGAL_TELEPORT_OUT,     NPC_ARUGAL,   2500},
+    {ARUGAL_TELEPORT_OUT,     NPC_ARUGAL,   2000},
     {ARUGAL_INTRO_DONE,       NPC_ARUGAL,      0},
     {NPC_ARCHMAGE_ARUGAL,              0,    100},
     {YELL_FENRUS,    NPC_ARCHMAGE_ARUGAL,   2000},
@@ -270,11 +270,11 @@ void instance_shadowfang_keep::JustDidDialogueStep(int32 entry)
             break;
         case ARUGAL_VISIBLE:
             if (Creature* creature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-                creature->AI()->DoCastSpellIfCan(creature, SPELL_SPAWN, CAST_TRIGGERED);
+                creature->SetVisibility(VISIBILITY_ON);
             break;
         case ARUGAL_TELEPORT_IN:
             if (Creature* creature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-                creature->SetVisibility(VISIBILITY_ON);
+                creature->AI()->DoCastSpellIfCan(creature, SPELL_SPAWN);
             break;
         case SAY_ARUGAL_INTRO_1:
             if (Creature* creatureA = GetSingleCreatureFromStorage(NPC_ARUGAL))
@@ -295,7 +295,7 @@ void instance_shadowfang_keep::JustDidDialogueStep(int32 entry)
             break;
         case ARUGAL_TELEPORT_OUT:
             if (Creature* creature = GetSingleCreatureFromStorage(NPC_ARUGAL))
-                creature->AI()->DoCastSpellIfCan(creature, SPELL_SPAWN, CAST_TRIGGERED);
+                creature->AI()->DoCastSpellIfCan(creature, SPELL_ARUGAL_TELEPORT);
             break;
         case ARUGAL_INTRO_DONE:
             SetData(TYPE_INTRO, DONE);

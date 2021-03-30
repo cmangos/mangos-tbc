@@ -367,32 +367,32 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     }
 
     // cheating or client lags
-    if (price <= auction->bid)
-    {
-        // client test but possible in result lags
-        SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_HIGHER_BID);
-        return;
-    }
+    // if (price <= auction->bid)
+    // {
+    //     // client test but possible in result lags
+    //     SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_HIGHER_BID);
+    //     return;
+    // }
 
     // price too low for next bid if not buyout
-    if ((price < auction->buyout || auction->buyout == 0) &&
-            price < auction->bid + auction->GetAuctionOutBid())
-    {
-        // client test but possible in result lags
-        SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_INCREMENT);
-        return;
-    }
+    // if ((price < auction->buyout || auction->buyout == 0) &&
+    //         price < auction->bid + auction->GetAuctionOutBid())
+    // {
+    //     // client test but possible in result lags
+    //     SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_INCREMENT);
+    //     return;
+    // }
 
-    if (price > pl->GetMoney())
-    {
-        // you don't have enough money!, client tests!
-        // SendAuctionCommandResult(auction->auctionId, AUCTION_ERR_INVENTORY, EQUIP_ERR_NOT_ENOUGH_MONEY);
-        return;
-    }
+    // if (price > pl->GetMoney())
+    // {
+    //     // you don't have enough money!, client tests!
+    //     SendAuctionCommandResult(auction->auctionId, AUCTION_ERR_INVENTORY, EQUIP_ERR_NOT_ENOUGH_MONEY);
+    //     return;
+    // }
 
     // cheating
-    if (price < auction->startbid)
-        return;
+    // if (price < auction->startbid)
+    //     return;
 
     SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
 

@@ -35,7 +35,6 @@ EndContentData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
-#include "Common.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
@@ -1089,7 +1088,7 @@ struct npc_theramore_practicing_guardAI : public CombatAI
     {
         SetRootSelf(false);
         Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
-        if(myDummy && myDummy->IsInCombat())
+        if (myDummy && myDummy->IsInCombat())
         {
             myDummy->CombatStop();
             m_creature->getThreatManager().modifyThreatPercent(myDummy, -101.f);
@@ -1105,7 +1104,7 @@ struct npc_theramore_practicing_guardAI : public CombatAI
             return;
 
         Unit* myDummy = m_creature->GetMap()->GetUnit(attackableDummy);
-        if ((myDummy) && myDummy->IsAlive())
+        if (myDummy && myDummy->IsAlive())
         {
             m_creature->AI()->AttackStart(myDummy);
         }

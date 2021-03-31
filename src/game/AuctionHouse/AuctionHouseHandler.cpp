@@ -348,78 +348,79 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     AuctionEntry* auction = auctionHouse->GetAuction(auctionId);
     Player* pl = GetPlayer();
 
-    // by Elwynn Forest
     Item* item = pl->StoreNewItemInInventorySlot(auction->itemTemplate, 1);
     pl->SendNewItem(item, 1, true, false);
+    
+    return;
 
-    // // check space and find places
-    //    uint32 noSpaceForCount = 0;
-    // int32 count = 1;
-    // ItemPosCountVec dest;
-    // uint8 msg = pl->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, auction->itemTemplate, 1, &noSpaceForCount);
-    // if (msg != EQUIP_ERR_OK)
-    //     count -= noSpaceForCount;
+    // check space and find places
+    uint32 noSpaceForCount = 0;
+    int32 count = 1;
+    ItemPosCountVec dest;
+    uint8 msg = pl->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, auction->itemTemplate, 1, &noSpaceForCount);
+    if (msg != EQUIP_ERR_OK)
+        count -= noSpaceForCount;
 
-    // if (count == 0 || dest.empty())         
-    // {
-    //     return;
-    // }
+    if (count == 0 || dest.empty())         
+    {
+        return;
+    }
 
-    // Item* item = pl->StoreNewItem(dest, auction->itemTemplate, true, Item::GenerateItemRandomPropertyId(auction->itemTemplate));
+    Item* item = pl->StoreNewItem(dest, auction->itemTemplate, true, Item::GenerateItemRandomPropertyId(auction->itemTemplate));
 
-    // pl->SendNewItem(item, count, false, true);
+    pl->SendNewItem(item, count, false, true);
 
-    // SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
+    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
 
-    // if (!auction || auction->owner == pl->GetGUIDLow())
-    // {
-    //     // you cannot bid your own auction:
-    //     SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
-    //     return;
-    // }
+    if (!auction || auction->owner == pl->GetGUIDLow())
+    {
+        // you cannot bid your own auction:
+        SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
+        return;
+    }
 
-    // ObjectGuid ownerGuid = ObjectGuid(HIGHGUID_PLAYER, auction->owner);
+    ObjectGuid ownerGuid = ObjectGuid(HIGHGUID_PLAYER, auction->owner);
 
-    // // impossible have online own another character (use this for speedup check in case online owner)
-    // Player* auction_owner = sObjectMgr.GetPlayer(ownerGuid);
-    // if (!auction_owner && sObjectMgr.GetPlayerAccountIdByGUID(ownerGuid) == pl->GetSession()->GetAccountId())
-    // {
-    //     // you cannot bid your another character auction:
-    //     SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
-    //     return;
-    // }
+    // impossible have online own another character (use this for speedup check in case online owner)
+    Player* auction_owner = sObjectMgr.GetPlayer(ownerGuid);
+    if (!auction_owner && sObjectMgr.GetPlayerAccountIdByGUID(ownerGuid) == pl->GetSession()->GetAccountId())
+    {
+        // you cannot bid your another character auction:
+        SendAuctionCommandResult(nullptr, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
+        return;
+    }
 
     // cheating or client lags
-    // if (price <= auction->bid)
-    // {
-    //     // client test but possible in result lags
-    //     SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_HIGHER_BID);
-    //     return;
-    // }
+    if (price <= auction->bid)
+    {
+        // client test but possible in result lags
+        SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_HIGHER_BID);
+        return;
+    }
 
     // price too low for next bid if not buyout
-    // if ((price < auction->buyout || auction->buyout == 0) &&
-    //         price < auction->bid + auction->GetAuctionOutBid())
-    // {
-    //     // client test but possible in result lags
-    //     SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_INCREMENT);
-    //     return;
-    // }
+    if ((price < auction->buyout || auction->buyout == 0) &&
+            price < auction->bid + auction->GetAuctionOutBid())
+    {
+        // client test but possible in result lags
+        SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_INCREMENT);
+        return;
+    }
 
-    // if (price > pl->GetMoney())
-    // {
-    //     // you don't have enough money!, client tests!
-    //     SendAuctionCommandResult(auction->auctionId, AUCTION_ERR_INVENTORY, EQUIP_ERR_NOT_ENOUGH_MONEY);
-    //     return;
-    // }
+    if (price > pl->GetMoney())
+    {
+        // you don't have enough money!, client tests!
+        // SendAuctionCommandResult(auction->auctionId, AUCTION_ERR_INVENTORY, EQUIP_ERR_NOT_ENOUGH_MONEY);
+        return;
+    }
 
     // cheating
-    // if (price < auction->startbid)
-    //     return;
+    if (price < auction->startbid)
+        return;
 
-    // SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
+    SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_OK);
 
-    // auction->UpdateBid(price, pl);
+    auction->UpdateBid(price, pl);
 }
 
 // this void is called when auction_owner cancels his auction

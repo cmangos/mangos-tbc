@@ -1117,33 +1117,31 @@ void Pet::GivePetXP(uint32 xp)
     uint32 level = getLevel();
     uint32 maxlevel = std::min(sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL), GetOwner()->getLevel());
 
-    xp *= sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL);
-
-    if (getPetType() == HUNTER_PET)
-    {
-        UpdateRequireXpForNextLoyaltyLevel(xp);
-        KillLoyaltyBonus(level);
-    }
-
     // pet not receive xp for level equal to owner level
-    if (level >= maxlevel)
-        return;
-
-    uint32 nextLvlXP = GetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
-    uint32 curXP = GetUInt32Value(UNIT_FIELD_PETEXPERIENCE);
-    uint32 newXP = curXP + xp;
-
-    while (newXP >= nextLvlXP && level < maxlevel)
+    if (level < maxlevel)
     {
-        newXP -= nextLvlXP;
-        ++level;
 
-        GivePetLevel(level);                              // also update UNIT_FIELD_PETNEXTLEVELEXP and UNIT_FIELD_PETEXPERIENCE to level start
+        xp *= sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL);
 
-        nextLvlXP = GetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
+        uint32 nextLvlXP = GetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
+        uint32 curXP = GetUInt32Value(UNIT_FIELD_PETEXPERIENCE);
+        uint32 newXP = curXP + xp;
+
+        while (newXP >= nextLvlXP && level < maxlevel)
+        {
+            newXP -= nextLvlXP;
+            ++level;
+
+            GivePetLevel(level);                              // also update UNIT_FIELD_PETNEXTLEVELEXP and UNIT_FIELD_PETEXPERIENCE to level start
+
+            nextLvlXP = GetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP);
+        }
+
+        SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, level < maxlevel ? newXP : 0);
     }
 
-    SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, level < maxlevel ? newXP : 0);
+    UpdateRequireXpForNextLoyaltyLevel(xp);
+    KillLoyaltyBonus(level);
 }
 
 void Pet::GivePetLevel(uint32 level)

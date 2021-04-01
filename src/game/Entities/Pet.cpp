@@ -1297,8 +1297,8 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 uint32 mDmg = (GetAttackTime(BASE_ATTACK) * petlevel) / 2000;
 
                 // Set damage
-                SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(mDmg - mDmg / 4));
-                SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float((mDmg - mDmg / 4) * 1.5));
+                SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(mDmg - mDmg / 4.f));
+                SetBaseWeaponDamage(BASE_ATTACK, MAXDAMAGE, float((mDmg - mDmg / 4.f) * 1.5));
             }
             else
             {
@@ -1339,7 +1339,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                 // Info found in ClassLevelStats
                 if (CreatureClassLvlStats const* cCLS = sObjectMgr.GetCreatureClassLvlStats(petlevel, cInfo->UnitClass, cInfo->Expansion))
                 {
-                    float minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000)) * cInfo->DamageMultiplier;
+                    float minDmg = (cCLS->BaseDamage * cInfo->DamageVariance + (cCLS->BaseMeleeAttackPower / 14) * (cInfo->MeleeBaseAttackTime / 1000.f)) * cInfo->DamageMultiplier;
 
                     // Apply custom damage setting (from config)
                     minDmg *= _GetDamageMod(cInfo->Rank);

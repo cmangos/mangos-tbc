@@ -820,10 +820,13 @@ void WorldSession::BuildListAuctionItems(std::vector<AuctionEntry*> const& aucti
             if (itemSubClass != 0xffffffff && proto->SubClass != itemSubClass)
                 continue;
 
-            if (inventoryType != 0xffffffff && proto->InventoryType != inventoryType) {
-                // if inventory type is chest, we want to return robes too
-                // i.e. cloth chests are in most cases robes by definition
-                if (inventoryType != 5 || proto->InventoryType != 20) {
+            if (inventoryType != 0xffffffff && proto->InventoryType != inventoryType) 
+            {
+                if (inventoryType != INVTYPE_CHEST || proto->InventoryType != INVTYPE_ROBE) 
+                {
+                    // if inventory type is chest, we want to return robes too
+                    // i.e. cloth chests are in most cases robes by definition
+                
                     continue;
                 }
             }

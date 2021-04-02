@@ -207,6 +207,15 @@ enum AQResources
     RESOURCE_MAX,
 };
 
+enum AQResourceGroup
+{
+    RESOURCE_GROUP_SKINNING,
+    RESOURCE_GROUP_BANDAGES,
+    RESOURCE_GROUP_BARS,
+    RESOURCE_GROUP_COOKING,
+    RESOURCE_GROUP_HERBS,
+};
+
 enum AQPhase
 {
     PHASE_0_DISABLED,
@@ -225,6 +234,7 @@ struct AhnQirajData
     uint32 m_WarEffortCounters[RESOURCE_MAX];
     GuidVector m_warEffortWorldstatesPlayers;
     std::mutex m_warEffortMutex;
+    std::set<uint32> m_spawnedDbGuids;
     AhnQirajData() : m_phase(PHASE_0_DISABLED), m_timer(0)
     {
         memset(m_WarEffortCounters, 0, sizeof(m_WarEffortCounters));
@@ -355,8 +365,12 @@ class WorldState
 
         void AddWarEffortProgress(AQResources resource, uint32 count);
         void HandleWarEffortPhaseTransition(uint32 newPhase);
-        void StopWarEffortEvent();
         void StartWarEffortEvent();
+        void StopWarEffortEvent();
+        void SpawnWarEffortGos();
+        void ChangeWarEffortGoSpawns(AQResources resource);
+        std::pair<AQResourceGroup, Team> GetResourceInfo(AQResources resource);
+        std::pair<uint32, uint32> GetResourceCounterAndMax(AQResourceGroup group, Team team);
         std::string GetAQPrintout();
 
         // tbc section

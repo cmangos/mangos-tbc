@@ -6785,6 +6785,12 @@ bool ChatHandler::HandleLinkCheckCommand(char* args)
 
 bool ChatHandler::HandleWarEffortCommand(char* args)
 {
+    PSendSysMessage("%s", sWorldState.GetAQPrintout().data());
+    return true;
+}
+
+bool ChatHandler::HandleWarEffortPhaseCommand(char* args)
+{
     uint32 param;
     if (!ExtractUInt32(&args, param))
     {
@@ -6792,6 +6798,26 @@ bool ChatHandler::HandleWarEffortCommand(char* args)
         return true;
     }
     sWorldState.HandleWarEffortPhaseTransition(param);
+    return true;
+}
+
+bool ChatHandler::HandleWarEffortCounterCommand(char* args)
+{
+    uint32 index;
+    if (!ExtractUInt32(&args, index) || index >= RESOURCE_MAX)
+    {
+        PSendSysMessage("Enter valid index for counter.");
+        return true;
+    }
+
+    uint32 value;
+    if (!ExtractUInt32(&args, value))
+    {
+        PSendSysMessage("Enter valid value for counter.");
+        return true;
+    }
+
+    sWorldState.AddWarEffortProgress(AQResources(index), value);
     return true;
 }
 

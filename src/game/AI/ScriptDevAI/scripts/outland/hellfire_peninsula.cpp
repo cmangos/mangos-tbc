@@ -1120,7 +1120,7 @@ enum AledisActions // order based on priority
 
 struct npc_magister_aledisAI : public RangedCombatAI
 {
-    npc_magister_aledisAI(Creature* creature) : RangedCombatAI(creature, ALEDIS_ACTION_MAX)
+    npc_magister_aledisAI(Creature* creature) : RangedCombatAI(creature, ALEDIS_ACTION_MAX), m_uiCurrWaypoint(1)
     {
         AddTimerlessCombatAction(ALEDIS_LOW_HP, true);
         AddCombatAction(ALEDIS_ACTION_PYROBLAST, 10000, 14000);
@@ -1133,6 +1133,7 @@ struct npc_magister_aledisAI : public RangedCombatAI
 
     bool m_bIsDefeated;
     bool m_bAllyAttacker;
+    uint32 m_uiCurrWaypoint;
 
     void Reset() override
     {
@@ -1165,6 +1166,7 @@ struct npc_magister_aledisAI : public RangedCombatAI
     {
         if (m_creature->getFaction() == FACTION_ALLEDIS_HOSTILE)
             SetDeathPrevention(true);
+        m_uiCurrWaypoint = m_creature->GetMotionMaster()->getLastReachedWaypoint();
     }
 
     void EvadeReset()
@@ -1187,6 +1189,7 @@ struct npc_magister_aledisAI : public RangedCombatAI
             {
                 m_creature->SetWalk(true);
                 m_creature->GetMotionMaster()->MoveWaypoint();
+                m_creature->GetMotionMaster()->SetNextWaypoint(m_uiCurrWaypoint);
             }
             else
             {

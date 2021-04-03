@@ -1120,7 +1120,7 @@ enum AledisActions // order based on priority
 
 struct npc_magister_aledisAI : public RangedCombatAI
 {
-    npc_magister_aledisAI(Creature* creature) : RangedCombatAI(creature, ALEDIS_ACTION_MAX), m_uiCurrWaypoint(1)
+    npc_magister_aledisAI(Creature* creature) : RangedCombatAI(creature, ALEDIS_ACTION_MAX)
     {
         AddTimerlessCombatAction(ALEDIS_LOW_HP, true);
         AddCombatAction(ALEDIS_ACTION_PYROBLAST, 10000, 14000);
@@ -1131,15 +1131,9 @@ struct npc_magister_aledisAI : public RangedCombatAI
         Reset();
     }
 
-    bool m_bIsDefeated;
-    bool m_bAllyAttacker;
-    uint32 m_uiCurrWaypoint;
-
     void Reset() override
     {
         RangedCombatAI::Reset();
-        m_bAllyAttacker = false;
-        m_bIsDefeated = false;
 
         SetCombatMovement(true);
         SetCombatScriptStatus(false);
@@ -1166,39 +1160,6 @@ struct npc_magister_aledisAI : public RangedCombatAI
     {
         if (m_creature->getFaction() == FACTION_ALLEDIS_HOSTILE)
             SetDeathPrevention(true);
-        m_uiCurrWaypoint = m_creature->GetMotionMaster()->getLastReachedWaypoint();
-    }
-
-    void EvadeReset()
-    {
-        m_bAllyAttacker = false;
-        m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-    }
-
-    void EnterEvadeMode() override
-    {
-        m_creature->RemoveAllAurasOnEvade();
-        m_creature->CombatStop(true);
-
-        if (!m_bIsDefeated)
-            m_creature->LoadCreatureAddon(true);
-
-        if (m_creature->IsAlive())
-        {
-            if (!m_bIsDefeated)
-            {
-                m_creature->SetWalk(true);
-                m_creature->GetMotionMaster()->MoveWaypoint();
-                m_creature->GetMotionMaster()->SetNextWaypoint(m_uiCurrWaypoint);
-            }
-            else
-            {
-                m_creature->GetMotionMaster()->MoveIdle();
-                EvadeReset();
-            }
-        }
-
-        m_creature->SetLootRecipient(nullptr);
     }
 
     void ExecuteAction(uint32 action) override
@@ -1210,13 +1171,12 @@ struct npc_magister_aledisAI : public RangedCombatAI
                 if (m_creature->GetHealthPercent() > 20.0f || m_creature->getFaction() != FACTION_ALLEDIS_HOSTILE)
                     return;
 
-                // evade when defeated; faction is reset automatically
-                m_bIsDefeated = true;
                 m_creature->SetFactionTemporary(FACTION_ALLEDIS_FRIENDLY, TEMPFACTION_RESTORE_RESPAWN);
-                EnterEvadeMode();
+                m_creature->CombatStopWithPets(true);
+                m_creature->GetMotionMaster()->MoveIdle();
+                m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
                 m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
                 SetReactState(REACT_PASSIVE);
-
                 DoScriptText(SAY_ALEDIS_DEFEAT, m_creature);
                 m_creature->ForcedDespawn(30000);
                 return;

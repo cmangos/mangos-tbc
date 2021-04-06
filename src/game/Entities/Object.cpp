@@ -2885,18 +2885,18 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
     {
         if (Player * modOwner = unitCaster->GetSpellModOwner())
         {
-            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value, nullptr, finalUse);
+            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value, finalUse);
 
             switch (effect_index)
             {
                 case EFFECT_INDEX_0:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT1, value, nullptr, finalUse);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT1, value, finalUse);
                     break;
                 case EFFECT_INDEX_1:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT2, value, nullptr, finalUse);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT2, value, finalUse);
                     break;
                 case EFFECT_INDEX_2:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT3, value, nullptr, finalUse);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT3, value, finalUse);
                     break;
             }
         }

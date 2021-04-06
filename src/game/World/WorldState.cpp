@@ -1509,6 +1509,7 @@ void WorldState::StopExpansionEvent()
         sGameEventMgr.StopEvent(GAME_EVENT_BEFORE_THE_STORM);
         m_darkPortalOpen = true;
     }
+    StartArenaSeason();
 }
 
 void WorldState::StartArenaSeason()

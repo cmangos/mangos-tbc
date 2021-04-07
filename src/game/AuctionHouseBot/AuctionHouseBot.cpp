@@ -239,6 +239,8 @@ void AuctionHouseBot::Update()
             if (auction->owner == 0 && auction->bid == 0)
                 continue; // ignore bidding/buying auctions that were created by ahbot and not bidded on by player
             Item* item = sAuctionMgr.GetAItem(auction->itemGuidLow);
+            if (!item)
+                continue;
             auto prototype = item->GetProto();
             if (!prototype)
                 continue; // shouldn't happen

@@ -43,7 +43,7 @@ std::stringstream& operator<<(std::stringstream& out, const Measurement& measure
     out << " ";
 
     MANGOS_ASSERT(measurement._fields.size() > 0);
-    
+
     const auto& last = measurement._fields.rbegin()->first;
     for (const auto& field : measurement._fields)
     {
@@ -57,7 +57,7 @@ std::stringstream& operator<<(std::stringstream& out, const Measurement& measure
         else if (field.second.type() == typeid(float))
             out << boost::any_cast<float>(field.second);
         else if (field.second.type() == typeid(bool))
-            out << (boost::any_cast<bool>(field.second) ? "t" : "f");
+            out << boost::any_cast<bool>(field.second) ? "t" : "f";
         else if (field.second.type() == typeid(std::string))
             out << boost::any_cast<std::string>(field.second);
         else

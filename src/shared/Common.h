@@ -62,6 +62,7 @@ typedef std::chrono::time_point<std::chrono::system_clock, std::chrono::millisec
 #  define I32FMT "%08I32X"
 #  define I64FMT "%016I64X"
 
+#  pragma warning ( disable : 4251 )
 #else
 
 #  define stricmp strcasecmp

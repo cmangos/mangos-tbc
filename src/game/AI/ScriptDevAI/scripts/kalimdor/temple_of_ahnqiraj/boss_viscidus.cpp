@@ -67,8 +67,10 @@ enum
 //    SPELL_VISCIDUS_TELEPORT     = 25904,                    // Unknown usage - removed from DBC (readded)
     SPELL_SUMMONT_TRIGGER       = 26564,                    // summons 15992 - removed from DBC (readded)
 
-    SPELL_SUMMON_TOXIC_SLIME    = 26584,                    // unk purpose
+    // Spell for Toxic Slime (green poisonous clouds)
+    SPELL_SUMMON_TOXIC_SLIME    = 26584,
     SPELL_SUMMON_TOXIC_SLIME_2  = 26577,
+    SPELL_DESPAWN_TOXIC_SLIMES  = 26585,
 
     // Make Viscidus invisible and passive
     SPELL_STUN_SELF             = 25900,
@@ -76,7 +78,6 @@ enum
     SPELL_INVIS_STALKER         = 27933,
 
     NPC_GLOB_OF_VISCIDUS        = 15667,
-    // NPC_VISCIDUS_TRIGGER        = 15925,                    // handles aura 26575
 
     MAX_VISCIDUS_GLOBS          = 20,                       // there are 20 summoned globs; each glob = 5% hp
 
@@ -154,12 +155,15 @@ struct boss_viscidusAI : public CombatAI
         DoCastSpellIfCan(nullptr, SPELL_VISCIDUS_WEAKNESS, CAST_TRIGGERED);
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
         if (m_instance)
             m_instance->SetData(TYPE_VISCIDUS, FAIL);
 
         DoCastSpellIfCan(m_creature, SPELL_DESPAWN_GLOBS, CAST_TRIGGERED);
+        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_TOXIC_SLIMES, CAST_TRIGGERED);
+
+        CombatAI::EnterEvadeMode();
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -178,8 +182,6 @@ struct boss_viscidusAI : public CombatAI
             summoned->GetMotionMaster()->MovePoint(1, x, y, z);
             m_lGlobesGuidList.push_back(summoned->GetObjectGuid());
         }
-        else if (summoned->GetEntry() == NPC_VISCIDUS_TRIGGER) // forwarded from map
-            summoned->CastSpell(nullptr, SPELL_TOXIN, TRIGGERED_OLD_TRIGGERED);
     }
 
     void SummonedCreatureJustDied(Creature* summoned) override
@@ -401,6 +403,20 @@ struct SummonToxicSlime : public SpellScript
     }
 };
 
+struct ViscidusDespawnAdds : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (!spell->GetUnitTarget())
+            return;
+
+        if (spell->GetUnitTarget()->GetTypeId() != TYPEID_UNIT)
+            return;
+
+        ((Creature*)spell->GetUnitTarget())->ForcedDespawn();
+    }
+};
+
 struct ViscidusSuicideTrigger : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
@@ -460,6 +476,7 @@ void AddSC_boss_viscidus()
 
     RegisterAuraScript<ViscidusFreeze>("spell_viscidus_freeze");
     RegisterSpellScript<SummonToxicSlime>("spell_summon_toxic_slime");
+    RegisterSpellScript<ViscidusDespawnAdds>("spell_viscidus_despawn_adds");
     RegisterSpellScript<ViscidusSuicideTrigger>("spell_viscidus_suicide");
     RegisterSpellScript<ViscidusSummonGlobs>("spell_viscidus_summon_globs");
     RegisterAuraScript<ViscidusFrostWeakness>("spell_viscidus_frost_weakness");

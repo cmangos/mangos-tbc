@@ -20717,45 +20717,16 @@ void Player::UpdateTerainEnvironmentFlags(Map* m, float x, float y, float z)
 
         if (liquid && liquid->SpellId)
         {
-            // Exception for SSC water
-            uint32 liquidSpellId = liquid->SpellId == 37025 ? 37284 : liquid->SpellId;
-
             if (res & (LIQUID_MAP_UNDER_WATER | LIQUID_MAP_IN_WATER))
             {
-                if (!HasAura(liquidSpellId))
-                {
-                    // Handle exception for SSC water
-                    if (liquid->SpellId == 37025)
-                    {
-                        if (InstanceData* pInst = GetInstanceData())
-                        {
-                            if (pInst->CheckConditionCriteriaMeet(this, INSTANCE_CONDITION_ID_LURKER, nullptr, CONDITION_FROM_HARDCODED))
-                            {
-                                if (pInst->CheckConditionCriteriaMeet(this, INSTANCE_CONDITION_ID_SCALDING_WATER, nullptr, CONDITION_FROM_HARDCODED))
-                                    CastSpell(this, liquidSpellId, TRIGGERED_OLD_TRIGGERED);
-                                else
-                                {
-                                    SummonCreature(21508, 0, 0, 0, 0, TEMPSPAWN_TIMED_OOC_DESPAWN, 2000);
-                                    // Special update timer for the SSC water
-                                    m_positionStatusUpdateTimer = 2000;
-                                }
-                            }
-                        }
-                    }
-                    else
-                        CastSpell(this, liquidSpellId, TRIGGERED_OLD_TRIGGERED);
-                }
+                if (!HasAura(liquid->SpellId))
+                    CastSpell(this, liquid->SpellId, TRIGGERED_OLD_TRIGGERED);
             }
             else
-                RemoveAurasDueToSpell(liquidSpellId);
+                RemoveAurasDueToSpell(liquid->SpellId);
         }
 
         m_lastLiquid = liquid;
-    }
-    else if (m_lastLiquid && m_lastLiquid->SpellId)
-    {
-        RemoveAurasDueToSpell(m_lastLiquid->SpellId == 37025 ? 37284 : m_lastLiquid->SpellId);
-        m_lastLiquid = nullptr;
     }
 
     // All liquid types: check under surface level

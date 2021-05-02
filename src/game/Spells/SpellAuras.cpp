@@ -5845,6 +5845,7 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
         case 40538:                                         // Tenacity (i.32534 - Brooch of the Immortal King)
         case 44055:                                         // Tremendous Fortitude (Battlemaster's Trinkets)
         case 45049:                                         // Tenacity (i.34428 - Steely Naaru Sliver)
+        case 46302:                                         // K'iru's Song of Victory (Isle of Quel'Danas Zone Aura)
         {
             if (Real)
             {

@@ -31,6 +31,7 @@ extern void AddSC_boss_highlord_kruul();
 extern void AddSC_war_effort();
 extern void AddSC_suns_reach_reclamation();
 extern void AddSC_shade_of_the_horseman();
+extern void AddSC_childrens_week_tbc();
 
 // eastern kingdoms
 extern void AddSC_blackrock_depths();                       // blackrock_depths
@@ -389,6 +390,7 @@ void AddScripts()
     AddSC_war_effort();
     AddSC_suns_reach_reclamation();
     AddSC_shade_of_the_horseman();
+    AddSC_childrens_week_tbc();
 
     // eastern kingdoms
     AddSC_blackrock_depths();                               // blackrock_depths

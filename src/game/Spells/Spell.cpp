@@ -2845,14 +2845,17 @@ SpellCastResult Spell::SpellStart(SpellCastTargets const* targets, Aura* trigger
 
     // create and add update event for this spell
     SpellEvent* Event = new SpellEvent(this);
-    m_caster->m_events.AddEvent(Event, m_caster->m_events.CalculateTime(1));
+    m_trueCaster->m_events.AddEvent(Event, m_trueCaster->m_events.CalculateTime(1));
 
-    // Prevent casting at cast another spell (ServerSide check)
-    if (m_caster->IsNonMeleeSpellCasted(false, true, true) && m_cast_count && !m_ignoreConcurrentCasts)
+    if (!m_trueCaster->IsGameObject()) // gameobjects dont have a sense of already casting a spell
     {
-        SendCastResult(SPELL_FAILED_SPELL_IN_PROGRESS);
-        finish(false);
-        return SPELL_FAILED_SPELL_IN_PROGRESS;
+        // Prevent casting at cast another spell (ServerSide check)
+        if (m_caster->IsNonMeleeSpellCasted(false, true, true) && m_cast_count && !m_ignoreConcurrentCasts)
+        {
+            SendCastResult(SPELL_FAILED_SPELL_IN_PROGRESS);
+            finish(false);
+            return SPELL_FAILED_SPELL_IN_PROGRESS;
+        }
     }
 
     SpellCastResult result = PreCastCheck();
@@ -2884,7 +2887,7 @@ void Spell::Prepare()
     // set timer base at cast time
     ReSetTimer();
 
-    if (!m_IsTriggeredSpell)
+    if (!m_IsTriggeredSpell && !m_trueCaster->IsGameObject())
     {
         m_caster->RemoveAurasOnCast(m_spellInfo);
 
@@ -2893,25 +2896,28 @@ void Spell::Prepare()
             m_caster->AI()->OnSpellCastStateChange(this, true, m_targets.getUnitTarget());
     }
 
-    m_castPositionX = m_caster->GetPositionX();
-    m_castPositionY = m_caster->GetPositionY();
-    m_castPositionZ = m_caster->GetPositionZ();
-    m_castOrientation = m_caster->GetOrientation();
+    m_castPositionX = m_trueCaster->GetPositionX();
+    m_castPositionY = m_trueCaster->GetPositionY();
+    m_castPositionZ = m_trueCaster->GetPositionZ();
+    m_castOrientation = m_trueCaster->GetOrientation();
 
     OnSuccessfulStart();
 
     // add non-triggered (with cast time and without)
     if (!m_IsTriggeredSpell)
     {
-        // add to cast type slot
-        if((!m_ignoreConcurrentCasts || IsChanneledSpell(m_spellInfo)) && !m_triggerAutorepeat)
-            m_caster->SetCurrentCastedSpell(this);
+        if (!m_trueCaster->IsGameObject())
+        {
+            // add to cast type slot
+            if ((!m_ignoreConcurrentCasts || IsChanneledSpell(m_spellInfo)) && !m_triggerAutorepeat)
+                m_caster->SetCurrentCastedSpell(this);
+
+            // add gcd server side (client side is handled by client itself)
+            m_caster->AddGCD(*m_spellInfo);
+        }
 
         // will show cast bar
         SendSpellStart();
-
-        // add gcd server side (client side is handled by client itself)
-        m_caster->AddGCD(*m_spellInfo);
 
         // Execute instant spells immediate
         if (m_timer == 0 && !IsNextMeleeSwingSpell(m_spellInfo) && (!IsAutoRepeat() || m_triggerAutorepeat))
@@ -2921,7 +2927,7 @@ void Spell::Prepare()
     else
     {
         // Channeled spell is always one per caster and needs to be tracked and removed on death
-        if (IsChanneledSpell(m_spellInfo))
+        if (IsChanneledSpell(m_spellInfo)) // GO casters cant cast channeled spells
             m_caster->SetCurrentCastedSpell(this);
 
         if (m_timer == 0)
@@ -3762,7 +3768,7 @@ void Spell::SendSpellStart() const
     if (castFlags & CAST_FLAG_AMMO)                         // projectile info
         WriteAmmoToPacket(data);
 
-    m_caster->SendMessageToSet(data, true);
+    m_trueCaster->SendMessageToSet(data, true);
 }
 
 void Spell::SendSpellGo()
@@ -3799,7 +3805,7 @@ void Spell::SendSpellGo()
         data << m_caster->GetPackGUID();
     data << uint32(m_spellInfo->Id);                        // spellId
     data << uint16(castFlags);                              // cast flags
-    data << uint32(m_caster->GetMap()->GetCurrentMSTime());                // timestamp
+    data << uint32(m_trueCaster->GetMap()->GetCurrentMSTime()); // timestamp
 
     WriteSpellGoTargets(data);
 
@@ -3808,7 +3814,7 @@ void Spell::SendSpellGo()
     if (castFlags & CAST_FLAG_AMMO)                         // projectile info
         WriteAmmoToPacket(data);
 
-    m_caster->SendMessageToSet(data, true);
+    m_trueCaster->SendMessageToSet(data, true);
 }
 
 void Spell::WriteAmmoToPacket(WorldPacket& data) const
@@ -3816,7 +3822,7 @@ void Spell::WriteAmmoToPacket(WorldPacket& data) const
     uint32 ammoInventoryType = 0;
     uint32 ammoDisplayID = 0;
 
-    if (m_caster->GetTypeId() == TYPEID_PLAYER)
+    if (m_trueCaster->IsPlayer())
     {
         Item* pItem = ((Player*)m_caster)->GetWeaponForAttack(RANGED_ATTACK);
         if (pItem)
@@ -6174,8 +6180,9 @@ int32 Spell::CalculateSpellEffectDamage(Unit* unitTarget, int32 damage)
         case SPELL_DAMAGE_CLASS_MELEE:
         {
             // Calculate damage bonus
-            damage = m_caster->MeleeDamageBonusDone(unitTarget, damage, m_attackType, m_spellSchoolMask, m_spellInfo, SPELL_DIRECT_DAMAGE);
-            damage = unitTarget->MeleeDamageBonusTaken(m_caster, damage, m_attackType, m_spellSchoolMask, m_spellInfo, SPELL_DIRECT_DAMAGE);
+            if (!m_trueCaster->IsGameObject())
+                damage = m_caster->MeleeDamageBonusDone(unitTarget, damage, m_attackType, m_spellSchoolMask, m_spellInfo, SPELL_DIRECT_DAMAGE);
+            damage = unitTarget->MeleeDamageBonusTaken(m_trueCaster->IsGameObject() ? nullptr : m_caster, damage, m_attackType, m_spellSchoolMask, m_spellInfo, SPELL_DIRECT_DAMAGE);
         }
         break;
         // Magical Attacks
@@ -6183,8 +6190,9 @@ int32 Spell::CalculateSpellEffectDamage(Unit* unitTarget, int32 damage)
         case SPELL_DAMAGE_CLASS_MAGIC:
         {
             // Calculate damage bonus
-            damage = m_caster->SpellDamageBonusDone(unitTarget, m_spellInfo, damage, SPELL_DIRECT_DAMAGE);
-            damage = unitTarget->SpellDamageBonusTaken(m_caster, m_spellInfo, damage, SPELL_DIRECT_DAMAGE);
+            if (!m_trueCaster->IsGameObject())
+                damage = m_caster->SpellDamageBonusDone(unitTarget, m_spellInfo, damage, SPELL_DIRECT_DAMAGE);
+            damage = unitTarget->SpellDamageBonusTaken(m_trueCaster->IsGameObject() ? nullptr : m_caster, m_spellInfo, damage, SPELL_DIRECT_DAMAGE);
         }
         break;
     }

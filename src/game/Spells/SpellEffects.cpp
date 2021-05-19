@@ -4608,7 +4608,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         if (m_originalCaster->GetTypeId() == TYPEID_UNIT)
             caster = static_cast<Creature*>(m_originalCaster);
     }
-    else if (m_trueCaster && m_caster->IsCreature())
+    else if (m_trueCaster && m_trueCaster->IsCreature())
         caster = static_cast<Creature*>(m_trueCaster);
 
     for (itr = summonPositions.begin(); itr != summonPositions.end(); ++itr)

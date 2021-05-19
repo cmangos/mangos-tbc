@@ -32,6 +32,7 @@ extern void AddSC_war_effort();
 extern void AddSC_suns_reach_reclamation();
 extern void AddSC_shade_of_the_horseman();
 extern void AddSC_childrens_week_tbc();
+extern void AddSC_midsummer_festival();
 
 // eastern kingdoms
 extern void AddSC_blackrock_depths();                       // blackrock_depths
@@ -391,6 +392,7 @@ void AddScripts()
     AddSC_suns_reach_reclamation();
     AddSC_shade_of_the_horseman();
     AddSC_childrens_week_tbc();
+    AddSC_midsummer_festival();
 
     // eastern kingdoms
     AddSC_blackrock_depths();                               // blackrock_depths

@@ -13,7 +13,7 @@ enum
     TYPE_OMROGG                 = 1,
     TYPE_BLADEFIST              = 2,                        // Note: if players skip Omrogg and go straight to Karagth then Omrogg comes to aid Karagth
     TYPE_EXECUTION              = 3,
-    TYPE_GAUNTLET               = 4,
+    TYPE_GAUNTLET				= 4,
 
     NPC_NETHEKURSE              = 16807,
     NPC_KARGATH_BLADEFIST       = 16808,
@@ -33,12 +33,25 @@ enum
     GO_NETHEKURSE_ENTER_DOOR    = 182539,
 
     // Gauntlet
-    NPC_GAUNTLET_OF_FIRE        = 17692,
     NPC_SHATTERED_HAND_ZEALOT   = 17462,
     NPC_SHATTERED_HAND_ARCHER   = 17427,
     NPC_SCOUT                   = 17693,
     NPC_BLOOD_GUARD             = 17461,
     NPC_PORUNG                  = 20923,
+
+    SCOUT_AGGRO_YELL            = -1540051,
+    PORUNG_FORM_RANKS_YELL      = -1540052,
+    PORUNG_READY_YELL           = -1540053,
+    PORUNG_AIM_YELL             = -1540054,
+    PORUNG_FIRE_YELL            = -1540055,
+
+    DELAY_350_MILLI             = 350,
+    PORUNG_YELL_DELAY_1         = 4000,
+    PORUNG_YELL_DELAY_2         = 1200,
+    WAVE_TIMER                  = 20000,
+    ARCHER_SHOOT_DELAY          = 15000,
+
+    SHOOT_FLAME_ARROW           = 30952,
 
     GO_BLAZE                    = 181915,
 
@@ -99,18 +112,26 @@ class instance_shattered_halls : public ScriptedInstance
 
         bool CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const override;
 
+        void GauntletReset();
+
+        void DoInitialGets();
+
+        void DoSummonInitialWave();
+
+        void DoSummonSHZealot();
+
+        void DoBeginArcherAttack(bool leftOrRight);
+
         void Update(const uint32 diff) override;
 
     private:
         void DoCastGroupDebuff(uint32 uiSpellId);
-        void FailGauntlet(Creature* gauntlet);
-        void StopGauntlet(Creature* gauntlet);
-        void EndGauntlet(Creature* gauntlet);
+        void FailGauntlet();
+        void StopGauntlet();
+        void EndGauntlet();
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
-
-        ObjectGuid m_guidGauntletNPC;
 
         uint32 m_uiExecutionTimer;
         uint32 m_uiTeam;
@@ -122,6 +143,22 @@ class instance_shattered_halls : public ScriptedInstance
         std::vector<ObjectGuid> m_vGauntletBossGuids;
 
         std::vector<std::pair<ObjectGuid, uint32>> m_vBlazeTimers;
+
+        bool m_bInitialWavesSpawned; // done spawning waves?
+        bool m_bPorungDoneYelling;	 // done yelling?
+        bool m_bZealotOneOrTwo;		 // delay is different whether spawning first or second zealot in wave
+        bool m_gauntletStopped;
+
+        Creature* m_porung;				   // normal or heroic this is him
+        GuidList m_lSHArchers; // the two archers
+
+        uint8 m_uiNumInitialWaves;			 // counter for initial waves spawning
+        uint8 m_uiPorungYellNumber;			 // keeps track of porung as he yells
+        uint32 m_uiInitialWaves_Delay;		 // time between initial waves spawn
+        uint32 m_uiWaveTimer;				 // timer for periodic wave spawns
+        uint32 m_uiPorungYellDelay;			 // delay between READY, AIM, FIRE
+        uint32 m_uiShootFlamingArrowTimer_1; // timer for fire arrow ability (left archer)
+        uint32 m_uiShootFlamingArrowTimer_2; // (right archer)
 };
 
 #endif

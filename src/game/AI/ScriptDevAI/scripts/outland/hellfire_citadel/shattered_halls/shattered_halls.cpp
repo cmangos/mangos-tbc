@@ -23,12 +23,16 @@ EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "shattered_halls.h"
+#include "AI/EventAI/CreatureEventAI.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
+#include "Spells/Scripts/SpellScript.h"
 
 instance_shattered_halls::instance_shattered_halls(Map* pMap) : ScriptedInstance(pMap),
     m_uiExecutionTimer(55 * MINUTE * IN_MILLISECONDS),
     m_uiTeam(0),
     m_uiExecutionStage(0),
-    m_uiPrisonersLeft(3)
+    m_uiPrisonersLeft(3),
+    m_gauntletStopped(false)
 {
     Initialize();
 }
@@ -36,6 +40,7 @@ instance_shattered_halls::instance_shattered_halls(Map* pMap) : ScriptedInstance
 void instance_shattered_halls::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+    GauntletReset();
 }
 
 void instance_shattered_halls::OnPlayerEnter(Player* pPlayer)
@@ -102,9 +107,7 @@ void instance_shattered_halls::OnCreatureCreate(Creature* creature)
         case NPC_BLOOD_GUARD:
         case NPC_PORUNG:
             m_vGauntletBossGuids.push_back(creature->GetObjectGuid());
-            break;
-        case NPC_GAUNTLET_OF_FIRE:
-            m_guidGauntletNPC = creature->GetObjectGuid();
+            m_npcEntryGuidStore[creature->GetEntry()] = creature->GetObjectGuid();
             break;
     }
 }
@@ -185,13 +188,16 @@ void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
             switch (uiData)
             {
                 case FAIL: // Called on wipe/players left/Boss Evade
-                    FailGauntlet(instance->GetCreature(m_guidGauntletNPC));
+                    FailGauntlet();
                     break;
                 case DONE:  // Called on boss kill
-                    EndGauntlet(instance->GetCreature(m_guidGauntletNPC));
+                    EndGauntlet();
                     break;
                 case SPECIAL: // Called on Boss Aggro
-                    StopGauntlet(instance->GetCreature(m_guidGauntletNPC));
+                    StopGauntlet();
+                    break;
+                case IN_PROGRESS:
+                    DoInitialGets();
                     break;
                 default:
                     break;
@@ -199,7 +205,6 @@ void instance_shattered_halls::SetData(uint32 uiType, uint32 uiData)
 
             m_auiEncounter[uiType] = uiData;
             break;
-
     }
 
     if (uiData == DONE)
@@ -285,151 +290,9 @@ bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* pPlayer,
     return false;
 }
 
-void instance_shattered_halls::Update(uint32 uiDiff)
+static float gauntletSpawnCoords[1][3] =
 {
-    if (m_auiEncounter[TYPE_GAUNTLET] == IN_PROGRESS)
-    {
-        Creature* gauntlet = instance->GetCreature(m_guidGauntletNPC);
-        if (!gauntlet || !GetPlayerInMap(true))
-        {
-            SetData(TYPE_GAUNTLET, FAIL);
-        }
-        else
-        {
-            for (auto& blaze : m_vBlazeTimers)
-            {
-                if (blaze.second <= uiDiff)
-                {
-                    blaze.second = 2000;
-                    if (GameObject* blazeGo = instance->GetGameObject(blaze.first))
-                        blazeGo->CastSpell(gauntlet, nullptr, SPELL_FLAMES, TRIGGERED_NONE, nullptr, nullptr, blazeGo->GetObjectGuid());
-                }
-                else
-                    blaze.second -= uiDiff;
-            }
-        }
-    }
-
-    if (m_auiEncounter[TYPE_EXECUTION] != IN_PROGRESS)
-        return;
-
-    if (m_uiExecutionTimer < uiDiff)
-    {
-        switch (m_uiExecutionStage)
-        {
-            case 0:
-                // Kill the officer
-                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_OFFICER_ALLIANCE : NPC_OFFICER_HORDE))
-                    pSoldier->Suicide();
-
-                // Make Kargath yell
-                DoOrSimulateScriptTextForThisInstance(m_uiTeam == ALLIANCE ? SAY_KARGATH_EXECUTE_ALLY : SAY_KARGATH_EXECUTE_HORDE, NPC_KARGATH_BLADEFIST);
-
-                // Set timer for the next execution
-                DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_2);
-                m_uiExecutionTimer = 10 * MINUTE * IN_MILLISECONDS;
-                break;
-            case 1:
-                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_SOLDIER_ALLIANCE_2 : NPC_SOLDIER_HORDE_2))
-                    pSoldier->Suicide();
-
-                DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_3);
-                m_uiExecutionTimer = 15 * MINUTE * IN_MILLISECONDS;
-                break;
-            case 2:
-                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_SOLDIER_ALLIANCE_3 : NPC_SOLDIER_HORDE_3))
-                    pSoldier->Suicide();
-
-                SetData(TYPE_EXECUTION, FAIL);
-                m_uiExecutionTimer = 0;
-                break;
-        }
-        --m_uiPrisonersLeft;
-        ++m_uiExecutionStage;
-    }
-    else
-        m_uiExecutionTimer -= uiDiff;
-}
-
-void instance_shattered_halls::FailGauntlet(Creature* gauntlet)
-{
-    // If success despawn all, else respawn permanents
-    for (ObjectGuid& guid : m_vGauntletPermanentGuids)
-        if (Creature* creature = instance->GetCreature(guid))
-            creature->Respawn();
-
-    for (ObjectGuid& guid : m_vGauntletTemporaryGuids)
-        if (Creature* creature = instance->GetCreature(guid))
-            creature->ForcedDespawn();
-
-    for (ObjectGuid& guid : m_vGauntletBossGuids)
-        if (Creature* boss = instance->GetCreature(guid))
-            boss->Respawn();
-
-    for (auto& blaze : m_vBlazeTimers) // despawn blaze GOs from flame arrows
-        if (GameObject* go = instance->GetGameObject(blaze.first))
-            go->AddObjectToRemoveList();
-
-    EndGauntlet(gauntlet);
-}
-
-void instance_shattered_halls::StopGauntlet(Creature* gauntlet)
-{
-    if (gauntlet)
-        gauntlet->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, gauntlet, gauntlet);
-}
-
-void instance_shattered_halls::EndGauntlet(Creature* gauntlet)
-{
-    if (gauntlet)
-        gauntlet->ForcedDespawn();
-
-    m_vGauntletTemporaryGuids.clear();
-}
-
-// Add debuff to all players in the instance
-void instance_shattered_halls::DoCastGroupDebuff(uint32 uiSpellId)
-{
-    Map::PlayerList const& lPlayers = instance->GetPlayers();
-
-    for (const auto& lPlayer : lPlayers)
-    {
-        Player* pPlayer = lPlayer.getSource();
-        if (pPlayer && !pPlayer->HasAura(uiSpellId))
-            pPlayer->CastSpell(pPlayer, uiSpellId, TRIGGERED_OLD_TRIGGERED);
-    }
-}
-
-InstanceData* GetInstanceData_instance_shattered_halls(Map* pMap)
-{
-    return new instance_shattered_halls(pMap);
-}
-
-enum
-{
-    NPC_SHATTERED_HAND_SCOUT  = 17693,
-    NPC_SHATTERED_HAND_BG	  = 17461, // Porung is the heroic entry for this npc
-//	NPC_ARCHER_TARGET		  = 29097, // Might not need? 
-    NPC_GUARD_PORUNG		  = 20923, // not needed
-
-    SCOUT_AGGRO_YELL		   = -1540051,
-    PORUNG_FORM_RANKS_YELL = -1540052,
-    PORUNG_READY_YELL	   = -1540053,
-    PORUNG_AIM_YELL		   = -1540054,
-    PORUNG_FIRE_YELL	   = -1540055,
-
-    DELAY_350_MILLI		= 350,
-    PORUNG_YELL_DELAY_1 = 4000,
-    PORUNG_YELL_DELAY_2 = 1200,
-    WAVE_TIMER			= 20000,
-    ARCHER_SHOOT_DELAY  = 15000,
-
-    SHOOT_FLAME_ARROW	= 30952
-};
-
-static float gauntletSpawnCoords[1][3] = 
-{
-    {409.848f, 315.385f, 1.921f}
+    { 409.848f, 315.385f, 1.921f}
 };
 
 static float scoutCoords[1][3] =
@@ -474,196 +337,104 @@ static float zealotDestinations[8][3] =
     {458.814f, 321.833f, 1.946f}  // R
 };
 
-/*
-Scout will run to the end of the hall and summon the gauntlet npc. 
-That npc will spawn have the scripting for the event. I Initially thought to just put 
-everything on the scout and have the scout go invisible after he runs down but that 
-puts the player in combat permanently and they should be able to get out of combat during 
-breaks.
-*/
-
-// Gauntlet of Fire scripting - TODO: Remove this once GO casting is possible
-struct npc_Gauntlet_of_Fire : public ScriptedAI
+void instance_shattered_halls::GauntletReset()
 {
-    npc_Gauntlet_of_Fire(Creature* creature) : ScriptedAI(creature)	
+    m_uiNumInitialWaves = 0;
+    m_uiPorungYellNumber = 0;
+    m_uiInitialWaves_Delay = 0;
+    m_uiWaveTimer = WAVE_TIMER / 2; // let the first wave spawn faster than concurrent ones
+    m_uiPorungYellDelay = 0;
+    m_uiShootFlamingArrowTimer_1 = ARCHER_SHOOT_DELAY;
+    m_uiShootFlamingArrowTimer_2 = ARCHER_SHOOT_DELAY;
+    m_bInitialWavesSpawned = false;
+    m_bPorungDoneYelling = false;
+    m_bZealotOneOrTwo = false;
+    m_porung = nullptr;
+    m_lSHArchers.clear();
+}
+
+void instance_shattered_halls::DoInitialGets()
+{
+    m_porung = GetSingleCreatureFromStorage(instance->IsRegularDifficulty() ? NPC_BLOOD_GUARD : NPC_PORUNG);
+}
+
+void instance_shattered_halls::DoSummonInitialWave()
+{
+    if (Creature* pAdd = WorldObject::SummonCreature(TempSpawnSettings(nullptr, NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[1][0], zealotSpawnCoords[1][1], zealotSpawnCoords[1][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true), instance))
     {
-        m_pInstance = (ScriptedInstance*)creature->GetInstanceData();
-        m_gauntletStopped = false;
-        SetReactState(REACT_PASSIVE);
-        Reset(); 
+        pAdd->GetMotionMaster()->MovePoint(100 + m_uiNumInitialWaves, firstWaveWaypoints[0][0], firstWaveWaypoints[0][1], firstWaveWaypoints[0][2]);
+        pAdd->HandleEmoteState(EMOTE_STATE_READY1H);
+    }
+    if (Creature* pAdd = WorldObject::SummonCreature(TempSpawnSettings(nullptr, NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[2][0], zealotSpawnCoords[2][1], zealotSpawnCoords[2][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true), instance))
+    {
+        pAdd->GetMotionMaster()->MovePoint(200 + m_uiNumInitialWaves, firstWaveWaypoints[1][0], firstWaveWaypoints[1][1], firstWaveWaypoints[1][2]);
+        pAdd->HandleEmoteState(EMOTE_STATE_READY1H);
+    }
+}
+
+void instance_shattered_halls::DoSummonSHZealot()
+{
+    if (Creature* pAdd = WorldObject::SummonCreature(TempSpawnSettings(nullptr, NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[0][0], zealotSpawnCoords[0][1], zealotSpawnCoords[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true), instance))
+    {
+        pAdd->GetMotionMaster()->MovePoint(0, zealotWaypoints[0][0], zealotWaypoints[0][1], zealotWaypoints[0][2]);
+        pAdd->HandleEmoteState(EMOTE_STATE_READY1H);
+    }
+}
+
+void instance_shattered_halls::DoBeginArcherAttack(bool leftOrRight)
+{
+    // Arrow boundaries:
+    //				 x		 y		z
+    // Top Left:  481.519 323.895 1.945
+    // Top Right: 480.630 308.647 1.942
+    // Bot Left:  362.607 323.948 1.918
+    // Bot Right: 360.884 308.777 1.918
+    // This should probably also try to only shoot arrows that will land within
+    // some range of the players (videos from back when seem to show that behavior)
+    // but I'm not sure how best to implement that and this works fine for now
+
+    GuidVector archers;
+    GetCreatureGuidVectorFromStorage(NPC_SHATTERED_HAND_ARCHER, archers);
+    Creature* archer = nullptr;
+    if (archers.size() == 1) // only one archer for some reason - maybe cheesing
+    {
+        archer = instance->GetCreature(archers[0]);
+    }
+    else if (archers.size() == 2)
+    {
+        if (leftOrRight)
+            archer = instance->GetCreature(archers[1]);
+        else
+            archer = instance->GetCreature(archers[0]);
     }
 
-    bool m_bInitialWavesSpawned; // done spawning waves?
-    bool m_bPorungDoneYelling;	 // done yelling?
-    bool m_bZealotOneOrTwo;		 // delay is different whether spawning first or second zealot in wave
-    bool m_gauntletStopped;
+    if (archer)
+        archer->CastSpell(nullptr, SHOOT_FLAME_ARROW, TRIGGERED_NONE);
+}
 
-    Creature* m_porung;				   // normal or heroic this is him
-    GuidList m_lSHArchers; // the two archers
-    ScriptedInstance* m_pInstance;	   // to set gauntlet in progress/not
-
-    uint8 m_uiNumInitialWaves;			 // counter for initial waves spawning
-    uint8 m_uiPorungYellNumber;			 // keeps track of porung as he yells
-    uint32 m_uiInitialWaves_Delay;		 // time between initial waves spawn
-    uint32 m_uiWaveTimer;				 // timer for periodic wave spawns
-    uint32 m_uiPorungYellDelay;			 // delay between READY, AIM, FIRE
-    uint32 m_uiShootFlamingArrowTimer_1; // timer for fire arrow ability (left archer)
-    uint32 m_uiShootFlamingArrowTimer_2; // (right archer)
-    
-    void Reset() override
+void instance_shattered_halls::Update(uint32 uiDiff)
+{
+    if (m_auiEncounter[TYPE_GAUNTLET] == IN_PROGRESS)
     {
-        m_uiNumInitialWaves    = 0;
-        m_uiPorungYellNumber   = 0;
-        m_uiInitialWaves_Delay = 0;
-        m_uiWaveTimer          = WAVE_TIMER / 2; // let the first wave spawn faster than concurrent ones
-        m_uiPorungYellDelay    = 0;
-        m_uiShootFlamingArrowTimer_1 = ARCHER_SHOOT_DELAY;
-        m_uiShootFlamingArrowTimer_2 = ARCHER_SHOOT_DELAY;
-        m_bInitialWavesSpawned = false;
-        m_bPorungDoneYelling   = false;
-        m_bZealotOneOrTwo      = false;
-        m_porung               = nullptr;
-        m_lSHArchers.clear();
-    }
-
-    void DoInitialGets()
-    {
-        m_porung = GetClosestCreatureWithEntry(m_creature, m_creature->GetMap()->IsRegularDifficulty() ? NPC_SHATTERED_HAND_BG : NPC_GUARD_PORUNG, 150.0f);
-    }
-
-    void DoSummonInitialWave()
-    {
-        if (Creature* pAdd = m_creature->SummonCreature(NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[1][0], zealotSpawnCoords[1][1], zealotSpawnCoords[1][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true))
+        if (!GetPlayerInMap(true))
         {
-            pAdd->GetMotionMaster()->MovePoint(100 + m_uiNumInitialWaves, firstWaveWaypoints[0][0], firstWaveWaypoints[0][1], firstWaveWaypoints[0][2]);
+            SetData(TYPE_GAUNTLET, FAIL);
         }
-        if (Creature* pAdd = m_creature->SummonCreature(NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[2][0], zealotSpawnCoords[2][1], zealotSpawnCoords[2][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true))
+        else
         {
-            pAdd->GetMotionMaster()->MovePoint(200 + m_uiNumInitialWaves, firstWaveWaypoints[1][0], firstWaveWaypoints[1][1], firstWaveWaypoints[1][2]);
-        }
-    }
-
-    void DoSummonSHZealot()
-    {
-        if (Creature* pAdd = m_creature->SummonCreature(NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[0][0], zealotSpawnCoords[0][1], zealotSpawnCoords[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true))
-        {
-            pAdd->GetMotionMaster()->MovePoint(0, zealotWaypoints[0][0], zealotWaypoints[0][1], zealotWaypoints[0][2]);
-        }
-    }
-
-    void DoBeginArcherAttack(bool leftOrRight)
-    {
-        // Arrow boundaries:
-        //				 x		 y		z
-        // Top Left:  481.519 323.895 1.945
-        // Top Right: 480.630 308.647 1.942
-        // Bot Left:  362.607 323.948 1.918
-        // Bot Right: 360.884 308.777 1.918
-        // This should probably also try to only shoot arrows that will land within
-        // some range of the players (videos from back when seem to show that behavior)
-        // but I'm not sure how best to implement that and this works fine for now
-
-        GuidVector archers;
-        m_pInstance->GetCreatureGuidVectorFromStorage(NPC_SHATTERED_HAND_ARCHER, archers);
-        Creature* archer = nullptr;
-        if (archers.size() == 1) // only one archer for some reason - maybe cheesing
-        {
-            archer = m_creature->GetMap()->GetCreature(archers[0]);
-        }
-        else if (archers.size() == 2)
-        {
-            if (leftOrRight)
-                archer = m_creature->GetMap()->GetCreature(archers[1]);
-            else
-                archer = m_creature->GetMap()->GetCreature(archers[0]);
-        }
-
-        if (archer)
-            archer->CastSpell(nullptr, SHOOT_FLAME_ARROW, TRIGGERED_NONE);
-    }
-
-    void JustSummoned(Creature* pSummoned) override
-    {
-        if (pSummoned->GetEntry() == NPC_SHATTERED_HAND_ZEALOT)
-        {
-            pSummoned->HandleEmoteState(EMOTE_STATE_READY1H);
-        }
-    }
-
-    void SummonedMovementInform(Creature* pSummoned, uint32 uiMotionType, uint32 uiData) override
-    {
-        if (pSummoned->GetEntry() == NPC_SHATTERED_HAND_ZEALOT && uiMotionType == POINT_MOTION_TYPE) // sanity check
-        {
-            switch (uiData)
+            for (auto& blaze : m_vBlazeTimers)
             {
-                // Below are for the waves
-                case 0: 
-                    pSummoned->GetMotionMaster()->MovePoint(1, zealotWaypoints[1][0], zealotWaypoints[1][1], zealotWaypoints[1][2]);
-                    break;
-                case 1:
-                    pSummoned->GetMotionMaster()->MovePoint(2, zealotWaypoints[2][0], zealotWaypoints[2][1], zealotWaypoints[2][2]);
-                    break;
-                case 2:
-                    pSummoned->GetMotionMaster()->MovePoint(3, zealotWaypoints[3][0], zealotWaypoints[3][1], zealotWaypoints[3][2]);
-                    break;
-                // Rest are the initial spawns
-                // Left
-                case 100:
-                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[0][0], zealotDestinations[0][1], zealotDestinations[0][2]);
-                    break;
-                case 101:
-                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[2][0], zealotDestinations[2][1], zealotDestinations[2][2]);
-                    break;
-                case 102:
-                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[4][0], zealotDestinations[4][1], zealotDestinations[4][2]);
-                    break;
-                case 103:
-                    pSummoned->GetMotionMaster()->MovePoint(98, zealotDestinations[6][0], zealotDestinations[6][1], zealotDestinations[6][2]);
-                    break;
-                // Right
-                case 200:
-                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[1][0], zealotDestinations[1][1], zealotDestinations[1][2]);
-                    break;
-                case 201:
-                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[3][0], zealotDestinations[3][1], zealotDestinations[3][2]);
-                    break;
-                case 202:
-                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[5][0], zealotDestinations[5][1], zealotDestinations[5][2]);
-                    break;
-                case 203:
-                    pSummoned->GetMotionMaster()->MovePoint(99, zealotDestinations[7][0], zealotDestinations[7][1], zealotDestinations[7][2]);
-                    break;
-                case 98: // turn so not facing at an awkward angle
-                    pSummoned->SetFacingTo(2.8f);
-                    pSummoned->GetMotionMaster()->MoveIdle();
-                    break;
-                case 99:
-                    pSummoned->SetFacingTo(-2.8f);
-                    pSummoned->GetMotionMaster()->MoveIdle();
-                    break;
-                default:
-                    pSummoned->GetMotionMaster()->MoveIdle();
-                    if (m_pInstance && pSummoned->GetHealth() > 0)
-                    {
-                        pSummoned->SetInCombatWithZone();
-                        if (!pSummoned->IsInCombat())
-                            m_pInstance->SetData(TYPE_GAUNTLET, FAIL);
-                        else
-                            pSummoned->AI()->AttackClosestEnemy();
-                    }
-                    break;
+                if (blaze.second <= uiDiff)
+                {
+                    blaze.second = 2000;
+                    if (GameObject* blazeGo = instance->GetGameObject(blaze.first))
+                        blazeGo->CastSpell(nullptr, nullptr, SPELL_FLAMES, TRIGGERED_NONE, nullptr, nullptr, blazeGo->GetObjectGuid());
+                }
+                else
+                    blaze.second -= uiDiff;
             }
-        }        
-    }
+        }
 
-    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
-    {
-        if (eventType == AI_EVENT_CUSTOM_A)
-            m_gauntletStopped = true;
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
         if (m_gauntletStopped)
             return;
 
@@ -761,6 +532,168 @@ struct npc_Gauntlet_of_Fire : public ScriptedAI
                 m_uiInitialWaves_Delay -= uiDiff;
         }
     }
+
+    if (m_auiEncounter[TYPE_EXECUTION] != IN_PROGRESS)
+        return;
+
+    if (m_uiExecutionTimer < uiDiff)
+    {
+        switch (m_uiExecutionStage)
+        {
+            case 0:
+                // Kill the officer
+                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_OFFICER_ALLIANCE : NPC_OFFICER_HORDE))
+                    pSoldier->Suicide();
+
+                // Make Kargath yell
+                DoOrSimulateScriptTextForThisInstance(m_uiTeam == ALLIANCE ? SAY_KARGATH_EXECUTE_ALLY : SAY_KARGATH_EXECUTE_HORDE, NPC_KARGATH_BLADEFIST);
+
+                // Set timer for the next execution
+                DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_2);
+                m_uiExecutionTimer = 10 * MINUTE * IN_MILLISECONDS;
+                break;
+            case 1:
+                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_SOLDIER_ALLIANCE_2 : NPC_SOLDIER_HORDE_2))
+                    pSoldier->Suicide();
+
+                DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_3);
+                m_uiExecutionTimer = 15 * MINUTE * IN_MILLISECONDS;
+                break;
+            case 2:
+                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_uiTeam == ALLIANCE ? NPC_SOLDIER_ALLIANCE_3 : NPC_SOLDIER_HORDE_3))
+                    pSoldier->Suicide();
+
+                SetData(TYPE_EXECUTION, FAIL);
+                m_uiExecutionTimer = 0;
+                break;
+        }
+        --m_uiPrisonersLeft;
+        ++m_uiExecutionStage;
+    }
+    else
+        m_uiExecutionTimer -= uiDiff;
+}
+
+void instance_shattered_halls::FailGauntlet()
+{
+    // If success despawn all, else respawn permanents
+    for (ObjectGuid& guid : m_vGauntletPermanentGuids)
+        if (Creature* creature = instance->GetCreature(guid))
+            creature->Respawn();
+
+    for (ObjectGuid& guid : m_vGauntletTemporaryGuids)
+        if (Creature* creature = instance->GetCreature(guid))
+            creature->ForcedDespawn();
+
+    for (ObjectGuid& guid : m_vGauntletBossGuids)
+        if (Creature* boss = instance->GetCreature(guid))
+            boss->Respawn();
+
+    for (auto& blaze : m_vBlazeTimers) // despawn blaze GOs from flame arrows
+        if (GameObject* go = instance->GetGameObject(blaze.first))
+            go->AddObjectToRemoveList();
+
+    GauntletReset();
+    EndGauntlet();
+}
+
+void instance_shattered_halls::StopGauntlet()
+{
+    m_gauntletStopped = true;
+}
+
+void instance_shattered_halls::EndGauntlet()
+{
+    m_vGauntletTemporaryGuids.clear();
+}
+
+// Add debuff to all players in the instance
+void instance_shattered_halls::DoCastGroupDebuff(uint32 spellId)
+{
+    Map::PlayerList const& lPlayers = instance->GetPlayers();
+
+    for (const auto& lPlayer : lPlayers)
+    {
+        Player* pPlayer = lPlayer.getSource();
+        if (pPlayer && !pPlayer->HasAura(spellId))
+            pPlayer->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
+    }
+}
+
+struct npc_shattered_hands_zealotAI : public CreatureEventAI
+{
+    npc_shattered_hands_zealotAI(Creature* creature) : CreatureEventAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    {
+    
+    }
+
+    ScriptedInstance* m_instance;
+
+    void MovementInform(uint32 motionType, uint32 data) override
+    {
+        if (motionType == POINT_MOTION_TYPE) // sanity check
+        {
+            switch (data)
+            {
+                // Below are for the waves
+                case 0: 
+                    m_creature->GetMotionMaster()->MovePoint(1, zealotWaypoints[1][0], zealotWaypoints[1][1], zealotWaypoints[1][2]);
+                    break;
+                case 1:
+                    m_creature->GetMotionMaster()->MovePoint(2, zealotWaypoints[2][0], zealotWaypoints[2][1], zealotWaypoints[2][2]);
+                    break;
+                case 2:
+                    m_creature->GetMotionMaster()->MovePoint(3, zealotWaypoints[3][0], zealotWaypoints[3][1], zealotWaypoints[3][2]);
+                    break;
+                // Rest are the initial spawns
+                // Left
+                case 100:
+                    m_creature->GetMotionMaster()->MovePoint(98, zealotDestinations[0][0], zealotDestinations[0][1], zealotDestinations[0][2]);
+                    break;
+                case 101:
+                    m_creature->GetMotionMaster()->MovePoint(98, zealotDestinations[2][0], zealotDestinations[2][1], zealotDestinations[2][2]);
+                    break;
+                case 102:
+                    m_creature->GetMotionMaster()->MovePoint(98, zealotDestinations[4][0], zealotDestinations[4][1], zealotDestinations[4][2]);
+                    break;
+                case 103:
+                    m_creature->GetMotionMaster()->MovePoint(98, zealotDestinations[6][0], zealotDestinations[6][1], zealotDestinations[6][2]);
+                    break;
+                // Right
+                case 200:
+                    m_creature->GetMotionMaster()->MovePoint(99, zealotDestinations[1][0], zealotDestinations[1][1], zealotDestinations[1][2]);
+                    break;
+                case 201:
+                    m_creature->GetMotionMaster()->MovePoint(99, zealotDestinations[3][0], zealotDestinations[3][1], zealotDestinations[3][2]);
+                    break;
+                case 202:
+                    m_creature->GetMotionMaster()->MovePoint(99, zealotDestinations[5][0], zealotDestinations[5][1], zealotDestinations[5][2]);
+                    break;
+                case 203:
+                    m_creature->GetMotionMaster()->MovePoint(99, zealotDestinations[7][0], zealotDestinations[7][1], zealotDestinations[7][2]);
+                    break;
+                case 98: // turn so not facing at an awkward angle
+                    m_creature->SetFacingTo(2.8f);
+                    m_creature->GetMotionMaster()->MoveIdle();
+                    break;
+                case 99:
+                    m_creature->SetFacingTo(-2.8f);
+                    m_creature->GetMotionMaster()->MoveIdle();
+                    break;
+                default:
+                    m_creature->GetMotionMaster()->MoveIdle();
+                    if (m_instance && m_creature->GetHealth() > 0)
+                    {
+                        m_creature->SetInCombatWithZone();
+                        if (!m_creature->IsInCombat())
+                            m_instance->SetData(TYPE_GAUNTLET, FAIL);
+                        else
+                            m_creature->AI()->AttackClosestEnemy();
+                    }
+                    break;
+            }
+        }        
+    }
 };
 
 // Scout scripting
@@ -822,50 +755,187 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
         {
             switch (uiData)
             {
-                case 0:
-                    DoZealotsEmoteReady();
+            case 0:
+                DoZealotsEmoteReady();
 
-                    if (Creature* gauntlet = m_creature->SummonCreature(NPC_GAUNTLET_OF_FIRE, gauntletSpawnCoords[0][0], gauntletSpawnCoords[0][1], gauntletSpawnCoords[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 600000))
-                    {
-                        if (npc_Gauntlet_of_Fire* pGauntletAI = dynamic_cast<npc_Gauntlet_of_Fire*>(gauntlet->AI()))
-                        {
-                            pGauntletAI->DoInitialGets();
-                            m_creature->GetMap()->GetInstanceData()->SetData(TYPE_GAUNTLET, IN_PROGRESS);
-                        }
-                    }
+                m_creature->GetMap()->GetInstanceData()->SetData(TYPE_GAUNTLET, IN_PROGRESS);
 
-                    m_creature->ForcedDespawn();
-                    break;
+                m_creature->ForcedDespawn();
+                break;
             }
         }
     }
 
-    void UpdateAI(const uint32 /*uiDiff*/) override
+    void UpdateAI(const uint32 /*diff*/) override
     {
         return;
     }
 };
 
-bool AreaTrigger_at_shattered_halls(Player* pPlayer, AreaTriggerEntry const* /*pAt*/)
+/*######
+ ## npc_shattered_hand_legionnaire 16700
+ ######*/
+
+enum ShatteredHandLegionnairActions
 {
-    if (pPlayer->IsGameMaster() || !pPlayer->IsAlive())
+    LEGIONNAIRE_PUMMEL,
+    LEGIONNAIRE_AURA_OF_DISCIPLIN,
+    LEGIONNAIRE_ACTION_MAX,
+    LEGIONNAIRE_CALL_FOR_REINFORCEMENTS,
+};
+
+enum ShatteredHandLegionnair
+{
+    SPELL_AURA_OF_DISCIPLIN     = 30472,
+    SPELL_PUMMEL                = 15615,
+    SPELL_ENRAGE                = 30485,
+
+    EMOTE_ENRAGE                = -1540066,
+
+    MOB_FEL_ORC                 = 17083,
+
+    FIRST_LEGIONNAIRE_GUID      = 5400074,
+    SECOND_LEGIONNAIRE_GUID     = 5400077,
+    THIRD_LEGIONNAIRE_GUID      = 5400075,
+    FOURTH_LEGIONNAIRE_GUID     = 5400076,
+    FIFTH_LEGIONNAIRE_GUID      = 5400282,
+    SIXTH_LEGIONNAIRE_GUID      = 5400078,
+    SEVENTH_LEGIONNAIRE_GUID    = 5400062,
+    EIGHT_LEGIONNAIRE_GUID      = 5400264,
+    DEFAULT_LEGIONNAIRE         = 1
+};
+
+static float FelOrcCoords[][4] =                    // Coords needed for spawns and waypoints
+{
+    { 69.774910f, 46.661671f, -13.211f, 3.127f},    // Waypoint
+    { 81.417f, 113.488f, -13.223f, 3.127f },        // Spawn 1
+    { 49.958f, 151.284f, -13.229f, 6.169f },        // Spawn 2 guessed
+    { 89.46494293212890625f, 187.3341217041015625f, -13.1455421447753906f, 3.39255523681640625f },  // Spawn 3
+    { 79.96329498291015625f, 219.032073974609375f, -13.1396903991699218f, 3.984550714492797851f },  // Spawn 4
+    { 83.5307159423828125f, 250.534454345703125f, -13.1131420135498046f, 3.607418537139892578f }    // Spawn 5
+};
+
+static const int32 aRandomAggro[] = { -1540200, -1540201, -1540202, -1540203, -1540204, -1540205, -1540206 };
+static const int32 aRandomReinf[] = { -1540056, -1540057, -1540058, -1540059, -1540060, -1540061, -1540062, 1540063, 1540064, 1540065 };
+
+struct npc_shattered_hand_legionnaire : public CombatAI
+{
+    npc_shattered_hand_legionnaire(Creature* creature) : CombatAI(creature, LEGIONNAIRE_ACTION_MAX), m_instance(static_cast<instance_shattered_halls*>(creature->GetInstanceData()))
+    {
+        Reset();
+        uint32 guid = m_creature->GetGUIDLow();
+
+        if (guid == SECOND_LEGIONNAIRE_GUID)
+            legionnaireGuid = 1;
+        else if (guid == THIRD_LEGIONNAIRE_GUID)
+            legionnaireGuid = 2;
+        else if (guid == FOURTH_LEGIONNAIRE_GUID)
+            legionnaireGuid = 3;
+        else if (guid == FIFTH_LEGIONNAIRE_GUID)
+            legionnaireGuid = 4;
+    }
+
+    uint32 legionnaireGuid;
+    instance_shattered_halls* m_instance;
+
+    void Reset() override
+    {
+        AddCombatAction(LEGIONNAIRE_PUMMEL, 10000, 15000);
+        AddCombatAction(LEGIONNAIRE_AURA_OF_DISCIPLIN, 0, 5000);
+        AddCustomAction(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, true, [&]() { CallForReinforcements(); });
+    }
+
+    void Aggro(Unit* /*who*/) override
+    {
+        if (urand(0, 4) > 2)
+            DoScriptText(aRandomAggro[urand(0, 6)], m_creature);
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_EVENTAI_B)
+            ResetTimer(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, 0u);
+    }
+
+    void SummonedMovementInform(Creature* summoned, uint32 uiMotionType, uint32 uiPointId) override
+    {
+        // When last waypoint reached, search for players.
+        if (summoned->GetEntry() == MOB_FEL_ORC && uiPointId == 100)
+        {
+            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);
+            summoned->GetMotionMaster()->MoveIdle();
+            summoned->SetInCombatWithZone();
+        }
+    }
+
+    void CallForReinforcements()
+    {
+        if (!m_creature->HasAura(SPELL_ENRAGE))
+        {
+            m_creature->CastSpell(m_creature, SPELL_ENRAGE, TRIGGERED_NONE);
+            DoScriptText(EMOTE_ENRAGE, m_creature);
+        }
+
+        // only summons reinforcements in combat
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+            return;
+
+        uint32 guid = m_creature->GetGUIDLow();
+        if (guid == SECOND_LEGIONNAIRE_GUID || guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID || guid == FIFTH_LEGIONNAIRE_GUID)
+        {
+            if (Creature * felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcCoords[legionnaireGuid][0], FelOrcCoords[legionnaireGuid][1], FelOrcCoords[legionnaireGuid][2], FelOrcCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 60000, true, true))
+            {
+                felorc->GetMotionMaster()->MovePoint(100, FelOrcCoords[0][0], FelOrcCoords[0][1], FelOrcCoords[0][2]);
+                DoScriptText(aRandomReinf[urand(0, 9)], m_creature);
+            }
+        }
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        switch (action)
+        {
+            case LEGIONNAIRE_PUMMEL:
+            {
+                if (DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, (SELECT_FLAG_PLAYER | SELECT_FLAG_CASTING)), SPELL_PUMMEL) == CAST_OK)
+                    ResetCombatAction(action, urand(10000, 15000));
+                return;
+            }
+            case LEGIONNAIRE_AURA_OF_DISCIPLIN:
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_AURA_OF_DISCIPLIN) == CAST_OK)
+                    ResetCombatAction(action, 240000);
+                return;
+            }
+            case LEGIONNAIRE_CALL_FOR_REINFORCEMENTS:
+            {
+                CallForReinforcements();
+                return;
+            }
+        }
+    }
+};
+
+bool AreaTrigger_at_shattered_halls(Player* player, AreaTriggerEntry const* /*pAt*/)
+{
+    if (player->IsGameMaster() || !player->IsAlive())
         return false;
 
-    instance_shattered_halls* pInstance = (instance_shattered_halls*)pPlayer->GetInstanceData();
+    instance_shattered_halls* instance = (instance_shattered_halls*)player->GetInstanceData();
 
-    if (!pInstance)
+    if (!instance)
         return false;
 
     // Only on heroic
-    if (pInstance->instance->IsRegularDifficulty())
+    if (instance->instance->IsRegularDifficulty())
         return false;
 
     // Don't allow players to cheat
-    if (pInstance->GetData(TYPE_BLADEFIST) == DONE || pInstance->GetData(TYPE_OMROGG) == DONE)
+    if (instance->GetData(TYPE_BLADEFIST) == DONE || instance->GetData(TYPE_OMROGG) == DONE)
         return false;
 
-    if (pInstance->GetData(TYPE_EXECUTION) == NOT_STARTED)
-        pInstance->SetData(TYPE_EXECUTION, IN_PROGRESS);
+    if (instance->GetData(TYPE_EXECUTION) == NOT_STARTED)
+        instance->SetData(TYPE_EXECUTION, IN_PROGRESS);
 
     return true;
 }
@@ -874,7 +944,7 @@ void AddSC_instance_shattered_halls()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "instance_shattered_halls";
-    pNewScript->GetInstanceData = &GetInstanceData_instance_shattered_halls;
+    pNewScript->GetInstanceData = &GetNewInstanceScript<instance_shattered_halls>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -883,8 +953,8 @@ void AddSC_instance_shattered_halls()
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
-    pNewScript->Name = "npc_gauntlet_of_fire";
-    pNewScript->GetAI = &GetNewAIInstance<npc_Gauntlet_of_Fire>;
+    pNewScript->Name = "npc_shattered_hand_zealot";
+    pNewScript->GetAI = &GetNewAIInstance<npc_shattered_hands_zealotAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -892,4 +962,8 @@ void AddSC_instance_shattered_halls()
     pNewScript->GetAI = &GetNewAIInstance<npc_Shattered_Hand_Scout>;
     pNewScript->RegisterSelf();
 
+    pNewScript = new Script;
+    pNewScript->Name = "npc_shattered_hand_legionnaire";
+    pNewScript->GetAI = &GetNewAIInstance<npc_shattered_hand_legionnaire>;
+    pNewScript->RegisterSelf();
 }

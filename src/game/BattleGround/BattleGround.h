@@ -556,6 +556,9 @@ class BattleGround
         // Get creature guid from event
         ObjectGuid GetSingleCreatureGuid(uint8 /*event1*/, uint8 /*event2*/);
 
+        // Get gameobject guid from event
+        ObjectGuid GetSingleGameObjectGuid(uint8 /*event1*/, uint8 /*event2*/);
+
         // Handle door events
         void OpenDoorEvent(uint8 /*event1*/, uint8 event2 = 0);
         bool IsDoorEvent(uint8 /*event1*/, uint8 /*event2*/) const;

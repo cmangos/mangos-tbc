@@ -313,10 +313,10 @@ enum AVWorldStates
     BG_AV_STATE_SCORE_SHOW_A            = 3134,
 
     BG_AV_STATE_GY_SNOWFALL_N           = 1966,
-    BG_AV_STATE_GY_SNOWFALL_A           = 1343,
-    BG_AV_STATE_GY_SNOWFALL_A_GREY      = 1341,
-    BG_AV_STATE_GY_SNOWFALL_H           = 1344,
-    BG_AV_STATE_GY_SNOWFALL_H_GREY      = 1342,
+    BG_AV_STATE_GY_SNOWFALL_A           = 1341,
+    BG_AV_STATE_GY_SNOWFALL_A_GREY      = 1343,
+    BG_AV_STATE_GY_SNOWFALL_H           = 1342,
+    BG_AV_STATE_GY_SNOWFALL_H_GREY      = 1344,
 
     // mine world states
     BG_AV_STATE_IRONDEEP_MINE_A         = 1358,

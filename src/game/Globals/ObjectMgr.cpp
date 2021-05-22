@@ -6116,6 +6116,9 @@ WorldSafeLocsEntry const* ObjectMgr::GetClosestGraveyardHelper(
         // Checked on load
         WorldSafeLocsEntry const* entry = sWorldSafeLocsStore.LookupEntry<WorldSafeLocsEntry>(data.safeLocId);
 
+        if (!entry)
+            continue;
+
         // skip enemy faction graveyard
         // team == TEAM_BOTH_ALLOWED case can be at call from .neargrave
         // TEAM_INVALID != team for all teams

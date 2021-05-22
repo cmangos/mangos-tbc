@@ -30,6 +30,36 @@
 
 using namespace VMAP;
 
+void rcModAlmostUnwalkableTriangles(rcContext* ctx, const float walkableSlopeAngle,
+    const float* verts, int /*nv*/,
+    const int* tris, int nt,
+    unsigned char* areas)
+{
+    rcIgnoreUnused(ctx);
+
+    const float walkableThr = cosf(walkableSlopeAngle / 180.0f * RC_PI);
+
+    float norm[3];
+
+    for (int i = 0; i < nt; ++i)
+    {
+        if (areas[i] & RC_WALKABLE_AREA)
+        {
+            const int* tri = &tris[i * 3];
+
+            float e0[3], e1[3];
+            rcVsub(e0, &verts[tri[1] * 3], &verts[tri[0] * 3]);
+            rcVsub(e1, &verts[tri[2] * 3], &verts[tri[0] * 3]);
+            rcVcross(norm, e0, e1);
+            rcVnormalize(norm);
+
+            // Check if the face is walkable.
+            if (norm[1] <= walkableThr)
+                areas[i] = NAV_GROUND | NAV_SLOPE; //Slopes between 50 and 60. Walkable for mobs, unwalkable for players.
+        }
+    }
+}
+
 void from_json(const json& j, rcConfig& config)
 {
     config.tileSize = MMAP::VERTEX_PER_TILE;
@@ -52,7 +82,7 @@ void from_json(const json& j, rcConfig& config)
 namespace MMAP
 {
     MapBuilder::MapBuilder(const char* configInputPath, bool skipLiquid, bool skipContinents, bool skipJunkMaps,
-                           bool skipBattlegrounds, bool debug, const char* offMeshFilePath) :
+        bool skipBattlegrounds, bool debug, const char* offMeshFilePath) :
         m_debug(debug),
         m_skipContinents(skipContinents),
         m_skipJunkMaps(skipJunkMaps),
@@ -644,8 +674,8 @@ namespace MMAP
 
     /**************************************************************************/
     void MapBuilder::buildMoveMapTile(uint32 mapID, uint32 tileX, uint32 tileY,
-                                      MeshData& meshData, float bmin[3], float bmax[3],
-                                      dtNavMesh* navMesh)
+        MeshData& meshData, float bmin[3], float bmax[3],
+        dtNavMesh* navMesh)
     {
         // console output
         char tileString[20];
@@ -707,8 +737,8 @@ namespace MMAP
         }
 
         // merge per tile poly and detail meshes
-        rcPolyMesh** pmmerge = new rcPolyMesh*[TILES_PER_MAP * TILES_PER_MAP];
-        rcPolyMeshDetail** dmmerge = new rcPolyMeshDetail*[TILES_PER_MAP * TILES_PER_MAP];
+        rcPolyMesh** pmmerge = new rcPolyMesh * [TILES_PER_MAP * TILES_PER_MAP];
+        rcPolyMeshDetail** dmmerge = new rcPolyMeshDetail * [TILES_PER_MAP * TILES_PER_MAP];
 
         int nmerge = 0;
         for (int y = 0; y < TILES_PER_MAP; ++y)
@@ -748,9 +778,9 @@ namespace MMAP
         rcMergePolyMeshDetails(m_rcContext, dmmerge, nmerge, *iv.polyMeshDetail);
 
         // free things up
-        delete [] pmmerge;
-        delete [] dmmerge;
-        delete [] tiles;
+        delete[] pmmerge;
+        delete[] dmmerge;
+        delete[] tiles;
 
         // set polygons as walkable
         // TODO: special flags for DYNAMIC polygons, ie surfaces that can be turned on and off
@@ -822,7 +852,7 @@ namespace MMAP
                 continue;
             }
             if (!params.polyCount || !params.polys ||
-                    TILES_PER_MAP * TILES_PER_MAP == params.polyCount)
+                TILES_PER_MAP * TILES_PER_MAP == params.polyCount)
             {
                 // we have flat tiles with no actual geometry - don't build those, its useless
                 // keep in mind that we do output those into debug info
@@ -881,8 +911,7 @@ namespace MMAP
 
             // now that tile is written to disk, we can unload it
             navMesh->removeTile(tileRef, nullptr, nullptr);
-        }
-        while (0);
+        }         while (0);
 
         if (m_debug)
         {
@@ -900,7 +929,7 @@ namespace MMAP
     }
 
     bool MapBuilder::buildCommonTile(const char* tileString, Tile& tile, rcConfig& tileCfg, float* tVerts, int tVertCount, int* tTris, int tTriCount, float* lVerts, int lVertCount,
-                                     int* lTris, int lTriCount, uint8* lTriFlags)
+        int* lTris, int lTriCount, uint8* lTriFlags)
     {
         // Build heightfield for walkable area
         tile.solid = rcAllocHeightfield();
@@ -914,6 +943,7 @@ namespace MMAP
         unsigned char* triFlags = new unsigned char[tTriCount];
         memset(triFlags, NAV_GROUND, tTriCount * sizeof(unsigned char));
         rcClearUnwalkableTriangles(m_rcContext, tileCfg.walkableSlopeAngle, tVerts, tVertCount, tTris, tTriCount, triFlags);
+        rcModAlmostUnwalkableTriangles(m_rcContext, 50.0f, tVerts, tVertCount, tTris, tTriCount, triFlags);
         rcRasterizeTriangles(m_rcContext, tVerts, tVertCount, tTris, triFlags, tTriCount, *tile.solid, tileCfg.walkableClimb);
         delete[] triFlags;
 
@@ -1015,41 +1045,41 @@ namespace MMAP
         if (m_skipContinents)
             switch (mapID)
             {
-                case 0:
-                case 1:
-                case 530:
-                    return true;
-                default:
-                    break;
+            case 0:
+            case 1:
+            case 530:
+                return true;
+            default:
+                break;
             }
 
         if (m_skipJunkMaps)
             switch (mapID)
             {
-                case 13:    // test.wdt
-                case 25:    // ScottTest.wdt
-                case 29:    // Test.wdt
-                case 42:    // Colin.wdt
-                case 169:   // EmeraldDream.wdt (unused, and very large)
-                case 451:   // development.wdt
+            case 13:    // test.wdt
+            case 25:    // ScottTest.wdt
+            case 29:    // Test.wdt
+            case 42:    // Colin.wdt
+            case 169:   // EmeraldDream.wdt (unused, and very large)
+            case 451:   // development.wdt
+                return true;
+            default:
+                if (isTransportMap(mapID))
                     return true;
-                default:
-                    if (isTransportMap(mapID))
-                        return true;
-                    break;
+                break;
             }
 
         if (m_skipBattlegrounds)
             switch (mapID)
             {
-                case 30:    // AV
-                case 37:    // ?
-                case 489:   // WSG
-                case 529:   // AB
-                case 566:   // EotS
-                    return true;
-                default:
-                    break;
+            case 30:    // AV
+            case 37:    // ?
+            case 489:   // WSG
+            case 529:   // AB
+            case 566:   // EotS
+                return true;
+            default:
+                break;
             }
 
         return false;
@@ -1061,18 +1091,18 @@ namespace MMAP
         switch (mapID)
         {
             // transport maps
-            case 582:
-            case 584:
-            case 586:
-            case 587:
-            case 588:
-            case 589:
-            case 590:
-            case 591:
-            case 593:
-                return true;
-            default:
-                return false;
+        case 582:
+        case 584:
+        case 586:
+        case 587:
+        case 588:
+        case 589:
+        case 590:
+        case 591:
+        case 593:
+            return true;
+        default:
+            return false;
         }
     }
 
@@ -1112,7 +1142,7 @@ namespace MMAP
             {"minRegionArea", 30},
             {"walkableClimb", 4},
             {"walkableHeight", 3},
-            {"walkableRadius", 2},
+            {"walkableRadius", 1},
             {"walkableSlopeAngle", 60.0f},
         };
     }

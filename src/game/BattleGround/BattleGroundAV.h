@@ -545,7 +545,7 @@ struct AVNodeInfo
 class BattleGroundAVScore : public BattleGroundScore
 {
     public:
-        BattleGroundAVScore() : graveyardsAssaulted(0), graveyardsDefended(0), towersAssaulted(0), towersDefended(0), secondaryObjectives(0), lieutnantCount(0), secondaryNPC(0) {};
+        BattleGroundAVScore() : graveyardsAssaulted(0), graveyardsDefended(0), towersAssaulted(0), towersDefended(0), secondaryObjectives(0) {};
         virtual ~BattleGroundAVScore() {};
 
         uint32 GetAttr1() const { return graveyardsAssaulted; }

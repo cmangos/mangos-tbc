@@ -63,7 +63,7 @@ void BattleGroundEY::Update(uint32 diff)
 
             if (m_flagState == EY_FLAG_STATE_WAIT_RESPAWN)
                 RespawnFlagAtCenter(true);
-            else
+            else if (m_flagState == EY_FLAG_STATE_ON_GROUND)
                 RespawnDroppedFlag();
         }
         else
@@ -271,7 +271,8 @@ bool BattleGroundEY::HandleEvent(uint32 eventId, Object* source, Object* target)
             {
                 if (eyTowerEvents[i][j].eventEntry == eventId)
                 {
-                    ProcessCaptureEvent(go, i, eyTowerEvents[i][j].team, eyTowerEvents[i][j].worldState, eyTowerEvents[i][j].message);
+                    if (eyTowerEvents[i][j].team != m_towerOwner[i])
+                        ProcessCaptureEvent(go, i, eyTowerEvents[i][j].team, eyTowerEvents[i][j].worldState, eyTowerEvents[i][j].message);
 
                     // no need to iterate other events or towers
                     return false;
@@ -460,6 +461,9 @@ void BattleGroundEY::RespawnFlagAtCenter(bool wasCaptured)
 // Method that respawns dropped flag; called if nobody picks the dropped flag after 10 seconds
 void BattleGroundEY::RespawnDroppedFlag()
 {
+    if (m_flagState != EY_FLAG_STATE_ON_GROUND)
+        return;
+
     RespawnFlagAtCenter(false);
 
     if (GameObject* flag = GetBgMap()->GetGameObject(m_droppedFlagGuid))

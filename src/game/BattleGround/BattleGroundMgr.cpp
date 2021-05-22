@@ -1665,7 +1665,7 @@ uint32 BattleGroundMgr::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeI
     ClientBattleGroundIdSet& ids = m_clientBattleGroundIds[bgTypeId][bracketId];
     for (ClientBattleGroundIdSet::const_iterator itr = ids.begin(); itr != ids.end();)
     {
-        if ((++lastId) != *itr)                             // if there is a gap between the ids, we will break..
+        if ((lastId++) != *itr)                             // if there is a gap between the ids, we will break..
             break;
         lastId = *itr;
     }

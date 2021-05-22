@@ -243,6 +243,7 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
     plMover->SetDelayedZoneUpdate(false, 0);
 
     plMover->SetPosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation, true);
+    plMover->m_movementInfo.ChangePosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation);
 
     GenericTransport* currentTransport = nullptr;
     if (plMover->m_teleportTransport)
@@ -253,15 +254,21 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
 
     uint32 newzone, newarea;
     plMover->GetZoneAndAreaId(newzone, newarea);
-    plMover->UpdateZone(newzone, newarea);
 
     // new zone
     if (old_zone != newzone)
     {
+        plMover->UpdateZone(newzone, newarea);
         // honorless target
         if (plMover->pvpInfo.inPvPEnforcedArea)
             plMover->CastSpell(plMover, 2479, TRIGGERED_OLD_TRIGGERED);
     }
+
+    // notify nearby players
+    WorldPacket data(MSG_MOVE_TELEPORT, 64);
+    data << plMover->GetPackGUID();
+    data << plMover->m_movementInfo;
+    plMover->SendMessageToSetExcept(data, plMover);
 
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();

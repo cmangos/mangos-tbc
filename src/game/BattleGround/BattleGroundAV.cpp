@@ -465,8 +465,8 @@ void BattleGroundAV::ProcessPlayerDestroyedPoint(AVNodeIds node)
     PvpTeamIndex otherTeamIdx = GetOtherTeamIndex(ownerTeamIdx);
     Team ownerTeam = GetTeamIdByTeamIndex(ownerTeamIdx);
 
-    bool isTower = m_nodes[node].graveyardId;
-    uint32 newState = 0;
+    bool isTower = !m_nodes[node].graveyardId;
+    uint32 newState = ownerTeam == ALLIANCE ? avNodeWorldStates[node].worldStateAlly : avNodeWorldStates[node].worldStateHorde;
 
     // despawn banner
     DestroyNode(node);
@@ -555,7 +555,7 @@ bool BattleGroundAV::CanPlayerDoMineQuest(uint32 goEntry, Team team)
 void BattleGroundAV::PopulateNode(AVNodeIds node)
 {
     PvpTeamIndex teamIdx = m_nodes[node].owner;
-    bool isTower = m_nodes[node].graveyardId;
+    bool isTower = !m_nodes[node].graveyardId;
 
     if (!isTower && teamIdx != TEAM_INDEX_NEUTRAL)
     {
@@ -629,7 +629,7 @@ void BattleGroundAV::ProcessPlayerDefendsPoint(Player* player, AVNodeIds node)
         return;
     }
 
-    bool isTower = m_nodes[node].graveyardId;
+    bool isTower = !m_nodes[node].graveyardId;
 
     uint32 newState  = teamIdx == TEAM_INDEX_ALLIANCE ? avNodeWorldStates[node].worldStateAlly : avNodeWorldStates[node].worldStateHorde;
 
@@ -663,7 +663,7 @@ void BattleGroundAV::ProcessPlayerAssaultsPoint(Player* player, AVNodeIds node)
     if (m_nodes[node].owner == teamIdx || teamIdx == m_nodes[node].totalOwner)
         return;
 
-    bool isTower = m_nodes[node].graveyardId;
+    bool isTower = !m_nodes[node].graveyardId;
 
     uint32 newState     = teamIdx == TEAM_INDEX_ALLIANCE ? avNodeWorldStates[node].worldStateAllyGrey : avNodeWorldStates[node].worldStateHordeGrey;
     uint32 scoreType    = isTower ? SCORE_TOWERS_ASSAULTED : SCORE_GRAVEYARDS_ASSAULTED;
@@ -722,7 +722,11 @@ void BattleGroundAV::FillInitialWorldStates(WorldPacket& data, uint32& count)
 // Update node world state
 void BattleGroundAV::UpdateNodeWorldState(AVNodeIds node, uint32 newState)
 {
-    UpdateWorldState(m_nodes[node].worldState, WORLD_STATE_REMOVE);
+    if (m_nodes[node].prevOwner == TEAM_INDEX_NEUTRAL)      // currently only snowfall is supported as neutral node
+        UpdateWorldState(BG_AV_STATE_GY_SNOWFALL_N, WORLD_STATE_REMOVE);
+    else
+        UpdateWorldState(m_nodes[node].worldState, WORLD_STATE_REMOVE);
+
     m_nodes[node].worldState = newState;
     UpdateWorldState(m_nodes[node].worldState, WORLD_STATE_ADD);
 }

@@ -2880,7 +2880,9 @@ SpellAuraProcResult Unit::HandleRaidProcFromChargeWithValueAuraProc(ProcExecutio
     }
 
     // heal
-    CastCustomSpell(nullptr, 33110, &heal, nullptr, nullptr, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+    SpellCastResult result = CastCustomSpell(nullptr, 33110, &heal, nullptr, nullptr, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+    if (result != SPELL_CAST_OK)
+        sLog.outCustomLog("POM fail result: %u", result);
     return SPELL_AURA_PROC_OK;
 }
 

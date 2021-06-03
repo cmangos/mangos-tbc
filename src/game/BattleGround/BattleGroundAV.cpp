@@ -645,7 +645,7 @@ void BattleGroundAV::ProcessPlayerDefendsPoint(Player* player, AVNodeIds node)
     PlaySoundToAll(soundId);
 
     // update score
-    UpdatePlayerScore(player, SCORE_GRAVEYARDS_DEFENDED, 1);
+    UpdatePlayerScore(player, scoreType, 1);
 
     // process node events
     DefendNode(node, teamIdx);                              // set the right variables for nodeinfo

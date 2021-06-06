@@ -561,21 +561,8 @@ void UnitAI::SendAIEventAround(AIEventType eventType, Unit* invoker, uint32 dela
 
         if (!receiverList.empty())
         {
-            if (delay)
-            {
-                AiDelayEventAround* e = new AiDelayEventAround(eventType, invoker ? invoker->GetObjectGuid() : ObjectGuid(), *m_unit, receiverList, miscValue);
-                m_unit->m_events.AddEvent(e, m_unit->m_events.CalculateTime(delay));
-            }
-            else
-            {
-                for (Creature* receiver : receiverList)
-                {
-                    receiver->AI()->ReceiveAIEvent(eventType, m_unit, invoker, miscValue);
-                    // Special case for type 0 (call-assistance)
-                    if (eventType == AI_EVENT_CALL_ASSISTANCE)
-                        receiver->AI()->HandleAssistanceCall(m_unit, invoker);
-                }
-            }
+            AiDelayEventAround* e = new AiDelayEventAround(eventType, invoker ? invoker->GetObjectGuid() : ObjectGuid(), *m_unit, receiverList, miscValue);
+            m_unit->m_events.AddEvent(e, m_unit->m_events.CalculateTime(delay));
         }
     }
 }

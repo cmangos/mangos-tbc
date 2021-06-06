@@ -64,11 +64,18 @@ namespace Movement
 
         moveFlags |= (MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD);
 
-        if (args.velocity == 0.f)
-            args.velocity = unit.GetSpeed(MovementInfo::GetSpeedType(MovementFlags(moveFlags)));
+        if (args.velocity == 0.f) // ignore swim speed and flight speed because its not used in generic scripting - always possible to override
+            args.velocity = unit.GetSpeed(MovementInfo::GetSpeedType(MovementFlags(moveFlags &~ (MOVEFLAG_FLYING | MOVEFLAG_SWIMMING))));
 
         if (!args.Validate(&unit))
             return 0;
+
+        if (moveFlags & MOVEFLAG_ROOT && !args.path.empty())
+        {
+            sLog.outCustomLog("Invalid movement during root.");
+            sLog.traceLog();
+            return 0;
+        }
 
         args.splineId = splineCounter++;
 

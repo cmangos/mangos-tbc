@@ -657,6 +657,8 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             m_creature->RemoveAllAurasOnDeath();
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             m_creature->ClearAllReactives();
+            SetCombatScriptStatus(true);
+            m_creature->SetTarget(nullptr);
 
             DoCastSpellIfCan(nullptr, SPELL_DEATH);
             DoCastSpellIfCan(m_creature, SPELL_TELEPORT_MAIEV, CAST_TRIGGERED);
@@ -843,6 +845,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                 ResetTimer(ILLIDAN_ACTION_PHASE_TRANSITION, 1000u);
                 break;
             }
+            default: break;
         }
     }
 
@@ -906,6 +909,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                 ResetCombatAction(ILLIDAN_ACTION_TRANSFORM, GetInitialActionTimer(ILLIDAN_ACTION_TRANSFORM));
                 break;
             }
+            default: break;
         }
     }
 
@@ -1099,6 +1103,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                 //TODO
                 break;
             }
+            default: break;
         }
         if (nextTimer)
             ResetTimer(ILLIDAN_ACTION_PHASE_TRANSITION, nextTimer);

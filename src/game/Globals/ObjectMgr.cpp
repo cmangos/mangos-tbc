@@ -1105,12 +1105,6 @@ void ObjectMgr::LoadCreatureModelInfo()
                 sLog.outErrorDb("Table `creature_model_info` have wrong bounding_radius %f for character race %u female model id %u, use %f instead", minfo->bounding_radius, race, raceEntry->model_f, DEFAULT_WORLD_OBJECT_SIZE);
                 const_cast<CreatureModelInfo*>(minfo)->bounding_radius = DEFAULT_WORLD_OBJECT_SIZE;
             }
-
-            if (minfo->combat_reach != 1.5f)
-            {
-                sLog.outErrorDb("Table `creature_model_info` have wrong combat_reach %f for character race %u female model id %u, expected always 1.5f", minfo->combat_reach, race, raceEntry->model_f);
-                const_cast<CreatureModelInfo*>(minfo)->combat_reach = 1.5f;
-            }
         }
         else
             sLog.outErrorDb("Table `creature_model_info` expect have data for character race %u female model id %u", race, raceEntry->model_f);
@@ -1127,12 +1121,6 @@ void ObjectMgr::LoadCreatureModelInfo()
             {
                 sLog.outErrorDb("Table `creature_model_info` have wrong bounding_radius %f for character race %u male model id %u, use %f instead", minfo->bounding_radius, race, raceEntry->model_f, DEFAULT_WORLD_OBJECT_SIZE);
                 const_cast<CreatureModelInfo*>(minfo)->bounding_radius = DEFAULT_WORLD_OBJECT_SIZE;
-            }
-
-            if (minfo->combat_reach != 1.5f)
-            {
-                sLog.outErrorDb("Table `creature_model_info` have wrong combat_reach %f for character race %u male model id %u, expected always 1.5f", minfo->combat_reach, race, raceEntry->model_m);
-                const_cast<CreatureModelInfo*>(minfo)->combat_reach = 1.5f;
             }
         }
         else
@@ -1313,7 +1301,7 @@ void ObjectMgr::LoadCreatureSpawnDataTemplates()
         int64 unitFlags =   int64(fields[1].GetUInt64());
         uint32 faction =    fields[2].GetUInt32();
         uint32 modelId =    fields[3].GetUInt32();
-        uint32 equipmentId = fields[4].GetUInt32();
+        int32 equipmentId = fields[4].GetInt32();
         uint32 curHealth =  fields[5].GetUInt32();
         uint32 curMana =    fields[6].GetUInt32();
         uint32 spawnFlags = fields[7].GetUInt32();
@@ -7007,7 +6995,8 @@ std::vector<uint32> ObjectMgr::LoadGameobjectInfo()
                         sLog.outErrorDb("Gameobject (Entry: %u GoType: %u) have data0=%u but TaxiPath (Id: %u) not exist.",
                                         goInfo->id, goInfo->type, goInfo->moTransport.taxiPathId, goInfo->moTransport.taxiPathId);
                 }
-                transportDisplayIds.push_back(goInfo->displayId);
+                if (goInfo->displayId != 462 && goInfo->displayId != 562)
+                    transportDisplayIds.push_back(goInfo->displayId);
                 break;
             }
             case GAMEOBJECT_TYPE_SUMMONING_RITUAL:          // 18

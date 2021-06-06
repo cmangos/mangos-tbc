@@ -13,6 +13,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (794,'spell_initialize_images'),
 (802,'spell_mutate_bug'),
 (1121,'spell_entangle_fankriss'),
+(2400,'spell_anubisath_share_powers'),
 (3730,'spell_initialize_image'),
 (7054,'spell_forsaken_skill'),
 (12639,'spell_summon_hakkar'),
@@ -20,6 +21,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (13278,'spell_gdr_channel'),
 (13493,'spell_gdr_periodic'),
 (16380,'spell_greater_invisibility_mob'),
+(17016,'spell_placing_beacon_torch'),
 (17244,'spell_anastari_possess'),
 (19832,'spell_possess_razorgore'),
 (19872,'spell_calm_dragonkin'),
@@ -27,8 +29,12 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (20038,'spell_explosion_razorgore'),
 (21651,'spell_opening_capping'),
 (23226,'spell_ritual_candle_aura'),
+(24693,'spell_hakkar_power_down'),
 (25684,'spell_summon_mana_fiends_moam'),
+(25885,'spell_viscidus_summon_globs'),
+(25926,'spell_viscidus_frost_weakness'),
 (25937,'spell_viscidus_freeze'),
+(26003,'spell_viscidus_suicide'),
 (26009,'spell_cthun_periodic_rotate'),
 (26084,'spell_aq_whirlwind'),
 (26136,'spell_cthun_periodic_rotate'),
@@ -39,16 +45,21 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (26217,'spell_cthun_tentacles_summon'),
 (26230,'spell_cthun_exit_stomach'),
 (26237,'spell_cthun_tentacles_summon'),
+(26256,'spell_cthun_check_reset'),
 (26332,'spell_cthun_mouth_tentacle'),
 (26398,'spell_cthun_tentacles_summon'),
+(26476,'spell_cthun_digestive_acid_periodic'),
 (26584,'spell_summon_toxic_slime'),
+(26585,'spell_viscidus_despawn_adds'),
 (26591,'spell_teleport_image'),
+(26608,'spell_viscidus_despawn_adds'),
 (26619,'spell_periodic_scarab_trigger'),
 (26686,'spell_aq_whirlwind'),
 (26767,'spell_cthun_tentacles_summon'),
 (26769,'spell_cthun_periodic_eye_trigger'),
 (28282,'spell_ashbringer_item'),
 (27808,'spell_kel_thuzad_frost_blast'),
+(28307,'spell_patchwerk_hatefulstrike'),
 (28522,'spell_sapphiron_icebolt_aura'),
 (28526,'spell_sapphiron_icebolt'),
 (28560,'spell_sapphiron_blizzard'),
@@ -60,8 +71,11 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (28416,'spell_trigger_KT_add'),
 (28417,'spell_trigger_KT_add'),
 (28455,'spell_trigger_KT_add'),
+(28441,'spell_ab_effect_000'),
+(28732,'spell_faerlina_widow_embrace'),
 (28749,'spell_check_gothik_side'),
 (28781,'spell_gothik_side_assault'),
+(29201,'spell_loatheb_corrupted_mind'),
 (29330,'spell_sapphiron_despawn_buffet'),
 (29874,'spell_gothik_side_assault'),
 (29875,'spell_check_gothik_side'),
@@ -264,7 +278,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (15325,'spell_blackout'),
 (15326,'spell_blackout'),
 (27827,'spell_spirit_of_redemption_heal'),
-(32676,'spell_consume_magic');
+(32676,'spell_consume_magic'),
+(34433,'spell_shadowfiend');
 
 -- Paladin
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
@@ -355,6 +370,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 
 -- Druid
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(5215,'spell_stealth'),
+(6783,'spell_stealth'),
+(9913,'spell_stealth'),
 (8936,'spell_regrowth'),
 (8938,'spell_regrowth'),
 (8939,'spell_regrowth'),
@@ -368,6 +386,13 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 
 -- Rogue
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(1784,'spell_stealth'),
+(1785,'spell_stealth'),
+(1786,'spell_stealth'),
+(1787,'spell_stealth'),
+(1856,'spell_vanish'),
+(1857,'spell_vanish'),
+(26889,'spell_vanish'),
 (14185,'spell_preparation');
 
 -- Shaman

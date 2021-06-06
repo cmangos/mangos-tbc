@@ -374,7 +374,8 @@ inline bool IsSpellSetRun(SpellEntry const* spellInfo)
 {
     switch (spellInfo->Id)
     {
-        case 39163:    // [DND]Rescue Wyvern
+        case 30445:     // Stillpine Ancestor Yor
+        case 39163:     // [DND]Rescue Wyvern
             return true;
         default:
             return false;
@@ -1133,8 +1134,6 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
             // some explicitly required dummy effect sets
             switch (spellproto->Id)
             {
-                case 28441:                                 // AB Effect 000
-                    return false;
                 case 18153:                                 // Kodo Kombobulator
                     return true;
                 default:

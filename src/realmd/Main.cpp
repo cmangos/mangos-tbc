@@ -68,25 +68,6 @@ bool stopEvent = false;                                     ///< Setting it to t
 
 DatabaseType LoginDatabase;                                 ///< Accessor to the realm server database
 
-/// Print out the usage string for this program on the console.
-void usage(const char* prog)
-{
-    sLog.outString("Usage: \n %s [<options>]\n"
-                   "    -v, --version            print version and exist\n\r"
-                   "    -c config_file           use config_file as configuration file\n\r"
-#ifdef _WIN32
-                   "    Running as service functions:\n\r"
-                   "    -s run                   run as service\n\r"
-                   "    -s install               install service\n\r"
-                   "    -s uninstall             uninstall service\n\r"
-#else
-                   "    Running as daemon functions:\n\r"
-                   "    -s run                   run as daemon\n\r"
-                   "    -s stop                  stop daemon\n\r"
-#endif
-                   , prog);
-}
-
 /// Launch the realm server
 int main(int argc, char* argv[])
 {
@@ -170,7 +151,7 @@ int main(int argc, char* argv[])
         "     | |ontinued| |\\/| | __ _| . ` | | |_ | |  | |\\___ \\ \n"
         "     | |____    | |  | |/ _` | |\\  | |__| | |__| |____) |\n"
         "      \\_____|   |_|  |_| (_| |_| \\_|\\_____|\\____/ \\____/ \n"
-        "      http://cmangos.net\\__,_|     Doing things right!\n\n");
+        "      http://cmangos.net\\__,_|     Doing emulation right!\n\n");
 
     sLog.outString("Built on %s at %s", __DATE__, __TIME__);
     sLog.outString("Built for %s", _ENDIAN_PLATFORM);
@@ -238,7 +219,11 @@ int main(int argc, char* argv[])
     LoginDatabase.CommitTransaction();
 
     // FIXME - more intelligent selection of thread count is needed here.  config option?
-    MaNGOS::Listener<AuthSocket> listener(sConfig.GetStringDefault("BindIP", "0.0.0.0"), sConfig.GetIntDefault("RealmServerPort", DEFAULT_REALMSERVER_PORT), 1);
+    MaNGOS::Listener<AuthSocket> listener(
+            sConfig.GetStringDefault("BindIP", "0.0.0.0"),
+            sConfig.GetIntDefault("RealmServerPort", DEFAULT_REALMSERVER_PORT),
+            sConfig.GetIntDefault("ListenerThreads", 1)
+    );
 
     ///- Catch termination signals
     HookSignals();

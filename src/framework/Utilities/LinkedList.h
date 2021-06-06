@@ -154,7 +154,6 @@ class LinkedListHead
                 typedef _Ty& reference;
                 typedef _Ty const& const_reference;
 
-
                 Iterator()
                     : _Ptr(nullptr)
                 {

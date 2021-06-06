@@ -3,7 +3,7 @@
 #####################################
 
 [MangosdConf]
-ConfVersion=2020112401
+ConfVersion=2021021901
 
 ###################################################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -294,6 +294,12 @@ AccountData = 0
 #        Default: "Server.log"
 #                 "" - Empty name disable creating log file
 #
+#    PacketLogFile
+#        Description: Binary packet logging file for the world server.
+#                     Filename extension must be .pkt to be parsable with WPP.
+#        Example:     "World.pkt" - (Enabled)
+#        Default:     ""          - (Disabled)
+#
 #    LogTimestamp
 #        Logfile with timestamp of server start in name
 #        Default: 0 - no timestamp in name
@@ -399,6 +405,7 @@ PidFile = ""
 LogLevel = 1
 LogTime = 0
 LogFile = "Server.log"
+PacketLogFile = ""
 LogTimestamp = 0
 LogFileLevel = 0
 LogFilter_TransportMoves = 1
@@ -1811,11 +1818,11 @@ CharDelete.MinLevel = 0
 CharDelete.KeepDays = 30
 
 ###################################################################################################################
-# METRICS CONFIGURATION
+# METRICS CONFIGURATION -> Require core builded with BUILD_METRICS option
 #
 #    Metric.Enable
 #        Enable or disable metric logging
-#        Default: 0  - Disabled
+#        Default: 0  - Disabled(default)
 #                 1  - Enable
 #
 #    Metric.Address

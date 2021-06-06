@@ -2130,7 +2130,7 @@ void Aura::TriggerSpell()
     {
         CastTriggeredSpell(data);
     }
-    else
+    else if (!GetAuraScript()) // if scripter scripted spell, it is handled somehow
     {
         if (Unit* caster = GetCaster())
         {
@@ -6903,6 +6903,7 @@ void Aura::PeriodicTick()
 
             // some auras remove at specific health level or more or have damage interactions
             bool breakSwitch = false;
+            bool overrideImmune = false;
             switch (GetId())
             {
                 case 43093: case 31956: case 38801:
@@ -6949,7 +6950,8 @@ void Aura::PeriodicTick()
                         aura->m_modifier.m_amount += aura->m_modifier.m_baseAmount;
                         aura->ApplyModifier(true, true);
                     }
-                    // TODO: Reverify that during pally bubble DOT should not tick
+                    // during normal immunities - ticks, only doesnt tick during spite
+                    overrideImmune = (target->HasAura(41376) || target->HasAura(41377));
                     break;
                 }
                 default:
@@ -6965,9 +6967,10 @@ void Aura::PeriodicTick()
                 break;
 
             // Check for immune (not use charges)
-            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)) // confirmed Impaling spine goes through immunity
+            // Aura of anger - video evidence confirms this, but attribute is legit because aura is still applied during
+            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) || overrideImmune) // confirmed Impaling spine goes through immunity
             {
-                if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
+                if (overrideImmune || target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
                     Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     break;
@@ -8789,6 +8792,14 @@ void SpellAuraHolder::SetCreationDelayFlag()
     m_skipUpdate = true;
 }
 
+bool SpellAuraHolder::HasAuraType(AuraType type)
+{
+    for (auto m_aura : m_auras)
+        if (m_aura && m_spellProto->EffectApplyAuraName[m_aura->GetEffIndex()] == type)
+            return true;
+    return false;
+}
+
 void SpellAuraHolder::UpdateAuraApplication()
 {
     if (m_auraSlot >= MAX_AURAS)
@@ -8821,34 +8832,39 @@ void SpellAuraHolder::UpdateAuraDuration()
     if (GetAuraSlot() >= MAX_AURAS || m_isPassive)
         return;
 
-    if (m_target->GetTypeId() == TYPEID_PLAYER)
+    if (m_target->IsPlayer())
     {
         if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_HIDE_DURATION))
         {
             WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
             data << uint8(GetAuraSlot());
             data << uint32(GetAuraDuration());
-            ((Player*)m_target)->SendDirectMessage(data);
+            static_cast<Player*>(m_target)->SendDirectMessage(data);
 
-            data = WorldPacket(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
-            data << m_target->GetPackGUID();
-            data << uint8(GetAuraSlot());
-            data << uint32(GetId());
-            data << uint32(GetAuraMaxDuration());
-            data << uint32(GetAuraDuration());
-
-            ((Player*)m_target)->SendDirectMessage(data);
+            SendAuraDurationForTarget();
         }
     }
 
     // not send in case player loading (will not work anyway until player not added to map), sent in visibility change code
-    if (m_target->GetTypeId() == TYPEID_PLAYER && ((Player*)m_target)->GetSession()->PlayerLoading())
+    if (m_target->GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(m_target)->GetSession()->PlayerLoading())
         return;
 
     Unit* caster = GetCaster();
 
     if (caster && caster->GetTypeId() == TYPEID_PLAYER && caster != m_target)
-        SendAuraDurationForCaster((Player*)caster);
+        SendAuraDurationForCaster(static_cast<Player*>(caster));
+}
+
+void SpellAuraHolder::SendAuraDurationForTarget(uint32 slot)
+{
+    WorldPacket data(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
+    data << m_target->GetPackGUID();
+    data << uint8(slot == MAX_AURAS ? GetAuraSlot() : slot);
+    data << uint32(GetId());
+    data << uint32(GetAuraMaxDuration());
+    data << uint32(GetAuraDuration());
+
+    static_cast<Player*>(m_target)->SendDirectMessage(data);
 }
 
 void SpellAuraHolder::SendAuraDurationForCaster(Player* caster)

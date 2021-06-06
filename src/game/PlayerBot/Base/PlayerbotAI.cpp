@@ -3312,7 +3312,7 @@ void PlayerbotAI::DoNextCombatManeuver()
 
     // check for new targets
     if (m_ScenarioType == SCENARIO_PVP_DUEL)
-        GetDuelTarget(GetMaster()); // TODO: Wow... wait... what? So not right.
+        GetDuelTarget(GetMaster()); // TODO: Woah... wait... what? So not right.
     else
         Attack();
 
@@ -4233,7 +4233,7 @@ void PlayerbotAI::TurnInQuests(WorldObject* questgiver)
 
         // auto complete every completed quest this NPC has
         m_bot->PrepareQuestMenu(giverGUID);
-        QuestMenu& questMenu = m_bot->PlayerTalkClass->GetQuestMenu();
+        QuestMenu& questMenu = m_bot->GetPlayerMenu()->GetQuestMenu();
         for (uint32 iI = 0; iI < questMenu.MenuItemCount(); ++iI)
         {
             QuestMenuItem const& qItem = questMenu.GetItem(iI);
@@ -5585,7 +5585,7 @@ SpellCastResult PlayerbotAI::CastSpell(uint32 spellId)
 
                     // auto accept every available quest this NPC has
                     m_bot->PrepareQuestMenu(m_lootCurrent);
-                    QuestMenu& questMenu = m_bot->PlayerTalkClass->GetQuestMenu();
+                    QuestMenu& questMenu = m_bot->GetPlayerMenu()->GetQuestMenu();
                     for (uint32 iI = 0; iI < questMenu.MenuItemCount(); ++iI)
                     {
                         QuestMenuItem const& qItem = questMenu.GetItem(iI);
@@ -7814,7 +7814,7 @@ void PlayerbotAI::ListQuests(WorldObject* questgiver)
 
     // list all bot quests this NPC has
     m_bot->PrepareQuestMenu(questgiver->GetObjectGuid());
-    QuestMenu& questMenu = m_bot->PlayerTalkClass->GetQuestMenu();
+    QuestMenu& questMenu = m_bot->GetPlayerMenu()->GetQuestMenu();
     std::ostringstream out;
     for (uint32 iI = 0; iI < questMenu.MenuItemCount(); ++iI)
     {
@@ -8398,7 +8398,7 @@ void PlayerbotAI::HandleCommand(const std::string& text, Player& fromPlayer)
             if (!pNpc)
                 return;
 
-            QuestMenu& questMenu = m_bot->PlayerTalkClass->GetQuestMenu();
+            QuestMenu& questMenu = m_bot->GetPlayerMenu()->GetQuestMenu();
             for (uint32 iI = 0; !wasRewarded && iI < questMenu.MenuItemCount(); ++iI)
             {
                 QuestMenuItem const& qItem = questMenu.GetItem(iI);
@@ -9591,7 +9591,26 @@ void PlayerbotAI::_HandleCommandTalent(std::string& text, Player& fromPlayer)
                     if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, m_bot, false))
                         continue;
 
-                    out << "|cff4e96f7|Htalent:" << talentInfo->RankID[curtalent_maxrank] << ":" << curtalent_maxrank << "|h[" << spellInfo->SpellName[GetMaster()->GetSession()->GetSessionDbcLocale()] << "]|h|r";
+                    // Get default locale for Spellnames by Master
+                    // e.g. 0 = eng | 3 = ger etc.
+                    int loc = GetMaster()->GetSession()->GetSessionDbcLocale();
+
+                    // fallback if master is not found/empty ?? correct me here if I'm wrong. :)
+                    if (!GetMaster())
+                    {
+                        loc = m_bot->GetSession()->GetSessionDbcLocale();
+                    }
+
+                    // Get Spells Name for link based on locale
+                    const char* bot_spell_to_learn = spellInfo->SpellName[loc];
+
+                    // fallback if nothing in current locale but locale is supported/found (e.g. spellname not available in loc = 3)
+                    if (spellInfo->SpellName[loc][0] == '\0')
+                    {
+                        bot_spell_to_learn = spellInfo->SpellName[0];
+                    }
+
+                    out << "|cff4e96f7|Htalent:" << talentInfo->TalentID << ":" << curtalent_maxrank << "|h[" << bot_spell_to_learn << "]|h|r";
                 }
             }
             SendWhisper(out.str(), fromPlayer);

@@ -375,7 +375,15 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
     {
         data << (uint8)CHAR_CREATE_FAILED;
         SendPacket(data, true);
-        sLog.outError("Class: %u or Race %u not found in DBC (Wrong DBC files?) or Cheater?", class_, race_);
+        sLog.outError("Account:[%u] attempted to create character of invalid Class (%u) or Race (%u)", GetAccountId(), class_, race_);
+        return;
+    }
+
+    if (!Player::ValidateAppearance(race_, class_, gender, hairStyle, hairColor, face, facialHair, skin, true))
+    {
+        data << (uint8)CHAR_CREATE_FAILED;
+        SendPacket(data, true);
+        sLog.outError("Account:[%u] attempted to create character with invalid appearance attributes", GetAccountId());
         return;
     }
 
@@ -393,7 +401,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
     {
         data << (uint8)CHAR_NAME_NO_NAME;
         SendPacket(data, true);
-        sLog.outError("Account:[%d] but tried to Create character with empty [name]", GetAccountId());
+        sLog.outError("Account:[%u] attempted to create character with invalid name", GetAccountId());
         return;
     }
 
@@ -893,6 +901,13 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     {
         pCurrChar->resetTalents(true);
         SendNotification(LANG_RESET_TALENTS);               // we can use SMSG_TALENTS_INVOLUNTARILY_RESET here
+    }
+
+    // handle deserter flag for those who dared to leave their team in fight
+    if (pCurrChar->HasAtLoginFlag(AT_LOGIN_ADD_BG_DESERTER))
+    {
+        pCurrChar->CastSpell(pCurrChar, SPELL_ID_BATTLEGROUND_DESERTER, TRIGGERED_OLD_TRIGGERED);
+        pCurrChar->RemoveAtLoginFlag(AT_LOGIN_ADD_BG_DESERTER, true);
     }
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_RESET_TAXINODES))

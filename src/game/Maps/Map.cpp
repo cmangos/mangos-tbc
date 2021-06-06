@@ -22,7 +22,6 @@
 #include "Grids/GridNotifiers.h"
 #include "Log.h"
 #include "Grids/ObjectGridLoader.h"
-#include "Metric/Metric.h"
 #include "Grids/CellImpl.h"
 #include "GridDefines.h"
 #include "Grids/GridNotifiersImpl.h"
@@ -40,6 +39,10 @@
 #include "Chat/Chat.h"
 #include "Weather/Weather.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+
+#ifdef BUILD_METRICS
+ #include "Metric/Metric.h"
+#endif
 
 #ifdef ENABLE_PLAYERBOTS
 #include "playerbot.h"
@@ -626,6 +629,8 @@ bool Map::loaded(const GridPair& p) const
     return (getNGrid(p.x_coord, p.y_coord) && isGridObjectDataLoaded(p.x_coord, p.y_coord));
 }
 
+#define MAP_METRICS
+
 void Map::VisitNearbyCellsOf(WorldObject* obj, TypeContainerVisitor<MaNGOS::ObjectUpdater, GridTypeMapContainer> &gridVisitor, TypeContainerVisitor<MaNGOS::ObjectUpdater, WorldTypeMapContainer> &worldVisitor)
 {
     // lets update mobs/objects in ALL visible cells around player!
@@ -653,10 +658,14 @@ void Map::VisitNearbyCellsOf(WorldObject* obj, TypeContainerVisitor<MaNGOS::Obje
 
 void Map::Update(const uint32& t_diff)
 {
+
+#ifdef BUILD_METRICS
     metric::duration<std::chrono::milliseconds> meas("map.update", {
         { "map_id", std::to_string(i_id) },
         { "instance_id", std::to_string(i_InstanceId) }
-        });
+});
+#endif
+
 
     uint64 count = 0;
 
@@ -682,12 +691,13 @@ void Map::Update(const uint32& t_diff)
     // the player iterator is stored in the map object
     // to make sure calls to Map::Remove don't invalidate it
     {
+#ifdef BUILD_METRICS
         uint32 updatedSessions = 0;
-
         metric::duration<std::chrono::milliseconds> sessions_meas("map.update.session", {
             { "map_id", std::to_string(i_id) },
             { "instance_id", std::to_string(i_InstanceId) },
             });
+#endif
 
         for (m_mapRefIter = m_mapRefManager.begin(); m_mapRefIter != m_mapRefManager.end(); ++m_mapRefIter)
         {
@@ -698,11 +708,13 @@ void Map::Update(const uint32& t_diff)
             // Update session first
             WorldSession* pSession = player->GetSession();
             pSession->UpdateMap(t_diff);
-
+#ifdef BUILD_METRICS
             ++updatedSessions;
+#endif
         }
-
+#ifdef BUILD_METRICS
         sessions_meas.add_field("count", std::to_string(static_cast<int32>(updatedSessions)));
+#endif
     }
 
     /// update players at tick
@@ -774,7 +786,9 @@ void Map::Update(const uint32& t_diff)
         ++count;
     }
 
+#ifdef BUILD_METRICS
     meas.add_field("count", std::to_string(static_cast<int32>(count)));
+#endif
 
     // Send world objects and item update field changes
     SendObjectUpdates();
@@ -1901,7 +1915,7 @@ bool BattleGroundMap::Add(Player* player)
 
 void BattleGroundMap::Remove(Player* player, bool remove)
 {
-    DETAIL_LOG("MAP: Removing player '%s' from bg '%u' of map '%s' before relocating to other map", player->GetName(), GetInstanceId(), GetMapName());
+    DETAIL_FILTER_LOG(LOG_FILTER_PLAYER_MOVES, "MAP: Removing player '%s' from bg '%u' of map '%s' before relocating to other map", player->GetName(), GetInstanceId(), GetMapName());
     Map::Remove(player, remove);
 }
 
@@ -1948,7 +1962,7 @@ bool Map::ScriptsStart(ScriptMapMapName const& scripts, uint32 id, Object* sourc
                                                execParams & SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE ? sourceGuid : ObjectGuid(),
                                                execParams & SCRIPT_EXEC_PARAM_UNIQUE_BY_TARGET ? targetGuid : ObjectGuid(), ownerGuid))
             {
-                DEBUG_LOG("DB-SCRIPTS: Process table `%s` id %u. Skip script as script already started for source %s, target %s - ScriptsStartParams %u", scripts.first, id, sourceGuid.GetString().c_str(), targetGuid.GetString().c_str(), execParams);
+                DETAIL_FILTER_LOG(LOG_FILTER_DB_SCRIPT, "DB-SCRIPTS: Process table `%s` id %u. Skip script as script already started for source %s, target %s - ScriptsStartParams %u", scripts.first, id, sourceGuid.GetString().c_str(), targetGuid.GetString().c_str(), execParams);
                 return true;
             }
         }

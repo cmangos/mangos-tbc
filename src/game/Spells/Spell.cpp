@@ -380,18 +380,18 @@ Spell::Spell(Unit* caster, SpellEntry const* info, uint32 triggeredFlags, Object
     m_needAliveTargetMask = 0;
 
     m_ignoreHitResult = (triggeredFlags & TRIGGERED_IGNORE_HIT_CALCULATION) != 0;
-    m_ignoreUnselectableTarget = m_IsTriggeredSpell | ((triggeredFlags & TRIGGERED_IGNORE_UNSELECTABLE_FLAG) != 0);
+    m_ignoreUnselectableTarget = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_UNSELECTABLE_FLAG) != 0);
     m_ignoreCastTime = (triggeredFlags & TRIGGERED_INSTANT_CAST) != 0;
     m_ignoreUnattackableTarget = (triggeredFlags & TRIGGERED_IGNORE_UNATTACKABLE_FLAG) != 0;
     m_triggerAutorepeat = (triggeredFlags & TRIGGERED_AUTOREPEAT) != 0;
     m_doNotProc = (triggeredFlags & TRIGGERED_DO_NOT_PROC) != 0;
     m_petCast = (triggeredFlags & TRIGGERED_PET_CAST) != 0;
     m_notifyAI = (triggeredFlags & TRIGGERED_NORMAL_COMBAT_CAST) != 0;
-    m_ignoreGCD = m_IsTriggeredSpell | ((triggeredFlags & TRIGGERED_IGNORE_GCD) != 0);
-    m_ignoreCosts = m_IsTriggeredSpell | ((triggeredFlags & TRIGGERED_IGNORE_COSTS) != 0);
-    m_ignoreCooldowns = m_IsTriggeredSpell | ((triggeredFlags & TRIGGERED_IGNORE_COOLDOWNS) != 0);
-    m_ignoreConcurrentCasts = m_IsTriggeredSpell | ((triggeredFlags & TRIGGERED_IGNORE_CURRENT_CASTED_SPELL) != 0) | m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING);
-    m_hideInCombatLog = (m_IsTriggeredSpell && !IsAutoRepeatRangedSpell(m_spellInfo)) | ((triggeredFlags & TRIGGERED_HIDE_CAST_IN_COMBAT_LOG) != 0);
+    m_ignoreGCD = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_GCD) != 0);
+    m_ignoreCosts = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_COSTS) != 0);
+    m_ignoreCooldowns = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_COOLDOWNS) != 0);
+    m_ignoreConcurrentCasts = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_CURRENT_CASTED_SPELL) != 0) || m_spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING);
+    m_hideInCombatLog = (m_IsTriggeredSpell && !IsAutoRepeatRangedSpell(m_spellInfo)) || ((triggeredFlags & TRIGGERED_HIDE_CAST_IN_COMBAT_LOG) != 0);
 
     m_reflectable = IsReflectableSpell(m_spellInfo);
 
@@ -792,7 +792,7 @@ void Spell::AddUnitTarget(Unit* target, uint8 effectMask, CheckException excepti
     targetInfo.heartbeatResistChance = 0;
 
     // Calculate hit result
-    targetInfo.missCondition = (m_ignoreHitResult ? SPELL_MISS_NONE : m_caster->SpellHitResult(target, m_spellInfo, targetInfo.effectMask, m_reflectable, &targetInfo.heartbeatResistChance));
+    targetInfo.missCondition = (m_ignoreHitResult ? SPELL_MISS_NONE : m_caster->SpellHitResult(target, m_spellInfo, targetInfo.effectMask, m_reflectable, false, &targetInfo.heartbeatResistChance));
 
     // spell fly from visual cast object
     WorldObject* affectiveObject = GetAffectiveCasterObject();
@@ -1091,7 +1091,7 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
 
         Unit::DealDamageMods(caster, spellDamageInfo.target, spellDamageInfo.damage, &spellDamageInfo.absorb, SPELL_DIRECT_DAMAGE, m_spellInfo);
 
-        // Send log damage message to client        
+        // Send log damage message to client
         if (reflectTarget)
             reflectTarget->SendSpellNonMeleeDamageLog(&spellDamageInfo);
         else
@@ -1220,10 +1220,6 @@ void Spell::DoSpellHitOnUnit(Unit* unit, uint32 effectMask, TargetInfo* target, 
             if (traveling && unit == m_targets.getUnitTarget() &&
                 !unit->IsVisibleForOrDetect(m_caster, m_caster, false, false, true, true) && m_caster->IsAlive())
             {
-                // Workaround: do not send evade if caster/unit are dead to prevent combat log errors
-                // TODO: Visibility check clearly lackluster if we end up here like this, to be fixed later
-                if (unit->IsAlive() && realCaster->IsAlive())
-                    realCaster->SendSpellMiss(unit, m_spellInfo->Id, SPELL_MISS_EVADE);
                 ResetEffectDamageAndHeal();
                 return;
             }
@@ -1646,8 +1642,6 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                 case TARGET_LOCATION_CASTER_LEFT:        angle += M_PI_F / 2;     break;
                 case TARGET_LOCATION_CASTER_RIGHT:       angle -= M_PI_F / 2;     break;
             }
-            if (radius == 0.f) // All shaman totems have 0 radius - need to override with proper value
-                radius = 2.f;
 
             Position pos;
             m_trueCaster->GetFirstCollisionPosition(pos, radius, angle);
@@ -3066,45 +3060,6 @@ void Spell::cast(bool skipCheck)
                 AddPrecastSpell(25771);                     // Forbearance
             break;
         }
-        case SPELLFAMILY_ROGUE:
-        {
-            if (m_spellInfo->IsFitToFamilyMask(uint64(0x0000000000000800)) && m_spellInfo->Reagent[0] == 5140) // vanish base spell
-            {
-                if (m_caster->GetTypeId() != TYPEID_PLAYER)
-                    break;
-
-                // get highest rank of the Stealth spell
-                SpellEntry const* stealthSpellEntry = nullptr;
-                const PlayerSpellMap& sp_list = ((Player*)m_caster)->GetSpellMap();
-                for (const auto& itr : sp_list)
-                {
-                    // only highest rank is shown in spell book, so simply check if shown in spell book
-                    if (!itr.second.active || itr.second.disabled || itr.second.state == PLAYERSPELL_REMOVED)
-                        continue;
-
-                    SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
-                    if (!spellInfo)
-                        continue;
-
-                    if (spellInfo->IsFitToFamily(SPELLFAMILY_ROGUE, uint64(0x0000000000400000)))
-                    {
-                        stealthSpellEntry = spellInfo;
-                        break;
-                    }
-                }
-
-                // no Stealth spell found
-                if (!stealthSpellEntry)
-                    return;
-
-                // reset cooldown on it if needed
-                if (!m_caster->IsSpellReady(*stealthSpellEntry))
-                    m_caster->RemoveSpellCooldown(*stealthSpellEntry);
-
-                m_caster->CastSpell(m_caster, stealthSpellEntry, TRIGGERED_OLD_TRIGGERED);
-            }
-            break;
-        }
         default:
             break;
     }
@@ -3903,9 +3858,28 @@ void Spell::WriteSpellGoTargets(WorldPacket& data)
     size_t count_pos = data.wpos();
     data << uint8(0);                                      // placeholder
 
+    if (m_UniqueTargetInfo.size() > 255)
+    {
+        sLog.outError("Spell ID %u cast by %s hit/missed too many unit targets %u. Ignored after 255.", m_spellInfo->Id, m_caster->GetObjectGuid().GetString().c_str(), (uint32)m_UniqueTargetInfo.size());
+        m_UniqueTargetInfo.resize(255);
+    }
+
+    if (m_UniqueGOTargetInfo.size() > 255)
+    {
+        sLog.outError("Spell ID %u cast by %s hit/missed too many GO targets %u. Ignored after 255.", m_spellInfo->Id, m_caster->GetObjectGuid().GetString().c_str(), (uint32)m_UniqueGOTargetInfo.size());
+        m_UniqueGOTargetInfo.resize(255);
+    }
+
+    if (m_UniqueGOTargetInfo.size() + m_UniqueTargetInfo.size() > 255)
+    {
+        sLog.outError("Spell ID %u cast by %s hit/missed too many targets %u. Ignored after 255.", m_spellInfo->Id, m_caster->GetObjectGuid().GetString().c_str(), (uint32)(m_UniqueGOTargetInfo.size() + m_UniqueTargetInfo.size()));
+        m_UniqueTargetInfo.resize(127);
+        m_UniqueGOTargetInfo.resize(127);
+    }
+
     // This function also fill data for channeled spells:
     // m_needAliveTargetMask req for stop channeling if one target die
-    uint32 hit  = m_UniqueGOTargetInfo.size();              // Always hits on GO
+    uint32 hit = m_UniqueGOTargetInfo.size();              // Always hits on GO
     uint32 miss = 0;
 
     for (auto& ihit : m_UniqueTargetInfo)
@@ -3913,6 +3887,8 @@ void Spell::WriteSpellGoTargets(WorldPacket& data)
         if (ihit.effectHitMask == 0)                       // No effect apply - all immuned add state
         {
             // possibly SPELL_MISS_IMMUNE2 for this??
+            if (IsChanneledSpell(m_spellInfo) && ihit.targetGUID == m_targets.getUnitTargetGuid()) // can happen due to DR
+                m_duration = 0;                            // cancel aura to avoid visual effect continue
             ihit.missCondition = SPELL_MISS_IMMUNE2;
             ++miss;
         }
@@ -3930,20 +3906,20 @@ void Spell::WriteSpellGoTargets(WorldPacket& data)
         }
     }
 
-    for (GOTargetList::const_iterator ighit = m_UniqueGOTargetInfo.begin(); ighit != m_UniqueGOTargetInfo.end(); ++ighit)
-        data << ighit->targetGUID;                         // Always hits
+    for (auto& ighit : m_UniqueGOTargetInfo)
+        data << ighit.targetGUID;                         // Always hits
 
     data.put<uint8>(count_pos, hit);
 
     data << (uint8)miss;
-    for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
+    for (auto& ihit : m_UniqueTargetInfo)
     {
-        if (ihit->missCondition != SPELL_MISS_NONE)         // Add only miss
+        if (ihit.missCondition != SPELL_MISS_NONE)         // Add only miss
         {
-            data << ihit->targetGUID;
-            data << uint8(ihit->missCondition);
-            if (ihit->missCondition == SPELL_MISS_REFLECT)
-                data << uint8(ihit->reflectResult);
+            data << ihit.targetGUID;
+            data << uint8(ihit.missCondition);
+            if (ihit.missCondition == SPELL_MISS_REFLECT)
+                data << uint8(ihit.reflectResult);
         }
     }
     // Reset m_needAliveTargetMask for non channeled spell
@@ -7119,7 +7095,7 @@ float Spell::GetSpellSpeed() const
         return 0.f;
     if (IsChanneledSpell(m_spellInfo))
         return 0.f;
-    
+
     return m_spellInfo->speed;
 }
 
@@ -7258,14 +7234,14 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
     else
         radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex));
 
+    uint32 targetMode;
+    if (!targetB)
+        targetMode = m_spellInfo->EffectImplicitTargetA[effIndex];
+    else
+        targetMode = m_spellInfo->EffectImplicitTargetB[effIndex];
+    SpellTargetInfo& data = SpellTargetInfoTable[targetMode];
     if (radius == 50000.f) // safety against bad data
     {
-        uint32 targetMode;
-        if (!targetB)
-            targetMode = m_spellInfo->EffectImplicitTargetA[effIndex];
-        else
-            targetMode = m_spellInfo->EffectImplicitTargetB[effIndex];
-        SpellTargetInfo& data = SpellTargetInfoTable[targetMode];
         if (data.filter != TARGET_SCRIPT)
         {
             switch (data.type)
@@ -7281,7 +7257,25 @@ void Spell::GetSpellRangeAndRadius(SpellEffectIndex effIndex, float& radius, boo
                     if (data.enumerator == TARGET_ENUMERATOR_CHAIN || data.enumerator == TARGET_ENUMERATOR_AOE || data.enumerator == TARGET_ENUMERATOR_CONE)
                         radius = 200.f;
                     break;
+                default: break;
             }
+        }
+    }
+    else if (radius == 0.f && data.type == TARGET_TYPE_LOCATION_DEST)
+    {
+        switch (targetMode) // TODO: move this to SQL
+        {
+            case TARGET_LOCATION_CASTER_FRONT_RIGHT:
+            case TARGET_LOCATION_CASTER_BACK_RIGHT:
+            case TARGET_LOCATION_CASTER_BACK_LEFT:
+            case TARGET_LOCATION_CASTER_FRONT_LEFT:
+            case TARGET_LOCATION_CASTER_FRONT:
+            case TARGET_LOCATION_CASTER_BACK:
+            case TARGET_LOCATION_CASTER_LEFT:
+            case TARGET_LOCATION_CASTER_RIGHT:
+                if (radius == 0.f && m_spellInfo->EffectRadiusIndex[effIndex] != 36) // All shaman totems have 0 radius - need to override with proper value
+                    radius = 2.f;
+                break;
         }
     }
 

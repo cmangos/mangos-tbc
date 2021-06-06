@@ -140,13 +140,13 @@ enum QuestFlags
     QUEST_FLAGS_EPIC           = 0x00000020,                // Not used currently: Unsure of content
     QUEST_FLAGS_RAID           = 0x00000040,                // Not used currently
     QUEST_FLAGS_TBC            = 0x00000080,                // Not used currently: Available if TBC expansion enabled only
-    QUEST_FLAGS_UNK2           = 0x00000100,                // Not used currently: _DELIVER_MORE Quest needs more than normal _q-item_ drops from mobs
+    QUEST_FLAGS_NO_MONEY_FROM_XP = 0x00000100,              // Not used currently: _DELIVER_MORE Quest needs more than normal _q-item_ drops from mobs
     QUEST_FLAGS_HIDDEN_REWARDS = 0x00000200,                // Items and money rewarded only sent in SMSG_QUESTGIVER_OFFER_REWARD (not in SMSG_QUESTGIVER_QUEST_DETAILS or in client quest log(SMSG_QUEST_QUERY_RESPONSE))
     QUEST_FLAGS_AUTO_REWARDED  = 0x00000400,                // These quests are automatically rewarded on quest complete and they will never appear in quest log client side.
     QUEST_FLAGS_TBC_RACES      = 0x00000800,                // Not used currently: Blood elf/Draenei starting zone quests
     QUEST_FLAGS_DAILY          = 0x00001000,                // Daily quest. Can be done once a day. Quests reset at regular intervals for all players.
     QUEST_FLAGS_FLAGS_PVP      = 0x00002000,                // activates PvP on accept
-    QUEST_FLAGS_UNK4           = 0x00004000,                // ? Membership Card Renewal
+    QUEST_FLAGS_UNAVAILABLE    = 0x00004000,                // quests not available
     QUEST_FLAGS_WEEKLY         = 0x00008000,                // Weekly quest. Can be done once a week. Quests reset at regular intervals for all players.
 };
 
@@ -231,7 +231,7 @@ class Quest
         std::string GetEndText() const { return EndText; }
         int32  GetRewOrReqMoney() const;
         uint32 GetRewHonorableKills() const { return RewHonorableKills; }
-        uint32 GetRewMoneyMaxLevel() const { return RewMoneyMaxLevel; }
+        uint32 GetRewMoneyMaxLevel() const;
         // use in XP calculation at client
         uint32 GetRewSpell() const { return RewSpell; }
         uint32 GetRewSpellCast() const { return RewSpellCast; }

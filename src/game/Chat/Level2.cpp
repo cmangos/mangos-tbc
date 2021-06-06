@@ -2592,6 +2592,8 @@ inline Creature* Helper_CreateWaypointFor(Creature* wpOwner, WaypointPathOrigin 
     settings.entry = VISUAL_WAYPOINT;
     settings.x = wpNode->x; settings.y = wpNode->y; settings.z = wpNode->z; settings.ori = wpNode->orientation;
     settings.activeObject = true;
+    settings.spawnDataEntry = 2;
+    settings.spawnType = TEMPSPAWN_TIMED_DESPAWN;
     settings.despawnTime = 5 * MINUTE * IN_MILLISECONDS;
 
     settings.tempSpawnMovegen = true;
@@ -3206,7 +3208,7 @@ bool ChatHandler::HandleWpShowCommand(char* args)
             return false;
         }
 
-        // player->PlayerTalkClass->SendPointOfInterest(x, y, 6, 6, 0, "First Waypoint");
+        // player->GetPlayerMenu()->SendPointOfInterest(x, y, 6, 6, 0, "First Waypoint");
         return true;
     }
 
@@ -3219,7 +3221,7 @@ bool ChatHandler::HandleWpShowCommand(char* args)
             return false;
         }
 
-        // player->PlayerTalkClass->SendPointOfInterest(x, y, 6, 6, 0, "Last Waypoint");
+        // player->GetPlayerMenu()->SendPointOfInterest(x, y, 6, 6, 0, "Last Waypoint");
         return true;
     }
 

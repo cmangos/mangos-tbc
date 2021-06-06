@@ -330,14 +330,23 @@ CreatureList ScriptedAI::DoFindFriendlyCC(float range)
     return creatureList;
 }
 
-CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 spellId)
+CreatureList ScriptedAI::DoFindFriendlyMissingBuff(float range, uint32 spellId, bool inCombat)
 {
     CreatureList creatureList;
+    
+    if (inCombat == false)
+    {
+        MaNGOS::FriendlyMissingBuffInRangeInCombatCheck u_check(m_creature, range, spellId);
+        MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeInCombatCheck> searcher(creatureList, u_check);
+        Cell::VisitGridObjects(m_creature, searcher, range);
+    }
+    else if (inCombat == true)
+    {
+        MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck u_check(m_creature, range, spellId);
+        MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeNotInCombatCheck> searcher(creatureList, u_check);
 
-    MaNGOS::FriendlyMissingBuffInRangeCheck u_check(m_creature, range, spellId);
-    MaNGOS::CreatureListSearcher<MaNGOS::FriendlyMissingBuffInRangeCheck> searcher(creatureList, u_check);
-
-    Cell::VisitGridObjects(m_creature, searcher, range);
+        Cell::VisitGridObjects(m_creature, searcher, range);
+    }    
 
     return creatureList;
 }
@@ -363,13 +372,13 @@ void ScriptedAI::SetEquipmentSlots(bool loadDefault, int32 mainHand, int32 offHa
     }
 
     if (mainHand >= 0)
-    { 
+    {
         m_creature->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, mainHand);
-        m_creature->UpdateDamagePhysical(BASE_ATTACK);            
+        m_creature->UpdateDamagePhysical(BASE_ATTACK);
     }
 
     if (offHand >= 0)
-    { 
+    {
         m_creature->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, offHand);
         if(offHand == 1)
             m_creature->SetCanDualWield(true);

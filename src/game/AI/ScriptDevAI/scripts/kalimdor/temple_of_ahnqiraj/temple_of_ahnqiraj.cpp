@@ -215,12 +215,6 @@ void instance_temple_of_ahnqiraj::OnCreatureRespawn(Creature* creature)
 {
     switch (creature->GetEntry())
     {
-        case NPC_VISCIDUS_TRIGGER:
-        {
-            if (Creature* viscidus = GetSingleCreatureFromStorage(NPC_VISCIDUS))
-                viscidus->AI()->JustSummoned(creature);
-            break;
-        }
         case NPC_QIRAJI_SCARAB:
         case NPC_QIRAJI_SCORPION:
             creature->SetCorpseDelay(5);
@@ -328,6 +322,15 @@ void instance_temple_of_ahnqiraj::SetData(uint32 uiType, uint32 uiData)
                 {
                     if (!eyeOfCthun->IsAlive())
                         eyeOfCthun->Respawn();
+                    // Reset combat
+                    if (eyeOfCthun->AI() && eyeOfCthun->IsInCombat())
+                        eyeOfCthun->AI()->EnterEvadeMode();
+                }
+                if (Creature* cthun = GetSingleCreatureFromStorage(NPC_CTHUN))
+                {
+                    // Reset combat
+                    if (cthun->AI() && cthun->IsInCombat())
+                        cthun->AI()->EnterEvadeMode();
                 }
             }
             m_auiEncounter[uiType] = uiData;
@@ -449,6 +452,19 @@ bool AreaTrigger_at_temple_ahnqiraj(Player* player, AreaTriggerEntry const* at)
     return false;
 }
 
+bool ProcessEventId_event_reset_cthun(uint32 /*eventId*/, Object* source, Object* /*target*/, bool /*isStart*/)
+{
+    if (source->GetTypeId() == TYPEID_UNIT)
+    {
+        if (instance_temple_of_ahnqiraj* instance = (instance_temple_of_ahnqiraj*)((Creature*)source)->GetInstanceData())
+        {
+            instance->SetData(TYPE_CTHUN, FAIL);
+            return true;
+        }
+    }
+    return false;
+}
+
 void AddSC_instance_temple_of_ahnqiraj()
 {
     Script* pNewScript = new Script;
@@ -459,5 +475,10 @@ void AddSC_instance_temple_of_ahnqiraj()
     pNewScript = new Script;
     pNewScript->Name = "at_temple_ahnqiraj";
     pNewScript->pAreaTrigger = &AreaTrigger_at_temple_ahnqiraj;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "event_cthun_reset";
+    pNewScript->pProcessEventId = &ProcessEventId_event_reset_cthun;
     pNewScript->RegisterSelf();
 }

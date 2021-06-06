@@ -135,7 +135,7 @@ bool ChatHandler::GetDeletedCharacterInfoList(DeletedInfoList& foundList, std::s
     {
         if (resultChar->GetRowCount() > 100)
         {
-            PSendSysMessage("Too many results %llu. Narrow it down.", resultChar->GetRowCount());
+            PSendSysMessage("Too many results %u. Narrow it down.", (uint32)resultChar->GetRowCount());
             SetSentErrorMessage(true);
             delete resultChar;
             return false;
@@ -477,7 +477,7 @@ bool ChatHandler::HandleAccountOnlineListCommand(char* args)
 
     ///- Get the list of accounts ID logged to the realm
     //                                                 0            1         2        3        4
-    QueryResult* result = LoginDatabase.PQuery("SELECT distinct id, username, ip, gmlevel, expansion FROM account a join account_logons b on(a.id=b.accountId) WHERE active_realm_id = %u", realmID);
+    QueryResult* result = LoginDatabase.PQuery("SELECT distinct a.id, username, ip, gmlevel, expansion FROM account a join account_logons b on(a.id=b.accountId) WHERE active_realm_id = %u", realmID);
 
     return ShowAccountListHelper(result, &limit);
 }

@@ -393,10 +393,13 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
     else if (data)
     {
         // override, -1 means no equipment
-        if (data->spawnTemplate->equipmentId != -1)
-            LoadEquipment(data->spawnTemplate->equipmentId);
+        if (data->spawnTemplate->equipmentId != 0)
+        {
+            if (data->spawnTemplate->equipmentId != -1)
+                LoadEquipment(data->spawnTemplate->equipmentId);
+        }
         else if (data->equipmentId != -1)
-            LoadEquipment(data->equipmentId);        
+            LoadEquipment(data->equipmentId);
     }
 
     if (eventData && eventData->vendor_id)
@@ -940,18 +943,18 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
             {
                 if (msg)
                 {
-                    pPlayer->PlayerTalkClass->ClearMenus();
+                    pPlayer->GetPlayerMenu()->ClearMenus();
                     switch (GetCreatureInfo()->TrainerClass)
                     {
-                        case CLASS_DRUID:  pPlayer->PlayerTalkClass->SendGossipMenu(4913, GetObjectGuid()); break;
-                        case CLASS_HUNTER: pPlayer->PlayerTalkClass->SendGossipMenu(10090, GetObjectGuid()); break;
-                        case CLASS_MAGE:   pPlayer->PlayerTalkClass->SendGossipMenu(328, GetObjectGuid()); break;
-                        case CLASS_PALADIN: pPlayer->PlayerTalkClass->SendGossipMenu(1635, GetObjectGuid()); break;
-                        case CLASS_PRIEST: pPlayer->PlayerTalkClass->SendGossipMenu(4436, GetObjectGuid()); break;
-                        case CLASS_ROGUE:  pPlayer->PlayerTalkClass->SendGossipMenu(4797, GetObjectGuid()); break;
-                        case CLASS_SHAMAN: pPlayer->PlayerTalkClass->SendGossipMenu(5003, GetObjectGuid()); break;
-                        case CLASS_WARLOCK: pPlayer->PlayerTalkClass->SendGossipMenu(5836, GetObjectGuid()); break;
-                        case CLASS_WARRIOR: pPlayer->PlayerTalkClass->SendGossipMenu(4985, GetObjectGuid()); break;
+                        case CLASS_DRUID:  pPlayer->GetPlayerMenu()->SendGossipMenu(4913, GetObjectGuid()); break;
+                        case CLASS_HUNTER: pPlayer->GetPlayerMenu()->SendGossipMenu(10090, GetObjectGuid()); break;
+                        case CLASS_MAGE:   pPlayer->GetPlayerMenu()->SendGossipMenu(328, GetObjectGuid()); break;
+                        case CLASS_PALADIN: pPlayer->GetPlayerMenu()->SendGossipMenu(1635, GetObjectGuid()); break;
+                        case CLASS_PRIEST: pPlayer->GetPlayerMenu()->SendGossipMenu(4436, GetObjectGuid()); break;
+                        case CLASS_ROGUE:  pPlayer->GetPlayerMenu()->SendGossipMenu(4797, GetObjectGuid()); break;
+                        case CLASS_SHAMAN: pPlayer->GetPlayerMenu()->SendGossipMenu(5003, GetObjectGuid()); break;
+                        case CLASS_WARLOCK: pPlayer->GetPlayerMenu()->SendGossipMenu(5836, GetObjectGuid()); break;
+                        case CLASS_WARRIOR: pPlayer->GetPlayerMenu()->SendGossipMenu(4985, GetObjectGuid()); break;
                     }
                 }
                 return false;
@@ -962,8 +965,8 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
             {
                 if (msg)
                 {
-                    pPlayer->PlayerTalkClass->ClearMenus();
-                    pPlayer->PlayerTalkClass->SendGossipMenu(3620, GetObjectGuid());
+                    pPlayer->GetPlayerMenu()->ClearMenus();
+                    pPlayer->GetPlayerMenu()->SendGossipMenu(3620, GetObjectGuid());
                 }
                 return false;
             }
@@ -980,19 +983,19 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
 
                 if (msg)
                 {
-                    pPlayer->PlayerTalkClass->ClearMenus();
+                    pPlayer->GetPlayerMenu()->ClearMenus();
                     switch (GetCreatureInfo()->TrainerClass)
                     {
-                        case RACE_DWARF:        pPlayer->PlayerTalkClass->SendGossipMenu(5865, GetObjectGuid()); break;
-                        case RACE_GNOME:        pPlayer->PlayerTalkClass->SendGossipMenu(4881, GetObjectGuid()); break;
-                        case RACE_HUMAN:        pPlayer->PlayerTalkClass->SendGossipMenu(5861, GetObjectGuid()); break;
-                        case RACE_NIGHTELF:     pPlayer->PlayerTalkClass->SendGossipMenu(5862, GetObjectGuid()); break;
-                        case RACE_ORC:          pPlayer->PlayerTalkClass->SendGossipMenu(5863, GetObjectGuid()); break;
-                        case RACE_TAUREN:       pPlayer->PlayerTalkClass->SendGossipMenu(5864, GetObjectGuid()); break;
-                        case RACE_TROLL:        pPlayer->PlayerTalkClass->SendGossipMenu(5816, GetObjectGuid()); break;
-                        case RACE_UNDEAD:       pPlayer->PlayerTalkClass->SendGossipMenu(624, GetObjectGuid()); break;
-                        case RACE_BLOODELF:     pPlayer->PlayerTalkClass->SendGossipMenu(5862, GetObjectGuid()); break;
-                        case RACE_DRAENEI:      pPlayer->PlayerTalkClass->SendGossipMenu(5864, GetObjectGuid()); break;
+                        case RACE_DWARF:        pPlayer->GetPlayerMenu()->SendGossipMenu(5865, GetObjectGuid()); break;
+                        case RACE_GNOME:        pPlayer->GetPlayerMenu()->SendGossipMenu(4881, GetObjectGuid()); break;
+                        case RACE_HUMAN:        pPlayer->GetPlayerMenu()->SendGossipMenu(5861, GetObjectGuid()); break;
+                        case RACE_NIGHTELF:     pPlayer->GetPlayerMenu()->SendGossipMenu(5862, GetObjectGuid()); break;
+                        case RACE_ORC:          pPlayer->GetPlayerMenu()->SendGossipMenu(5863, GetObjectGuid()); break;
+                        case RACE_TAUREN:       pPlayer->GetPlayerMenu()->SendGossipMenu(5864, GetObjectGuid()); break;
+                        case RACE_TROLL:        pPlayer->GetPlayerMenu()->SendGossipMenu(5816, GetObjectGuid()); break;
+                        case RACE_UNDEAD:       pPlayer->GetPlayerMenu()->SendGossipMenu(624, GetObjectGuid()); break;
+                        case RACE_BLOODELF:     pPlayer->GetPlayerMenu()->SendGossipMenu(5862, GetObjectGuid()); break;
+                        case RACE_DRAENEI:      pPlayer->GetPlayerMenu()->SendGossipMenu(5864, GetObjectGuid()); break;
                     }
                 }
                 return false;
@@ -1003,8 +1006,8 @@ bool Creature::IsTrainerOf(Player* pPlayer, bool msg) const
             {
                 if (msg)
                 {
-                    pPlayer->PlayerTalkClass->ClearMenus();
-                    pPlayer->PlayerTalkClass->SendGossipMenu(11031, GetObjectGuid());
+                    pPlayer->GetPlayerMenu()->ClearMenus();
+                    pPlayer->GetPlayerMenu()->SendGossipMenu(11031, GetObjectGuid());
                 }
                 return false;
             }
@@ -1029,17 +1032,17 @@ bool Creature::CanInteractWithBattleMaster(Player* pPlayer, bool msg) const
 
     if (!pPlayer->GetBGAccessByLevel(bgTypeId))
     {
-        pPlayer->PlayerTalkClass->ClearMenus();
+        pPlayer->GetPlayerMenu()->ClearMenus();
         switch (bgTypeId)
         {
-            case BATTLEGROUND_AV:  pPlayer->PlayerTalkClass->SendGossipMenu(7616, GetObjectGuid()); break;
-            case BATTLEGROUND_WS:  pPlayer->PlayerTalkClass->SendGossipMenu(7599, GetObjectGuid()); break;
-            case BATTLEGROUND_AB:  pPlayer->PlayerTalkClass->SendGossipMenu(7642, GetObjectGuid()); break;
+            case BATTLEGROUND_AV:  pPlayer->GetPlayerMenu()->SendGossipMenu(7616, GetObjectGuid()); break;
+            case BATTLEGROUND_WS:  pPlayer->GetPlayerMenu()->SendGossipMenu(7599, GetObjectGuid()); break;
+            case BATTLEGROUND_AB:  pPlayer->GetPlayerMenu()->SendGossipMenu(7642, GetObjectGuid()); break;
             case BATTLEGROUND_EY:
             case BATTLEGROUND_NA:
             case BATTLEGROUND_BE:
             case BATTLEGROUND_AA:
-            case BATTLEGROUND_RL:  pPlayer->PlayerTalkClass->SendGossipMenu(10024, GetObjectGuid()); break;
+            case BATTLEGROUND_RL:  pPlayer->GetPlayerMenu()->SendGossipMenu(10024, GetObjectGuid()); break;
             default: break;
         }
         return false;
@@ -1740,9 +1743,6 @@ void Creature::SetDeathState(DeathState s)
     {
         SetTargetGuid(ObjectGuid());                        // remove target selection in any cases (can be set at aura remove in Unit::SetDeathState)
         SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
-
-        if (CanFly())
-            i_motionMaster.MoveFall();
 
         Unit::SetDeathState(CORPSE);
     }

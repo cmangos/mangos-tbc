@@ -199,6 +199,9 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         if (GetPlayer()->pvpInfo.inPvPEnforcedArea)
             GetPlayer()->CastSpell(GetPlayer(), 2479, TRIGGERED_OLD_TRIGGERED);
 
+        // resummon pet
+        GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
+
         // lets process all delayed operations on successful teleport
         GetPlayer()->ProcessDelayedOperations();
 

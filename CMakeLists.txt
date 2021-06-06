@@ -148,12 +148,13 @@ set(BIN_DIR ${CMAKE_INSTALL_PREFIX}/${BIN_FOLDER_NAME})
 set(CONF_DIR ${CMAKE_INSTALL_PREFIX}/${CONF_FOLDER_NAME})
 set(LIBS_DIR ${CMAKE_INSTALL_PREFIX}/${LIBS_FOLDER_NAME})
 
-# On windows define more developpement folders and install provided libs
+# On windows define more development folders and install provided libs
 if(WIN32)
   set(BIN_DIR ${CMAKE_INSTALL_PREFIX})
   set(LIBS_DIR ${BIN_DIR})
   set(CONF_DIR ${BIN_DIR})
-  if(MSVC)
+  get_property(IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG) # ninja generator does not support $(Configuration)
+  if(MSVC AND "$ENV{CLION_IDE}" STREQUAL "" AND IS_MULTI_CONFIG)
     set(DEV_BIN_DIR ${CMAKE_SOURCE_DIR}/${BIN_FOLDER_NAME}/${DEP_ARCH}_$(Configuration))
     set(DEV_PROVIDED_LIBS_FOLDER ${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_$(Configuration))
   else()
@@ -235,8 +236,14 @@ if(WIN32 AND (BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS))
   set(MYSQL_LIBRARY "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libmySQL.lib")
   set(MYSQL_DEBUG_LIBRARY "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libmySQL.lib")
   set(OPENSSL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/dep/lib/include")
-  set(OPENSSL_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libcrypto.dll.lib")
-  set(OPENSSL_DEBUG_LIBRARIES "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libcrypto.dll.lib")
+  set(OPENSSL_LIBRARIES
+     "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libcrypto.dll.a"
+     "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_release/libssl.dll.a"
+  )
+  set(OPENSSL_DEBUG_LIBRARIES
+     "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libcrypto.dll.a"
+     "${CMAKE_SOURCE_DIR}/dep/lib/${DEP_ARCH}_debug/libssl.dll.a"
+  )
 endif()
 
 # *nix-specific packages

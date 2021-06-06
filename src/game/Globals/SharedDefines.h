@@ -144,7 +144,7 @@ enum Stats
 
 #define MAX_STATS                        5
 
-enum Powers
+enum Powers : uint32
 {
     POWER_MANA                          = 0,            // UNIT_FIELD_POWER1
     POWER_RAGE                          = 1,            // UNIT_FIELD_POWER2
@@ -2014,6 +2014,7 @@ enum CorpseDynFlags
 #define SPELL_ID_PASSIVE_RESURRECTION_SICKNESS  15007
 #define SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_5s    6119
 #define SPELL_ID_WEAPON_SWITCH_COOLDOWN_1_0s    6123
+#define SPELL_ID_BATTLEGROUND_DESERTER          26013
 
 enum WeatherType
 {
@@ -2512,7 +2513,7 @@ enum TrackedAuraType
 
 // we need to stick to 1 version or half of the stuff will work for someone
 // others will not and opposite
-// will only support WoW and WoW:TBC 2.4.3 client build 8606...
+// will only support Vanilla and TBC 2.4.3 client build 8606...
 
 #define EXPECTED_MANGOSD_CLIENT_BUILD        {8606, 0}
 

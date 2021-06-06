@@ -299,6 +299,7 @@ void WorldState::Save(SaveIds saveId)
             SaveHelper(kruulData, SAVE_ID_HIGHLORD_KRUUL);
             break;
         }
+        default: break;
     }
 }
 

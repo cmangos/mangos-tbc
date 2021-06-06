@@ -157,6 +157,44 @@ struct ChatChannelsEntry
     // 36 string flags
 };
 
+struct CharacterFacialHairStylesEntry
+{
+    uint32 RaceID;                                          // 0
+    uint32 SexID;                                           // 1
+    uint32 VariationID;                                     // 2
+  //uint32 Geoset[5];                                       // 3-7
+};
+
+enum CharSectionFlags
+{
+    SECTION_FLAG_UNAVAILABLE = 0x01,
+};
+
+enum CharSectionType
+{
+    SECTION_TYPE_SKIN = 0,
+    SECTION_TYPE_FACE = 1,
+    SECTION_TYPE_FACIAL_HAIR = 2,
+    SECTION_TYPE_HAIR = 3,
+    SECTION_TYPE_UNDERWEAR = 4
+};
+
+struct CharSectionsEntry
+{
+    //uint32 Id;
+    uint32 Race;
+    uint32 Gender;
+	uint32 GenType;
+	uint32 Type;
+	uint32 Color;
+    uint32 BaseSection;
+    uint32 VariationIndex;
+    uint32 ColorIndex;
+    //char* TexturePath[3];
+    uint32 Flags;
+    inline bool HasFlag(CharSectionFlags flag) const { return (Flags & flag) != 0; }
+};
+
 struct ChrClassesEntry
 {
     uint32  ClassID;                                        // 0        m_ID
@@ -220,7 +258,7 @@ struct CinematicSequencesEntry
 struct CreatureDisplayInfoEntry
 {
     uint32      Displayid;                                  // 0        m_ID
-    uint32      ModelId;                                    // 1        
+    uint32      ModelId;                                    // 1
     // 2        m_soundID
     uint32      ExtendedDisplayInfoID;                      // 3        m_extendedDisplayInfoID -> CreatureDisplayInfoExtraEntry::DisplayExtraId
     float       scale;                                      // 4        m_creatureModelScale
@@ -356,31 +394,6 @@ struct EmotesTextSoundEntry
     uint32 RaceId;                                          // 2
     uint32 SexId;                                           // 3, 0 male / 1 female
     uint32 SoundId;                                         // 4
-};
-enum CharSectionFlags
-{
-    SECTION_FLAG_PLAYER = 0x01
-};
-
-enum CharSectionType
-{
-    SECTION_TYPE_SKIN = 0,
-    SECTION_TYPE_FACE = 1,
-    SECTION_TYPE_FACIAL_HAIR = 2,
-    SECTION_TYPE_HAIR = 3,
-    SECTION_TYPE_UNDERWEAR = 4
-};
-
-struct CharSectionsEntry
-{
-    //uint32 Id;
-    uint32 Race;
-    uint32 Gender;
-    uint32 GenType;
-    //char* TexturePath[3];
-    uint32 Type;
-    uint32 Color;
-    uint32 Flags;
 };
 #endif
 

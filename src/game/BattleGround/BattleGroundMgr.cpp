@@ -2113,6 +2113,7 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
                     case ARENA_TYPE_5v5:
                         sortedTeams[2].push_back(at);
                         break;
+                    default: break;
                 }
             }
         }

@@ -622,7 +622,6 @@ void WheatyExceptionReport::WriteStackDetails(
             _tprintf(_T("\r\n"));
         }
     }
-
 }
 
 //////////////////////////////////////////////////////////////////////////////

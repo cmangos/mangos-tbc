@@ -449,7 +449,6 @@ void instance_stratholme::SetData(uint32 uiType, uint32 uiData)
             {
                 if (Creature* pBaron = GetSingleCreatureFromStorage(NPC_BARON))
                     DoScriptText(SAY_UNDEAD_DEFEAT, pBaron);
-                DoOpenSlaughterhouseDoor(true);
                 DoUseDoorOrButton(GO_ZIGGURAT_DOOR_5);
             }
             m_auiEncounter[uiType] = uiData;
@@ -1064,7 +1063,7 @@ void instance_stratholme::Update(uint32 uiDiff)
         {
             // Open the Slaughterhouse door and set a timer to close it after 10 sec to let some time to the 5 Black Guards to move out
             DoOpenSlaughterhouseDoor(true);
-            m_uiSlaughterDoorTimer = 10000;
+            m_uiSlaughterDoorTimer = 0;
 
             for (GuidList::const_iterator itr = m_luiGuardGUIDs.begin(); itr != m_luiGuardGUIDs.end(); ++itr)
             {

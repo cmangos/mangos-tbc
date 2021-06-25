@@ -279,11 +279,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (15326,'spell_blackout'),
 (27827,'spell_spirit_of_redemption_heal'),
 (32676,'spell_consume_magic'),
-<<<<<<< HEAD
+(33076,'spell_prayer_of_mending'),
 (34433,'spell_shadowfiend');
-=======
-(33076,'spell_prayer_of_mending');
->>>>>>> 18a6d76f647... Priest: Reimplement Prayer of Mending and add 2.3 check
 
 -- Paladin
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

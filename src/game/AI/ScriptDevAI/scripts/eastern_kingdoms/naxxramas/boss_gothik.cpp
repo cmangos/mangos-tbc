@@ -286,7 +286,7 @@ struct boss_gothikAI : public ScriptedAI
                     m_teleportTimer -= diff;
 
                 // Second time that Gothik teleports back from dead side to living side: open the central gate
-                if (m_teleportCount >= 4)
+                if (m_teleportCount >= 4 || m_creature->GetHealthPercent() <= 30)
                 {
                     m_phase = PHASE_STOP_TELEPORTING;
                     m_instance->SetData(TYPE_GOTHIK, SPECIAL);

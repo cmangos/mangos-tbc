@@ -180,7 +180,7 @@ struct boss_heiganAI : public ScriptedAI
         if (m_entranceDoorTimer)
         {
             // Entrance Gate
-            if (m_entranceDoorTimer < diff)
+            if (m_entranceDoorTimer <= diff)
             {
                 if (GameObject* door = m_instance->GetSingleGameObjectFromStorage(GO_PLAG_HEIG_ENTRY_DOOR))
                     door->SetGoState(GO_STATE_READY);
@@ -193,7 +193,7 @@ struct boss_heiganAI : public ScriptedAI
         if (m_phase == PHASE_GROUND)
         {
             // Teleport to platform
-            if (m_phaseTimer < diff)
+            if (m_phaseTimer <= diff)
             {
                 m_creature->GetMotionMaster()->MoveIdle();
                 if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_SELF) == CAST_OK)
@@ -207,7 +207,7 @@ struct boss_heiganAI : public ScriptedAI
                 m_phaseTimer -= diff;
 
             // Taunt
-            if (m_tauntTimer < diff)
+            if (m_tauntTimer <= diff)
             {
                 switch (urand(0, 3))
                 {
@@ -222,7 +222,7 @@ struct boss_heiganAI : public ScriptedAI
                 m_tauntTimer -= diff;
 
             // Decrepit Fever
-            if (m_feverTimer < diff)
+            if (m_feverTimer <= diff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_DECREPIT_FEVER) == CAST_OK)
                     m_feverTimer = 21 * IN_MILLISECONDS;
@@ -231,7 +231,7 @@ struct boss_heiganAI : public ScriptedAI
                 m_feverTimer -= diff;
 
             // Mana Burn
-            if (m_manaBurnTimer < diff)
+            if (m_manaBurnTimer <= diff)
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_MANA_BURN) == CAST_OK)
                     m_manaBurnTimer = 10 * IN_MILLISECONDS;
@@ -241,7 +241,7 @@ struct boss_heiganAI : public ScriptedAI
 
             if (m_teleportTimer)
             {
-                if (m_teleportTimer < diff)
+                if (m_teleportTimer <= diff)
                 {
                     std::vector<Unit*> targets;
                     m_creature->SelectAttackingTargets(targets, ATTACKING_TARGET_ALL_SUITABLE, 0, nullptr, SELECT_FLAG_PLAYER | SELECT_FLAG_SKIP_TANK, m_teleportParams);
@@ -296,7 +296,7 @@ struct boss_heiganAI : public ScriptedAI
         // Handling of the plague waves by a trigger NPC, this is not related to melee attack or spell-casting
         if (m_eruptionStartDelay)
         {
-            if (m_eruptionStartDelay < diff)
+            if (m_eruptionStartDelay <= diff)
             {
                 if (m_phase == PHASE_GROUND)
                     StartEruptions(SPELL_PLAGUE_WAVE_SLOW);

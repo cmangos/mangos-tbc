@@ -136,6 +136,7 @@ struct boss_silithidRoyaltyAI : public CombatAI
 
     void DoDummyConsume()
     {
+        m_creature->SetNoLoot(true);
         DoScriptText(EMOTE_CONSUMED, m_creature);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
         DoSpecialAbility();

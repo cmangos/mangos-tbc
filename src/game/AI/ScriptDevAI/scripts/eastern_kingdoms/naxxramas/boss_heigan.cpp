@@ -342,7 +342,7 @@ struct npc_diseased_maggotAI : public ScriptedAI
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        if (m_resetCheckTimer < diff)
+        if (m_resetCheckTimer <= diff)
         {
             // Check if we are in range of the trigger NPC in the middle of Heigan room, if so: force evade
             if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_WORLD_TRIGGER, 45.0f))

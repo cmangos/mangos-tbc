@@ -25,7 +25,6 @@ EndScriptData */
 
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
-#include "Common.h"
 #include "naxxramas.h"
 
 enum
@@ -115,7 +114,6 @@ struct boss_heiganAI : public CombatAI
     ScriptedInstance* m_instance;
 
     uint8 m_phase;
-    uint8 m_phaseEruption;
 
     SelectAttackingTargetParams m_teleportParams;
 
@@ -124,7 +122,6 @@ struct boss_heiganAI : public CombatAI
         CombatAI::Reset();
 
         m_phase = PHASE_GROUND;
-        m_phaseEruption = 0;
         m_teleportParams.range.minRange = 0;
         m_teleportParams.range.maxRange = 40;
 
@@ -192,7 +189,6 @@ struct boss_heiganAI : public CombatAI
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
         StopEruptions();
-        m_phaseEruption = 0;
         m_phase = PHASE_GROUND;
         ResetTimer(HEIGAN_ERUPTION, 100u);
         ResetTimer(HEIGAN_PLATFORM_PHASE, 90u * IN_MILLISECONDS);
@@ -206,7 +202,6 @@ struct boss_heiganAI : public CombatAI
         if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_SELF) == CAST_OK)
         {
             StopEruptions();
-            m_phaseEruption = 0;
             m_phase = PHASE_PLATFORM;
             ResetTimer(HEIGAN_ERUPTION, 100u);
             ResetTimer(HEIGAN_CHANNELING, 100u);

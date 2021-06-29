@@ -231,19 +231,14 @@ struct boss_heiganAI : public CombatAI
         GameObject* door = m_instance->GetSingleGameObjectFromStorage(GO_PLAG_HEIG_ENTRY_DOOR);
         if(m_instance && door)
         {
-            if (m_instance->GetData(TYPE_HEIGAN) != FAIL)
-            {
-                door->SetGoState(GO_STATE_READY);
-            }
+            door->SetGoState(GO_STATE_READY);
         }
-        
     }
 
     void HandleChanneling()
     {
         DoScriptText(SAY_CHANNELING, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_PLAGUE_CLOUD);
-
         // ToDo: fill the tunnel with poison - required further research
     }
 

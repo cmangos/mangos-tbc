@@ -204,9 +204,9 @@ struct boss_heiganAI : public CombatAI
         m_creature->GetMotionMaster()->MoveIdle();
         if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_SELF) == CAST_OK)
         {
-            m_phase = PHASE_PLATFORM;
             StopEruptions();
             m_phaseEruption = 0;
+            m_phase = PHASE_PLATFORM;
             ResetTimer(HEIGAN_ERUPTION, 100u);
             ResetTimer(HEIGAN_CHANNELING, 100u);
         }

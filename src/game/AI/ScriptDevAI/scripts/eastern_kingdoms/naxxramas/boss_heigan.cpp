@@ -186,7 +186,7 @@ struct boss_heiganAI : public CombatAI
 
     void HandleGroundPhase()
     {
-        for (uint action : {HEIGAN_FEVER, HEIGAN_TAUNT, HEIGAN_MANA_BURN, HEIGAN_TELEPORT_PLAYERS})
+        for (uint32 action : {HEIGAN_FEVER, HEIGAN_TAUNT, HEIGAN_MANA_BURN, HEIGAN_TELEPORT_PLAYERS})
             ResetCombatAction(action, GetSubsequentActionTimer(action));
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
@@ -199,7 +199,7 @@ struct boss_heiganAI : public CombatAI
 
     void HandlePlatformPhase()
     {
-        for (uint action : {HEIGAN_FEVER, HEIGAN_TAUNT, HEIGAN_MANA_BURN, HEIGAN_TELEPORT_PLAYERS})
+        for (uint32 action : {HEIGAN_FEVER, HEIGAN_TAUNT, HEIGAN_MANA_BURN, HEIGAN_TELEPORT_PLAYERS})
             DisableCombatAction(action);
         m_creature->GetMotionMaster()->MoveIdle();
         if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_SELF) == CAST_OK)

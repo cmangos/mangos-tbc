@@ -25,6 +25,7 @@ EndScriptData */
 
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "Common.h"
 #include "naxxramas.h"
 
 enum
@@ -85,10 +86,10 @@ struct boss_heiganAI : public CombatAI
             m_creature->GetRespawnCoord(respawnX, respawnY, respawnZ);
             return m_creature->GetDistance2d(respawnX, respawnY) > 90.f || x > resetX;
         });
-        AddCombatAction(HEIGAN_FEVER, 4000u);
-        AddCombatAction(HEIGAN_MANA_BURN, 5000u);
-        AddCombatAction(HEIGAN_TELEPORT_PLAYERS, 35000u, 45000u);
-        AddCombatAction(HEIGAN_TAUNT, 25000u, 90000u);
+        AddCombatAction(HEIGAN_FEVER, 4u * IN_MILLISECONDS);
+        AddCombatAction(HEIGAN_MANA_BURN, 5u * IN_MILLISECONDS);
+        AddCombatAction(HEIGAN_TELEPORT_PLAYERS, 35u * IN_MILLISECONDS, 45u * IN_MILLISECONDS);
+        AddCombatAction(HEIGAN_TAUNT, 25u * IN_MILLISECONDS, 90u * IN_MILLISECONDS);
         AddCustomAction(HEIGAN_ERUPTION, true, [&]()
         {
             StartEruptions(m_phase == PHASE_GROUND ? SPELL_PLAGUE_WAVE_SLOW : SPELL_PLAGUE_WAVE_FAST); 
@@ -134,8 +135,8 @@ struct boss_heiganAI : public CombatAI
     {
         switch (id)
         {
-            case HEIGAN_FEVER: return 4 * IN_MILLISECONDS;
-            case HEIGAN_MANA_BURN: return 5 * IN_MILLISECONDS;
+            case HEIGAN_FEVER: return 4u * IN_MILLISECONDS;
+            case HEIGAN_MANA_BURN: return 5u * IN_MILLISECONDS;
             case HEIGAN_TAUNT: return urand(25, 90) * IN_MILLISECONDS;
             case HEIGAN_TELEPORT_PLAYERS: return urand(35, 45) * IN_MILLISECONDS;
             default: return 0; // never occurs but for compiler
@@ -154,9 +155,9 @@ struct boss_heiganAI : public CombatAI
         if (m_instance)
             m_instance->SetData(TYPE_HEIGAN, IN_PROGRESS);
         
-        ResetTimer(HEIGAN_ERUPTION, 5000u);
-        ResetTimer(HEIGAN_DOOR, 15000u);
-        ResetTimer(HEIGAN_PLATFORM_PHASE, 90 * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_ERUPTION, 5u * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_DOOR, 15u * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_PLATFORM_PHASE, 90u * IN_MILLISECONDS);
     }
 
     void KilledUnit(Unit* /*victim*/) override
@@ -194,7 +195,7 @@ struct boss_heiganAI : public CombatAI
         m_phaseEruption = 0;
         m_phase = PHASE_GROUND;
         ResetTimer(HEIGAN_ERUPTION, 100u);
-        ResetTimer(HEIGAN_PLATFORM_PHASE, 90 * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_PLATFORM_PHASE, 90u * IN_MILLISECONDS);
     }
 
     void HandlePlatformPhase()
@@ -210,7 +211,7 @@ struct boss_heiganAI : public CombatAI
             ResetTimer(HEIGAN_ERUPTION, 100u);
             ResetTimer(HEIGAN_CHANNELING, 100u);
         }
-        ResetTimer(HEIGAN_GROUND_PHASE, 45 * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_GROUND_PHASE, 45u * IN_MILLISECONDS);
     }
 
     void StartEruptions(uint32 spellId)

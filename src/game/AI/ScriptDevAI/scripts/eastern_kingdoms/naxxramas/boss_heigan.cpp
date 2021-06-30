@@ -132,8 +132,8 @@ struct boss_heiganAI : public CombatAI
     {
         switch (id)
         {
-            case HEIGAN_FEVER: return 4u * IN_MILLISECONDS;
-            case HEIGAN_MANA_BURN: return 5u * IN_MILLISECONDS;
+            case HEIGAN_FEVER: return 21u * IN_MILLISECONDS;
+            case HEIGAN_MANA_BURN: return 10u * IN_MILLISECONDS;
             case HEIGAN_TAUNT: return urand(25, 90) * IN_MILLISECONDS;
             case HEIGAN_TELEPORT_PLAYERS: return urand(35, 45) * IN_MILLISECONDS;
             default: return 0; // never occurs but for compiler
@@ -184,8 +184,7 @@ struct boss_heiganAI : public CombatAI
 
     void HandleGroundPhase()
     {
-        for (uint32 action : {HEIGAN_FEVER, HEIGAN_TAUNT, HEIGAN_MANA_BURN, HEIGAN_TELEPORT_PLAYERS})
-            ResetCombatAction(action, GetSubsequentActionTimer(action));
+        ResetAllTimers();
         m_creature->InterruptNonMeleeSpells(true);
         m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
         StopEruptions();
@@ -203,7 +202,7 @@ struct boss_heiganAI : public CombatAI
         {
             StopEruptions();
             m_phase = PHASE_PLATFORM;
-            ResetTimer(HEIGAN_ERUPTION, 100u);
+            ResetTimer(HEIGAN_ERUPTION, 3000u); //Not like in the original script, but when testing it with original timers the first safe zone was literally unreachable without movement speed increases if the waves start immediately.
             ResetTimer(HEIGAN_CHANNELING, 100u);
         }
         ResetTimer(HEIGAN_GROUND_PHASE, 45u * IN_MILLISECONDS);

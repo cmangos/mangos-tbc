@@ -116,7 +116,7 @@ struct boss_grobbulusAI : public CombatAI
     {
         if (!m_instance)
             return;
-        
+
         switch (action)
         {
             case GROBBULUS_CHECK_RANGE:
@@ -146,7 +146,7 @@ struct boss_grobbulusAI : public CombatAI
                 if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MUTATING_INJECTION, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_AURA))
                 {
                     if (DoCastSpellIfCan(target, SPELL_MUTATING_INJECTION, CAST_TRIGGERED) == CAST_OK)
-                       ResetCombatAction(action, GetSubsequentActionTimer(action));
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
                 }
                 return;
             }

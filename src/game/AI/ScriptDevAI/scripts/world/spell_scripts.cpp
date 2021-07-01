@@ -603,7 +603,9 @@ struct TKDive : public SpellScript
     }
 };
 
-// PX-238 Winter Wondervolt TRAP
+/* *****************************
+*  PX-238 Winter Wondervolt TRAP
+*******************************/
 struct WondervoltTrap : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
@@ -613,6 +615,25 @@ struct WondervoltTrap : public SpellScript
             uint32 spells[4] = {26272, 26157, 26273, 26274};    // Four possible transform spells
             if (spell->GetUnitTarget())
                 spell->GetUnitTarget()->CastSpell(spell->GetUnitTarget(), spells[urand(0, 3)], TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+};
+
+/* ************************************************************
+*  Arcane Cloaking
+*  Quests 9121, 9122, 9123, 9378 - Naxxramas, The Dread Citadel
+**************************************************************/
+
+struct ArcaneCloaking : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            Unit* caster = spell->GetCaster();
+            // Naxxramas Entry Flag Effect DND
+            if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+                caster->CastSpell(caster, 29296, TRIGGERED_OLD_TRIGGERED);  // Cast Naxxramas Entry Flag Trigger DND
         }
     }
 };
@@ -642,4 +663,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<SplitDamage>("spell_split_damage");
     RegisterSpellScript<TKDive>("spell_tk_dive");
     RegisterSpellScript<WondervoltTrap>("spell_wondervolt_trap");
+    RegisterSpellScript<ArcaneCloaking>("spell_arcane_cloaking");
 }

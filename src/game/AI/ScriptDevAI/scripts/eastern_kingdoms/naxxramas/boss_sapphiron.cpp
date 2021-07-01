@@ -74,7 +74,6 @@ enum SapphironActions
     SAPPHIRON_LIFE_DRAIN,
     SAPPHIRON_BLIZZARD,
     SAPPHIRON_AIR_PHASE,
-    SAPPHIRON_PRE_LANDING,
     SAPPHIRON_LANDING_PHASE,
     SAPPHIRON_GROUND_PHASE,
     SAPPHIRON_BERSERK,
@@ -93,7 +92,6 @@ struct boss_sapphironAI : public CombatAI
         AddCombatAction(SAPPHIRON_BLIZZARD, 15u * IN_MILLISECONDS);
         AddCombatAction(SAPPHIRON_FROST_BREATH, true);
         AddCombatAction(SAPPHIRON_ICEBOLT, true);
-        AddCombatAction(SAPPHIRON_PRE_LANDING, true);
         AddCombatAction(SAPPHIRON_BERSERK, 15u * MINUTE * IN_MILLISECONDS);
         AddCustomAction(SAPPHIRON_AIR_PHASE, true, [&]() { HandleAirPhase(); });
         AddCustomAction(SAPPHIRON_LANDING_PHASE, true, [&]() { HandleLandingPhase(); });
@@ -276,15 +274,8 @@ struct boss_sapphironAI : public CombatAI
                     DoCastSpellIfCan(m_creature, SPELL_FROST_BREATH_DUMMY, CAST_TRIGGERED);
                     DoScriptText(EMOTE_BREATH, m_creature);
                     DisableCombatAction(action);
-                    ResetCombatAction(SAPPHIRON_PRE_LANDING, 11u * IN_MILLISECONDS);
+                    ResetTimer(SAPPHIRON_LANDING_PHASE, 11u * IN_MILLISECONDS);
                 }
-                return;
-            }
-            case SAPPHIRON_PRE_LANDING:
-            {
-                m_creature->HandleEmote(EMOTE_ONESHOT_LAND);
-                ResetTimer(SAPPHIRON_GROUND_PHASE, 2u * IN_MILLISECONDS);
-                DisableCombatAction(action);
                 return;
             }
             case SAPPHIRON_BERSERK:

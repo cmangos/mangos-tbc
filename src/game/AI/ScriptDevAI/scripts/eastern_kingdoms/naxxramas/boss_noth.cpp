@@ -21,7 +21,11 @@ SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/include/sc_instance.h"
+#include "Common.h"
 #include "naxxramas.h"
 
 enum
@@ -104,15 +108,28 @@ static uint32 const spellSummonPlaguedChampionWestList[4] = { SPELL_SUMMON_CHAMP
 static uint32 const spellSummonPlaguedGuardianNENWList[2] = { SPELL_SUMMON_GUARD01, SPELL_SUMMON_GUARD02 };
 static uint32 const spellSummonPlaguedGuardianSWList[2] = { SPELL_SUMMON_GUARD03, SPELL_SUMMON_GUARD04 };
 
-struct boss_nothAI : public ScriptedAI
+enum NothActions{
+    NOTH_BLINK,
+    NOTH_CURSE,
+    NOTH_SUMMON,
+    NOTH_BALCONY_PHASE,
+    NOTH_GROUND_PHASE,
+    NOTH_ACTION_MAX,
+};
+
+struct boss_nothAI : public CombatAI
 {
-    boss_nothAI(Creature* creature) : ScriptedAI(creature)
+    boss_nothAI(Creature* creature) : CombatAI(creature, NOTH_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_instance = (instance_naxxramas*)creature->GetInstanceData();
+        AddCombatAction(NOTH_BLINK, 25u * IN_MILLISECONDS);
+        AddCombatAction(NOTH_CURSE, 4u * IN_MILLISECONDS);
+        AddCombatAction(NOTH_SUMMON, 12u * IN_MILLISECONDS);
+        AddCustomAction(NOTH_BALCONY_PHASE, true, [&]() { HandleBalconyPhase(); });
+        AddCustomAction(NOTH_GROUND_PHASE, true, [&]() { HandleGroundPhase(); });
         Reset();
     }
 
-    instance_naxxramas* m_instance;
+    ScriptedInstance* m_instance;
 
     uint8 m_phase;
     uint8 m_phaseSub;
@@ -130,11 +147,6 @@ struct boss_nothAI : public ScriptedAI
         m_phaseSub = PHASE_GROUND;
         m_wavesNpcsCount = 0;
         m_subWavesCount = 0;
-        m_phaseTimer = 90 * IN_MILLISECONDS;
-
-        m_blinkTimer = 25 * IN_MILLISECONDS;
-        m_curseTimer = 4 * IN_MILLISECONDS;
-        m_summonTimer = 12 * IN_MILLISECONDS;
 
         SetMeleeEnabled(true);
         SetCombatMovement(true);
@@ -151,6 +163,8 @@ struct boss_nothAI : public ScriptedAI
 
         if (m_instance)
             m_instance->SetData(TYPE_NOTH, IN_PROGRESS);
+
+        ResetTimer(NOTH_BALCONY_PHASE, 90u * IN_MILLISECONDS);
     }
 
     void JustSummoned(Creature* summoned) override
@@ -167,7 +181,7 @@ struct boss_nothAI : public ScriptedAI
         {
             --m_wavesNpcsCount;
             if (m_wavesNpcsCount == 0 && m_subWavesCount == 2)
-                m_phaseTimer = 100;
+                ResetTimer(NOTH_GROUND_PHASE, 100u);
         }
     }
 
@@ -221,144 +235,122 @@ struct boss_nothAI : public ScriptedAI
             ++m_wavesNpcsCount;
     }
 
-    void UpdateAI(const uint32 diff) override
+    void HandleBalconyPhase()
     {
-    	// Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+        SetCombatMovement(false);
+        if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT) == CAST_OK)
+        {
+            DoCastSpellIfCan(m_creature, SPELL_IMMUNE_ALL, CAST_TRIGGERED); // Prevent players from damaging Noth when he is on the balcony
+            SetMeleeEnabled(false);
+            m_creature->GetMotionMaster()->MoveIdle();
+            ResetCombatAction(NOTH_SUMMON, 10u * IN_MILLISECONDS); // Summon first wave 10 seconds after teleport
+            ++m_phaseSub;
+            switch (m_phaseSub)
+            {
+                case PHASE_SKELETON_1: ResetTimer(NOTH_GROUND_PHASE, 70u * IN_MILLISECONDS);  break;
+                case PHASE_SKELETON_2: ResetTimer(NOTH_GROUND_PHASE, 97u * IN_MILLISECONDS);  break;
+                case PHASE_SKELETON_3: ResetTimer(NOTH_GROUND_PHASE, 120u * IN_MILLISECONDS); break;
+            }
+            m_phase = PHASE_BALCONY;
+        }
+        else
+        {
+            SetCombatMovement(true); // Restore combat movement on cast failure
+            ResetTimer(NOTH_BALCONY_PHASE, 1000u);
+        }
+
+    }
+
+    void HandleGroundPhase()
+    {
+        if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_RETURN, CAST_TRIGGERED) == CAST_OK)
+        {
+            m_creature->RemoveAurasDueToSpell(SPELL_IMMUNE_ALL);
+            SetMeleeEnabled(true);
+            SetCombatMovement(true);
+            m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
+            ResetCombatAction(NOTH_SUMMON, 5u * IN_MILLISECONDS); // 5 seconds before summoning Plagued Warriors again
+            m_subWavesCount = 0;
+            switch (m_phaseSub)
+            {
+                case PHASE_SKELETON_1: ResetTimer(NOTH_BALCONY_PHASE, 110u * IN_MILLISECONDS); break;
+                case PHASE_SKELETON_2: ResetTimer(NOTH_BALCONY_PHASE, 180u * IN_MILLISECONDS); break;
+                case PHASE_SKELETON_3: DisableTimer(NOTH_BALCONY_PHASE); break;
+            }
+            m_phase = PHASE_GROUND;
+        }
+        else
+        {
+            ResetTimer(NOTH_GROUND_PHASE, 1000u);
+        }
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        if (!m_instance)
             return;
 
-        if (m_phase == PHASE_GROUND)
+        switch (action)
         {
-            if (m_phaseTimer)                             // After PHASE_SKELETON_3 we won't have a balcony phase
+            case NOTH_CURSE:
             {
-                if (m_phaseTimer <= diff)
-                {
-                    SetCombatMovement(false);
-                    if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT) == CAST_OK)
-                    {
-                        DoCastSpellIfCan(m_creature, SPELL_IMMUNE_ALL, CAST_TRIGGERED); // Prevent players from damaging Noth when he is on the balcony
-                        SetMeleeEnabled(false);
-                        m_creature->GetMotionMaster()->MoveIdle();
-                        m_phase = PHASE_BALCONY;
-                        m_summonTimer = 10 * IN_MILLISECONDS;                         // Summon first wave 10 seconds after teleport
-                        ++m_phaseSub;
-
-                        switch (m_phaseSub)               // Set Duration of Skeleton phase
-                        {
-                            case PHASE_SKELETON_1: m_phaseTimer = 70 * IN_MILLISECONDS;  break;
-                            case PHASE_SKELETON_2: m_phaseTimer = 97 * IN_MILLISECONDS;  break;
-                            case PHASE_SKELETON_3: m_phaseTimer = 120 * IN_MILLISECONDS; break;
-                        }
-                        return;
-                    }
-                    else
-                        SetCombatMovement(true);    // Restore combat movement on cast failure
-                }
-                else
-                    m_phaseTimer -= diff;
+                DoCastSpellIfCan(m_creature, SPELL_CURSE_PLAGUEBRINGER);
+                ResetCombatAction(action, 28u * IN_MILLISECONDS);
             }
-
-            if (m_blinkTimer < diff)
+            case NOTH_BLINK:
             {
                 DoCastSpellIfCan(m_creature, SPELL_CRIPPLE);
                 if (DoCastSpellIfCan(m_creature, spellBlinkList[urand(0, 3)]) == CAST_OK)
                 {
                     DoResetThreat();
-                    m_blinkTimer = 25 * IN_MILLISECONDS;
+                    ResetCombatAction(action, 25u * IN_MILLISECONDS);
                 }
             }
-            else
-                m_blinkTimer -= diff;
-
-            if (m_curseTimer < diff)
+            case NOTH_SUMMON:
             {
-                DoCastSpellIfCan(m_creature, SPELL_CURSE_PLAGUEBRINGER);
-                m_curseTimer = 28 * IN_MILLISECONDS;
-            }
-            else
-                m_curseTimer -= diff;
-
-            // Summon one Plagued Warrior in each of the three locations
-            if (m_summonTimer < diff)
-            {
-                DoScriptText(SAY_SUMMON, m_creature);
-                for (const uint32 spell : { SPELL_SUMMON_WARRIOR_1, SPELL_SUMMON_WARRIOR_2, SPELL_SUMMON_WARRIOR_3 })
-                    DoCastSpellIfCan(m_creature, spell, CAST_TRIGGERED);
-                m_summonTimer = 30 * IN_MILLISECONDS;
-            }
-            else
-                m_summonTimer -= diff;
-
-            DoMeleeAttackIfReady();
-        }
-        else                                                // PHASE_BALCONY
-        {
-            if (m_phaseTimer < diff)
-            {
-                if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_RETURN, CAST_TRIGGERED) == CAST_OK)
+                if (m_phase == PHASE_GROUND)
                 {
-                    m_creature->RemoveAurasDueToSpell(SPELL_IMMUNE_ALL);
-                    SetMeleeEnabled(true);
-                    SetCombatMovement(true);
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
-                    m_summonTimer = 5 * IN_MILLISECONDS;                              // 5 seconds before summoning again Plagued Warriors
+                    DoScriptText(SAY_SUMMON, m_creature);
+                    for (const uint32 spell : { SPELL_SUMMON_WARRIOR_1, SPELL_SUMMON_WARRIOR_2, SPELL_SUMMON_WARRIOR_3 })
+                        DoCastSpellIfCan(m_creature, spell, CAST_TRIGGERED);
+                    ResetCombatAction(action, 30 * IN_MILLISECONDS);
+                }
+                else
+                {
                     switch (m_phaseSub)
                     {
-                        case PHASE_SKELETON_1: m_phaseTimer = 110 * IN_MILLISECONDS; break;
-                        case PHASE_SKELETON_2: m_phaseTimer = 180 * IN_MILLISECONDS; break;
-                        case PHASE_SKELETON_3: m_phaseTimer = 0; break;
+                        case PHASE_SKELETON_1:
+                        {
+                            DoSummonPlaguedChampions(false);
+                            ResetCombatAction(action, 30 * IN_MILLISECONDS);
+                            break;
+                        }
+                        case PHASE_SKELETON_2:
+                        {
+                            DoSummonPlaguedChampions(false);
+                            DoSummonPlaguedGuardians();
+                            ResetCombatAction(action, 45 * IN_MILLISECONDS);
+                            break;
+                        }
+                        case PHASE_SKELETON_3:
+                        {
+                            DoSummonPlaguedChampions(true); // Set parameter to true because we need to indicate this is the third wave and Plagued Construct need to be also summoned
+                            DoSummonPlaguedGuardians();
+                            ResetCombatAction(action, 60 * IN_MILLISECONDS);
+                            break;
+                        }
                     }
-                    m_phase = PHASE_GROUND;
-                    m_subWavesCount = 0;
-
-                    return;
+                    ++m_subWavesCount; // Keep track of which wave we currently are
                 }
             }
-            else
-                m_phaseTimer -= diff;
-
-            if (m_summonTimer < diff)
-            {
-                switch (m_phaseSub)
-                {
-                    case PHASE_SKELETON_1:
-                    {
-                        DoSummonPlaguedChampions(false);
-                        m_summonTimer = 30 * IN_MILLISECONDS;
-                        break;
-                    }
-                    case PHASE_SKELETON_2:
-                    {
-                        DoSummonPlaguedChampions(false);
-                        DoSummonPlaguedGuardians();
-                        m_summonTimer = 45 * IN_MILLISECONDS;
-                        break;
-                    }
-                    case PHASE_SKELETON_3:
-                    {
-                        DoSummonPlaguedChampions(true);     // Set parameter to true because we need to indicate this is the third wave and Plagued Construct need to be also summoned
-                        DoSummonPlaguedGuardians();
-                        m_summonTimer = 60 * IN_MILLISECONDS;
-                        break;
-                    }
-                }
-                ++m_subWavesCount;                        // Keep track of which wave we currently are
-            }
-            else
-                m_summonTimer -= diff;
         }
     }
 };
-
-UnitAI* GetAI_boss_noth(Creature* creature)
-{
-    return new boss_nothAI(creature);
-}
 
 void AddSC_boss_noth()
 {
     Script* newScript = new Script;
     newScript->Name = "boss_noth";
-    newScript->GetAI = &GetAI_boss_noth;
+    newScript->GetAI = &GetNewAIInstance<boss_nothAI>;
     newScript->RegisterSelf();
 }

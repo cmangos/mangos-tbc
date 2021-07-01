@@ -174,7 +174,7 @@ struct boss_sapphironAI : public CombatAI
             m_creature->HandleEmote(EMOTE_ONESHOT_LIFTOFF);
             m_creature->SetHover(true);
             m_creature->CastSpell(nullptr, SPELL_DRAGON_HOVER, TRIGGERED_OLD_TRIGGERED);
-            m_iceboltCount = 0;
+            ResetCombatAction(SAPPHIRON_ICEBOLT, 7u * IN_MILLISECONDS);
         }
     }
 
@@ -191,7 +191,6 @@ struct boss_sapphironAI : public CombatAI
             SetMeleeEnabled(false);
             m_creature->SetTarget(nullptr);
             m_creature->GetMotionMaster()->MovePoint(1, aLiftOffPosition[0], aLiftOffPosition[1], aLiftOffPosition[2]);
-            ResetCombatAction(SAPPHIRON_ICEBOLT, 7u * IN_MILLISECONDS);
         }
         else
         {

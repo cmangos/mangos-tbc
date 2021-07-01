@@ -160,11 +160,13 @@ struct boss_grobbulusAI : public CombatAI
             {
                 if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SLIME_SPRAY) == CAST_OK)
                     ResetCombatAction(action, GetSubsequentActionTimer(action));
+                return;
             }
             case GROBBULUS_BERSERK:
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
                     DisableCombatAction(action);
+                return;
             }
         }
     }

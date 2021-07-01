@@ -77,9 +77,9 @@ struct boss_gluthAI : public CombatAI
         switch (id)
         {
             case GLUTH_MORTAL_WOUND: return 10u * IN_MILLISECONDS;
-            case GLUTH_DECIMATE: return urand(100, 110) * IN_MILLISECONDS;
             case GLUTH_ENRAGE: return urand(10, 12) * IN_MILLISECONDS;
             case GLUTH_ROAR: return 20u * IN_MILLISECONDS;
+            case GLUTH_DECIMATE: return urand(100, 110) * IN_MILLISECONDS;
             case GLUTH_BERSERK: return 5 * MINUTE * IN_MILLISECONDS;
             default: return 0; // never occurs but for compiler
         }
@@ -134,6 +134,12 @@ struct boss_gluthAI : public CombatAI
     {
         if (!m_instance)
             return;
+
+        if (m_creature->HasAuraType(SPELL_AURA_MOD_STUN))
+        {
+            DelayCombatAction(action, 500u);
+            return;
+        }
 
         switch (action)
         {

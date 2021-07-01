@@ -132,11 +132,6 @@ struct boss_nothAI : public CombatAI
     uint8 m_phaseSub;
     uint8 m_subWavesCount;        // On balcony phase, counts if this is the first or the second wave. Used to make Noth returns early
     uint8 m_wavesNpcsCount;       // Counter for NPCs per waves during balcony phase
-    uint32 m_phaseTimer;
-
-    uint32 m_blinkTimer;
-    uint32 m_curseTimer;
-    uint32 m_summonTimer;
 
     void Reset() override
     {

@@ -81,6 +81,8 @@ enum SapphironActions
     SAPPHIRON_ACTION_MAX,
 };
 
+static const uint32 groundPhaseActions[] = {SAPPHIRON_CLEAVE, SAPPHIRON_TAIL_SWEEP, SAPPHIRON_BLIZZARD, SAPPHIRON_LIFE_DRAIN};
+
 struct boss_sapphironAI : public CombatAI
 {
     boss_sapphironAI(Creature* creature) : CombatAI(creature, SAPPHIRON_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
@@ -183,7 +185,7 @@ struct boss_sapphironAI : public CombatAI
         if (m_creature->GetHealthPercent() > 10.f)
         {
             m_phase = PHASE_LIFT_OFF;
-            for (uint32 action : {SAPPHIRON_CLEAVE, SAPPHIRON_TAIL_SWEEP, SAPPHIRON_BLIZZARD, SAPPHIRON_LIFE_DRAIN})
+            for (uint32 action : groundPhaseActions)
                 DisableCombatAction(action);
             SetDeathPrevention(true);
             m_creature->InterruptNonMeleeSpells(false);
@@ -208,7 +210,7 @@ struct boss_sapphironAI : public CombatAI
     void HandleGroundPhase()
     {
         m_phase = PHASE_GROUND;
-        for (uint32 action : {SAPPHIRON_CLEAVE, SAPPHIRON_TAIL_SWEEP, SAPPHIRON_BLIZZARD, SAPPHIRON_LIFE_DRAIN})
+        for (uint32 action : groundPhaseActions)
             ResetCombatAction(action, GetSubsequentActionTimer(action));
         SetDeathPrevention(false);
         SetCombatMovement(true);

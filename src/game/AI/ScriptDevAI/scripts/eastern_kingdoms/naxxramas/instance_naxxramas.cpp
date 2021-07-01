@@ -22,7 +22,6 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
-#include "AI/ScriptDevAI/include/sc_instance.h"
 #include "naxxramas.h"
 
 static const DialogueEntry naxxDialogue[] =
@@ -577,7 +576,8 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
                 {
                     if (Creature* zombie = instance->GetCreature(zombieGuid))
                     {
-                        zombie->Suicide();
+                        if (zombie->IsAlive())
+                            zombie->Suicide();
                     }
                 }
             }

@@ -22,6 +22,7 @@ SDCategory: Naxxramas
 EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/include/sc_instance.h"
 #include "naxxramas.h"
 
 static const DialogueEntry naxxDialogue[] =
@@ -570,6 +571,16 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
             break;
         case TYPE_GLUTH:
             m_auiEncounter[type] = data;
+            if (data == DONE || data == FAIL)
+            {
+                for (auto& zombieGuid : m_zombieChowList)
+                {
+                    if (Creature* zombie = instance->GetCreature(zombieGuid))
+                    {
+                        zombie->Suicide();
+                    }
+                }
+            }
             if (data == DONE)
             {
                 DoUseDoorOrButton(GO_CONS_GLUT_EXIT_DOOR);

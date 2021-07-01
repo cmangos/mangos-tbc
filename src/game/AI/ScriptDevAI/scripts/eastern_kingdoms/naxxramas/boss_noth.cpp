@@ -21,11 +21,8 @@ SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
-#include "AI/ScriptDevAI/include/sc_instance.h"
-#include "Common.h"
 #include "naxxramas.h"
 
 enum

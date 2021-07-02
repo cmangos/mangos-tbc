@@ -5835,6 +5835,7 @@ void Aura::HandleAuraModIncreaseHealth(bool apply, bool Real)
         // recalculate to full amount at apply for proper remove
 
         // Cases where m_amount already has the correct value (spells cast with CastCustomSpell or absolute values)
+        case 4148:                                          // Growl of Fortitude
         case 12976:                                         // Warrior Last Stand triggered spell (Cast with percentage-value by CastCustomSpell)
         case 16609:                                         // Warchief's Blessing
         case 28506:                                         // Potion of Heroes (i.22837 - Heroic Potion)

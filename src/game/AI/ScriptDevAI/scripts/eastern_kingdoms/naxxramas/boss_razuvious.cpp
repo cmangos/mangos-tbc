@@ -21,6 +21,7 @@ SDComment: TODO: Deathknight Understudy are supposed to gain Mind Exhaustion deb
 SDCategory: Naxxramas
 EndScriptData */
 
+#include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
@@ -48,28 +49,23 @@ enum
 
 static const float resetZ = 285.0f;         // Above this altitude, Razuvious is outside his combat area (in the stairs) and should reset (leashing)
 
-struct boss_razuviousAI : public ScriptedAI
+enum RazuviousActions
 {
-    boss_razuviousAI(Creature* creature) : ScriptedAI(creature)
+    RAZUVIOUS_UNBALANCING_STRIKE,
+    RAZUVIOUS_DISRUPTING_SHOUT,
+    RAZUVIOUS_ACTION_MAX,
+};
+
+struct boss_razuviousAI : public CombatAI
+{
+    boss_razuviousAI(Creature* creature) : CombatAI(creature, RAZUVIOUS_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_instance = (instance_naxxramas*)creature->GetInstanceData();
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float, float, float z)
-        {
-            return z > resetZ;
-        });
-        Reset();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float, float, float z) { return z > resetZ; });
+        AddCombatAction(RAZUVIOUS_UNBALANCING_STRIKE, 30u * IN_MILLISECONDS);
+        AddCombatAction(RAZUVIOUS_DISRUPTING_SHOUT, 25u * IN_MILLISECONDS);
     }
 
-    instance_naxxramas* m_instance;
-
-    uint32 m_unbalancingStrikeTimer;
-    uint32 m_disruptingShoutTimer;
-
-    void Reset() override
-    {
-        m_unbalancingStrikeTimer = 30 * IN_MILLISECONDS;
-        m_disruptingShoutTimer   = 25 * IN_MILLISECONDS;
-    }
+    ScriptedInstance* m_instance;
 
     void KilledUnit(Unit* /*victim*/) override
     {
@@ -132,42 +128,30 @@ struct boss_razuviousAI : public ScriptedAI
             m_instance->SetData(TYPE_RAZUVIOUS, FAIL);
     }
 
-    void UpdateAI(const uint32 diff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        // Unbalancing Strike
-        if (m_unbalancingStrikeTimer < diff)
+        switch (action)
         {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_UNBALANCING_STRIKE) == CAST_OK)
-                m_unbalancingStrikeTimer = 30 * IN_MILLISECONDS;
+            case RAZUVIOUS_DISRUPTING_SHOUT:
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_DISRUPTING_SHOUT) == CAST_OK)
+                    ResetCombatAction(action, 25u * IN_MILLISECONDS);
+                return;
+            }
+            case RAZUVIOUS_UNBALANCING_STRIKE:
+            {
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_UNBALANCING_STRIKE) == CAST_OK)
+                    ResetCombatAction(action, 30u * IN_MILLISECONDS);
+                return;
+            }
         }
-        else
-            m_unbalancingStrikeTimer -= diff;
-
-        // Disrupting Shout
-        if (m_disruptingShoutTimer < diff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_DISRUPTING_SHOUT) == CAST_OK)
-                m_disruptingShoutTimer = 25 * IN_MILLISECONDS;
-        }
-        else
-            m_disruptingShoutTimer -= diff;
-
-        DoMeleeAttackIfReady();
     }
 };
-
-UnitAI* GetAI_boss_razuvious(Creature* creature)
-{
-    return new boss_razuviousAI(creature);
-}
 
 void AddSC_boss_razuvious()
 {
     Script* newScript = new Script;
     newScript->Name = "boss_razuvious";
-    newScript->GetAI = &GetAI_boss_razuvious;
+    newScript->GetAI = &GetNewAIInstance<boss_razuviousAI>;
     newScript->RegisterSelf();
 }

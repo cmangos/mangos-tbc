@@ -1338,8 +1338,8 @@ void Aura::TriggerSpell()
 //                    // Controller Timer
 //                    case 28095: break;
                     // Stalagg Chain and Feugen Chain
-                    // case 28096:
-                    // case 28111:
+                    case 28096: break;
+                    case 28111: break;
 //                    // Mark of Didier
 //                    case 28114: break;
 //                    // Communique Timer, camp

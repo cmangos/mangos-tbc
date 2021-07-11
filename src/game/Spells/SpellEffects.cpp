@@ -6731,17 +6731,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(nullptr, 27747, TRIGGERED_OLD_TRIGGERED);  // Steam Tank Passive
                     return;
                 }
-                case 28236:                                 // Zombie Chow Search
-                {
-                    if (!unitTarget->IsAlive())
-                        return;
-
-                    m_caster->SetTarget(nullptr);
-                    m_caster->SetFacingToObject(unitTarget);
-                    if (m_caster->CastSpell(unitTarget, 28239, TRIGGERED_NONE) == SPELL_CAST_OK)    // Zombie Chow Search - Insta kill, single target
-                        DoScriptText(-1533119, m_caster, unitTarget);
-                    return;
-                }
                 case 28338:                                 // Magnetic Pull
                 case 28339:                                 // Magnetic Pull
                 {

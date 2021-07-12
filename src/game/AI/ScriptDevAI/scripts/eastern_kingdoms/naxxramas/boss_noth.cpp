@@ -288,6 +288,7 @@ struct boss_nothAI : public CombatAI
             {
                 DoCastSpellIfCan(m_creature, SPELL_CURSE_PLAGUEBRINGER);
                 ResetCombatAction(action, 28u * IN_MILLISECONDS);
+                return;
             }
             case NOTH_BLINK:
             {
@@ -297,6 +298,7 @@ struct boss_nothAI : public CombatAI
                     DoResetThreat();
                     ResetCombatAction(action, 25u * IN_MILLISECONDS);
                 }
+                return;
             }
             case NOTH_SUMMON:
             {
@@ -334,6 +336,7 @@ struct boss_nothAI : public CombatAI
                     }
                     ++m_subWavesCount; // Keep track of which wave we currently are
                 }
+                return;
             }
         }
     }

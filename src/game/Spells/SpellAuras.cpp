@@ -2017,8 +2017,6 @@ void Aura::TriggerSpell()
                     caster->CastSpell(triggerTarget, trigger_spell_id, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                 return;
             }
-            case 28059:                                     // Positive Charge
-            case 28084:                                     // Negative Charge
             case 39088:                                     // Positive Charge
             case 39091:                                     // Negative Charge
             {
@@ -2026,14 +2024,6 @@ void Aura::TriggerSpell()
                 float range;
                 switch (auraId)
                 {
-                    case 28059:
-                        buffAuraId = 29659;
-                        range = 13.f;
-                        break;
-                    case 28084:
-                        buffAuraId = 29660;
-                        range = 13.f;
-                        break;
                     case 39088:
                         buffAuraId = 39089;
                         range = 10.f;
@@ -2690,12 +2680,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         caster->CastSpell(target, 27285, TRIGGERED_OLD_TRIGGERED);
                 return;
             }
-            case 28059:                                     // Positive Charge
-                target->RemoveAurasDueToSpell(29659);
-                return;
-            case 28084:                                     // Negative Charge
-                target->RemoveAurasDueToSpell(29660);
-                return;
             case 29104:                                     // Anub'Rekhan Aura
             {
                 if (m_removeMode == AURA_REMOVE_BY_DEATH && target->GetTypeId() == TYPEID_PLAYER)

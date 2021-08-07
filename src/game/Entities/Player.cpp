@@ -15498,7 +15498,7 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     }
 
     // RaF stuff.
-    m_grantableLevels = fields[62].GetUInt8();
+    m_grantableLevels = fields[60].GetUInt8();
     if ((GetSession()->GetRecruitingFriendId() != 0))
         SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_REFER_A_FRIEND);
 

@@ -24,7 +24,6 @@
 #include "Entities/Object.h"
 #include "Util.h"
 #include "AI/BaseAI/GameObjectAI.h"
-#include "Spells/SpellAuras.h"
 #include "Spells/SpellDefines.h"
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
@@ -867,6 +866,8 @@ class GameObject : public WorldObject
         }
 
         SpellCastResult CastSpell(Unit* temporaryCaster, Unit* Victim, SpellEntry const* spellInfo, uint32 triggeredFlags, Item* castItem = nullptr, Aura* triggeredByAura = nullptr, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
+
+        void GenerateLootFor(Player* player); // used to tie chest loot to encounter at the moment of its end
 
     protected:
         uint32      m_spellId;

@@ -24,6 +24,40 @@ enum
     SPELL_UNSTABLE_AFFLICTION_SILENCE = 31117,
 };
 
+static uint32 const shadowEmbraceSpellList[5] = { 32386,32388,32389,32390,32391 };
+static uint32 const causesShadowEmbraceSpellList[23] = { 172,6222,6223,7648,11671,11672,25311,27216,18265,18879,18880,18881,27264,30911,27243,980,1014,6217,11711,11712,11713,27218 };
+
+void RemoveShadowEmbraceIfNecessary(Aura* aura)
+{
+    bool hasOtherShadowEmbraceCausingAuras = false;
+    Unit::AuraList const& auraPeriodicDmg = aura->GetTarget()->GetAurasByType(SPELL_AURA_PERIODIC_DAMAGE);
+    for (Unit::AuraList::const_iterator itr = auraPeriodicDmg.begin(); itr != auraPeriodicDmg.end(); ++itr)
+    {
+        if ((*itr)->GetCasterGuid() == aura->GetCasterGuid() && std::find(std::begin(causesShadowEmbraceSpellList), std::end(causesShadowEmbraceSpellList), (*itr)->GetId()) != std::end(causesShadowEmbraceSpellList))
+        {
+            hasOtherShadowEmbraceCausingAuras = true;
+            break;
+        }
+    }
+
+    // if this is the final Shadow Embrace causing DoT being removed, also remove Shadow Embrace if found
+    if (!hasOtherShadowEmbraceCausingAuras)
+    {
+        uint32 shadowEmbraceSpellId = 0;
+        Unit::AuraList const& auraPctDmgDone = aura->GetTarget()->GetAurasByType(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
+        for (Unit::AuraList::const_iterator itr = auraPctDmgDone.begin(); itr != auraPctDmgDone.end(); ++itr)
+        {
+            if ((*itr)->GetCasterGuid() == aura->GetCasterGuid() && std::find(std::begin(shadowEmbraceSpellList), std::end(shadowEmbraceSpellList), (*itr)->GetId()) != std::end(shadowEmbraceSpellList))
+            {
+                shadowEmbraceSpellId = (*itr)->GetId();
+                break;
+            }
+        }
+        if (shadowEmbraceSpellId)
+            aura->GetTarget()->RemoveAurasDueToSpell(shadowEmbraceSpellId);
+    }
+}
+
 struct UnstableAffliction : public AuraScript
 {
     void OnDispel(SpellAuraHolder* holder, Unit* dispeller, uint32 /*dispellingSpellId*/, uint32 /*originalStacks*/) const override
@@ -48,6 +82,12 @@ struct CurseOfAgony : public AuraScript
         else if (aura->GetAuraTicks() >= 9)
             amount += (amount + 1) / 2; // +1 prevent 0.5 damage possible lost at 1..4 ticks
         // 5..8 ticks have normal tick damage
+    }
+
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            RemoveShadowEmbraceIfNecessary(aura);
     }
 };
 
@@ -113,18 +153,54 @@ struct LifeTap : public SpellScript
 
 struct DemonicKnowledge : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        if (!caster)
-            caster = aura->GetCaster();
-        if (caster)
+        if (!data.aura)
+            return value;
+        if (Unit* caster = data.caster)
         {
-            Unit* target = aura->GetTarget();
-            if (!aura->GetScriptValue())
-                aura->SetScriptValue((target->HasAura(35693) ? 12 : target->HasAura(35692) ? 8 : target->HasAura(35691) ? 4 : 0));
-            value = aura->GetScriptValue() * (caster->GetStat(STAT_STAMINA) + caster->GetStat(STAT_INTELLECT)) / 100;
+            Unit* target = data.target;
+            if (!data.aura->GetScriptValue())
+                data.aura->SetScriptValue((target->HasAura(35693) ? 12 : target->HasAura(35692) ? 8 : target->HasAura(35691) ? 4 : 0));
+            value = data.aura->GetScriptValue() * (caster->GetStat(STAT_STAMINA) + caster->GetStat(STAT_INTELLECT)) / 100;
         }
         return value;
+    }
+};
+
+struct SoulLink : public AuraScript
+{
+    void OnAuraInit(Aura* aura) const override
+    {
+        if (aura->GetEffIndex() == EFFECT_INDEX_0)
+            aura->GetModifier()->m_auraname = SPELL_AURA_MOD_DAMAGE_PERCENT_DONE;
+    }
+};
+
+struct SiphonLife : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            RemoveShadowEmbraceIfNecessary(aura);
+    }
+};
+
+struct Corruption : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            RemoveShadowEmbraceIfNecessary(aura);
+    }
+};
+
+struct SeedOfCorruption : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            RemoveShadowEmbraceIfNecessary(aura);
     }
 };
 
@@ -134,4 +210,9 @@ void LoadWarlockScripts()
     RegisterAuraScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<LifeTap>("spell_life_tap");
     RegisterAuraScript<DemonicKnowledge>("spell_demonic_knowledge");
+    RegisterAuraScript<SoulLink>("spell_soul_link");
+    RegisterAuraScript<SeedOfCorruption>("spell_seed_of_corruption");
+    RegisterAuraScript<Corruption>("spell_corruption");
+    RegisterAuraScript<SiphonLife>("spell_siphon_life");
+    RegisterAuraScript<CurseOfAgony>("spell_curse_of_agony");
 }

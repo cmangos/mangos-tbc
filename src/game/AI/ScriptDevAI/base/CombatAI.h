@@ -29,31 +29,38 @@ class CombatAI : public ScriptedAI, public CombatActions
     public:
         CombatAI(Creature* creature, uint32 combatActions);
 
-        void Reset() override
-        {
-            ResetAllTimers();
-        }
+        void Reset() override;
 
         virtual void ExecuteActions() override;
 
-        virtual void ExecuteAction(uint32 action) = 0;
+        virtual void ExecuteAction(uint32 action) {}
 
         void HandleDelayedInstantAnimation(SpellEntry const* spellInfo) override;
         void HandleTargetRestoration();
         bool IsTargetingRestricted();
 
+        void AddOnKillText(int32 text);
+        template<typename... Targs>
+        void AddOnKillText(int32 value, Targs... fargs)
+        {
+            AddOnKillText(value);
+            AddOnKillText(fargs...);
+        }
+        void KilledUnit(Unit* /*victim*/) override;
+
         void UpdateAI(const uint32 diff) override;
     private:
         ObjectGuid m_storedTarget;
+
+        std::vector<int32> m_onDeathTexts;
+        bool m_onKillCooldown;
 };
 
 // Implementation is identical to EAI
 class RangedCombatAI : public CombatAI
 {
     public:
-        RangedCombatAI(Creature* creature, uint32 combatActions) : CombatAI(creature, combatActions),
-            m_rangedMode(false), m_rangedModeSetting(TYPE_NONE), m_chaseDistance(0.f), m_currentRangedMode(false), m_mainSpellId(0), m_mainSpellCost(0), m_mainSpellInfo(nullptr), m_mainSpellMinRange(0.f),
-            m_mainAttackMask(SPELL_SCHOOL_MASK_NONE) {}
+        RangedCombatAI(Creature* creature, uint32 combatActions);
 
         virtual void OnSpellCooldownAdded(SpellEntry const* spellInfo) override;
 
@@ -91,6 +98,7 @@ class RangedCombatAI : public CombatAI
         SpellEntry const* m_mainSpellInfo;
         float m_mainSpellMinRange;
         SpellSchoolMask m_mainAttackMask;
+        bool m_distancingCooldown;
 };
 
 #endif

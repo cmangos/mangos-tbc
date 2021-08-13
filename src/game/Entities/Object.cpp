@@ -1524,6 +1524,19 @@ bool WorldObject::isInBack(WorldObject const* target, float distance, float arc 
     return target->GetDistance(GetPositionX(), GetPositionY(), GetPositionZ(), DIST_CALC_COMBAT_REACH) <= distance && !HasInArc(target, 2 * M_PI_F - arc);
 }
 
+Position WorldObject::GetFirstRandomAngleCollisionPosition(float dist, float angle)
+{
+    Position pos;
+    for (uint32 i = 0; i < 10; ++i)
+    {
+        GetFirstCollisionPosition(pos, dist, angle);
+        if (GetPosition().GetDistance(pos) > dist * 0.8f) // if at least 80% distance, good enough
+            break;
+        angle += (M_PI_F / 5); // else try slightly different angle
+    }
+    return pos;
+}
+
 void WorldObject::GetRandomPoint(float x, float y, float z, float distance, float& rand_x, float& rand_y, float& rand_z, float minDist /*=0.0f*/, float const* ori /*=nullptr*/) const
 {
     if (distance == 0)
@@ -2799,7 +2812,7 @@ void WorldObject::PrintCooldownList(ChatHandler& chat) const
     chat.PSendSysMessage("Found %u permanent cooldown%s.", permCDCount, (permCDCount > 1) ? "s" : "");
 }
 
-int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry const* spellProto, SpellEffectIndex effect_index, int32 const* effBasePoints, bool maximum) const
+int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry const* spellProto, SpellEffectIndex effect_index, int32 const* effBasePoints, bool maximum, bool finalUse) const
 {
     Unit const* unitCaster = dynamic_cast<Unit const*>(this);
     Player const* unitPlayer = (GetTypeId() == TYPEID_PLAYER) ? static_cast<Player const*>(this) : nullptr;
@@ -2858,18 +2871,18 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
     {
         if (Player * modOwner = unitCaster->GetSpellModOwner())
         {
-            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value);
+            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value, nullptr, finalUse);
 
             switch (effect_index)
             {
                 case EFFECT_INDEX_0:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT1, value);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT1, value, nullptr, finalUse);
                     break;
                 case EFFECT_INDEX_1:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT2, value);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT2, value, nullptr, finalUse);
                     break;
                 case EFFECT_INDEX_2:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT3, value);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT3, value, nullptr, finalUse);
                     break;
             }
         }
@@ -2885,6 +2898,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
             {
                 case SPELL_AURA_PERIODIC_DAMAGE:
                 case SPELL_AURA_PERIODIC_LEECH:
+                case SPELL_AURA_SCHOOL_ABSORB:
                     //   SPELL_AURA_PERIODIC_DAMAGE_PERCENT: excluded, abs values only
                 case SPELL_AURA_POWER_BURN_MANA:
                 case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:

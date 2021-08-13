@@ -161,10 +161,15 @@ struct boss_zuljinAI : public CombatAI
         });
         AddCustomAction(ZULJIN_FIRE_WALL_DELAY, true, [&]()
         {
-            if (m_creature->IsInCombat())
+            if (m_creature->IsInCombat() && !m_creature->GetCombatManager().IsEvadingHome())
                 m_instance->DoUseDoorOrButton(GO_FIRE_DOOR);
         });
         m_creature->SetWalk(true);
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
+            {
+                return y > 734.0f;
+            });
+        AddOnKillText(SAY_KILL1, SAY_KILL2);
     }
 
     instance_zulaman* m_instance;
@@ -201,7 +206,7 @@ struct boss_zuljinAI : public CombatAI
         ResetTimer(ZULJIN_FIRE_WALL_DELAY, 5000);
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
         if (m_instance)
             m_instance->SetData(TYPE_ZULJIN, FAIL);
@@ -213,11 +218,10 @@ struct boss_zuljinAI : public CombatAI
         for (const auto& aZuljinPhase : aZuljinPhases)
             if (Creature* spirit = m_instance->GetSingleCreatureFromStorage(aZuljinPhase.spiritId))
                 spirit->RemoveAurasDueToSpell(SPELL_SPIRIT_DRAINED);
-    }
 
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
+        m_creature->SetHealthPercent(100.f); // TODO: Remove this hack once evade issues are resolved
+
+        CombatAI::EnterEvadeMode();
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -346,7 +350,7 @@ struct boss_zuljinAI : public CombatAI
         SetCombatMovement(false);
         SetMeleeEnabled(false);
         m_creature->SetTarget(nullptr);
-        m_creature->GetMotionMaster()->MovePoint(POINT_ID_CENTER, fZuljinMoveLoc[0], fZuljinMoveLoc[1], fZuljinMoveLoc[2]);
+        m_creature->GetMotionMaster()->MovePoint(POINT_ID_CENTER, fZuljinMoveLoc[0], fZuljinMoveLoc[1], fZuljinMoveLoc[2], FORCED_MOVEMENT_RUN);
         DoScriptText(aZuljinPhases[m_phase + 1].yellId, m_creature);
 
         // don't do this after troll phase
@@ -440,6 +444,9 @@ struct boss_zuljinAI : public CombatAI
             }
             case ZULJIN_ACTION_PHASE_TRANSITION:
             {
+                if (m_creature->HasAura(SPELL_LYNX_RUSH) || m_creature->HasAura(SPELL_CLAW_RAGE_TRIGGER)) // do not allow phase transition during lynx rush/claw rage
+                    return;
+
                 if (m_creature->GetHealthPercent() < m_healthCheck)
                     ExecutePhaseTransition();
                 return;
@@ -449,7 +456,7 @@ struct boss_zuljinAI : public CombatAI
                     ResetCombatAction(action, urand(15000, 20000));
                 return;
             case ZULJIN_ACTION_GRIEVOUS_THROW:
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_AURA))
                     if (DoCastSpellIfCan(target, SPELL_GRIEVOUS_THROW) == CAST_OK)
                         ResetCombatAction(action, 10000);
                 return;
@@ -569,25 +576,15 @@ struct npc_feather_vortexAI : public ScriptedAI, public TimerManager
     }
 };
 
-UnitAI* GetAI_boss_zuljin(Creature* creature)
-{
-    return new boss_zuljinAI(creature);
-}
-
-UnitAI* GetAI_npc_feather_vortex(Creature* creature)
-{
-    return new npc_feather_vortexAI(creature);
-}
-
 void AddSC_boss_zuljin()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_zuljin";
-    pNewScript->GetAI = &GetAI_boss_zuljin;
+    pNewScript->GetAI = &GetNewAIInstance<boss_zuljinAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_feather_vortex";
-    pNewScript->GetAI = &GetAI_npc_feather_vortex;
+    pNewScript->GetAI = &GetNewAIInstance<npc_feather_vortexAI>;
     pNewScript->RegisterSelf();
 }

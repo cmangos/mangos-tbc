@@ -465,8 +465,8 @@ void Unit::ProcDamageAndSpell(ProcSystemArguments&& data)
 }
 
 ProcExecutionData::ProcExecutionData(ProcSystemArguments& data, bool isVictim) :
-    isVictim(isVictim), procExtra(data.procExtra), attType(data.attType), damage(data.damage), procSpell(data.procSpell), spell(data.spell), healthGain(data.healthGain), triggeredByAura(nullptr), cooldown(0),
-    triggeredSpellId(0), procOnce(false), isHeal(data.isHeal)
+    isVictim(isVictim), procExtra(data.procExtra), attType(data.attType), damage(data.damage), procSpell(data.procSpell), spell(data.spell), healthGain(data.healthGain), isHeal(data.isHeal),
+    triggeredByAura(nullptr), cooldown(0), triggeredSpellId(0), procOnce(false), triggerTarget(nullptr)
 {
     if (isVictim)
     {
@@ -666,9 +666,11 @@ bool Unit::IsTriggeredAtSpellProcEvent(ProcExecutionData& data, SpellAuraHolder*
 
     if (data.spell)
     {
-        if (data.spell->IsTriggeredByAura() && data.procSpell->HasAttribute(SPELL_ATTR_EX3_TRIGGERED_CAN_TRIGGER_SPECIAL))
-            if (!spellProto->HasAttribute(SPELL_ATTR_EX3_CAN_PROC_FROM_TRIGGERED_SPECIAL))
+        if (data.spell->m_IsTriggeredSpell && !spellProto->HasAttribute(SPELL_ATTR_EX3_CAN_PROC_FROM_TRIGGERED))
+        {
+            if (!data.spell->m_spellInfo->HasAttribute(SPELL_ATTR_EX2_TRIGGERED_CAN_TRIGGER_PROC) && !data.spell->m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TRIGGERED_CAN_TRIGGER_SPECIAL))
                 return false;
+        }
 
         for (uint8 i = 0; i < MAX_EFFECT_INDEX; ++i)
             if (Aura* aura = holder->m_auras[i])
@@ -1320,7 +1322,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
 
                     // Cast finish spell (triggeredByAura already not exist!)
                     if (Unit* caster = triggeredByAura->GetCaster())
-                        caster->CastSpell(this, 27285, TRIGGERED_OLD_TRIGGERED, castItem);
+                        caster->CastSpell(this, 27285, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
                     return SPELL_AURA_PROC_OK;              // no hidden cooldown
                 }
 
@@ -1438,7 +1440,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     if (procSpell->SpellFamilyFlags & uint64(0x0000000000008000))
                         triggered_spell_id = 40441;
                     // Renew
-                    else if (procSpell->SpellFamilyFlags & uint64(0x0000000000000010))
+                    else if (procSpell->SpellFamilyFlags & uint64(0x0000000000000040))
                         triggered_spell_id = 40440;
                     else
                         return SPELL_AURA_PROC_FAILED;
@@ -1668,21 +1670,10 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 switch (triggeredByAura->GetEffIndex())
                 {
                     case 0:
-                        triggered_spell_id = 31893;
-                        break;
+                        CastSpell(target, 31893, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+                        return SPELL_AURA_PROC_OK;
                     case 1:
-                    {
-                        // Self damage only procced from the Seal of Blood dmg proc
-                        if (!procSpell)
-                            return SPELL_AURA_PROC_FAILED;
-                        if (!(procSpell->SpellFamilyFlags & uint64(0x0000040000000000)))
-                            return SPELL_AURA_PROC_FAILED;
-                        // damage
-                        basepoints[0] = triggerAmount * damage / 100;
-                        target = this;
-                        triggered_spell_id = 32221;
-                        break;
-                    }
+                        return SPELL_AURA_PROC_OK;
                     default:
                         break;
                 }
@@ -1892,7 +1883,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
 
                     // Attack Twice
                     for (uint32 i = 0; i < 2; ++i)
-                        CastCustomSpell(pVictim, triggered_spell_id, &basepoints[0], nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, castItem, triggeredByAura);
+                        CastCustomSpell(pVictim, triggered_spell_id, &basepoints[0], nullptr, nullptr, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL, castItem, triggeredByAura);
 
                     return SPELL_AURA_PROC_OK;
                 }
@@ -2833,7 +2824,7 @@ SpellAuraProcResult Unit::HandleRaidProcFromChargeAuraProc(ProcExecutionData& da
     uint32 triggeredSpellId = 43594;
     uint32 animationSpellId = 43613;
 
-    if (data.procSpell->Id == triggeredSpellId)
+    if (data.procSpell && data.procSpell->Id == triggeredSpellId)
         return SPELL_AURA_PROC_FAILED;
 
     int32 jumps = triggeredByAura->GetHolder()->GetAuraCharges() - 1; // jumps

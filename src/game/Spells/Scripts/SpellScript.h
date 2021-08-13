@@ -64,12 +64,21 @@ struct SpellScript
     virtual void OnSummon(Spell* spell, GameObject* summon) const {}
 };
 
+struct AuraCalcData
+{
+    Unit* caster; Unit* target; SpellEntry const* spellProto; SpellEffectIndex effIdx;
+    Aura* aura; // cannot be used in auras that utilize stacking in checkcast - can be nullptr
+    AuraCalcData(Aura* aura, Unit* caster, Unit* target, SpellEntry const* spellProto, SpellEffectIndex effIdx) : aura(aura), caster(caster), target(target), spellProto(spellProto), effIdx(effIdx) {}
+};
+
 struct AuraScript
 {
     // called on SpellAuraHolder creation - caster can be nullptr
     virtual void OnHolderInit(SpellAuraHolder* /*holder*/, WorldObject* /*caster*/) const {}
+    // called after end of aura object constructor
+    virtual void OnAuraInit(Aura* /*aura*/) const {}
     // called during any event that calculates aura modifier amount - caster can be nullptr
-    virtual int32 OnAuraValueCalculate(Aura* /*aura*/, Unit* /*caster*/, int32 value) const { return value; }
+    virtual int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const { return value; }
     // called during done/taken damage calculation
     virtual void OnDamageCalculate(Aura* /*aura*/, int32& /*advertisedBenefit*/, float& /*totalMod*/) const {}
     // the following two hooks are done in an alternative fashion due to how they are usually used

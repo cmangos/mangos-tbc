@@ -357,11 +357,6 @@ struct npc_forest_frogAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_npc_forest_frog(Creature* creature)
-{
-    return new npc_forest_frogAI(creature);
-}
-
 /*######
 ## npc_harrison_jones_za
 ######*/
@@ -379,10 +374,7 @@ enum
     SPELL_BANGING_THE_GONG  = 45225,
     SPELL_SPEAR_THROW       = 43647,
 
-    NPC_GUARDIAN            = 23597,
-
     EQUIP_ID_HUGE_MAUL      = 1012, // item id 5301
-    EQUIP_ID_RED_SPEAR      = 5592, // item id 13631
     EQUIP_ID_GUARDIAN       = 23597, // item id 33979
 
     ENTRY_HARRISON_WITH_HAT = 24375,
@@ -390,14 +382,12 @@ enum
 
 struct npc_harrison_jones_zaAI : public npc_escortAI
 {
-    npc_harrison_jones_zaAI(Creature* creature) : npc_escortAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    npc_harrison_jones_zaAI(Creature* creature) : npc_escortAI(creature), m_instance(static_cast<instance_zulaman*>(creature->GetInstanceData()))
     {
         Reset();
     }
 
-    ScriptedInstance* m_instance;
-    CreatureList lGuardiansList;
-    ObjectGuid m_guardianAttackerGuid;
+    instance_zulaman* m_instance;
     uint32 m_uiSoundAlarmTimer;
 
     void WaypointReached(uint32 pointId) override
@@ -434,25 +424,33 @@ struct npc_harrison_jones_zaAI : public npc_escortAI
                 m_creature->SetVisibility(VISIBILITY_ON); // even though Harrison is stealthed, players can still see him
                 break;
             case 12:
-                if (Creature* attacker = m_creature->GetMap()->GetCreature(m_guardianAttackerGuid))
+                if (Creature* attacker = m_creature->GetMap()->GetCreature(m_instance->m_GongGuardianAttackerGuid))
                 {
                     attacker->SetWalk(false);
                     attacker->GetMotionMaster()->MovePoint(1, 138.2242f, 1586.994f, 43.5488f);
                 }
                 break;
             case 13:
-                if (Creature* attacker = m_creature->GetMap()->GetCreature(m_guardianAttackerGuid))
+                if (Creature* attacker = m_creature->GetMap()->GetCreature(m_instance->m_GongGuardianAttackerGuid))
                     attacker->GetMotionMaster()->MovePoint(2, 131.8407f, 1590.247f, 43.61384f);
                 break;
             case 14:
-                if (Creature* attacker = m_creature->GetMap()->GetCreature(m_guardianAttackerGuid))
+                m_uiSoundAlarmTimer = 2000;
+                for (auto& itr : m_instance->sGongGuardianGuidSet)
                 {
-                    attacker->SetFacingTo(2.024582f);
-                    m_creature->RemoveAurasDueToSpell(SPELL_STEALTH);
-                    attacker->CastSpell(m_creature, SPELL_SPEAR_THROW, TRIGGERED_OLD_TRIGGERED);
-                    attacker->LoadEquipment(EQUIP_ID_GUARDIAN, true);
-                    m_uiSoundAlarmTimer = 2000;
+                    if (Creature* gongGuardian = m_creature->GetMap()->GetCreature(itr))
+                    {
+                        if (gongGuardian->GetObjectGuid() == m_instance->m_GongGuardianAttackerGuid)
+                        {
+                            gongGuardian->SetFacingTo(2.024582f);
+                            m_creature->RemoveAurasDueToSpell(SPELL_STEALTH);
+                            gongGuardian->CastSpell(m_creature, SPELL_SPEAR_THROW, TRIGGERED_OLD_TRIGGERED);
+                            gongGuardian->LoadEquipment(EQUIP_ID_GUARDIAN, true);
+                        }
+                        gongGuardian->SetImmuneToPlayer(false);
+                    }
                 }
+
                 SetEscortPaused(true);
                 break;
         }
@@ -475,20 +473,15 @@ struct npc_harrison_jones_zaAI : public npc_escortAI
         {
             if (m_uiSoundAlarmTimer < diff)
             {
-                if (Creature* attacker = m_creature->GetMap()->GetCreature(m_guardianAttackerGuid))
-                    DoScriptText(SAY_SOUND_ALARM, attacker);
-
-                for (auto& itr : lGuardiansList)
+                for (auto& itr : m_instance->sGongGuardianGuidSet)
                 {
-                    if (itr->GetObjectGuid() != m_guardianAttackerGuid)
+                    if (Creature* gongGuardian = m_creature->GetMap()->GetCreature(itr))
                     {
-                        itr->SetWalk(false);
-                        itr->GetMotionMaster()->MovePoint(1, 107.7912f, 1586.498f, 43.61609f);
+                        gongGuardian->SetInCombatWithZone();
+                        if (gongGuardian->GetObjectGuid() != m_instance->m_GongGuardianAttackerGuid)
+                            DoScriptText(SAY_SOUND_ALARM, gongGuardian);
                     }
-
-                    itr->SetImmuneToPlayer(false);
                 }
-
                 m_uiSoundAlarmTimer = 0;
             }
             else
@@ -511,19 +504,6 @@ struct npc_harrison_jones_zaAI : public npc_escortAI
         {
             m_creature->RemoveAurasDueToSpell(SPELL_BANGING_THE_GONG);
             m_creature->LoadEquipment(0, true); // remove hammer
-
-            GetCreatureListWithEntryInGrid(lGuardiansList, m_creature, NPC_GUARDIAN, 70.0f);
-            for (auto& itr : lGuardiansList)
-            {
-                // choose which one will speak and attack Harrison
-                if (itr->GetPositionX() > 130.0f)
-                {
-                    m_guardianAttackerGuid = itr->GetObjectGuid();
-                    itr->LoadEquipment(EQUIP_ID_RED_SPEAR, true);
-                }
-
-                itr->SetImmuneToPlayer(true);
-            }
         }
     }
 };
@@ -554,11 +534,6 @@ bool GossipSelect_npc_harrison_jones_za(Player* player, Creature* creature, uint
         player->CLOSE_GOSSIP_MENU();
     }
     return true;
-}
-
-UnitAI* GetAI_npc_harrison_jones_za(Creature* creature)
-{
-    return new npc_harrison_jones_zaAI(creature);
 }
 
 /*######
@@ -606,15 +581,32 @@ struct npc_amanishi_lookoutAI : public ScriptedAI
     {
         ScriptedAI::MoveInLineOfSight(who);
 
-        if (m_instance && m_instance->IsAkilzonGauntletInProgress())
+        if (!m_instance || m_instance->IsAkilzonGauntletInProgress())
+            return;
+
+        if (!m_creature->IsWithinLOSInMap(who))
             return;
 
         if (who->GetTypeId() == TYPEID_PLAYER && !static_cast<Player*>(who)->IsGameMaster() && m_creature->IsWithinDistInMap(who, 25.0f))
+            StartEvent();
+    }
+
+    void StartEvent()
+    {
+        m_instance->SetData(TYPE_AKILZON_GAUNTLET, IN_PROGRESS);
+        DoScriptText(SAY_GAUNTLET_START, m_creature);
+        m_creature->SetWalk(false);
+        m_creature->GetMotionMaster()->MoveWaypoint(0, PATH_FROM_EXTERNAL, 1000);
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
         {
-            m_instance->SetAkilzonGauntletProgress(true);
-            DoScriptText(SAY_GAUNTLET_START, m_creature);
-            m_creature->SetWalk(false);
-            m_creature->GetMotionMaster()->MoveWaypoint(0, 3, 1000);
+            if (!m_instance || m_instance->IsAkilzonGauntletInProgress())
+                return;
+
+            StartEvent();
         }
     }
 
@@ -627,11 +619,6 @@ struct npc_amanishi_lookoutAI : public ScriptedAI
             m_creature->ForcedDespawn();
     }
 };
-
-UnitAI* GetAI_npc_amanishi_lookout(Creature* creature)
-{
-    return new npc_amanishi_lookoutAI(creature);
-}
 
 /*######
 ## npc_amanishi_tempest
@@ -668,7 +655,7 @@ struct npc_amanishi_tempestAI : public ScriptedAI
     void Aggro(Unit* /*who*/) override
     {
         if (m_instance && m_instance->IsAkilzonGauntletInProgress())
-            m_instance->SetAkilzonGauntletProgress(false);
+            m_instance->SetData(TYPE_AKILZON_GAUNTLET, SPECIAL);
     }
 
     void JustSummoned(Creature* summoned) override
@@ -678,14 +665,14 @@ struct npc_amanishi_tempestAI : public ScriptedAI
 
     void UpdateAI(const uint32 diff) override
     {
-        if (m_instance && m_instance->IsAkilzonGauntletInProgress())
+        if (m_instance && m_instance->IsAkilzonGauntletSpawning())
         {
             if (m_uiSummonEagleTimer <= diff)
             {
                 for (int i = 0; i < 5; i++)
                     DoCastSpellIfCan(m_creature, SPELL_SUMMON_EAGLE);
 
-                m_uiSummonEagleTimer = 25000;
+                m_uiSummonEagleTimer = urand(29000, 53000);
             }
             else
                 m_uiSummonEagleTimer -= diff;
@@ -715,11 +702,6 @@ struct npc_amanishi_tempestAI : public ScriptedAI
         DoMeleeAttackIfReady();
     }
 };
-
-UnitAI* GetAI_npc_amanishi_tempest(Creature* creature)
-{
-    return new npc_amanishi_tempestAI(creature);
-}
 
 /*######
 ## npc_harkor
@@ -920,6 +902,9 @@ struct npc_harkorAI : public ScriptedAI
                             itr->SetRespawnTime(7 * DAY);
                         }
 
+                        if (m_instance)
+                            m_instance->SetData(TYPE_HARKOR, DONE);
+
                         m_uiEventTimer = 0;
                         m_uiEvent = 0;
                         break;
@@ -989,6 +974,9 @@ struct npc_harkorAI : public ScriptedAI
 
     void StartEvent()
     {
+        if (m_instance && m_instance->GetData(TYPE_HARKOR) == DONE)
+            return;
+
         m_bChestEventInProgress = true;
 
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -997,7 +985,7 @@ struct npc_harkorAI : public ScriptedAI
             pCage->Use(m_creature);
 
         m_creature->HandleEmote(EMOTE_ONESHOT_KICK);
-        m_creature->GetMotionMaster()->MoveWaypoint(0, 3, 2000);
+        m_creature->GetMotionMaster()->MoveWaypoint(0, PATH_FROM_EXTERNAL, 2000);
     }
 
     void MovementInform(uint32 motionType, uint32 pointId) override
@@ -1057,11 +1045,6 @@ struct npc_harkorAI : public ScriptedAI
         }
     }
 };
-
-UnitAI* GetAI_npc_harkor(Creature* creature)
-{
-    return new npc_harkorAI(creature);
-}
 
 bool GossipHello_npc_harkor(Player* player, Creature* creature)
 {
@@ -1230,7 +1213,14 @@ struct npc_tanzarAI : public ScriptedAI
                         DoScriptText(SAY_TANZAR_EVENT_4, m_creature);
 
                         if (GameObject* pTrunk = m_instance->GetSingleGameObjectFromStorage(GO_TANZARS_TRUNK))
+                        {
+                            if (Player* player = m_instance->GetPlayerInMap(false, false))
+                                pTrunk->GenerateLootFor(player);
                             pTrunk->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+                        }
+
+                        if (m_instance)
+                            m_instance->SetData(TYPE_TANZAR, DONE);
 
                         m_uiEventTimer = 0;
                         m_uiEvent = 0;
@@ -1321,6 +1311,9 @@ struct npc_tanzarAI : public ScriptedAI
 
     void StartEvent()
     {
+        if (m_instance && m_instance->GetData(TYPE_TANZAR) == DONE)
+            return;
+
         m_bChestEventInProgress = true;
 
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -1329,7 +1322,7 @@ struct npc_tanzarAI : public ScriptedAI
             pCage->Use(m_creature);
 
         m_creature->HandleEmote(EMOTE_ONESHOT_KICK);
-        m_creature->GetMotionMaster()->MoveWaypoint(0, 3, 1000);
+        m_creature->GetMotionMaster()->MoveWaypoint(0, PATH_FROM_EXTERNAL, 1000);
     }
 
     void MovementInform(uint32 motionType, uint32 pointId) override
@@ -1386,11 +1379,6 @@ struct npc_tanzarAI : public ScriptedAI
         }
     }
 };
-
-UnitAI* GetAI_npc_tanzar(Creature* creature)
-{
-    return new npc_tanzarAI(creature);
-}
 
 bool GossipHello_npc_tanzar(Player* player, Creature* creature)
 {
@@ -1584,6 +1572,9 @@ struct npc_krazAI : public ScriptedAI
                             itr->SetRespawnTime(7 * DAY);
                         }
 
+                        if (m_instance)
+                            m_instance->SetData(TYPE_KRAZ, DONE);
+
                         lCoinList.clear();
 
                         m_uiEventTimer = 1000;
@@ -1615,6 +1606,9 @@ struct npc_krazAI : public ScriptedAI
 
     void StartEvent()
     {
+        if (m_instance && m_instance->GetData(TYPE_KRAZ) == DONE)
+            return;
+
         m_bChestEventInProgress = true;
 
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -1623,7 +1617,7 @@ struct npc_krazAI : public ScriptedAI
             pCage->Use(m_creature);
 
         m_creature->HandleEmote(EMOTE_ONESHOT_KICK);
-        m_creature->GetMotionMaster()->MoveWaypoint(0, 3, 2000);
+        m_creature->GetMotionMaster()->MoveWaypoint(0, PATH_FROM_EXTERNAL, 2000);
     }
 
     void MovementInform(uint32 motionType, uint32 pointId) override
@@ -1652,11 +1646,6 @@ struct npc_krazAI : public ScriptedAI
         }
     }
 };
-
-UnitAI* GetAI_npc_kraz(Creature* creature)
-{
-    return new npc_krazAI(creature);
-}
 
 bool GossipHello_npc_kraz(Player* player, Creature* creature)
 {
@@ -1938,10 +1927,16 @@ struct npc_ashliAI : public ScriptedAI
 
         if (GameObject* pVase = GetClosestGameObjectWithEntry(pTarget, GO_ASHLIS_VASE, 10.0f))
             pVase->Delete();
+
+        if (m_instance)
+            m_instance->SetData(TYPE_ASHLI, DONE);
     }
 
     void StartEvent()
     {
+        if (m_instance && m_instance->GetData(TYPE_ASHLI) == DONE)
+            return;
+
         m_bChestEventInProgress = true;
 
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -1950,7 +1945,7 @@ struct npc_ashliAI : public ScriptedAI
             pCage->Use(m_creature);
 
         m_creature->HandleEmote(EMOTE_ONESHOT_KICK);
-        m_creature->GetMotionMaster()->MoveWaypoint(0, 3, 2000);
+        m_creature->GetMotionMaster()->MoveWaypoint(0, PATH_FROM_EXTERNAL, 2000);
 
         m_uiEvent = 1;
         m_uiEventTimer = 3000;
@@ -1971,23 +1966,23 @@ struct npc_ashliAI : public ScriptedAI
                     m_uiEvent = 2;
                     m_uiEventTimer = 1000;
                     break;
-                case 7:
+                case 8:
                     m_uiEvent = 3;
                     m_uiEventTimer = 3000;
                     break;
-                case 13:
+                case 14:
                     m_uiEvent = 5;
                     m_uiEventTimer = 1000;
                     break;
-                case 21:
+                case 22:
                     m_uiEvent = 7;
                     m_uiEventTimer = 2000;
                     break;
-                case 23:
+                case 24:
                     m_uiEvent = 9;
                     m_uiEventTimer = 1000;
                     break;
-                case 84:
+                case 85:
                     m_creature->GetMotionMaster()->MoveIdle();
                     m_bReachedEntrance = true;
                     break;
@@ -2013,11 +2008,6 @@ struct npc_ashliAI : public ScriptedAI
         }
     }
 };
-
-UnitAI* GetAI_npc_ashli(Creature* creature)
-{
-    return new npc_ashliAI(creature);
-}
 
 bool GossipHello_npc_ashli(Player* player, Creature* creature)
 {
@@ -2192,11 +2182,6 @@ struct npc_amanishi_scoutAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_npc_amanishi_scout(Creature* creature)
-{
-    return new npc_amanishi_scoutAI(creature);
-}
-
 /*######
 ## go_wooden_door
 ######*/
@@ -2223,16 +2208,72 @@ bool GOUse_go_wooden_door(Player* player, GameObject* go)
     return false;
 }
 
+enum
+{
+    SPELL_CALL_OF_THE_BEAST = 43360,
+};
+
+struct CallOfTheBeast : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            aura->GetTarget()->CastSpell(nullptr, SPELL_CALL_OF_THE_BEAST, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+struct npc_eagle_trash_aggro_triggerAI : public ScriptedAI
+{
+    npc_eagle_trash_aggro_triggerAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<instance_zulaman*>(creature->GetMap()->GetInstanceData()))
+    {
+        SetReactState(REACT_PASSIVE);
+        creature->SetCanEnterCombat(false);
+        SetCombatMovement(false);
+    }
+
+    instance_zulaman* m_instance;
+
+    void Reset() override
+    {
+
+    }
+
+    void MoveInLineOfSight(Unit* who) override
+    {
+        if (who->GetTypeId() != TYPEID_PLAYER)
+            return;
+
+        if (!m_instance)
+            return;
+
+        Player* player = static_cast<Player*>(who);
+        if (player->IsGameMaster())
+            return;
+
+        if (m_instance->IsAkilzonGauntletInProgress())
+            return;
+
+        if (!m_creature->IsWithinLOSInMap(who))
+            return;
+
+        if (!m_creature->IsWithinDistInMap(who, 30.0f))
+            return;
+
+        if (Creature* creature = m_instance->GetSingleCreatureFromStorage(NPC_LOOKOUT))
+            SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, creature);
+    }
+};
+
 void AddSC_zulaman()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "npc_forest_frog";
-    pNewScript->GetAI = &GetAI_npc_forest_frog;
+    pNewScript->GetAI = &GetNewAIInstance<npc_forest_frogAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_harrison_jones_za";
-    pNewScript->GetAI = &GetAI_npc_harrison_jones_za;
+    pNewScript->GetAI = &GetNewAIInstance<npc_harrison_jones_zaAI>;
     pNewScript->pGossipHello =  &GossipHello_npc_harrison_jones_za;
     pNewScript->pGossipSelect = &GossipSelect_npc_harrison_jones_za;
     pNewScript->RegisterSelf();
@@ -2244,49 +2285,56 @@ void AddSC_zulaman()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_amanishi_lookout";
-    pNewScript->GetAI = &GetAI_npc_amanishi_lookout;
+    pNewScript->GetAI = &GetNewAIInstance<npc_amanishi_lookoutAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_amanishi_tempest";
-    pNewScript->GetAI = &GetAI_npc_amanishi_tempest;
+    pNewScript->GetAI = &GetNewAIInstance<npc_amanishi_tempestAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_harkor";
-    pNewScript->GetAI = &GetAI_npc_harkor;
+    pNewScript->GetAI = &GetNewAIInstance<npc_harkorAI>;
     pNewScript->pGossipHello = &GossipHello_npc_harkor;
     pNewScript->pGossipSelect = &GossipSelect_npc_harkor;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_tanzar";
-    pNewScript->GetAI = &GetAI_npc_tanzar;
+    pNewScript->GetAI = &GetNewAIInstance<npc_tanzarAI>;
     pNewScript->pGossipHello = &GossipHello_npc_tanzar;
     pNewScript->pGossipSelect = &GossipSelect_npc_tanzar;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_kraz";
-    pNewScript->GetAI = &GetAI_npc_kraz;
+    pNewScript->GetAI = &GetNewAIInstance<npc_krazAI>;
     pNewScript->pGossipHello = &GossipHello_npc_kraz;
     pNewScript->pGossipSelect = &GossipSelect_npc_kraz;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_ashli";
-    pNewScript->GetAI = &GetAI_npc_ashli;
+    pNewScript->GetAI = &GetNewAIInstance<npc_ashliAI>;
     pNewScript->pGossipHello = &GossipHello_npc_ashli;
     pNewScript->pGossipSelect = &GossipSelect_npc_ashli;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_amanishi_scout";
-    pNewScript->GetAI = &GetAI_npc_amanishi_scout;
+    pNewScript->GetAI = &GetNewAIInstance<npc_amanishi_scoutAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "go_wooden_door";
     pNewScript->pGOUse = &GOUse_go_wooden_door;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_eagle_trash_aggro_trigger";
+    pNewScript->GetAI = &GetNewAIInstance<npc_eagle_trash_aggro_triggerAI>;
+    pNewScript->RegisterSelf();
+
+    RegisterAuraScript<CallOfTheBeast>("spell_call_of_the_beast");
 }

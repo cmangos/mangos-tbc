@@ -115,7 +115,7 @@ void WorldState::Load()
                     }
                     break;
                 }
-                case SAVE_ID_QUEL_DANAS: // TODO:
+                case SAVE_ID_QUEL_DANAS:
                 {
                     if (data.size())
                     {
@@ -128,8 +128,16 @@ void WorldState::Load()
                         catch (std::exception& e)
                         {
                             sLog.outError("%s", e.what());
-                            memset(m_loveIsInTheAirData.counters, 0, sizeof(LoveIsInTheAir));
+                            m_sunsReachData.m_phase = 0;
+                            m_sunsReachData.m_subphaseMask = 0;
+                            memset(m_sunsReachData.m_sunsReachReclamationCounters, 0, sizeof(m_sunsReachData.m_sunsReachReclamationCounters));
                         }
+                    }
+                    else
+                    {
+                        m_sunsReachData.m_phase = 0;
+                        m_sunsReachData.m_subphaseMask = 0;
+                        memset(m_sunsReachData.m_sunsReachReclamationCounters, 0, sizeof(m_sunsReachData.m_sunsReachReclamationCounters));
                     }
                     break;
                 }
@@ -1142,6 +1150,7 @@ void WorldState::HandleSunsReachPhaseTransition(uint32 newPhase)
         default: break;
     }
     SendWorldstateUpdate(m_sunsReachData.m_sunsReachReclamationMutex, m_sunsReachData.m_phase, WORLD_STATE_QUEL_DANAS_MUSIC);
+	Save(SAVE_ID_QUEL_DANAS);
 }
 
 void WorldState::HandleSunsReachSubPhaseTransition(int32 subPhaseMask, bool initial)

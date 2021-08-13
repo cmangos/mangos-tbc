@@ -107,9 +107,9 @@ uint32 GetSpellCastTime(SpellEntry const* spellInfo, WorldObject* caster, Spell*
         switch (spellInfo->Id)
         {
             case 3366: // Opening - seems to have a settable timer per usage
-                if (spell->m_CastItem)
+                if (spell->GetCastItem())
                 {
-                    switch (spell->m_CastItem->GetEntry())
+                    switch (spell->GetCastItem()->GetEntry())
                     {
                         case 31088: // Tainted Core - instant opening
                             return 0;
@@ -2966,7 +2966,7 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         {
             // Seduction
             // ToDo: Fix  diminishing returns aspect of this spell, currently limited to 10secs in pvp only as setting DIMINISHING_FEAR to DRTYPE_ALL messes with PvE
-            if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)))
+            if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)) && spellproto->Id != 7870) // Exclude Lesser Invisibility
                 return DIMINISHING_FEAR;
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(uint64(0x00080000000)))
@@ -3006,6 +3006,8 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
                 return DIMINISHING_FEAR;
             break;
         }
+        case SPELLFAMILY_UNK1:
+            return DIMINISHING_NONE;
         default:
             break;
     }
@@ -3104,6 +3106,13 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
     }
 
     return DRTYPE_NONE;
+}
+
+bool IsSubjectToDiminishingLevels(DiminishingGroup group, bool pvp)
+{
+    if ((GetDiminishingReturnsGroupType(group) == DRTYPE_PLAYER && pvp) || GetDiminishingReturnsGroupType(group) == DRTYPE_ALL)
+        return true;
+    return false;
 }
 
 bool IsCreatureDRSpell(SpellEntry const* spellInfo)

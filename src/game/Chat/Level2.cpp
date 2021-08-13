@@ -1651,6 +1651,22 @@ bool ChatHandler::HandleNpcTempSpawn(char* args)
     return true;
 }
 
+bool ChatHandler::HandleNpcEvade(char* args)
+{
+    Creature* target = getSelectedCreature();
+
+    if (!target)
+    {
+        SendSysMessage(LANG_SELECT_CREATURE);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (target->AI())
+        target->AI()->EnterEvadeMode();
+    return true;
+}
+
 // add item in vendorlist
 bool ChatHandler::HandleNpcAddVendorItemCommand(char* args)
 {
@@ -2595,6 +2611,7 @@ inline Creature* Helper_CreateWaypointFor(Creature* wpOwner, WaypointPathOrigin 
     settings.spawnDataEntry = 2;
     settings.spawnType = TEMPSPAWN_TIMED_DESPAWN;
     settings.despawnTime = 5 * MINUTE * IN_MILLISECONDS;
+    settings.spawnType = TEMPSPAWN_TIMED_DESPAWN;
 
     settings.tempSpawnMovegen = true;
     settings.waypointId = wpId;
@@ -2602,6 +2619,9 @@ inline Creature* Helper_CreateWaypointFor(Creature* wpOwner, WaypointPathOrigin 
     settings.pathOrigin = uint32(wpOrigin);
 
     Creature* wpCreature = WorldObject::SummonCreature(settings, wpOwner->GetMap());
+
+    if (wpCreature)
+        wpCreature->SetLevel(wpId);
 
     return wpCreature;
 }
@@ -3737,18 +3757,23 @@ bool ChatHandler::HandleCombatStopCommand(char* args)
     if (HasLowerSecurity(target))
         return false;
 
-    target->CombatStop();
+    target->CombatStopWithPets();
     return true;
 }
 
 bool ChatHandler::HandleCombatListCommand(char* /*args*/)
 {
-    Player* player = GetSession()->GetPlayer();
-    if (!player)
-        return false;
+    Unit* target = getSelectedUnit();
+    if (!target)
+    {
+        target = GetSession()->GetPlayer();
+        if (!target)
+            return false;
+    }
 
+    PSendSysMessage("Combat timer: %u", target->GetCombatManager().GetCombatTimer());
     SendSysMessage("In Combat With:");
-    for (auto& ref : player->getHostileRefManager())
+    for (auto& ref : target->getHostileRefManager())
     {
         Unit* refOwner = ref.getSource()->getOwner();
         PSendSysMessage("%s Entry: %u Counter: %u", refOwner->GetName(), refOwner->GetEntry(), refOwner->GetGUIDLow());

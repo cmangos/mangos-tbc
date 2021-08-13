@@ -27,8 +27,8 @@ EndScriptData */
 #include "AI/ScriptDevAI/base/escort_ai.h"
 
 // #define FAST_TIMERS
-//#define NO_SHADOWFIEND
-//#define NO_SHEAR
+// #define NO_SHADOWFIEND
+// #define NO_SHEAR
 
 enum
 {
@@ -96,8 +96,8 @@ enum
     SPELL_SHEAR                     = 41032,                // Reduces Max. Health by 60% for 7 seconds. Can stack 19 times. 1.5 second cast
     SPELL_FLAME_CRASH               = 40832,                // Summons an invis/unselect passive mob that has an uiAura of flame in a circle around him.
     SPELL_DRAW_SOUL                 = 40904,                // 5k Shadow Damage in front of him. Heals Illidan for 100k health (script effect)
-    SPELL_PARASITIC_SHADOWFIEND     = 41917,                // DoT of 3k Shadow every 2 seconds. Lasts 10 seconds. (Script effect: Summon 2 parasites once the debuff has ticked off)
-    // SPELL_SUMMON_PARASITICS       = 41915,               // Summons 2 Parasitic Shadowfiends on the target. Handled in core.
+    SPELL_PARASITIC_SHADOWFIEND_BOSS= 41917,                // DoT of 3k Shadow every 2 seconds. Lasts 10 seconds. (Script effect: Summon 2 parasites once the debuff has ticked off)
+    SPELL_SUMMON_PARASITICS         = 41915,                // Summons 2 Parasitic Shadowfiends on the target. Handled in core.
     SPELL_AGONIZING_FLAMES          = 40834,                // triggers 40932
     SPELL_FRENZY                    = 40683,                // Increases damage by 50% and attack speed by 30%. 20 seconds, PHASE 5 ONLY
 
@@ -169,6 +169,7 @@ enum
 
     // Parasitic Shadowfiend
     SPELL_PARASITIC_SHADOWFIEND_P   = 41913,
+    SPELL_PARASITIC_SHADOWFIEND_ADD = 41914,
     SPELL_SHADOWFORM_PARASITE       = 34429,
 
     // Shadow Demon
@@ -226,12 +227,12 @@ enum
     POINT_ILLIDAN_FLIGHT_RANDOM     = 1,
     POINT_ILLIDAN_LANDING           = 2,
 
-    POINT_AKAMA_ILLIDAN_CLOSE       = 0,
-    POINT_AKAMA_COUNCIL_DEAD_END    = 1,
-    POINT_AKAMA_DOOR_STOP           = 7,
-    POINT_AKAMA_ILLIDAN_STOP        = 4,
-    POINT_AKAMA_ILLDARI             = 6,
-    POINT_AKAMA_BACK_UP             = 5,
+    POINT_AKAMA_ILLIDAN_CLOSE       = 1,
+    POINT_AKAMA_COUNCIL_DEAD_END    = 2,
+    POINT_AKAMA_DOOR_STOP           = 8,
+    POINT_AKAMA_ILLIDAN_STOP        = 5,
+    POINT_AKAMA_ILLDARI             = 7,
+    POINT_AKAMA_BACK_UP             = 6,
 
     PATH_ID_AKAMA_COUNCIL_DEAD      = 1,
     PATH_ID_AKAMA_COUNCIL_PRE_DOOR  = 2,
@@ -281,8 +282,8 @@ static const DialogueEntry aEventDialogue[] =
     {SAY_ILLIDAN_SPEECH_3,      NPC_ILLIDAN_STORMRAGE,  3000},
     {DUMMY_EMOTE_ID_3,          0,                      4000},
     {SAY_AKAMA_SPEECH_4,        NPC_AKAMA,              4000},
-    {EQUIP_ID_MAIN_HAND,        0,                      1000},
-    {SAY_ILLIDAN_SPEECH_5,      NPC_ILLIDAN_STORMRAGE,  4000},
+    {SAY_ILLIDAN_SPEECH_5,      NPC_ILLIDAN_STORMRAGE,  1000},
+    {EQUIP_ID_MAIN_HAND,        0,                      4000},
     {NPC_ILLIDAN_STORMRAGE,     0,                      0},
     // Akama leaves fight
     {SAY_ILLIDAN_MINION,        NPC_ILLIDAN_STORMRAGE,  8000},
@@ -384,8 +385,8 @@ enum IllidanActions
     ILLIDAN_ACTION_TRANSFORM,
     ILLIDAN_ACTION_TRAP,
     ILLIDAN_ACTION_ENRAGE,
-    ILLIDAN_ACTION_SHADOW_DEMON,
     ILLIDAN_ACTION_FLAME_BURST,
+    ILLIDAN_ACTION_SHADOW_DEMON,
     ILLIDAN_ACTION_SHADOW_BLAST,
     ILLIDAN_ACTION_AGONISING_FLAMES,
     ILLIDAN_ACTION_EYE_BLAST,
@@ -433,12 +434,13 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
         SetDeathPrevention(true);
         if (m_instance)
         {
-            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
+            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float z)
             {
-                return static_cast<ScriptedInstance*>(unit->GetInstanceData())->GetPlayerInMap(true, false) == nullptr;
+                return static_cast<ScriptedInstance*>(unit->GetInstanceData())->GetPlayerInMap(true, false) == nullptr || z < 352.0f;
             });
         }
         InitializeDialogueHelper(m_instance);
+        AddOnKillText(SAY_KILL1, SAY_KILL2);
         Reset();
     }
 
@@ -455,6 +457,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
     uint32 m_phaseTransitionStage;
     uint8 m_curEyeBlastLoc;
     ObjectGuid m_curEyeBlastTarget;
+    uint32 m_flameBlasts;
 
     GuidList m_bladesGuidList;
 
@@ -479,6 +482,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
         m_creature->SetImmobilizedState(false);
         SetCombatMovement(true);
         m_creature->SetWalk(false, true);
+        SetCombatScriptStatus(false);
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
@@ -497,7 +501,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             case ILLIDAN_ACTION_ENRAGE: return 40000;
             case ILLIDAN_ACTION_TRAP: return 30000;
             case ILLIDAN_ACTION_SHADOW_DEMON: return 20000;
-            case ILLIDAN_ACTION_FLAME_BURST: return 7500;
+            case ILLIDAN_ACTION_FLAME_BURST: return 7000;
             case ILLIDAN_ACTION_SHADOW_BLAST: return urand(1000, 2000);
             case ILLIDAN_ACTION_AGONISING_FLAMES: return 25000;
             case ILLIDAN_ACTION_EYE_BLAST: return 10000;
@@ -529,6 +533,12 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             m_instance->SetData(TYPE_ILLIDAN, FAIL);
     }
 
+    void JustRespawned() override
+    {
+        CombatAI::JustRespawned();
+        DisableDialogue();
+    }
+
     void CorpseRemoved(uint32& respawnDelay) override
     {
         // Respawn after 10 seconds
@@ -545,14 +555,6 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             if (m_instance)
                 m_instance->SetData(TYPE_ILLIDAN, DONE);
         }
-    }
-
-    void KilledUnit(Unit* victim) override
-    {
-        if (victim->GetTypeId() != TYPEID_PLAYER)
-            return;
-
-        DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 miscValue) override
@@ -805,9 +807,11 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             {
                 DisableCombatAction(ILLIDAN_ACTION_ENRAGE);
                 DisableCombatAction(ILLIDAN_ACTION_TRAP);
+                // [[fallthrough]]
             }
             case PHASE_3_NORMAL:
             {
+                m_flameBlasts = 0;
                 DoCastSpellIfCan(nullptr, SPELL_DEMON_TRANSFORM_1);
                 m_attackDistance = 80.f;
                 SetCombatScriptStatus(true);
@@ -882,13 +886,12 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                 ResetCombatAction(ILLIDAN_ACTION_FLAME_BURST, GetInitialActionTimer(ILLIDAN_ACTION_FLAME_BURST));
                 ResetCombatAction(ILLIDAN_ACTION_SHADOW_BLAST, GetInitialActionTimer(ILLIDAN_ACTION_SHADOW_BLAST));
                 ResetCombatAction(ILLIDAN_ACTION_SHADOW_DEMON, GetInitialActionTimer(ILLIDAN_ACTION_SHADOW_DEMON));
-                ResetCombatAction(ILLIDAN_ACTION_TRANSFORM, 53000u);
+                ResetCombatAction(ILLIDAN_ACTION_TRANSFORM, 48000u);
                 break;
             }
             case PHASE_5_MAIEV:
                 ResetCombatAction(ILLIDAN_ACTION_ENRAGE, GetInitialActionTimer(ILLIDAN_ACTION_ENRAGE));
                 ResetCombatAction(ILLIDAN_ACTION_TRAP, GetInitialActionTimer(ILLIDAN_ACTION_TRAP));
-                ResetCombatAction(ILLIDAN_ACTION_TRANSFORM, GetInitialActionTimer(ILLIDAN_ACTION_TRANSFORM));
                 // [fallthrough]
             case PHASE_3_NORMAL:
             {
@@ -1241,6 +1244,9 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             }
             case ILLIDAN_ACTION_TRANSFORM:
             {
+                if (m_phase == PHASE_4_DEMON && m_flameBlasts < 3)
+                    return;
+
                 HandlePhaseBehaviour(); // Phase 4 transition start
                 return;
             }
@@ -1268,7 +1274,10 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             case ILLIDAN_ACTION_FLAME_BURST:
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_FLAME_BURST) == CAST_OK)
-                    ResetCombatAction(action, 20000u);
+                {
+                    ResetCombatAction(action, 19500);
+                    ++m_flameBlasts;
+                }
                 return;
             }
             case ILLIDAN_ACTION_SHADOW_BLAST:
@@ -1309,8 +1318,8 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
 #ifndef NO_SHADOWFIEND
             case ILLIDAN_ACTION_SHADOW_FIEND:
             {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_PARASITIC_SHADOWFIEND, SELECT_FLAG_PLAYER))
-                    if (DoCastSpellIfCan(target, SPELL_PARASITIC_SHADOWFIEND) == CAST_OK)
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_PARASITIC_SHADOWFIEND_BOSS, SELECT_FLAG_PLAYER))
+                    if (DoCastSpellIfCan(target, SPELL_PARASITIC_SHADOWFIEND_BOSS) == CAST_OK)
                         ResetCombatAction(action, 25000u);
                 return;
             }
@@ -1381,6 +1390,7 @@ struct npc_akama_illidanAI : public CombatAI, private DialogueHelper
         });
         AddCustomAction(AKAMA_OUTRO_DELAY, true, [&]()
         {
+            m_creature->SetImmobilizedState(false);
             m_creature->GetMotionMaster()->MoveWaypoint(PATH_ID_AKAMA_BACK_UP);
         });
         AddCustomAction(AKAMA_OUTRO_ACTIONS, true, [&]()
@@ -1389,7 +1399,6 @@ struct npc_akama_illidanAI : public CombatAI, private DialogueHelper
         });
         InitializeDialogueHelper(m_instance);
         m_creature->SetNoThreatState(true);
-        Reset();
     }
 
     instance_black_temple* m_instance;
@@ -1402,13 +1411,6 @@ struct npc_akama_illidanAI : public CombatAI, private DialogueHelper
     GuidVector m_summons;
 
     uint32 m_outroStage;
-
-    void Reset() override
-    {
-        CombatAI::Reset();
-        m_bFightMinions = false;
-        m_bIsIntroFinished = false;
-    }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
     {
@@ -1424,7 +1426,7 @@ struct npc_akama_illidanAI : public CombatAI, private DialogueHelper
         {
             SetCombatScriptStatus(true);
             m_creature->CombatStop(true);
-            SetReactState(REACT_DEFENSIVE);
+            SetReactState(REACT_PASSIVE);
             m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
             m_creature->GetMotionMaster()->MoveWaypoint(PATH_ID_AKAMA_FIGHT_ILLIDARI);
         }
@@ -1439,6 +1441,9 @@ struct npc_akama_illidanAI : public CombatAI, private DialogueHelper
     void JustRespawned() override
     {
         ScriptedAI::JustRespawned();
+        m_creature->SetImmobilizedState(false);
+        m_bFightMinions = false;
+        m_bIsIntroFinished = false;
         SetCombatScriptStatus(false);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
         SetReactState(REACT_AGGRESSIVE);
@@ -1531,6 +1536,7 @@ struct npc_akama_illidanAI : public CombatAI, private DialogueHelper
                         SetCombatScriptStatus(false);
                         SetReactState(REACT_AGGRESSIVE);
                         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                        m_creature->SetImmobilizedState(true);
                     }
                     break;
                 }
@@ -1919,9 +1925,8 @@ struct boss_maievAI : public CombatAI, private DialogueHelper
 
 struct npc_cage_trap_triggerAI : public ScriptedAI
 {
-    npc_cage_trap_triggerAI(Creature* creature) : ScriptedAI(creature), m_activated(false) { Reset(); }
+    npc_cage_trap_triggerAI(Creature* creature) : ScriptedAI(creature) { Reset(); }
 
-    bool m_activated;
     bool m_active;
 
     void Reset() override
@@ -1940,19 +1945,21 @@ struct npc_cage_trap_triggerAI : public ScriptedAI
         }
     }
 
-    void MoveInLineOfSight(Unit* /*who*/) override
+    void MoveInLineOfSight(Unit* who) override
     {
-        if (!m_activated)
-            return;
-
+#ifndef PRENERF_2_1
         // post 2.3
-        //if (!m_active && who->GetEntry() == NPC_ILLIDAN_STORMRAGE && m_creature->IsWithinDistInMap(who, 3.0f))
-        //{
-        //    m_creature->CastSpell(nullptr, SPELL_CAGE_TRAP_DUMMY, TRIGGERED_OLD_TRIGGERED);
+        if (!m_active && who->GetEntry() == NPC_ILLIDAN_STORMRAGE && m_creature->IsWithinDistInMap(who, 3.0f))
+        {
+            if (static_cast<boss_illidan_stormrageAI*>(who->AI())->m_phase != PHASE_4_DEMON && !static_cast<boss_illidan_stormrageAI*>(who->AI())->GetCombatScriptStatus())
+            {
+                m_creature->CastSpell(nullptr, SPELL_CAGE_TRAP_DUMMY, TRIGGERED_OLD_TRIGGERED);
 
-        //    m_active = true;
-        //    m_creature->ForcedDespawn(15000);
-        //}
+                m_active = true;
+                m_creature->ForcedDespawn(15000);
+            }
+        }
+#endif
     }
 
     void UpdateAI(const uint32 /*diff*/) override { }
@@ -2232,6 +2239,9 @@ struct npc_parasitic_shadowfiendAI : public ScriptedAI, public TimerManager
         SetReactState(REACT_PASSIVE);
         AddCustomAction(1, 2000u, [&]()
         {
+            if (!m_instance)
+                return;
+
             if (Creature* illidan = m_instance->GetSingleCreatureFromStorage(NPC_ILLIDAN_STORMRAGE))
             {
                 if (!illidan->IsInCombat())
@@ -2265,12 +2275,6 @@ struct npc_parasitic_shadowfiendAI : public ScriptedAI, public TimerManager
         m_creature->SetCorpseDelay(1);
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
-    {
-        if (eventType == AI_EVENT_CUSTOM_A) // Parasitic Shadowfiend hit target
-            m_creature->ForcedDespawn();
-    }
-
     void UpdateAI(const uint32 diff)
     {
         UpdateTimers(diff);
@@ -2284,104 +2288,99 @@ bool GOUse_go_cage_trap(Player* /*player*/, GameObject* go)
     if (trapTrigger)
     {
         // pre 2.3
+#ifdef PRENERF_2_1
         Creature* illidan = GetClosestCreatureWithEntry(go, NPC_ILLIDAN_STORMRAGE, 5.f);
         if (illidan && static_cast<boss_illidan_stormrageAI*>(illidan->AI())->m_phase != PHASE_4_DEMON && !static_cast<boss_illidan_stormrageAI*>(illidan->AI())->GetCombatScriptStatus())
         {
             trapTrigger->CastSpell(nullptr, SPELL_CAGE_TRAP_DUMMY, TRIGGERED_OLD_TRIGGERED);
             trapTrigger->ForcedDespawn(15000);
         }
-        // post 2.3
-        // static_cast<npc_cage_trap_triggerAI*>(trapTrigger->AI())->m_activated = true;
+#endif
     }
     return true;
 }
 
-UnitAI* GetAI_boss_illidan_stormrage(Creature* creature)
+struct ParasiticShadowfiendAura : public SpellScript, public AuraScript
 {
-    return new boss_illidan_stormrageAI(creature);
-}
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_1) // on hit despawn
+        {
+            Unit* target = spell->GetUnitTarget();
+            if (target->IsCreature())
+                static_cast<Creature*>(target)->ForcedDespawn();
+        }
+    }
 
-UnitAI* GetAI_npc_akama_illidan(Creature* creature)
-{
-    return new npc_akama_illidanAI(creature);
-}
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            if (aura->GetRemoveMode() != AURA_REMOVE_BY_DISPEL)
+                aura->GetTarget()->CastSpell(nullptr, SPELL_SUMMON_PARASITICS, TRIGGERED_OLD_TRIGGERED);
+    }
+};
 
-UnitAI* GetAI_boss_maiev(Creature* creature)
+struct ShadowPrison : public SpellScript
 {
-    return new boss_maievAI(creature);
-}
-
-UnitAI* GetAI_mob_flame_of_azzinoth(Creature* creature)
-{
-    return new npc_flame_of_azzinothAI(creature);
-}
-
-UnitAI* GetAI_npc_cage_trap_trigger(Creature* creature)
-{
-    return new npc_cage_trap_triggerAI(creature);
-}
-
-UnitAI* GetAI_npc_shadow_demon(Creature* creature)
-{
-    return new npc_shadow_demonAI(creature);
-}
-
-UnitAI* GetAI_npc_blade_of_azzinoth(Creature* creature)
-{
-    return new npc_blade_of_azzinothAI(creature);
-}
-
-UnitAI* GetAI_npc_parasitic_shadowfiend(Creature* creature)
-{
-    return new npc_parasitic_shadowfiendAI(creature);
-}
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_2 && spell->GetUnitTarget())
+        {
+            spell->GetUnitTarget()->RemoveAurasDueToSpell(SPELL_PARASITIC_SHADOWFIEND_BOSS, nullptr, AURA_REMOVE_BY_DISPEL);
+            spell->GetUnitTarget()->RemoveAurasDueToSpell(SPELL_PARASITIC_SHADOWFIEND_ADD, nullptr, AURA_REMOVE_BY_DISPEL);
+        }
+    }
+};
 
 void AddSC_boss_illidan()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_illidan_stormrage";
-    pNewScript->GetAI = &GetAI_boss_illidan_stormrage;
+    pNewScript->GetAI = &GetNewAIInstance<boss_illidan_stormrageAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_akama_illidan";
-    pNewScript->GetAI = &GetAI_npc_akama_illidan;
+    pNewScript->GetAI = &GetNewAIInstance<npc_akama_illidanAI>;
     pNewScript->pGossipHello = &GossipHello_npc_akama_illidan;
     pNewScript->pGossipSelect = &GossipSelect_npc_akama_illidan;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "boss_maiev_shadowsong";
-    pNewScript->GetAI = &GetAI_boss_maiev;
+    pNewScript->GetAI = &GetNewAIInstance<boss_maievAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_flame_of_azzinoth";
-    pNewScript->GetAI = &GetAI_mob_flame_of_azzinoth;
+    pNewScript->GetAI = &GetNewAIInstance<npc_flame_of_azzinothAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_blade_of_azzinoth";
-    pNewScript->GetAI = &GetAI_npc_blade_of_azzinoth;
+    pNewScript->GetAI = &GetNewAIInstance<npc_blade_of_azzinothAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_cage_trap_trigger";
-    pNewScript->GetAI = &GetAI_npc_cage_trap_trigger;
+    pNewScript->GetAI = &GetNewAIInstance<npc_cage_trap_triggerAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_shadow_demon";
-    pNewScript->GetAI = &GetAI_npc_shadow_demon;
+    pNewScript->GetAI = &GetNewAIInstance<npc_shadow_demonAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_parasitic_shadowfiend";
-    pNewScript->GetAI = &GetAI_npc_parasitic_shadowfiend;
+    pNewScript->GetAI = &GetNewAIInstance<npc_parasitic_shadowfiendAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "go_cage_trap";
     pNewScript->pGOUse = &GOUse_go_cage_trap;
     pNewScript->RegisterSelf();
+
+    RegisterScript<ParasiticShadowfiendAura>("spell_parasitic_shadowfiend");
+    RegisterSpellScript<ShadowPrison>("spell_shadow_prison");
 }

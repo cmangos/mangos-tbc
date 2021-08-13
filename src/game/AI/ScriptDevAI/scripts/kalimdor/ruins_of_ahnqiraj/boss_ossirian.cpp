@@ -82,7 +82,6 @@ enum OssirianActions
 
 struct boss_ossirianAI : public CombatAI
 {
-
     boss_ossirianAI(Creature* creature) :
         CombatAI(creature, OSSIRIAN_ACTION_MAX),
         m_instance(static_cast<instance_ruins_of_ahnqiraj*>(m_creature->GetInstanceData())),

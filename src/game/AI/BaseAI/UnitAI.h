@@ -68,7 +68,7 @@ enum CastFlags
     CAST_MAIN_SPELL             = 0x100,                    // Marks main spell
     CAST_PLAYER_ONLY            = 0x200,                    // Selects only player targets - substitution for EAI not having more params
     CAST_DISTANCE_YOURSELF      = 0x400,                    // If spell with this cast flag hits main aggro target, caster distances himself - EAI only
-    CAST_TARGET_CASTING         = 0x800,                    // Selects only player targets that are casting - EAI only
+    CAST_TARGET_CASTING         = 0x800,                    // Selects only targets that are casting - EAI only
     CAST_ONLY_XYZ               = 0x1000,
 };
 
@@ -95,7 +95,13 @@ enum RangeModeType : uint32 // maybe can be substituted for class checks
     TYPE_FULL_CASTER = 1,
     TYPE_PROXIMITY = 2,
     TYPE_NO_MELEE_MODE = 3,
+    TYPE_DISTANCER = 4,
     TYPE_MAX,
+};
+
+enum GenericAIActions
+{
+    GENERIC_ACTION_DISTANCE = 2000,
 };
 
 class UnitAI

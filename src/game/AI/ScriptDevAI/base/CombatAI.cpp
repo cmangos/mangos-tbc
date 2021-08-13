@@ -18,15 +18,24 @@
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "Spells/Spell.h"
 #include "Spells/SpellMgr.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 
 enum
 {
     ACTION_CASTING_RESTORE = 1000,
+    ACTION_ON_KILL_COOLDOWN = 1001,
 };
 
-CombatAI::CombatAI(Creature* creature, uint32 combatActions) : ScriptedAI(creature), CombatActions(combatActions)
+CombatAI::CombatAI(Creature* creature, uint32 combatActions) : ScriptedAI(creature), CombatActions(combatActions), m_onKillCooldown(false)
 {
     AddCustomAction(ACTION_CASTING_RESTORE, true, [&]() { HandleTargetRestoration(); });
+    AddCustomAction(ACTION_ON_KILL_COOLDOWN, true, [&]() { m_onKillCooldown = false; });
+}
+
+void CombatAI::Reset()
+{
+    ResetAllTimers();
+    m_onKillCooldown = false;
 }
 
 void CombatAI::ExecuteActions()
@@ -74,6 +83,24 @@ bool CombatAI::IsTargetingRestricted()
     return m_storedTarget;
 }
 
+void CombatAI::AddOnKillText(int32 text)
+{
+    m_onDeathTexts.push_back(text);
+}
+
+void CombatAI::KilledUnit(Unit* victim)
+{
+    if (!m_creature->IsAlive() || !victim->IsPlayer())
+        return;
+
+    if (!m_onKillCooldown && m_onDeathTexts.size() > 0)
+    {
+        m_onKillCooldown = true;
+        DoScriptText(m_onDeathTexts[urand(0, m_onDeathTexts.size() - 1)], m_creature, victim);
+        ResetTimer(ACTION_ON_KILL_COOLDOWN, 10000);
+    }
+}
+
 void CombatAI::UpdateAI(const uint32 diff)
 {
     UpdateTimers(diff, m_creature->IsInCombat());
@@ -84,6 +111,14 @@ void CombatAI::UpdateAI(const uint32 diff)
     ExecuteActions();
 
     DoMeleeAttackIfReady();
+}
+
+RangedCombatAI::RangedCombatAI(Creature* creature, uint32 combatActions) : CombatAI(creature, combatActions),
+    m_rangedMode(false), m_rangedModeSetting(TYPE_NONE), m_chaseDistance(0.f), m_currentRangedMode(false),
+    m_mainSpellId(0), m_mainSpellCost(0), m_mainSpellInfo(nullptr), m_mainSpellMinRange(0.f),
+    m_mainAttackMask(SPELL_SCHOOL_MASK_NONE), m_distancingCooldown(false)
+{
+    AddCustomAction(GENERIC_ACTION_DISTANCE, true, [&]() { m_distancingCooldown = false; });
 }
 
 void RangedCombatAI::OnSpellCooldownAdded(SpellEntry const* spellInfo)
@@ -246,14 +281,28 @@ void RangedCombatAI::UpdateAI(const uint32 diff)
 
     ExecuteActions();
 
-    if (m_rangedMode && m_creature->GetVictim() && CanExecuteCombatAction())
+    Unit* victim = m_creature->GetVictim();
+    if (m_rangedMode && victim && CanExecuteCombatAction())
     {
-        if (m_rangedModeSetting == TYPE_PROXIMITY)
+        if (m_rangedModeSetting == TYPE_PROXIMITY || m_rangedModeSetting == TYPE_DISTANCER)
         {
-            if (m_currentRangedMode && m_creature->CanReachWithMeleeAttack(m_creature->GetVictim()))
+            if (m_currentRangedMode && m_creature->CanReachWithMeleeAttack(victim))
                 SetCurrentRangedMode(false);
-            else if (!m_currentRangedMode && !m_creature->CanReachWithMeleeAttack(m_creature->GetVictim(), 2.f) && m_mainSpellInfo && m_mainSpellCost * 2 < m_creature->GetPower(POWER_MANA) && m_creature->IsSpellReady(*m_mainSpellInfo))
+            else if (!m_currentRangedMode && !m_creature->CanReachWithMeleeAttack(victim, 2.f) && m_mainSpellInfo && m_mainSpellCost * 2 < m_creature->GetPower(POWER_MANA) && m_creature->IsSpellReady(*m_mainSpellInfo))
                 SetCurrentRangedMode(true);
+            else if (m_rangedModeSetting == TYPE_DISTANCER && !m_distancingCooldown)
+            {
+                m_distancingCooldown = true;
+                ResetTimer(GENERIC_ACTION_DISTANCE, 5000);
+            }
+        }
+        // casters only display melee animation when in ranged mode when someone is actually close enough
+        else if (m_rangedModeSetting == TYPE_FULL_CASTER && m_currentRangedMode)
+        {
+            if (m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && !m_creature->CanReachWithMeleeAttack(victim))
+                SetMeleeEnabled(false);
+            else if (!m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && m_creature->CanReachWithMeleeAttack(victim))
+                SetMeleeEnabled(true);
         }
     }
 

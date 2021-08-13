@@ -27,12 +27,12 @@ enum
 
 struct HunterPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // stamina
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                     if (owner->HasAura(SPELL_INCREASED_ATTACK_POWER))
@@ -40,7 +40,7 @@ struct HunterPetScaling1 : public AuraScript
                 }
                 break;
             case EFFECT_INDEX_1: // attack power
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.25f;
                     if (owner->HasAura(SPELL_INCREASED_ATTACK_POWER))
@@ -48,7 +48,7 @@ struct HunterPetScaling1 : public AuraScript
                 }
                 break;
             case EFFECT_INDEX_2: // spell power
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.125f;
                 break;
         }
@@ -58,20 +58,20 @@ struct HunterPetScaling1 : public AuraScript
 
 struct HunterPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_FIRE) * 0.4f);
                 break;
             case EFFECT_INDEX_1: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_FROST) * 0.4f);
                 break;
             case EFFECT_INDEX_2: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_NATURE) * 0.4f);
                 break;
         }
@@ -81,20 +81,20 @@ struct HunterPetScaling2 : public AuraScript
 
 struct HunterPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_SHADOW) * 0.4f);
                 break;
             case EFFECT_INDEX_1: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_ARCANE) * 0.4f);
                 break;
             case EFFECT_INDEX_2: // armor
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = owner->GetArmor() * 0.35f;
                     if (owner->HasAura(SPELL_INCREASED_ATTACK_POWER))
@@ -108,16 +108,16 @@ struct HunterPetScaling3 : public AuraScript
 
 struct WarlockPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // stamina
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // attack power
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     if (owner->IsPlayer())
                     {
@@ -131,7 +131,7 @@ struct WarlockPetScaling1 : public AuraScript
                 }
                 break;
             case EFFECT_INDEX_2: // spell power
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     if (owner->IsPlayer())
                     {
@@ -151,20 +151,20 @@ struct WarlockPetScaling1 : public AuraScript
 
 struct WarlockPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // intelect
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // armor
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = owner->GetArmor() * 0.35f;
                 break;
             case EFFECT_INDEX_2: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = (owner->GetResistance(SPELL_SCHOOL_FIRE) * 0.4f);
                     if (owner->HasAura(SPELL_PET_RESISTANCE))
@@ -178,12 +178,12 @@ struct WarlockPetScaling2 : public AuraScript
 
 struct WarlockPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = (owner->GetResistance(SPELL_SCHOOL_FROST) * 0.4f);
                     if (owner->HasAura(SPELL_PET_RESISTANCE))
@@ -191,7 +191,7 @@ struct WarlockPetScaling3 : public AuraScript
                 }
                 break;
             case EFFECT_INDEX_1: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = (owner->GetResistance(SPELL_SCHOOL_ARCANE) * 0.4f);
                     if (owner->HasAura(SPELL_PET_RESISTANCE))
@@ -199,7 +199,7 @@ struct WarlockPetScaling3 : public AuraScript
                 }
                 break;
             case EFFECT_INDEX_2: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = (owner->GetResistance(SPELL_SCHOOL_NATURE) * 0.4f);
                     if (owner->HasAura(SPELL_PET_RESISTANCE))
@@ -213,12 +213,12 @@ struct WarlockPetScaling3 : public AuraScript
 
 struct WarlockPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     value = (owner->GetResistance(SPELL_SCHOOL_SHADOW) * 0.4f);
                     if (owner->HasAura(SPELL_PET_RESISTANCE))
@@ -226,9 +226,9 @@ struct WarlockPetScaling4 : public AuraScript
                 }
                 break;
             case EFFECT_INDEX_1: // mana regen
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     if (owner->IsPlayer())
-                        value = static_cast<Player*>(owner)->GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN) * 0.1f * 5.f;
+                        value = static_cast<Player*>(owner)->GetFloatValue(PLAYER_FIELD_MOD_MANA_REGEN) * 0.5f * 5.f;
                 break;
             default: break;
         }
@@ -238,18 +238,18 @@ struct WarlockPetScaling4 : public AuraScript
 
 struct MagePetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // stamina
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // attack power
                 break;
             case EFFECT_INDEX_2: // spell power
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     if (owner->IsPlayer())
                     {
@@ -267,20 +267,20 @@ struct MagePetScaling1 : public AuraScript
 
 struct MagePetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // intelect
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // armor
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = owner->GetArmor() * 0.35f;
                 break;
             case EFFECT_INDEX_2: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_FIRE) * 0.4f);
                 break;
         }
@@ -290,20 +290,20 @@ struct MagePetScaling2 : public AuraScript
 
 struct MagePetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_FROST) * 0.4f);
                 break;
             case EFFECT_INDEX_1: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_ARCANE) * 0.4f);
                 break;
             case EFFECT_INDEX_2: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_NATURE) * 0.4f);
                 break;
         }
@@ -313,12 +313,12 @@ struct MagePetScaling3 : public AuraScript
 
 struct MagePetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = (owner->GetResistance(SPELL_SCHOOL_SHADOW) * 0.4f);
                 break;
             default: break;
@@ -329,16 +329,16 @@ struct MagePetScaling4 : public AuraScript
 
 struct PriestPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // stamina
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // attack power
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     if (owner->IsPlayer())
                     {
@@ -358,12 +358,12 @@ struct PriestPetScaling1 : public AuraScript
 
 struct PriestPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // intelect
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // armor
@@ -377,9 +377,9 @@ struct PriestPetScaling2 : public AuraScript
 
 struct PriestPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -394,9 +394,9 @@ struct PriestPetScaling3 : public AuraScript
 
 struct PriestPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -408,9 +408,9 @@ struct PriestPetScaling4 : public AuraScript
 
 struct ElementalPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // dummy - unk
                 break;
@@ -425,12 +425,12 @@ struct ElementalPetScaling1 : public AuraScript
 
 struct ElementalPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // intelect
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // armor
@@ -444,9 +444,9 @@ struct ElementalPetScaling2 : public AuraScript
 
 struct ElementalPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -461,9 +461,9 @@ struct ElementalPetScaling3 : public AuraScript
 
 struct ElementalPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -475,16 +475,16 @@ struct ElementalPetScaling4 : public AuraScript
 
 struct DruidPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // stamina
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.15f; // unconfirmed value
                 break;
             case EFFECT_INDEX_1: // attack power
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                 {
                     if (owner->IsPlayer())
                     {
@@ -504,12 +504,12 @@ struct DruidPetScaling1 : public AuraScript
 
 struct DruidPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // intelect
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // armor
@@ -523,9 +523,9 @@ struct DruidPetScaling2 : public AuraScript
 
 struct DruidPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -540,9 +540,9 @@ struct DruidPetScaling3 : public AuraScript
 
 struct DruidPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -554,12 +554,12 @@ struct DruidPetScaling4 : public AuraScript
 
 struct EnhancementPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // stamina
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // attack power
@@ -573,9 +573,9 @@ struct EnhancementPetScaling1 : public AuraScript
 
 struct EnhancementPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -590,9 +590,9 @@ struct EnhancementPetScaling2 : public AuraScript
 
 struct EnhancementPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -607,12 +607,12 @@ struct EnhancementPetScaling3 : public AuraScript
 
 struct InfernalPetScaling1 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // stamina
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // attack power
@@ -626,12 +626,12 @@ struct InfernalPetScaling1 : public AuraScript
 
 struct InfernalPetScaling2 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* caster, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // intelect
-                if (Unit* owner = caster->GetOwner())
+                if (Unit* owner = data.caster->GetOwner())
                     value = float(owner->GetStat(STAT_STAMINA)) * 0.3f;
                 break;
             case EFFECT_INDEX_1: // armor
@@ -645,9 +645,9 @@ struct InfernalPetScaling2 : public AuraScript
 
 struct InfernalPetScaling3 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;
@@ -662,9 +662,9 @@ struct InfernalPetScaling3 : public AuraScript
 
 struct InfernalPetScaling4 : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* aura, Unit* /*caster*/, int32 value) const override
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
     {
-        switch (aura->GetEffIndex())
+        switch (data.effIdx)
         {
             case EFFECT_INDEX_0: // resistance
                 break;

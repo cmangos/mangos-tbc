@@ -232,6 +232,11 @@ struct boss_malacrassAI : public CombatAI
         AddCombatAction(MALACRASS_PLAYER_ABILITY_2, true);
         AddCombatAction(MALACRASS_PLAYER_ABILITY_3, true);
         AddCombatAction(MALACRASS_PLAYER_ABILITY_4, true);
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        {
+            return y > 1025.f;
+        });
+        AddOnKillText(SAY_KILL1, SAY_KILL2);
         Reset();
     }
 
@@ -266,7 +271,7 @@ struct boss_malacrassAI : public CombatAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
     {
-        if (eventType == AI_EVENT_CUSTOM_A) // encounter wipe
+        if (eventType == AI_EVENT_CUSTOM_A) // malacrass kill or wipe
         {
             m_creature->ForcedDespawn();
             for (uint8 i = 0; i < MAX_ACTIVE_ADDS; ++i)
@@ -317,14 +322,6 @@ struct boss_malacrassAI : public CombatAI
 
         if (m_instance)
             m_instance->SetData(TYPE_MALACRASS, IN_PROGRESS);
-    }
-
-    void KilledUnit(Unit* pVictim) override
-    {
-        if (pVictim->GetTypeId() != TYPEID_PLAYER)
-            return;
-
-        DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -456,26 +453,12 @@ struct boss_malacrassAI : public CombatAI
                 break;
         }
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        CombatAI::UpdateAI(diff);
-        if (m_creature->IsInCombat())
-            EnterEvadeIfOutOfCombatArea(diff);
-    }
 };
-
-
-
-UnitAI* GetAI_boss_malacrass(Creature* creature)
-{
-    return new boss_malacrassAI(creature);
-}
 
 void AddSC_boss_malacrass()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_malacrass";
-    pNewScript->GetAI = &GetAI_boss_malacrass;
+    pNewScript->GetAI = &GetNewAIInstance<boss_malacrassAI>;
     pNewScript->RegisterSelf();
 }

@@ -138,7 +138,8 @@ enum ABSounds
     BG_AB_SOUND_NODE_CAPTURED_HORDE     = 8213,
     BG_AB_SOUND_NODE_ASSAULTED_ALLIANCE = 8212,
     BG_AB_SOUND_NODE_ASSAULTED_HORDE    = 8174,
-    BG_AB_SOUND_NEAR_VICTORY            = 8456
+    BG_AB_SOUND_NEAR_VICTORY_HORDE      = 8456,
+    BG_AB_SOUND_NEAR_VICTORY_ALLIANCE   = 8457
 };
 
 enum ABGraveyards
@@ -197,8 +198,8 @@ class BattleGroundABScore : public BattleGroundScore
         BattleGroundABScore(): basesAssaulted(0), basesDefended(0) {};
         virtual ~BattleGroundABScore() {};
 
-        uint32 GetAttr1() const { return basesAssaulted; }
-        uint32 GetAttr2() const { return basesDefended; }
+        uint32 GetAttr1() const override { return basesAssaulted; }
+        uint32 GetAttr2() const override { return basesDefended; }
 
         uint32 basesAssaulted;
         uint32 basesDefended;

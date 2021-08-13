@@ -20,6 +20,7 @@
 
 #include "Entities/Pet.h"
 #include "Maps/Map.h"
+#include "World/World.h"
 
 CombatManager::CombatManager(Unit* owner) : m_owner(owner), m_evadeTimer(0), m_evadeState(EVADE_NONE), m_combatTimer(0), m_leashingDisabled(false), m_leashingCheck(nullptr)
 {
@@ -87,13 +88,13 @@ void CombatManager::Update(const uint32 diff)
                         if (m_owner->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
                         {
                             if (m_owner->getHostileRefManager().getSize() == 0)
-                                m_owner->HandleExitCombat(m_owner->IsPlayer());
+                                m_owner->HandleExitCombat(false, m_owner->IsPlayer());
                         }
                         // if timer ran out and we are far away from last refresh pos, evade
                         else if (m_owner->GetVictim() && m_owner->GetVictim()->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
                         {
-                            if (m_owner->GetVictim()->GetDistance2d(m_lastRefreshPos.GetPositionX(), m_lastRefreshPos.GetPositionY()) > 30.0f)
-                                m_owner->HandleExitCombat();
+                            if (m_owner->GetVictim()->GetDistance2d(m_lastRefreshPos.GetPositionX(), m_lastRefreshPos.GetPositionY()) > sWorld.getConfig(CONFIG_FLOAT_LEASH_RADIUS))
+                                m_owner->HandleExitCombat(false);
                         }
                     }
                 }
@@ -111,14 +112,14 @@ void CombatManager::Update(const uint32 diff)
                     float x, y, z;
                     creatureOwner->GetPosition(x, y, z);
                     if (m_leashingCheck(creatureOwner, x, y, z))
-                        creatureOwner->HandleExitCombat();
+                        creatureOwner->HandleExitCombat(true);
                 }
                 else if (creatureOwner->GetCreatureInfo()->Leash) // If creature has set maximum leashing distance
                 {
                     Position pos;
                     creatureOwner->GetCombatStartPosition(pos);
                     if (creatureOwner->GetDistance2d(pos.GetPositionX(), pos.GetPositionY()) > creatureOwner->GetCreatureInfo()->Leash)
-                        creatureOwner->HandleExitCombat();
+                        creatureOwner->HandleExitCombat(true);
                 }
             }
         }

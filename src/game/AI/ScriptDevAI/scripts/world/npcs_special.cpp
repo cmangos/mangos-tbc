@@ -1798,7 +1798,8 @@ struct npc_snakesAI : public ScriptedAI
     void Reset() override
     {
         m_spellTimer = 3000;
-
+        m_creature->GetMotionMaster()->Clear();
+        m_creature->GetMotionMaster()->MoveRandomAroundPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 5.f);
         DoCastSpellIfCan(nullptr, SPELL_DEADLY_POISON_PASSIVE, CAST_AURA_NOT_PRESENT | CAST_TRIGGERED);
     }
 
@@ -1959,7 +1960,7 @@ struct npc_mojoAI : public ScriptedAI
                 // affect only the same faction
                 if (player->GetTeam() == ((Player*)m_creature->GetOwner())->GetTeam())
                 {
-                    player->CastSpell(player, SPELL_FEELING_FROGGY, TRIGGERED_NONE);
+                    player->CastSpell(player, SPELL_FEELING_FROGGY, TRIGGERED_OLD_TRIGGERED);
                     m_creature->CastSpell(m_creature, SPELL_HEARTS, TRIGGERED_NONE);
                     m_creature->SetSelectionGuid(player->GetObjectGuid());
 

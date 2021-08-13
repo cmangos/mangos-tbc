@@ -135,14 +135,15 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_lootStatus(CREATURE_LOOT_STATUS_NONE),
     m_respawnTime(0), m_respawnDelay(25), m_respawnOverriden(false), m_respawnOverrideOnce(false), m_corpseDelay(60), m_canAggro(false),
     m_respawnradius(5.0f), m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE),
-    m_equipmentId(0), m_AlreadyCallAssistance(false),
+    m_equipmentId(0), m_detectionRange(20.f), m_AlreadyCallAssistance(false),
     m_isDeadByDefault(false),
     m_temporaryFactionFlags(TEMPFACTION_NONE),
     m_originalEntry(0), m_dbGuid(0), m_gameEventVendorId(0), m_ai(nullptr),
     m_isInvisible(false), m_ignoreMMAP(false), m_forceAttackingCapability(false),
     m_noXP(false), m_noLoot(false), m_noReputation(false),
     m_countSpawns(false),
-    m_creatureInfo(nullptr)
+    m_creatureInfo(nullptr),
+    m_immunitySet(UINT32_MAX)
 {
     m_regenTimer = 200;
     m_valuesCount = UNIT_END;
@@ -442,6 +443,8 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
     SetNoLoot(false);
     SetNoReputation(false);
 
+    SetDetectionRange(cinfo->Detection);
+
     return true;
 }
 
@@ -522,15 +525,6 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
     m_isInvisible = (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_INVISIBLE) != 0;
     m_ignoreMMAP = (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_MMAP_FORCE_DISABLE) != 0;
     m_countSpawns = (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_COUNT_SPAWNS) != 0;
-    if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NOT_TAUNTABLE)\
-    {
-        ApplySpellImmune(nullptr, IMMUNITY_EFFECT, SPELL_EFFECT_ATTACK_ME, true);
-        ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_MOD_TAUNT, true);
-    }
-    if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_HASTE_SPELL_IMMUNITY)
-        ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_HASTE_SPELLS, true);
-    if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_POISON_IMMUNITY)
-        ApplySpellImmune(nullptr, IMMUNITY_DISPEL, DISPEL_POISON, true);
     if (IsWorldBoss())
         ApplySpellImmune(nullptr, IMMUNITY_STATE, SPELL_AURA_MOD_TOTAL_STAT_PERCENTAGE, true);
 
@@ -553,6 +547,7 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
     }
 
     UpdateSpellSet(0); // by default always 0
+    UpdateImmunitiesSet(0);
 
     // if eventData set then event active and need apply spell_start
     if (eventData)
@@ -2193,269 +2188,6 @@ void Creature::SetInCombatWithZone(bool checkAttackability)
     }
 }
 
-bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* pSpellInfo, uint32 selectFlags, SelectAttackingTargetParams params) const
-{
-    if (selectFlags)
-    {
-        if ((selectFlags & SELECT_FLAG_PLAYER) && pTarget->GetTypeId() != TYPEID_PLAYER)
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_POWER_MANA) && pTarget->GetPowerType() != POWER_MANA)
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_POWER_RAGE) && pTarget->GetPowerType() != POWER_RAGE)
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_POWER_ENERGY) && pTarget->GetPowerType() != POWER_ENERGY)
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_IN_MELEE_RANGE) && !CanReachWithMeleeAttack(pTarget))
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_NOT_IN_MELEE_RANGE) && CanReachWithMeleeAttack(pTarget))
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_IN_LOS) && !IsWithinLOSInMap(pTarget, true))
-            return false;
-
-        if (!pTarget->IsAlive())
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_RANGE_RANGE))
-        {
-            float dist = GetDistance(pTarget, true, DIST_CALC_COMBAT_REACH);
-            if (dist > params.range.maxRange || dist < params.range.minRange)
-                return false;
-        }
-
-        if ((selectFlags & SELECT_FLAG_RANGE_AOE_RANGE))
-        {
-            float dist = pTarget->GetDistance(GetPositionX(), GetPositionY(), GetPositionZ(), DIST_CALC_COMBAT_REACH);
-            if (dist > params.range.maxRange || dist < params.range.minRange)
-                return false;
-        }
-
-        if ((selectFlags & SELECT_FLAG_POWER_NOT_MANA) && pTarget->GetPowerType() == POWER_MANA)
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_SKIP_TANK) && pTarget == GetVictim())
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_SKIP_CUSTOM) && pTarget->GetObjectGuid() == params.skip.guid)
-            return false;
-
-        if ((selectFlags & SELECT_FLAG_PLAYER_CASTING) && !pTarget->IsNonMeleeSpellCasted(false))
-            return false;
-    }
-
-    if (pSpellInfo)
-    {
-        if (selectFlags & (SELECT_FLAG_HAS_AURA | SELECT_FLAG_NOT_AURA))
-        {
-            if (selectFlags & SELECT_FLAG_HAS_AURA)
-            {
-                if (!pTarget->HasAura(pSpellInfo->Id))
-                    return false;
-            }
-
-            if (selectFlags & SELECT_FLAG_NOT_AURA)
-            {
-                if (pTarget->HasAura(pSpellInfo->Id))
-                    return false;
-            }
-
-            return true;
-        }
-
-        if (pSpellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER) && pTarget->GetTypeId() != TYPEID_PLAYER)
-            return false;
-
-        switch (pSpellInfo->rangeIndex)
-        {
-            case SPELL_RANGE_IDX_ANYWHERE:  return true;
-            case SPELL_RANGE_IDX_COMBAT:    return CanReachWithMeleeAttack(pTarget);
-        }
-
-        if (selectFlags & SELECT_FLAG_USE_EFFECT_RADIUS)
-        {
-            SpellRadiusEntry const* srange = sSpellRadiusStore.LookupEntry(pSpellInfo->EffectRadiusIndex[0]);
-            float max_range = GetSpellRadius(srange);
-            float dist = pTarget->GetDistance(GetPositionX(), GetPositionY(), GetPositionZ(), DIST_CALC_COMBAT_REACH);
-            return dist < max_range;
-        }
-        else
-        {
-            SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(pSpellInfo->rangeIndex);
-            float max_range = GetSpellMaxRange(srange);
-            float min_range = GetSpellMinRange(srange);
-            float dist = GetDistance(pTarget, true, DIST_CALC_COMBAT_REACH);
-            return dist < max_range && dist >= min_range;
-        }
-    }
-
-    return true;
-}
-
-Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, uint32 spellId, uint32 selectFlags, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
-{
-    return SelectAttackingTarget(target, position, sSpellTemplate.LookupEntry<SpellEntry>(spellId), selectFlags, params);
-}
-
-Unit* Creature::SelectAttackingTarget(AttackingTarget target, uint32 position, SpellEntry const* spellInfo /*= nullptr*/, uint32 selectFlags/*= 0*/, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
-{
-    if (!CanHaveThreatList())
-        return nullptr;
-
-    ThreatList const& threatlist = getThreatManager().getThreatList();
-    if (threatlist.empty() || position >= threatlist.size())
-        return nullptr;
-
-    ThreatList::const_iterator itr = threatlist.begin();
-
-    switch (target)
-    {
-        case ATTACKING_TARGET_RANDOM:
-        {
-            std::vector<Unit*> suitableUnits;
-            suitableUnits.reserve(threatlist.size() - position);
-
-            if (position)
-                advance(itr, position);
-
-            for (; itr != threatlist.end(); ++itr)
-            {
-                if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
-                {
-                    if ((!selectFlags && !spellInfo) || MeetsSelectAttackingRequirement(pTarget, spellInfo, selectFlags, params))
-                        suitableUnits.push_back(pTarget);
-                }
-            }
-
-            if (!suitableUnits.empty())
-                return suitableUnits[urand(0, suitableUnits.size() - 1)];
-
-            break;
-        }
-        case ATTACKING_TARGET_TOPAGGRO:
-        {
-            if (position)
-                advance(itr, position);
-
-            for (; itr != threatlist.end(); ++itr)
-            {
-                if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
-                {
-                    if ((!selectFlags && !spellInfo) || MeetsSelectAttackingRequirement(pTarget, spellInfo, selectFlags, params))
-                        return pTarget;
-                }
-            }
-
-            break;
-        }
-        case ATTACKING_TARGET_BOTTOMAGGRO:
-        {
-            ThreatList::const_reverse_iterator ritr = threatlist.rbegin();
-
-            if (position)
-                advance(ritr, position);
-
-            for (; ritr != threatlist.rend(); ++ritr)
-            {
-                if (Unit* pTarget = GetMap()->GetUnit((*ritr)->getUnitGuid()))
-                {
-                    if ((!selectFlags && !spellInfo) || MeetsSelectAttackingRequirement(pTarget, spellInfo, selectFlags, params))
-                        return pTarget;
-                }
-            }
-
-            break;
-        }
-        case ATTACKING_TARGET_NEAREST_BY:
-        case ATTACKING_TARGET_FARTHEST_AWAY:
-        {
-            UnitList suitableUnits;
-
-            for (; itr != threatlist.end(); ++itr)
-            {
-                if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
-                {
-                    if ((!selectFlags && !spellInfo) || MeetsSelectAttackingRequirement(pTarget, spellInfo, selectFlags, params))
-                        suitableUnits.push_back(pTarget);
-                }
-            }
-
-            if (suitableUnits.empty() || position >= suitableUnits.size())
-                return nullptr;
-
-            if (suitableUnits.size() > 1)
-            {
-                if (target == ATTACKING_TARGET_NEAREST_BY)
-                    suitableUnits.sort(TargetDistanceOrderNear(this));
-                else
-                    suitableUnits.sort(TargetDistanceOrderFarAway(this));
-            }
-
-            UnitList::iterator itr2 = suitableUnits.begin();
-            if (position)
-                std::advance(itr2, position);
-            return *itr2;
-        }
-        case ATTACKING_TARGET_ALL_SUITABLE:
-            //TODO:: This should not happen
-            sLog.outError("Creature::SelectAttackingTarget> Target have unimplemented value 'ATTACKING_TARGET_ALL_SUITABLE'!");
-            break;
-        default:
-            break;
-    }
-
-    return nullptr;
-}
-
-void Creature::SelectAttackingTargets(std::vector<Unit*>& selectedTargets, AttackingTarget target, uint32 position, uint32 spellId, uint32 selectFlags/*= 0*/, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
-{
-    SelectAttackingTargets(selectedTargets, target, position, sSpellTemplate.LookupEntry<SpellEntry>(spellId), selectFlags, params);
-}
-
-void Creature::SelectAttackingTargets(std::vector<Unit*>& selectedTargets, AttackingTarget target, uint32 position, SpellEntry const* spellInfo /*= nullptr*/, uint32 selectFlags/*= 0*/, SelectAttackingTargetParams params /*= SelectAttackingTargetParams()*/) const
-{
-    if (!CanHaveThreatList())
-        return;
-
-    ThreatList const& threatlist = getThreatManager().getThreatList();
-    if (threatlist.empty() || position >= threatlist.size())
-        return;
-
-    ThreatList::const_iterator itr = threatlist.begin();
-
-    switch (target)
-    {
-        case ATTACKING_TARGET_ALL_SUITABLE:
-        {
-            if (position)
-                advance(itr, position);
-
-            for (; itr != threatlist.end(); ++itr)
-            {
-                if (Unit* pTarget = GetMap()->GetUnit((*itr)->getUnitGuid()))
-                {
-                    if ((!selectFlags && !spellInfo) || MeetsSelectAttackingRequirement(pTarget, spellInfo, selectFlags, params))
-                        selectedTargets.push_back(pTarget);
-                }
-            }
-            break;
-        }
-        case ATTACKING_TARGET_RANDOM:
-        case ATTACKING_TARGET_TOPAGGRO:
-        case ATTACKING_TARGET_BOTTOMAGGRO:
-        case ATTACKING_TARGET_NEAREST_BY:
-        case ATTACKING_TARGET_FARTHEST_AWAY:
-        default:
-            //TODO:: This should not happen
-            sLog.outError("Creature::SelectAttackingTarget> Target have unimplemented value!");
-            break;
-    }
-}
-
 bool Creature::HasSpell(uint32 spellID) const
 {
     uint8 i;
@@ -2474,6 +2206,27 @@ void Creature::UpdateSpellSet(uint32 spellSet)
     if (templateSpells)
         for (int i = 0; i < CREATURE_MAX_SPELLS; ++i)
             m_spells[i] = templateSpells->spells[i];
+}
+
+void Creature::UpdateImmunitiesSet(uint32 immunitySet)
+{
+    if (m_immunitySet == immunitySet)
+        return;
+
+    auto set = sObjectMgr.GetCreatureImmunitySet(GetCreatureInfo()->Entry, immunitySet);
+    if (!set)
+        return;
+
+    if (auto oldSet = sObjectMgr.GetCreatureImmunitySet(GetCreatureInfo()->Entry, m_immunitySet))
+    {
+        for (auto& data : *oldSet)
+            ApplySpellImmune(nullptr, data.type, data.value, false);
+    }
+
+    for (auto& data : *set)
+        ApplySpellImmune(nullptr, data.type, data.value, true);
+
+    m_immunitySet = immunitySet;
 }
 
 time_t Creature::GetRespawnTimeEx() const
@@ -2848,79 +2601,6 @@ void Creature::SetWalk(bool enable, bool asDefault)
     SendMessageToSet(data, true);
 }
 
-void Creature::SetLevitate(bool enable)
-{
-    if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_LEVITATING);
-    else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_LEVITATING);
-
-    // TODO: there should be analogic opcode for 2.43
-    // WorldPacket data(enable ? SMSG_SPLINE_MOVE_GRAVITY_DISABLE : SMSG_SPLINE_MOVE_GRAVITY_ENABLE, 9);
-    // data << GetPackGUID();
-    // SendMessageToSet(data, true);
-}
-
-void Creature::SetSwim(bool enable)
-{
-    if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_SWIMMING);
-    else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_SWIMMING);
-
-    WorldPacket data(enable ? SMSG_SPLINE_MOVE_START_SWIM : SMSG_SPLINE_MOVE_STOP_SWIM);
-    data << GetPackGUID();
-    SendMessageToSet(data, true);
-}
-
-void Creature::SetCanFly(bool enable)
-{
-    if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
-    else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
-
-    WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_FLYING : SMSG_SPLINE_MOVE_UNSET_FLYING, 9);
-    data << GetPackGUID();
-    SendMessageToSet(data, true);
-}
-
-void Creature::SetFeatherFall(bool enable)
-{
-    if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_SAFE_FALL);
-    else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_SAFE_FALL);
-
-    WorldPacket data(enable ? SMSG_SPLINE_MOVE_FEATHER_FALL : SMSG_SPLINE_MOVE_NORMAL_FALL);
-    data << GetPackGUID();
-    SendMessageToSet(data, true);
-}
-
-void Creature::SetHover(bool enable)
-{
-    if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_HOVER);
-    else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_HOVER);
-
-    WorldPacket data(enable ? SMSG_SPLINE_MOVE_SET_HOVER : SMSG_SPLINE_MOVE_UNSET_HOVER, 9);
-    data << GetPackGUID();
-    SendMessageToSet(data, false);
-}
-
-void Creature::SetWaterWalk(bool enable)
-{
-    if (enable)
-        m_movementInfo.AddMovementFlag(MOVEFLAG_WATERWALKING);
-    else
-        m_movementInfo.RemoveMovementFlag(MOVEFLAG_WATERWALKING);
-
-    WorldPacket data(enable ? SMSG_SPLINE_MOVE_WATER_WALK : SMSG_SPLINE_MOVE_LAND_WALK, 9);
-    data << GetPackGUID();
-    SendMessageToSet(data, true);
-}
-
 void Creature::InspectingLoot()
 {
     // until multiple corpse for creature is not supported
@@ -2937,15 +2617,8 @@ void Creature::ReduceCorpseDecayTimer()
     if (!IsInWorld())
         return;
 
-    bool isDungeonEncounter = false;
-    if (GetMap()->IsDungeon())
-    {
-        if (sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
-            isDungeonEncounter = true;
-    }
-
-    if (!isDungeonEncounter && m_corpseExpirationTime > GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(2 * MINUTE * IN_MILLISECONDS))
-        m_corpseExpirationTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(2 * MINUTE * IN_MILLISECONDS);  // 2 minutes for a creature
+    if (m_corpseExpirationTime > GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(MINIMUM_LOOTING_TIME))
+        m_corpseExpirationTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(MINIMUM_LOOTING_TIME);  // 2 minutes for a creature
 }
 
 // Set loot status. Also handle remove corpse timer

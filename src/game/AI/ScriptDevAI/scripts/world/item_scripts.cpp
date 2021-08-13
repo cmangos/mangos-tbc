@@ -201,7 +201,7 @@ struct GDRChannel : public SpellScript
 
 struct GDRPeriodicDamage : public AuraScript
 {
-    int32 OnAuraValueCalculate(Aura* /*aura*/, Unit* /*caster*/, int32 /*value*/) const override
+    int32 OnAuraValueCalculate(AuraCalcData& /*data*/, int32 /*value*/) const override
     {
         return urand(100, 500);
     }
@@ -227,6 +227,47 @@ struct OgrilaFlasks : public AuraScript
         for (uint32 i = EFFECT_INDEX_1; i < MAX_EFFECT_INDEX; ++i)
             if (uint32 triggerSpell = spellInfo->EffectTriggerSpell[i])
                 aura->GetTarget()->RemoveAurasDueToSpell(triggerSpell);
+    }
+};
+
+struct Drink : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply || aura->GetEffIndex() != EFFECT_INDEX_0)
+            return;
+
+        if (!aura->GetTarget()->IsPlayer())
+            return;
+
+        if (aura->GetTarget()->GetMap()->IsBattleArena())
+            return;
+
+        if (Aura* periodicAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() + 1)))
+            aura->GetModifier()->m_amount = periodicAura->GetModifier()->m_amount;
+    }
+
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        if (aura->GetEffIndex() != EFFECT_INDEX_1)
+            return;
+        
+        if (!aura->GetTarget()->IsPlayer())
+            return;
+
+        if (!aura->GetTarget()->GetMap()->IsBattleArena())
+            return;
+
+        //if (aura->GetAuraTicks() != 2) // todo: wait for 2nd tick to update regen in Arena only? (needs confirmation)
+        //    return;
+
+        aura->ForcePeriodicity(0);
+
+        if (Aura* regenAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() - 1)))
+        {
+            regenAura->GetModifier()->m_amount = aura->GetModifier()->m_amount;
+            ((Player*)aura->GetTarget())->UpdateManaRegen();
+        }
     }
 };
 
@@ -259,4 +300,5 @@ void AddSC_item_scripts()
     RegisterSpellScript<GDRChannel>("spell_gdr_channel");
     RegisterAuraScript<GDRPeriodicDamage>("spell_gdr_periodic");
     RegisterAuraScript<OgrilaFlasks>("spell_ogrila_flasks");
+    RegisterAuraScript<Drink>("spell_drink");
 }

@@ -23,6 +23,7 @@
 #include "Entities/Creature.h"
 #include "AI/BaseAI/CreatureAI.h"
 #include "Entities/Unit.h"
+#include "AI/ScriptDevAI/base/TimerAI.h"
 #include <set>
 
 class Player;
@@ -143,6 +144,7 @@ enum EventAI_ActionType
     ACTION_T_SET_SPELL_SET              = 60,               // SetId
     ACTION_T_SET_IMMOBILIZED_STATE      = 61,               // state (true - rooted), combatonly (true - autoremoved on combat stop)
     ACTION_T_SET_DESPAWN_AGGREGATION    = 62,               // mask, entry, entry2
+    ACTION_T_SET_IMMUNITY_SET           = 63,               // SetId - creature_immunities
 
     ACTION_T_END,
 };
@@ -569,6 +571,11 @@ struct CreatureEventAI_Action
             uint32 entry;
             uint32 entry2;
         } despawnAggregation;
+        // ACTION_T_SET_IMMUNITY_SET
+        struct
+        {
+            uint32 setId;
+        } immunitySet;
         // RAW
         struct
         {
@@ -818,7 +825,7 @@ struct CreatureEventAIHolder
     bool UpdateRepeatTimer(Creature* creature, uint32 repeatMin, uint32 repeatMax);
 };
 
-class CreatureEventAI : public CreatureAI
+class CreatureEventAI : public CreatureAI, public TimerManager
 {
     public:
         explicit CreatureEventAI(Creature* creature);
@@ -934,6 +941,9 @@ class CreatureEventAI : public CreatureAI
         SpellSchoolMask m_mainAttackMask;
 
         MovementGeneratorType m_defaultMovement; // TODO: Extend to all of AI
+
+        // Distancer
+        bool m_distancingCooldown;
 };
 
 #endif

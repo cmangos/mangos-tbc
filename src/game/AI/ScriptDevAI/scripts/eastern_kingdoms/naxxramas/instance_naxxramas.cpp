@@ -1023,14 +1023,13 @@ bool instance_naxxramas::DoHandleEvent(uint32 eventId)
                             zombie->AttackStop();
                             zombie->SetTarget(nullptr);
                             zombie->AI()->DoResetThreat();
-                            zombie->GetMotionMaster()->Clear();
-                            zombie->SetWalk(true);
-                            zombie->GetMotionMaster()->MoveFollow(gluth, ATTACK_DISTANCE, 0);
+                            zombie->GetMotionMaster()->MovePoint(0, gluth->GetPositionX(), gluth->GetPositionY(), gluth->GetPositionZ());
                         }
                     }
                 }
-                return true;
+                return false;
             }
+            return true;
         case EVENT_CLEAR_SHACKLES:
             m_shackledGuardians = 0;
             m_checkGuardiansTimer = 2 * IN_MILLISECONDS;    // Check every two seconds how many Guardians of Icecrown are shackled
@@ -1166,6 +1165,31 @@ struct npc_stoneskin_gargoyleAI : public ScriptedAI
     }
 };
 
+/*###################
+#   npc_living_poison
+###################*/
+
+struct npc_living_poisonAI : public ScriptedAI
+{
+    npc_living_poisonAI(Creature* creature) : ScriptedAI(creature) { Reset(); }
+
+    void Reset() override
+    {
+        SetMeleeEnabled(false);
+    }
+
+    // Any time a player comes close to the Living Poison, it will explode and kill itself while doing heavy AoE damage to the player
+    void MoveInLineOfSight(Unit* who) override
+    {
+        if (m_creature->GetDistance2d(who->GetPositionX(), who->GetPositionY(), DIST_CALC_BOUNDING_RADIUS) > 4.0f)
+            return;
+
+        DoCastSpellIfCan(m_creature, SPELL_EXPLODE, CAST_TRIGGERED);
+    }
+
+    void AttackStart(Unit* /*who*/) override {}
+};
+
 bool instance_naxxramas::DoHandleAreaTrigger(AreaTriggerEntry const* areaTrigger)
 {
     if (areaTrigger->id == AREATRIGGER_KELTHUZAD)
@@ -1234,6 +1258,11 @@ void AddSC_instance_naxxramas()
     newScript = new Script;
     newScript->Name = "npc_stoneskin_gargoyle";
     newScript->GetAI = &GetNewAIInstance<npc_stoneskin_gargoyleAI>;
+    newScript->RegisterSelf();
+
+    newScript = new Script;
+    newScript->Name = "npc_living_poison";
+    newScript->GetAI = &GetNewAIInstance<npc_living_poisonAI>;
     newScript->RegisterSelf();
 
     newScript = new Script;

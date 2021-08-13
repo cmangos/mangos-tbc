@@ -47,6 +47,7 @@ enum
 
     // spell used by eagles
     SPELL_EAGLE_SWOOP       = 44732,
+    SOUND_EAGLE_SWOOP       = 12196,
 
     NPC_SOARING_EAGLE       = 24858,
     MAX_EAGLE_COUNT         = 8,
@@ -90,14 +91,19 @@ struct boss_akilzonAI : public CombatAI
         AddCombatAction(AKILZON_ACTION_STATIC_DISRUPT, 7000, 14000);
         AddCombatAction(AKILZON_ACTION_CALL_LIGHTNING, 15000, 25000);
         AddCombatAction(AKILZON_ACTION_GUST_OF_WIND, 20000, 30000);
-        AddCombatAction(AKILZON_ACTION_STORM_WEATHER, 48000u);
+        AddCombatAction(AKILZON_ACTION_STORM_WEATHER, 42000u);
         AddCombatAction(AKILZON_ACTION_STORM, true);
         AddCombatAction(AKILZON_ACTION_SUMMON_EAGLE, 62000u);
         AddCustomAction(AKILZON_WIND_WALL_DELAY, true, [&]()
         {
-            if (m_creature->IsInCombat())
+            if (m_creature->IsInCombat() && !m_creature->GetCombatManager().IsEvadingHome())
                 m_instance->DoUseDoorOrButton(GO_WIND_DOOR);
         });
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        {
+            return x < 336.259f;
+        });
+        AddOnKillText(SAY_SLAY1, SAY_SLAY2);
     }
 
     instance_zulaman* m_instance;
@@ -118,11 +124,6 @@ struct boss_akilzonAI : public CombatAI
             m_instance->SetData(TYPE_AKILZON, IN_PROGRESS);
 
         ResetTimer(AKILZON_WIND_WALL_DELAY, 5000);
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -218,8 +219,11 @@ struct boss_akilzonAI : public CombatAI
             }
             case AKILZON_ACTION_CALL_LIGHTNING:
             {
-                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CALL_LIGHTNING) == CAST_OK)
-                    ResetCombatAction(action, urand(15000, 25000));
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, nullptr, SELECT_FLAG_PLAYER))
+                {
+                    if (DoCastSpellIfCan(target, SPELL_CALL_LIGHTNING) == CAST_OK)
+                        ResetCombatAction(action, urand(15000, 25000));
+                }
                 break;
             }
             case AKILZON_ACTION_GUST_OF_WIND:
@@ -236,7 +240,7 @@ struct boss_akilzonAI : public CombatAI
                 // change weather 8.5 seconds prior to storm
                 if (m_instance)
                     m_instance->ChangeWeather(true);
-                ResetCombatAction(action, urand(50000, 55000));
+                ResetCombatAction(action, urand(54000, 60000));
                 ResetCombatAction(AKILZON_ACTION_STORM, 8500);
                 break;
             }
@@ -261,19 +265,7 @@ struct boss_akilzonAI : public CombatAI
             }
         }
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        CombatAI::UpdateAI(diff);
-        if (m_creature->IsInCombat())
-            EnterEvadeIfOutOfCombatArea(diff);
-    }
 };
-
-UnitAI* GetAI_boss_akilzon(Creature* creature)
-{
-    return new boss_akilzonAI(creature);
-}
 
 struct mob_soaring_eagleAI : public ScriptedAI
 {
@@ -348,18 +340,16 @@ struct mob_soaring_eagleAI : public ScriptedAI
             {
                 if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                     if (DoCastSpellIfCan(target, SPELL_EAGLE_SWOOP) == CAST_OK)
+                    {
+                        DoPlaySoundToSet(m_creature, SOUND_EAGLE_SWOOP);
                         m_uiEagleSwoopTimer = 0;
+                    }
             }
             else
                 m_uiEagleSwoopTimer -= diff;
         }
     }
 };
-
-UnitAI* GetAI_mob_soaring_eagle(Creature* creature)
-{
-    return new mob_soaring_eagleAI(creature);
-}
 
 struct TeleportSelf : public SpellScript
 {
@@ -373,12 +363,12 @@ void AddSC_boss_akilzon()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_akilzon";
-    pNewScript->GetAI = &GetAI_boss_akilzon;
+    pNewScript->GetAI = &GetNewAIInstance<boss_akilzonAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_soaring_eagle";
-    pNewScript->GetAI = &GetAI_mob_soaring_eagle;
+    pNewScript->GetAI = &GetNewAIInstance<mob_soaring_eagleAI>;
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<TeleportSelf>("spell_teleport_self_akilzon");

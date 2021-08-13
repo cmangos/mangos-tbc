@@ -100,6 +100,11 @@ struct boss_halazziAI : public CombatAI
         AddCombatAction(HALAZZI_ACTION_SABER_LASH, 20000u);
         AddCombatAction(HALAZZI_ACTION_SHOCK, true);
         AddCombatAction(HALAZZI_ACTION_TOTEM, true);
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+            {
+                return x < 307.f || y < 1055.f;
+            });
+        AddOnKillText(SAY_KILL1, SAY_KILL2);
         Reset();
     }
 
@@ -144,14 +149,6 @@ struct boss_halazziAI : public CombatAI
             m_instance->SetData(TYPE_HALAZZI, IN_PROGRESS);
     }
 
-    void KilledUnit(Unit* victim) override
-    {
-        if (victim->GetTypeId() != TYPEID_PLAYER)
-            return;
-
-        DoScriptText(urand(0, 1) ? SAY_KILL1 : SAY_KILL2, m_creature);
-    }
-
     void JustDied(Unit* /*killer*/) override
     {
         DoScriptText(SAY_DEATH, m_creature);
@@ -166,6 +163,7 @@ struct boss_halazziAI : public CombatAI
         {
             m_spiritLynxGuid = summoned->GetObjectGuid();
             summoned->SetInCombatWithZone();
+            summoned->AI()->AttackClosestEnemy();
             summoned->CastSpell(m_creature, SPELL_HALAZZI_TRANSFORM_DUMMY, TRIGGERED_OLD_TRIGGERED);
         }
 
@@ -291,13 +289,6 @@ struct boss_halazziAI : public CombatAI
                 return;
         }
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        CombatAI::UpdateAI(diff);
-        if (m_creature->IsInCombat())
-            EnterEvadeIfOutOfCombatArea(diff);
-    }
 };
 
 enum
@@ -388,35 +379,20 @@ struct npc_corrupted_lightning_totemAI : public ScriptedAI
 	}
 };
 
-UnitAI* GetAI_boss_halazzi(Creature* creature)
-{
-    return new boss_halazziAI(creature);
-}
-
-UnitAI* GetAI_boss_spirit_lynx(Creature* creature)
-{
-    return new boss_spirit_lynxAI(creature);
-}
-
-UnitAI* GetAI_npc_corrupted_lightning_totem(Creature* creature)
-{
-	return new npc_corrupted_lightning_totemAI(creature);
-}
-
 void AddSC_boss_halazzi()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_halazzi";
-    pNewScript->GetAI = &GetAI_boss_halazzi;
+    pNewScript->GetAI = &GetNewAIInstance<boss_halazziAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "boss_spirit_lynx";
-    pNewScript->GetAI = &GetAI_boss_spirit_lynx;
+    pNewScript->GetAI = &GetNewAIInstance<boss_spirit_lynxAI>;
     pNewScript->RegisterSelf();
 
 	pNewScript = new Script;
 	pNewScript->Name = "npc_corrupted_lightning_totem";
-	pNewScript->GetAI = &GetAI_npc_corrupted_lightning_totem;
+	pNewScript->GetAI = &GetNewAIInstance<npc_corrupted_lightning_totemAI>;
 	pNewScript->RegisterSelf();
 }

@@ -185,6 +185,8 @@ void Map::Initialize(bool loadInstanceData /*= true*/)
 
     sObjectMgr.LoadActiveEntities(this);
 
+    m_graveyardManager.Init(this);
+
     LoadTransports();
 }
 

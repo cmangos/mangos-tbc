@@ -79,6 +79,11 @@ struct boss_nalorakkAI : public CombatAI
         AddCombatAction(NALORAKK_ACTION_SLASH, true);
         AddCombatAction(NALORAKK_ACTION_REND, true);
         AddCombatAction(NALORAKK_ACTION_ROAR, true);
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        {
+            return y > 1378.009f;
+        });
+        AddOnKillText(SAY_SLAY1, SAY_SLAY2);
         Reset();
     }
 
@@ -123,7 +128,7 @@ struct boss_nalorakkAI : public CombatAI
         {
             m_creature->GetMotionMaster()->Clear(false, true);
             m_creature->GetMotionMaster()->MoveIdle();
-            m_creature->SetFacingTo(aBearEventInfo[m_uiCurrentWave].ori);
+            m_creature->SetFacingTo(aBearEventInfo[m_uiCurrentWave + 1].ori); // First point is spawn
 
             if (m_uiCurrentWave < MAX_BEAR_WAVES - 1)
             {
@@ -140,11 +145,6 @@ struct boss_nalorakkAI : public CombatAI
 
         if (m_instance)
             m_instance->SetData(TYPE_NALORAKK, IN_PROGRESS);
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -247,24 +247,12 @@ struct boss_nalorakkAI : public CombatAI
             }
         }
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        CombatAI::UpdateAI(diff);
-        if (m_creature->IsInCombat())
-            EnterEvadeIfOutOfCombatArea(diff);
-    }
 };
-
-UnitAI* GetAI_boss_nalorakk(Creature* creature)
-{
-    return new boss_nalorakkAI(creature);
-}
 
 void AddSC_boss_nalorakk()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_nalorakk";
-    pNewScript->GetAI = &GetAI_boss_nalorakk;
+    pNewScript->GetAI = &GetNewAIInstance<boss_nalorakkAI>;
     pNewScript->RegisterSelf();
 }

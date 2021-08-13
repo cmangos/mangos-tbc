@@ -10,9 +10,4 @@
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 #include "AI/ScriptDevAI/include/sc_instance.h"
 
-//#define PRENERF_2_0_3       // Pre 2.1
-//#define PRENERF_2_1         // Pre 2.2
-//#define PRENERF_2_3         // Pre 2.4
-//#define PRENERF_2_4         // Pre 2.4.3
-
 #endif

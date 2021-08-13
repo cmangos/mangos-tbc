@@ -915,85 +915,6 @@ void WorldSession::HandleNextCinematicCamera(WorldPacket& /*recv_data*/)
     GetPlayer()->StartCinematic();
 }
 
-void WorldSession::HandleFeatherFallAck(WorldPacket& recv_data)
-{
-    DEBUG_LOG("WORLD: Received opcode CMSG_MOVE_FEATHER_FALL_ACK");
-
-    // no used
-    recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
-}
-
-void WorldSession::HandleMoveUnRootAck(WorldPacket& recv_data)
-{
-    DEBUG_LOG("WORLD: Received opcode CMSG_FORCE_MOVE_UNROOT_ACK");
-    // Pre-Wrath: broadcast unroot
-    ObjectGuid guid;
-    recv_data >> guid;
-    // no used
-    recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
-
-    Unit* mover = _player->GetMover();
-    if (mover && mover->GetObjectGuid() == guid && mover->m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT))
-    {
-        mover->m_movementInfo.RemoveMovementFlag(MOVEFLAG_ROOT);
-        mover->SendMoveRoot(false, true);
-    }
-    /*
-        ObjectGuid guid;
-        recv_data >> guid;
-
-        // now can skip not our packet
-        if(_player->GetGUID() != guid)
-        {
-            recv_data.rpos(recv_data.wpos());               // prevent warnings spam
-            return;
-        }
-
-        DEBUG_LOG("WORLD: Received opcode CMSG_FORCE_MOVE_UNROOT_ACK");
-
-        recv_data.read_skip<uint32>();                      // unk
-
-        MovementInfo movementInfo;
-        ReadMovementInfo(recv_data, &movementInfo);
-    */
-}
-
-void WorldSession::HandleMoveRootAck(WorldPacket& recv_data)
-{
-    DEBUG_LOG("WORLD: Received opcode CMSG_FORCE_MOVE_ROOT_ACK");
-    // Pre-Wrath: broadcast root
-    ObjectGuid guid;
-    recv_data >> guid;
-    // no used
-    recv_data.rpos(recv_data.wpos());                       // prevent warnings spam
-
-    Unit* mover = _player->GetMover();
-    if (mover && mover->GetObjectGuid() == guid && !mover->m_movementInfo.HasMovementFlag(MOVEFLAG_ROOT))
-    {
-        mover->m_movementInfo.RemoveMovementFlag(movementFlagsMask);
-        mover->m_movementInfo.AddMovementFlag(MOVEFLAG_ROOT);
-        mover->SendMoveRoot(true, true);
-    }
-    /*
-        ObjectGuid guid;
-        recv_data >> guid;
-
-        // now can skip not our packet
-        if(_player->GetObjectGuid() != guid)
-        {
-            recv_data.rpos(recv_data.wpos());               // prevent warnings spam
-            return;
-        }
-
-        DEBUG_LOG("WORLD: Received opcode CMSG_FORCE_MOVE_ROOT_ACK");
-
-        recv_data.read_skip<uint32>();                      // unk
-
-        MovementInfo movementInfo;
-        ReadMovementInfo(recv_data, &movementInfo);
-    */
-}
-
 void WorldSession::HandleSetActionBarTogglesOpcode(WorldPacket& recv_data)
 {
     uint8 ActionBar;
@@ -1007,7 +928,7 @@ void WorldSession::HandleSetActionBarTogglesOpcode(WorldPacket& recv_data)
         return;
     }
 
-    GetPlayer()->SetByteValue(PLAYER_FIELD_BYTES, 2, ActionBar);
+    GetPlayer()->SetByteValue(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTES_OFFSET_ACTION_BAR_TOGGLES, ActionBar);
 }
 
 void WorldSession::HandleWardenDataOpcode(WorldPacket& recv_data)
@@ -1444,22 +1365,6 @@ void WorldSession::HandleCancelMountAuraOpcode(WorldPacket& /*recv_data*/)
 
     _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
     _player->Unmount();
-}
-
-void WorldSession::HandleMoveSetCanFlyAckOpcode(WorldPacket& recv_data)
-{
-    // fly mode on/off
-    DEBUG_LOG("WORLD: Received opcode CMSG_MOVE_SET_CAN_FLY_ACK");
-    // recv_data.hexlike();
-
-    MovementInfo movementInfo;
-
-    recv_data >> Unused<uint64>();                          // guid
-    recv_data >> Unused<uint32>();                          // unk
-    recv_data >> movementInfo;
-    recv_data >> Unused<uint32>();                          // unk2
-
-    _player->m_movementInfo.SetMovementFlags(movementInfo.GetMovementFlags());
 }
 
 void WorldSession::HandleRequestPetInfoOpcode(WorldPacket& /*recv_data */)

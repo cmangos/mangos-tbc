@@ -78,8 +78,8 @@ enum
     PATH_ID_RIGHT_SHORT             = 3,
     PATH_ID_LEFT_SHORT              = 4,
 
-    RIGHT_LAST_POINT                = 2,
-    LEFT_LAST_POINT                 = 2,
+    RIGHT_LAST_POINT                = 3,
+    LEFT_LAST_POINT                 = 3,
     SHORT_LAST_POINT                = 1,
 };
 
@@ -113,6 +113,11 @@ struct boss_janalaiAI : public CombatAI
             if (bomb)
                 bomb->CastSpell(nullptr, SPELL_FIRE_BOMB_EXPLODE, TRIGGERED_NONE);
         });
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        {
+            return x > -8.f || x < -57.f;
+        });
+        AddOnKillText(SAY_SLAY_1, SAY_SLAY_2);
         Reset();
     }
 
@@ -156,11 +161,6 @@ struct boss_janalaiAI : public CombatAI
 
         if (m_instance)
             m_instance->SetData(TYPE_JANALAI, DONE);
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature);
     }
 
     void Aggro(Unit* /*who*/) override
@@ -310,13 +310,6 @@ struct boss_janalaiAI : public CombatAI
                 return;
         }
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        CombatAI::UpdateAI(diff);
-        if (m_creature->IsInCombat())
-            EnterEvadeIfOutOfCombatArea(diff);
-    }
 };
 
 struct npc_amanishi_hatcherAI : public ScriptedAI
@@ -425,25 +418,15 @@ struct npc_amanishi_hatcherAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_boss_janalaiAI(Creature* creature)
-{
-    return new boss_janalaiAI(creature);
-}
-
-UnitAI* GetAI_npc_amanishi_hatcherAI(Creature* creature)
-{
-    return new npc_amanishi_hatcherAI(creature);
-}
-
 void AddSC_boss_janalai()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_janalai";
-    pNewScript->GetAI = &GetAI_boss_janalaiAI;
+    pNewScript->GetAI = &GetNewAIInstance<boss_janalaiAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_amanishi_hatcher";
-    pNewScript->GetAI = &GetAI_npc_amanishi_hatcherAI;
+    pNewScript->GetAI = &GetNewAIInstance<npc_amanishi_hatcherAI>;
     pNewScript->RegisterSelf();
 }

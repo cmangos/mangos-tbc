@@ -9,7 +9,7 @@
 
 enum InstanceZA
 {
-    MAX_ENCOUNTER           = 8,
+    MAX_ENCOUNTER           = 13,
     MAX_VENDOR              = 2,
     MAX_CHESTS              = 4,
     MAX_BEAR_WAVES          = 4,
@@ -44,10 +44,17 @@ enum InstanceZA
     TYPE_HALAZZI            = 4,
     TYPE_MALACRASS          = 5,
     TYPE_ZULJIN             = 6,
-    TYPE_RUN_EVENT_TIME     = 7,                            // Must be MAX_ENCOUNTER -1
+    TYPE_RUN_EVENT_TIME     = 7,
 
-    TYPE_RAND_VENDOR_1      = 8,
-    TYPE_RAND_VENDOR_2      = 9,
+    TYPE_TANZAR             = 8,
+    TYPE_KRAZ               = 9,
+    TYPE_ASHLI              = 10,
+    TYPE_HARKOR             = 11, // Must be MAX_ENCOUNTER -1
+
+    TYPE_AKILZON_GAUNTLET   = 12,
+
+    TYPE_RAND_VENDOR_1      = 13,
+    TYPE_RAND_VENDOR_2      = 14,
 
     NPC_AKILZON             = 23574,
     NPC_NALORAKK            = 23576,
@@ -84,6 +91,7 @@ enum InstanceZA
     NPC_KORAGG              = 24247,
 
     NPC_HARRISON            = 24358,
+    NPC_AMANISHI_GUARDIAN   = 23597,
     // Time Run Event NPCs
     NPC_TANZAR              = 23790,                        // at bear
     NPC_KRAZ                = 24024,                        // at phoenix
@@ -217,8 +225,8 @@ class instance_zulaman : public ScriptedInstance
         void SetBearEventProgress(bool bIsInProgress) { m_isBearPhaseInProgress = bIsInProgress; }
         void SendNextBearWave(Unit* pTarget);
 
-        bool IsAkilzonGauntletInProgress() const { return m_bIsAkilzonGauntletInProgress; }
-        void SetAkilzonGauntletProgress(bool bIsInProgress) { m_bIsAkilzonGauntletInProgress = bIsInProgress; }
+        bool IsAkilzonGauntletSpawning() const { return m_auiEncounter[TYPE_AKILZON_GAUNTLET] == IN_PROGRESS; }
+        bool IsAkilzonGauntletInProgress() const { return m_auiEncounter[TYPE_AKILZON_GAUNTLET] != NOT_STARTED; }
 
         bool CheckConditionCriteriaMeet(Player const* player, uint32 instanceConditionId, WorldObject const* conditionSource, uint32 conditionSourceType) const override;
 
@@ -226,6 +234,9 @@ class instance_zulaman : public ScriptedInstance
 
         GuidSet sDrumTriggerGuidSet;
         GuidSet sHutTriggerGuidSet;
+
+        GuidSet sGongGuardianGuidSet;
+        ObjectGuid m_GongGuardianAttackerGuid;
 
         void ChangeWeather(bool rain);
 
@@ -254,7 +265,6 @@ class instance_zulaman : public ScriptedInstance
         bool m_isBearPhaseInProgress;
 
         GuidSet sAkilzonTrashGuidSet;
-        bool m_bIsAkilzonGauntletInProgress;
 
         uint32 m_spiritFadeTimer;
 };

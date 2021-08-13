@@ -201,7 +201,7 @@ class WorldSession
         friend class CharacterHandler;
 
     public:
-        WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale);
+        WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruitingFriend, bool isARecruiter);
         ~WorldSession();
 
         // Set this session have no attached socket but keep it alive for short period of time to permit a possible reconnection
@@ -400,6 +400,10 @@ class WorldSession
         uint32 GetOrderCounter() const { return m_orderCounter; }
         void IncrementOrderCounter() { ++m_orderCounter; }
 
+        // Recruit-A-Friend Handling
+        uint32 GetRecruitingFriendId() const { return m_recruitingFriendId; }
+        bool IsARecruiter() const { return m_isRecruiter; }
+
         // Time Synchronisation
         void ResetTimeSync();
         void SendTimeSync();
@@ -434,7 +438,6 @@ class WorldSession
         void HandlePlayedTime(WorldPacket& recvPacket);
 
         // new
-        void HandleMoveUnRootAck(WorldPacket& recvPacket);
         void HandleMoveRootAck(WorldPacket& recvPacket);
 
         // new inspect
@@ -443,10 +446,7 @@ class WorldSession
         // new party stats
         void HandleInspectHonorStatsOpcode(WorldPacket& recvPacket);
 
-        void HandleMoveWaterWalkAck(WorldPacket& recvPacket);
-        void HandleFeatherFallAck(WorldPacket& recv_data);
-
-        void HandleMoveHoverAck(WorldPacket& recv_data);
+        void HandleMoveFlagChangeOpcode(WorldPacket& recvPacket);
 
         void HandleMountSpecialAnimOpcode(WorldPacket& recvdata);
 
@@ -528,6 +528,8 @@ class WorldSession
         void HandleSetActiveMoverOpcode(WorldPacket& recv_data);
         void HandleMoveNotActiveMoverOpcode(WorldPacket& recv_data);
         void HandleMoveTimeSkippedOpcode(WorldPacket& recv_data);
+
+        bool ProcessMovementInfo(MovementInfo& movementInfo, Unit* mover, Player* plMover, WorldPacket& recv_data);
 
         void HandleRequestRaidInfoOpcode(WorldPacket& recv_data);
 
@@ -778,7 +780,6 @@ class WorldSession
         void HandleRandomRollOpcode(WorldPacket& recv_data);
         void HandleFarSightOpcode(WorldPacket& recv_data);
         void HandleSetDungeonDifficultyOpcode(WorldPacket& recv_data);
-        void HandleMoveSetCanFlyAckOpcode(WorldPacket& recv_data);
         void HandleLfgSetAutoJoinOpcode(WorldPacket& recv_data);
         void HandleLfgClearAutoJoinOpcode(WorldPacket& recv_data);
         void HandleLfmSetAutoFillOpcode(WorldPacket& recv_data);
@@ -841,6 +842,11 @@ class WorldSession
         void HandleSetGuildBankTabText(WorldPacket& recv_data);
 
         void HandleGetMirrorimageData(WorldPacket& recv_data);
+
+        // Raf
+        void HandleGrantLevel(WorldPacket& recv_data);
+        void HandleReferAFriend(WorldPacket& recv_data);
+        void HandleAcceptLevelGrant(WorldPacket& recv_data);
 
         // Movement
         void SynchronizeMovement(MovementInfo &movementInfo);
@@ -907,6 +913,10 @@ class WorldSession
         std::deque<CharacterNameQueryResponse> m_offlineNameResponses; // for responses to name queries made when not logged in
 
         bool m_initialZoneUpdated = false;
+
+        // Recruit-A-Friend
+        uint32 m_recruitingFriendId;
+        bool m_isRecruiter;
 
         // Thread safety mechanisms
         std::mutex m_recvQueueLock;

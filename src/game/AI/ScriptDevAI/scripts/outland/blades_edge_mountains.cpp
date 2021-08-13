@@ -3293,6 +3293,43 @@ struct go_nether_drake_egg_trapAI : public GameObjectAI
     }
 };
 
+enum
+{
+    SPELL_ZEPHYRIUM_CHARGED = 37108,
+};
+
+struct Soaring : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            aura->GetTarget()->CastSpell(nullptr, SPELL_ZEPHYRIUM_CHARGED, TRIGGERED_NONE);
+    }
+};
+
+struct CoaxMarmot : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+        {
+            Unit* target = aura->GetTarget();
+            if (target->GetTypeId() != TYPEID_PLAYER)
+                return;
+
+            Player* pPlayer = static_cast<Player*>(target);
+            if (pPlayer->GetMover() != target)
+            {
+                if (Creature* mover = static_cast<Creature*>(pPlayer->GetMover())) // this spell uses DoSummonPossesed so remove this on removal
+                {
+                    pPlayer->BreakCharmOutgoing();
+                    mover->ForcedDespawn();
+                }
+            }
+        }
+    }
+};
+
 void AddSC_blades_edge_mountains()
 {
     Script* pNewScript = new Script;
@@ -3426,4 +3463,6 @@ void AddSC_blades_edge_mountains()
 
     RegisterSpellScript<ExorcismFeather>("spell_exorcism_feather");
     RegisterSpellScript<KoiKoiDeath>("spell_koi_koi_death");
+    RegisterAuraScript<Soaring>("spell_soaring");
+    RegisterAuraScript<CoaxMarmot>("spell_coax_marmot");
 }

@@ -6428,11 +6428,7 @@ bool Unit::Attack(Unit* victim, bool meleeAttack)
         MeleeAttackStart(m_attacking);
 
     if (AI())
-    {
         SendAIReaction(AI_REACTION_HOSTILE);
-        if (GetTypeId() == TYPEID_UNIT)
-            ((Creature*)this)->CallAssistance();
-    }
 
     return true;
 }
@@ -8364,6 +8360,14 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
 
         if (InstanceData* mapInstance = GetInstanceData())
             mapInstance->OnCreatureEnterCombat(creature);
+
+        creature->CallAssistance();
+
+        creature->SetCanCheckForHelp(false);
+        creature->m_events.AddEvent(new UnitLambdaEvent(*creature, [](Unit& unit)
+        {
+            static_cast<Creature&>(unit).SetCanCheckForHelp(true);
+        }), creature->m_events.CalculateTime(sWorld.getConfig(CONFIG_UINT32_CREATURE_CHECK_FOR_HELP_AGGRO_DELAY)));
 
         TriggerAggroLinkingEvent(enemy);
     }

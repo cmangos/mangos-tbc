@@ -1508,21 +1508,6 @@ bool ChatHandler::HandleDebugFlyCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleDebugPacketHistory(char* /*args*/)
-{
-    auto history = m_session->GetOpcodeHistory();
-    std::string output = "Opcodes (reverse order):\n";
-    for (auto itr = history.rbegin(); itr != history.rend(); ++itr)
-    {
-        output += LookupOpcodeName(*itr);
-        output += "\n";
-    }
-
-    SendSysMessage(output.data());
-
-    return true;
-}
-
 bool ChatHandler::HandleDebugObjectFlags(char* args)
 {
     char* debugCmd = ExtractLiteralArg(&args);

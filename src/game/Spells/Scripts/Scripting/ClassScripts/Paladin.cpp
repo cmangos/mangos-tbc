@@ -76,7 +76,7 @@ struct spell_judgement : public SpellScript
                     {
                         int32 mana = spellInfo->manaCost;
                         if (Player* modOwner = caster->GetSpellModOwner())
-                            modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_COST, mana, spell->m_usedAuraCharges);
+                            modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_COST, mana);
                         mana = int32(mana * 0.8f);
                         caster->CastCustomSpell(nullptr, 31930, &mana, nullptr, nullptr, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
                     }

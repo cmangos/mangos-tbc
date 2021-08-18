@@ -358,8 +358,6 @@ class Map : public GridRefManager<NGridType>
 
         GraveyardManager& GetGraveyardManager() { return m_graveyardManager; }
 
-        GenericTransport* GetTransport(ObjectGuid guid);
-
         void AddTransport(Transport* transport);
         void RemoveTransport(Transport* transport);
 

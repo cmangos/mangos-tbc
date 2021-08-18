@@ -2666,9 +2666,6 @@ UPDATE `spell_template` SET `MaxAffectedTargets`=1 WHERE Id IN(45907);
 -- Fix "Invalid target" error for Salvage Wreckage 42287 & Summon Mirefin Burrower 42289 - i.33044
 UPDATE `spell_template` SET `EffectRadiusIndex1`=0 WHERE Id IN(42287,42289);
 
--- MgT - wrong summoned entry - verified with sniffs
-UPDATE spell_template SET EffectMiscValueA=22897 WHERE Id IN(27621);
-
 -- ============================================================
 -- WOTLK section
 -- ============================================================

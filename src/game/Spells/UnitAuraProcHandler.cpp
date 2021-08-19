@@ -2836,7 +2836,7 @@ SpellAuraProcResult Unit::HandleRaidProcFromChargeWithValueAuraProc(ProcExecutio
 
         if (Player* caster = static_cast<Player*>(triggeredByAura->GetCaster()))
         {
-            caster->ApplySpellMod(spellProto->Id, SPELLMOD_RADIUS, radius, nullptr);
+            caster->ApplySpellMod(spellProto->Id, SPELLMOD_RADIUS, radius);
 
             if (Player* target = static_cast<Player*>(this)->GetNextRaidMemberWithLowestLifePercentage(radius, SPELL_AURA_RAID_PROC_FROM_CHARGE_WITH_VALUE))
             {

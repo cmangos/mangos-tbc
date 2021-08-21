@@ -794,7 +794,7 @@ enum
     SAY_STINKY_THIRD_STOP_3             = -1001144,
     SAY_STINKY_PLANT_GATHERED           = -1001145,
     SAY_STINKY_END                      = -1000962,
-    SAY_STINKY_END_EMOTE                = -1000345,
+    SAY_STINKY_END_EMOTE                = -1010032,
     SAY_STINKY_AGGRO_1                  = -1000960,
     SAY_STINKY_AGGRO_2                  = -1000961,
     SAY_STINKY_AGGRO_3                  = -1001146,

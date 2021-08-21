@@ -1703,8 +1703,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000343','Pitiful mortal, Onyxia answers to no one!','0','1','0','0','22285','smolderwing SAY_1'),
 ('-1000344','Your pathetic challenge has not gone unnoticed. I shall enjoy toying with you before you die.','0','1','0','0','22286','smolderwing SAY_2'),
 
-('-1000345','%s disappears back into the swamp.','0','2','0','0','1619','Stinky end emote'),
--- REUSE 346-347
+-- used in vanilla
 
 ('-1000348','Ah...the wondrous sound of kodos.  I love the way they make the ground shake... inspect the beast for me.','0','0','0','0','7303','kodo round SAY_SMEED_HOME_1'),
 ('-1000349','Hey, look out with that kodo! You had better inspect that beast before I give you credit!','0','0','0','0','7301','kodo round SAY_SMEED_HOME_2'),
@@ -2600,7 +2599,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1010029','Help! We''re being attacked! Dark Irons!','0','1','0','0','494','SAY_MIRAN_AMBUSH'),
 
 ('-1010030','Bye!  Better luck next time!','0','1','0','0','7553','Hornizz to Melizza 1'),
-('-1010031','Always on the go, that girl.','0','1','0','0','7554','Hornizz to Melizza 2');
+('-1010031','Always on the go, that girl.','0','1','0','0','7554','Hornizz to Melizza 2'),
+('-1010032','%s disappears back into the swamp.','0','2','0','0','1619','Stinky end emote');
 
 -- -1 015 000 TBC texts
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES

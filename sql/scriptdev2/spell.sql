@@ -567,6 +567,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (10431,'spell_damage_trigger_shield'),
 (10432,'spell_damage_trigger_shield'),
 (24398,'spell_damage_trigger_shield'),
+(25469,'spell_damage_trigger_shield'),
+(25472,'spell_damage_trigger_shield'),
 (33736,'spell_damage_trigger_shield');
 
 -- Battleground and Outdoor PvP

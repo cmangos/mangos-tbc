@@ -264,6 +264,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (31447,'spell_mark_of_kazrogal'),
 (31347,'spell_azgalor_doom'),
 (41625,'spell_fel_rage_3'),
+(42402,'spell_surge_nalorakk'),
 (40214,'spell_dragonmaw_illusion_base'),
 (42016,'spell_dragonmaw_illusion_transform'),
 (39810,'spell_sparrowhawk_net'),

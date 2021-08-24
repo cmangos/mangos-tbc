@@ -520,7 +520,7 @@ void Pet::SavePetToDB(PetSaveMode mode, Player* owner)
         savePet.addUInt32(GetEntry());
         savePet.addUInt32(ownerLow);
         savePet.addUInt32(GetNativeDisplayId());
-        savePet.addUInt32(getLevel());
+        savePet.addUInt32(GetLevel());
         savePet.addUInt32(GetUInt32Value(UNIT_FIELD_PETEXPERIENCE));
         savePet.addUInt32(uint32(AI()->GetReactState()));
         savePet.addInt32(m_loyaltyPoints);
@@ -786,7 +786,7 @@ void Pet::SetRequiredXpForNextLoyaltyLevel()
     Unit* owner = GetOwner();
     if (owner)
     {
-        uint32 ownerLevel = owner->getLevel();
+        uint32 ownerLevel = owner->GetLevel();
         m_xpRequiredForNextLoyaltyLevel = ownerLevel < sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL) ? sObjectMgr.GetXPForLevel(ownerLevel) * 5 / 100 : sObjectMgr.GetXPForLevel(ownerLevel - 1) * 5 / 100;
     }
 }
@@ -821,7 +821,7 @@ void Pet::ModifyLoyalty(int32 addvalue)
             --loyaltylevel;
             SetLoyaltyLevel(LoyaltyLevel(loyaltylevel));
             m_loyaltyPoints = GetStartLoyaltyPoints(loyaltylevel);
-            SetTP(m_TrainingPoints - int32(getLevel()));
+            SetTP(m_TrainingPoints - int32(GetLevel()));
             SetRequiredXpForNextLoyaltyLevel();
         }
         else
@@ -866,7 +866,7 @@ void Pet::ModifyLoyalty(int32 addvalue)
         ++loyaltylevel;
         SetLoyaltyLevel(LoyaltyLevel(loyaltylevel));
         m_loyaltyPoints = GetStartLoyaltyPoints(loyaltylevel);
-        SetTP(m_TrainingPoints + getLevel());
+        SetTP(m_TrainingPoints + GetLevel());
         SetRequiredXpForNextLoyaltyLevel();
     }
 }
@@ -1127,8 +1127,8 @@ void Pet::GivePetXP(uint32 xp)
     if (!IsAlive())
         return;
 
-    uint32 level = getLevel();
-    uint32 maxlevel = std::min(sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL), GetOwner()->getLevel());
+    uint32 level = GetLevel();
+    uint32 maxlevel = std::min(sWorld.getConfig(CONFIG_UINT32_MAX_PLAYER_LEVEL), GetOwner()->GetLevel());
 
     // pet not receive xp for level equal to owner level
     if (level < maxlevel)
@@ -1159,7 +1159,7 @@ void Pet::GivePetXP(uint32 xp)
 
 void Pet::GivePetLevel(uint32 level)
 {
-    if (!level || level == getLevel())
+    if (!level || level == GetLevel())
         return;
 
     if (getPetType() == HUNTER_PET)
@@ -1203,7 +1203,7 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
     SetPowerType(POWER_FOCUS);
     SetUInt32Value(UNIT_FIELD_PET_NAME_TIMESTAMP, 0);
     SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, 0);
-    SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, sObjectMgr.GetXPForPetLevel(creature->getLevel()));
+    SetUInt32Value(UNIT_FIELD_PETNEXTLEVELEXP, sObjectMgr.GetXPForPetLevel(creature->GetLevel()));
     SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
 
     if (CreatureFamilyEntry const* cFamily = sCreatureFamilyStore.LookupEntry(cInfo->Family))
@@ -1274,12 +1274,12 @@ void Pet::InitStatsForLevel(uint32 petlevel)
             if (cFamily && cFamily->minScale > 0.0f)
             {
                 float scale;
-                if (getLevel() >= cFamily->maxScaleLevel)
+                if (GetLevel() >= cFamily->maxScaleLevel)
                     scale = cFamily->maxScale;
-                else if (getLevel() <= cFamily->minScaleLevel)
+                else if (GetLevel() <= cFamily->minScaleLevel)
                     scale = cFamily->minScale;
                 else
-                    scale = cFamily->minScale + float(getLevel() - cFamily->minScaleLevel) / cFamily->maxScaleLevel * (cFamily->maxScale - cFamily->minScale);
+                    scale = cFamily->minScale + float(GetLevel() - cFamily->minScaleLevel) / cFamily->maxScaleLevel * (cFamily->maxScale - cFamily->minScale);
 
                 SetObjectScale(scale);
                 UpdateModelData();
@@ -1552,13 +1552,13 @@ bool Pet::HaveInDiet(ItemPrototype const* item) const
 uint32 Pet::GetCurrentFoodBenefitLevel(uint32 itemlevel) const
 {
     // -5 or greater food level
-    if (getLevel() <= itemlevel + 5)                        // possible to feed level 60 pet with level 55 level food for full effect
+    if (GetLevel() <= itemlevel + 5)                        // possible to feed level 60 pet with level 55 level food for full effect
         return 35000;
     // -10..-6
-    if (getLevel() <= itemlevel + 10)                  // pure guess, but sounds good
+    if (GetLevel() <= itemlevel + 10)                  // pure guess, but sounds good
         return 17000;
     // -14..-11
-    if (getLevel() <= itemlevel + 14)                  // level 55 food gets green on 70, makes sense to me
+    if (GetLevel() <= itemlevel + 14)                  // level 55 food gets green on 70, makes sense to me
         return 8000;
         // -15 or less
     return 0;
@@ -2340,12 +2340,12 @@ void Pet::SynchronizeLevelWithOwner()
     {
         // always same level
         case SUMMON_PET:
-            GivePetLevel(owner->getLevel());
+            GivePetLevel(owner->GetLevel());
             break;
         // can't be greater owner level
         case HUNTER_PET:
-            if (getLevel() > owner->getLevel())
-                GivePetLevel(owner->getLevel());
+            if (GetLevel() > owner->GetLevel())
+                GivePetLevel(owner->GetLevel());
             break;
         default:
             break;

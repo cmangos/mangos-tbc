@@ -1141,6 +1141,9 @@ class WorldObject : public Object
 
         bool IsUsingNewSpawningSystem() const;
 
+        // Spell System compliance
+        virtual uint32 GetLevel() const { return 1; }
+
     protected:
         explicit WorldObject();
 

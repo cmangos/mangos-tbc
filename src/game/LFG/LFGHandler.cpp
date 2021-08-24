@@ -327,7 +327,7 @@ void WorldSession::SendLFGListQueryResponse(LfgType type, uint32 entry)
         const bool lfm = plr->m_lookingForGroup.more.Is(entry, type);
 
         data << plr->GetPackGUID();                         // packed guid
-        data << uint32(plr->getLevel());                    // level
+        data << uint32(plr->GetLevel());                    // level
         data << uint32(plr->GetZoneId());                   // current zone
         data << uint8(lfm);                                 // 0x00 - LFG, 0x01 - LFM
 
@@ -359,7 +359,7 @@ void WorldSession::SendLFGListQueryResponse(LfgType type, uint32 entry)
                     if (member->GetObjectGuid() != plr->GetObjectGuid())
                     {
                         data << member->GetPackGUID();      // packed guid
-                        data << uint32(member->getLevel()); // player level
+                        data << uint32(member->GetLevel()); // player level
                         ++count;
                     }
                 }

@@ -1123,23 +1123,27 @@ UPDATE creature_template SET ScriptName='boss_brutallus' WHERE entry=24882;
 UPDATE creature_template SET ScriptName='boss_kalecgos' WHERE entry=24850;
 UPDATE creature_template SET ScriptName='boss_kalecgos_humanoid' WHERE entry=24891;
 UPDATE creature_template SET ScriptName='boss_sathrovarr' WHERE entry=24892;
-INSERT INTO scripted_areatrigger VALUES
+INSERT INTO scripted_areatrigger VALUES 
 (4853,'at_madrigosa');
 UPDATE creature_template SET ScriptName='boss_alythess' WHERE entry=25166;
 UPDATE creature_template SET ScriptName='boss_sacrolash' WHERE entry=25165;
 UPDATE creature_template SET ScriptName='npc_shadow_image' WHERE entry=25214;
+UPDATE creature_template SET ScriptName='npc_sunblade_scout' WHERE entry=25372;
+UPDATE creature_template SET ScriptName='npc_sunblade_protector' WHERE entry=25507;
 UPDATE creature_template SET ScriptName='boss_muru' WHERE entry=25741;
 UPDATE creature_template SET ScriptName='boss_entropius' WHERE entry=25840;
 UPDATE creature_template SET ScriptName='npc_portal_target' WHERE entry=25770;
 UPDATE creature_template SET ScriptName='boss_kiljaeden' WHERE entry=25315;
 UPDATE creature_template SET ScriptName='npc_kiljaeden_controller' WHERE entry=25608;
-UPDATE creature_template SET ScriptName='spell_dummy_npc_brutallus_cloud' WHERE entry=25703;
+UPDATE creature_template SET ScriptName='npc_sinister_reflection' WHERE entry=25708;
 UPDATE creature_template SET ScriptName='boss_felmyst' WHERE entry=25038;
 UPDATE creature_template SET ScriptName='npc_shield_orb' WHERE entry=25502;
 UPDATE creature_template SET ScriptName='npc_power_blue_flight' WHERE entry=25653;
 UPDATE creature_template SET ScriptName='npc_demonic_vapor' WHERE entry=25265;
 UPDATE creature_template SET ScriptName='npc_darkness' WHERE entry=25879;
 UPDATE creature_template SET ScriptName='npc_singularity' WHERE entry=25855;
+UPDATE creature_template SET ScriptName='npc_dark_fiend' WHERE entry=25744;
+UPDATE creature_template SET ScriptName='npc_core_of_entropius' WHERE entry=26262;
 
 /* SWAMP OF SORROWS */
 UPDATE creature_template SET ScriptName='npc_galen_goodward' WHERE entry=5391;
@@ -4995,7 +4999,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1580006','I need... your help! Cannot... resist him much longer!','12428','1','0','0','23981','kalecgos humanoid SAY_GOOD_AGGRO'),
 ('-1580007','Agghh!! Help me before I lose my mind!','12429','1','0','0','23982','kalecgos humanoid SAY_GOOD_NEAR_DEATH'),
 ('-1580008','Hurry! There is not much of me left!','12430','1','0','0','23983','kalecgos humanoid SAY_GOOD_NEAR_DEATH2'),
-('-1580009','I am forever in your debt. Once we have triumphed over Kil''jaeden, this entire world will be in your debt as well.','12431','1','0','0','25263','kalecgos humanoid SAY_GOOD_PLRWIN'),
+('-1580009','I am forever in your debt. Once we have triumphed over Kil''jaeden, this entire world will be in your debt as well.','12431','0','0','0','25263','kalecgos humanoid SAY_GOOD_PLRWIN'),
 ('-1580010','There will be no reprieve! My work here is nearly finished!','12451','1','0','0','25504','sathrovarr SAY_SATH_AGGRO'),
 ('-1580011','I''m never on the... losing... side!','12452','1','0','0','25505','sathrovarr SAY_SATH_DEATH'),
 ('-1580012','Your misery is my delight!','12453','1','0','0','25506','sathrovarr SAY_SATH_SPELL1'),
@@ -5036,14 +5040,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 
 -- 25512 Misery...confusion...mistrust. These are the hallmarks.
 -- 25511 Depravity...hatred...chaos. These are the pillars.
-('-1580044','Misery...','12484','1','0','0','0','sacrolash SAY_INTRO_1'),
-('-1580045','Depravity...','0','1','0','0','0','alythess SAY_INTRO_2'),
-('-1580046','Confusion...','0','1','0','0','0','sacrolash SAY_INTRO_3'),
-('-1580047','Hatred...','0','1','0','0','0','alythess SAY_INTRO_4'),
-('-1580048','Mistrust...','0','1','0','0','0','sacrolash SAY_INTRO_5'),
-('-1580049','Chaos...','0','1','0','0','44549','alythess SAY_INTRO_6'),
-('-1580050','These are the hallmarks...','0','1','0','0','0','sacrolash SAY_INTRO_7'),
-('-1580051','These are the pillars...','0','1','0','0','0','alythess SAY_INTRO_8'),
+('-1580044','Misery...confusion...mistrust. These are the hallmarks.','12484','1','0','0','25512','sacrolash SAY_INTRO_1'),
+('-1580045','Depravity...hatred...chaos. These are the pillars.','0','1','0','0','25511','alythess SAY_INTRO_2'),
 
 ('-1580052','Shadow to the aid of fire!','12485','1','0','0','24423','sacrolash SAY_SACROLASH_SHADOW_NOVA'),
 ('-1580053','Alythess! Your fire burns within me!','12488','1','0','0','24452','sacrolash SAY_SACROLASH_EMPOWER'),
@@ -5103,7 +5101,22 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1580105','Salvation, young one. It waits for us all.','12522','0','0','1','25414','velen SAY_OUTRO_11'),
 ('-1580106','Farewell...','12523','0','0','1','25415','velen SAY_OUTRO_12'),
 
-('-1580107','%s takes a deep breath.','0','3','0','0','20021','felmyst EMOTE_DEEP_BREATH');
+('-1580107','%s takes a deep breath.','0','3','0','0','20021','felmyst EMOTE_DEEP_BREATH'),
+('-1580108','Kil''jaeden must be destroyed!','12436','0','0','1','25502','kalec SAY_KALEC_OUTRO_2'),
+
+('-1580109','Unit entering energy conservation mode.','0','1','0','0','25200','npc_sunblade_protector SAY_PROTECTOR_REACHED_HOME'),
+('-1580110','Local proximity threat detected. Exiting energy conservation mode.','0','1','0','0','25201','npc_sunblade_protector SAY_INACTIVE_PROTECTOR_AGGRO'),
+('-1580111','Enemies spotted! Attack while I try to activate a Protector!','0','1','0','0','25202','npc_sunblade_scout SAY_SCOUT_AGGRO'),
+('-1580112','Enemy presence detected.','0','1','0','0','25203','npc_sunblade_protector SAY_ACTIVE_PROTECTOR_AGGRO'),
+('-1580113','Unit is now operational and attacking targets.','0','1','0','0','25206','npc_sunblade_protector SAY_PROTECTOR_ACTIVATED_AGGRO'),
+
+('-1580114','There is no time to waste!','0','1','0','0','24993','Kalec Wipe'),
+('-1580115','The fate of the world hangs in the balance!','12437','0','0','1','25503','kalec SAY_KALEC_OUTRO_3'),
+-- gauntlet
+('-1580116','Bring forth the imps!','0','6','0','1','25050','gauntlet Start'),
+-- twins
+('-1580117','Sacrolash directs Shadow Nova at $n.','0','3','0','1','24424','emote shadow nova'),
+('-1580118','Alythess directs Conflagration at $n.','0','3','0','1','24426','emote conflagration');
 
 -- -1 585 000 MAGISTER'S TERRACE
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES

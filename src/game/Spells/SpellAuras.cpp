@@ -2461,9 +2461,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                     case 43873:                             // Headless Horseman Laugh
                         target->PlayDistanceSound(11965);
                         return;
-                    case 46637:                             // Break Ice
-                        target->CastSpell(target, 46638, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                        return;
                     case 46699:                             // Requires No Ammo
                         if (target->GetTypeId() == TYPEID_PLAYER)
                             // not use ammo and not allow use
@@ -2786,11 +2783,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
             {
                 // casted only at creatures at spawn
                 target->CastSpell(target, 47287, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                return;
-            }
-            case 46637:                                     // Break Ice
-            {
-                target->CastSpell(target, 47030, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                 return;
             }
             case 46736:                                     // Personalized Weather
@@ -7640,11 +7632,6 @@ void Aura::PeriodicDummyTick()
 //              case 45960: break;
 //              // Darkness
 //              case 45996: break;
-                case 46041:                                 // Summon Blood Elves Periodic
-                    target->CastSpell(target, 46037, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                    target->CastSpell(target, roll_chance_i(50) ? 46038 : 46039, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                    target->CastSpell(target, 46040, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                    return;
 //              // Transform Visual Missile Periodic
 //              case 46205: break;
 //              // Find Opening Beam End

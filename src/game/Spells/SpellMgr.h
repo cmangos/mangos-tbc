@@ -1713,10 +1713,7 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caste
                 case 39342:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Alliance
                 case 40834:                                 // Agonizing Flames (BT, Illidan Stormrage)
                 case 41537:                                 // Summon Enslaved Soul (BT, Reliquary of Souls)
-                case 44869:                                 // Spectral Blast (SWP, Kalecgos)
                 case 45391:                                 // Summon Demonic Vapor (SWP, Felmyst)
-                case 45785:                                 // Sinister Reflection Clone (SWP, Kil'jaeden)
-                case 45892:                                 // Sinister Reflection (SWP, Kil'jaeden)
                 case 45976:                                 // Open Portal (SWP, M'uru)
                 case 46372:                                 // Ice Spear Target Picker (Slave Pens, Ahune)
                     return 1;
@@ -1731,12 +1728,9 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caste
                 case 41303:                                 // Soul Drain (BT, Reliquary of Souls)
                 case 41376:                                 // Spite (BT, Reliquary of Souls)
                     return 3;
-                case 46650:                                 // Open Brutallus Back Door (SWP, Felmyst)
-                    return 4;
                 case 29232:                                 // Fungal Bloom (Loatheb)
                 case 40243:                                 // Crushing Shadows (BT, Teron Gorefiend)
                 case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)
-                case 45641:                                 // Fire Bloom (SWP, Kil'jaeden)
                     return 5;
                 case 25676:                                 // Drain Mana (correct number has to be researched)
                 case 25754:
@@ -1747,8 +1741,6 @@ inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caste
                 case 26457:                                 // Drain Mana (correct number has to be researched)
                 case 26559:
                     return 12;
-                case 46771:                                 // Flame Sear (SWP, Grand Warlock Alythess)
-                    return urand(3, 5);
                 case 42471:                                 // Hatch Eggs
                     if (UnitAI* ai = static_cast<Unit*>(caster)->AI())
                         return ai->GetScriptData();
@@ -2137,6 +2129,11 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
         case SPELL_AURA_POWER_BURN_MANA:
             if (entry->Id == 38575) // Vashj - Toxic Spores
                 return false;
+            if (entry->Id == 45402) // Felmyst - Demonic Vapor
+                return false;
+            if (entry->Id == 45032 || entry->Id == 45034) // Kalecgos - Curse of boundless agony
+                if (entry2->Id == 45032 || entry2->Id == 45034)
+                    return false;
             return true;
             break;
         // HoT

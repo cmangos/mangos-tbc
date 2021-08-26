@@ -49,6 +49,7 @@
 #include "Entities/CreatureLinkingMgr.h"
 #include "Tools/Formulas.h"
 #include "Entities/Transports.h"
+#include "Anticheat/Anticheat.hpp"
 
 #ifdef BUILD_METRICS
  #include "Metric/Metric.h"
@@ -684,7 +685,7 @@ void Unit::SendMoveRoot(bool state, bool broadcastOnly)
     if (!IsInWorld())
         return;
 
-    const PackedGuid &guid = GetPackGUID();
+    const PackedGuid& guid = GetPackGUID();
     // Pre-Wrath spline root: when unit is currently not controlled by a player, or broadcasting to others
     if (!client || broadcastOnly)
     {
@@ -695,10 +696,14 @@ void Unit::SendMoveRoot(bool state, bool broadcastOnly)
     // Pre-Wrath force root: send only to the controlling player
     else
     {
+        auto const counter = client->GetSession()->GetOrderCounter();
+
         WorldPacket data(state ? SMSG_FORCE_MOVE_ROOT : SMSG_FORCE_MOVE_UNROOT, guid.size() + 4);
         data << guid;
-        data << uint32(0);
+        data << counter;
         client->GetSession()->SendPacket(data);
+        client->GetSession()->GetAnticheat()->OrderSent(data.GetOpcode(), counter);
+        client->GetSession()->IncrementOrderCounter();
     }
 }
 
@@ -8821,6 +8826,40 @@ float Unit::GetSpeedRateInMotion() const
     return (movespline->Finalized() ? GetSpeedRate(type) : (movespline->Speed() / GetSpeed(type)));
 }
 
+float Unit::GetXYFlagBasedSpeed() const
+{
+    return GetXYFlagBasedSpeed(m_movementInfo.moveFlags);
+}
+
+float Unit::GetXYFlagBasedSpeed(uint32 moveFlags) const
+{
+    // not moving laterally? zero!
+    if (!(moveFlags & MOVEFLAG_MASK_XY))
+        return 0.f;
+
+    // swimming?
+    if (!!(moveFlags & MOVEFLAG_SWIMMING))
+    {
+        if (!!(moveFlags & MOVEFLAG_BACKWARD))
+            return GetSpeed(MOVE_SWIM_BACK);
+
+        return GetSpeed(MOVE_SWIM);
+    }
+
+    // walking?
+    if (!!(moveFlags & MOVEFLAG_WALK_MODE))
+    {
+        // Seems to always be same speed forward and backward when walking
+        return GetSpeed(MOVE_WALK);
+    }
+
+    // Presumably only running left when IsMoving is true
+    if (!!(moveFlags & MOVEFLAG_BACKWARD))
+        return GetSpeed(MOVE_RUN_BACK);
+
+    return GetSpeed(MOVE_RUN);
+}
+
 struct SetSpeedRateHelper
 {
     explicit SetSpeedRateHelper(UnitMoveType _mtype, bool _forced) : mtype(_mtype), forced(_forced) {}
@@ -8857,6 +8896,7 @@ void Unit::SetSpeedRate(UnitMoveType mtype, float rate, bool forced)
                 data << uint8(0);                           // new 2.1.0
             data << GetSpeed(mtype);
             player->GetSession()->SendPacket(data);
+            player->GetSession()->GetAnticheat()->OrderSent(data.GetOpcode(), counter);
             player->GetSession()->IncrementOrderCounter();
         }
         else
@@ -10996,6 +11036,7 @@ void Unit::SendTeleportPacket(float x, float y, float z, float ori, GenericTrans
         data << uint32(counter); // this value increments every time
         data << teleportMovementInfo;
         player->GetSession()->SendPacket(data);
+        player->GetSession()->GetAnticheat()->OrderSent(data.GetOpcode(), counter);
         player->GetSession()->IncrementOrderCounter();
     }
 
@@ -12751,6 +12792,7 @@ void Unit::SetCanFly(bool enable)
             data << GetPackGUID();
             data << counter;
             player->GetSession()->SendPacket(data);
+            player->GetSession()->GetAnticheat()->OrderSent(data.GetOpcode(), counter);
             player->GetSession()->IncrementOrderCounter();
             return;
         }
@@ -12787,6 +12829,7 @@ void Unit::SetFeatherFall(bool enable)
             data << GetPackGUID();
             data << counter;
             player->GetSession()->SendPacket(data);
+            player->GetSession()->GetAnticheat()->OrderSent(data.GetOpcode(), counter);
             player->GetSession()->IncrementOrderCounter();
 
             // start fall from current height
@@ -12828,6 +12871,7 @@ void Unit::SetHover(bool enable)
             data << GetPackGUID();
             data << counter;
             player->GetSession()->SendPacket(data);
+            player->GetSession()->GetAnticheat()->OrderSent(data.GetOpcode(), counter);
             player->GetSession()->IncrementOrderCounter();
             return;
         }
@@ -12863,6 +12907,7 @@ void Unit::SetWaterWalk(bool enable)
             data << GetPackGUID();
             data << counter;
             player->GetSession()->SendPacket(data);
+            player->GetSession()->GetAnticheat()->OrderSent(data.GetOpcode(), counter);
             player->GetSession()->IncrementOrderCounter();
             return;
         }

@@ -37,6 +37,7 @@
 #include "Social/SocialMgr.h"
 #include "GMTickets/GMTicketMgr.h"
 #include "Loot/LootMgr.h"
+#include "Anticheat/Anticheat.hpp"
 
 #include <mutex>
 #include <deque>
@@ -90,15 +91,17 @@ bool WorldSessionFilter::Process(WorldPacket const& packet) const
 }
 
 /// WorldSession constructor
-WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruitingFriend, bool isARecruiter) :
-    LookingForGroup_auto_join(false), LookingForGroup_auto_add(true), m_muteTime(mute_time),
+WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, std::string accountName, uint32 accountFlags, uint32 recruitingFriend, bool isARecruiter) :
+    LookingForGroup_auto_join(false), LookingForGroup_auto_add(true), m_muteTime(mute_time), m_accountName(accountName),
     _player(nullptr), m_Socket(sock ? sock->shared<WorldSocket>() : nullptr),
+    m_gameBuild(0), m_clientOS(CLIENT_OS_UNKNOWN), m_accountMaxLevel(0), m_lastAnticheatUpdate(0), m_anticheat(nullptr), m_localAddress("127.0.0.1"),
     m_requestSocket(nullptr), m_sessionState(WORLD_SESSION_STATE_CREATED),
     _security(sec), _accountId(id), m_expansion(expansion), m_orderCounter(0), _logoutTime(0), m_playerSave(true),
     m_inQueue(false), m_playerLoading(false), m_kickSession(false), m_playerLogout(false), m_playerRecentlyLogout(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetStorageLocaleIndexFor(locale)),
     m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED),
-    m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0), m_recruitingFriendId(recruitingFriend), m_isRecruiter(isARecruiter)
+    m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0),
+    m_accountFlags(accountFlags), m_recruitingFriendId(recruitingFriend), m_isRecruiter(isARecruiter)
     {}
 
 /// WorldSession destructor
@@ -185,6 +188,7 @@ void WorldSession::SetPlayer(Player* plr, uint32 playerGuid)
     _player = plr;
     if (plr)
         m_GUIDLow = playerGuid;
+    m_anticheat->NewPlayer();
 }
 
 void WorldSession::SetExpansion(uint8 expansion)
@@ -331,6 +335,7 @@ void WorldSession::ProcessByteBufferException(WorldPacket const& packet)
     {
         DETAIL_LOG("Disconnecting session [account id %u / address %s] for badly formatted packet.",
             GetAccountId(), GetRemoteAddress().c_str());
+        m_anticheat->RecordCheat(CHEAT_ACTION_INFO_LOG, "Anticrash", "ByteBufferException");
         ObjectGuid guid = _player->GetObjectGuid();
         GetMessager().AddMessage([guid](WorldSession* world) -> void
         {
@@ -348,6 +353,13 @@ bool WorldSession::Update(uint32 diff)
     {
         std::lock_guard<std::mutex> guard(m_recvQueueLock);
         std::swap(recvQueueCopy, m_recvQueue);
+    }
+
+    if (m_Socket && !m_Socket->IsClosed() && m_anticheat)
+    {
+        auto const now = WorldTimer::getMSTime();
+        m_anticheat->Update(WorldTimer::getMSTimeDiff(m_lastAnticheatUpdate, now));
+        m_lastAnticheatUpdate = now;
     }
 
     ///- Retrieve packets from the receive queue and call the appropriate handlers
@@ -400,7 +412,7 @@ bool WorldSession::Update(uint32 diff)
                     break;
                 case STATUS_AUTHED:
                     // prevent cheating with skip queue wait
-                    if (m_inQueue)
+                    if (m_inQueue && packet->GetOpcode() != CMSG_WARDEN_DATA)
                     {
                         LogUnexpectedOpcode(*packet, "the player not pass queue yet");
                         break;
@@ -584,6 +596,10 @@ void WorldSession::UpdateMap(uint32 diff)
 /// %Log the player out
 void WorldSession::LogoutPlayer()
 {
+    // if the player has just logged out, there is no need to do anything here
+    if (m_playerRecentlyLogout)
+        return;
+
     // finish pending transfers before starting the logout
     while (_player && _player->IsBeingTeleportedFar())
         HandleMoveWorldportAckOpcode();
@@ -1252,4 +1268,24 @@ void WorldSession::SendTimeSync()
     // Schedule next sync in 10 sec (except for the 2 first packets, which are spaced by only 5s)
     m_timeSyncTimer = m_timeSyncNextCounter == 0 ? 5000 : 10000;
     m_timeSyncNextCounter++;
+}
+
+void WorldSession::InitializeAnticheat(const BigNumber& K)
+{
+    m_anticheat = std::move(sAnticheatLib->NewSession(this, K));
+}
+
+void WorldSession::AssignAnticheat()
+{
+    m_anticheat = std::move(m_delayedAnticheat);
+}
+
+void WorldSession::SetDelayedAnticheat(std::unique_ptr<SessionAnticheatInterface>&& anticheat)
+{
+    m_delayedAnticheat = std::move(anticheat);
+}
+
+void WorldSession::HandleWardenDataOpcode(WorldPacket& recv_data)
+{
+    m_anticheat->WardenPacket(recv_data);
 }

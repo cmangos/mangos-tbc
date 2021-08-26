@@ -30,6 +30,7 @@
 #include "Maps/MapPersistentStateMgr.h"
 #include "Globals/ObjectMgr.h"
 #include "World/World.h"
+#include "Anticheat/Anticheat.hpp"
 
 #include <boost/accumulators/statistics/variance.hpp>
 #include <boost/accumulators/accumulators.hpp>
@@ -205,6 +206,8 @@ void WorldSession::HandleMoveWorldportAckOpcode()
             }
         }
 
+        m_anticheat->Teleport({ loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation });
+
         GetPlayer()->SendInitialPacketsAfterAddToMap();
 
         // flight fast teleport case
@@ -267,6 +270,8 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
     if (guid != plMover->GetObjectGuid())
         return;
 
+    m_anticheat->OrderAck(recv_data.GetOpcode(), counter);
+
     plMover->SetSemaphoreTeleportNear(false);
 
     uint32 old_zone = plMover->GetZoneId();
@@ -297,6 +302,8 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
         if (plMover->pvpInfo.inPvPEnforcedArea)
             plMover->CastSpell(plMover, 2479, TRIGGERED_OLD_TRIGGERED);
     }
+
+    m_anticheat->Teleport({ dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation });
 
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
@@ -338,15 +345,22 @@ void WorldSession::HandleForceSpeedChangeAckOpcodes(WorldPacket& recv_data)
 
     /* extract packet */
     ObjectGuid guid;
+    uint32 counter;
     MovementInfo movementInfo;
     float  newspeed;
 
     recv_data >> guid;
-    recv_data >> Unused<uint32>();                          // counter or moveEvent
+    recv_data >> counter;
     recv_data >> movementInfo;
     recv_data >> newspeed;
 
+    // we must inform the anticheat even if it is not for the mover, as it will affect pets
+    m_anticheat->OrderAck(opcode, counter);
     /*----------------*/
+
+    // Process anticheat checks, remember client-side speed ...
+    if (_player->IsSelfMover() && !m_anticheat->SpeedChangeAck(movementInfo, recv_data, newspeed))
+        return;
 
     // client ACK send one packet for mounted/run case and need skip all except last from its
     // in other cases anti-cheat check can be fail in false case
@@ -415,6 +429,8 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket& recv_data)
     ObjectGuid guid;
     recv_data >> guid;
 
+    m_anticheat->Movement(_player->GetMover()->m_movementInfo, recv_data);
+
     if (_player->GetMover()->GetObjectGuid() != guid)
     {
         sLog.outError("HandleSetActiveMoverOpcode: incorrect mover guid: mover is %s and should be %s",
@@ -471,11 +487,14 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket& recv_data)
     }
 
     ObjectGuid guid;
+    uint32 counter;
     MovementInfo movementInfo;
 
     recv_data >> guid;
-    recv_data >> Unused<uint32>();                          // knockback packets counter
+    recv_data >> counter;
     recv_data >> movementInfo;
+
+    m_anticheat->OrderAck(recv_data.GetOpcode(), counter);
 
     if (!ProcessMovementInfo(movementInfo, mover, _player, recv_data))
         return;
@@ -508,6 +527,8 @@ void WorldSession::SendKnockBack(Unit* who, float angle, float horizontalSpeed, 
     data << float(-verticalSpeed);                      // Z Movement speed (vertical)
     SendPacket(data);
     IncrementOrderCounter();
+
+    m_anticheat->KnockBack(horizontalSpeed, -verticalSpeed, vcos, vsin);
 }
 
 void WorldSession::HandleMoveFlagChangeOpcode(WorldPacket& recv_data)
@@ -523,6 +544,8 @@ void WorldSession::HandleMoveFlagChangeOpcode(WorldPacket& recv_data)
     recv_data >> counter;
     recv_data >> movementInfo;
     recv_data >> isApplied;
+
+    m_anticheat->OrderAck(recv_data.GetOpcode(), counter);
 
     Unit* mover = _player->GetMover();
 
@@ -555,6 +578,8 @@ void WorldSession::HandleMoveRootAck(WorldPacket& recv_data)
     recv_data >> guid;
     recv_data >> counter;
     recv_data >> movementInfo;
+
+    m_anticheat->OrderAck(recv_data.GetOpcode(), counter);
 
     Unit* mover = _player->GetMover();
 
@@ -700,6 +725,7 @@ void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket& recv_data)
 
     mover->m_movementInfo.stime += timeSkipped;
     mover->m_movementInfo.ctime += timeSkipped;
+    m_anticheat->TimeSkipped(guid, timeSkipped);
 
     // Send to other players
     WorldPacket data(MSG_MOVE_TIME_SKIPPED, 16);
@@ -722,6 +748,9 @@ bool WorldSession::ProcessMovementInfo(MovementInfo& movementInfo, Unit* mover, 
     // fall damage generation (ignore in flight case that can be triggered also at lags in moment teleportation to another map).
     if (recv_data.GetOpcode() == MSG_MOVE_FALL_LAND && plMover && !plMover->IsTaxiFlying())
         plMover->HandleFall(movementInfo);
+
+    if (!m_anticheat->Movement(movementInfo, recv_data))
+        return false;
 
     /* process position-change */
     HandleMoverRelocation(movementInfo);

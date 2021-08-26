@@ -28,6 +28,7 @@
 #include "Groups/Group.h"
 #include "Social/SocialMgr.h"
 #include "Util.h"
+#include "Anticheat/Anticheat.hpp"
 
 /* differeces from off:
     -you can uninvite yourself - is is useful
@@ -91,6 +92,12 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
     if (recipient->GetSocial()->HasIgnore(initiator->GetObjectGuid()))
     {
         SendPartyResult(PARTY_OP_INVITE, membername, ERR_IGNORING_YOU_S);
+        return;
+    }
+
+    if (GetAnticheat()->IsSilenced())
+    {
+        SendPartyResult(PARTY_OP_INVITE, membername, ERR_PARTY_RESULT_OK);
         return;
     }
 
@@ -162,6 +169,9 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recv_data)
             return;
         }
     }
+
+    // Record targets for uniqueness when spamming
+    GetAnticheat()->PartyInvite(recipient->GetObjectGuid());
 
     // ok, we do it
     WorldPacket data(SMSG_GROUP_INVITE, 10);                // guess size

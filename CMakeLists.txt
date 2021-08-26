@@ -28,7 +28,7 @@ endif()
 project(CMaNGOS_TBC)
 
 # Require C++ 14 support
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -382,7 +382,7 @@ add_subdirectory(dep)
 set(DEFINITIONS "")
 
 if(UNIX)
-  set(DEFINITIONS SYSCONFDIR="../${CONF_FOLDER_NAME}/")
+  set(DEFINITIONS SYSCONFDIR="../${CONF_FOLDER_NAME}/ ")
 endif()
 
 if(POSTGRESQL)

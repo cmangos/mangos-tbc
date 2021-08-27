@@ -51,7 +51,8 @@ enum
     SPELL_GRAVITY_LAPSE_VISUAL  = 44251,                    // Channeled; blue beam animation to every enemy in range - when removed the Gravity Lapse auras are removed from players
     SPELL_TELEPORT_CENTER       = 44218,                    // Teleport the boss in the center. Requires DB entry in spell_target_position.
     SPELL_GRAVITY_LAPSE_FLY     = 44227,                    // Hastens flyspeed and allows flying for 1 minute. Requires aura stacking exception for 44226.
-    SPELL_GRAVITY_LAPSE_DOT     = 44226,                    // Knocks up in the air and applies a 300 DPS DoT.
+    SPELL_GRAVITY_LAPSE_DOT_H   = 44226,                    // Knocks up in the air and applies a 300 DPS DoT.
+    SPELL_GRAVITY_LAPSE_DOT_N   = 49887,
     SPELL_ARCANE_SPHERE_SUMMON  = 44265,                    // Summons 1 arcane sphere
     SPELL_POWER_FEEDBACK        = 44233,                    // Stuns him, making him take 50% more damage for 10 seconds. Cast after Gravity Lapse
     SPELL_POWER_FEEDBACK_H      = 47109,
@@ -110,9 +111,9 @@ enum FelbloodKaelthasActions
     KAEL_OUTRO,
 };
 
-struct boss_felblood_kaelthasAI : public CombatAI
+struct boss_felblood_kaelthasAI : public RangedCombatAI
 {
-    boss_felblood_kaelthasAI(Creature* creature) : CombatAI(creature, KAEL_ACTION_MAX),
+    boss_felblood_kaelthasAI(Creature* creature) : RangedCombatAI(creature, KAEL_ACTION_MAX),
         m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_isRegularMode(creature->GetMap()->IsRegularDifficulty()), m_introStarted(false)
     {
         AddTimerlessCombatAction(KAEL_ACTION_ENERGY_FEEDBACK, false);
@@ -139,6 +140,15 @@ struct boss_felblood_kaelthasAI : public CombatAI
             HandleOutro();
         });
         SetDeathPrevention(true);
+        SetRangedMode(true, 20.f, TYPE_PROXIMITY);
+        AddMainSpell(m_isRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H);
+        if (m_instance)
+        {
+            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
+            {
+                return static_cast<ScriptedInstance*>(unit->GetInstanceData())->GetPlayerInMap(true, false) == nullptr;
+            });
+        }
         Reset();
     }
 
@@ -160,7 +170,10 @@ struct boss_felblood_kaelthasAI : public CombatAI
     {
         CombatAI::Reset();
 
-        SetReactState(REACT_PASSIVE);
+        if (!m_introStarted)
+            SetReactState(REACT_PASSIVE);
+        else
+            SetReactState(REACT_AGGRESSIVE);
         m_gravityLapseStage   = 0;
 
         m_firstGravityLapse    = true;
@@ -172,8 +185,8 @@ struct boss_felblood_kaelthasAI : public CombatAI
         m_attackDistance = 20.0f;
 
         SetCombatMovement(true);
-
-        m_attackDistance = 20.0f;
+        SetCombatScriptStatus(false);
+        SetMeleeEnabled(true);
 
         DespawnGuids(m_spawns);
     }
@@ -182,19 +195,12 @@ struct boss_felblood_kaelthasAI : public CombatAI
     {
         if (m_instance)
             m_instance->SetData(TYPE_KAELTHAS, DONE);
-        DespawnGuids(m_spawns);
     }
 
     void Aggro(Unit* /*who*/) override
     {
         if (m_instance)
             m_instance->SetData(TYPE_KAELTHAS, IN_PROGRESS);
-    }
-
-    void JustReachedHome() override
-    {
-        if (m_instance)
-            m_instance->SetData(TYPE_KAELTHAS, FAIL);
     }
 
     void JustPreventedDeath(Unit* /*attacker*/) override
@@ -220,6 +226,17 @@ struct boss_felblood_kaelthasAI : public CombatAI
     {
         if (eventType == AI_EVENT_CUSTOM_A && bool(miscValue) && !m_outroStage) // Gravity Lapse end
             SetActionReadyStatus(KAEL_ACTION_ENERGY_FEEDBACK, true);
+    }
+
+    void EnterEvadeMode() override
+    {
+        DespawnGuids(m_spawns);
+
+        if (m_instance)
+            m_instance->SetData(TYPE_KAELTHAS, FAIL);
+
+        m_creature->SetRespawnDelay(30, true);
+        m_creature->ForcedDespawn();
     }
 
     void HandleIntro()
@@ -261,9 +278,13 @@ struct boss_felblood_kaelthasAI : public CombatAI
         switch (m_outroStage)
         {
             case 0:
+                DespawnGuids(m_spawns);
                 SetCombatScriptStatus(true);
                 m_creature->SetTarget(nullptr);
+                SetMeleeEnabled(false);
+                DisableTimer(KAEL_GRAVITY_LAPSE_SCRIPT);
                 DoScriptText(SAY_DEATH, m_creature);
+                m_creature->SetFacingTo(m_creature->GetRespawnPosition().o);
                 timer = 1200;
                 break;
             case 1:
@@ -316,6 +337,7 @@ struct boss_felblood_kaelthasAI : public CombatAI
         switch (m_gravityLapseStage)
         {
             case 0:
+                m_creature->SetFacingTo(m_creature->GetRespawnPosition().o);
                 for (uint8 i = 0; i < MAX_ARCANE_SPHERES; ++i)
                     DoCastSpellIfCan(nullptr, SPELL_ARCANE_SPHERE_SUMMON);
                 timer = 1500;
@@ -323,7 +345,7 @@ struct boss_felblood_kaelthasAI : public CombatAI
             case 1:
                 DoCastSpellIfCan(nullptr, SPELL_GRAVITY_LAPSE_VISUAL);
                 SetCombatScriptStatus(false);
-                SetMeleeEnabled(false);
+                SetMeleeEnabled(true);
                 break;
         }
         ++m_gravityLapseStage;
@@ -359,6 +381,7 @@ struct boss_felblood_kaelthasAI : public CombatAI
                     m_gravityLapseStage = 0;
                     SetCombatScriptStatus(true);
                     m_creature->SetTarget(nullptr);
+                    m_creature->SetFacingTo(m_creature->GetRespawnPosition().o);
                 }
                 return;
             }
@@ -397,7 +420,7 @@ struct boss_felblood_kaelthasAI : public CombatAI
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_SHOCK_BARRIER) == CAST_OK)
                 {
-                    ResetCombatAction(KAEL_ACTION_PYROBLAST, 1000);
+                    ResetCombatAction(KAEL_ACTION_PYROBLAST, 2000);
                     ResetCombatAction(action, 60000);
                 }
                 return;
@@ -425,9 +448,8 @@ struct boss_felblood_kaelthasAI : public CombatAI
             }
             case KAEL_ACTION_FIREBALL:
             {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-                    if (DoCastSpellIfCan(target, m_isRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H) == CAST_OK)
-                        ResetCombatAction(action, urand(2000, 4000));
+                if (DoCastSpellIfCan(m_creature->GetVictim(), m_isRegularMode ? SPELL_FIREBALL : SPELL_FIREBALL_H) == CAST_OK)
+                    ResetCombatAction(action, GetCurrentRangedMode() ? urand(2000, 3000) : urand(4000, 6000));
                 return;
             }
         }
@@ -491,6 +513,39 @@ struct mob_arcane_sphereAI : public ScriptedAI
     }
 };
 
+struct spell_gravity_lapse_mgt : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        if (!unitTarget)
+            return;
+
+        static const uint32 aGravityLapseSpells[] = { 44219, 44220, 44221, 44222, 44223 };
+        spell->GetCaster()->CastSpell(unitTarget, aGravityLapseSpells[spell->GetScriptValue()], TRIGGERED_OLD_TRIGGERED);
+        unitTarget->CastSpell(nullptr, SPELL_GRAVITY_LAPSE_FLY, TRIGGERED_OLD_TRIGGERED);
+        if (unitTarget->GetMap()->IsRegularDifficulty())
+            unitTarget->CastSpell(nullptr, SPELL_GRAVITY_LAPSE_DOT_N, TRIGGERED_OLD_TRIGGERED);
+        else
+            unitTarget->CastSpell(nullptr, SPELL_GRAVITY_LAPSE_DOT_H, TRIGGERED_OLD_TRIGGERED);
+        spell->SetScriptValue(spell->GetScriptValue() + 1);
+    }
+};
+
+struct spell_clear_flight_mgt : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        if (!unitTarget)
+            return;
+
+        unitTarget->RemoveAurasDueToSpell(SPELL_GRAVITY_LAPSE_FLY);
+        unitTarget->RemoveAurasDueToSpell(SPELL_GRAVITY_LAPSE_DOT_H);
+        unitTarget->RemoveAurasDueToSpell(SPELL_GRAVITY_LAPSE_DOT_N);
+    }
+};
+
 void AddSC_boss_felblood_kaelthas()
 {
     Script* pNewScript = new Script;
@@ -502,4 +557,7 @@ void AddSC_boss_felblood_kaelthas()
     pNewScript->Name = "mob_arcane_sphere";
     pNewScript->GetAI = &GetNewAIInstance<mob_arcane_sphereAI>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<spell_gravity_lapse_mgt>("spell_gravity_lapse_mgt");
+    RegisterSpellScript<spell_clear_flight_mgt>("spell_clear_flight_mgt");
 }

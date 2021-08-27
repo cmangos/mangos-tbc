@@ -130,6 +130,19 @@ struct InactiveBattleground : public SpellScript
     }
 };
 
+struct ArenaPreparation : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (aura->GetEffIndex() == EFFECT_INDEX_1)
+            if (apply)
+                if (Unit* target = aura->GetTarget())
+                    if (target->IsPlayer())
+                        if (Player* p = static_cast<Player*>(target))
+                            if (p->InArena() && p->GetBattleGround() && p->GetBGTeam() == HORDE && p->GetBattleGround()->GetStatus() == STATUS_WAIT_JOIN)
+                                aura->GetModifier()->m_miscvalue = 5; // make teams invisible to eachother during prep phase (default value is 4)
+    }
+};
 
 /*#####
 # spell_battleground_banner_trigger
@@ -188,6 +201,7 @@ void AddSC_battleground()
 
     RegisterSpellScript<OpeningCapping>("spell_opening_capping");
     RegisterSpellScript<InactiveBattleground>("spell_inactive");
+    RegisterAuraScript<ArenaPreparation>("spell_arena_preparation");
     RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");
     RegisterSpellScript<spell_outdoor_pvp_banner_trigger>("spell_outdoor_pvp_banner_trigger");
 }

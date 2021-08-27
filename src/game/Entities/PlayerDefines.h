@@ -27,7 +27,6 @@
 #include <string>
 
 class Aura;
-class Spell;
 
 enum SpellModOp
 {
@@ -73,32 +72,60 @@ enum SpellModType
 // Spell modifier (used for modify other spells)
 struct SpellModifier
 {
-    SpellModifier() : charges(0), lastAffected(nullptr) {}
+    static uint64 modCounter;
 
-    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, uint32 _spellId, uint64 _mask, int16 _charges = 0)
-        : op(_op), type(_type), charges(_charges), value(_value), mask(_mask), spellId(_spellId), lastAffected(nullptr)
+    uint64 GetModId() { return modCounter++; }
+
+    SpellModifier() : charges(0), priority(0), isFinite(false) {}
+
+    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, uint32 _spellId, uint64 _mask, int32 _priority = 0, int16 _charges = 0)
+        : op(_op), type(_type), charges(_charges), value(_value), mask(_mask), spellId(_spellId), priority(_priority), isFinite(_charges>0), modId(GetModId())
     {}
 
-    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, uint32 _spellId, ClassFamilyMask _mask, int16 _charges = 0)
-        : op(_op), type(_type), charges(_charges), value(_value), mask(_mask), spellId(_spellId), lastAffected(nullptr)
+    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, uint32 _spellId, ClassFamilyMask _mask, int32 _priority = 0, int16 _charges = 0)
+        : op(_op), type(_type), charges(_charges), value(_value), mask(_mask), spellId(_spellId), priority(_priority), isFinite(_charges>0), modId(GetModId())
     {}
 
-    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, SpellEntry const* spellEntry, SpellEffectIndex eff, int16 _charges = 0);
+    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, SpellEntry const* spellEntry, SpellEffectIndex eff, int32 _priority = 0, int16 _charges = 0);
 
-    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, Aura const* aura, int16 _charges = 0);
+    SpellModifier(SpellModOp _op, SpellModType _type, int32 _value, Aura const* aura, int32 _priority = 0, int16 _charges = 0);
 
     bool isAffectedOnSpell(SpellEntry const* spell) const;
 
-    SpellModOp   op   : 8;
+    SpellModOp   op : 8;
     SpellModType type : 8;
-    int16 charges     : 16;
+    int16 charges : 16;
     int32 value;
     ClassFamilyMask mask;
     uint32 spellId;
-    Spell const* lastAffected;                              // mark last charge user, used for cleanup delayed remove spellmods at spell success or restore charges at cast fail (Is one pointer only need for cases mixed castes?)
+    int32 priority;
+    bool isFinite;
+    uint64 modId;
+};
+
+struct SpellModifierComparator
+{
+    bool operator() (SpellModifier* a, SpellModifier* b) { return (a->priority > b->priority); }
 };
 
 typedef std::list<SpellModifier*> SpellModList;
+typedef std::vector<SpellModifier*> SpellModVector;
+
+struct SpellModifierPair
+{
+    uint32 spellId;
+    uint64 modId;
+    SpellModifierPair() : spellId(0), modId(0) {}
+    SpellModifierPair(uint32 _spellId, uint64 _modifierId) : spellId(_spellId), modId(_modifierId) {}
+    bool operator<(const SpellModifierPair &rhs) const
+    {
+        return spellId < rhs.spellId;
+    }
+    bool operator>(const SpellModifierPair &rhs) const
+    {
+        return spellId > rhs.spellId;
+    }
+};
 
 // typedef std::set<SpellModifierPair>  ConsumedSpellModifiers;
 

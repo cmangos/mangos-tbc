@@ -413,7 +413,7 @@ void PlayerMenu::SendQuestGiverQuestDetails(Quest const* pQuest, ObjectGuid guid
     }
 
     // rewarded honor points. Multiply with 10 to satisfy client
-    data << uint32(10 * MaNGOS::Honor::hk_honor_at_level(GetMenuSession()->GetPlayer()->getLevel(), pQuest->GetRewHonorableKills()));
+    data << uint32(10 * MaNGOS::Honor::hk_honor_at_level(GetMenuSession()->GetPlayer()->GetLevel(), pQuest->GetRewHonorableKills()));
     data << uint32(pQuest->GetRewSpell());                  // reward spell, this spell will display (icon) (casted if RewSpellCast==0)
     data << uint32(pQuest->GetRewSpellCast());              // casted spell
     data << uint32(pQuest->GetCharTitleBitIndex());         // CharTitle, new 2.4.0, player gets this title (bit index from CharTitles)
@@ -506,7 +506,7 @@ void PlayerMenu::SendQuestGiverOfferReward(Quest const* pQuest, ObjectGuid npcGU
     data << uint32(pQuest->GetRewOrReqMoney());
 
     // rewarded honor points. Multiply with 10 to satisfy client
-    data << uint32(10 * MaNGOS::Honor::hk_honor_at_level(GetMenuSession()->GetPlayer()->getLevel(), pQuest->GetRewHonorableKills()));
+    data << uint32(10 * MaNGOS::Honor::hk_honor_at_level(GetMenuSession()->GetPlayer()->GetLevel(), pQuest->GetRewHonorableKills()));
     data << uint32(0x08);                                   // unused by client?
     data << uint32(pQuest->GetRewSpell());                  // reward spell, this spell will display (icon) (casted if RewSpellCast==0)
     data << uint32(pQuest->GetRewSpellCast());              // casted spell

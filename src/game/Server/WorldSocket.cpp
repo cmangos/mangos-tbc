@@ -71,13 +71,20 @@ std::vector<uint32> InitOpcodeCooldowns()
 
 std::vector<uint32> WorldSocket::m_packetCooldowns = InitOpcodeCooldowns();
 
-std::deque<uint32> WorldSocket::GetOpcodeHistory()
+std::deque<uint32> WorldSocket::GetOutOpcodeHistory()
 {
-    return m_opcodeHistory;
+    std::lock_guard<std::mutex> guard(m_worldSocketMutex);
+    return m_opcodeHistoryOut;
+}
+
+std::deque<uint32> WorldSocket::GetIncOpcodeHistory()
+{
+    std::lock_guard<std::mutex> guard(m_worldSocketMutex);
+    return m_opcodeHistoryInc;
 }
 
 WorldSocket::WorldSocket(boost::asio::io_service& service, std::function<void (Socket*)> closeHandler) : Socket(service, std::move(closeHandler)), m_lastPingTime(std::chrono::system_clock::time_point::min()), m_overSpeedPings(0), m_existingHeader(),
-    m_useExistingHeader(false), m_session(nullptr), m_seed(urand())
+    m_useExistingHeader(false), m_session(nullptr), m_seed(urand()), m_loggingPackets(false)
 {
 }
 
@@ -86,7 +93,7 @@ void WorldSocket::SendPacket(const WorldPacket& pct, bool immediate)
     if (IsClosed())
         return;
 
-    if (sPacketLog->CanLogPacket())
+    if (sPacketLog->CanLogPacket() && IsLoggingPackets())
         sPacketLog->LogPacket(pct, SERVER_TO_CLIENT, GetRemoteIpAddress(), GetRemotePort());
 
     // Dump outgoing packet.
@@ -113,9 +120,9 @@ void WorldSocket::SendPacket(const WorldPacket& pct, bool immediate)
     if (immediate)
         ForceFlushOut();
 
-    m_opcodeHistory.push_front(uint32(pct.GetOpcode()));
-    if (m_opcodeHistory.size() > 50)
-        m_opcodeHistory.resize(20);
+    m_opcodeHistoryOut.push_front(uint32(pct.GetOpcode()));
+    if (m_opcodeHistoryOut.size() > 50)
+        m_opcodeHistoryOut.resize(30);
 }
 
 bool WorldSocket::Open()
@@ -207,7 +214,7 @@ bool WorldSocket::ProcessIncomingData()
         ReadSkip(validBytesRemaining);
     }
 
-    if (sPacketLog->CanLogPacket())
+    if (sPacketLog->CanLogPacket() && IsLoggingPackets())
         sPacketLog->LogPacket(*pct, CLIENT_TO_SERVER, GetRemoteIpAddress(), GetRemotePort());
 
     sLog.outWorldPacketDump(GetRemoteEndpoint().c_str(), pct->GetOpcode(), pct->GetOpcodeName(), *pct, true);
@@ -245,6 +252,10 @@ bool WorldSocket::ProcessIncomingData()
                 pct->SetReceivedTime(std::chrono::steady_clock::now());
             default:
             {
+                m_opcodeHistoryInc.push_front(uint32(pct->GetOpcode()));
+                if (m_opcodeHistoryInc.size() > 50)
+                    m_opcodeHistoryInc.resize(30);
+
                 if (!m_session)
                 {
                     sLog.outError("WorldSocket::ProcessIncomingData: Client not authed opcode = %u", uint32(opcode));

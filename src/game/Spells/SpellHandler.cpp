@@ -276,6 +276,9 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
     if (!_player->IsSelfMover())
         return;
 
+    if (_player->IsBeingTeleported())
+        return;
+
     GameObject* obj = _player->GetMap()->GetGameObject(guid);
     if (!obj)
         return;
@@ -378,7 +381,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     if (Unit* target = targets.getUnitTarget())
     {
         // if rank not found then function return nullptr but in explicit cast case original spell can be casted and later failed with appropriate error message
-        if (SpellEntry const* actualSpellInfo = sSpellMgr.SelectAuraRankForLevel(spellInfo, target->getLevel()))
+        if (SpellEntry const* actualSpellInfo = sSpellMgr.SelectAuraRankForLevel(spellInfo, target->GetLevel()))
             spellInfo = actualSpellInfo;
     }
 

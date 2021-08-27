@@ -177,8 +177,8 @@ struct PowerCircleAura : public AuraScript
     void OnApply(Aura* aura, bool apply) const
     {
         Unit* target = aura->GetTarget();
-        if (apply)
-            target->CastSpell(target, SPELL_LIMITLESS_POWER, TRIGGERED_OLD_TRIGGERED);
+        if (apply && target->GetObjectGuid() == aura->GetCasterGuid())
+            target->CastSpell(nullptr, SPELL_LIMITLESS_POWER, TRIGGERED_OLD_TRIGGERED);
         else
             target->RemoveAurasDueToSpell(SPELL_LIMITLESS_POWER);
     }
@@ -271,6 +271,14 @@ struct Drink : public AuraScript
     }
 };
 
+struct ReducedProcChancePast60 : public AuraScript
+{
+    void OnHolderInit(SpellAuraHolder* holder, WorldObject* /*caster*/) const override
+    {
+        holder->SetReducedProcChancePast60();
+    }
+};
+
 void AddSC_item_scripts()
 {
     Script* pNewScript = new Script;
@@ -301,4 +309,5 @@ void AddSC_item_scripts()
     RegisterAuraScript<GDRPeriodicDamage>("spell_gdr_periodic");
     RegisterAuraScript<OgrilaFlasks>("spell_ogrila_flasks");
     RegisterAuraScript<Drink>("spell_drink");
+    RegisterAuraScript<ReducedProcChancePast60>("spell_reduced_proc_chance_past60");
 }

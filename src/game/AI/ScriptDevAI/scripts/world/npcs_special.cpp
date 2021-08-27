@@ -64,7 +64,7 @@ struct SpawnAssociation
 enum
 {
     SPELL_GUARDS_MARK               = 38067,
-    AURA_DURATION_TIME_LEFT         = 5000
+    AURA_DURATION_TIME_LEFT         = 10000
 };
 
 const float RANGE_TRIPWIRE          = 15.0f;
@@ -139,10 +139,14 @@ struct npc_air_force_botsAI : public ScriptedAI
 
     Creature* SummonGuard()
     {
-        Creature* pSummoned = m_creature->SummonCreature(m_pSpawnAssoc->m_uiSpawnedCreatureEntry, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 300000);
+        Creature* pSummoned = m_creature->SummonCreature(m_pSpawnAssoc->m_uiSpawnedCreatureEntry, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 360000);
 
         if (pSummoned)
+        {
             m_spawnedGuid = pSummoned->GetObjectGuid();
+            pSummoned->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 10.0f, FORCED_MOVEMENT_FLIGHT);
+        }
+
         else
         {
             error_db_log("SD2: npc_air_force_bots: wasn't able to spawn creature %u", m_pSpawnAssoc->m_uiSpawnedCreatureEntry);
@@ -1267,6 +1271,7 @@ enum npc_burster_worm
     NPC_GREATER_CRUST_BURSTER           = 21380,
 
     // npcs that use bone bore
+    NPC_CRUST_BURSTER                   = 16844,
     NPC_BONE_CRAWLER                    = 21849,
     NPC_HAISHULUD                       = 22038,
     NPC_BONE_SIFTER                     = 22466,
@@ -1329,6 +1334,7 @@ struct npc_burster_wormAI : public CombatAI
     {
         switch (m_creature->GetEntry())
         {
+            case NPC_CRUST_BURSTER:
             case NPC_MARAUDING_BURSTER:
             case NPC_FULGORGE:
                 return SPELL_TUNNEL_BORE_RED_PASSIVE;
@@ -1653,6 +1659,21 @@ enum
     SPELL_FIRE_NOVA     = 12470,
 };
 
+struct npc_shaman_elementalAI : CombatAI
+{
+    npc_shaman_elementalAI(Creature* creature, uint32 actionCount) : CombatAI(creature, actionCount) {}
+
+    void JustRespawned() override
+    {
+        CombatAI::JustRespawned();
+        if (Player* player = const_cast<Player*>(m_creature->GetControllingPlayer()))
+            for (auto& ref : player->getHostileRefManager())
+                if (Unit* victim = ref.getSource()->getOwner())
+                    m_creature->AddThreat(victim);
+        AttackClosestEnemy();
+    }
+};
+
 enum FireElementalActions
 {
     ELEMENTAL_ACTION_FIRE_NOVA,
@@ -1660,125 +1681,70 @@ enum FireElementalActions
     ELEMENTAL_ACTION_MAX,
 };
 
-struct npc_shaman_fire_elementalAI : public ScriptedAI
+struct npc_shaman_fire_elementalAI : public npc_shaman_elementalAI
 {
-    npc_shaman_fire_elementalAI(Creature* creature) : ScriptedAI(creature)
+    npc_shaman_fire_elementalAI(Creature* creature) : npc_shaman_elementalAI(creature, ELEMENTAL_ACTION_MAX)
     {
         m_fireNovaParams.range.minRange = 0;
         m_fireNovaParams.range.maxRange = 10;
-        Reset();
+        AddCombatAction(ELEMENTAL_ACTION_FIRE_NOVA, 0u);
+        AddCombatAction(ELEMENTAL_ACTION_FIRE_BLAST, 3000u);
     }
-
-    uint32 m_actionTimers[ELEMENTAL_ACTION_MAX];
-    bool m_actionReadyStatus[ELEMENTAL_ACTION_MAX];
 
     SelectAttackingTargetParams m_fireNovaParams;
 
     void Reset() override
     {
+        CombatAI::Reset();
         DoCastSpellIfCan(m_creature, SPELL_FIRE_SHIELD, CAST_AURA_NOT_PRESENT | CAST_TRIGGERED);
-
-        m_actionTimers[ELEMENTAL_ACTION_FIRE_NOVA] = 10000;
-        m_actionTimers[ELEMENTAL_ACTION_FIRE_BLAST] = 5000;
     }
 
-    void UpdateAI(const uint32 diff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        for (uint32 i = 0; i < ELEMENTAL_ACTION_MAX; ++i)
+        switch (action)
         {
-            if (!m_actionReadyStatus[i])
+            case ELEMENTAL_ACTION_FIRE_NOVA:
             {
-                if (m_actionTimers[i] <= diff)
-                {
-                    m_actionTimers[i] = 0;
-                    m_actionReadyStatus[i] = true;
-                }
-                else
-                    m_actionTimers[i] -= diff;
+                std::vector<Unit*> unitVector;
+                m_creature->SelectAttackingTargets(unitVector, ATTACKING_TARGET_ALL_SUITABLE, uint32(0), uint32(0), SELECT_FLAG_RANGE_AOE_RANGE, m_fireNovaParams);
+                if (!unitVector.empty())
+                    if (DoCastSpellIfCan(nullptr, SPELL_FIRE_NOVA) == CAST_OK)
+                        ResetCombatAction(action, 15000);
+                break;
             }
+            case ELEMENTAL_ACTION_FIRE_BLAST:
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FIRE_BLAST) == CAST_OK)
+                    ResetCombatAction(action, 15000);
+                break;
         }
-
-        if (m_creature->IsNonMeleeSpellCasted(false) || !CanExecuteCombatAction())
-            return;
-
-        if (m_actionReadyStatus[ELEMENTAL_ACTION_FIRE_NOVA])
-        {
-            std::vector<Unit*> unitVector;
-            m_creature->SelectAttackingTargets(unitVector, ATTACKING_TARGET_ALL_SUITABLE, uint32(0), uint32(0), SELECT_FLAG_RANGE_AOE_RANGE, m_fireNovaParams);
-            if (!unitVector.empty())
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_FIRE_NOVA) == CAST_OK)
-                {
-                    m_actionTimers[ELEMENTAL_ACTION_FIRE_NOVA] = 15000;
-                    m_actionReadyStatus[ELEMENTAL_ACTION_FIRE_NOVA] = false;
-                    return;
-                }
-            }
-        }
-        else if (m_actionReadyStatus[ELEMENTAL_ACTION_FIRE_BLAST])
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FIRE_BLAST) == CAST_OK)
-            {
-                m_actionTimers[ELEMENTAL_ACTION_FIRE_BLAST] = 15000;
-                m_actionReadyStatus[ELEMENTAL_ACTION_FIRE_BLAST] = false;
-                return;
-            }
-        }
-
-        DoMeleeAttackIfReady();
     }
 };
 
-struct npc_shaman_earth_elementalAI : public ScriptedAI
+struct npc_shaman_earth_elementalAI : public npc_shaman_elementalAI
 {
-    npc_shaman_earth_elementalAI(Creature* creature) : ScriptedAI(creature)
+    npc_shaman_earth_elementalAI(Creature* creature) : npc_shaman_elementalAI(creature, 1)
     {
         m_angeredEarthParams.range.minRange = 0;
         m_angeredEarthParams.range.maxRange = 15;
-        Reset();
+        AddCombatAction(1, 0u);
     }
 
-    uint32 m_angeredEarthTimer;
     SelectAttackingTargetParams m_angeredEarthParams;
 
-    void Reset() override
+    void ExecuteAction(uint32 action) override
     {
-        m_angeredEarthTimer = 0;
-    }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_angeredEarthTimer <= diff)
+        switch (action)
         {
-            m_angeredEarthTimer = 0;
-            std::vector<Unit*> unitVector;
-            m_creature->SelectAttackingTargets(unitVector, ATTACKING_TARGET_ALL_SUITABLE, uint32(0), uint32(0), SELECT_FLAG_RANGE_AOE_RANGE, m_angeredEarthParams);
-            if (!unitVector.empty())
-                if (DoCastSpellIfCan(nullptr, SPELL_ANGERED_EARTH) == CAST_OK)
-                    m_angeredEarthTimer = 15000;
+            case 1:
+                std::vector<Unit*> unitVector;
+                m_creature->SelectAttackingTargets(unitVector, ATTACKING_TARGET_ALL_SUITABLE, uint32(0), uint32(0), SELECT_FLAG_RANGE_AOE_RANGE, m_angeredEarthParams);
+                if (!unitVector.empty())
+                    if (DoCastSpellIfCan(nullptr, SPELL_ANGERED_EARTH) == CAST_OK)
+                        ResetCombatAction(action, 15000);
+                break;
         }
-        else
-            m_angeredEarthTimer -= diff;
-
-        DoMeleeAttackIfReady();
     }
 };
-
-UnitAI* GetAI_npc_shaman_fire_elemental(Creature* pCreature)
-{
-    return new npc_shaman_fire_elementalAI(pCreature);
-}
-
-UnitAI* GetAI_npc_shaman_earth_elemental(Creature* pCreature)
-{
-    return new npc_shaman_earth_elementalAI(pCreature);
-}
 
 enum
 {
@@ -2122,7 +2088,7 @@ struct mob_phoenix_tkAI : public CombatAI
         SetReactState(REACT_PASSIVE);
         AddCustomAction(PHOENIX_EMBER_BLAST, true, [&]() { HandleEmberBlast(); });
         AddCustomAction(PHOENIX_REBIRTH, true, [&]() { HandleRebirth(); });
-        AddCustomAction(PHOENIX_ATTACK_DELAY, 2000u, [&]() { HandleAttackDelay(); });
+        AddCustomAction(PHOENIX_ATTACK_DELAY, 3000u, [&]() { HandleAttackDelay(); });
     }
 
     uint32 m_burnSpellId;
@@ -2173,6 +2139,12 @@ struct mob_phoenix_tkAI : public CombatAI
         summoned->SetCorpseDelay(5); // egg should despawn after 5 seconds when killed
         summoned->SetImmobilizedState(true); // rooted by default
         summoned->AI()->SetReactState(REACT_PASSIVE);
+    }
+
+    void CorpseRemoved(uint32& /*respawnDelay*/) override // safeguard against wipe
+    {
+        if (Creature* egg = m_creature->GetMap()->GetCreature(m_eggGuid))
+            egg->ForcedDespawn();
     }
 
     void DoRebirth()
@@ -2238,8 +2210,6 @@ struct mob_phoenix_tkAI : public CombatAI
 
         DoRebirth();
     }
-
-    void ExecuteAction(uint32 action) override { }
 };
 
 void AddSC_npcs_special()
@@ -2304,12 +2274,12 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_shaman_fire_elemental";
-    pNewScript->GetAI = &GetAI_npc_shaman_fire_elemental;
+    pNewScript->GetAI = &GetNewAIInstance<npc_shaman_fire_elementalAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_shaman_earth_elemental";
-    pNewScript->GetAI = &GetAI_npc_shaman_earth_elemental;
+    pNewScript->GetAI = &GetNewAIInstance<npc_shaman_earth_elementalAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

@@ -404,9 +404,9 @@ enum IllidanActions
 ## boss_illidan_stormrage
 ######*/
 
-struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
+struct boss_illidan_stormrageAI : public RangedCombatAI, private DialogueHelper
 {
-    boss_illidan_stormrageAI(Creature* creature) : CombatAI(creature, ILLIDAN_ACTIONS_MAX),
+    boss_illidan_stormrageAI(Creature* creature) : RangedCombatAI(creature, ILLIDAN_ACTIONS_MAX),
         DialogueHelper(aEventDialogue), m_instance(static_cast<instance_black_temple*>(creature->GetInstanceData()))
     {
         //TODO: Review timers
@@ -472,7 +472,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
         m_flameAzzinothKilled = 0;
         
         SetMeleeEnabled(true);
-        m_attackDistance = 0.0f;
+        SetRangedMode(false, 0.f, TYPE_NONE);
 
         m_bladesGuidList.clear();
 
@@ -813,7 +813,8 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             {
                 m_flameBlasts = 0;
                 DoCastSpellIfCan(nullptr, SPELL_DEMON_TRANSFORM_1);
-                m_attackDistance = 80.f;
+                AddMainSpell(SPELL_SHADOW_BLAST);
+                SetRangedMode(true, 80.f, TYPE_FULL_CASTER);
                 SetCombatScriptStatus(true);
                 SetMeleeEnabled(false);
                 SetCombatMovement(false);
@@ -824,8 +825,8 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             }
             case PHASE_4_DEMON:
             {
-                DoCastSpellIfCan(nullptr, SPELL_DEMON_TRANSFORM_1);
-                m_attackDistance = 0.f;
+                DoCastSpellIfCan(nullptr, SPELL_DEMON_TRANSFORM_1, CAST_INTERRUPT_PREVIOUS);
+                SetRangedMode(false, 0.f, TYPE_NONE);
                 SetCombatScriptStatus(true);
                 SetMeleeEnabled(false);
                 SetCombatMovement(false);
@@ -1226,14 +1227,14 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                 }
                 if (DoCastSpellIfCan(nullptr, SPELL_SHADOW_PRISON) == CAST_OK) // Phase 5 transition start
                 {
+                    SetMeleeEnabled(false);
+                    m_creature->SetTarget(nullptr);
                     m_creature->PlayMusic(SOUND_KIT_ILLIDAN_P5);
                     StartNextDialogueText(DUMMY_EMOTE_ID_4);
                     SetCombatScriptStatus(true);
                     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
 
                     SetCombatMovement(false);
-                    SetMeleeEnabled(false);
-                    m_creature->SetTarget(nullptr);
                     m_creature->GetMotionMaster()->Clear();
                     m_creature->GetMotionMaster()->MoveIdle();
 
@@ -2322,6 +2323,18 @@ struct ParasiticShadowfiendAura : public SpellScript, public AuraScript
 
 struct ShadowPrison : public SpellScript
 {
+    void OnRadiusCalculate(Spell* /*spell*/, SpellEffectIndex /*effIdx*/, bool /*targetB*/, float& radius) const override
+    {
+        radius = 100.f;
+    }
+
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (target->IsControlledByPlayer() || (target->IsCreature() && target->GetEntry() == NPC_AKAMA))
+            return true;
+        return false;
+    }
+
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
         if (effIdx == EFFECT_INDEX_2 && spell->GetUnitTarget())

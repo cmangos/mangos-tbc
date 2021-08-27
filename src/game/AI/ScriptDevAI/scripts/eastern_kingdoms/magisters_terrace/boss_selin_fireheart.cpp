@@ -54,10 +54,10 @@ enum
 
 enum SelinActions
 {
+    SELIN_ACTION_DRAIN_CRYSTAL,
     SELIN_ACTION_FEL_EXPLOSION,
     SELIN_ACTION_DRAIN_LIFE,
     SELIN_ACTION_DRAIN_MANA,
-    SELIN_ACTION_DRAIN_CRYSTAL,
     SELIN_ACTION_MAX,
 };
 
@@ -74,7 +74,14 @@ struct boss_selin_fireheartAI : public CombatAI
             AddCombatAction(SELIN_ACTION_DRAIN_MANA, true);
         AddCombatAction(SELIN_ACTION_DRAIN_CRYSTAL, 15000, 25000);
         m_creature->SetWalk(false);
-        Reset();
+
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        {
+            return x < 214.f;
+        });
+
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_FEL_EXPLOSION);
+        m_felExplosionCost = Spell::CalculatePowerCost(spellInfo, m_creature);
     }
 
     instance_magisters_terrace* m_instance;
@@ -83,11 +90,15 @@ struct boss_selin_fireheartAI : public CombatAI
 
     ObjectGuid m_crystalGuid;
 
+    uint32 m_felExplosionCost;
+
     void Reset() override
     {
         CombatAI::Reset();
 
         SetCombatScriptStatus(false);
+        SetMeleeEnabled(true);
+        SetCombatMovement(true, true);
         m_empowered = false;
 
         DoCastSpellIfCan(nullptr, SPELL_DUAL_WEILD, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
@@ -121,23 +132,15 @@ struct boss_selin_fireheartAI : public CombatAI
 
             float x, y, z;
             m_creature->GetContactPoint(crystal, x, y, z, INTERACTION_DISTANCE);
-            m_creature->GetMotionMaster()->MovePoint(POINT_CRYSTAL, x, y, z);
+            m_creature->GetMotionMaster()->MovePoint(POINT_CRYSTAL, x, y, z, FORCED_MOVEMENT_RUN, true);
             SetCombatScriptStatus(true);
             SetMeleeEnabled(false);
             m_creature->SetTarget(nullptr);
-            SetCombatMovement(false, true);
 
             return true;
         }
 
         return false;
-    }
-
-    void DoEndCrystalDraining()
-    {
-        SetCombatScriptStatus(false);
-        SetMeleeEnabled(true);
-        SetCombatMovement(true, true);
     }
 
     void Aggro(Unit* /*who*/) override
@@ -173,6 +176,9 @@ struct boss_selin_fireheartAI : public CombatAI
         if (moveType != POINT_MOTION_TYPE || pointId != POINT_CRYSTAL)
             return;
 
+        SetCombatScriptStatus(false);
+        SetMeleeEnabled(true);
+
         bool castSuccessful = false;
         if (DoCastSpellIfCan(nullptr, SPELL_FEL_CRYSTAL_DUMMY) == CAST_OK)
         {
@@ -182,7 +188,6 @@ struct boss_selin_fireheartAI : public CombatAI
 
         // Make an error message in case something weird happened here
         script_error_log("Selin Fireheart unable to drain crystal as the crystal is either dead or deleted..");
-        DoEndCrystalDraining(); // Just in case
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -203,8 +208,8 @@ struct boss_selin_fireheartAI : public CombatAI
                     if (invoker->IsAlive()) // Kill crystal
                         invoker->CastSpell(nullptr, SPELL_INSTAKILL_SELF, TRIGGERED_OLD_TRIGGERED);
                 }
-
-                DoEndCrystalDraining();
+                ResetCombatAction(SELIN_ACTION_DRAIN_CRYSTAL, GetSubsequentActionTimer(SELIN_ACTION_DRAIN_CRYSTAL));
+                DoStartMovement(m_creature->GetVictim());
             break;
             default: break;
         }
@@ -216,39 +221,37 @@ struct boss_selin_fireheartAI : public CombatAI
         {
             case SELIN_ACTION_FEL_EXPLOSION:
             {
-                DoCastSpellIfCan(nullptr, SPELL_FEL_EXPLOSION);
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
+                if (DoCastSpellIfCan(nullptr, SPELL_FEL_EXPLOSION) == CAST_OK)
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
                 return;
             }
             case SELIN_ACTION_DRAIN_LIFE:
             {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DRAIN_LIFE, SELECT_FLAG_IN_LOS | SELECT_FLAG_PLAYER))
-                    DoCastSpellIfCan(target, m_isRegularMode ? SPELL_DRAIN_LIFE : SPELL_DRAIN_LIFE_H);
+                if (m_creature->GetPower(POWER_MANA) >= m_felExplosionCost) // do not cast if enough mana for fel explosion
+                    return;
 
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DRAIN_LIFE, SELECT_FLAG_IN_LOS | SELECT_FLAG_PLAYER))
+                    if (DoCastSpellIfCan(target, m_isRegularMode ? SPELL_DRAIN_LIFE : SPELL_DRAIN_LIFE_H) == CAST_OK)
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
                 return;
             }
             case SELIN_ACTION_DRAIN_MANA:
             {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DRAIN_MANA, SELECT_FLAG_IN_LOS | SELECT_FLAG_PLAYER | SELECT_FLAG_POWER_MANA))
-                    DoCastSpellIfCan(target, SPELL_DRAIN_MANA);
+                if (m_creature->GetPower(POWER_MANA) >= m_felExplosionCost) // do not cast if enough mana for fel explosion
+                    return;
 
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DRAIN_MANA, SELECT_FLAG_IN_LOS | SELECT_FLAG_PLAYER | SELECT_FLAG_POWER_MANA))
+                    if (DoCastSpellIfCan(target, SPELL_DRAIN_MANA) == CAST_OK)
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
                 return;
             }
             case SELIN_ACTION_DRAIN_CRYSTAL:
             {
-                if (DoSelectNearestCrystal())
-                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                DoSelectNearestCrystal();
                 return;
             }
         }
     }
-};
-
-UnitAI* GetAI_boss_selin_fireheart(Creature* creature)
-{
-    return new boss_selin_fireheartAI(creature);
 };
 
 struct mob_fel_crystalAI : public ScriptedAI
@@ -274,20 +277,40 @@ struct mob_fel_crystalAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_mob_fel_crystal(Creature* creature)
+struct spell_fel_crystal_dummy : public SpellScript
 {
-    return new mob_fel_crystalAI(creature);
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (Unit* target = spell->GetUnitTarget())
+            target->CastSpell(nullptr, SPELL_MANA_RAGE_CHANNEL, TRIGGERED_NONE);
+    }
+};
+
+struct spell_mana_rage_selin : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply && aura->GetEffIndex() == EFFECT_INDEX_0)
+        {
+            Unit* caster = aura->GetCaster();
+            if (UnitAI* ai = aura->GetTarget()->AI())
+                ai->SendAIEvent(AI_EVENT_CUSTOM_A, caster, aura->GetTarget(), aura->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE);
+        }
+    }
 };
 
 void AddSC_boss_selin_fireheart()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_selin_fireheart";
-    pNewScript->GetAI = &GetAI_boss_selin_fireheart;
+    pNewScript->GetAI = &GetNewAIInstance<boss_selin_fireheartAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_fel_crystal";
-    pNewScript->GetAI = &GetAI_mob_fel_crystal;
+    pNewScript->GetAI = &GetNewAIInstance<mob_fel_crystalAI>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<spell_fel_crystal_dummy>("spell_fel_crystal_dummy");
+    RegisterAuraScript<spell_mana_rage_selin>("spell_mana_rage_selin");
 }

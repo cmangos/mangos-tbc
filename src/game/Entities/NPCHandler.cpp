@@ -499,7 +499,7 @@ void WorldSession::SendStablePet(ObjectGuid guid) const
     {
         data << uint32(pet->GetCharmInfo()->GetPetNumber());
         data << uint32(pet->GetEntry());
-        data << uint32(pet->getLevel());
+        data << uint32(pet->GetLevel());
         data << pet->GetName();                             // petname
         data << uint32(pet->GetLoyaltyLevel());             // loyalty
         data << uint8(0x01);                                // client slot 1 == current pet (0)
@@ -805,7 +805,7 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
     }
 
     Pet* newpet = new Pet(HUNTER_PET);
-    if (!newpet->LoadPetFromDB(_player, creature_id, petnumber))
+    if (!newpet->LoadPetFromDB(_player, newpet->GetPetSpawnPosition(_player), creature_id, petnumber))
     {
         delete newpet;
         newpet = nullptr;
@@ -951,7 +951,7 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
 
     // summon unstabled pet
     Pet* newpet = new Pet;
-    if (!newpet->LoadPetFromDB(_player, creature_id, pet_number))
+    if (!newpet->LoadPetFromDB(_player, newpet->GetPetSpawnPosition(_player), creature_id, pet_number))
     {
         delete newpet;
 

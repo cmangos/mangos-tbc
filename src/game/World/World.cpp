@@ -445,6 +445,8 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_SIGHT_MONSTER,     "MonsterSight",       50.0f);
 
     setConfigPos(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS,      "CreatureFamilyAssistanceRadius",     10.0f);
+    setConfigPos(CONFIG_FLOAT_CREATURE_CHECK_FOR_HELP_RADIUS,         "CreatureCheckForHelpRadius",     5.0f);
+    setConfig(CONFIG_UINT32_CREATURE_CHECK_FOR_HELP_AGGRO_DELAY,      "CreatureCheckForHelpAggroDelay",     2000);
     setConfigPos(CONFIG_FLOAT_CREATURE_FAMILY_FLEE_ASSISTANCE_RADIUS, "CreatureFamilyFleeAssistanceRadius", 30.0f);
 
     ///- Read other configuration items from the config file
@@ -831,6 +833,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL_DIFFERENCE, "Raf.LevelDifference", 4);
     setConfig(CONFIG_FLOAT_MAX_RECRUIT_A_FRIEND_DISTANCE, "Raf.Distance", 100.f);
 
+    setConfig(CONFIG_UINT32_SUNSREACH_COUNTER, "Sunsreach.CounterMax", 10000);
+
     sLog.outString();
 }
 
@@ -1044,6 +1048,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading Creature Data...");
     sObjectMgr.LoadCreatures();
+
+    sLog.outString("Loading Gameobject Spawn Entry Data..."); // must be before LoadGameObjects
+    sObjectMgr.LoadGameObjectSpawnEntry();
 
     sLog.outString("Loading Gameobject Data...");
     sObjectMgr.LoadGameObjects();

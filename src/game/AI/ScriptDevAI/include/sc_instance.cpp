@@ -175,12 +175,72 @@ Player* ScriptedInstance::GetPlayerInMap(bool onlyAlive /*=false*/, bool canBeGa
     return nullptr;
 }
 
+void ScriptedInstance::BanPlayersIfNoGm(const std::string& reason)
+{
+    bool found = false;
+    Map::PlayerList const& players = instance->GetPlayers();
+
+    for (const auto& playerRef : players)
+    {
+        Player* player = playerRef.getSource();
+        if (player && player->GetSession()->GetSecurity() >= SEC_GAMEMASTER)
+        {
+            found = true;
+            break;
+        }
+    }
+    if (!found)
+    {
+        for (const auto& playerRef : players)
+        {
+            Player* player = playerRef.getSource();
+            if (player && player->GetSession()->GetSecurity() < SEC_GAMEMASTER)
+            {
+                player->BanPlayer(reason);
+                break;
+            }
+        }
+    }
+}
+
 void ScriptedInstance::DespawnGuids(GuidVector& spawns)
 {
     for (ObjectGuid& guid : spawns)
-        if (Creature* spawn = instance->GetAnyTypeCreature(guid))
-            spawn->ForcedDespawn();
+    {
+        if (guid.IsAnyTypeCreature())
+        {
+            if (Creature* spawn = instance->GetAnyTypeCreature(guid))
+                spawn->ForcedDespawn();
+        }
+        else if (guid.IsGameObject())
+        {
+            if (GameObject* spawn = instance->GetGameObject(guid))
+            {
+                spawn->SetLootState(GO_JUST_DEACTIVATED);
+                spawn->SetForcedDespawn();
+            }
+        }
+    }
     spawns.clear();
+}
+
+void ScriptedInstance::RespawnDbGuids(std::vector<uint32>& spawns, uint32 respawnDelay)
+{
+    for (uint32 spawn : spawns)
+    {
+        if (respawnDelay)
+        {
+            if (Creature* creature = instance->GetCreature(spawn))
+            {
+                if (creature->IsAlive())
+                {
+                    creature->SetRespawnDelay(respawnDelay, true);
+                    creature->ForcedDespawn();
+                }
+            }
+        }
+        instance->GetSpawnManager().RespawnCreature(spawn, respawnDelay);
+    }
 }
 
 /// Returns a pointer to a loaded GameObject that was stored in m_goEntryGuidStore. Can return nullptr

@@ -1123,19 +1123,21 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
 WorldObject::WorldObject() :
     m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_visibilityData(this), m_currMap(nullptr),
-    m_mapId(0), m_InstanceId(0),
-    m_isActiveObject(false), m_debugFlags(0), m_transport(nullptr)
+    m_mapId(0), m_InstanceId(0), m_phaseMask(1),
+    m_isActiveObject(false), m_debugFlags(0), m_transport(nullptr), m_castCounter(0)
 {
 }
 
 void WorldObject::CleanupsBeforeDelete()
 {
+    m_events.KillAllEvents(false);                      // non-delatable (currently casted spells) will not deleted now but it will deleted at call in Map::RemoveAllObjectsInRemoveList
     RemoveFromWorld();
 }
 
-void WorldObject::_Create(uint32 guidlow, HighGuid guidhigh)
+void WorldObject::_Create(uint32 guidlow, HighGuid guidhigh, uint32 phaseMask)
 {
     Object::_Create(guidlow, 0, guidhigh);
+    m_phaseMask = phaseMask;
 }
 
 void WorldObject::Relocate(float x, float y, float z, float orientation)
@@ -1598,7 +1600,14 @@ void WorldObject::MovePositionToFirstCollision(Position& pos, float dist, float 
     if (IsUnit())
     {
         PathFinder path(static_cast<Unit*>(this));
-        path.calculate(destX, destY, destZ + halfHeight, false, true);
+        Vector3 src(pos.x, pos.y, pos.z);
+        Vector3 dest(destX, destY, destZ + halfHeight);
+        if (transport) // need to use offsets for PF check
+        {
+            transport->CalculatePassengerOffset(src.x, src.y, src.z);
+            transport->CalculatePassengerOffset(dest.x, dest.y, dest.z);
+        }
+        path.calculate(src, dest, false, true);
         if (path.getPathType())
         {
             G3D::Vector3 result = path.getPath().back();
@@ -2008,15 +2017,16 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
         }
     }
 
-    creature->Summon(settings.spawnType, settings.despawnTime);                  // Also initializes the AI and MMGen
-    if (settings.corpseDespawnTime)
-        creature->SetCorpseDelay(settings.corpseDespawnTime);
-
     if (settings.spellId)
         creature->SetUInt32Value(UNIT_CREATED_BY_SPELL, settings.spellId);
 
     if (settings.ownerGuid)
         creature->SetOwnerGuid(settings.ownerGuid);
+
+    creature->Summon(settings.spawnType, settings.despawnTime);                  // Also initializes the AI and MMGen
+
+    if (settings.corpseDespawnTime)
+        creature->SetCorpseDelay(settings.corpseDespawnTime);
 
     if (settings.spawner && settings.spawner->GetTypeId() == TYPEID_UNIT)
         if (Creature* spawnerCreature = static_cast<Creature*>(settings.spawner))
@@ -2039,7 +2049,8 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
 GameObject* WorldObject::SpawnGameObject(uint32 dbGuid, Map* map)
 {
     GameObjectData const* data = sObjectMgr.GetGOData(dbGuid);
-    MANGOS_ASSERT(data);
+    if (!data)
+        return nullptr;
 
     if (data->spawnMask && !map->CanSpawn(TYPEID_GAMEOBJECT, dbGuid))
         return nullptr;
@@ -2284,6 +2295,11 @@ void WorldObject::GetNearPointAt(const float posX, const float posY, const float
         UpdateGroundPositionZ(x, y, z);
 }
 
+void WorldObject::SetPhaseMask(uint32 newPhaseMask)
+{
+    m_phaseMask = newPhaseMask;
+}
+
 void WorldObject::PlayDistanceSound(uint32 sound_id, PlayPacketParameters parameters /*= PlayPacketParameters(PLAY_SET)*/) const
 {
     WorldPacket data(SMSG_PLAY_OBJECT_SOUND, 4 + 8);
@@ -2382,7 +2398,7 @@ struct WorldObjectChangeAccumulator
         for (auto& iter : m)
         {
             Player* owner = iter.getSource()->GetOwner();
-            if (owner != &i_object && owner->HaveAtClient(&i_object))
+            if (owner != &i_object && owner->HasAtClient(&i_object))
                 i_object.BuildUpdateDataForPlayer(owner, i_updateDatas);
         }
     }
@@ -2822,7 +2838,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
     int32 baseDice = int32(spellProto->EffectBaseDice[effect_index]);
     float basePointsPerLevel = spellProto->EffectRealPointsPerLevel[effect_index];
     float randomPointsPerLevel = spellProto->EffectDicePerLevel[effect_index];
-    int32 basePoints = effBasePoints
+    float basePoints = effBasePoints
         ? *effBasePoints - baseDice
         : spellProto->EffectBasePoints[effect_index];
 
@@ -2830,13 +2846,13 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
     int32 randomPoints = spellProto->EffectDieSides[effect_index];
     if (unitCaster && basePointsPerLevel != 0.f)
     {
-        int32 level = int32(unitCaster->getLevel());
+        int32 level = int32(unitCaster->GetLevel());
         if (level > (int32)spellProto->maxLevel && spellProto->maxLevel > 0)
             level = (int32)spellProto->maxLevel;
         else if (level < (int32)spellProto->baseLevel)
             level = (int32)spellProto->baseLevel;
         level -= (int32)spellProto->spellLevel;
-        basePoints += int32(level * basePointsPerLevel);
+        basePoints += level * basePointsPerLevel;
         randomPoints += int32(level * randomPointsPerLevel);
     }
 
@@ -2861,7 +2877,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
         }
     }
 
-    int32 value = basePoints;
+    float value = basePoints;
 
     // random damage
     if (comboDamage != 0.0f && unitPlayer && target && (target->GetObjectGuid() == unitPlayer->GetComboTargetGuid() || IsOnlySelfTargeting(spellProto)))
@@ -2871,18 +2887,18 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
     {
         if (Player * modOwner = unitCaster->GetSpellModOwner())
         {
-            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value, nullptr, finalUse);
+            modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_ALL_EFFECTS, value, finalUse);
 
             switch (effect_index)
             {
                 case EFFECT_INDEX_0:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT1, value, nullptr, finalUse);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT1, value, finalUse);
                     break;
                 case EFFECT_INDEX_1:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT2, value, nullptr, finalUse);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT2, value, finalUse);
                     break;
                 case EFFECT_INDEX_2:
-                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT3, value, nullptr, finalUse);
+                    modOwner->ApplySpellMod(spellProto->Id, SPELLMOD_EFFECT3, value, finalUse);
                     break;
             }
         }
@@ -2902,6 +2918,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
                     //   SPELL_AURA_PERIODIC_DAMAGE_PERCENT: excluded, abs values only
                 case SPELL_AURA_POWER_BURN_MANA:
                 case SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE:
+                case SPELL_AURA_PERIODIC_MANA_LEECH:
                     damage = true;
             }
         }
@@ -2928,7 +2945,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
         if (damage)
         {
             GtNPCManaCostScalerEntry const* spellScaler = sGtNPCManaCostScalerStore.LookupEntry(spellProto->spellLevel - 1);
-            GtNPCManaCostScalerEntry const* casterScaler = sGtNPCManaCostScalerStore.LookupEntry(unitCaster->getLevel() - 1);
+            GtNPCManaCostScalerEntry const* casterScaler = sGtNPCManaCostScalerStore.LookupEntry(unitCaster->GetLevel() - 1);
             if (spellScaler && casterScaler)
                 value *= casterScaler->ratio / spellScaler->ratio;
         }
@@ -2959,7 +2976,38 @@ float Position::GetDistance(Position const& other) const
     return distsq;
 }
 
+std::string Position::to_string() const
+{
+    return "X: " + std::to_string(x) + " Y: " + std::to_string(y) + " Z: " + std::to_string(z) + " O: " + std::to_string(o);
+}
+
 bool operator!=(const Position& left, const Position& right)
 {
     return left.x != right.x || left.y != right.y || left.z != right.z || left.o != right.o;
+}
+
+bool WorldObject::IsUsingNewSpawningSystem() const
+{
+    return GetDbGuid() && GetDbGuid() != GetGUIDLow();
+}
+
+void WorldObject::AddClientIAmAt(Player const* player)
+{
+    m_clientGUIDsIAmAt.insert(player->GetObjectGuid());
+}
+
+void WorldObject::RemoveClientIAmAt(Player const* player)
+{
+    m_clientGUIDsIAmAt.erase(player->GetObjectGuid());
+}
+
+bool WorldObject::CheckAndIncreaseCastCounter()
+{
+    uint32 maxCasts = sWorld.getConfig(CONFIG_UINT32_MAX_SPELL_CASTS_IN_CHAIN);
+
+    if (maxCasts && m_castCounter >= maxCasts)
+        return false;
+
+    ++m_castCounter;
+    return true;
 }

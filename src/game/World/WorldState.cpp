@@ -17,6 +17,8 @@
 */
 
 #include "WorldState.h"
+#include "Chat/ChannelMgr.h"
+#include "Globals/SharedDefines.h"
 #include "World/World.h"
 #include "Maps/MapManager.h"
 #include "Entities/Object.h"
@@ -43,6 +45,69 @@ enum
     GROMGOLOG_EVENT_4   = 15325,
 };
 
+std::map<AQResources, WorldStateID> aqWorldstateMap =
+{
+    {AQ_PEACEBLOOM, WORLD_STATE_AQ_PEACEBLOOM_NOW},
+    {AQ_LEAN_WOLF_STEAK, WORLD_STATE_AQ_LEAN_WOLF_STEAK_NOW},
+    {AQ_TIN_BAR, WORLD_STATE_AQ_TIN_BARS_NOW},
+    {AQ_WOOL_BANDAGE, WORLD_STATE_AQ_WOOL_BANDAGE_NOW},
+    {AQ_FIREBLOOM, WORLD_STATE_AQ_FIREBLOOM_NOW},
+    {AQ_HEAVY_LEATHER, WORLD_STATE_AQ_HEAVY_LEATHER_NOW},
+    {AQ_MITHRIL_BAR, WORLD_STATE_AQ_MITHRIL_BARS_NOW},
+    {AQ_MAGEWEAVE_BANDAGE, WORLD_STATE_AQ_MAGEWEAVE_BANDAGE_NOW},
+    {AQ_RUGGED_LEATHER, WORLD_STATE_AQ_RUGGED_LEATHER_NOW},
+    {AQ_BAKED_SALMON, WORLD_STATE_AQ_BAKED_SALMON_NOW},
+    {AQ_LIGHT_LEATHER, WORLD_STATE_AQ_LIGHT_LEATHER_NOW},
+    {AQ_LINEN_BANDAGE, WORLD_STATE_AQ_LINEN_BANDAGE_NOW},
+    {AQ_MEDIUM_LEATHER, WORLD_STATE_AQ_MEDIUM_LEATHER_NOW},
+    {AQ_STRANGLEKELP, WORLD_STATE_AQ_STRANGLEKELP_NOW},
+    {AQ_RAINBOW_FIN_ALBACORE, WORLD_STATE_AQ_RAINBOW_FIN_ALBACORE_NOW},
+    {AQ_IRON_BAR, WORLD_STATE_AQ_IRON_BARS_NOW},
+    {AQ_ROAST_RAPTOR, WORLD_STATE_AQ_ROAST_RAPTOR_NOW},
+    {AQ_SILK_BANDAGE, WORLD_STATE_AQ_SILK_BANDAGE_NOW},
+    {AQ_THORIUM_BAR, WORLD_STATE_AQ_THORIUM_BARS_NOW},
+    {AQ_ARTHAS_TEARS, WORLD_STATE_AQ_ARTHAS_TEARS_NOW},
+    {AQ_COPPER_BAR_ALLY, WORLD_STATE_AQ_COPPER_BARS_ALLY_NOW},
+    {AQ_PURPLE_LOTUS_ALLY, WORLD_STATE_AQ_PURPLE_LOTUS_ALLY_NOW},
+    {AQ_THICK_LEATHER_ALLY, WORLD_STATE_AQ_THICK_LEATHER_ALLY_NOW},
+    {AQ_SPOTTED_YELLOWTAIL_ALLY, WORLD_STATE_AQ_SPOTTED_YELLOWTAIL_ALLY_NOW},
+    {AQ_RUNECLOTH_BANDAGE_ALLY, WORLD_STATE_AQ_RUNECLOTH_BANDAGE_ALLY_NOW},
+    {AQ_COPPER_BAR_HORDE, WORLD_STATE_AQ_COPPER_BARS_HORDE_NOW},
+    {AQ_PURPLE_LOTUS_HORDE, WORLD_STATE_AQ_PURPLE_LOTUS_HORDE_NOW},
+    {AQ_THICK_LEATHER_HORDE, WORLD_STATE_AQ_THICK_LEATHER_HORDE_NOW},
+    {AQ_SPOTTED_YELLOWTAIL_HORDE, WORLD_STATE_AQ_SPOTTED_YELLOWTAIL_HORDE_NOW},
+    {AQ_RUNECLOTH_BANDAGE_HORDE, WORLD_STATE_AQ_RUNECLOTH_BANDAGE_HORDE_NOW},
+};
+
+std::vector<std::pair<WorldStateID, uint32>> aqWorldStateTotalsMap =
+{
+    {WORLD_STATE_AQ_PEACEBLOOM_TOTAL, 96000},
+    {WORLD_STATE_AQ_LEAN_WOLF_STEAK_TOTAL, 10000},
+    {WORLD_STATE_AQ_TIN_BARS_TOTAL, 22000},
+    {WORLD_STATE_AQ_WOOL_BANDAGE_TOTAL, 250000},
+    {WORLD_STATE_AQ_FIREBLOOM_TOTAL, 19000},
+    {WORLD_STATE_AQ_HEAVY_LEATHER_TOTAL, 60000},
+    {WORLD_STATE_AQ_MITHRIL_BARS_TOTAL, 18000},
+    {WORLD_STATE_AQ_MAGEWEAVE_BANDAGE_TOTAL, 250000},
+    {WORLD_STATE_AQ_RUGGED_LEATHER_TOTAL, 60000},
+    {WORLD_STATE_AQ_BAKED_SALMON_TOTAL, 10000},
+    {WORLD_STATE_AQ_LIGHT_LEATHER_TOTAL, 180000},
+    {WORLD_STATE_AQ_LINEN_BANDAGE_TOTAL, 800000},
+    {WORLD_STATE_AQ_MEDIUM_LEATHER_TOTAL, 110000},
+    {WORLD_STATE_AQ_STRANGLEKELP_TOTAL, 33000},
+    {WORLD_STATE_AQ_RAINBOW_FIN_ALBACORE_TOTAL, 14000},
+    {WORLD_STATE_AQ_IRON_BARS_TOTAL, 28000},
+    {WORLD_STATE_AQ_ROAST_RAPTOR_TOTAL, 20000},
+    {WORLD_STATE_AQ_SILK_BANDAGE_TOTAL, 600000},
+    {WORLD_STATE_AQ_THORIUM_BARS_TOTAL, 24000},
+    {WORLD_STATE_AQ_ARTHAS_TEARS_TOTAL, 20000},
+    {WORLD_STATE_AQ_COPPER_BARS_TOTAL, 45000},
+    {WORLD_STATE_AQ_PURPLE_LOTUS_TOTAL, 13000},
+    {WORLD_STATE_AQ_THICK_LEATHER_TOTAL, 40000},
+    {WORLD_STATE_AQ_SPOTTED_YELLOWTAIL_TOTAL, 8500},
+    {WORLD_STATE_AQ_RUNECLOTH_BANDAGE_TOTAL, 200000},
+};
+
 WorldState::WorldState() : m_emeraldDragonsState(0xF), m_emeraldDragonsTimer(0), m_emeraldDragonsChosenPositions(4, 0), m_isMagtheridonHeadSpawnedHorde(false), m_isMagtheridonHeadSpawnedAlliance(false),
     m_adalSongOfBattleTimer(0), m_expansion(EXPANSION_TBC), m_highlordKruulSpawned(false), m_highlordKruulTimer(0), m_highlordKruulChosenPosition(0)
 {
@@ -50,6 +115,9 @@ WorldState::WorldState() : m_emeraldDragonsState(0xF), m_emeraldDragonsTimer(0),
     m_transportStates[GROMGOL_ORGRIMMAR]    = OGUC_EVENT_1;
     m_transportStates[ORGRIMMAR_UNDERCITY]  = GROMGOLOG_EVENT_1;
     memset(m_loveIsInTheAirData.counters, 0, sizeof(LoveIsInTheAir));
+
+    for (auto& data : aqWorldstateMap)
+        m_aqWorldstateMapReverse.emplace(data.second, data.first);
 }
 
 
@@ -106,6 +174,7 @@ void WorldState::Load()
                             }
                             for (uint32 i = 0; i < RESOURCE_MAX; ++i)
                                 loadStream >> m_aqData.m_WarEffortCounters[i];
+                            loadStream >> m_aqData.m_phase2Tier;
                         }
                         catch (std::exception& e)
                         {
@@ -124,20 +193,27 @@ void WorldState::Load()
                             loadStream >> m_sunsReachData.m_phase >> m_sunsReachData.m_subphaseMask;
                             for (uint32 i = 0; i < COUNTERS_MAX; ++i)
                                 loadStream >> m_sunsReachData.m_sunsReachReclamationCounters[i];
+                            loadStream >> m_sunsReachData.m_gate;
+                            for (uint32 i = 0; i < COUNTERS_MAX_GATES; ++i)
+                                loadStream >> m_sunsReachData.m_gateCounters[i];
                         }
                         catch (std::exception& e)
                         {
                             sLog.outError("%s", e.what());
                             m_sunsReachData.m_phase = 0;
                             m_sunsReachData.m_subphaseMask = 0;
+                            m_sunsReachData.m_gate = SUNWELL_ARCHONISUS_GATE3_OPEN;
                             memset(m_sunsReachData.m_sunsReachReclamationCounters, 0, sizeof(m_sunsReachData.m_sunsReachReclamationCounters));
+                            memset(m_sunsReachData.m_gateCounters, 0, sizeof(m_sunsReachData.m_gateCounters));
                         }
                     }
                     else
                     {
                         m_sunsReachData.m_phase = 0;
                         m_sunsReachData.m_subphaseMask = 0;
+                        m_sunsReachData.m_gate = SUNWELL_ARCHONISUS_GATE3_OPEN;
                         memset(m_sunsReachData.m_sunsReachReclamationCounters, 0, sizeof(m_sunsReachData.m_sunsReachReclamationCounters));
+                        memset(m_sunsReachData.m_gateCounters, 0, sizeof(m_sunsReachData.m_gateCounters));
                     }
                     break;
                 }
@@ -195,8 +271,10 @@ void WorldState::Load()
         while (result->NextRow());
     }
     StartWarEffortEvent();
+    SpawnWarEffortGos();
     RespawnEmeraldDragons();
     StartSunsReachPhase(true);
+    StartSunwellGatePhase();
     HandleSunsReachSubPhaseTransition(m_sunsReachData.m_subphaseMask, true);
     StartExpansionEvent();
 }
@@ -289,49 +367,49 @@ void WorldState::HandleGameObjectUse(GameObject* go, Unit* user)
         case OBJECT_EVENT_TRAP_THRALL:
         {
             HandleExternalEvent(CUSTOM_EVENT_LOVE_IS_IN_THE_AIR_LEADER, LOVE_LEADER_THRALL);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, GetLoveIsInTheAirCounter(LOVE_LEADER_THRALL), WORLD_STATE_LOVE_IS_IN_THE_AIR_THRALL);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, GetLoveIsInTheAirCounter(LOVE_LEADER_THRALL), WORLD_STATE_LOVE_IS_IN_THE_AIR_THRALL);
             uint32 hordeSum = GetLoveIsInTheAirCounter(LOVE_LEADER_CAIRNE) + GetLoveIsInTheAirCounter(LOVE_LEADER_THRALL) + GetLoveIsInTheAirCounter(LOVE_LEADER_SYLVANAS);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, hordeSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_HORDE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, hordeSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_HORDE);
             break;
         }
         case OBJECT_EVENT_TRAP_CAIRNE:
         {
             HandleExternalEvent(CUSTOM_EVENT_LOVE_IS_IN_THE_AIR_LEADER, LOVE_LEADER_CAIRNE);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, GetLoveIsInTheAirCounter(LOVE_LEADER_CAIRNE), WORLD_STATE_LOVE_IS_IN_THE_AIR_CAIRNE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, GetLoveIsInTheAirCounter(LOVE_LEADER_CAIRNE), WORLD_STATE_LOVE_IS_IN_THE_AIR_CAIRNE);
             uint32 hordeSum = GetLoveIsInTheAirCounter(LOVE_LEADER_CAIRNE) + GetLoveIsInTheAirCounter(LOVE_LEADER_THRALL) + GetLoveIsInTheAirCounter(LOVE_LEADER_SYLVANAS);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, hordeSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_HORDE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, hordeSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_HORDE);
             break;
         }
         case OBJECT_EVENT_TRAP_SYLVANAS:
         {
             HandleExternalEvent(CUSTOM_EVENT_LOVE_IS_IN_THE_AIR_LEADER, LOVE_LEADER_SYLVANAS);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, GetLoveIsInTheAirCounter(LOVE_LEADER_SYLVANAS), WORLD_STATE_LOVE_IS_IN_THE_AIR_SYLVANAS);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, GetLoveIsInTheAirCounter(LOVE_LEADER_SYLVANAS), WORLD_STATE_LOVE_IS_IN_THE_AIR_SYLVANAS);
             uint32 hordeSum = GetLoveIsInTheAirCounter(LOVE_LEADER_CAIRNE) + GetLoveIsInTheAirCounter(LOVE_LEADER_THRALL) + GetLoveIsInTheAirCounter(LOVE_LEADER_SYLVANAS);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, hordeSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_HORDE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, hordeSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_HORDE);
             break;
         }
         case OBJECT_EVENT_TRAP_BOLVAR:
         {
             HandleExternalEvent(CUSTOM_EVENT_LOVE_IS_IN_THE_AIR_LEADER, LOVE_LEADER_BOLVAR);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, GetLoveIsInTheAirCounter(LOVE_LEADER_BOLVAR), WORLD_STATE_LOVE_IS_IN_THE_AIR_BOLVAR);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, GetLoveIsInTheAirCounter(LOVE_LEADER_BOLVAR), WORLD_STATE_LOVE_IS_IN_THE_AIR_BOLVAR);
             uint32 allianceSum = GetLoveIsInTheAirCounter(LOVE_LEADER_BOLVAR) + GetLoveIsInTheAirCounter(LOVE_LEADER_TYRANDE) + GetLoveIsInTheAirCounter(LOVE_LEADER_MAGNI);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, allianceSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_ALLIANCE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, allianceSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_ALLIANCE);
             break;
         }
         case OBJECT_EVENT_TRAP_MAGNI:
         {
             HandleExternalEvent(CUSTOM_EVENT_LOVE_IS_IN_THE_AIR_LEADER, LOVE_LEADER_MAGNI);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, GetLoveIsInTheAirCounter(LOVE_LEADER_MAGNI), WORLD_STATE_LOVE_IS_IN_THE_AIR_MAGNI);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, GetLoveIsInTheAirCounter(LOVE_LEADER_MAGNI), WORLD_STATE_LOVE_IS_IN_THE_AIR_MAGNI);
             uint32 allianceSum = GetLoveIsInTheAirCounter(LOVE_LEADER_BOLVAR) + GetLoveIsInTheAirCounter(LOVE_LEADER_TYRANDE) + GetLoveIsInTheAirCounter(LOVE_LEADER_MAGNI);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, allianceSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_ALLIANCE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, allianceSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_ALLIANCE);
             break;
         }
         case OBJECT_EVENT_TRAP_TYRANDE:
         {
             HandleExternalEvent(CUSTOM_EVENT_LOVE_IS_IN_THE_AIR_LEADER, LOVE_LEADER_TYRANDE);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, GetLoveIsInTheAirCounter(LOVE_LEADER_TYRANDE), WORLD_STATE_LOVE_IS_IN_THE_AIR_TYRANDE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, GetLoveIsInTheAirCounter(LOVE_LEADER_TYRANDE), WORLD_STATE_LOVE_IS_IN_THE_AIR_TYRANDE);
             uint32 allianceSum = GetLoveIsInTheAirCounter(LOVE_LEADER_BOLVAR) + GetLoveIsInTheAirCounter(LOVE_LEADER_TYRANDE) + GetLoveIsInTheAirCounter(LOVE_LEADER_MAGNI);
-            SendWorldstateUpdate(m_loveIsInTheAirMutex, allianceSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_ALLIANCE);
+            SendWorldstateUpdate(m_loveIsInTheAirMutex, m_loveIsInTheAirCapitalsPlayers, allianceSum, WORLD_STATE_LOVE_IS_IN_THE_AIR_TOTAL_ALLIANCE);
             break;
         }
         default:
@@ -418,12 +496,24 @@ void WorldState::HandlePlayerEnterZone(Player* player, uint32 zoneId)
         {
             std::lock_guard<std::mutex> guard(m_sunsReachData.m_sunsReachReclamationMutex);
             m_sunsReachData.m_sunsReachReclamationPlayers.push_back(player->GetObjectGuid());
-            if (zoneId != ZONEID_SUNWELL_PLATEAU && m_sunsReachData.m_subphaseMask == SUBPHASE_ALL)
+            if (m_sunsReachData.m_subphaseMask == SUBPHASE_ALL)
                 player->CastSpell(nullptr, SPELL_KIRU_SONG_OF_VICTORY, TRIGGERED_OLD_TRIGGERED);
             break;
         }
         default:
             break;
+    }
+    if (IsHolidayActive(HOLIDAY_FIRE_FESTIVAL)) // On midsummer starting, players can end up without buff but with bonfire in zone - keeping like this for simplicity and optimization
+    {
+        if (player->GetMap()->IsContinent())
+        {
+            std::lock_guard<std::mutex> guard(m_mutex);
+            m_zonePlayers[zoneId].push_back(player->GetObjectGuid());
+        }
+        std::lock_guard<std::mutex> guard(m_midsummerMutex);
+        if (uint32 entry = IsBonfireInZone(player->GetTeam(), zoneId))
+            if (IsBonfireActive(entry))
+                player->CastSpell(nullptr, SPELL_BONFIRES_BLESSING, TRIGGERED_OLD_TRIGGERED);
     }
 }
 
@@ -495,6 +585,17 @@ void WorldState::HandlePlayerLeaveZone(Player* player, uint32 zoneId)
         default:
             break;
     }
+    if (IsHolidayActive(HOLIDAY_FIRE_FESTIVAL))
+    {
+        if (!player->IsInWorld() || player->GetMap()->IsContinent())
+        {
+            std::lock_guard<std::mutex> guard(m_mutex);
+            auto position = std::find(m_zonePlayers[zoneId].begin(), m_zonePlayers[zoneId].end(), player->GetObjectGuid());
+            if (position != m_zonePlayers[zoneId].end())
+                m_zonePlayers[zoneId].erase(position);
+        }
+        player->RemoveAurasDueToSpell(SPELL_BONFIRES_BLESSING);
+    }
 }
 
 void WorldState::HandlePlayerEnterArea(Player* player, uint32 areaId)
@@ -547,6 +648,18 @@ void WorldState::HandlePlayerLeaveArea(Player* player, uint32 areaId)
 
 bool WorldState::IsConditionFulfilled(uint32 conditionId, uint32 state) const
 {
+    if (conditionId == WAR_EFFORT_DAYS_LEFT)
+        return m_aqData.GetDaysRemaining() == state;
+
+    auto itr = m_aqWorldstateMapReverse.find(conditionId);
+    if (itr != m_aqWorldstateMapReverse.end())
+    {
+        uint32 id = (*itr).second;
+        if (id >= aqWorldStateTotalsMap.size())
+            id -= 5;
+        return m_aqData.m_WarEffortCounters[id] == aqWorldStateTotalsMap[id].second;
+    }
+
     return m_transportStates.at(conditionId) == state;
 }
 
@@ -685,13 +798,20 @@ void WorldState::Update(const uint32 diff)
             HandleWarEffortPhaseTransition(m_aqData.m_phase + 1);
         }
         else m_aqData.m_timer -= diff;
+
+        if (m_aqData.m_phase == PHASE_2_TRANSPORTING_RESOURCES)
+        {
+            uint32 remainingDays = m_aqData.m_timer % (DAY * IN_MILLISECONDS);
+            if (remainingDays < m_aqData.m_phase2Tier)
+                ChangeWarEffortPhase2Tier(remainingDays);
+        }
     }
 }
 
-void WorldState::SendWorldstateUpdate(std::mutex& mutex, uint32 value, uint32 worldStateId)
+void WorldState::SendWorldstateUpdate(std::mutex& mutex, GuidVector const& guids, uint32 value, uint32 worldStateId)
 {
     std::lock_guard<std::mutex> guard(mutex);
-    for (ObjectGuid& guid : m_loveIsInTheAirCapitalsPlayers)
+    for (ObjectGuid const& guid : guids)
         if (Player* player = sObjectMgr.GetPlayer(guid))
             player->SendUpdateWorldState(worldStateId, value);
 }
@@ -730,6 +850,14 @@ void WorldState::ExecuteOnAreaPlayers(uint32 areaId, std::function<void(Player*)
 {
     std::lock_guard<std::mutex> guard(m_mutex);
     for (ObjectGuid guid : m_areaPlayers[areaId])
+        if (Player* player = sObjectMgr.GetPlayer(guid))
+            executor(player);
+}
+
+void WorldState::ExecuteOnZonePlayers(uint32 zoneId, std::function<void(Player*)> executor)
+{
+    std::lock_guard<std::mutex> guard(m_mutex);
+    for (ObjectGuid guid : m_zonePlayers[zoneId])
         if (Player* player = sObjectMgr.GetPlayer(guid))
             executor(player);
 }
@@ -795,70 +923,6 @@ void WorldState::RespawnEmeraldDragons()
     });
 }
 
-// AQ War Effort code
-std::map<AQResources, WorldStateID> aqWorldstateMap =
-{
-    {AQ_PEACEBLOOM, WORLD_STATE_AQ_PEACEBLOOM_NOW},
-    {AQ_LEAN_WOLF_STEAK, WORLD_STATE_AQ_LEAN_WOLF_STEAK_NOW},
-    {AQ_TIN_BAR, WORLD_STATE_AQ_TIN_BARS_NOW},
-    {AQ_WOOL_BANDAGE, WORLD_STATE_AQ_WOOL_BANDAGE_NOW},
-    {AQ_FIREBLOOM, WORLD_STATE_AQ_FIREBLOOM_NOW},
-    {AQ_HEAVY_LEATHER, WORLD_STATE_AQ_HEAVY_LEATHER_NOW},
-    {AQ_MITHRIL_BAR, WORLD_STATE_AQ_MITHRIL_BARS_NOW},
-    {AQ_MAGEWEAVE_BANDAGE, WORLD_STATE_AQ_MAGEWEAVE_BANDAGE_NOW},
-    {AQ_RUGGED_LEATHER, WORLD_STATE_AQ_RUGGED_LEATHER_NOW},
-    {AQ_BAKED_SALMON, WORLD_STATE_AQ_BAKED_SALMON_NOW},
-    {AQ_LIGHT_LEATHER, WORLD_STATE_AQ_LIGHT_LEATHER_NOW},
-    {AQ_LINEN_BANDAGE, WORLD_STATE_AQ_LINEN_BANDAGE_NOW},
-    {AQ_MEDIUM_LEATHER, WORLD_STATE_AQ_MEDIUM_LEATHER_NOW},
-    {AQ_STRANGLEKELP, WORLD_STATE_AQ_STRANGLEKELP_NOW},
-    {AQ_RAINBOW_FIN_ALBACORE, WORLD_STATE_AQ_RAINBOW_FIN_ALBACORE_NOW},
-    {AQ_IRON_BAR, WORLD_STATE_AQ_IRON_BARS_NOW},
-    {AQ_ROAST_RAPTOR, WORLD_STATE_AQ_ROAST_RAPTOR_NOW},
-    {AQ_SILK_BANDAGE, WORLD_STATE_AQ_SILK_BANDAGE_NOW},
-    {AQ_THORIUM_BAR, WORLD_STATE_AQ_THORIUM_BARS_NOW},
-    {AQ_ARTHAS_TEARS, WORLD_STATE_AQ_ARTHAS_TEARS_NOW},
-    {AQ_COPPER_BAR_ALLY, WORLD_STATE_AQ_COPPER_BARS_ALLY_NOW},
-    {AQ_PURPLE_LOTUS_ALLY, WORLD_STATE_AQ_PURPLE_LOTUS_ALLY_NOW},
-    {AQ_THICK_LEATHER_ALLY, WORLD_STATE_AQ_THICK_LEATHER_ALLY_NOW},
-    {AQ_SPOTTED_YELLOWTAIL_ALLY, WORLD_STATE_AQ_SPOTTED_YELLOWTAIL_ALLY_NOW},
-    {AQ_RUNECLOTH_BANDAGE_ALLY, WORLD_STATE_AQ_RUNECLOTH_BANDAGE_ALLY_NOW},
-    {AQ_COPPER_BAR_HORDE, WORLD_STATE_AQ_COPPER_BARS_HORDE_NOW},
-    {AQ_PURPLE_LOTUS_HORDE, WORLD_STATE_AQ_PURPLE_LOTUS_HORDE_NOW},
-    {AQ_THICK_LEATHER_HORDE, WORLD_STATE_AQ_THICK_LEATHER_HORDE_NOW},
-    {AQ_SPOTTED_YELLOWTAIL_HORDE, WORLD_STATE_AQ_SPOTTED_YELLOWTAIL_HORDE_NOW},
-    {AQ_RUNECLOTH_BANDAGE_HORDE, WORLD_STATE_AQ_RUNECLOTH_BANDAGE_HORDE_NOW},
-};
-
-std::vector<std::pair<WorldStateID, uint32>> aqWorldStateTotalsMap =
-{
-    {WORLD_STATE_AQ_PEACEBLOOM_TOTAL, 96000},
-    {WORLD_STATE_AQ_LEAN_WOLF_STEAK_TOTAL, 10000},
-    {WORLD_STATE_AQ_TIN_BARS_TOTAL, 22000},
-    {WORLD_STATE_AQ_WOOL_BANDAGE_TOTAL, 250000},
-    {WORLD_STATE_AQ_FIREBLOOM_TOTAL, 19000},
-    {WORLD_STATE_AQ_HEAVY_LEATHER_TOTAL, 60000},
-    {WORLD_STATE_AQ_MITHRIL_BARS_TOTAL, 18000},
-    {WORLD_STATE_AQ_MAGEWEAVE_BANDAGE_TOTAL, 250000},
-    {WORLD_STATE_AQ_RUGGED_LEATHER_TOTAL, 60000},
-    {WORLD_STATE_AQ_BAKED_SALMON_TOTAL, 10000},
-    {WORLD_STATE_AQ_LIGHT_LEATHER_TOTAL, 180000},
-    {WORLD_STATE_AQ_LINEN_BANDAGE_TOTAL, 800000},
-    {WORLD_STATE_AQ_MEDIUM_LEATHER_TOTAL, 110000},
-    {WORLD_STATE_AQ_STRANGLEKELP_TOTAL, 33000},
-    {WORLD_STATE_AQ_RAINBOW_FIN_ALBACORE_TOTAL, 14000},
-    {WORLD_STATE_AQ_IRON_BARS_TOTAL, 28000},
-    {WORLD_STATE_AQ_ROAST_RAPTOR_TOTAL, 20000},
-    {WORLD_STATE_AQ_SILK_BANDAGE_TOTAL, 600000},
-    {WORLD_STATE_AQ_THORIUM_BARS_TOTAL, 24000},
-    {WORLD_STATE_AQ_ARTHAS_TEARS_TOTAL, 20000},
-    {WORLD_STATE_AQ_COPPER_BARS_TOTAL, 45000},
-    {WORLD_STATE_AQ_PURPLE_LOTUS_TOTAL, 13000},
-    {WORLD_STATE_AQ_THICK_LEATHER_TOTAL, 40000},
-    {WORLD_STATE_AQ_SPOTTED_YELLOWTAIL_TOTAL, 8500},
-    {WORLD_STATE_AQ_RUNECLOTH_BANDAGE_TOTAL, 200000},
-};
-
 void WorldState::AddWarEffortProgress(AQResources resource, uint32 count)
 {
     std::lock_guard<std::mutex> guard(m_aqData.m_warEffortMutex);
@@ -872,6 +936,7 @@ void WorldState::AddWarEffortProgress(AQResources resource, uint32 count)
     uint32 id = uint32(resource);
     if (id >= aqWorldStateTotalsMap.size())
         id -= 5;
+    ChangeWarEffortGoSpawns(resource);
     if (m_aqData.m_WarEffortCounters[resource] >= aqWorldStateTotalsMap[id].second) // fulfilled this condition - check all
     {
         bool success = true;
@@ -898,6 +963,12 @@ void WorldState::HandleWarEffortPhaseTransition(uint32 newPhase)
         case PHASE_2_TRANSPORTING_RESOURCES:
             m_aqData.m_phase = PHASE_2_TRANSPORTING_RESOURCES;
             m_aqData.m_timer = 5 * DAY * IN_MILLISECONDS;
+            {
+                std::lock_guard<std::mutex> guard(m_aqData.m_warEffortMutex);
+                for (ObjectGuid& guid : m_aqData.m_warEffortWorldstatesPlayers)
+                    if (Player* player = sObjectMgr.GetPlayer(guid))
+                        player->SendUpdateWorldState(WORLD_STATE_AQ_DAYS_LEFT, m_aqData.GetDaysRemaining());
+            }
             break;
         case PHASE_4_10_HOUR_WAR:
             m_aqData.m_phase = PHASE_4_10_HOUR_WAR;
@@ -906,19 +977,6 @@ void WorldState::HandleWarEffortPhaseTransition(uint32 newPhase)
         default: break;
     }
     StartWarEffortEvent();
-}
-
-void WorldState::StopWarEffortEvent()
-{
-    switch (m_aqData.m_phase)
-    {
-        case PHASE_1_GATHERING_RESOURCES: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_1); break;
-        case PHASE_2_TRANSPORTING_RESOURCES: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_2); break;
-        case PHASE_3_GONG_TIME: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_3); break;
-        case PHASE_4_10_HOUR_WAR: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_4); break;
-        case PHASE_5_DONE: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_5); break;
-        default: break;
-    }
 }
 
 void WorldState::StartWarEffortEvent()
@@ -934,6 +992,266 @@ void WorldState::StartWarEffortEvent()
     }
 }
 
+void WorldState::StopWarEffortEvent()
+{
+    switch (m_aqData.m_phase)
+    {
+        case PHASE_1_GATHERING_RESOURCES: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_1); break;
+        case PHASE_2_TRANSPORTING_RESOURCES: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_2); break;
+        case PHASE_3_GONG_TIME: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_3); break;
+        case PHASE_4_10_HOUR_WAR: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_4); break;
+        case PHASE_5_DONE: sGameEventMgr.StopEvent(GAME_EVENT_AHN_QIRAJ_EFFORT_PHASE_5); break;
+        default: break;
+    }
+}
+
+void WorldState::SpawnWarEffortGos()
+{
+    if (m_aqData.m_phase > PHASE_2_TRANSPORTING_RESOURCES)
+        return;
+
+    for (uint32 i = 0; i < RESOURCE_MAX; ++i)
+        ChangeWarEffortGoSpawns(AQResources(i), m_aqData.m_phase == PHASE_2_TRANSPORTING_RESOURCES ? m_aqData.m_phase2Tier : -1);
+}
+
+enum AQResourceTier : uint32
+{
+    RESOURCE_TIER_0,
+    RESOURCE_TIER_1,
+    RESOURCE_TIER_2,
+    RESOURCE_TIER_3,
+    RESOURCE_TIER_4,
+    RESOURCE_TIER_5,
+};
+
+struct WarEffortSpawn
+{
+    AQResourceGroup resourceGroup;
+    AQResourceTier resourceTier;
+    uint32 dbGuid;
+    Team team;
+};
+
+enum
+{
+    WAR_EFFORT_DB_GUID_PREFIX = 155000,
+
+    MAP_AZEROTH = 0,
+    MAP_KALIMDOR = 1,
+};
+
+static std::map<std::pair<AQResourceGroup, Team>, std::vector<AQResources>> teamResourcesMap
+{
+    { {RESOURCE_GROUP_SKINNING, ALLIANCE}, {AQ_THICK_LEATHER_ALLY, AQ_LIGHT_LEATHER, AQ_MEDIUM_LEATHER} },
+    { {RESOURCE_GROUP_COOKING, ALLIANCE}, {AQ_RAINBOW_FIN_ALBACORE, AQ_ROAST_RAPTOR, AQ_SPOTTED_YELLOWTAIL_ALLY} },
+    { {RESOURCE_GROUP_HERBS, ALLIANCE}, {AQ_STRANGLEKELP, AQ_ARTHAS_TEARS, AQ_PURPLE_LOTUS_ALLY} },
+    { {RESOURCE_GROUP_BANDAGES, ALLIANCE}, {AQ_LINEN_BANDAGE, AQ_SILK_BANDAGE, AQ_RUNECLOTH_BANDAGE_ALLY} },
+    { {RESOURCE_GROUP_BARS, ALLIANCE}, {AQ_IRON_BAR, AQ_THORIUM_BAR, AQ_COPPER_BAR_ALLY} },
+    { {RESOURCE_GROUP_SKINNING, HORDE}, {AQ_HEAVY_LEATHER, AQ_RUGGED_LEATHER, AQ_THICK_LEATHER_HORDE} },
+    { {RESOURCE_GROUP_COOKING, HORDE}, {AQ_LEAN_WOLF_STEAK, AQ_BAKED_SALMON, AQ_SPOTTED_YELLOWTAIL_HORDE} },
+    { {RESOURCE_GROUP_HERBS, HORDE}, {AQ_PEACEBLOOM, AQ_FIREBLOOM, AQ_PURPLE_LOTUS_HORDE} },
+    { {RESOURCE_GROUP_BANDAGES, HORDE}, {AQ_WOOL_BANDAGE, AQ_MAGEWEAVE_BANDAGE, AQ_RUNECLOTH_BANDAGE_HORDE} },
+    { {RESOURCE_GROUP_BARS, HORDE}, {AQ_TIN_BAR, AQ_MITHRIL_BAR, AQ_COPPER_BAR_HORDE} }
+};
+
+static WarEffortSpawn warEffortSpawns[] =
+{
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 10, ALLIANCE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 11, ALLIANCE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 12, ALLIANCE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 13, ALLIANCE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 14, ALLIANCE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 20, ALLIANCE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 21, ALLIANCE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 22, ALLIANCE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 23, ALLIANCE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 24, ALLIANCE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 30, ALLIANCE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 31, ALLIANCE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 32, ALLIANCE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 33, ALLIANCE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 34, ALLIANCE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 40, ALLIANCE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 41, ALLIANCE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 42, ALLIANCE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 43, ALLIANCE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 44, ALLIANCE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 50, ALLIANCE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 51, ALLIANCE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 52, ALLIANCE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 53, ALLIANCE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 54, ALLIANCE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 510, HORDE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 511, HORDE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 512, HORDE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 513, HORDE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_1, WAR_EFFORT_DB_GUID_PREFIX + 514, HORDE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 520, HORDE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 521, HORDE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 522, HORDE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 523, HORDE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_2, WAR_EFFORT_DB_GUID_PREFIX + 524, HORDE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 530, HORDE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 531, HORDE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 532, HORDE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 533, HORDE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_3, WAR_EFFORT_DB_GUID_PREFIX + 534, HORDE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 540, HORDE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 541, HORDE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 542, HORDE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 543, HORDE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_4, WAR_EFFORT_DB_GUID_PREFIX + 544, HORDE},
+    { RESOURCE_GROUP_SKINNING, RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 550, HORDE},
+    { RESOURCE_GROUP_BANDAGES, RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 551, HORDE},
+    { RESOURCE_GROUP_BARS,     RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 552, HORDE},
+    { RESOURCE_GROUP_COOKING,  RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 553, HORDE},
+    { RESOURCE_GROUP_HERBS,    RESOURCE_TIER_5, WAR_EFFORT_DB_GUID_PREFIX + 554, HORDE},
+};
+
+AQResourceTier GetResourceTier(uint32 counter, uint32 max)
+{
+    if (max * 90 / 100 < counter)
+        return RESOURCE_TIER_5;
+    if (max * 70 / 100 < counter)
+        return RESOURCE_TIER_4;
+    if (max * 50 / 100 < counter)
+        return RESOURCE_TIER_3;
+    if (max * 30 / 100 < counter)
+        return RESOURCE_TIER_2;
+    if (max * 10 / 100 < counter)
+        return RESOURCE_TIER_1;
+    return RESOURCE_TIER_0;
+}
+
+void WorldState::ChangeWarEffortGoSpawns(AQResources resource, int32 forcedTier)
+{
+    auto resourceInfo = GetResourceInfo(resource);
+    auto counterInfo = GetResourceCounterAndMax(resourceInfo.first, resourceInfo.second);
+    auto tier = GetResourceTier(counterInfo.first, counterInfo.second);
+    if (forcedTier != -1)
+        tier = AQResourceTier(uint32(forcedTier));
+    std::vector<uint32> spawnsForSchedule;
+    for (auto& spawn : warEffortSpawns)
+        if (resourceInfo.first == spawn.resourceGroup && tier >= spawn.resourceTier)
+            if (m_aqData.m_spawnedDbGuids.find(spawn.dbGuid) == m_aqData.m_spawnedDbGuids.end())
+                spawnsForSchedule.push_back(spawn.dbGuid);
+    for (uint32 dbGuid : spawnsForSchedule)
+        m_aqData.m_spawnedDbGuids.insert(dbGuid);
+
+    sMapMgr.DoForAllMapsWithMapId(resourceInfo.second == ALLIANCE ? MAP_AZEROTH : MAP_KALIMDOR, [=](Map* map)
+    {
+        for (uint32 dbGuid : spawnsForSchedule)
+        {
+            WorldObject::SpawnGameObject(dbGuid, map);
+        }
+    });
+}
+
+void WorldState::ChangeWarEffortPhase2Tier(uint32 remainingDays)
+{
+    m_aqData.m_phase2Tier = remainingDays;
+    std::set<std::pair<uint32, Team>> guidsForDespawn;
+    for (uint32 dbGuid : m_aqData.m_spawnedDbGuids)
+        for (auto& spawn : warEffortSpawns)
+            if (spawn.dbGuid == dbGuid && spawn.resourceTier > remainingDays)
+                guidsForDespawn.insert({ dbGuid, spawn.team});
+
+    DespawnWarEffortGuids(guidsForDespawn);
+    Save(SAVE_ID_AHN_QIRAJ);
+}
+
+void WorldState::DespawnWarEffortGuids(std::set<std::pair<uint32, Team>>& guids)
+{
+    std::vector<uint32> kalimdor;
+    std::vector<uint32> ek;
+    for (auto& data : guids)
+    {
+        if (data.second == ALLIANCE)
+            ek.push_back(data.first);
+        else
+            kalimdor.push_back(data.first);
+    }
+    if (!ek.empty())
+    {
+        for (uint32 dbGuid : ek)
+            m_aqData.m_spawnedDbGuids.erase(dbGuid);
+
+        sMapMgr.DoForAllMapsWithMapId(MAP_AZEROTH, [=](Map* map)
+        {
+            for (uint32 dbGuid : ek)
+            {
+                if (GameObject* go = map->GetGameObject(dbGuid))
+                    go->AddObjectToRemoveList();
+            }
+        });
+    }
+    if (!kalimdor.empty())
+    {
+        for (uint32 dbGuid : kalimdor)
+            m_aqData.m_spawnedDbGuids.erase(dbGuid);
+
+        sMapMgr.DoForAllMapsWithMapId(MAP_KALIMDOR, [=](Map* map)
+        {
+            for (uint32 dbGuid : kalimdor)
+            {
+                if (GameObject* go = map->GetGameObject(dbGuid))
+                    go->AddObjectToRemoveList();
+            }
+        });
+    }
+}
+
+std::pair<AQResourceGroup, Team> WorldState::GetResourceInfo(AQResources resource)
+{
+    switch (resource)
+    {
+        case AQ_RAINBOW_FIN_ALBACORE: return { RESOURCE_GROUP_COOKING, ALLIANCE};
+        case AQ_ROAST_RAPTOR: return { RESOURCE_GROUP_COOKING, ALLIANCE };
+        case AQ_SPOTTED_YELLOWTAIL_ALLY: return { RESOURCE_GROUP_COOKING, ALLIANCE };
+        case AQ_SPOTTED_YELLOWTAIL_HORDE: return { RESOURCE_GROUP_COOKING, HORDE };
+        case AQ_LEAN_WOLF_STEAK: return { RESOURCE_GROUP_COOKING, HORDE };
+        case AQ_BAKED_SALMON: return { RESOURCE_GROUP_COOKING, HORDE };
+        case AQ_PEACEBLOOM: return { RESOURCE_GROUP_HERBS, HORDE };
+        case AQ_FIREBLOOM: return { RESOURCE_GROUP_HERBS, HORDE };
+        case AQ_PURPLE_LOTUS_HORDE: return { RESOURCE_GROUP_HERBS, HORDE };
+        case AQ_PURPLE_LOTUS_ALLY: return { RESOURCE_GROUP_HERBS, ALLIANCE };
+        case AQ_STRANGLEKELP: return { RESOURCE_GROUP_HERBS, ALLIANCE };
+        case AQ_ARTHAS_TEARS: return { RESOURCE_GROUP_HERBS, ALLIANCE };
+        case AQ_TIN_BAR: return { RESOURCE_GROUP_BARS, HORDE };
+        case AQ_MITHRIL_BAR: return { RESOURCE_GROUP_BARS, HORDE };
+        case AQ_IRON_BAR: return { RESOURCE_GROUP_BARS, ALLIANCE };
+        case AQ_THORIUM_BAR: return { RESOURCE_GROUP_BARS, ALLIANCE };
+        case AQ_COPPER_BAR_ALLY: return { RESOURCE_GROUP_BARS, ALLIANCE };
+        case AQ_COPPER_BAR_HORDE: return { RESOURCE_GROUP_BARS, HORDE };
+        case AQ_HEAVY_LEATHER: return { RESOURCE_GROUP_SKINNING, HORDE };
+        case AQ_RUGGED_LEATHER: return { RESOURCE_GROUP_SKINNING, HORDE };
+        case AQ_THICK_LEATHER_HORDE: return { RESOURCE_GROUP_SKINNING, HORDE };
+        case AQ_THICK_LEATHER_ALLY: return { RESOURCE_GROUP_SKINNING, ALLIANCE };
+        case AQ_LIGHT_LEATHER: return { RESOURCE_GROUP_SKINNING, ALLIANCE };
+        case AQ_MEDIUM_LEATHER: return { RESOURCE_GROUP_SKINNING, ALLIANCE };
+        case AQ_LINEN_BANDAGE: return { RESOURCE_GROUP_BANDAGES, ALLIANCE };
+        case AQ_SILK_BANDAGE: return { RESOURCE_GROUP_BANDAGES, ALLIANCE };
+        case AQ_RUNECLOTH_BANDAGE_ALLY: return { RESOURCE_GROUP_BANDAGES, ALLIANCE };
+        case AQ_RUNECLOTH_BANDAGE_HORDE: return { RESOURCE_GROUP_BANDAGES, HORDE };
+        case AQ_WOOL_BANDAGE: return { RESOURCE_GROUP_BANDAGES, HORDE };
+        case AQ_MAGEWEAVE_BANDAGE: return { RESOURCE_GROUP_BANDAGES, HORDE };
+        default: return { RESOURCE_GROUP_HERBS, HORDE };
+    }
+}
+
+std::pair<uint32, uint32> WorldState::GetResourceCounterAndMax(AQResourceGroup group, Team team)
+{
+    auto& data = teamResourcesMap[{group, team}];
+    uint32 counter = 0;
+    uint32 max = 0;
+    for (auto& resource : data)
+    {
+        counter += m_aqData.m_WarEffortCounters[resource];
+        max += aqWorldStateTotalsMap[resource > RESOURCE_UNIQUE_MAX ? resource - 5 : resource].second;
+    }
+    return {counter, max};
+}
+
 std::string WorldState::GetAQPrintout()
 {
     std::string output = "Phase: " + std::to_string(m_aqData.m_phase) + " Timer: " + std::to_string(m_aqData.m_timer) + "\nValues:";
@@ -947,7 +1265,13 @@ std::string AhnQirajData::GetData()
     std::string output = std::to_string(m_phase) + " " + std::to_string(m_timer);
     for (uint32 value : m_WarEffortCounters)
         output += " " + std::to_string(value);
+    output += " " + std::to_string(m_phase2Tier);
     return output;
+}
+
+uint32 AhnQirajData::GetDaysRemaining() const
+{
+    return uint32(m_timer / (DAY * IN_MILLISECONDS));
 }
 
 // Highlord Kruul
@@ -1007,19 +1331,24 @@ bool WorldState::SetExpansion(uint8 expansion)
 
 enum
 {
-    QUEST_ERRATIC_BEHAVIOR = 11524,
-    QUEST_SANCTUM_WARDS = 11496,
-    QUEST_BATTLE_FOR_THE_SUNS_REACH_ARMORY = 11538,
-    QUEST_DISTRACTION_AT_THE_DEAD_SCAR = 11532,
-    QUEST_INTERCEPTING_THE_MANA_CELLS = 11513,
-    QUEST_INTERCEPT_THE_REINFORCEMENTS = 11542,
-    QUEST_TAKING_THE_HARBOR = 11539,
-    QUEST_MAKING_READY = 11535,
-    QUEST_DISCOVERING_YOUR_ROOTS = 11520,
-    QUEST_A_CHARITABLE_DONATION = 11545,
-    QUEST_A_MAGNANIMOUS_BENEFACTOR = 11549,
+    QUEST_ERRATIC_BEHAVIOR                  = 11524,
+    QUEST_SANCTUM_WARDS                     = 11496,
+    QUEST_BATTLE_FOR_THE_SUNS_REACH_ARMORY  = 11538,
+    QUEST_DISTRACTION_AT_THE_DEAD_SCAR      = 11532,
+    QUEST_INTERCEPTING_THE_MANA_CELLS       = 11513,
+    QUEST_INTERCEPT_THE_REINFORCEMENTS      = 11542,
+    QUEST_TAKING_THE_HARBOR                 = 11539,
+    QUEST_MAKING_READY                      = 11535,
+    QUEST_DISCOVERING_YOUR_ROOTS            = 11520,
+    QUEST_A_CHARITABLE_DONATION             = 11545,
+    QUEST_A_MAGNANIMOUS_BENEFACTOR          = 11549,
 
-    COUNTER_MAX_VAL_REQ = 10000,
+    // optional Sunwell Plateau PTR progressive release gates
+    QUEST_AGAMATH_THE_FIRST_GATE            = 11551,
+    QUEST_ROHENDOR_THE_SECOND_GATE          = 11552,
+    QUEST_ARCHONISUS_THE_FINAL_GATE         = 11553,
+
+    COUNTER_MAX_VAL_REQ_SWP_GATES           = 80,
 };
 
 void WorldState::AddSunsReachProgress(uint32 questId)
@@ -1058,62 +1387,124 @@ void WorldState::AddSunsReachProgress(uint32 questId)
     else
         newValue = m_sunsReachData.GetSubPhasePercentage(subPhaseMask);
     if (previousValue != newValue)
-        SendWorldstateUpdate(m_sunsReachData.m_sunsReachReclamationMutex, newValue, worldState);
+        SendWorldstateUpdate(m_sunsReachData.m_sunsReachReclamationMutex, m_sunsReachData.m_sunsReachReclamationPlayers, newValue, worldState);
 
     bool save = true;
-    if (m_sunsReachData.m_sunsReachReclamationCounters[counter] >= COUNTER_MAX_VAL_REQ)
+    uint32 counterValue = m_sunsReachData.m_sunsReachReclamationCounters[counter];
+    uint32 modifier = 1;
+    if (otherCounter != -1)
     {
-        if (otherCounter == -1 || m_sunsReachData.m_sunsReachReclamationCounters[otherCounter] >= COUNTER_MAX_VAL_REQ)
+        modifier = 2;
+        counterValue += m_sunsReachData.m_sunsReachReclamationCounters[otherCounter];
+    }
+    if (counterValue >= sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER) * modifier)
+    {
+        save = false;
+        switch (questId)
         {
-            save = false;
-            switch (questId)
+            case QUEST_ERRATIC_BEHAVIOR:
+            case QUEST_SANCTUM_WARDS:
             {
-                case QUEST_ERRATIC_BEHAVIOR:
-                case QUEST_SANCTUM_WARDS:
-                {
-                    if (m_sunsReachData.m_phase == SUNS_REACH_PHASE_1_STAGING_AREA)
-                        HandleSunsReachPhaseTransition(SUNS_REACH_PHASE_2_SANCTUM);
-                    break;
-                }
-                case QUEST_BATTLE_FOR_THE_SUNS_REACH_ARMORY:
-                case QUEST_DISTRACTION_AT_THE_DEAD_SCAR:
-                {
-                    if (m_sunsReachData.m_phase == SUNS_REACH_PHASE_2_SANCTUM)
-                        HandleSunsReachPhaseTransition(SUNS_REACH_PHASE_3_ARMORY);
-                    break;
-                }
-                case QUEST_INTERCEPTING_THE_MANA_CELLS:
-                {
-                    if ((m_sunsReachData.m_subphaseMask & SUBPHASE_PORTAL) == 0)
-                        HandleSunsReachSubPhaseTransition(SUBPHASE_PORTAL);
-                    break;
-                }
-                case QUEST_INTERCEPT_THE_REINFORCEMENTS:
-                case QUEST_TAKING_THE_HARBOR:
-                {
-                    if (m_sunsReachData.m_phase == SUNS_REACH_PHASE_3_ARMORY)
-                        HandleSunsReachPhaseTransition(SUNS_REACH_PHASE_4_HARBOR);
-                    break;
-                }
-                case QUEST_MAKING_READY:
-                {
-                    if ((m_sunsReachData.m_subphaseMask & SUBPHASE_ANVIL) == 0)
-                        HandleSunsReachSubPhaseTransition(SUBPHASE_ANVIL);
-                    break;
-                }
-                case QUEST_DISCOVERING_YOUR_ROOTS:
-                {
-                    if ((m_sunsReachData.m_subphaseMask & SUBPHASE_ALCHEMY_LAB) == 0)
-                        HandleSunsReachSubPhaseTransition(SUBPHASE_ALCHEMY_LAB);
-                    break;
-                }
-                case QUEST_A_CHARITABLE_DONATION:
-                case QUEST_A_MAGNANIMOUS_BENEFACTOR:
-                {
-                    if ((m_sunsReachData.m_subphaseMask & SUBPHASE_MONUMENT) == 0)
-                        HandleSunsReachSubPhaseTransition(SUBPHASE_MONUMENT);
-                    break;
-                }
+                if (m_sunsReachData.m_phase == SUNS_REACH_PHASE_1_STAGING_AREA)
+                    HandleSunsReachPhaseTransition(SUNS_REACH_PHASE_2_SANCTUM);
+                break;
+            }
+            case QUEST_BATTLE_FOR_THE_SUNS_REACH_ARMORY:
+            case QUEST_DISTRACTION_AT_THE_DEAD_SCAR:
+            {
+                if (m_sunsReachData.m_phase == SUNS_REACH_PHASE_2_SANCTUM)
+                    HandleSunsReachPhaseTransition(SUNS_REACH_PHASE_3_ARMORY);
+                break;
+            }
+            case QUEST_INTERCEPTING_THE_MANA_CELLS:
+            {
+                if ((m_sunsReachData.m_subphaseMask & SUBPHASE_PORTAL) == 0)
+                    HandleSunsReachSubPhaseTransition(SUBPHASE_PORTAL);
+                break;
+            }
+            case QUEST_INTERCEPT_THE_REINFORCEMENTS:
+            case QUEST_TAKING_THE_HARBOR:
+            {
+                if (m_sunsReachData.m_phase == SUNS_REACH_PHASE_3_ARMORY)
+                    HandleSunsReachPhaseTransition(SUNS_REACH_PHASE_4_HARBOR);
+                break;
+            }
+            case QUEST_MAKING_READY:
+            {
+                if ((m_sunsReachData.m_subphaseMask & SUBPHASE_ANVIL) == 0)
+                    HandleSunsReachSubPhaseTransition(SUBPHASE_ANVIL);
+                break;
+            }
+            case QUEST_DISCOVERING_YOUR_ROOTS:
+            {
+                if ((m_sunsReachData.m_subphaseMask & SUBPHASE_ALCHEMY_LAB) == 0)
+                    HandleSunsReachSubPhaseTransition(SUBPHASE_ALCHEMY_LAB);
+                break;
+            }
+            case QUEST_A_CHARITABLE_DONATION:
+            case QUEST_A_MAGNANIMOUS_BENEFACTOR:
+            {
+                if ((m_sunsReachData.m_subphaseMask & SUBPHASE_MONUMENT) == 0)
+                    HandleSunsReachSubPhaseTransition(SUBPHASE_MONUMENT);
+                break;
+            }
+        }
+    }
+    if (save)
+        Save(SAVE_ID_QUEL_DANAS);
+}
+
+void WorldState::AddSunwellGateProgress(uint32 questId)
+{
+    uint32 counter = 0;
+    int32 worldState = 0;
+    uint32 addedValue = 1;
+    switch (questId)
+    {
+        case QUEST_AGAMATH_THE_FIRST_GATE:
+        case QUEST_ROHENDOR_THE_SECOND_GATE:
+        case QUEST_ARCHONISUS_THE_FINAL_GATE:
+            break;
+        default: return;
+    }
+    switch (m_sunsReachData.m_gate)
+    {
+        case SUNWELL_ALL_GATES_CLOSED: counter = COUNTER_AGAMATH_THE_FIRST_GATE; worldState = WORLD_STATE_AGAMATH_THE_FIRST_GATE_HEALTH; break;
+        case SUNWELL_AGAMATH_GATE1_OPEN: counter = COUNTER_ROHENDOR_THE_SECOND_GATE; worldState = WORLD_STATE_ROHENDOR_THE_SECOND_GATE_HEALTH; break;
+        case SUNWELL_ROHENDOR_GATE2_OPEN: counter = COUNTER_ARCHONISUS_THE_FINAL_GATE; worldState = WORLD_STATE_ARCHONISUS_THE_FINAL_GATE_HEALTH; break;
+        default: return;
+    }
+
+    uint32 previousValue = m_sunsReachData.GetSunwellGatePercentage(m_sunsReachData.m_gate);
+    uint32 newValue = 0;
+    m_sunsReachData.m_gateCounters[counter] += addedValue;
+    newValue = m_sunsReachData.GetSunwellGatePercentage(m_sunsReachData.m_gate);
+    if (previousValue != newValue)
+        SendWorldstateUpdate(m_sunsReachData.m_sunsReachReclamationMutex, m_sunsReachData.m_sunsReachReclamationPlayers, newValue, worldState);
+
+    bool save = true;
+    if (m_sunsReachData.m_gateCounters[counter] >= COUNTER_MAX_VAL_REQ_SWP_GATES)
+    {
+        save = false;
+        switch (questId)
+        {
+            case QUEST_AGAMATH_THE_FIRST_GATE:
+            {
+                if (m_sunsReachData.m_gate == SUNWELL_ALL_GATES_CLOSED)
+                    HandleSunwellGateTransition(SUNWELL_AGAMATH_GATE1_OPEN);
+                break;
+            }
+            case QUEST_ROHENDOR_THE_SECOND_GATE:
+            {
+                if (m_sunsReachData.m_gate == SUNWELL_AGAMATH_GATE1_OPEN)
+                    HandleSunwellGateTransition(SUNWELL_ROHENDOR_GATE2_OPEN);
+                break;
+            }
+            case QUEST_ARCHONISUS_THE_FINAL_GATE:
+            {
+                if (m_sunsReachData.m_gate == SUNWELL_ROHENDOR_GATE2_OPEN)
+                    HandleSunwellGateTransition(SUNWELL_ARCHONISUS_GATE3_OPEN);
+                break;
             }
         }
     }
@@ -1149,7 +1540,7 @@ void WorldState::HandleSunsReachPhaseTransition(uint32 newPhase)
             break;
         default: break;
     }
-    SendWorldstateUpdate(m_sunsReachData.m_sunsReachReclamationMutex, m_sunsReachData.m_phase, WORLD_STATE_QUEL_DANAS_MUSIC);
+    SendWorldstateUpdate(m_sunsReachData.m_sunsReachReclamationMutex, m_sunsReachData.m_sunsReachReclamationPlayers, m_sunsReachData.m_phase, WORLD_STATE_QUEL_DANAS_MUSIC);
 	Save(SAVE_ID_QUEL_DANAS);
 }
 
@@ -1174,14 +1565,20 @@ void WorldState::HandleSunsReachSubPhaseTransition(int32 subPhaseMask, bool init
             all = true;
         m_sunsReachData.m_subphaseMask &= ~subPhaseMask;
     }
-    if (initial && subPhaseMask == 0)
+    if (initial)
     {
-        switch (m_sunsReachData.m_phase)
+        if (m_sunsReachData.m_phase >= SUNS_REACH_PHASE_2_SANCTUM)
+            if ((subPhaseMask & SUBPHASE_PORTAL) == 0)
+                sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_2_NO_PORTAL);
+        if (m_sunsReachData.m_phase >= SUNS_REACH_PHASE_3_ARMORY)
+            if ((subPhaseMask & SUBPHASE_ANVIL) == 0)
+                sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_3_NO_ANVIL);
+        if (m_sunsReachData.m_phase >= SUNS_REACH_PHASE_4_HARBOR)
         {
-            case SUNS_REACH_PHASE_2_SANCTUM: sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_2_NO_PORTAL); break;
-            case SUNS_REACH_PHASE_3_ARMORY: sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_3_NO_ANVIL); break;
-            case SUNS_REACH_PHASE_4_HARBOR: sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_4_NO_MONUMENT); sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_4_NO_ALCHEMY_LAB); break;
-            default: break;
+            if ((subPhaseMask & SUBPHASE_ALCHEMY_LAB) == 0)
+                sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_4_NO_ALCHEMY_LAB);
+            if ((subPhaseMask & SUBPHASE_MONUMENT) == 0)
+                sGameEventMgr.StartEvent(GAME_EVENT_QUEL_DANAS_PHASE_4_NO_MONUMENT);
         }
     }
     if ((subPhaseMask & SUBPHASE_PORTAL))
@@ -1258,9 +1655,6 @@ void WorldState::HandleSunsReachSubPhaseTransition(int32 subPhaseMask, bool init
             {
                 if (Player* player = sObjectMgr.GetPlayer(guid))
                 {
-                    if (player->GetZoneId() == ZONEID_SUNWELL_PLATEAU)
-                        continue;
-
                     if (start)
                     {
                         player->GetMap()->GetMessager().AddMessage([guid](Map* map) -> void
@@ -1285,9 +1679,43 @@ void WorldState::HandleSunsReachSubPhaseTransition(int32 subPhaseMask, bool init
         Save(SAVE_ID_QUEL_DANAS);
 }
 
+void WorldState::HandleSunwellGateTransition(uint32 newGate)
+{
+    if (newGate < m_sunsReachData.m_gate)
+    {
+        while (newGate != m_sunsReachData.m_gate)
+        {
+            StopSunwellGatePhase();
+            --m_sunsReachData.m_gate;
+        }
+        StartSunwellGatePhase();
+    }
+    else
+    {
+        StopSunwellGatePhase();
+        m_sunsReachData.m_gate = newGate;
+        StartSunwellGatePhase();
+    }
+    int32 worldState = 0;
+    switch (newGate)
+    {
+        case SUNWELL_AGAMATH_GATE1_OPEN: worldState = WORLD_STATE_AGAMATH_THE_FIRST_GATE_HEALTH; break;
+        case SUNWELL_ROHENDOR_GATE2_OPEN: worldState = WORLD_STATE_ROHENDOR_THE_SECOND_GATE_HEALTH; break;
+        case SUNWELL_ARCHONISUS_GATE3_OPEN: worldState = WORLD_STATE_ARCHONISUS_THE_FINAL_GATE_HEALTH; break;
+    }
+    if (worldState)
+        SendWorldstateUpdate(m_sunsReachData.m_sunsReachReclamationMutex, m_sunsReachData.m_sunsReachReclamationPlayers, m_sunsReachData.m_gate, worldState);
+	Save(SAVE_ID_QUEL_DANAS);
+}
+
 void WorldState::SetSunsReachCounter(SunsReachCounters index, uint32 value)
 {
     m_sunsReachData.m_sunsReachReclamationCounters[index] = value;
+}
+
+void WorldState::SetSunwellGateCounter(SunwellGateCounters index, uint32 value)
+{
+    m_sunsReachData.m_gateCounters[index] = value;
 }
 
 void WorldState::StopSunsReachPhase(bool forward)
@@ -1298,6 +1726,18 @@ void WorldState::StopSunsReachPhase(bool forward)
         case SUNS_REACH_PHASE_2_SANCTUM: sGameEventMgr.StopEvent(GAME_EVENT_QUEL_DANAS_PHASE_2_ONLY); if (!forward) sGameEventMgr.StopEvent(GAME_EVENT_QUEL_DANAS_PHASE_2_PERMANENT); break;
         case SUNS_REACH_PHASE_3_ARMORY: sGameEventMgr.StopEvent(GAME_EVENT_QUEL_DANAS_PHASE_3_ONLY); if (!forward) sGameEventMgr.StopEvent(GAME_EVENT_QUEL_DANAS_PHASE_3_PERMANENT); break;
         case SUNS_REACH_PHASE_4_HARBOR: sGameEventMgr.StopEvent(GAME_EVENT_QUEL_DANAS_PHASE_4); break;
+        default: break;
+    }
+}
+
+void WorldState::StopSunwellGatePhase()
+{
+    switch (m_sunsReachData.m_gate)
+    {
+        case SUNWELL_ALL_GATES_CLOSED: sGameEventMgr.StopEvent(GAME_EVENT_SWP_GATES_PHASE_0); break;
+        case SUNWELL_AGAMATH_GATE1_OPEN: sGameEventMgr.StopEvent(GAME_EVENT_SWP_GATES_PHASE_1); break;
+        case SUNWELL_ROHENDOR_GATE2_OPEN: sGameEventMgr.StopEvent(GAME_EVENT_SWP_GATES_PHASE_2); break;
+        case SUNWELL_ARCHONISUS_GATE3_OPEN: sGameEventMgr.StopEvent(GAME_EVENT_SWP_GATES_PHASE_3); break;
         default: break;
     }
 }
@@ -1325,10 +1765,69 @@ void WorldState::StartSunsReachPhase(bool initial)
     }
 }
 
+void WorldState::StartSunwellGatePhase()
+{
+    switch (m_sunsReachData.m_gate)
+    {
+        case SUNWELL_ALL_GATES_CLOSED: sGameEventMgr.StartEvent(GAME_EVENT_SWP_GATES_PHASE_0); break;
+        case SUNWELL_AGAMATH_GATE1_OPEN: sGameEventMgr.StartEvent(GAME_EVENT_SWP_GATES_PHASE_1); break;
+        case SUNWELL_ROHENDOR_GATE2_OPEN: sGameEventMgr.StartEvent(GAME_EVENT_SWP_GATES_PHASE_2); break;
+        case SUNWELL_ARCHONISUS_GATE3_OPEN: sGameEventMgr.StartEvent(GAME_EVENT_SWP_GATES_PHASE_3); break;
+        default: break;
+    }
+}
+
+uint32 WorldState::IsBonfireInZone(Team team, uint32 zoneId)
+{
+    auto zoneItr = m_midsummerZoneIds[team == ALLIANCE].find(zoneId);
+    if (zoneItr != m_midsummerZoneIds[team == ALLIANCE].end())
+        return (*zoneItr).second;
+    return 0;
+}
+
+bool WorldState::IsBonfireActive(uint32 entry)
+{
+    auto itr = m_midsummerBonfireStates.find(entry);
+    if (itr != m_midsummerBonfireStates.end())
+        return (*itr).second;
+    return false;
+}
+
+void WorldState::SetBonfireActive(uint32 entry, bool team, bool apply)
+{
+    uint32 zoneId = 0;
+    {
+        std::lock_guard<std::mutex> guard(m_midsummerMutex);
+        m_midsummerBonfireStates[entry] = apply;
+        zoneId = m_midsummerGoToZone[entry];
+    }
+    ExecuteOnZonePlayers(zoneId, [team, apply](Player* player)
+    {
+        Team playerTeam = team ? ALLIANCE : HORDE;
+        if (player->GetTeam() == playerTeam)
+        {
+            if (apply)
+                player->CastSpell(nullptr, SPELL_BONFIRES_BLESSING, TRIGGERED_OLD_TRIGGERED);
+            else
+                player->RemoveAurasDueToSpell(SPELL_BONFIRES_BLESSING);
+        }
+    });
+}
+
+void WorldState::SetBonfireZone(uint32 entry, uint32 zoneId, bool team)
+{
+    std::lock_guard<std::mutex> guard(m_midsummerMutex);
+    m_midsummerZoneIds[team][zoneId] = entry;
+    m_midsummerGoToZone[entry] = zoneId;
+}
+
 std::string WorldState::GetSunsReachPrintout()
 {
     std::string output = "Phase: " + std::to_string(m_sunsReachData.m_phase) + " Subphase mask: " + std::to_string(m_sunsReachData.m_subphaseMask) + "\nValues:";
     for (uint32 value : m_sunsReachData.m_sunsReachReclamationCounters)
+        output += " " + std::to_string(value);
+    output += "\nSunwell Plateau PTR Gate Phase: " + std::to_string(m_sunsReachData.m_gate) + "\nValues:";
+    for (uint32 value : m_sunsReachData.m_gateCounters)
         output += " " + std::to_string(value);
     return output;
 }
@@ -1338,6 +1837,9 @@ std::string SunsReachReclamationData::GetData()
     std::string output = std::to_string(m_phase) + " " + std::to_string(m_subphaseMask);
     for (uint32 value : m_sunsReachReclamationCounters)
         output += " " + std::to_string(value);
+    output += " " + std::to_string(m_gate);
+    for (uint32 value : m_gateCounters)
+        output += " " + std::to_string(value);
     return output;
 }
 
@@ -1345,9 +1847,9 @@ uint32 SunsReachReclamationData::GetPhasePercentage(uint32 phase)
 {
     switch (phase)
     {
-        case SUNS_REACH_PHASE_1_STAGING_AREA: return uint32((m_sunsReachReclamationCounters[COUNTER_ERRATIC_BEHAVIOR] + m_sunsReachReclamationCounters[COUNTER_SANCTUM_WARDS]) * 100 / (2 * COUNTER_MAX_VAL_REQ));
-        case SUNS_REACH_PHASE_2_SANCTUM: return uint32((m_sunsReachReclamationCounters[COUNTER_BATTLE_FOR_THE_SUNS_REACH_ARMORY] + m_sunsReachReclamationCounters[COUNTER_DISTRACTION_AT_THE_DEAD_SCAR]) * 100 / (2 * COUNTER_MAX_VAL_REQ));
-        case SUNS_REACH_PHASE_3_ARMORY: return uint32((m_sunsReachReclamationCounters[COUNTER_INTERCEPT_THE_REINFORCEMENTS] + m_sunsReachReclamationCounters[COUNTER_TAKING_THE_HARBOR]) * 100 / (2 * COUNTER_MAX_VAL_REQ));
+        case SUNS_REACH_PHASE_1_STAGING_AREA: return uint32((m_sunsReachReclamationCounters[COUNTER_ERRATIC_BEHAVIOR] + m_sunsReachReclamationCounters[COUNTER_SANCTUM_WARDS]) * 100 / (2 * sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER)));
+        case SUNS_REACH_PHASE_2_SANCTUM: return uint32((m_sunsReachReclamationCounters[COUNTER_BATTLE_FOR_THE_SUNS_REACH_ARMORY] + m_sunsReachReclamationCounters[COUNTER_DISTRACTION_AT_THE_DEAD_SCAR]) * 100 / (2 * sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER)));
+        case SUNS_REACH_PHASE_3_ARMORY: return uint32((m_sunsReachReclamationCounters[COUNTER_INTERCEPT_THE_REINFORCEMENTS] + m_sunsReachReclamationCounters[COUNTER_TAKING_THE_HARBOR]) * 100 / (2 * sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER)));
         default: return 0;
     }
 }
@@ -1356,10 +1858,21 @@ uint32 SunsReachReclamationData::GetSubPhasePercentage(uint32 subPhase)
 {
     switch (subPhase)
     {
-        case SUBPHASE_PORTAL: return uint32(m_sunsReachReclamationCounters[COUNTER_INTERCEPTING_THE_MANA_CELLS] * 100 / COUNTER_MAX_VAL_REQ);
-        case SUBPHASE_ANVIL: return uint32(m_sunsReachReclamationCounters[COUNTER_MAKING_READY] * 100 / COUNTER_MAX_VAL_REQ);
-        case SUBPHASE_ALCHEMY_LAB: return uint32(m_sunsReachReclamationCounters[COUNTER_DISCOVERING_YOUR_ROOTS] * 100 / COUNTER_MAX_VAL_REQ);
-        case SUBPHASE_MONUMENT: return uint32(m_sunsReachReclamationCounters[COUNTER_A_CHARITABLE_DONATION] * 100 / COUNTER_MAX_VAL_REQ);
+        case SUBPHASE_PORTAL: return uint32(m_sunsReachReclamationCounters[COUNTER_INTERCEPTING_THE_MANA_CELLS] * 100 / sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER));
+        case SUBPHASE_ANVIL: return uint32(m_sunsReachReclamationCounters[COUNTER_MAKING_READY] * 100 / sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER));
+        case SUBPHASE_ALCHEMY_LAB: return uint32(m_sunsReachReclamationCounters[COUNTER_DISCOVERING_YOUR_ROOTS] * 100 / sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER));
+        case SUBPHASE_MONUMENT: return uint32(m_sunsReachReclamationCounters[COUNTER_A_CHARITABLE_DONATION] * 100 / sWorld.getConfig(CONFIG_UINT32_SUNSREACH_COUNTER));
+        default: return 0;
+    }
+}
+
+uint32 SunsReachReclamationData::GetSunwellGatePercentage(uint32 gate)
+{
+    switch (gate)
+    {
+        case SUNWELL_ALL_GATES_CLOSED: return 100 - uint32(m_gateCounters[COUNTER_AGAMATH_THE_FIRST_GATE] * 100 / COUNTER_MAX_VAL_REQ_SWP_GATES);
+        case SUNWELL_AGAMATH_GATE1_OPEN: return 100 - uint32(m_gateCounters[COUNTER_ROHENDOR_THE_SECOND_GATE] * 100 / COUNTER_MAX_VAL_REQ_SWP_GATES);
+        case SUNWELL_ROHENDOR_GATE2_OPEN: return 100 - uint32(m_gateCounters[COUNTER_ARCHONISUS_THE_FINAL_GATE] * 100 / COUNTER_MAX_VAL_REQ_SWP_GATES);
         default: return 0;
     }
 }
@@ -1404,10 +1917,10 @@ void WorldState::FillInitialWorldStates(ByteBuffer& data, uint32& count, uint32 
                 for (auto itr = aqWorldStateTotalsMap.begin(); itr != aqWorldStateTotalsMap.end(); ++itr)
                     FillInitialWorldStateData(data, count, (*itr).first, (*itr).second);
                 for (auto itr = aqWorldstateMap.begin(); itr != aqWorldstateMap.end(); ++itr)
-                    FillInitialWorldStateData(data, count, m_aqData.m_WarEffortCounters[(*itr).first], (*itr).second);
+                    FillInitialWorldStateData(data, count, (*itr).second, m_aqData.m_WarEffortCounters[(*itr).first]);
             }
             else if (m_aqData.m_phase == PHASE_2_TRANSPORTING_RESOURCES)
-                FillInitialWorldStateData(data, count, WORLD_STATE_AQ_DAYS_LEFT, uint32(m_aqData.m_timer / DAY * IN_MILLISECONDS));
+                FillInitialWorldStateData(data, count, WORLD_STATE_AQ_DAYS_LEFT, m_aqData.GetDaysRemaining());
             break;
         }
         case ZONEID_ISLE_OF_QUEL_DANAS:
@@ -1431,6 +1944,18 @@ void WorldState::FillInitialWorldStates(ByteBuffer& data, uint32& count, uint32 
                         FillInitialWorldStateData(data, count, WORLD_STATE_QUEL_DANAS_ALCHEMY_LAB, m_sunsReachData.GetSubPhasePercentage(SUBPHASE_ALCHEMY_LAB));
                     if ((m_sunsReachData.m_subphaseMask & SUBPHASE_MONUMENT) == 0)
                         FillInitialWorldStateData(data, count, WORLD_STATE_QUEL_DANAS_MONUMENT, m_sunsReachData.GetSubPhasePercentage(SUBPHASE_MONUMENT));
+                    break;
+            }
+            switch (m_sunsReachData.m_gate)
+            {
+                case SUNWELL_ALL_GATES_CLOSED:
+                    FillInitialWorldStateData(data, count, WORLD_STATE_AGAMATH_THE_FIRST_GATE_HEALTH, m_sunsReachData.GetSunwellGatePercentage(m_sunsReachData.m_gate));
+                    break;
+                case SUNWELL_AGAMATH_GATE1_OPEN:
+                    FillInitialWorldStateData(data, count, WORLD_STATE_ROHENDOR_THE_SECOND_GATE_HEALTH, m_sunsReachData.GetSunwellGatePercentage(m_sunsReachData.m_gate));
+                    break;
+                case SUNWELL_ROHENDOR_GATE2_OPEN:
+                    FillInitialWorldStateData(data, count, WORLD_STATE_ARCHONISUS_THE_FINAL_GATE_HEALTH, m_sunsReachData.GetSunwellGatePercentage(m_sunsReachData.m_gate));
                     break;
             }
             if (m_sunsReachData.m_phase >= SUNS_REACH_PHASE_3_ARMORY && (m_sunsReachData.m_subphaseMask & SUBPHASE_ANVIL) == 0)

@@ -313,7 +313,7 @@ enum SpellAttributesEx
     SPELL_ATTR_EX_NOT_IN_COMBAT_TARGET         = 0x00000100,// 8 Spell req target not to be in combat state
     SPELL_ATTR_EX_FACING_TARGET                = 0x00000200,// 9 TODO: CONFIRM!
     SPELL_ATTR_EX_NO_THREAT                    = 0x00000400,// 10 no generates threat on cast 100%
-    SPELL_ATTR_EX_UNK11                        = 0x00000800,// 11
+    SPELL_ATTR_EX_DONT_REFRESH_DURATION_ON_RECAST = 0x00000800,// 11 Aura will not refresh its duration when recast
     SPELL_ATTR_EX_IS_PICKPOCKET                = 0x00001000,// 12
     SPELL_ATTR_EX_FARSIGHT                     = 0x00002000,// 13 related to farsight
     SPELL_ATTR_EX_CHANNEL_TRACK_TARGET         = 0x00004000,// 14
@@ -998,6 +998,7 @@ enum DamageEffectType
     SELF_DAMAGE_ROGUE_FALL  = 5,                            //< used to avoid rogue losing stealth on falling damage
     SELF_DAMAGE             = 6,
     INSTAKILL               = 7,                            //< used to instakill - no message
+    SPELL_DAMAGE_SHIELD     = 8,                            // doesnt put in combat
 };
 
 enum GameobjectTypes
@@ -2156,7 +2157,7 @@ enum DiminishingGroup
     DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED,                  // Includes all knockout mechanics (gouge, maim, repentance), polymorph and sap
     DIMINISHING_BLIND_CYCLONE,                              // From 2.3.0
     DIMINISHING_DISARM,                                     // From 2.3.0
-    DIMINISHING_SILENCE,                                    // From 2.3.0
+    //DIMINISHING_SILENCE,                                  // From 3.0.8 - "All Silence spells now have diminishing returns." - https://wowwiki.fandom.com/wiki/Patch_3.0.8
     DIMINISHING_FREEZE,                                     // Hunter's Freezing Trap
     DIMINISHING_BANISH,
     // Other
@@ -2202,17 +2203,25 @@ enum ShapeshiftForm
     FORM_SPIRITOFREDEMPTION = 0x20
 };
 
-enum ShapeshiftFormFlags
+enum ShapeshiftFlags
 {
-    SHAPESHIFT_FORM_FLAG_ALLOW_ACTIVITY     = 0x00000001,   // Form allows various player activities, which normally cause "You can't X while shapeshifted." errors (npc/go interaction, item use, etc)
-    SHAPESHIFT_FORM_FLAG_UNK2               = 0x00000002,
-    SHAPESHIFT_FORM_FLAG_UNK3               = 0x00000004,
-    SHAPESHIFT_FORM_FLAG_ALLOW_NPC_INTERACT = 0x00000008,   // Form unconditionally allows talking to NPCs while shapeshifted (even if other activities are disabled)
-    SHAPESHIFT_FORM_FLAG_UNK5               = 0x00000010,
-    SHAPESHIFT_FORM_FLAG_UNK6               = 0x00000020,
-    SHAPESHIFT_FORM_FLAG_UNK7               = 0x00000040,
-    SHAPESHIFT_FORM_FLAG_UNK8               = 0x00000080,
-    SHAPESHIFT_FORM_FLAG_AUTO_UNSHIFT       = 0x00000100,   // Handled at client side
+    SHAPESHIFT_FLAG_STANCE                          = 0x00000001,   // Form allows various player activities, which normally cause "You can't X while shapeshifted." errors (npc/go interaction, item use, etc)
+    SHAPESHIFT_FLAG_NOT_TOGGLEABLE                  = 0x00000002,   // NYI
+    SHAPESHIFT_FLAG_PERSIST_ON_DEATH                = 0x00000004,   // NYI
+    SHAPESHIFT_FLAG_CAN_NPC_INTERACT                = 0x00000008,   // Form unconditionally allows talking to NPCs while shapeshifted (even if other activities are disabled)
+    SHAPESHIFT_FLAG_DONT_USE_WEAPON                 = 0x00000010,   // NYI
+    SHAPESHIFT_FLAG_AGILITY_ATTACK_BONUS            = 0x00000020,   // Druid Cat form
+    SHAPESHIFT_FLAG_CAN_USE_EQUIPPED_ITEMS          = 0x00000040,   // NYI
+    SHAPESHIFT_FLAG_CAN_USE_ITEMS                   = 0x00000080,   // NYI
+    SHAPESHIFT_FLAG_DONT_AUTO_UNSHIFT               = 0x00000100,   // Handled at client side
+    SHAPESHIFT_FLAG_CONSIDERED_DEAD                 = 0x00000200,   // NYI
+    SHAPESHIFT_FLAG_CAN_ONLY_CAST_SHAPESHIFT_SPELLS = 0x00000400,   // NYI
+    SHAPESHIFT_FLAG_STANCE_CANCEL_AT_FLIGHTMASTER   = 0x00000800,   // NYI
+    SHAPESHIFT_FLAG_NO_EMOTE_SOUNDS                 = 0x00001000,   // NYI
+    SHAPESHIFT_FLAG_NO_TRIGGER_TELEPORT             = 0x00002000,   // NYI
+    SHAPESHIFT_FLAG_CANNOT_CHANGE_EQUIPPED_ITEMS    = 0x00004000,   // NYI
+    SHAPESHIFT_FLAG_RESUMMON_PETS_ON_UNSHIFT        = 0x00008000,   // NYI
+    SHAPESHIFT_FLAG_CANNOT_USE_GAME_OBJECTS         = 0x00010000,   // NYI
 };
 
 enum CharLoginFailReasons
@@ -2461,7 +2470,8 @@ enum TradeStatus
 enum EncounterCreditType
 {
     ENCOUNTER_CREDIT_KILL_CREATURE = 0,
-    ENCOUNTER_CREDIT_CAST_SPELL = 1
+    ENCOUNTER_CREDIT_CAST_SPELL = 1,
+    ENCOUNTER_CREDIT_SCRIPT = 2,
 };
 
 enum WorldStateType

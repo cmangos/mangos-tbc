@@ -68,7 +68,7 @@ void UnitAI::MoveInLineOfSight(Unit* who)
         return;
 
     if (who->GetObjectGuid().IsCreature() && who->IsInCombat())
-        CheckForHelp(who, m_unit, 10.0);
+        CheckForHelp(who, m_unit, sWorld.getConfig(CONFIG_FLOAT_CREATURE_CHECK_FOR_HELP_RADIUS));
 
     if (!HasReactState(REACT_AGGRESSIVE)) // mobs who are aggressive can still assist
         return;
@@ -104,6 +104,11 @@ void UnitAI::EnterEvadeMode()
     }
 
     m_unit->TriggerEvadeEvents();
+}
+
+void UnitAI::JustDied(Unit* killer)
+{
+    ClearSelfRoot();
 }
 
 void UnitAI::AttackedBy(Unit* attacker)
@@ -266,9 +271,20 @@ void UnitAI::SetCombatMovement(bool enable, bool stopOrStartMovement /*=false*/)
     }
 }
 
+void UnitAI::SetFollowMovement(bool enable)
+{
+    if (enable)
+        m_unit->clearUnitState(UNIT_STAT_NO_FOLLOW_MOVEMENT);
+    else
+        m_unit->addUnitState(UNIT_STAT_NO_FOLLOW_MOVEMENT);
+
+    if (m_unit->IsMoving() && m_unit->GetMotionMaster()->GetCurrentMovementGeneratorType() == FOLLOW_MOTION_TYPE)
+        m_unit->InterruptMoving();
+}
+
 bool UnitAI::IsCombatMovement() const
 {
-    return m_unit && !m_unit->hasUnitState(UNIT_STAT_NO_COMBAT_MOVEMENT);
+    return !m_unit->hasUnitState(UNIT_STAT_NO_COMBAT_MOVEMENT);
 }
 
 void UnitAI::HandleMovementOnAttackStart(Unit* victim) const
@@ -344,14 +360,14 @@ void UnitAI::OnSpellCastStateChange(Spell const* spell, bool state, WorldObject*
     }
     else
     {
-        std::set<uint32> spellIdsForTurning = { 31306, 33813, 38739 };
+        std::set<uint32> spellIdsForTurning = { 31306, 33813, 38739, 44811, 46292 };
         if (!spell->GetCastTime() && spellIdsForTurning.find(spellInfo->Id) != spellIdsForTurning.end())
         {
             HandleDelayedInstantAnimation(spellInfo);
         }
         else
         {
-            if (m_unit->GetVictim() && !GetCombatScriptStatus())
+            if (m_unit->GetVictim() && !IsTargetingRestricted())
                 m_unit->SetTarget(m_unit->GetVictim());
             else
                 m_unit->SetTarget(nullptr);
@@ -376,6 +392,9 @@ void UnitAI::OnChannelStateChange(Spell const* spell, bool state, WorldObject* t
         if (spellInfo->HasAttribute(SPELL_ATTR_EX4_CAN_CAST_WHILE_CASTING))
             return;
     }
+
+    if (spellInfo->Id == 45661) // Felmyst Encapsulate - cast time tracks target but channel time ignores him
+        return;
 
     bool forceTarget = true; // Different default than normal cast
 
@@ -411,7 +430,7 @@ void UnitAI::OnChannelStateChange(Spell const* spell, bool state, WorldObject* t
     }
     else
     {
-        if (m_unit->GetVictim() && !GetCombatScriptStatus())
+        if (m_unit->GetVictim() && !IsTargetingRestricted())
             m_unit->SetTarget(m_unit->GetVictim());
         else
             m_unit->SetTarget(nullptr);
@@ -425,15 +444,12 @@ void UnitAI::CheckForHelp(Unit* who, Unit* me, float distance)
     if (!victim)
         return;
 
-    if (me->IsInCombat())
+    if (me->IsInCombat() || !me->CanCallForAssistance() || !who->CanCallForAssistance() || !me->CanCheckForHelp())
         return;
 
     // pulling happens once panic/retreating ends
     if (who->hasUnitState(UNIT_STAT_PANIC | UNIT_STAT_RETREATING))
         return;
-
-    if (me->GetMap()->Instanceable())
-        distance = distance / 2.5f;
 
     if (me->CanInitiateAttack() && me->CanAttackOnSight(victim) && victim->isInAccessablePlaceFor(me) && victim->IsVisibleForOrDetect(me, me, false))
     {
@@ -640,12 +656,12 @@ void UnitAI::SetMeleeEnabled(bool state)
     m_meleeEnabled = state;
     if (m_unit->IsInCombat())
     {
-        if (m_meleeEnabled)
+        if (m_meleeEnabled && !m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
         {
             if (m_unit->GetVictim())
                 m_unit->MeleeAttackStart(m_unit->GetVictim());
         }
-        else
+        else if (m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
             m_unit->MeleeAttackStop(m_unit->GetVictim());
     }
 }
@@ -745,7 +761,20 @@ void UnitAI::ClearSelfRoot()
 void UnitAI::DespawnGuids(GuidVector& spawns)
 {
     for (ObjectGuid& guid : spawns)
-        if (Creature* spawn = m_unit->GetMap()->GetAnyTypeCreature(guid))
-            spawn->ForcedDespawn();
+    {
+        if (guid.IsAnyTypeCreature())
+        {
+            if (Creature* spawn = m_unit->GetMap()->GetAnyTypeCreature(guid))
+                spawn->ForcedDespawn();
+        }
+        else if (guid.IsGameObject())
+        {
+            if (GameObject* spawn = m_unit->GetMap()->GetGameObject(guid))
+            {
+                spawn->SetLootState(GO_JUST_DEACTIVATED);
+                spawn->SetForcedDespawn();
+            }
+        }
+    }
     spawns.clear();
 }

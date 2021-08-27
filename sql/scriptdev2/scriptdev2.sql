@@ -170,6 +170,7 @@ UPDATE creature_template SET ScriptName='npc_orphan_matron' WHERE entry IN (2451
 UPDATE creature_template SET ScriptName='npc_orphan' WHERE entry IN (23712,23971);
 UPDATE creature_template SET ScriptName='npc_shade_of_the_horseman' WHERE entry=23543;
 UPDATE creature_template SET ScriptName='npc_headless_horseman_fire' WHERE entry=23537;
+UPDATE creature_template SET ScriptName='npc_child_tbc' WHERE entry IN(22817,22818);
 
 /*Quest (quest scripts which are not in one zone)*/
 UPDATE creature_template SET ScriptName='npc_quest_attunement' WHERE entry IN(22421,18528,19935);
@@ -214,6 +215,10 @@ INSERT INTO scripted_event_id VALUES
 /* War Effort*/
 UPDATE creature_template SET ScriptName='npc_war_effort' WHERE
 entry IN(15383,15431,15432,15434,15437,15445,15446,15448,15450,15451,15452,15453,15455,15456,15457,15459,15460,15469,15477,15508,15512,15515,15522,15525,15528,15529,15532,15533,15534,15535);
+
+/*Midsummer*/
+UPDATE gameobject_template SET ScriptName='go_midsummer_bonfire' WHERE entry IN(187946,187945,187944,187943,187942,187941,187940,187939,187938,187937,187936,187935,187934,187933,187932,187931,187930,187929,187928,187927,187926,187925,187924,187923,187922,187921,187920,187919,187917,187916,187914,187564,187971,187973,187952,187963,187950,187961,187959,187957,187968,187948,187953,187970,187966,187975,187969,187951,187956,187954,187947,187972,187964,187559,187965,187949,187955,187967,187958,187974,187960,187962,181332,181333,181334,181335,181336,181337,188128,188129);
+UPDATE creature_template SET ScriptName='npc_torch_tossing_bunny_controller' WHERE entry IN(25536);
 
 /*  */
 /* ZONE */
@@ -713,13 +718,14 @@ UPDATE instance_template SET ScriptName='instance_ramparts' WHERE map=543;
 
 /* SHATTERED HALLS */
 /* Nethekurse and his spawned shadowfissure */
+UPDATE creature_template SET ScriptName='npc_shattered_hand_legionnaire' WHERE Entry=16700;
 UPDATE creature_template SET ScriptName='boss_grand_warlock_nethekurse' WHERE entry=16807;
 UPDATE creature_template SET ScriptName='boss_warbringer_omrogg' WHERE entry=16809;
 UPDATE creature_template SET ScriptName='mob_fel_orc_convert' WHERE entry=17083;
 UPDATE creature_template SET ScriptName='mob_omrogg_heads' WHERE entry IN (19523,19524);
 UPDATE creature_template SET ScriptName='boss_warchief_kargath_bladefist' WHERE entry=16808;
 UPDATE creature_template SET ScriptName='npc_blade_dance_target' WHERE entry IN(20709);
-UPDATE creature_template SET ScriptName='npc_gauntlet_of_fire' WHERE entry=17692;
+UPDATE creature_template SET ScriptName='npc_shattered_hand_zealot' WHERE entry=17462;
 UPDATE creature_template SET ScriptName='npc_shattered_hand_scout' WHERE entry=17693;
 UPDATE instance_template SET ScriptName='instance_shattered_halls' WHERE map=540;
 
@@ -767,9 +773,11 @@ INSERT INTO scripted_event_id VALUES
 /* IRONFORGE */
 
 /* ISLE OF QUEL'DANAS */
+UPDATE creature_template SET ScriptName='npc_dawnblade_blood_knight' WHERE entry=24976;
 UPDATE creature_template SET ScriptName='npc_converted_sentry' WHERE entry=24981;
-UPDATE creature_template SET ScriptName='npc_suns_reach_reclamation' WHERE entry IN(24965,24967,25061,25057,24932,25108,25069,25046,24975,25112,25163);
-UPDATE creature_template SET ScriptName='npc_shattered_sun_fighter' WHERE entry IN(24938,25115);
+UPDATE creature_template SET ScriptName='npc_suns_reach_reclamation' WHERE entry IN(24965,24967,25061,25057,24932,25108,25069,25046,24975,25112,25163,25169);
+UPDATE creature_template SET ScriptName='npc_shattered_sun_marksman' WHERE entry=24938;
+UPDATE creature_template SET ScriptName='npc_shattered_sun_warrior' WHERE entry=25115;
 
 /* KARAZHAN */
 UPDATE instance_template SET ScriptName='instance_karazhan' WHERE map=532;
@@ -827,7 +835,7 @@ UPDATE creature_template SET ScriptName='boss_vexallus' WHERE entry=24744;
 UPDATE creature_template SET ScriptName='mob_pure_energy' WHERE entry=24745;
 UPDATE creature_template SET ScriptName='boss_priestess_delrissa' WHERE entry=24560;
 UPDATE creature_template SET ScriptName='npc_kagani_nightstrike' WHERE entry=24557;
-UPDATE creature_template SET ScriptName='npc_ellris_duskhallow' WHERE entry=24558;
+UPDATE creature_template SET ScriptName='npc_ellrys_duskhallow' WHERE entry=24558;
 UPDATE creature_template SET ScriptName='npc_eramas_brightblaze' WHERE entry=24554;
 UPDATE creature_template SET ScriptName='npc_yazzai' WHERE entry=24561;
 UPDATE creature_template SET ScriptName='npc_warlord_salaris' WHERE entry=24559;
@@ -910,6 +918,7 @@ UPDATE creature_template SET ScriptName='npc_invible_man' WHERE entry=17286;
 UPDATE creature_template SET ScriptName='npc_icecrown_guardian' WHERE entry=16441;
 UPDATE creature_template SET ScriptName='npc_stoneskin_gargoyle' WHERE entry=16168;
 UPDATE creature_template SET ScriptName='npc_living_poison' WHERE entry=16027;
+UPDATE creature_template SET ScriptName='npc_archmage_tarsis' WHERE entry=16381;
 INSERT INTO scripted_event_id VALUES
 (10495,'event_naxxramas'),
 (10536,'event_naxxramas'),
@@ -1114,23 +1123,27 @@ UPDATE creature_template SET ScriptName='boss_brutallus' WHERE entry=24882;
 UPDATE creature_template SET ScriptName='boss_kalecgos' WHERE entry=24850;
 UPDATE creature_template SET ScriptName='boss_kalecgos_humanoid' WHERE entry=24891;
 UPDATE creature_template SET ScriptName='boss_sathrovarr' WHERE entry=24892;
-INSERT INTO scripted_areatrigger VALUES
+INSERT INTO scripted_areatrigger VALUES 
 (4853,'at_madrigosa');
 UPDATE creature_template SET ScriptName='boss_alythess' WHERE entry=25166;
 UPDATE creature_template SET ScriptName='boss_sacrolash' WHERE entry=25165;
 UPDATE creature_template SET ScriptName='npc_shadow_image' WHERE entry=25214;
+UPDATE creature_template SET ScriptName='npc_sunblade_scout' WHERE entry=25372;
+UPDATE creature_template SET ScriptName='npc_sunblade_protector' WHERE entry=25507;
 UPDATE creature_template SET ScriptName='boss_muru' WHERE entry=25741;
 UPDATE creature_template SET ScriptName='boss_entropius' WHERE entry=25840;
 UPDATE creature_template SET ScriptName='npc_portal_target' WHERE entry=25770;
 UPDATE creature_template SET ScriptName='boss_kiljaeden' WHERE entry=25315;
 UPDATE creature_template SET ScriptName='npc_kiljaeden_controller' WHERE entry=25608;
-UPDATE creature_template SET ScriptName='spell_dummy_npc_brutallus_cloud' WHERE entry=25703;
+UPDATE creature_template SET ScriptName='npc_sinister_reflection' WHERE entry=25708;
 UPDATE creature_template SET ScriptName='boss_felmyst' WHERE entry=25038;
 UPDATE creature_template SET ScriptName='npc_shield_orb' WHERE entry=25502;
 UPDATE creature_template SET ScriptName='npc_power_blue_flight' WHERE entry=25653;
 UPDATE creature_template SET ScriptName='npc_demonic_vapor' WHERE entry=25265;
 UPDATE creature_template SET ScriptName='npc_darkness' WHERE entry=25879;
 UPDATE creature_template SET ScriptName='npc_singularity' WHERE entry=25855;
+UPDATE creature_template SET ScriptName='npc_dark_fiend' WHERE entry=25744;
+UPDATE creature_template SET ScriptName='npc_core_of_entropius' WHERE entry=26262;
 
 /* SWAMP OF SORROWS */
 UPDATE creature_template SET ScriptName='npc_galen_goodward' WHERE entry=5391;
@@ -1235,7 +1248,9 @@ UPDATE creature_template SET ScriptName='npc_avatar_of_terokk' WHERE entry=22375
 UPDATE creature_template SET ScriptName='npc_minion_of_terokk' WHERE entry=22376;
 UPDATE creature_template SET ScriptName='npc_draenei_tomb_guardian' WHERE entry=22285;
 UPDATE creature_template SET ScriptName='npc_vengeful_harbinger' WHERE entry=21638;
-UPDATE creature_template SET ScriptName='boss_terokk' WHERE entry IN(21838);
+UPDATE creature_template SET ScriptName='boss_terokk' WHERE entry=21838;
+UPDATE gameobject_template SET ScriptName='go_monstrous_kaliri_egg' WHERE entry=185549;
+
 INSERT INTO scripted_event_id VALUES
 (15014,'event_summon_terokk');
 
@@ -1692,7 +1707,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000343','Pitiful mortal, Onyxia answers to no one!','0','1','0','0','22285','smolderwing SAY_1'),
 ('-1000344','Your pathetic challenge has not gone unnoticed. I shall enjoy toying with you before you die.','0','1','0','0','22286','smolderwing SAY_2'),
 
--- REUSE 345-347
+-- used in vanilla
 
 ('-1000348','Ah...the wondrous sound of kodos.  I love the way they make the ground shake... inspect the beast for me.','0','0','0','0','7303','kodo round SAY_SMEED_HOME_1'),
 ('-1000349','Hey, look out with that kodo! You had better inspect that beast before I give you credit!','0','0','0','0','7301','kodo round SAY_SMEED_HOME_2'),
@@ -1798,7 +1813,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000432','Ringo? Wake up! Don''t worry, I''ll take care of you.','0','0','0','0','5406','ringo SAY_SPR_END_7'),
 ('-1000433','%s fades away after a long pause.','0','2','0','0','0','ringo EMOTE_RIN_END_8'),
 
-('-1000434','Liladris has been waiting for me at Maestra''s Post, so we should make haste, $N.','0','0','0','0','6540','kerlonian SAY_KER_START'),
+('-1000434','Liladris has been waiting for me at Maestra''s Post, so we should make haste, $N.','6209','0','0','0','6540','kerlonian SAY_KER_START'),
 ('-1000435','%s looks very sleepy...','0','2','0','0','6811','kerlonian EMOTE_KER_SLEEP_1'),
 ('-1000436','%s suddenly falls asleep.','0','2','0','0','6542','kerlonian EMOTE_KER_SLEEP_2'),
 ('-1000437','%s begins to drift off...','0','2','0','0','6541','kerlonian EMOTE_KER_SLEEP_3'),
@@ -1809,7 +1824,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000442','Be on the alert! The Blackwood furbolgs are numerous in this area...','0','0','0','0','6867','kerlonian SAY_KER_ALERT_1'),
 ('-1000443','It''s quiet... Too quiet...','0','0','0','0','6868','kerlonian SAY_KER_ALERT_2'),
 ('-1000444','Oh, I can see Liladris from here... Tell her I''m here, won''t you?','0','0','0','0','6643','kerlonian SAY_KER_END'),
-('-1000445','%s wakes up!','0','2','0','0','6612','kerlonian EMOTE_KER_AWAKEN'),
+('-1000445','%s wakes up!','6700','2','0','0','6612','kerlonian EMOTE_KER_AWAKEN'),
 
 ('-1000446','A-Me good. Good, A-Me. Follow... follow A-Me. Home. A-Me go home.','0','0','0','0','5062','ame01 SAY_AME_START'),
 ('-1000447','Good... good, A-Me. A-Me good. Home. Find home.','0','0','0','0','5063','ame01 SAY_AME_PROGRESS'),
@@ -2465,7 +2480,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1001213','Get back to Blood Watch. I''ll see you there...','0','0','0','1','14665','demolitionist_legoso SAY_ESCORT_COMPLETE_2'),
 ('-1001214','%s becomes unstable with brimming energy!','0','2','0','0','24001','Living flare EMOTE'),
 ('-1001215','%s releases its energy, engulfing its surroundings in flames!','0','2','0','0','24002','Unstable flare EMOTE'),
--- TODO backport TBC quest with living flare
 ('-1001216','The last thing I remember is the ship falling and us getting into the pods.  I''ll go see how I can help.  Thank you!','0','0','7','0','13408','draenei_survivor SAY_HEAL1'),
 ('-1001217','Where am I?  Who are you?  Oh no!  What happened to the ship?','0','0','7','0','13409','draenei_survivor SAY_HEAL2'),
 ('-1001218','$C, you saved me!  I owe you a debt that I can never repay.  I''ll go see if I can help the others.','0','0','7','0','12451','draenei_survivor SAY_HEAL3'),
@@ -2589,7 +2603,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1010029','Help! We''re being attacked! Dark Irons!','0','1','0','0','494','SAY_MIRAN_AMBUSH'),
 
 ('-1010030','Bye!  Better luck next time!','0','1','0','0','7553','Hornizz to Melizza 1'),
-('-1010031','Always on the go, that girl.','0','1','0','0','7554','Hornizz to Melizza 2');
+('-1010031','Always on the go, that girl.','0','1','0','0','7554','Hornizz to Melizza 2'),
+('-1010032','%s disappears back into the swamp.','0','2','0','0','1619','Stinky end emote');
 
 -- -1 015 000 TBC texts
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
@@ -2738,7 +2753,69 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1015135','If my dad were alive, he would put out the fires!','0','0','0','0','22346','SAY_ORPHAN_SHADE_4'),
 ('-1015136','If my mom were alive, she would put out the fires!','0','0','0','0','22347','SAY_ORPHAN_SHADE_5'),
 
-('-1015137','Well done!  We''ll be ready when the real fires begin!','0','0','0','0','23342','SAY_GUARD_RELIGHT_FIRE');
+('-1015137','Well done!  We''ll be ready when the real fires begin!','0','0','0','0','23342','SAY_GUARD_RELIGHT_FIRE'),
+
+('-1015138','By the Light!','0','0','0','1','20469','Dark portal 1 say Ally'),
+('-1015139','Dornaa stands and gapes in awe at the immense Dark Portal.','0','2','0','0','20510','Dark portal 2 emote Ally'),
+('-1015140','For our children and the future of the Alliance! The Legion shall not prevail!','0','0','0','66','21064','Dark portal 3 soldier salute Ally'),
+
+('-1015141','Whoa, no way!','0','0','0','1','20466','Dark portal 1 say Horde'),
+('-1015142','Salandria stands and gapes in awe at the immense Dark Portal.','0','2','0','0','20467','Dark portal 2 emote Horde'),
+('-1015143','For the younglings! For the Horde!','0','0','0','66','21063','Dark portal 3 soldier salute Horde'),
+
+('-1015144','Dornaa begins to examine the stone edifice, and then touches it.','0','2','0','0','20458','Auchindoun 2 emote'),
+('-1015145','Is this where all of the adventurers come from?  Help me.','0','4','0','0','20464','Auchindoun 3 say'),
+('-1015146','Thank you for the summon, little one. My group left for the dungeon without me!','0','0','0','2','20987','Auchindoun 4 say Adventurer'),
+('-1015147','The next person who asks me for a potion is getting a knuckle sandwich. I quit alchemy!','0','0','0','1','20983','Auchindoun 5 say Adventurer'),
+('-1015148','That was neat!','0','4','0','1','20990','Auchindoun 6 say'),
+
+('-1015149','Jheel!!!','0','0','0','1','20475','Aeris Landing 1 say'),
+('-1015150','Dornaa!!!','0','0','0','0','20479','Aeris Landing 2 say Jheel'),
+('-1015151','Dornaa gives her brother a big hug, and the two children begin to talk.','0','2','0','0','20476','Aeris Landing 3 emote'),
+('-1015152','See you soon, big brother!','0','0','0','0','20484','Aeris Landing 4 say'),
+('-1015153','Back to your studies, boy!','0','0','0','1','20482','Aeris Landing 5 say teacher'),
+('-1015154','Yes, sir.','0','0','0','0','20483','Aeris Landing 6 say Jheel'),
+('-1015155','I hope that Jheel will be able to come back to the orphanage soon.','0','4','0','1','20477','Aeris Landing 7 say'),
+
+('-1015156','Dornaa walks slowly and turns in reverence as a blessing is bestowed upon her by O''ros.','0','2','0','0','20487','Seat of the Naaru 1 emote'),
+('-1015157','O''ros says that he wants to talk with you.','0','4','0','1','20691','Seat of the Naaru 2 say'),
+('-1015158','Tee hee, your mind-talk tickles.  Thank you, O''ros!  I promise to be good!!','0','0','0','1','20489','Seat of the Naaru 3 say'),
+
+('-1015159','You''re the man from my dream!','0','0','0','1','20543','Farseer 1 say'),
+('-1015160','Indeed I am, child.  And do you remember what you showed me in those dreams?','0','0','0','0','20545','Farseer 2 say Nobundo'),
+('-1015161','You mean, I can do it here, too?','0','0','0','1','20547','Farseer 3 say'),
+('-1015162','Try.','0','0','0','0','20548','Farseer 4 say Nobundo'),
+('-1015163','Concentrating a moment, Dornaa summons forth the elemental forces.','0','2','0','0','20553','Farseer 5 emote'),
+('-1015164','I did it, I did it!!!','0','0','0','1','20550','Farseer 6 emote'),
+('-1015165','Amazing, Dornaa.  Truly amazing!','0','0','0','0','20549','Farseer 7 say Nobundo'),
+
+('-1015166','Dornaa''s jaw nearly hits the ground at the sight of Zaladormu.','0','2','0','0','20514','COT 1 emote Ally'),
+('-1015167','Wow, he''s a big one!  Um... what''s going on?  Save me!','0','4','0','1','20528','COT 2 say Ally'),
+('-1015168','Scary!','0','4','0','1','20976','COT 3 say Ally'),
+('-1015169','WAIT!','0','1','0','0','20520','COT 4 say Zaladormu'),
+('-1015170','This girl has done nothing, and will not be held accountable for what she might do, or fail to do, in the future.','0','1','0','0','20521','COT 5 say Zaladormu'),
+('-1015171','Go in peace, child.','0','1','0','0','20522','COT 6 say Zaladormu'),
+
+('-1015172','Salandria''s jaw nearly hits the ground at the sight of Zaladormu.','0','2','0','0','20527','COT 1 emote Horde'),
+('-1015173','Okay, I like!  Um... what''s going on?  Save me!','0','4','0','0','20515','COT 2 whisper Horde'),
+('-1015174','Scary!','0','4','0','1','20977','COT 3 say Horde'),
+
+('-1015175','Hch''uu!!!','0','0','0','1','20457','Sporeggar 1 say'),
+('-1015176','Salandria?  Salandria!!!','0','0','0','0','20481','Sporeggar 2 say Hchuu'),
+('-1015177','Salandria and Hch''uu begin to catch up on all that has happened to them this past year.','0','2','0','0','20478','Sporeggar 3 emote'),
+('-1015178','Thank you for bringing me here to see my friend, Hch''uu!','0','4','0','1','20461','Sporeggar 4 whisper'),
+
+('-1015179','Hah, it''s true!  I''m gonna go have a closer look at the fire one!','0','4','0','0','20485','Throne 1 whisper'),
+('-1015180','Ow!  Hot!!','0','0','0','1','20486','Throne 2 say'),
+('-1015181','Heh, I got a little too close.  Don''t worry, I''m fine.','0','4','0','0','20690','Throne 3 whisper'),
+
+('-1015182','Hello sir, I''m ready to rock!','0','0','0','0','25608','Silvermoon LVL70ETC 1 say'),
+('-1015183','Salandria waves her hands in the air.','0','2','0','0','25612','Silvermoon LVL70ETC 2 emote'),
+('-1015184','Hey guys, I''m your biggest fan!  I''m ready to rock!','0','0','0','0','25609','Silvermoon LVL70ETC 3 say'),
+('-1015185','Check this out guys!  I can rock like you guys!','0','0','0','0','25610','Silvermoon LVL70ETC 4 say'),
+('-1015186','Salandria begins to play air guitar and sing The Power of the Horde.','0','2','0','0','25613','Silvermoon LVL70ETC 5 emote'),
+
+('-1015187','Oh wow!','0','0','0','1','20463','Auchindoun 1 say');
 
 -- -1 020 000 WOTLK texts
 
@@ -3905,7 +3982,44 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1540052','Archers, form ranks! On my mark!','10156','6','0','0','14310','Gauntlet of fire yell 2'),
 ('-1540053','Ready!','10157','6','0','0','14311','Gauntlet of fire yell 3'),
 ('-1540054','Aim!','10158','6','0','0','17910','Gauntlet of fire yell 4'),
-('-1540055','Fire!','10159','6','0','0','17911','Gauntlet of fire yell 5');
+('-1540055','Fire!','10159','6','0','0','17911','Gauntlet of fire yell 5'),
+
+('-1540056', 'Fighter down!', '10172', '1', '0', '5', '16356', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10197,10222
+('-1540057', 'Replacement, quickly!', '10173', '1', '0', '5', '16357', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10198,10223
+('-1540058', 'Next warrior, now!', '10174', '1', '0', '5', '16358', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10199,10224
+('-1540059', 'Fall in! Mok-thora ka!', '10175', '1', '0', '5', '16359', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10200,10225
+('-1540060', 'Where''s my support?', '10176', '1', '0', '5', '16360', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10201,10226
+('-1540061', 'Look Alive!', '10177', '1', '0', '5', 'XXX', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10202,10227
+('-1540062', 'Engage the enemy!', '10178', '1', '0', '5', 'XXX', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10203,10228
+('-1540063', 'Attack!', '10179', '1', '0', '5', 'XXX', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10204,10229
+('-1540064', 'Next warrior, step up!', '10180', '1', '0', '5', '16361', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10205,10230
+('-1540065', 'Join the fight! Agrama-ka!', '10181', '1', '0', '5', '16362', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- sound.10206,10231
+('-1540066', '%s goes into a rage after seeing a friend fall in battle!', '0', '2', '0', '0', '1151', 'Shattered Hand Legionnaire - Call for Reinforcements'), -- Emote
+
+-- Unused
+-- ('-XXX', 'Wake up, we''re under attack!', '10182', '1', '0', '5', '16363', 'Shattered Hand Legionnaire - Call for Sleeping Reinforcements'), -- sound.10207,10232
+-- ('-XXX', 'Sleep on your own time!', '10183', '1', '0', '5', '16364', 'Shattered Hand Legionnaire - Call for Sleeping Reinforcements'), -- sound.10208,10233
+-- ('-XXX', 'Get up!', '10184', '1', '0', '5', '16365', 'Shattered Hand Legionnaire - Call for Sleeping Reinforcements'), -- sound.10209,10234
+-- ('-XXX', 'On your feet!', '10185', '1', '0', '5', '16366', 'Shattered Hand Legionnaire - Call for Sleeping Reinforcements'), -- sound.10210,10235
+-- ('-XXX', 'No time for slumber! Join the fight!', '10186', '1', '0', '5', '16367', 'Shattered Hand Legionnaire - Call for Sleeping Reinforcements'), -- sound.10211,10236
+-- ('-XXX', 'Line up and crush these fools!', '10187', '1', '0', '5', '16346', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10212,10237
+-- ('-XXX', 'Form up! Let''s make quick work of them!', '10188', '1', '0', '5', '16347', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10213,10238
+-- ('-XXX', 'Get ready! This shouldn''t take long...', '10189', '1', '0', '5', '16349', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10214,10239
+-- ('-XXX', 'Form ranks and make the intruders pay!', '10190', '1', '0', '5', '17461', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10215,10240
+-- ('-XXX', 'Show them no quarter! Form up!', '10191', '1', '0', '5', '16350', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10216,10241
+-- ('-XXX', 'Lok-Narash! Defensive positions!', '10192', '1', '0', '5', '16352', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10217,10242
+-- ('-XXX', 'Hold the line! They must not get through!', '10193', '1', '0', '5', '16353', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10218,10243
+-- ('-XXX', 'Gakarah ma!', '10194', '1', '0', '5', '16354', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10219,10244
+-- ('-XXX', 'Hold them back at all costs!', '10195', '1', '0', '5', '17462', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10220,10245
+-- ('-XXX', 'We must halt their advance! Take your positions!', '10196', '1', '0', '5', '16355', 'Shattered Hand Legionnaire - Positioning Call'), -- sound.10221,10246
+
+('-1540200','The blood is our power!','0','0','1','0','16700','Common Hellfire Orc Text'),
+('-1540201','Lok narash!','0','0','0','0','16703','Common Hellfire Orc Text'),
+('-1540202','For Kargath!  For Victory!','0','0','0','0','16698','Common Hellfire Orc Text'),
+('-1540203','Lok''tar Illadari!','0','0','0','0','16701','Common Hellfire Orc Text'),
+('-1540204','This world is OURS!','0','0','0','0','16702','Common Hellfire Orc Text'),
+('-1540205','We are the true Horde!','0','0','0','0','16697','Common Hellfire Orc Text'),
+('-1540206','Gakarah ma!','0','0','0','0','16699','Common Hellfire Orc Text');
 
 -- -1 542 000 BLOOD FURNACE
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
@@ -4885,7 +4999,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1580006','I need... your help! Cannot... resist him much longer!','12428','1','0','0','23981','kalecgos humanoid SAY_GOOD_AGGRO'),
 ('-1580007','Agghh!! Help me before I lose my mind!','12429','1','0','0','23982','kalecgos humanoid SAY_GOOD_NEAR_DEATH'),
 ('-1580008','Hurry! There is not much of me left!','12430','1','0','0','23983','kalecgos humanoid SAY_GOOD_NEAR_DEATH2'),
-('-1580009','I am forever in your debt. Once we have triumphed over Kil''jaeden, this entire world will be in your debt as well.','12431','1','0','0','25263','kalecgos humanoid SAY_GOOD_PLRWIN'),
+('-1580009','I am forever in your debt. Once we have triumphed over Kil''jaeden, this entire world will be in your debt as well.','12431','0','0','0','25263','kalecgos humanoid SAY_GOOD_PLRWIN'),
 ('-1580010','There will be no reprieve! My work here is nearly finished!','12451','1','0','0','25504','sathrovarr SAY_SATH_AGGRO'),
 ('-1580011','I''m never on the... losing... side!','12452','1','0','0','25505','sathrovarr SAY_SATH_DEATH'),
 ('-1580012','Your misery is my delight!','12453','1','0','0','25506','sathrovarr SAY_SATH_SPELL1'),
@@ -4926,14 +5040,8 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 
 -- 25512 Misery...confusion...mistrust. These are the hallmarks.
 -- 25511 Depravity...hatred...chaos. These are the pillars.
-('-1580044','Misery...','12484','1','0','0','0','sacrolash SAY_INTRO_1'),
-('-1580045','Depravity...','0','1','0','0','0','alythess SAY_INTRO_2'),
-('-1580046','Confusion...','0','1','0','0','0','sacrolash SAY_INTRO_3'),
-('-1580047','Hatred...','0','1','0','0','0','alythess SAY_INTRO_4'),
-('-1580048','Mistrust...','0','1','0','0','0','sacrolash SAY_INTRO_5'),
-('-1580049','Chaos...','0','1','0','0','44549','alythess SAY_INTRO_6'),
-('-1580050','These are the hallmarks...','0','1','0','0','0','sacrolash SAY_INTRO_7'),
-('-1580051','These are the pillars...','0','1','0','0','0','alythess SAY_INTRO_8'),
+('-1580044','Misery...confusion...mistrust. These are the hallmarks.','12484','1','0','0','25512','sacrolash SAY_INTRO_1'),
+('-1580045','Depravity...hatred...chaos. These are the pillars.','0','1','0','0','25511','alythess SAY_INTRO_2'),
 
 ('-1580052','Shadow to the aid of fire!','12485','1','0','0','24423','sacrolash SAY_SACROLASH_SHADOW_NOVA'),
 ('-1580053','Alythess! Your fire burns within me!','12488','1','0','0','24452','sacrolash SAY_SACROLASH_EMPOWER'),
@@ -4993,7 +5101,22 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1580105','Salvation, young one. It waits for us all.','12522','0','0','1','25414','velen SAY_OUTRO_11'),
 ('-1580106','Farewell...','12523','0','0','1','25415','velen SAY_OUTRO_12'),
 
-('-1580107','%s takes a deep breath.','0','3','0','0','20021','felmyst EMOTE_DEEP_BREATH');
+('-1580107','%s takes a deep breath.','0','3','0','0','20021','felmyst EMOTE_DEEP_BREATH'),
+('-1580108','Kil''jaeden must be destroyed!','12436','0','0','1','25502','kalec SAY_KALEC_OUTRO_2'),
+
+('-1580109','Unit entering energy conservation mode.','0','1','0','0','25200','npc_sunblade_protector SAY_PROTECTOR_REACHED_HOME'),
+('-1580110','Local proximity threat detected. Exiting energy conservation mode.','0','1','0','0','25201','npc_sunblade_protector SAY_INACTIVE_PROTECTOR_AGGRO'),
+('-1580111','Enemies spotted! Attack while I try to activate a Protector!','0','1','0','0','25202','npc_sunblade_scout SAY_SCOUT_AGGRO'),
+('-1580112','Enemy presence detected.','0','1','0','0','25203','npc_sunblade_protector SAY_ACTIVE_PROTECTOR_AGGRO'),
+('-1580113','Unit is now operational and attacking targets.','0','1','0','0','25206','npc_sunblade_protector SAY_PROTECTOR_ACTIVATED_AGGRO'),
+
+('-1580114','There is no time to waste!','0','1','0','0','24993','Kalec Wipe'),
+('-1580115','The fate of the world hangs in the balance!','12437','0','0','1','25503','kalec SAY_KALEC_OUTRO_3'),
+-- gauntlet
+('-1580116','Bring forth the imps!','0','6','0','1','25050','gauntlet Start'),
+-- twins
+('-1580117','Sacrolash directs Shadow Nova at $n.','0','3','0','1','24424','emote shadow nova'),
+('-1580118','Alythess directs Conflagration at $n.','0','3','0','1','24426','emote conflagration');
 
 -- -1 585 000 MAGISTER'S TERRACE
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
@@ -5033,7 +5156,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1585030','Oh no, he was merely an instrument, a stepping stone to a much larger plan! It has all led to this... and this time you will not interfere!','0','1','0','0','25387','kaelthas MT SAY_INTRO_2'),
 
 ('-1585031','Vexallus overloads!','0','3','0','0','23781','vexallus EMOTE_OVERLOAD'),
-('-1585032','Be still, mortals, and hearken to my words.','0','1','0','0','23936','Kalecgos on spawn');
+('-1585032','Be still, mortals, and hearken to my words.','0','6','0','0','23936','Kalecgos on spawn');
 
 -- -1 999 900 EXAMPLE TEXT
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES

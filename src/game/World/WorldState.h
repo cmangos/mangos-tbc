@@ -59,6 +59,8 @@ enum ZoneIds
     ZONEID_ISLE_OF_QUEL_DANAS   = 4080,
     ZONEID_MAGISTERS_TERRACE    = 4131,
     ZONEID_SUNWELL_PLATEAU      = 4075,
+
+    ZONEID_ZANGARMARSH = 3521,
 };
 
 enum AreaIds
@@ -84,6 +86,8 @@ enum SpellId
     SPELL_ADAL_SONG_OF_BATTLE   = 39953,
 
     SPELL_KIRU_SONG_OF_VICTORY  = 46302,
+
+    SPELL_BONFIRES_BLESSING     = 45444,
 };
 
 enum GoId
@@ -102,6 +106,8 @@ enum Conditions
     ORGRIMMAR_UNDERCITY = 164871,
     GROMGOL_ORGRIMMAR   = 175080,
     GROMGOL_UNDERCITY   = 176495,
+
+    WAR_EFFORT_DAYS_LEFT = 2113,
 };
 
 enum Events
@@ -130,6 +136,8 @@ enum SaveIds
 
 enum GameEvents
 {
+    GAME_EVENT_GURUBASHI_ARENA = 16,
+
     // Prepatch event
     GAME_EVENT_BEFORE_THE_STORM = 100,
 
@@ -162,10 +170,10 @@ enum GameEvents
     GAME_EVENT_QUEL_DANAS_PHASE_4_ALCHEMY_LAB   = 314,
     GAME_EVENT_QUEL_DANAS_PHASE_4_KIRU          = 315,
     // SWP Phases
-    GAME_EVENT_SWP_GATES_PHASE_0 = 316,
-    GAME_EVENT_SWP_GATES_PHASE_1 = 317,
-    GAME_EVENT_SWP_GATES_PHASE_2 = 318,
-    GAME_EVENT_SWP_GATES_PHASE_3 = 319,
+    GAME_EVENT_SWP_GATES_PHASE_0 = 316, // All Gates Closed
+    GAME_EVENT_SWP_GATES_PHASE_1 = 317, // First Gate Open
+    GAME_EVENT_SWP_GATES_PHASE_2 = 318, // Second Gate Open
+    GAME_EVENT_SWP_GATES_PHASE_3 = 319, // All Gates Open
 };
 
 enum AQResources
@@ -207,6 +215,15 @@ enum AQResources
     RESOURCE_MAX,
 };
 
+enum AQResourceGroup
+{
+    RESOURCE_GROUP_SKINNING,
+    RESOURCE_GROUP_BANDAGES,
+    RESOURCE_GROUP_BARS,
+    RESOURCE_GROUP_COOKING,
+    RESOURCE_GROUP_HERBS,
+};
+
 enum AQPhase
 {
     PHASE_0_DISABLED,
@@ -225,11 +242,14 @@ struct AhnQirajData
     uint32 m_WarEffortCounters[RESOURCE_MAX];
     GuidVector m_warEffortWorldstatesPlayers;
     std::mutex m_warEffortMutex;
-    AhnQirajData() : m_phase(PHASE_0_DISABLED), m_timer(0)
+    std::set<uint32> m_spawnedDbGuids;
+    uint32 m_phase2Tier;
+    AhnQirajData() : m_phase(PHASE_0_DISABLED), m_timer(0), m_phase2Tier(0)
     {
         memset(m_WarEffortCounters, 0, sizeof(m_WarEffortCounters));
     }
     std::string GetData();
+    uint32 GetDaysRemaining() const;
 };
 
 enum SunsReachPhases
@@ -264,20 +284,40 @@ enum SunsReachCounters
     COUNTERS_MAX,
 };
 
+enum SunwellGates
+{
+    SUNWELL_ALL_GATES_CLOSED,
+    SUNWELL_AGAMATH_GATE1_OPEN,
+    SUNWELL_ROHENDOR_GATE2_OPEN,
+    SUNWELL_ARCHONISUS_GATE3_OPEN,
+};
+
+enum SunwellGateCounters
+{
+    COUNTER_AGAMATH_THE_FIRST_GATE,
+    COUNTER_ROHENDOR_THE_SECOND_GATE,
+    COUNTER_ARCHONISUS_THE_FINAL_GATE,
+    COUNTERS_MAX_GATES,
+};
+
 struct SunsReachReclamationData
 {
     uint32 m_phase;
     uint32 m_subphaseMask;
     uint32 m_sunsReachReclamationCounters[COUNTERS_MAX];
+    uint32 m_gate;
+    uint32 m_gateCounters[COUNTERS_MAX_GATES];
     GuidVector m_sunsReachReclamationPlayers;
     std::mutex m_sunsReachReclamationMutex;
-    SunsReachReclamationData() : m_phase(SUNS_REACH_PHASE_1_STAGING_AREA), m_subphaseMask(0)
+    SunsReachReclamationData() : m_phase(SUNS_REACH_PHASE_1_STAGING_AREA), m_subphaseMask(0), m_gate(SUNWELL_ARCHONISUS_GATE3_OPEN) // optional - all SWP gates open by default in 2.4.3
     {
         memset(m_sunsReachReclamationCounters, 0, sizeof(m_sunsReachReclamationCounters));
+        memset(m_gateCounters, 0, sizeof(m_gateCounters));
     }
     std::string GetData();
     uint32 GetPhasePercentage(uint32 phase);
     uint32 GetSubPhasePercentage(uint32 subPhase);
+    uint32 GetSunwellGatePercentage(uint32 gate);
 };
 
 enum LoveIsInTheAirLeaders
@@ -324,10 +364,11 @@ class WorldState
 
         void HandleExternalEvent(uint32 eventId, uint32 param);
         void ExecuteOnAreaPlayers(uint32 areaId, std::function<void(Player*)> executor);
+        void ExecuteOnZonePlayers(uint32 zoneId, std::function<void(Player*)> executor);
 
         void Update(const uint32 diff);
 
-        void SendWorldstateUpdate(std::mutex& mutex, uint32 value, uint32 worldStateId);
+        void SendWorldstateUpdate(std::mutex& mutex, GuidVector const& guids, uint32 value, uint32 worldStateId);
 
         // vanilla section
 
@@ -335,8 +376,15 @@ class WorldState
 
         void AddWarEffortProgress(AQResources resource, uint32 count);
         void HandleWarEffortPhaseTransition(uint32 newPhase);
-        void StopWarEffortEvent();
         void StartWarEffortEvent();
+        void StopWarEffortEvent();
+        void SpawnWarEffortGos();
+        void ChangeWarEffortGoSpawns(AQResources resource, int32 forcedTier = -1);
+        void ChangeWarEffortPhase2Tier(uint32 remainingDays);
+        void DespawnWarEffortGuids(std::set<std::pair<uint32, Team>>& guids);
+        AQPhase GetAqPhase() { return (AQPhase)m_aqData.m_phase; }
+        std::pair<AQResourceGroup, Team> GetResourceInfo(AQResources resource);
+        std::pair<uint32, uint32> GetResourceCounterAndMax(AQResourceGroup group, Team team);
         std::string GetAQPrintout();
 
         // tbc section
@@ -350,7 +398,7 @@ class WorldState
         uint8 GetExpansion() const { return m_expansion; }
         bool SetExpansion(uint8 expansion);
 
-        // Suns reach reclamation
+        // Sun's Reach Reclamation
         void AddSunsReachProgress(uint32 questId);
         void HandleSunsReachPhaseTransition(uint32 newPhase);
         void HandleSunsReachSubPhaseTransition(int32 subPhaseMask, bool initial = false);
@@ -358,6 +406,17 @@ class WorldState
         void StopSunsReachPhase(bool forward);
         void StartSunsReachPhase(bool initial = false);
         std::string GetSunsReachPrintout();
+        void AddSunwellGateProgress(uint32 questId);
+        void HandleSunwellGateTransition(uint32 newGate);
+        void SetSunwellGateCounter(SunwellGateCounters index, uint32 value);
+        void StopSunwellGatePhase();
+        void StartSunwellGatePhase();
+
+        // Midsummer
+        uint32 IsBonfireInZone(Team team, uint32 zoneId);
+        bool IsBonfireActive(uint32 entry);
+        void SetBonfireActive(uint32 entry, bool team, bool apply);
+        void SetBonfireZone(uint32 entry, uint32 zoneId, bool team);
 
         void FillInitialWorldStates(ByteBuffer& data, uint32& count, uint32 zoneId, uint32 areaId);
 
@@ -377,6 +436,7 @@ class WorldState
         }
     private:
         std::map<uint32, GuidVector> m_areaPlayers;
+        std::map<uint32, GuidVector> m_zonePlayers;
         std::map<uint32, std::atomic<uint32>> m_transportStates; // atomic to avoid having to lock
 
         std::mutex m_mutex; // all World State operations are thread unsafe
@@ -390,6 +450,7 @@ class WorldState
         uint32 m_emeraldDragonsTimer;
         std::vector<uint32> m_emeraldDragonsChosenPositions;
         AhnQirajData m_aqData;
+        std::map<uint32, AQResources> m_aqWorldstateMapReverse;
 
         LoveIsInTheAir m_loveIsInTheAirData;
         GuidVector m_loveIsInTheAirCapitalsPlayers;
@@ -407,6 +468,13 @@ class WorldState
         uint32 m_adalSongOfBattleTimer;
 
         SunsReachReclamationData m_sunsReachData;
+
+        std::map<uint32, bool> m_midsummerBonfireStates;
+        std::map<uint32, uint32> m_midsummerZoneIds[2];
+        std::map<uint32, uint32> m_midsummerGoToZone;
+        std::map<uint32, GuidVector> m_midsummerZonePlayers;
+
+        std::mutex m_midsummerMutex;
 
         // Release Events
         void StartExpansionEvent();

@@ -69,9 +69,24 @@ void WorldSession::HandleMoveWorldportAckOpcode()
 
     // get the destination map entry, not the current one, this will fix homebind and reset greeting
     MapEntry const* mEntry = sMapStore.LookupEntry(loc.mapid);
-
-    auto returnHomeFunc = [player = GetPlayer(), old_loc]()
+    
+    auto returnHomeFunc = [this, player = GetPlayer(), old_loc, loc]()
     {
+        Map* map = nullptr;
+        // must have map in teleport
+        if (!map)
+            map = sMapMgr.CreateMap(loc.mapid, player);
+        if (!map)
+            map = sMapMgr.CreateMap(old_loc.mapid, player);
+
+        if (!map)
+        {
+            KickPlayer();
+            return;
+        }
+
+        player->SetMap(map);
+
         player->SetSemaphoreTeleportFar(false);
 
         // Teleport to previous place, if cannot be ported back TP to homebind place
@@ -104,8 +119,13 @@ void WorldSession::HandleMoveWorldportAckOpcode()
 
     uint32 miscRequirement = 0;
     if (AreaTrigger const* at = sObjectMgr.GetMapEntranceTrigger(loc.mapid))
+    {
         if (AREA_LOCKSTATUS_OK != GetPlayer()->GetAreaTriggerLockStatus(at, miscRequirement))
+        {
             returnHomeFunc();
+            return;
+        }
+    }
 
     InstanceTemplate const* mInstance = ObjectMgr::GetInstanceTemplate(loc.mapid);
 
@@ -210,8 +230,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         if (GetPlayer()->pvpInfo.inPvPEnforcedArea)
             GetPlayer()->CastSpell(GetPlayer(), 2479, TRIGGERED_OLD_TRIGGERED);
 
-        // resummon pet
-        GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
+        _player->ResummonPetTemporaryUnSummonedIfAny();
 
         // lets process all delayed operations on successful teleport
         GetPlayer()->ProcessDelayedOperations();
@@ -257,6 +276,8 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
     plMover->SetDelayedZoneUpdate(false, 0);
 
     plMover->SetPosition(dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation, true);
+
+    plMover->SetFallInformation(0, dest.coord_z);
 
     GenericTransport* currentTransport = nullptr;
     if (plMover->m_teleportTransport)
@@ -325,9 +346,6 @@ void WorldSession::HandleForceSpeedChangeAckOpcodes(WorldPacket& recv_data)
     recv_data >> movementInfo;
     recv_data >> newspeed;
 
-    // now can skip not our packet
-    if (_player->GetObjectGuid() != guid)
-        return;
     /*----------------*/
 
     // client ACK send one packet for mounted/run case and need skip all except last from its
@@ -373,18 +391,18 @@ void WorldSession::HandleForceSpeedChangeAckOpcodes(WorldPacket& recv_data)
             return;
     }
 
-    if (!_player->GetTransport() && fabs(_player->GetSpeed(move_type) - newspeed) > 0.01f)
+    if (!_player->GetTransport() && fabs(mover->GetSpeed(move_type) - newspeed) > 0.01f)
     {
-        if (_player->GetSpeed(move_type) > newspeed)        // must be greater - just correct
+        if (mover->GetSpeed(move_type) > newspeed)        // must be greater - just correct
         {
             sLog.outError("%sSpeedChange player %s is NOT correct (must be %f instead %f), force set to correct value",
-                          move_type_name[move_type], _player->GetName(), _player->GetSpeed(move_type), newspeed);
-            _player->SetSpeedRate(move_type, _player->GetSpeedRate(move_type), true);
+                          move_type_name[move_type], _player->GetName(), mover->GetSpeed(move_type), newspeed);
+            mover->SetSpeedRate(move_type, _player->GetSpeedRate(move_type), true);
         }
         else                                                // must be lesser - cheating
         {
             BASIC_LOG("Player %s from account id %u kicked for incorrect speed (must be %f instead %f)",
-                      _player->GetName(), _player->GetSession()->GetAccountId(), _player->GetSpeed(move_type), newspeed);
+                      _player->GetName(), _player->GetSession()->GetAccountId(), mover->GetSpeed(move_type), newspeed);
             _player->GetSession()->KickPlayer();
         }
     }
@@ -471,7 +489,7 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket& recv_data)
     data << movementInfo.jump.cosAngle;
     data << movementInfo.jump.sinAngle;
     data << movementInfo.jump.xyspeed;
-    data << movementInfo.jump.velocity;
+    data << movementInfo.jump.zspeed;
     mover->SendMessageToSetExcept(data, _player);
 }
 
@@ -573,22 +591,22 @@ void WorldSession::HandleSummonResponseOpcode(WorldPacket& recv_data)
     recv_data >> summonerGuid;
     recv_data >> agree;
 
-    _player->SummonIfPossible(agree);
+    _player->SummonIfPossible(agree, summonerGuid);
 }
 
-bool WorldSession::VerifyMovementInfo(MovementInfo const& movementInfo, ObjectGuid const& guid) const
+bool WorldSession::VerifyMovementInfo(MovementInfo const& movementInfo, Unit* mover, bool unroot) const
 {
     // ignore wrong guid (player attempt cheating own session for not own guid possible...)
-    if (guid != _player->GetMover()->GetObjectGuid())
+    if (mover->GetObjectGuid() != _player->GetMover()->GetObjectGuid())
         return false;
 
-    return VerifyMovementInfo(movementInfo);
-}
-
-bool WorldSession::VerifyMovementInfo(MovementInfo const& movementInfo) const
-{
     if (!MaNGOS::IsValidMapCoord(movementInfo.GetPos().x, movementInfo.GetPos().y, movementInfo.GetPos().z, movementInfo.GetPos().o))
         return false;
+
+    // rooted mover sent packet without root or moving AND root - ignore, due to client crash possibility
+    if (!unroot)
+        if (mover->IsRooted() && (!movementInfo.HasMovementFlag(MOVEFLAG_ROOT) || movementInfo.HasMovementFlag(MOVEFLAG_MASK_MOVING)))
+            return false;
 
     if (movementInfo.HasMovementFlag(MOVEFLAG_ONTRANSPORT))
     {
@@ -695,7 +713,7 @@ bool WorldSession::ProcessMovementInfo(MovementInfo& movementInfo, Unit* mover, 
     if (plMover && plMover->IsBeingTeleported())
         return false;
 
-    if (!VerifyMovementInfo(movementInfo))
+    if (!VerifyMovementInfo(movementInfo, mover, recv_data.GetOpcode() == CMSG_FORCE_MOVE_UNROOT_ACK))
         return false;
 
     if (!mover->movespline->Finalized())

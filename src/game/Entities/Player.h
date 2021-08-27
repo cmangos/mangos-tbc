@@ -956,15 +956,16 @@ class Player : public Unit
 
         bool TeleportToBGEntryPoint();
 
-        void SetSummonPoint(uint32 mapid, float x, float y, float z)
+        void SetSummonPoint(uint32 mapid, float x, float y, float z, ObjectGuid summoner)
         {
             m_summon_expire = time(nullptr) + MAX_PLAYER_SUMMON_DELAY;
             m_summon_mapid = mapid;
             m_summon_x = x;
             m_summon_y = y;
             m_summon_z = z;
+            m_summoner = summoner;
         }
-        void SummonIfPossible(bool agree);
+        void SummonIfPossible(bool agree, ObjectGuid guid);
 
         bool Create(uint32 guidlow, const std::string& name, uint8 race, uint8 class_, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair, uint8 outfitId);
 
@@ -1084,7 +1085,7 @@ class Player : public Unit
         // Legacy taxi system
         PlayerTaxi m_taxi;
 
-        void InitTaxiNodesForLevel() { m_taxi.InitTaxiNodesForLevel(getRace(), getLevel()); }
+        void InitTaxiNodesForLevel() { m_taxi.InitTaxiNodesForLevel(getRace(), GetLevel()); }
 
         bool ActivateTaxiPathTo(std::vector<uint32> const& nodes, Creature* npc = nullptr, uint32 spellid = 0);
         bool ActivateTaxiPathTo(uint32 path_id, uint32 spellid = 0);
@@ -1273,7 +1274,7 @@ class Player : public Unit
         /*********************************************************/
 
         // Return player level when QuestLevel is dynamic (-1)
-        uint32 GetQuestLevelForPlayer(Quest const* pQuest) const { return pQuest && (pQuest->GetQuestLevel() > 0) ? (uint32)pQuest->GetQuestLevel() : getLevel(); }
+        uint32 GetQuestLevelForPlayer(Quest const* pQuest) const { return pQuest && (pQuest->GetQuestLevel() > 0) ? (uint32)pQuest->GetQuestLevel() : GetLevel(); }
 
         void PrepareQuestMenu(ObjectGuid guid) const;
         void SendPreparedQuest(ObjectGuid guid) const;
@@ -1297,6 +1298,7 @@ class Player : public Unit
         void CompleteQuest(uint32 quest_id);
         void IncompleteQuest(uint32 quest_id);
         void RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver, bool announce = true);
+        bool IsQuestExplored(uint32 quest_id) const;
 
         void FailQuest(uint32 questId);
         void FailQuest(Quest const* quest);
@@ -1443,7 +1445,6 @@ class Player : public Unit
         void Regenerate(Powers power, uint32 diff);
         void RegenerateHealth(uint32 diff);
         void setRegenTimer(uint32 time) {m_regenTimer = time;}
-        void setWeaponChangeTimer(uint32 time) {m_weaponChangeTimer = time;}
 
         uint32 GetMoney() const { return GetUInt32Value(PLAYER_FIELD_COINAGE); }
         void ModifyMoney(int32 d)
@@ -1560,11 +1561,11 @@ class Player : public Unit
 
         void AddSpellMod(SpellModifier* mod, bool apply);
         void SendAllSpellMods(SpellModType modType);
-        bool IsAffectedBySpellmod(SpellEntry const* spellInfo, SpellModifier* mod, Spell const* spell = nullptr);
-        template <class T> void ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell = nullptr, bool finalUse = true);
+        bool IsAffectedBySpellmod(SpellEntry const* spellInfo, SpellModifier* mod, std::set<SpellModifierPair>* consumedMods);
+        template <class T> void ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, bool finalUse = true);
         SpellModifier* GetSpellMod(SpellModOp op, uint32 spellId) const;
-        void RemoveSpellMods(Spell const* spell);
-        void ResetSpellModsDueToCanceledSpell(Spell const* spell);
+        void RemoveSpellMods(std::set<SpellModifierPair>& usedAuraCharges);
+        void ResetSpellModsDueToCanceledSpell(std::set<SpellModifierPair>& usedAuraCharges);
         void SetSpellClass(uint8 playerClass);
         SpellFamily GetSpellClass() const { return m_spellClassName; } // client function equivalent - says what player can cast
 
@@ -2127,9 +2128,10 @@ class Player : public Unit
         Object* GetObjectByTypeMask(ObjectGuid guid, TypeMask typemask);
 
         // currently visible objects at player client
-        GuidSet m_clientGUIDs;
-
-        bool HaveAtClient(WorldObject const* u) { return u == this || m_clientGUIDs.find(u->GetObjectGuid()) != m_clientGUIDs.end(); }
+        bool HasAtClient(WorldObject const* u) { return u == this || m_clientGUIDs.find(u->GetObjectGuid()) != m_clientGUIDs.end(); }
+        void AddAtClient(WorldObject* target);
+        void RemoveAtClient(WorldObject* target);
+        GuidSet& GetClientGuids() { return m_clientGUIDs; }
 
         bool IsVisibleInGridForPlayer(Player* pl) const override;
         bool IsVisibleGloballyFor(Player* u) const;
@@ -2285,6 +2287,13 @@ class Player : public Unit
         bool HasQueuedSpell();
         void ClearQueuedSpell();
         void CastQueuedSpell(SpellCastTargets& targets);
+
+        void BanPlayer(std::string const& reason);
+
+        uint32 m_teleportSpellIdDiagnostics;
+
+        Spell* GetSpellModSpell() { return m_modsSpell; }
+        void SetSpellModSpell(Spell* spell);
     protected:
         /*********************************************************/
         /***               BATTLEGROUND SYSTEM                 ***/
@@ -2451,7 +2460,6 @@ class Player : public Unit
 
         uint32 m_drunkTimer;
         uint16 m_drunk;
-        uint32 m_weaponChangeTimer;
 
         uint32 m_zoneUpdateId;
         uint32 m_zoneUpdateTimer;
@@ -2494,6 +2502,7 @@ class Player : public Unit
         float  m_summon_x;
         float  m_summon_y;
         float  m_summon_z;
+        ObjectGuid m_summoner;
 
         DeclinedName* m_declinedname;
     private:
@@ -2512,7 +2521,7 @@ class Player : public Unit
         {
             // we should not execute delayed teleports for now dead players but has been alive at teleport
             // because we don't want player's ghost teleported from graveyard
-            return m_bHasDelayedTeleport && (IsAlive() || !m_bHasBeenAliveAtDelayedTeleport);
+            return m_bHasDelayedTeleport && (IsAlive() || !m_bHasBeenAliveAtDelayedTeleport || GetDeathState() == JUST_DIED);
         }
 
         bool SetDelayedTeleportFlagIfCan()
@@ -2593,6 +2602,11 @@ class Player : public Unit
 
         std::unique_ptr<Spell> m_queuedSpell;
 
+        Spell* m_modsSpell;
+        std::set<SpellModifierPair>* m_consumedMods;
+
+        GuidSet m_clientGUIDs;
+
         // Recruit-A-Friend
         uint8 m_grantableLevels;
 
@@ -2604,51 +2618,58 @@ void AddItemsSetItem(Player* player, Item* item);
 void RemoveItemsSetItem(Player* player, ItemPrototype const* proto);
 
 // "the bodies of template functions must be made available in a header file"
-template <class T> void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, Spell const* spell, bool finalUse)
+template <class T> void Player::ApplySpellMod(uint32 spellId, SpellModOp op, T& basevalue, bool finalUse)
 {
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!spellInfo || spellInfo->SpellFamilyName != GetSpellClass() || spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS)) return; // client condition
     int32 totalpct = 100;
     int32 totalflat = 0;
+    std::vector<SpellModifier*> consumedFiniteMods;
     for (SpellModifier* mod : m_spellMods[op])
     {
-        if (!IsAffectedBySpellmod(spellInfo, mod, spell))
+        if (mod->op == SPELLMOD_CASTING_TIME || mod->op == SPELLMOD_COST)
+            if (T((basevalue + totalflat) * std::max(0, totalpct) / 100) <= 0)
+                break;
+
+        if (!IsAffectedBySpellmod(spellInfo, mod, m_consumedMods))
             continue;
         if (mod->type == SPELLMOD_FLAT)
             totalflat += mod->value;
         else if (mod->type == SPELLMOD_PCT)
         {
-            // skip percent mods for null basevalue (most important for spell mods with charges )
-            if (basevalue == T(0))
-                continue;
-
             // special case (skip >10sec spell casts for instant cast setting)
-            if (mod->op == SPELLMOD_CASTING_TIME  && basevalue >= T(10 * IN_MILLISECONDS) && mod->value <= -100)
+            if (mod->op == SPELLMOD_CASTING_TIME && basevalue >= T(10 * IN_MILLISECONDS) && mod->value <= -100)
                 continue;
 
             totalpct += mod->value;
         }
 
-        if (mod->charges > 0 && finalUse)
+        if (mod->isFinite && finalUse)
         {
-            if (!spell)
-                spell = FindCurrentSpellBySpellId(spellId);
+            bool consume = true;
+            if (!m_consumedMods) // If empty pointer then immediately consume
+            {
+                consumedFiniteMods.push_back(mod); // need to delay in order to not corrupt the list
+                consume = false;
+            }
+            else if (m_consumedMods->find(SpellModifierPair(mod->spellId, mod->modId)) != m_consumedMods->end()) // if already consumed, dont consume again
+                consume = false;
 
-            // avoid double use spellmod charge by same spell
-            if (!mod->lastAffected || mod->lastAffected != spell)
+            if (consume)
             {
                 --mod->charges;
-
-                if (mod->charges == 0)
-                {
+                m_consumedMods->insert(SpellModifierPair(mod->spellId, mod->modId));
+                if (!mod->charges)
                     mod->charges = -1;
-                    ++m_SpellModRemoveCount;
-                }
-
-                mod->lastAffected = spell;
             }
         }
     }
+
+    for (SpellModifier* mod : consumedFiniteMods)
+        RemoveAuraCharge(mod->spellId);
+
+    if (totalpct < 0)
+        totalpct = 0;
 
     if (totalflat != 0 || totalpct != 100)
         basevalue = T((basevalue + totalflat) * std::max(0, totalpct) / 100);

@@ -58,7 +58,7 @@ struct boss_pandemoniusAI : public ScriptedAI
     void Reset() override
     {
         m_uiVoidBlastTimer   = urand(15000, 20000);
-        m_uiDarkShellTimer   = 15000;
+        m_uiDarkShellTimer   = urand(13000, 15000);
         m_uiVoidBlastCounter = 0;
     }
 
@@ -89,7 +89,7 @@ struct boss_pandemoniusAI : public ScriptedAI
 
         if (m_uiVoidBlastTimer < uiDiff)
         {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, m_bIsRegularMode ? SPELL_VOID_BLAST : SPELL_VOID_BLAST_H))
                 DoCastSpellIfCan(pTarget, m_bIsRegularMode ? SPELL_VOID_BLAST : SPELL_VOID_BLAST_H);
 
             // reset timer and counter when counter has reached the max limit
@@ -116,7 +116,7 @@ struct boss_pandemoniusAI : public ScriptedAI
                 if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_DARK_SHELL : SPELL_DARK_SHELL_H) == CAST_OK)
                 {
                     DoScriptText(EMOTE_DARK_SHELL, m_creature);
-                    m_uiDarkShellTimer = urand(25000, 30000);
+                    m_uiDarkShellTimer = urand(18000, 30000);
                 }
             }
             else

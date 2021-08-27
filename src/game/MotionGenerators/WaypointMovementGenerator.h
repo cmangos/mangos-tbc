@@ -73,7 +73,7 @@ class WaypointMovementGenerator<Creature>
     public:
         WaypointMovementGenerator(Creature&) :
             i_nextMoveTime(0), m_scriptTime(0), m_lastReachedWaypoint(0), m_pathId(0),
-            m_pathDuration(0), m_PathOrigin()
+            m_pathDuration(0), m_PathOrigin(), m_speedChanged(false), m_forcedMovement(FORCED_MOVEMENT_NONE)
         {}
         ~WaypointMovementGenerator() { i_path = nullptr; }
         void Initialize(Creature& creature);
@@ -92,6 +92,7 @@ class WaypointMovementGenerator<Creature>
 
         void AddToWaypointPauseTime(int32 waitTimeDiff, bool force = false);
         bool SetNextWaypoint(uint32 pointId);
+        void SetForcedMovement(ForcedMovement forcedMovement) { m_forcedMovement = forcedMovement; }
 
         void UnitSpeedChanged() override { m_speedChanged = true; }
 
@@ -119,6 +120,7 @@ class WaypointMovementGenerator<Creature>
         WaypointPathOrigin m_PathOrigin;
 
         bool m_speedChanged;
+        ForcedMovement m_forcedMovement;
 };
 
 #endif

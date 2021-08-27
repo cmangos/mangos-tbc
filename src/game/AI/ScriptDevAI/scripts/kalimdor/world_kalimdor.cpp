@@ -170,6 +170,15 @@ struct world_map_kalimdor : public ScriptedMap
             case NPC_AVALANCHION:
                 DoDespawnElementalRifts(ELEMENTAL_EARTH);
                 break;
+            case NPC_COLOSSUS_OF_ZORA:
+                WorldObject::SpawnCreature(155122, instance);
+                break;
+            case NPC_COLOSSUS_OF_REGAL:
+                WorldObject::SpawnCreature(155124, instance);
+                break;
+            case NPC_COLOSSUS_OF_ASHI:
+                WorldObject::SpawnCreature(155123, instance);
+                break;
         }
     }
 
@@ -406,6 +415,9 @@ struct world_map_kalimdor : public ScriptedMap
                         uiData = DONE;
                 }
             }
+            case TYPE_GONG_TIME:
+                // TODO: Handle initial first gong only
+                break;
             default:
                 if (uiType >= TYPE_SHADE_OF_THE_HORSEMAN_ATTACK_PHASE && uiType <= TYPE_SHADE_OF_THE_HORSEMAN_MAX)
                     return m_shadeData.HandleSetData(uiType, uiData);

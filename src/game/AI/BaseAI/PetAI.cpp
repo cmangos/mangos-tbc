@@ -35,7 +35,7 @@ int PetAI::Permissible(const Creature* creature)
     return PERMIT_BASE_NO;
 }
 
-PetAI::PetAI(Creature* creature) : UnitAI(creature), m_creature(creature), inCombat(false), m_followAngle(M_PI_F / 2), m_followDist(1.5f)
+PetAI::PetAI(Creature* creature) : CreatureAI(creature), inCombat(false), m_followAngle(M_PI_F / 2), m_followDist(1.5f)
 {
     m_AllySet.clear();
     UpdateAllies();
@@ -56,18 +56,8 @@ PetAI::PetAI(Creature* creature) : UnitAI(creature), m_creature(creature), inCom
             break;
     }
 
-    // TODO: Remove this when unit support is removed
-    SetMeleeEnabled(!(m_creature->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NO_MELEE));
-    if (m_creature->IsNoAggroOnSight())
-        SetReactState(REACT_DEFENSIVE);
     if (m_creature->IsGuard() || m_unit->GetCharmInfo()) // guards and charmed targets
         m_visibilityDistance = sWorld.getConfig(CONFIG_FLOAT_SIGHT_GUARDER);
-}
-
-PetAI::PetAI(Unit* unit) : UnitAI(unit), inCombat(false), m_followAngle(PET_FOLLOW_ANGLE), m_followDist(PET_FOLLOW_DIST)
-{
-    m_AllySet.clear();
-    UpdateAllies();
 }
 
 void PetAI::MoveInLineOfSight(Unit* who)
@@ -118,7 +108,17 @@ void PetAI::AttackStart(Unit* who)
 
 void PetAI::EnterEvadeMode()
 {
-    m_unit->CombatStop();
+    // check for "chain pull" scenario - pet has already been sent to attack while exiting from an earlier combat
+    // avoid AttackStop in CombatStop so that pet doesn't lose current target and return to follow owner in this case
+    if (m_unit->GetTarget() && m_unit->GetVictim())
+    {
+        m_unit->RemoveAllAttackers();
+        m_unit->DeleteThreatList();
+        m_unit->GetCombatManager().StopCombatTimer();
+        m_unit->ClearInCombat();
+    }
+    else
+        m_unit->CombatStop();
 }
 
 void PetAI::UpdateAI(const uint32 diff)
@@ -144,8 +144,11 @@ void PetAI::UpdateAI(const uint32 diff)
     if (victim && victim->GetCombatManager().IsEvadingHome())
         victim = nullptr;
 
+    CharmInfo* charminfo = m_unit->GetCharmInfo();
+    MANGOS_ASSERT(charminfo);
+
     // Stop auto attack and chase if victim was dropped
-    if (inCombat && !victim)
+    if (inCombat && (!victim || (victim->IsCrowdControlled() && victim->HasAuraPetShouldAvoidBreaking(pet, charminfo->GetPetLastAttackCommandTime()))))
     {
         m_unit->AttackStop(true, true);
         inCombat = false;
@@ -155,9 +158,6 @@ void PetAI::UpdateAI(const uint32 diff)
         if (mm->GetCurrentMovementGeneratorType() == CHASE_MOTION_TYPE)
             mm->MovementExpired();
     }
-
-    CharmInfo* charminfo = m_unit->GetCharmInfo();
-    MANGOS_ASSERT(charminfo);
 
     if (charminfo->GetIsRetreating())
     {
@@ -204,11 +204,11 @@ void PetAI::UpdateAI(const uint32 diff)
                 charminfo->SetSpellOpener();
             }
         }
-        else if (pet)
+        else if (creature)
         {
-            for (uint8 i = 0; i < pet->GetPetAutoSpellSize(); ++i)
+            for (uint8 i = 0; i < creature->GetPetAutoSpellSize(); ++i)
             {
-                uint32 spellId = pet->GetPetAutoSpellOnPos(i);
+                uint32 spellId = creature->GetPetAutoSpellOnPos(i);
                 if (!spellId)
                     continue;
 
@@ -245,7 +245,7 @@ void PetAI::UpdateAI(const uint32 diff)
 
                 Spell* spell = new Spell(m_unit, spellInfo, TRIGGERED_NORMAL_COMBAT_CAST);
 
-                if (inCombat && spell->CanAutoCast(victim))
+                if (inCombat && spell->CanAutoCast(IsOnlySelfTargeting(spellInfo) ? m_unit : victim))
                 {
                     targetSpellStore.push_back(TargetSpellList::value_type(victim, spell));
                 }

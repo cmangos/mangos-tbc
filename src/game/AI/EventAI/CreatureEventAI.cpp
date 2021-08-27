@@ -208,15 +208,6 @@ void CreatureEventAI::InitAI()
             }
         }
     }
-    else
-    {
-        std::string aiName = m_creature->GetAIName();
-        if (aiName == "EventAI") // Only show error on explicitly assigned EAI in DB
-        {
-            sLog.outErrorEventAI("EventMap for Creature Id: %u, %s is empty but creature is using CreatureEventAI: '%s'.",
-                m_creature->GetEntry(), m_creature->GetGuidStr().c_str(), aiName.c_str());
-        }
-    }
 }
 
 bool CreatureEventAI::IsTimerExecutedEvent(EventAI_Type type) const
@@ -593,6 +584,10 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
             break;
         }
         case EVENT_T_DEATH_PREVENTED:
+            break;
+        case EVENT_T_TARGET_NOT_REACHABLE:
+            if (!m_creature->GetVictim() || !IsCombatMovement() || m_creature->GetMotionMaster()->GetCurrent()->IsReachable())
+                return false;
             break;
         default:
             sLog.outErrorEventAI("Creature %u using Event %u has invalid Event Type(%u), missing from ProcessEvent() Switch.", m_creature->GetEntry(), holder.event.event_id, holder.event.event_type);
@@ -1501,6 +1496,7 @@ void CreatureEventAI::EnterEvadeMode()
 
 void CreatureEventAI::JustDied(Unit* killer)
 {
+    CreatureAI::JustDied(killer);
     Reset();
 
     if (m_throwAIEventMask & (1 << AI_EVENT_JUST_DIED))
@@ -1581,6 +1577,14 @@ void CreatureEventAI::ReceiveAIEvent(AIEventType eventType, Unit* sender, Unit* 
             CheckAndReadyEventForExecution(itr, invoker, sender);
     }
     ProcessEvents(invoker, sender);
+}
+
+void CreatureEventAI::CorpseRemoved(uint32& respawnDelay)
+{
+    CreatureAI::CorpseRemoved(respawnDelay);
+    // can happen due to forced despawn of allies
+    if ((m_despawnAggregationMask & AGGREGATION_EVADE) != 0)
+        DespawnGuids(m_despawnGuids);
 }
 
 void CreatureEventAI::EnterCombat(Unit* enemy)
@@ -1683,7 +1687,7 @@ void CreatureEventAI::SpellHitTarget(Unit* target, const SpellEntry* spellInfo)
 void CreatureEventAI::UpdateAI(const uint32 diff)
 {
     // Check if we are in combat (also updates calls threat update code)
-    bool Combat = m_creature->SelectHostileTarget() && m_creature->GetVictim();
+    bool Combat = m_creature->SelectHostileTarget();
 
     UpdateEventTimers(diff);
 
@@ -1695,7 +1699,9 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
         {
             if (m_rangedModeSetting == TYPE_PROXIMITY || m_rangedModeSetting == TYPE_DISTANCER)
             {
-                if (m_currentRangedMode && m_creature->CanReachWithMeleeAttack(victim))
+                if (!m_currentRangedMode && victim->IsImmobilizedState() && IsCombatMovement() && m_mainSpellInfo && m_mainSpellCost * 2 < m_creature->GetPower(POWER_MANA) && m_creature->IsSpellReady(*m_mainSpellInfo))
+                    DistanceYourself();
+                else if (m_currentRangedMode && m_creature->CanReachWithMeleeAttack(victim))
                     SetCurrentRangedMode(false);
                 else if (!m_currentRangedMode && !m_creature->CanReachWithMeleeAttack(victim, 2.f) && m_mainSpellInfo && m_mainSpellCost * 2 < m_creature->GetPower(POWER_MANA) && m_creature->IsSpellReady(*m_mainSpellInfo))
                     SetCurrentRangedMode(true);
@@ -1706,12 +1712,12 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
                 }
             }
             // casters only display melee animation when in ranged mode when someone is actually close enough
-            else if (m_rangedModeSetting == TYPE_FULL_CASTER && m_currentRangedMode)
+            else if (m_currentRangedMode && m_meleeEnabled)
             {
                 if (m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && !m_creature->CanReachWithMeleeAttack(victim))
-                    SetMeleeEnabled(false);
+                    m_unit->MeleeAttackStop(m_unit->GetVictim());
                 else if (!m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && m_creature->CanReachWithMeleeAttack(victim))
-                    SetMeleeEnabled(true);
+                    m_unit->MeleeAttackStart(m_unit->GetVictim());
             }
         }
 
@@ -1990,6 +1996,12 @@ void CreatureEventAI::UpdateEventTimers(const uint32 diff)
         IncreaseDepthIfNecessary();
         for (CreatureEventAIList::iterator i = m_CreatureEventAIList.begin(); i != m_CreatureEventAIList.end(); ++i)
         {
+            if (i->event.event_type == EVENT_T_TARGET_NOT_REACHABLE)
+            {
+                CheckAndReadyEventForExecution(*i);
+                continue;
+            }
+
             // Decrement Timers
             if (i->timer)
             {
@@ -2056,6 +2068,8 @@ void CreatureEventAI::SetCurrentRangedMode(bool state)
         m_currentRangedMode = false;
         m_attackDistance = 0.f;
         DoStartMovement(m_creature->GetVictim());
+        if (m_meleeEnabled && !m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
+            m_unit->MeleeAttackStart(m_unit->GetVictim());
     }
 }
 

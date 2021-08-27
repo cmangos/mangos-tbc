@@ -382,6 +382,7 @@ struct boss_gathios_the_shattererAI : public boss_illidari_councilAI
         AddCombatAction(GATHIOS_ACTION_BLESSING, 19000, 26000);
         AddCombatAction(GATHIOS_ACTION_CONSECRATION, 10000u);
         AddCombatAction(GATHIOS_ACTION_HAMMER_OF_JUSTICE, 10000, 10000);
+        AddOnKillText(SAY_GATH_SLAY);
     }
 
     bool m_seal;
@@ -390,11 +391,6 @@ struct boss_gathios_the_shattererAI : public boss_illidari_councilAI
     {
         boss_illidari_councilAI::Reset();
         m_seal = false;
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_GATH_SLAY, m_creature);
     }
 
     void JustDied(Unit* killer) override
@@ -504,11 +500,7 @@ struct boss_high_nethermancer_zerevorAI : public boss_illidari_councilAI
 
         SetRangedMode(true, 30.f, TYPE_FULL_CASTER);
         AddMainSpell(SPELL_ARCANE_BOLT);
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_ZERE_SLAY, m_creature);
+        AddOnKillText(SAY_ZERE_SLAY);
     }
 
     void JustDied(Unit* killer) override
@@ -581,11 +573,7 @@ struct boss_lady_malandeAI : public boss_illidari_councilAI
         AddCombatAction(MALANDE_ACTION_CIRCLE_OF_HEALING, 20000u);
         AddCombatAction(MALANDE_ACTION_DIVINE_WRATH, 10000u);
         AddCombatAction(MALANDE_ACTION_REFLECTIVE_SHIELD, 26000, 32000);
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_MALA_SLAY, m_creature);
+        AddOnKillText(SAY_MALA_SLAY);
     }
 
     void JustDied(Unit* killer) override
@@ -661,15 +649,11 @@ struct boss_veras_darkshadowAI : public boss_illidari_councilAI
                 target->CastSpell(nullptr, SPELL_ENVENOM_DUMMY_2, TRIGGERED_NONE);
         });
         AddCombatAction(VERAS_ACTION_VANISH, 10000u);
+        AddOnKillText(SAY_VERA_SLAY);
         Reset();
     }
 
     ObjectGuid m_envenomAnimTarget;
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_VERA_SLAY, m_creature);
-    }
 
     void JustDied(Unit* killer) override
     {
@@ -687,7 +671,7 @@ struct boss_veras_darkshadowAI : public boss_illidari_councilAI
                 m_creature->CastSpell(nullptr, SPELL_DEADLY_STRIKE, TRIGGERED_NONE);
                 DoScriptText(SAY_VERA_VANISH, m_creature);
                 ResetCombatAction(action, 55000);
-                if (Unit* victim = m_creature->GetVictim())
+                if (Unit* victim = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0))
                     m_creature->getThreatManager().SetTargetSuppressed(victim);
             }
         }

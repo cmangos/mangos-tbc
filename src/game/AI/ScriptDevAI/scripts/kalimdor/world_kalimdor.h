@@ -27,6 +27,15 @@ enum
 
     // Quest 6132
     NPC_HORNIZZ                 = 6019,
+
+    // War Effort
+    NPC_COLOSSUS_OF_ZORA        = 15740,
+    NPC_COLOSSUS_OF_REGAL       = 15741,
+    NPC_COLOSSUS_OF_ASHI        = 15742,
+
+    NPC_COLOSSUS_RESEARCHER_SOPHIA = 15797,
+    NPC_COLOSSUS_RESEARCHER_NESTOR = 15798,
+    NPC_COLOSSUS_RESEARCHER_EAZEL  = 15799,
 };
 
 enum Encounters
@@ -35,6 +44,7 @@ enum Encounters
     TYPE_HIVE               = 1, // Quest 1126
     TYPE_TETHYR             = 2, // Quest 11198 - tbc+
     TYPE_FREEDOM_CREATURES  = 3, // Quest 2969
+    TYPE_GONG_TIME          = 4, // War Effort
     MAX_ENCOUNTER
 };
 

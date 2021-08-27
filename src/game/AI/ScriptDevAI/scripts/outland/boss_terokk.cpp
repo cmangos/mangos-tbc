@@ -24,6 +24,7 @@ EndScriptData */
 #include <utility>
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
+#include "AI/ScriptDevAI/scripts/outland/world_outland.h"
 
 enum
 {
@@ -40,11 +41,10 @@ enum
     NPC_TEROKK              = 21838,
     NPC_ACE                 = 23377,
     NPC_INVISIBLE_STALKER   = 15214,
-    NPC_SKYGUARD_TARGET     = 23277,
 
     // Intro
     SPELL_RED_BEAM      = 24240,
-    SPELL_SHADOWFORM    = 41408,
+    SPELL_SHADOWFORM_TEROKK = 41408,
 
     // Combat
     SPELL_SHADOW_BOLT_VOLLEY        = 40721,
@@ -94,7 +94,7 @@ struct boss_terokkAI : public CombatAI
         AddCustomAction(TEROKK_ACTION_SPAWN, 0u, [&] { m_creature->CastSpell(nullptr, SPELL_RED_BEAM, TRIGGERED_OLD_TRIGGERED); });
         AddCustomAction(TEROKK_ACTION_SAY, 2000u, [&]
         {
-            m_creature->CastSpell(nullptr, SPELL_SHADOWFORM, TRIGGERED_OLD_TRIGGERED);
+            m_creature->CastSpell(nullptr, SPELL_SHADOWFORM_TEROKK, TRIGGERED_OLD_TRIGGERED);
             DoScriptText(SAY_SPAWN, m_creature);
         });
         AddCustomAction(TEROKK_ACTION_ATTACK, 9000u, [&]
@@ -152,10 +152,16 @@ struct boss_terokkAI : public CombatAI
         m_phase = false;
 
         DespawnGuids(m_aces);
+
+        if (InstanceData* instance = m_creature->GetInstanceData())
+            instance->SetData(TYPE_TEROKK, 0);
     }
 
     void JustDied(Unit* killer) override
     {
+        if (InstanceData* instance = m_creature->GetInstanceData())
+            instance->SetData(TYPE_TEROKK, 0);
+
         if (m_aces.empty())
             return;
 
@@ -173,7 +179,6 @@ struct boss_terokkAI : public CombatAI
         {
             if (m_creature->HasAura(SPELL_DIVINE_SHIELD))
             {
-                m_creature->RemoveAurasDueToSpell(SPELL_DIVINE_SHIELD);
                 m_creature->CastSpell(nullptr, SPELL_ENRAGE, TRIGGERED_NONE);
                 DoScriptText(SAY_ENRAGE, m_creature);
             }
@@ -294,6 +299,18 @@ bool ProcessEventId_event_summon_terokk(uint32 /*eventId*/, Object* source, Obje
     return true;
 }
 
+struct TerokkAncientFlames : public AuraScript
+{
+    // substitute for missing serverside 40720
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        Unit* target = aura->GetTarget();
+        target->RemoveAurasDueToSpell(SPELL_DIVINE_SHIELD);
+        if (target->GetEntry() == NPC_TEROKK)
+            target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, target, (Creature*)target);
+    }
+};
+
 void AddSC_boss_terokk()
 {
     Script* pNewScript = new Script;
@@ -305,4 +322,6 @@ void AddSC_boss_terokk()
     pNewScript->Name = "boss_terokk";
     pNewScript->GetAI = &GetNewAIInstance<boss_terokkAI>;
     pNewScript->RegisterSelf();
+
+    RegisterAuraScript<TerokkAncientFlames>("spell_terokk_ancient_flames");
 }

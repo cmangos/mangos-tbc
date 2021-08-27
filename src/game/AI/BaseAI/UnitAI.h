@@ -179,7 +179,7 @@ class UnitAI
          * Called when the creature is killed
          * @param pKiller Unit* who killed the creature
          */
-        virtual void JustDied(Unit* /*killer*/) {}
+        virtual void JustDied(Unit* /*killer*/);
 
         /**
          * Called when the corpse of this creature gets removed
@@ -332,6 +332,7 @@ class UnitAI
         /// Set combat movement (on/off), also sets UNIT_STAT_NO_COMBAT_MOVEMENT
         void SetCombatMovement(bool enable, bool stopOrStartMovement = false);
         bool IsCombatMovement() const;
+        void SetFollowMovement(bool enable);
 
         ///== Event Handling ===============================
 
@@ -471,13 +472,17 @@ class UnitAI
         void AttackSpecificEnemy(std::function<void(Unit*,Unit*&)> check);
         virtual void AttackClosestEnemy();
 
-        void SetRootSelf(bool apply, bool combatOnly = false);
+        void SetRootSelf(bool apply, bool combatOnly = false); // must call parent JustDied if this is used
         void ClearSelfRoot();
 
         virtual void HandleDelayedInstantAnimation(SpellEntry const* spellInfo) {}
-        virtual bool IsTargetingRestricted() { return false; }
+        virtual bool IsTargetingRestricted() { return GetCombatScriptStatus(); }
 
         virtual void HandleAssistanceCall(Unit* sender, Unit* invoker) {} // implemented for creatures
+
+        virtual bool IsPreventingDeath() const { return false; }
+
+        bool IsMeleeEnabled() const { return m_meleeEnabled; }
 
     protected:
         virtual std::string GetAIName() { return "UnitAI"; }

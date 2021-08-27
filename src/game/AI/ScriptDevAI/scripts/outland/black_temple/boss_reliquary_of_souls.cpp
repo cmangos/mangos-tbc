@@ -293,7 +293,7 @@ struct essence_base_AI : public CombatAI
             m_creature->SetInCombatWithZone();
             AttackClosestEnemy();
             if (!m_creature->GetVictim())
-                JustReachedHome();
+                EnterEvadeMode();
         });
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
             {
@@ -307,7 +307,7 @@ struct essence_base_AI : public CombatAI
 
     virtual void OnPhaseFinished() {}
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
         // Reset encounter and despawn Essence
         if (m_instance)
@@ -541,7 +541,7 @@ struct boss_essence_of_angerAI : public CombatAI
             m_creature->SetInCombatWithZone();
             AttackClosestEnemy();
             if (!m_creature->GetVictim())
-                JustReachedHome();
+                EnterEvadeMode();
         });
         AddOnKillText(ANGER_SAY_SLAY1, ANGER_SAY_SLAY2);
     }
@@ -586,7 +586,7 @@ struct boss_essence_of_angerAI : public CombatAI
         DoScriptText(ANGER_SAY_DEATH, m_creature);
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
         // Reset encounter and despawn Essence
         if (m_instance)
@@ -650,7 +650,7 @@ struct npc_enslaved_soulAI : public CombatAI
                     AttackStart(target);
             m_creature->SetInCombatWithZone();
             if (!m_creature->IsInCombat())
-                JustReachedHome();
+                EnterEvadeMode();
         });
     }
 
@@ -677,7 +677,7 @@ struct npc_enslaved_soulAI : public CombatAI
         }
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
         if (m_postpone)
         {
@@ -685,6 +685,9 @@ struct npc_enslaved_soulAI : public CombatAI
             ResetTimer(1, 1);
             return;
         }
+
+        if (GetReactState() == REACT_PASSIVE)
+            return;
 
         // Reset encounter and despawn the spirit
         if (m_instance)

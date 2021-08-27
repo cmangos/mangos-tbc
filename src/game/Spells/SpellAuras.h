@@ -166,9 +166,13 @@ class SpellAuraHolder
         uint32 GetAuraCharges() const { return m_procCharges; }
         void SetAuraCharges(uint32 charges, bool update = true);
 
+        // SpellMods
         bool DropAuraCharge();                               // return true if last charge dropped
+        void ResetSpellModCharges();
+        bool HasModifier(const uint64& modId) const;
 
-        time_t GetAuraApplyTime() const { return m_applyTime; }
+        uint32 GetAuraApplyTime() const { return m_applyTime; }
+        uint32 GetAuraApplyMSTime() const { return m_applyMSTime; } // milliseconds time
 
         void SetRemoveMode(AuraRemoveMode mode) { m_removeMode = mode; }
         void SetLoadedState(ObjectGuid const& casterGUID, ObjectGuid const& itemGUID, uint32 stackAmount, uint32 charges, int32 maxduration, int32 duration)
@@ -196,6 +200,9 @@ class SpellAuraHolder
 
         bool HasAuraType(AuraType type);
 
+        bool IsReducedProcChancePast60() { return m_reducedProcChancePast60; }
+        void SetReducedProcChancePast60() { m_reducedProcChancePast60 = true; }
+
         // Scripting system
         AuraScript* GetAuraScript() const { return m_auraScript; }
         // hooks
@@ -214,6 +221,7 @@ class SpellAuraHolder
         ObjectGuid m_casterGuid;
         ObjectGuid m_castItemGuid;                          // it is NOT safe to keep a pointer to the item because it may get deleted
         time_t m_applyTime;
+        uint32 m_applyMSTime;
         SpellEntry const* m_triggeredBy;                    // Spell responsible for this holder
         SpellAuraHolderState m_spellAuraHolderState;        // State used to be sure init part is finished (ex there is still some aura to add or effect to process)
 
@@ -239,6 +247,8 @@ class SpellAuraHolder
         bool m_isRemovedOnShapeLost: 1;
         bool m_deleted: 1;
         bool m_skipUpdate: 1;
+
+        bool m_reducedProcChancePast60;
 
         // Scripting System
         AuraScript* m_auraScript;
@@ -420,6 +430,7 @@ class Aura
         void HandlePrayerOfMending(bool apply, bool Real);
         void HandleAuraDetaunt(bool Apply, bool Real);
         void HandleOverrideClassScript(bool apply, bool real);
+        void HandleAuraPhase(bool apply, bool real);
 
         virtual ~Aura();
 
@@ -451,8 +462,6 @@ class Aura
             return maxDuration > 0 && m_modifier.periodictime > 0 ? maxDuration / m_modifier.periodictime : 0;
         }
         uint32 GetStackAmount() const { return GetHolder()->GetStackAmount(); }
-
-        bool DropAuraCharge();                               // return true if last charge dropped
 
         void SetLoadedState(int32 damage, uint32 periodicTime)
         {

@@ -311,7 +311,7 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
             // including raid/heroic instances that they are not permanently bound to!
             player->ResetInstances(INSTANCE_RESET_GROUP_JOIN);
 
-            if (player->getLevel() >= LEVELREQUIREMENT_HEROIC && player->GetDifficulty() != GetDifficulty())
+            if (player->GetLevel() >= LEVELREQUIREMENT_HEROIC && player->GetDifficulty() != GetDifficulty())
             {
                 player->SetDifficulty(GetDifficulty());
                 player->SendDungeonDifficulty(true);
@@ -505,17 +505,17 @@ void Group::SetTargetIcon(uint8 id, ObjectGuid targetGuid)
 
 static void GetDataForXPAtKill_helper(Player* player, Unit const* victim, uint32& sum_level, Player*& member_with_max_level, Player*& not_gray_member_with_max_level)
 {
-    const uint32 level = player->getLevel();
+    const uint32 level = player->GetLevel();
 
     sum_level += level;
 
-    if (!member_with_max_level || member_with_max_level->getLevel() < level)
+    if (!member_with_max_level || member_with_max_level->GetLevel() < level)
         member_with_max_level = player;
 
     if (MaNGOS::XP::IsTrivialLevelDifference(level, victim->GetLevelForTarget(player)))
         return;
 
-    if (!not_gray_member_with_max_level || not_gray_member_with_max_level->getLevel() < level)
+    if (!not_gray_member_with_max_level || not_gray_member_with_max_level->GetLevel() < level)
         not_gray_member_with_max_level = player;
 }
 
@@ -634,7 +634,7 @@ void Group::UpdatePlayerOutOfRange(Player* pPlayer)
 
     for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
         if (Player* player = itr->getSource())
-            if (player != pPlayer && !player->HaveAtClient(pPlayer))
+            if (player != pPlayer && !player->HasAtClient(pPlayer))
                 player->GetSession()->SendPacket(data);
 }
 
@@ -1002,10 +1002,10 @@ void Group::_updateMembersOnRosterChanged(Player* changed)
         {
             if (member != changed && member->IsInWorld())
             {
-                if (member->HaveAtClient(changed))
+                if (member->HasAtClient(changed))
                     update(member, changed);
 
-                if (changed->HaveAtClient(member))
+                if (changed->HasAtClient(member))
                     update(changed, member);
             }
         }
@@ -1206,7 +1206,7 @@ void Group::SetDifficulty(Difficulty difficulty)
     for (GroupReference* itr = GetFirstMember(); itr != nullptr; itr = itr->next())
     {
         Player* player = itr->getSource();
-        if (!player->GetSession() || player->getLevel() < LEVELREQUIREMENT_HEROIC)
+        if (!player->GetSession() || player->GetLevel() < LEVELREQUIREMENT_HEROIC)
             continue;
         player->SetDifficulty(difficulty);
         player->SendDungeonDifficulty(true);
@@ -1430,7 +1430,7 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
         if (pVictim->GetTypeId() == TYPEID_UNIT)
         {
             Creature* creatureVictim = static_cast<Creature*>(pVictim);
-            float rate = group_rate * float(pGroupGuy->getLevel()) / sum_level;
+            float rate = group_rate * float(pGroupGuy->GetLevel()) / sum_level;
 
             // if is in dungeon then all receive full reputation at kill
             // rewarded any alive/dead/near_corpse group member
@@ -1438,7 +1438,7 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
 
             // XP updated only for alive group member
             if (pGroupGuy->IsAlive() && not_gray_member_with_max_level &&
-                pGroupGuy->getLevel() <= not_gray_member_with_max_level->getLevel())
+                pGroupGuy->GetLevel() <= not_gray_member_with_max_level->GetLevel())
             {
                 float itr_xp = (member_with_max_level == not_gray_member_with_max_level) ? xp * rate : (xp * rate * 0.5f) + 1.0f;
 

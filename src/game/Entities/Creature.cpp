@@ -46,6 +46,7 @@
 #include "Grids/CellImpl.h"
 #include "Movement/MoveSplineInit.h"
 #include "Entities/CreatureLinkingMgr.h"
+#include "Maps/SpawnManager.h"
 
 // apply implementation of the singletons
 #include "Policies/Singleton.h"
@@ -115,6 +116,8 @@ void CreatureCreatePos::SelectFinalPoint(Creature* cr)
         else
             m_closeObject->GetClosePoint(m_pos.x, m_pos.y, m_pos.z, cr->GetObjectBoundingRadius(), m_dist, m_angle);
     }
+    else
+        cr->UpdateAllowedPositionZ(m_pos.x, m_pos.y, m_pos.z);
 }
 
 bool CreatureCreatePos::Relocate(Creature* cr) const
@@ -133,14 +136,15 @@ bool CreatureCreatePos::Relocate(Creature* cr) const
 Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_lootMoney(0), m_lootGroupRecipientId(0),
     m_lootStatus(CREATURE_LOOT_STATUS_NONE),
+    m_corpseAccelerationDecayDelay(MINIMUM_LOOTING_TIME),
     m_respawnTime(0), m_respawnDelay(25), m_respawnOverriden(false), m_respawnOverrideOnce(false), m_corpseDelay(60), m_canAggro(false),
     m_respawnradius(5.0f), m_subtype(subtype), m_defaultMovementType(IDLE_MOTION_TYPE),
-    m_equipmentId(0), m_detectionRange(20.f), m_AlreadyCallAssistance(false),
+    m_equipmentId(0), m_detectionRange(20.f), m_AlreadyCallAssistance(false), m_canCallForAssistance(true),
     m_isDeadByDefault(false),
     m_temporaryFactionFlags(TEMPFACTION_NONE),
     m_originalEntry(0), m_dbGuid(0), m_gameEventVendorId(0), m_ai(nullptr),
     m_isInvisible(false), m_ignoreMMAP(false), m_forceAttackingCapability(false),
-    m_noXP(false), m_noLoot(false), m_noReputation(false),
+    m_noXP(false), m_noLoot(false), m_noReputation(false), m_ignoringFeignDeath(false),
     m_countSpawns(false),
     m_creatureInfo(nullptr),
     m_immunitySet(UINT32_MAX)
@@ -168,8 +172,13 @@ void Creature::CleanupsBeforeDelete()
 void Creature::AddToWorld()
 {
     ///- Register the creature for guid lookup
-    if (!IsInWorld() && GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
-        GetMap()->GetObjectsStore().insert<Creature>(GetObjectGuid(), (Creature*)this);
+    if (!IsInWorld())
+    {
+        if (IsUnit())
+            GetMap()->GetObjectsStore().insert<Creature>(GetObjectGuid(), (Creature*)this);
+        if (GetDbGuid())
+            GetMap()->AddDbGuidObject(this);
+    }
 
     switch (GetSubtype())
     {
@@ -208,8 +217,10 @@ void Creature::RemoveFromWorld()
     ///- Remove the creature from the accessor
     if (IsInWorld())
     {
-        if (GetObjectGuid().GetHigh() == HIGHGUID_UNIT)
+        if (IsUnit())
             GetMap()->GetObjectsStore().erase<Creature>(GetObjectGuid(), (Creature*)nullptr);
+        if (GetDbGuid())
+            GetMap()->RemoveDbGuidObject(this);
 
         switch (GetSubtype())
         {
@@ -288,6 +299,9 @@ void Creature::RemoveCorpse(bool inPlace)
     UpdateObjectVisibility();
     SetVisibility(currentVis);                              // restore visibility state
     UpdateObjectVisibility();
+
+    if (IsUsingNewSpawningSystem())
+        AddObjectToRemoveList();
 }
 
 /**
@@ -440,10 +454,41 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
     SetCanDualWield((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_DUAL_WIELD_FORCED));
     SetForceAttackingCapability((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_FORCE_ATTACKING_CAPABILITY) != 0);
     SetNoXP((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_XP_AT_KILL) != 0);
+    SetCanCallForAssistance((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_NO_CALL_ASSIST) == 0);
     SetNoLoot(false);
     SetNoReputation(false);
+    SetIgnoreFeignDeath((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_IGNORE_FEIGN_DEATH) != 0);
 
     SetDetectionRange(cinfo->Detection);
+
+    if (cinfo->CorpseDelay)
+        SetCorpseDelay(cinfo->CorpseDelay);
+    else if(sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
+    {
+        // encounter boss forced decay timer to 1h
+        m_corpseDelay = 3600;                               // TODO: maybe add that to config file
+    }
+    else
+    {
+        switch (cinfo->Rank)
+        {
+            case CREATURE_ELITE_RARE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RARE);
+                break;
+            case CREATURE_ELITE_ELITE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_ELITE);
+                break;
+            case CREATURE_ELITE_RAREELITE:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RAREELITE);
+                break;
+            case CREATURE_ELITE_WORLDBOSS:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_WORLDBOSS);
+                break;
+            default:
+                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
+                break;
+        }
+    }
 
     return true;
 }
@@ -564,7 +609,7 @@ void Creature::ResetEntry(bool respawn)
 
     if (respawn)
     {
-        uint32 newEntry = isPet ? 0 : sObjectMgr.GetRandomEntry(m_dbGuid);
+        uint32 newEntry = isPet ? 0 : sObjectMgr.GetRandomCreatureEntry(m_dbGuid);
         if (newEntry)
         {
             UpdateEntry(newEntry, data, eventData, false);
@@ -862,33 +907,6 @@ bool Creature::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo cons
     if (!cPos.Relocate(this))
         return false;
 
-    if (sObjectMgr.IsEncounter(GetEntry(), GetMapId()))
-    {
-        // encounter boss forced decay timer to 1h
-        m_corpseDelay = 3600;                               // TODO: maybe add that to config file
-    }
-    else
-    {
-        switch (GetCreatureInfo()->Rank)
-        {
-            case CREATURE_ELITE_RARE:
-                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RARE);
-                break;
-            case CREATURE_ELITE_ELITE:
-                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_ELITE);
-                break;
-            case CREATURE_ELITE_RAREELITE:
-                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_RAREELITE);
-                break;
-            case CREATURE_ELITE_WORLDBOSS:
-                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_WORLDBOSS);
-                break;
-            default:
-                m_corpseDelay = sWorld.getConfig(CONFIG_UINT32_CORPSE_DECAY_NORMAL);
-                break;
-        }
-    }
-
     // Notify the pvp script
     if (GetMap()->IsBattleGroundOrArena())
         static_cast<BattleGroundMap*>(GetMap())->GetBG()->HandleCreatureCreate(this);
@@ -1047,7 +1065,7 @@ bool Creature::CanInteractWithBattleMaster(Player* pPlayer, bool msg) const
 
 bool Creature::CanTrainAndResetTalentsOf(Player* pPlayer) const
 {
-    return pPlayer->getLevel() >= 10
+    return pPlayer->GetLevel() >= 10
            && GetCreatureInfo()->TrainerType == TRAINER_TYPE_CLASS
            && pPlayer->getClass() == GetCreatureInfo()->TrainerClass;
 }
@@ -1310,9 +1328,9 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
         {
             usedDamageMulti = true;
             mainMinDmg = ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseMeleeAttackPower / 14.0f)) * (cinfo->MeleeBaseAttackTime / 1000.0f) * damageMulti;
-            mainMaxDmg = ((cCLS->BaseDamage * cinfo->DamageVariance *1.5f) + (cCLS->BaseMeleeAttackPower / 14.0f)) * (cinfo->MeleeBaseAttackTime / 1000.0f) * damageMulti;
-            offMinDmg = mainMinDmg / 2.0f;
-            offMaxDmg = mainMaxDmg / 2.0f;
+            mainMaxDmg = ((cCLS->BaseDamage * cinfo->DamageVariance * 1.5f) + (cCLS->BaseMeleeAttackPower / 14.0f)) * (cinfo->MeleeBaseAttackTime / 1000.0f) * damageMulti;
+            offMinDmg = mainMinDmg; // Unitmod handles 50%
+            offMaxDmg = mainMaxDmg;
             minRangedDmg = ((cCLS->BaseDamage * cinfo->DamageVariance) + (cCLS->BaseRangedAttackPower / 14.0f)) * (cinfo->RangedBaseAttackTime / 1000.0f) * damageMulti;
             maxRangedDmg = ((cCLS->BaseDamage * cinfo->DamageVariance * 1.5f) + (cCLS->BaseRangedAttackPower / 14.0f)) * (cinfo->RangedBaseAttackTime / 1000.0f) * damageMulti;
 
@@ -1500,7 +1518,7 @@ bool Creature::CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, const 
 
     Object::_Create(guidlow, newEntry, cinfo->GetHighGuid());
 
-    if (uint32 entry = sObjectMgr.GetRandomEntry(m_dbGuid))
+    if (uint32 entry = sObjectMgr.GetRandomCreatureEntry(m_dbGuid))
         newEntry = entry;
 
     return UpdateEntry(newEntry, data, eventData, false);
@@ -1532,6 +1550,9 @@ bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransp
         return false;
     }
 
+    if ((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_DYNGUID) != 0 && dbGuid == newGuid)
+        newGuid = map->GenerateLocalLowGuid(cinfo->GetHighGuid());
+
     GameEventCreatureData const* eventData = sGameEventMgr.GetCreatureUpdateDataForActiveEvent(dbGuid);
 
     // Creature can be loaded already in map if grid has been unloaded while creature walk to another grid
@@ -1549,7 +1570,8 @@ bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransp
     m_respawnradius = data->spawndist;
 
     m_respawnDelay = data->GetRandomRespawnTime();
-    m_corpseDelay = std::min(m_respawnDelay * 9 / 10, m_corpseDelay); // set corpse delay to 90% of the respawn delay
+    if (!IsUsingNewSpawningSystem())
+        m_corpseDelay = std::min(m_respawnDelay * 9 / 10, m_corpseDelay); // set corpse delay to 90% of the respawn delay
     m_isDeadByDefault = data->is_dead;
     m_deathState = m_isDeadByDefault ? DEAD : ALIVE;
 
@@ -1730,6 +1752,13 @@ void Creature::SetDeathState(DeathState s)
         // always save boss respawn time at death to prevent crash cheating
         if (sWorld.getConfig(CONFIG_BOOL_SAVE_RESPAWN_TIME_IMMEDIATELY) || IsWorldBoss())
             SaveRespawnTime();
+
+        if (IsUsingNewSpawningSystem())
+        {
+            m_respawnTime = std::numeric_limits<time_t>::max();
+            if (m_respawnDelay)
+                GetMap()->GetSpawnManager().AddCreature(m_respawnDelay, GetDbGuid());
+        }
     }
 
     Unit::SetDeathState(s);
@@ -1984,17 +2013,23 @@ void Creature::CallAssistance()
     {
         SetNoCallAssistance(true);
 
-        if (GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NO_CALL_ASSIST)
+        if (!CanCallForAssistance())
             return;
 
-        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, GetVictim(), sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY), sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS));
+        float radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS);
+        if (GetCreatureInfo()->CallForHelp > 0)
+            radius = GetCreatureInfo()->CallForHelp;
+        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, GetVictim(), sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY), radius);
     }
 }
 
 void Creature::CallForHelp(float radius)
 {
-    if (radius <= 0.0f || !GetVictim() || IsPet() || HasCharmer())
+    if (!GetVictim() || IsPet() || HasCharmer())
         return;
+
+    if (radius <= 0.0f)
+        radius = GetCreatureInfo()->CallForHelp;
 
     MaNGOS::CallOfHelpCreatureInRangeDo u_do(this, GetVictim(), radius);
     MaNGOS::CreatureWorker<MaNGOS::CallOfHelpCreatureInRangeDo> worker(this, u_do);
@@ -2061,7 +2096,7 @@ void Creature::SaveRespawnTime()
     if (IsPet() || !HasStaticDBSpawnData())
         return;
 
-    if (m_respawnTime > time(nullptr))                         // dead (no corpse)
+    if (m_respawnTime > time(nullptr) || IsUsingNewSpawningSystem()) // dead (no corpse)
         GetMap()->GetPersistentState()->SaveCreatureRespawnTime(m_dbGuid, m_respawnTime);
     else if (!IsCorpseExpired())                               // dead (corpse)
         GetMap()->GetPersistentState()->SaveCreatureRespawnTime(m_dbGuid, std::chrono::system_clock::to_time_t(m_corpseExpirationTime));
@@ -2274,7 +2309,7 @@ uint32 Creature::GetLevelForTarget(Unit const* target) const
     if (!IsWorldBoss())
         return Unit::GetLevelForTarget(target);
 
-    uint32 level = target->getLevel() + sWorld.getConfig(CONFIG_UINT32_WORLD_BOSS_LEVEL_DIFF);
+    uint32 level = target->GetLevel() + sWorld.getConfig(CONFIG_UINT32_WORLD_BOSS_LEVEL_DIFF);
     if (level < 1)
         return 1;
     if (level > 255)
@@ -2607,8 +2642,8 @@ void Creature::InspectingLoot()
     // this will not have effect after re spawn delay (corpse will be removed anyway)
 
     // check if player have enough time to inspect loot
-    if (m_corpseExpirationTime < GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(MINIMUM_LOOTING_TIME))
-        m_corpseExpirationTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(MINIMUM_LOOTING_TIME);
+    if (m_corpseExpirationTime < GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(m_corpseAccelerationDecayDelay))
+        m_corpseExpirationTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(m_corpseAccelerationDecayDelay);
 }
 
 // reduce decay timer for corpse if need (for a corpse without loot)
@@ -2617,8 +2652,8 @@ void Creature::ReduceCorpseDecayTimer()
     if (!IsInWorld())
         return;
 
-    if (m_corpseExpirationTime > GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(MINIMUM_LOOTING_TIME))
-        m_corpseExpirationTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(MINIMUM_LOOTING_TIME);  // 2 minutes for a creature
+    if (m_corpseExpirationTime > GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(m_corpseAccelerationDecayDelay))
+        m_corpseExpirationTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(m_corpseAccelerationDecayDelay);  // 2 minutes for a creature
 }
 
 // Set loot status. Also handle remove corpse timer
@@ -2727,7 +2762,7 @@ void Creature::UnsummonCleanup()
     RemoveAllAurasOnDeath();
     BreakCharmOutgoing();
     BreakCharmIncoming();
-    RemoveGuardians();
+    RemoveGuardians(false);
     RemoveMiniPet();
     UnsummonAllTotems();
     InterruptNonMeleeSpells(false);
@@ -2816,8 +2851,7 @@ void Creature::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* /*
     else if (uint32 cooldown = sObjectMgr.GetCreatureCooldown(GetCreatureInfo()->Entry, spellEntry.Id))
     {
         m_cooldownMap.AddCooldown(GetMap()->GetCurrentClockTime(), spellEntry.Id, cooldown, 0, 0);
-        Player const* player = GetClientControlling();
-        if (player)
+        if (Player const* player = dynamic_cast<Player const*>(GetCharmer()))
         {
             // send to client
             WorldPacket data(SMSG_SPELL_COOLDOWN, 8 + 1 + 4);

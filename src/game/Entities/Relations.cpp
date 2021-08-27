@@ -227,12 +227,8 @@ ReputationRank Unit::GetReactionTo(Unit const* unit) const
             if (thisPlayer == unitPlayer)
                 return REP_FRIENDLY;
 
-            if (unitPlayer->GetUInt32Value(PLAYER_DUEL_TEAM))
-            {
-                // TODO: Dueling misses duel arbiter and temporary truce during countdown, fix me later...
-                if (thisPlayer->IsInDuelWith(unitPlayer))
-                    return REP_HOSTILE;
-            }
+            if (thisPlayer->GetUInt32Value(PLAYER_DUEL_TEAM) && unitPlayer->GetUInt32Value(PLAYER_DUEL_TEAM) && thisPlayer->GetGuidValue(PLAYER_DUEL_ARBITER) == unitPlayer->GetGuidValue(PLAYER_DUEL_ARBITER))
+                return thisPlayer->GetUInt32Value(PLAYER_DUEL_TEAM) != unitPlayer->GetUInt32Value(PLAYER_DUEL_TEAM) ? REP_HOSTILE : REP_FRIENDLY;
 
             // Pre-WotLK group check: always, replaced with faction template check in WotLK
             if (thisPlayer->IsInGroup(unitPlayer))
@@ -425,7 +421,7 @@ bool Unit::CanAttack(const Unit* unit) const
             if (!unitPlayer)
                 return true;
 
-            if (thisPlayer->IsInDuelWith(unitPlayer))
+            if (thisPlayer->GetUInt32Value(PLAYER_DUEL_TEAM) && unitPlayer->GetUInt32Value(PLAYER_DUEL_TEAM) && thisPlayer->GetGuidValue(PLAYER_DUEL_ARBITER) == unitPlayer->GetGuidValue(PLAYER_DUEL_ARBITER))
                 return true;
 
             if (unitPlayer->IsPvP())
@@ -529,7 +525,8 @@ bool Unit::CanAssist(const Unit* unit, bool ignoreFlags) const
 
         if (thisPlayer && unitPlayer)
         {
-            if (thisPlayer->IsInDuelWith(unitPlayer))
+            if (thisPlayer->GetGuidValue(PLAYER_DUEL_ARBITER) != unitPlayer->GetGuidValue(PLAYER_DUEL_ARBITER)
+                || thisPlayer->GetUInt32Value(PLAYER_DUEL_TEAM) != unitPlayer->GetUInt32Value(PLAYER_DUEL_TEAM))
                 return false;
 
             if (unitPlayer->IsPvPFreeForAll() && !thisPlayer->IsPvPFreeForAll())
@@ -694,7 +691,7 @@ bool Unit::CanInteractNow(const Unit* unit) const
     {
         if (SpellShapeshiftFormEntry const* formEntry = sSpellShapeshiftFormStore.LookupEntry(GetShapeshiftForm()))
         {
-            if (!(formEntry->flags1 & SHAPESHIFT_FORM_FLAG_ALLOW_NPC_INTERACT))
+            if (!(formEntry->flags1 & SHAPESHIFT_FLAG_CAN_NPC_INTERACT))
                 return false;
         }
     }
@@ -1132,7 +1129,7 @@ bool Unit::CanAttackSpell(Unit const* target, SpellEntry const* spellInfo, bool 
             return false;
     }
 
-    if (CanAttack(target))
+    if (CanAttackInCombat(target))
     {
         if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         {
@@ -1204,7 +1201,7 @@ bool Unit::CanAttackOnSight(Unit const* target) const
         return false;
 
     // Do not aggro while a successful feign death is active
-    if (target->IsFeigningDeathSuccessfully())
+    if (!IsIgnoringFeignDeath() && target->IsFeigningDeathSuccessfully())
         return false;
 
     // Pets in disabled state (e.g. when player is mounted) do not draw aggro on sight
@@ -1213,6 +1210,40 @@ bool Unit::CanAttackOnSight(Unit const* target) const
         return false;
 
     return (CanAttack(target) && IsEnemy(target));
+}
+
+/////////////////////////////////////////////////
+/// [Serverside] Opposition: Unit can attack a target on sight
+///
+/// @note Relations API Tier 3
+///
+/// This function is not intented to have client-side counterpart by original design.
+/// Typically used for combat checks for at war case
+/////////////////////////////////////////////////
+bool Unit::CanAttackInCombat(Unit const* target) const
+{
+    if (!CanAttack(target))
+    {
+        if (target->IsPlayerControlled()) // If this is not fine grained enough, incorporation into CanAttack or copypaste of that whole func will be necessary
+        {
+            // NPC should be able to attack players who are at war with the npc
+            if (IsFriend(target))
+            {
+                if (const Player* unitPlayer = target->GetControllingPlayer())
+                {
+                    if (const FactionTemplateEntry* thisFactionTemplate = GetFactionTemplateEntry())
+                    {
+                        const FactionEntry* thisFactionEntry = sFactionStore.LookupEntry<FactionEntry>(thisFactionTemplate->faction);
+                        if (thisFactionEntry && thisFactionEntry->HasReputation() && unitPlayer->GetReputationMgr().IsAtWar(thisFactionEntry))
+                            return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    return true;
 }
 
 /////////////////////////////////////////////////

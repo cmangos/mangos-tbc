@@ -167,7 +167,7 @@ class SpellCastTargets
 
         bool IsEmpty() const { return !m_GOTargetGUID && !m_unitTargetGUID && !m_itemTarget && !m_CorpseTargetGUID; }
 
-        void Update(Unit* caster);
+        void Update(WorldObject* caster);
 
         Position m_srcPos;
         Position m_destPos;
@@ -274,6 +274,19 @@ class SpellLog
         size_t m_spellLogDataTargetsCounterPos;
         uint32 m_spellLogDataTargetsCounter;
         uint32 m_currentEffect;
+};
+
+class SpellModRAII
+{
+    public:
+        SpellModRAII(Spell* spell, Player* modOwner, bool success = false, bool onlySave = false);
+        void SetSuccess() { m_success = true; }
+        ~SpellModRAII();
+    private:
+        Spell* m_spell;
+        Player* m_modOwner;
+        bool m_success;
+        bool m_onlySave; // casting time
 };
 
 class Spell
@@ -388,14 +401,14 @@ class Spell
         void EffectCreateTamedPet(SpellEffectIndex eff_ifx);
 
         Spell(WorldObject* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
-        ~Spell();
+        virtual ~Spell();
 
         SpellCastResult SpellStart(SpellCastTargets const* targets, Aura* triggeredByAura = nullptr);
 
         void cancel();
 
         void update(uint32 difftime);
-        void cast(bool skipCheck = false);
+        SpellCastResult cast(bool skipCheck = false);
         void finish(bool ok = true);
         void TakePower();
         void TakeAmmo() const;
@@ -492,8 +505,6 @@ class Spell
         SpellEntry const* m_spellInfo;
         SpellEntry const* m_triggeredBySpellInfo;
         int32 m_currentBasePoints[MAX_EFFECT_INDEX];        // cache SpellEntry::CalculateSimpleValue and use for set custom base points
-
-        ObjectGuid m_CastItemGuid;
         uint8 m_cast_count;
         SpellCastTargets m_targets;
 
@@ -512,6 +523,7 @@ class Spell
         bool m_ignoreCooldowns;
         bool m_ignoreConcurrentCasts;
         bool m_hideInCombatLog;
+        bool m_resetLeash;
         // Not a trigger flag but same type of information
         bool m_clientCast;
 
@@ -549,6 +561,8 @@ class Spell
         uint64 GetDelayStart() const { return m_delayStart; }
         void SetDelayStart(uint64 m_time) { m_delayStart = m_time; }
         uint64 GetDelayMoment() const { return m_delayMoment; }
+        void SetSpellStartTravelling(uint32 time) { m_travellingStart = time; }
+        uint32 GetSpellStartTravelling() const { return m_travellingStart; }
 
         bool IsNeedSendToClient() const;                    // use for hide spell cast for client in case when cast not have client side affect (animation or log entries)
         bool IsTriggeredSpellWithRedundantCastTime() const; // use for ignore some spell data for triggered spells like cast time, some triggered spells have redundent copy data from main spell for client use purpose
@@ -562,7 +576,7 @@ class Spell
         Unit* GetCaster() const { return m_caster; }
         // real source of cast affects, explicit caster, or DoT/HoT applier, or GO owner, or wild GO itself. Can be nullptr
         WorldObject* GetAffectiveCasterObject() const;
-        // limited version returning nullptr in cases wild gameobject caster object, need for Aura (auras currently not support non-Unit caster)
+        // limited version returning nullptr in cases wild gameobject caster object, need for Aura
         Unit* GetAffectiveCaster() const { return m_originalCasterGUID ? m_originalCaster : m_caster; }
         // m_originalCasterGUID can store GO guid, and in this case this is visual caster
         WorldObject* GetCastingObject() const;
@@ -582,6 +596,9 @@ class Spell
 
         void CleanupTargetList();
         void ClearCastItem();
+
+        // spell mods
+        std::set<SpellModifierPair> m_usedAuraCharges;
 
         static void SelectMountByAreaAndSkill(Unit* target, SpellEntry const* parentSpell, uint32 spellId75, uint32 spellId150, uint32 spellId225, uint32 spellId300, uint32 spellIdSpecial);
 
@@ -710,6 +727,9 @@ class Spell
         void SetFakeCaster(Unit* caster) { m_caster = caster; }
         WorldObject* GetTrueCaster() const { return m_trueCaster; }
         Unit* GetAffectiveCasterOrOwner() const;
+
+        // speed override
+        void SetOverridenSpeed(float newSpeed);
     protected:
         void SendLoot(ObjectGuid guid, LootType loottype, LockType lockType);
         bool IgnoreItemRequirements() const;                // some item use spells have unexpected reagent data
@@ -745,6 +765,7 @@ class Spell
         // Delayed spells system
         uint64 m_delayStart;                                // time of spell delay start, filled by event handler, zero = just started
         uint64 m_delayMoment;                               // moment of next delay call, used internally
+        uint32 m_travellingStart;                           // moment when spell travel starts - used in checks for aura interruption
 
         // These vars are used in both delayed spell system and modified immediate spell system
         bool m_referencedFromCurrentSpell;                  // mark as references to prevent deleted and access by dead pointers
@@ -844,6 +865,8 @@ class Spell
 
         uint32 m_spellState;
         uint32 m_timer;
+        uint32 m_creationTime;
+        bool m_updated;
 
         float m_castPositionX;
         float m_castPositionY;
@@ -876,6 +899,10 @@ class Spell
         // spell cast results
         uint32 m_param1;
         uint32 m_param2;
+
+        // speed override from parent spell
+        bool m_overrideSpeed;
+        float m_overridenSpeed;
 
         // GO casting preparations
         WorldObject* m_trueCaster;
@@ -985,7 +1012,7 @@ namespace MaNGOS
             }
         }
 
-        template<class T> inline void Visit(GridRefManager<T>&  m)
+        template<class T> inline void Visit(GridRefManager<T>& m)
         {
             if (!i_originalCaster || !i_castingObject)
                 return;
@@ -1025,25 +1052,34 @@ namespace MaNGOS
                 switch (i_push_type)
                 {
                     case PUSH_CONE:
+                    {
+                        float heightDifference = std::abs(itr->getSource()->GetPositionZ() - i_centerZ);
+                        float maxHeight = i_radius / 2;
+                        float distance = std::min(sqrtf(itr->getSource()->GetDistance2d(i_centerX, i_centerY, DIST_CALC_NONE)), i_radius);
+                        float ratio = distance / i_radius;
+                        float conalMaxHeight = maxHeight * ratio;
                         if (i_cone >= 0.f)
                         {
-                            if (i_castingObject->isInFront((Unit*)(itr->getSource()), i_radius, i_cone))
+                            if (i_castingObject->isInFront(itr->getSource(), i_radius, i_cone) &&
+                                std::abs(itr->getSource()->GetPositionZ() - i_centerZ) - itr->getSource()->GetCombatReach() <= conalMaxHeight)
                                 i_data.push_back(itr->getSource());
                         }
                         else
                         {
-                            if (i_castingObject->isInBack((Unit*)(itr->getSource()), i_radius, -i_cone))
+                            if (i_castingObject->isInBack(itr->getSource(), i_radius, -i_cone) &&
+                                std::abs(itr->getSource()->GetPositionZ() - i_centerZ) - itr->getSource()->GetCombatReach() <= conalMaxHeight)
                                 i_data.push_back(itr->getSource());
                         }
                         break;
+                    }
                     case PUSH_SELF_CENTER:
-                        if (itr->getSource()->GetDistance2d(i_centerX, i_centerY, DIST_CALC_COMBAT_REACH) <= i_radius)
-                            i_data.push_back(itr->getSource());
-                        break;
                     case PUSH_SRC_CENTER:
                     case PUSH_DEST_CENTER:
                     case PUSH_TARGET_CENTER:
-                        if (itr->getSource()->GetDistance(i_centerX, i_centerY, i_centerZ, DIST_CALC_COMBAT_REACH) <= i_radius)
+                        float radius = i_radius;
+                        if (i_originalCaster->IsControlledByPlayer() && !itr->getSource()->IsControlledByPlayer())
+                            radius += itr->getSource()->GetCombatReach();
+                        if (itr->getSource()->GetDistance(i_centerX, i_centerY, i_centerZ, DIST_CALC_NONE) <= radius * radius)
                             i_data.push_back(itr->getSource());
                         break;
                 }

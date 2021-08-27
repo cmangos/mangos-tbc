@@ -192,4 +192,11 @@ enum SpellTargetFilterScheme
     SCHEME_LOWEST_HP_CHAIN,
 };
 
+enum SpellTargetLOS
+{
+    TARGET_LOS_CASTER           = 0,
+    TARGET_LOS_SRC,
+    TARGET_LOS_DEST,
+};
+
 #endif

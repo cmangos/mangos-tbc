@@ -32,6 +32,7 @@
 #include "PlayerDefines.h"
 #include "Entities/ObjectVisibility.h"
 #include "Grids/Cell.h"
+#include "Utilities/EventProcessor.h"
 
 #include <set>
 
@@ -113,6 +114,14 @@ class Spell;
 class GenericTransport;
 
 typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
+
+// Spell cooldown flags sent in SMSG_SPELL_COOLDOWN
+enum SpellCooldownFlags
+{
+    SPELL_COOLDOWN_FLAG_NONE                    = 0x0,
+    SPELL_COOLDOWN_FLAG_INCLUDE_GCD             = 0x1,  // Starts GCD in addition to normal cooldown specified in the packet
+    SPELL_COOLDOWN_FLAG_INCLUDE_EVENT_COOLDOWNS = 0x2   // Starts GCD for spells that should start their cooldown on events, requires SPELL_COOLDOWN_FLAG_INCLUDE_GCD set
+};
 
 class CooldownData
 {
@@ -298,6 +307,7 @@ struct Position
     bool IsEmpty() const { return x == 0.f && y == 0.f && z == 0.f; }
     float GetAngle(const float x, const float y) const;
     float GetDistance(Position const& other) const; // WARNING: Returns squared distance for performance reasons
+    std::string to_string() const;
 };
 
 bool operator!=(const Position& left, const Position& right);
@@ -654,7 +664,7 @@ struct TempSpawnSettings
     uint32 modelId = 0;
     bool spawnCounting = false;
     bool forcedOnTop = false;
-    bool spellId = 0;
+    uint32 spellId = 0;
     ObjectGuid ownerGuid;
     uint32 spawnDataEntry = 0;
     int32 movegen = -1;
@@ -667,7 +677,7 @@ struct TempSpawnSettings
 
     TempSpawnSettings() {}
     TempSpawnSettings(WorldObject* spawner, uint32 entry, float x, float y, float z, float ori, TempSpawnType spawnType, uint32 despawnTime, bool activeObject = false, bool setRun = false, uint32 pathId = 0, uint32 faction = 0,
-        uint32 modelId = 0, bool spawnCounting = false, bool forcedOnTop = false, bool spellId = 0, int32 movegen = -1) :
+        uint32 modelId = 0, bool spawnCounting = false, bool forcedOnTop = false, uint32 spellId = 0, int32 movegen = -1) :
         spawner(spawner), entry(entry), x(x), y(y), z(z), ori(ori), spawnType(spawnType), despawnTime(despawnTime), activeObject(activeObject), setRun(setRun), pathId(pathId), faction(faction), modelId(modelId), spawnCounting(spawnCounting),
         forcedOnTop(forcedOnTop), spellId(spellId), movegen(movegen)
     {}
@@ -812,8 +822,8 @@ class MovementInfo
         // jumping
         struct JumpInfo
         {
-            JumpInfo() : velocity(0.f), sinAngle(0.f), cosAngle(0.f), xyspeed(0.f) {}
-            float   velocity, sinAngle, cosAngle, xyspeed;
+            JumpInfo() : zspeed(0.f), sinAngle(0.f), cosAngle(0.f), xyspeed(0.f) {}
+            float   zspeed, sinAngle, cosAngle, xyspeed;
             Position start;
             uint32 startClientTime;
         };
@@ -858,7 +868,7 @@ class WorldObject : public Object
 
         virtual void Update(const uint32 /*diff*/) {}
 
-        void _Create(uint32 guidlow, HighGuid guidhigh);
+        void _Create(uint32 guidlow, HighGuid guidhigh, uint32 phaseMask = 1);
 
         TransportInfo* GetTransportInfo() const { return m_transportInfo; }
         bool IsBoarded() const { return m_transportInfo != nullptr; }
@@ -945,6 +955,11 @@ class WorldObject : public Object
         uint32 GetMapId() const { return m_mapId; }
         uint32 GetInstanceId() const { return m_InstanceId; }
 
+        virtual void SetPhaseMask(uint32 newPhaseMask);
+        uint32 GetPhaseMask() const { return m_phaseMask; }
+        bool InSamePhase(WorldObject const* obj) const { return InSamePhase(obj->GetPhaseMask()); }
+        bool InSamePhase(uint32 phasemask) const { return (GetPhaseMask() & phasemask) != 0; }
+
         uint32 GetZoneId() const;
         uint32 GetAreaId() const;
         void GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const;
@@ -965,7 +980,7 @@ class WorldObject : public Object
         float GetDistanceZ(const WorldObject* obj) const;
         bool IsInMap(const WorldObject* obj) const
         {
-            return obj && IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap());
+            return IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap()) && InSamePhase(obj);
         }
         bool IsWithinCombatDist(WorldObject const* obj, float dist2compare, bool is3D = true) const
         {
@@ -1130,6 +1145,27 @@ class WorldObject : public Object
         MovementInfo m_movementInfo;
         GenericTransport* m_transport;
 
+        virtual uint32 GetDbGuid() const { return 0; }
+        virtual HighGuid GetParentHigh() const { return HighGuid(0); }
+
+        bool IsUsingNewSpawningSystem() const;
+
+        void AddClientIAmAt(Player const* player);
+        void RemoveClientIAmAt(Player const* player);
+        GuidSet& GetClientGuidsIAmAt() { return m_clientGUIDsIAmAt; }
+
+        // Event handler
+        EventProcessor m_events;
+
+        // Spell System compliance
+        virtual uint32 GetLevel() const { return 1; }
+
+        bool CheckAndIncreaseCastCounter();
+        void DecreaseCastCounter() { if (m_castCounter) --m_castCounter; }
+
+        // Spell mod owner: static player whose spell mods apply to this unit (server-side)
+        virtual Player* GetSpellModOwner() const { return nullptr; }
+
     protected:
         explicit WorldObject();
 
@@ -1162,11 +1198,17 @@ class WorldObject : public Object
 
         uint32 m_mapId;                                     // object at map with map_id
         uint32 m_InstanceId;                                // in map copy with instance id
+        uint32 m_phaseMask;                                 // in area phase state
 
         Position m_position;
         ViewPoint m_viewPoint;
         bool m_isActiveObject;
         uint64 m_debugFlags;
+
+        GuidSet m_clientGUIDsIAmAt;
+
+        // Spell System compliance
+        uint32 m_castCounter;                               // count casts chain of triggered spells for prevent infinity cast crashes
 };
 
 #endif

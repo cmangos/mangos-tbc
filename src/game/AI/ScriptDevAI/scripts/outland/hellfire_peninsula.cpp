@@ -1262,10 +1262,6 @@ struct npc_living_flareAI : public ScriptedPetAI
                 m_uiCheckTimer = 1000;
             }
         }
-        if (m_uiStacks < 8) // reapply cosmetic effect after spellhit, for some reason it gets removed
-            m_creature->CastSpell(nullptr, SPELL_LIVING_COSMETIC, TRIGGERED_OLD_TRIGGERED);
-        else
-            m_creature->CastSpell(nullptr, SPELL_UNSTABLE_COSMETIC, TRIGGERED_OLD_TRIGGERED);
     }
 
     void MovementInform(uint32 /*uiMovementType*/, uint32 uiPointId) override
@@ -2233,7 +2229,7 @@ struct ExposeRazorthornRoot : public SpellScript
 
 struct npc_razorthorn_ravager_pet : public PetAI, public TimerManager
 {
-    npc_razorthorn_ravager_pet(Creature* creature) : PetAI(creature)
+    npc_razorthorn_ravager_pet(Creature* creature) : PetAI(creature), m_animStage(0)
     {
         AddCustomAction(1, true, [&]() { HandleAnimations(); });
     }

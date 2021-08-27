@@ -21,6 +21,7 @@
 bool QuestRewarded_suns_reach_reclamation(Player* player, Creature* creature, Quest const* quest)
 {
     sWorldState.AddSunsReachProgress(quest->GetQuestId());
+    sWorldState.AddSunwellGateProgress(quest->GetQuestId());
     return true;
 }
 
@@ -37,6 +38,14 @@ struct DawnbladeAttack : public SpellScript
     void OnInit(Spell* spell) const override
     {
         spell->SetMaxAffectedTargets(1);
+    }
+
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (!spell->GetCaster()->IsWithinLOSInMap(target, true))
+            return false;
+
+        return true;
     }
 
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override

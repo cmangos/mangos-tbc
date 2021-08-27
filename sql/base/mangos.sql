@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2430_01_mangos_creature_immunity` bit(1) DEFAULT NULL
+  `required_s2432_01_mangos_gameobject_spawn_entry` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -1414,6 +1414,7 @@ CREATE TABLE `creature_template` (
   `EquipmentTemplateId` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `GossipMenuId` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `VisibilityDistanceType` TINYINT NOT NULL DEFAULT '0',
+  `CorpseDecay` INT UNSIGNED NOT NULL DEFAULT '0' COMMENT 'Time before corpse despawns',
   `AIName` char(64) NOT NULL DEFAULT '',
   `ScriptName` char(64) NOT NULL DEFAULT '',
   PRIMARY KEY (`entry`)
@@ -1426,7 +1427,7 @@ CREATE TABLE `creature_template` (
 LOCK TABLES `creature_template` WRITE;
 /*!40000 ALTER TABLE `creature_template` DISABLE KEYS */;
 INSERT INTO `creature_template` VALUES
-(1,'Waypoint (Only GM can see it)','Visual',NULL,1,1,0,10045,0,0,0,35,1,8,8,1,1,0,0,4096,0,130,5242886,0.91,1.14286,20,0,0,0,0,0,0,-1,1,1,1,1,1,1,8,8,0,0,7,7,1.76,2.42,0,3,100,2000,2200,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'','');
+(1,'Waypoint (Only GM can see it)','Visual',NULL,1,1,0,10045,0,0,0,35,1,8,8,1,1,0,0,4096,0,130,5242886,0.91,1.14286,20,0,0,0,0,0,0,-1,1,1,1,1,1,1,8,8,0,0,7,7,1.76,2.42,0,3,100,2000,2200,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,'','');
 /*!40000 ALTER TABLE `creature_template` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -2065,6 +2066,13 @@ LOCK TABLES `gameobject` WRITE;
 /*!40000 ALTER TABLE `gameobject` DISABLE KEYS */;
 /*!40000 ALTER TABLE `gameobject` ENABLE KEYS */;
 UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `gameobject_spawn_entry`;
+CREATE TABLE `gameobject_spawn_entry`(
+`guid` INT UNSIGNED NOT NULL COMMENT 'Gameobject table guid',
+`entry` MEDIUMINT UNSIGNED NOT NULL COMMENT 'Gameobject Template entry',
+PRIMARY KEY(`guid`,`entry`)
+);
 
 --
 -- Table structure for table `gameobject_battleground`

@@ -26,7 +26,7 @@ enum
     ACTION_ON_KILL_COOLDOWN = 1001,
 };
 
-CombatAI::CombatAI(Creature* creature, uint32 combatActions) : ScriptedAI(creature), CombatActions(combatActions), m_onKillCooldown(false)
+CombatAI::CombatAI(Creature* creature, uint32 combatActions) : ScriptedAI(creature), CombatActions(combatActions), m_onKillCooldown(false), m_stopTargeting(false)
 {
     AddCustomAction(ACTION_CASTING_RESTORE, true, [&]() { HandleTargetRestoration(); });
     AddCustomAction(ACTION_ON_KILL_COOLDOWN, true, [&]() { m_onKillCooldown = false; });
@@ -36,6 +36,7 @@ void CombatAI::Reset()
 {
     ResetAllTimers();
     m_onKillCooldown = false;
+    m_storedTarget = ObjectGuid();
 }
 
 void CombatAI::ExecuteActions()
@@ -80,7 +81,7 @@ void CombatAI::HandleTargetRestoration()
 
 bool CombatAI::IsTargetingRestricted()
 {
-    return m_storedTarget;
+    return m_stopTargeting || m_storedTarget || ScriptedAI::IsTargetingRestricted();
 }
 
 void CombatAI::AddOnKillText(int32 text)
@@ -176,6 +177,8 @@ void RangedCombatAI::SetCurrentRangedMode(bool state)
         m_currentRangedMode = false;
         m_attackDistance = 0.f;
         DoStartMovement(m_creature->GetVictim());
+        if (m_meleeEnabled && !m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING))
+            m_unit->MeleeAttackStart(m_unit->GetVictim());
     }
 }
 
@@ -286,7 +289,9 @@ void RangedCombatAI::UpdateAI(const uint32 diff)
     {
         if (m_rangedModeSetting == TYPE_PROXIMITY || m_rangedModeSetting == TYPE_DISTANCER)
         {
-            if (m_currentRangedMode && m_creature->CanReachWithMeleeAttack(victim))
+            if (!m_currentRangedMode && victim->IsImmobilizedState() && IsCombatMovement() && m_mainSpellInfo && m_mainSpellCost * 2 < m_creature->GetPower(POWER_MANA) && m_creature->IsSpellReady(*m_mainSpellInfo))
+                DistanceYourself();
+            else if (m_currentRangedMode && m_creature->CanReachWithMeleeAttack(victim))
                 SetCurrentRangedMode(false);
             else if (!m_currentRangedMode && !m_creature->CanReachWithMeleeAttack(victim, 2.f) && m_mainSpellInfo && m_mainSpellCost * 2 < m_creature->GetPower(POWER_MANA) && m_creature->IsSpellReady(*m_mainSpellInfo))
                 SetCurrentRangedMode(true);
@@ -297,12 +302,12 @@ void RangedCombatAI::UpdateAI(const uint32 diff)
             }
         }
         // casters only display melee animation when in ranged mode when someone is actually close enough
-        else if (m_rangedModeSetting == TYPE_FULL_CASTER && m_currentRangedMode)
+        if (m_currentRangedMode && m_meleeEnabled)
         {
             if (m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && !m_creature->CanReachWithMeleeAttack(victim))
-                SetMeleeEnabled(false);
+                m_unit->MeleeAttackStop(m_unit->GetVictim());
             else if (!m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING) && m_creature->CanReachWithMeleeAttack(victim))
-                SetMeleeEnabled(true);
+                m_unit->MeleeAttackStart(m_unit->GetVictim());
         }
     }
 

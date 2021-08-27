@@ -34,6 +34,7 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Maps/InstanceData.h"
 #include "Cinematics/M2Stores.h"
+#include "Entities/Transports.h"
 
 bool ChatHandler::HandleDebugSendSpellFailCommand(char* args)
 {
@@ -1428,7 +1429,7 @@ bool ChatHandler::HandleDebugHaveAtClientCommand(char* /*args*/)
         return false;
     }
 
-    if (player->HaveAtClient(target))
+    if (player->HasAtClient(target))
         PSendSysMessage("Target %s is at your client.", target->GetName());
     else
         PSendSysMessage("Target %s is not at your client.", target->GetName());
@@ -1447,7 +1448,7 @@ bool ChatHandler::HandleDebugIsVisibleCommand(char* /*args*/)
     }
 
     Camera& camera = player->GetCamera();
-    if (target->isVisibleForInState(player, camera.GetBody(), player->HaveAtClient(target)))
+    if (target->isVisibleForInState(player, camera.GetBody(), player->HasAtClient(target)))
         PSendSysMessage("Target %s should be visible at client.", target->GetName());
     else
         PSendSysMessage("Target %s should not be visible at client.", target->GetName());
@@ -1503,21 +1504,6 @@ bool ChatHandler::HandleDebugFlyCommand(char* args)
                 target->SetByteValue(UNIT_FIELD_BYTES_1, 3, 0);
             break;
     }
-
-    return true;
-}
-
-bool ChatHandler::HandleDebugPacketHistory(char* /*args*/)
-{
-    auto history = m_session->GetOpcodeHistory();
-    std::string output = "Opcodes (reverse order):\n";
-    for (auto itr = history.rbegin(); itr != history.rend(); ++itr)
-    {
-        output += LookupOpcodeName(*itr);
-        output += "\n";
-    }
-
-    SendSysMessage(output.data());
 
     return true;
 }
@@ -1606,5 +1592,89 @@ bool ChatHandler::HandleDebugObjectFlags(char* args)
         }
     }
 
+    return true;
+}
+
+bool ChatHandler::HandleDebugOutPacketHistory(char* args)
+{
+    Player* player = getSelectedPlayer();
+    if (player == nullptr)
+        player = m_session->GetPlayer();
+
+    auto history = player->GetSession()->GetOutOpcodeHistory();
+    std::string output = "Opcodes (reverse order):\n";
+    for (auto itr = history.rbegin(); itr != history.rend(); ++itr)
+    {
+        output += LookupOpcodeName(*itr);
+        output += "\n";
+    }
+
+    SendSysMessage(output.data());
+    return true;
+}
+
+bool ChatHandler::HandleDebugIncPacketHistory(char* args)
+{
+    Player* player = getSelectedPlayer();
+    if (player == nullptr)
+        player = m_session->GetPlayer();
+
+    auto history = player->GetSession()->GetIncOpcodeHistory();
+    std::string output = "Opcodes (reverse order):\n";
+    for (auto itr = history.rbegin(); itr != history.rend(); ++itr)
+    {
+        output += LookupOpcodeName(*itr);
+        output += "\n";
+    }
+
+    SendSysMessage(output.data());
+    return true;
+}
+
+bool ChatHandler::HandleDebugTransports(char* args)
+{
+    Player* player = GetSession()->GetPlayer();
+    if (!player->IsInWorld())
+        return true;
+
+    auto& transports = player->GetMap()->GetTransports();
+    SendSysMessage("Transports:");
+    for (auto transport : transports)
+        PSendSysMessage("Name %s Entry %u Position %s", transport->GetName(), transport->GetEntry(), transport->GetPosition().to_string().data());
+    return true;
+}
+
+bool ChatHandler::HandleDebugSpawnsList(char* args)
+{
+    Player* player = GetSession()->GetPlayer();
+    if (!player->IsInWorld())
+        return true;
+
+    PSendSysMessage("%s", player->GetMap()->GetSpawnManager().GetRespawnList().c_str());
+    return true;
+}
+
+bool ChatHandler::HandleDebugRespawnDynguid(char* args)
+{
+    Creature* target = getSelectedCreature();
+    if (!target)
+    {
+        Player* player = GetSession()->GetPlayer();
+        player->GetMap()->GetSpawnManager().RespawnAll();
+        return true;
+    }
+
+    if (uint32 dbguid = target->GetDbGuid())
+        target->GetMap()->GetSpawnManager().RespawnCreature(dbguid);
+    return true;
+}
+
+bool ChatHandler::HandleDebugPacketLog(char* args)
+{
+    uint32 value;
+    if (!ExtractUInt32(&args, value))
+        return false;
+
+    GetSession()->SetPacketLogging(value == 1);
     return true;
 }

@@ -382,7 +382,7 @@ add_subdirectory(dep)
 set(DEFINITIONS "")
 
 if(UNIX)
-  set(DEFINITIONS SYSCONFDIR="../${CONF_FOLDER_NAME}/ ")
+  set(DEFINITIONS SYSCONFDIR="../${CONF_FOLDER_NAME}/")
 endif()
 
 if(POSTGRESQL)

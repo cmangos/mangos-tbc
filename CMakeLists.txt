@@ -381,10 +381,6 @@ add_subdirectory(dep)
 # Don't place this above 'dep' subdirectory! Because of defines build will crash.
 set(DEFINITIONS "")
 
-if(UNIX)
-  set(DEFINITIONS SYSCONFDIR="../${CONF_FOLDER_NAME}/ ")
-endif()
-
 if(POSTGRESQL)
   set(DEFINITIONS ${DEFINITIONS} DO_POSTGRESQL)
 else()
@@ -399,6 +395,10 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "MinSizeRel")
   set_directory_properties(PROPERTIES COMPILE_DEFINITIONS "${DEFINITIONS};${DEFINITIONS_MINSIZEREL}")
 else()
   set_directory_properties(PROPERTIES COMPILE_DEFINITIONS "${DEFINITIONS};${DEFINITIONS_RELEASE}")
+endif()
+
+if(UNIX)
+  add_compile_definitions(SYSCONFDIR="../${CONF_FOLDER_NAME}/")
 endif()
 
 if(BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS)

@@ -278,6 +278,10 @@ class WorldSession
         void SetDelayedAnticheat(std::unique_ptr<SessionAnticheatInterface>&& anticheat);
         SessionAnticheatInterface* GetAnticheat() const { return m_anticheat.get(); }
 
+#ifdef BUILD_PLAYERBOT
+        void SetNoAnticheat();
+#endif
+
         /// Session in auth.queue currently
         void SetInQueue(bool state) { m_inQueue = state; }
 

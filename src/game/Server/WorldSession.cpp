@@ -1285,6 +1285,15 @@ void WorldSession::SetDelayedAnticheat(std::unique_ptr<SessionAnticheatInterface
     m_delayedAnticheat = std::move(anticheat);
 }
 
+#ifdef BUILD_PLAYERBOT
+
+void WorldSession::SetNoAnticheat()
+{
+    m_anticheat.reset(new NullSessionAnticheat(this));
+}
+
+#endif
+
 void WorldSession::HandleWardenDataOpcode(WorldPacket& recv_data)
 {
     m_anticheat->WardenPacket(recv_data);

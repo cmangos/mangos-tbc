@@ -17,7 +17,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <filesystem>
+#include <boost/filesystem.hpp>
 
 INSTANTIATE_SINGLETON_1(WardenModuleMgr);
 
@@ -27,10 +27,10 @@ namespace
     {
         std::vector<std::string> results;
 
-        if (std::filesystem::exists(moduleDir))
+        if (boost::filesystem::exists(moduleDir))
         {
             // look only for .bin files, and assume (for now) that the corresponding .key and .cr files exist
-            for (const auto& entry : std::filesystem::directory_iterator(moduleDir))
+            for (const auto& entry : boost::filesystem::directory_iterator(moduleDir))
                 if (entry.path().extension() == ".bin")
                     results.emplace_back(moduleDir + "/" + entry.path().filename().string());
         }

@@ -15,13 +15,6 @@ UPDATE `broadcast_text` SET `text1`='The Headless Horseman''s mind is plagued wi
 -- the first text of the jack-o-lantern was slightly different in TBC
 UPDATE broadcast_text SET `text`="This large jack-o'-lantern rests in the middle of the village.  It eyes those who look up it, betraying a dark menace within." WHERE id=23650;
 
--- classic-db npc_text: On the northern dock, you can board a ship that will carry you to Rut'theran Village and Darnassus. From the southern dock, you can find passage across the Great Sea to Menethil Harbor on Khaz Modan. Safe journeys to you!
--- broadcast text id 8106 (matches): On the northern dock, you can board a ship that will carry you to Rut'theran Village and Darnassus.  From the southern dock, you can find passage across the Great Sea to Menethil Harbor on Khaz Modan.  Safe journeys to you!
--- TBC version should probably mention Azuremyst but not Stormwind Harbor?
--- trinity broadcast text id 8106 (wotlk+ version): On the northern dock, you can board a ship that will carry you to Rut'theran Village and Darnassus.  From the southern dock, you can find passage across the Great Sea to Stormwind Harbor.  The dock to the west, at the end of the pier, leads to Azuremyst Isle, near the Exodar. Safe journeys to you!
--- my hunch here is that broadcast text id 8106 content changed 2 times - once in TBC and once in WotLK, we don't know what the exact text should be for TBC era
-UPDATE `broadcast_text` SET `text`='On the northern dock, you can board a ship that will carry you to Rut''theran Village and Darnassus.  From the southern dock, you can find passage across the Great Sea to Menethil Harbor on Khaz Modan.  The dock to the west, at the end of the pier, leads to Azuremyst Isle, near the Exodar.  Safe journeys to you!' WHERE `id`=8106;
-
 -- Sunwell Plateau Optional Progression Gating
 -- NOTE: This is a custom modification to broadcast text
 -- append onto ID 24247 since we have nothing else to go on (either this or make a custom ID)

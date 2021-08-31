@@ -1,6 +1,6 @@
 ALTER TABLE realmd_db_version CHANGE COLUMN required_s2429_01_realmd_raf required_s2433_01_realmd_anticheat bit;
 
-﻿ALTER TABLE `account` ADD COLUMN `os` VARCHAR(4) DEFAULT '0' NOT NULL;
+ALTER TABLE `account` ADD COLUMN `os` VARCHAR(4) DEFAULT '0' NOT NULL;
 ALTER TABLE `account` ADD COLUMN flags INT UNSIGNED NOT NULL DEFAULT '0';
 
 ALTER TABLE `ip_banned` CHANGE `reason` `reason` VARCHAR(255) CHARSET utf8 COLLATE utf8_general_ci DEFAULT 'no reason' NOT NULL; 

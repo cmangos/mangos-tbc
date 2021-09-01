@@ -1722,7 +1722,7 @@ struct npc_shaman_fire_elementalAI : public npc_shaman_elementalAI
 
 struct npc_shaman_earth_elementalAI : public npc_shaman_elementalAI
 {
-    npc_shaman_earth_elementalAI(Creature* creature) : npc_shaman_elementalAI(creature, 1)
+    npc_shaman_earth_elementalAI(Creature* creature) : npc_shaman_elementalAI(creature, 2)
     {
         m_angeredEarthParams.range.minRange = 0;
         m_angeredEarthParams.range.maxRange = 15;

@@ -172,7 +172,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVE(Unit* pTarget
         if (!m_bot.HasAura(BERSERKER_STANCE, EFFECT_INDEX_0) && m_ai.CastSpell(BERSERKER_STANCE) == SPELL_CAST_OK)
             return RETURN_CONTINUE;
         if (BLOODRAGE > 0 && m_bot.HasAura(BERSERKER_STANCE, EFFECT_INDEX_0) && m_ai.GetRageAmount() <= 10)
-            return m_ai.CastSpell(BLOODRAGE) == SPELL_CAST_OK ? RETURN_FINISHED_FIRST_MOVES : RETURN_NO_ACTION_ERROR; // TODO: improve initiation: if rage < 10, BATTLE STANCE, CHARGE, ZERKER STANCE then BLOODRAGE
+            return m_ai.CastSpell(BLOODRAGE) == SPELL_CAST_OK ? RETURN_FINISHED_FIRST_MOVES : RETURN_NO_ACTION_ERROR;
         if (INTERCEPT > 0 && m_bot.HasAura(BERSERKER_STANCE, EFFECT_INDEX_0))
         {
             if (fTargetDist < 8.0f)

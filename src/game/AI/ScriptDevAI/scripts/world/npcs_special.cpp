@@ -1726,7 +1726,7 @@ struct npc_shaman_earth_elementalAI : public npc_shaman_elementalAI
     {
         m_angeredEarthParams.range.minRange = 0;
         m_angeredEarthParams.range.maxRange = 15;
-        AddCombatAction(1, 0u);
+        AddCombatAction(0, 0u);
     }
 
     SelectAttackingTargetParams m_angeredEarthParams;
@@ -1735,7 +1735,7 @@ struct npc_shaman_earth_elementalAI : public npc_shaman_elementalAI
     {
         switch (action)
         {
-            case 1:
+            case 0:
                 std::vector<Unit*> unitVector;
                 m_creature->SelectAttackingTargets(unitVector, ATTACKING_TARGET_ALL_SUITABLE, uint32(0), uint32(0), SELECT_FLAG_RANGE_AOE_RANGE, m_angeredEarthParams);
                 if (!unitVector.empty())

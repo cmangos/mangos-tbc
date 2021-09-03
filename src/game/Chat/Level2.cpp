@@ -52,6 +52,7 @@
 #include "MotionGenerators/MoveMap.h"                       // for mmap manager
 #include "MotionGenerators/PathFinder.h"                    // for mmap commands
 #include "Movement/MoveSplineInit.h"
+#include "Anticheat/Anticheat.hpp"
 #include "Entities/Transports.h"
 
 #include <fstream>
@@ -919,16 +920,16 @@ bool ChatHandler::HandleGameObjectTargetCommand(char* args)
 
     PSendSysMessage(LANG_GAMEOBJECT_DETAIL, lowguid, name, lowguid, id, x, y, z, uint32(mapid), o);
 
-    if (auto vector = sObjectMgr.GetAllRandomGameObjectEntries(target->GetDbGuid()))
-    {
-        std::string output;
-        for (uint32 entry : *vector)
-            output += std::to_string(entry) + ",";
-        PSendSysMessage("GO is part of gameobject_spawn_entry: %s", output.data());
-    }
-
     if (target)
     {
+        if (auto vector = sObjectMgr.GetAllRandomGameObjectEntries(target->GetDbGuid()))
+        {
+            std::string output;
+            for (uint32 entry : *vector)
+                output += std::to_string(entry) + ",";
+            PSendSysMessage("GO is part of gameobject_spawn_entry: %s", output.data());
+        }
+
         time_t curRespawnDelay = target->GetRespawnTimeEx() - time(nullptr);
         if (curRespawnDelay < 0)
             curRespawnDelay = 0;
@@ -2600,6 +2601,9 @@ bool ChatHandler::HandlePInfoCommand(char* args)
     uint32 silv = (money % GOLD) / SILVER;
     uint32 copp = (money % GOLD) % SILVER;
     PSendSysMessage(LANG_PINFO_LEVEL,  timeStr.c_str(), level, gold, silv, copp);
+
+    if (target)
+        target->GetSession()->GetAnticheat()->SendPlayerInfo(this);
 
     return true;
 }

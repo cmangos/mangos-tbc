@@ -871,6 +871,8 @@ ChatCommand* ChatHandler::getCommandTable()
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };
 
+#include "Anticheat/module/AnticheatChatCommands.h"
+
     static ChatCommand battlegroundCommandTable[] =
     {
         { "start",         SEC_GAMEMASTER,     false,  &ChatHandler::HandleBattlegroundStartCommand,   "", nullptr },
@@ -880,6 +882,7 @@ ChatCommand* ChatHandler::getCommandTable()
 
     static ChatCommand commandTable[] =
     {
+        { "anticheat",      SEC_GAMEMASTER,     true,  nullptr,                                        "", anticheatCommandTable},
         { "account",        SEC_PLAYER,         true,  nullptr,                                        "", accountCommandTable  },
         { "auction",        SEC_ADMINISTRATOR,  false, nullptr,                                        "", auctionCommandTable  },
 #ifdef BUILD_AHBOT

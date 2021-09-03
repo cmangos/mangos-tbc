@@ -1361,7 +1361,7 @@ class Unit : public WorldObject
 
         void SetLevel(uint32 lvl);
 
-        uint32 GetLevel() const { return GetUInt32Value(UNIT_FIELD_LEVEL); }
+        uint32 GetLevel() const override { return GetUInt32Value(UNIT_FIELD_LEVEL); }
         uint8 getRace() const { return GetByteValue(UNIT_FIELD_BYTES_0, 0); }
         uint32 getRaceMask() const { return 1 << (getRace() - 1); }
         uint8 getClass() const { return GetByteValue(UNIT_FIELD_BYTES_0, 1); }
@@ -2226,6 +2226,8 @@ class Unit : public WorldObject
         void  UpdateSpeed(UnitMoveType mtype, bool forced, float ratio = 1.0f);
         float GetSpeedInMotion() const;
         float GetSpeed(UnitMoveType mtype) const;
+        float GetXYFlagBasedSpeed() const;
+        float GetXYFlagBasedSpeed(uint32 moveFlags) const;
         float GetSpeedRateInMotion() const;
         float GetSpeedRate(UnitMoveType mtype) const { return m_speed_rate[mtype]; }
         void SetSpeedRate(UnitMoveType mtype, float rate, bool forced = false);

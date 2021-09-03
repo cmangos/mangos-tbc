@@ -172,7 +172,7 @@ CombatManeuverReturns PlayerbotWarriorAI::DoFirstCombatManeuverPVE(Unit* pTarget
         if (!m_bot.HasAura(BERSERKER_STANCE, EFFECT_INDEX_0) && m_ai.CastSpell(BERSERKER_STANCE) == SPELL_CAST_OK)
             return RETURN_CONTINUE;
         if (BLOODRAGE > 0 && m_bot.HasAura(BERSERKER_STANCE, EFFECT_INDEX_0) && m_ai.GetRageAmount() <= 10)
-            return m_ai.CastSpell(BLOODRAGE) == SPELL_CAST_OK ? RETURN_FINISHED_FIRST_MOVES : RETURN_NO_ACTION_ERROR;
+            return m_ai.CastSpell(BLOODRAGE) == SPELL_CAST_OK ? RETURN_FINISHED_FIRST_MOVES : RETURN_NO_ACTION_ERROR; // TODO: improve initiation: if rage < 10, BATTLE STANCE, CHARGE, ZERKER STANCE then BLOODRAGE
         if (INTERCEPT > 0 && m_bot.HasAura(BERSERKER_STANCE, EFFECT_INDEX_0))
         {
             if (fTargetDist < 8.0f)
@@ -360,13 +360,13 @@ CombatManeuverReturns PlayerbotWarriorAI::DoNextCombatManeuverPVE(Unit* pTarget)
             return RETURN_CONTINUE;
         if (WHIRLWIND > 0 && m_bot.IsSpellReady(WHIRLWIND) && m_ai.CastSpell(WHIRLWIND, *pTarget) == SPELL_CAST_OK)
             return RETURN_CONTINUE;
-        if (SWEEPING_STRIKES > 0 && m_ai.GetAttackerCount() > 1 && !m_bot.HasAura(SWEEPING_STRIKES, EFFECT_INDEX_0) && m_bot.IsSpellReady(SWEEPING_STRIKES) && m_ai.CastSpell(SWEEPING_STRIKES, m_bot) == SPELL_CAST_OK)
+        if (SWEEPING_STRIKES > 0 && m_ai.GetAttackerCount() > 1 && !m_bot.HasAura(SWEEPING_STRIKES, EFFECT_INDEX_0) && m_bot.IsSpellReady(SWEEPING_STRIKES) && m_ai.CastSpell(SWEEPING_STRIKES) == SPELL_CAST_OK)
             return RETURN_CONTINUE;
         if (IMPROVED_DEMORALIZING_SHOUT > 0 && DEMORALIZING_SHOUT > 0 && !pTarget->HasAura(DEMORALIZING_SHOUT, EFFECT_INDEX_0) && m_ai.CastSpell(DEMORALIZING_SHOUT, *pTarget) == SPELL_CAST_OK)
             return RETURN_CONTINUE;
-        if (IMPROVED_SLAM > 0 && SLAM > 0 && m_ai.CastSpell(SLAM, *pTarget) == SPELL_CAST_OK)
+        if (SLAM > 0 && IMPROVED_SLAM > 0 && m_ai.CastSpell(SLAM, *pTarget) == SPELL_CAST_OK)
             return RETURN_CONTINUE;
-        if (m_ai.GetRageAmount() > 60)
+        if (m_ai.GetRagePercent() > 60 )
         {
             if (CLEAVE > 0 && m_ai.GetAttackerCount() > 1 && m_bot.IsSpellReady(CLEAVE) && m_ai.CastSpell(CLEAVE, *pTarget) == SPELL_CAST_OK)
                 return RETURN_CONTINUE;

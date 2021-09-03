@@ -72,6 +72,7 @@ enum WarriorSpells
     SHOCKWAVE_1                     = 46968,
     SLAM_1                          = 1464,
     SPELL_REFLECTION_1              = 23920,
+    STANCE_MASTERY                  = 12678,
     SUNDER_ARMOR_1                  = 7386,
     SWEEPING_STRIKES_1              = 12328,
     TAUNT_1                         = 355,
@@ -163,6 +164,7 @@ class PlayerbotWarriorAI : PlayerbotClassAI
                SHOCKWAVE,
                CONCUSSION_BLOW,
                SPELL_REFLECTION,
+               STANCE_MASTERY,
                LAST_STAND;
 
         // FURY

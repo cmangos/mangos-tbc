@@ -495,6 +495,8 @@ class PlayerbotAI
         uint8 GetManaPercent() const;
         uint8 GetRageAmount(const Unit& target) const;
         uint8 GetRageAmount() const;
+        uint8 GetRagePercent(const Unit& target) const;
+        uint8 GetRagePercent() const;
         uint8 GetEnergyAmount(const Unit& target) const;
         uint8 GetEnergyAmount() const;
 

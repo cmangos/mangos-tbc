@@ -4878,8 +4878,7 @@ void Aura::HandleAuraModSchoolImmunity(bool apply, bool Real)
             ++next;
             SpellEntry const* spell = iter->second->GetSpellProto();
             if ((GetSpellSchoolMask(spell) & school_mask)   // Check for school mask
-                    && !iter->second->IsPassive()
-                    && !spell->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)   // Spells unaffected by invulnerability
+                    && !spell->HasAttribute(SPELL_ATTR_NO_IMMUNITIES)   // Spells unaffected by invulnerability
                     && !iter->second->IsPositive()          // Don't remove positive spells
                     && spell->Id != GetId())                // Don't remove self
             {
@@ -6920,8 +6919,8 @@ void Aura::PeriodicTick()
             }
 
             // Check for immune (not use charges)
-            // Aura of anger - video evidence confirms this, but attribute is legit because aura is still applied during
-            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY) || overrideImmune) // confirmed Impaling spine goes through immunity
+            // Aura of anger - video evidence confirms this, but attribute is legit because aura is still applied during 
+            if (!spellProto->HasAttribute(SPELL_ATTR_NO_IMMUNITIES) || overrideImmune) // confirmed Impaling spine goes through immunity
             {
                 if (overrideImmune || target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
@@ -7000,7 +6999,7 @@ void Aura::PeriodicTick()
                 break;
 
             // Check for immune
-            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY))
+            if (!spellProto->HasAttribute(SPELL_ATTR_NO_IMMUNITIES))
             {
                 if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
@@ -7178,7 +7177,7 @@ void Aura::PeriodicTick()
                 break;
 
             // Check for immune (not use charges)
-            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)) // confirmed Impaling spine goes through immunity
+            if (!spellProto->HasAttribute(SPELL_ATTR_NO_IMMUNITIES)) // confirmed Impaling spine goes through immunity
             {
                 if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {
@@ -7355,7 +7354,7 @@ void Aura::PeriodicTick()
             OnPeriodicCalculateAmount(pdamage);
 
             // Check for immune (not use charges)
-            if (!spellProto->HasAttribute(SPELL_ATTR_UNAFFECTED_BY_INVULNERABILITY)) // confirmed Impaling spine goes through immunity
+            if (!spellProto->HasAttribute(SPELL_ATTR_NO_IMMUNITIES)) // confirmed Impaling spine goes through immunity
             {
                 if (target->IsImmuneToDamage(GetSpellSchoolMask(spellProto)))
                 {

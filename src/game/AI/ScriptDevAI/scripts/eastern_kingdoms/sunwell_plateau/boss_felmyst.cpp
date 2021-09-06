@@ -398,7 +398,7 @@ struct boss_felmystAI : public CombatAI
         }
         else
         {
-            if (m_creature->isHover())
+            if (m_creature->HasHoverAura())
             {
                 m_creature->SetImmobilizedState(true);
                 m_creature->SetHover(false);

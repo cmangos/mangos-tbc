@@ -33,19 +33,7 @@ struct EarthShield : public AuraScript
     }
 };
 
-// used for Water and Lightning Shield
-struct DamageTriggerShield : public AuraScript
-{
-    bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
-    {
-        if (data.spell && data.spell->m_spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_INITIAL_AGGRO)) // exclude Sap
-            return false;
-        return true;
-    }
-};
-
 void LoadShamanScripts()
 {
     RegisterAuraScript<EarthShield>("spell_earth_shield");
-    RegisterAuraScript<DamageTriggerShield>("spell_damage_trigger_shield");
 }

@@ -621,19 +621,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (974,'spell_earth_shield'),
 (32593,'spell_earth_shield'),
-(32594,'spell_earth_shield'),
-(324,'spell_damage_trigger_shield'),
-(325,'spell_damage_trigger_shield'),
-(905,'spell_damage_trigger_shield'),
-(945,'spell_damage_trigger_shield'),
-(8134,'spell_damage_trigger_shield'),
-(8788,'spell_damage_trigger_shield'),
-(10431,'spell_damage_trigger_shield'),
-(10432,'spell_damage_trigger_shield'),
-(24398,'spell_damage_trigger_shield'),
-(25469,'spell_damage_trigger_shield'),
-(25472,'spell_damage_trigger_shield'),
-(33736,'spell_damage_trigger_shield');
+(32594,'spell_earth_shield');
 
 
 -- Battleground and Outdoor PvP

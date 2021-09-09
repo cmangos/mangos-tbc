@@ -136,12 +136,6 @@ void GameObject::AddToWorld()
     {
         if (GameObject* linkedGO = SummonLinkedTrapIfAny())
             SetLinkedTrap(linkedGO);
-
-        if (InstanceData* iData = GetMap()->GetInstanceData())
-            iData->OnObjectSpawn(this);
-
-        if (AI())
-            AI()->JustSpawned();
     }
 
     // Make active if required
@@ -410,6 +404,7 @@ void GameObject::Update(const uint32 diff)
 
                             // respawn timer
                             GetMap()->Add(this);
+                            AIM_Initialize();
                             break;
                     }
                 }
@@ -718,7 +713,10 @@ void GameObject::Refresh()
         return;
 
     if (IsSpawned())
+    {
         GetMap()->Add(this);
+        AIM_Initialize();
+    }
 }
 
 void GameObject::AddUniqueUse(Player* player)
@@ -888,6 +886,7 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid)
         }
     }
 
+    map->Add(this);
     AIM_Initialize();
 
     return true;
@@ -932,6 +931,18 @@ void GameObject::SetOwnerGuid(ObjectGuid guid)
 Unit* GameObject::GetOwner() const
 {
     return ObjectAccessor::GetUnit(*this, GetOwnerGuid());
+}
+
+WorldObject* GameObject::GetSpawner() const
+{
+    if (!IsInWorld())
+        return nullptr;
+
+    ObjectGuid spawnerGuid = GetSpawnerGuid();
+    if (spawnerGuid.IsGameObject())
+        return GetMap()->GetGameObject(spawnerGuid);
+    else
+        return GetMap()->GetUnit(spawnerGuid);
 }
 
 GameObjectInfo const* GameObject::GetGOInfo() const
@@ -1172,8 +1183,8 @@ GameObject* GameObject::SummonLinkedTrapIfAny() const
         linkedGO->SetUInt32Value(GAMEOBJECT_LEVEL, GetUInt32Value(GAMEOBJECT_LEVEL));
     }
 
-    linkedGO->AIM_Initialize();
     GetMap()->Add(linkedGO);
+    linkedGO->AIM_Initialize();
 
     return linkedGO;
 }
@@ -2126,10 +2137,6 @@ struct SpawnGameObjectInMapsWorker
             {
                 delete pGameobject;
             }
-            else
-            {
-                map->Add(pGameobject);
-            }
         }
     }
 
@@ -2463,6 +2470,12 @@ uint32 GameObject::GetScriptId() const
 void GameObject::AIM_Initialize()
 {
     m_AI.reset(sScriptDevAIMgr.GetGameObjectAI(this));
+
+    if (AI())
+        AI()->JustSpawned();
+
+    if (InstanceData* iData = GetMap()->GetInstanceData())
+        iData->OnObjectSpawn(this);
 }
 
 bool GameObject::IsAtInteractDistance(Player const* player, uint32 maxRange) const

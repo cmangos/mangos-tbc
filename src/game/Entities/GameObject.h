@@ -711,8 +711,11 @@ class GameObject : public WorldObject
 
         ObjectGuid const& GetOwnerGuid() const override { return GetGuidValue(OBJECT_FIELD_CREATED_BY); }
         void SetOwnerGuid(ObjectGuid guid) override;
+        ObjectGuid const GetSpawnerGuid() const { return m_spawnerGuid; }
+        void SetSpawnerGuid(ObjectGuid guid) { m_spawnerGuid = guid; }
 
         Unit* GetOwner() const;
+        WorldObject* GetSpawner() const;
 
         void SetSpellId(uint32 id)
         {
@@ -763,6 +766,8 @@ class GameObject : public WorldObject
         void SetGoAnimProgress(uint32 animprogress) { SetUInt32Value(GAMEOBJECT_ANIMPROGRESS, animprogress); }
         uint32 GetDisplayId() const { return GetUInt32Value(GAMEOBJECT_DISPLAYID); }
         void SetDisplayId(uint32 modelId);
+        uint32 GetFaction() const override { return GetUInt32Value(GAMEOBJECT_FACTION); }
+        void SetFaction(uint32 faction) { SetUInt32Value(GAMEOBJECT_FACTION, faction); }
         uint32 GetLevel() const override { return GetUInt32Value(GAMEOBJECT_LEVEL); }
 
         void Use(Unit* user, SpellEntry const* spellInfo = nullptr);
@@ -928,6 +933,8 @@ class GameObject : public WorldObject
         std::unique_ptr<GameObjectAI> m_AI;
 
         uint32 m_dbGuid;
+
+        ObjectGuid m_spawnerGuid;
 
     private:
         void SwitchDoorOrButton(bool activate, bool alternative = false);

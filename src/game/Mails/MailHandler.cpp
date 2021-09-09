@@ -242,6 +242,8 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
     if (GetAnticheat()->IsSilenced())
         return pl->ModifyMoney(-int32(cost));
 
+    pl->ModifyMoney(-int32(reqmoney));
+
     bool needItemDelay = false;
 
     MailDraft draft(subject, body);

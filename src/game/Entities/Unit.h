@@ -1408,7 +1408,7 @@ class Unit : public WorldObject
         virtual void SetSheath(SheathState sheathed) { SetByteValue(UNIT_FIELD_BYTES_2, 0, sheathed); }
 
         // faction template id
-        uint32 getFaction() const { return GetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE); }
+        uint32 GetFaction() const override { return GetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE); }
         void setFaction(uint32 faction) { SetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE, faction); }
         FactionTemplateEntry const* GetFactionTemplateEntry() const;
         void RestoreOriginalFaction();
@@ -1850,8 +1850,6 @@ class Unit : public WorldObject
         virtual void SetSelectionGuid(ObjectGuid guid) { SetTargetGuid(guid); }
         // Master: automatically resolves to charmer or owner guid
         ObjectGuid const& GetMasterGuid() const { ObjectGuid const& guid = GetCharmerGuid(); return (guid ? guid : GetOwnerGuid()); }
-        // Spawner: guid of a unit, who is reponsible for starting this unit's parent script (only for script-spawned units within Unit hierarchy)
-        virtual ObjectGuid const GetSpawnerGuid() const { return ObjectGuid(); }
 
         // Convenience unit getters for some of the logical guid constructs above
         Unit* GetOwner(WorldObject const* pov = nullptr, bool recursive = false) const;

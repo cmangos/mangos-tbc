@@ -989,6 +989,8 @@ namespace MaNGOS
                         default: return false;
                     }
                 }
+                else if (u->IsCreature() && !static_cast<Creature*>(u)->IsPet())
+                    return false;
 
                 return true;
             }

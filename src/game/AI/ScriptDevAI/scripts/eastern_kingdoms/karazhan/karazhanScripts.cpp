@@ -149,7 +149,7 @@ struct npc_barnesAI : public npc_escortAI, private DialogueHelper
                         break;
                 }
                 SetEscortPaused(true);
-                m_creature->SummonCreature(NPC_SPOTLIGHT, 0, 0, 0, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_SPOTLIGHT, 0, 0, 0, 0, TEMPSPAWN_DEAD_DESPAWN, 0, false, false, 0, 0, 0, false, true);
                 break;
             case 9:
                 m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);

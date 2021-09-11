@@ -88,6 +88,7 @@ void MapManager::LoadTransports()
             continue;
 
         transportTemplate->pathTime = period;
+        transportTemplate->keyFrames.back().DepartureTime = period;
 
         m_transportsByMap[pMapInfo->MapID].push_back(transportTemplate);
 

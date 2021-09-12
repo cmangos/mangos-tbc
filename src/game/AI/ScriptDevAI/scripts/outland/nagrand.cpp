@@ -404,12 +404,18 @@ UnitAI* GetAI_npc_nagrand_captive(Creature* pCreature)
 }
 
 /*######
-## npc_creditmarker_visist_with_ancestors (Quest 10085)
+## npc_creditmarker_visit_with_ancestors (Quest 10085)
 ######*/
 
 enum
 {
-    QUEST_VISIT_WITH_ANCESTORS  = 10085
+    QUEST_VISIT_WITH_ANCESTORS      = 10085,
+    WHISPER_VISIT_WITH_ANCESTORS_1  = -1001319,
+    WHISPER_VISIT_WITH_ANCESTORS_2  = -1001320,
+    WHISPER_VISIT_WITH_ANCESTORS_3  = -1001321,
+    WHISPER_VISIT_WITH_ANCESTORS_4  = -1001322,
+    WHISPER_VISIT_WITH_ANCESTORS_5  = -1001323,
+    NPC_VISION_OF_THE_FORGOTTEN     = 18904
 };
 
 struct npc_creditmarker_visit_with_ancestorsAI : public ScriptedAI
@@ -429,7 +435,18 @@ struct npc_creditmarker_visit_with_ancestorsAI : public ScriptedAI
                 {
                     // 18840: Sunspring, 18841: Laughing, 18842: Garadar, 18843: Bleeding
                     if (!((Player*)pWho)->GetReqKillOrCastCurrentCount(QUEST_VISIT_WITH_ANCESTORS, creditMarkerId))
+                    {
                         ((Player*)pWho)->KilledMonsterCredit(creditMarkerId, m_creature->GetObjectGuid());
+                        Creature * votfTarget = m_creature->SummonCreature(NPC_VISION_OF_THE_FORGOTTEN, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0, TEMPSPAWN_TIMED_OR_CORPSE_DESPAWN, 30000);
+                        switch (urand(0, 4))
+                        {
+                            case 0: DoScriptText(WHISPER_VISIT_WITH_ANCESTORS_1, votfTarget, pWho); break;
+                            case 1: DoScriptText(WHISPER_VISIT_WITH_ANCESTORS_2, votfTarget, pWho); break;
+                            case 2: DoScriptText(WHISPER_VISIT_WITH_ANCESTORS_3, votfTarget, pWho); break;
+                            case 3: DoScriptText(WHISPER_VISIT_WITH_ANCESTORS_4, votfTarget, pWho); break;
+                            case 4: DoScriptText(WHISPER_VISIT_WITH_ANCESTORS_5, votfTarget, pWho); break;
+                        }
+                    }
                 }
             }
         }

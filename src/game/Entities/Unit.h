@@ -133,7 +133,7 @@ enum UnitBytes1Offsets : uint8
 {
     UNIT_BYTES_1_OFFSET_STAND_STATE     = 0,
     UNIT_BYTES_1_OFFSET_PET_LOYALTY     = 1,
-    UNIT_BYTES_1_OFFSET_STAND_FLAGS     = 2,
+    UNIT_BYTES_1_OFFSET_VIS_FLAGS       = 2,
     UNIT_BYTES_1_OFFSET_MISC_FLAGS      = 3,
 };
 
@@ -166,14 +166,14 @@ enum UnitStandStateType
 // This corresponds to free talent points (pet case)
 
 // byte flags value (UNIT_FIELD_BYTES_1,2)
-enum UnitStandFlags
+enum UnitVisFlags
 {
-    UNIT_STAND_FLAGS_GHOST        = 0x01,
-    UNIT_STAND_FLAGS_CREEP        = 0x02,
-    UNIT_STAND_FLAGS_UNK3         = 0x04,
-    UNIT_STAND_FLAGS_UNK4         = 0x08,
-    UNIT_STAND_FLAGS_UNK5         = 0x10,
-    UNIT_STAND_FLAGS_ALL          = 0xFF
+    UNIT_VIS_FLAG_GHOST         = 0x01,
+    UNIT_VIS_FLAG_CREEP         = 0x02,
+    UNIT_VIS_FLAG_UNTRACKABLE   = 0x04,
+    UNIT_VIS_FLAG_UNK4          = 0x08,
+    UNIT_VIS_FLAG_UNK5          = 0x10,
+    UNIT_VIS_FLAGS_ALL          = 0xFF
 };
 
 // byte flags value (UNIT_FIELD_BYTES_1,3)
@@ -183,7 +183,6 @@ enum UnitMiscFlags
 {
     UNIT_BYTE1_FLAG_ALWAYS_STAND = 0x01,
     UNIT_BYTE1_FLAG_FLY_ANIM     = 0x02,                    // Creature that can fly and are not on the ground appear to have this flag. If they are on the ground, flag is not present.
-    UNIT_BYTE1_FLAG_UNTRACKABLE  = 0x04,
     UNIT_BYTE1_FLAG_ALL          = 0xFF
 };
 
@@ -1515,8 +1514,8 @@ class Unit : public WorldObject
         bool IsSeatedState() const;
         void SetStandState(uint8 state, bool acknowledge = false);
 
-        void SetStandFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_FLAGS, flags); }
-        void RemoveStandFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_FLAGS, flags); }
+        void SetVisFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAGS, flags); }
+        void RemoveVisFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAGS, flags); }
 
         bool IsMounted() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT); }
         uint32 GetMountID() const { return GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID); }

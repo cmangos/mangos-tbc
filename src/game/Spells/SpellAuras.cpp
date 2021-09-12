@@ -4315,7 +4315,7 @@ void Aura::HandleModStealth(bool apply, bool Real)
         // only at real aura add
         if (Real)
         {
-            target->SetStandFlags(UNIT_STAND_FLAGS_CREEP);
+            target->SetVisFlags(UNIT_VIS_FLAG_CREEP);
 
             if (target->GetTypeId() == TYPEID_PLAYER)
                 target->SetByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_STEALTH);
@@ -4353,7 +4353,7 @@ void Aura::HandleModStealth(bool apply, bool Real)
             // if no GM invisibility
             if (target->GetVisibility() != VISIBILITY_OFF)
             {
-                target->RemoveStandFlags(UNIT_STAND_FLAGS_CREEP);
+                target->RemoveVisFlags(UNIT_VIS_FLAG_CREEP);
 
                 if (target->GetTypeId() == TYPEID_PLAYER)
                     target->RemoveByteFlag(PLAYER_FIELD_BYTES2, 1, PLAYER_FIELD_BYTE2_STEALTH);
@@ -6590,9 +6590,9 @@ void Aura::HandleAuraEmpathy(bool apply, bool /*Real*/)
 void Aura::HandleAuraUntrackable(bool apply, bool /*Real*/)
 {
     if (apply)
-        GetTarget()->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_UNTRACKABLE);
+        GetTarget()->SetVisFlags(UNIT_VIS_FLAG_UNTRACKABLE);
     else
-        GetTarget()->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_UNTRACKABLE);
+        GetTarget()->RemoveVisFlags(UNIT_VIS_FLAG_UNTRACKABLE);
 }
 
 void Aura::HandleAuraModPacify(bool apply, bool /*Real*/)
@@ -6619,7 +6619,7 @@ void Aura::HandleAuraGhost(bool apply, bool /*Real*/)
 
     if (apply)
     {
-        target->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_FLAGS, UNIT_STAND_FLAGS_GHOST);
+        target->SetVisFlags(UNIT_VIS_FLAG_GHOST);
         if (player)
         {
             player->SetFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST);
@@ -6629,7 +6629,7 @@ void Aura::HandleAuraGhost(bool apply, bool /*Real*/)
     }
     else
     {
-        target->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_FLAGS, UNIT_STAND_FLAGS_GHOST);
+        target->RemoveVisFlags(UNIT_VIS_FLAG_GHOST);
         if (player)
         {
             player->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_GHOST);

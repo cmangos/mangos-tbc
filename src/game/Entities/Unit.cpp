@@ -537,6 +537,27 @@ void Unit::Update(const uint32 diff)
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, GetHealth() < GetMaxHealth() * 0.20f);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, GetHealth() < GetMaxHealth() * 0.35f);
     }
+
+    WorldObject::Update(diff);
+}
+
+void Unit::Heartbeat()
+{
+    WorldObject::Heartbeat();
+    SendFlightSplineSyncIfNeeded();
+
+    for (auto data : m_spellAuraHolders)
+    {
+        SpellAuraHolder* holder = data.second;
+        for (Aura* aura : holder->m_auras)
+            if (aura)
+                aura->OnHeartbeat();
+    }
+
+    ProcDamageAndSpell(ProcSystemArguments(this, nullptr, PROC_FLAG_HEARTBEAT, PROC_FLAG_NONE, PROC_EX_NONE, 0));
+
+    if (AI())
+        AI()->OnHeartbeat();
 }
 
 void Unit::TriggerAggroLinkingEvent(Unit* enemy)
@@ -1055,7 +1076,7 @@ void Unit::Kill(Unit* killer, Unit* victim, DamageEffectType damagetype, SpellEn
         if (Unit* owner = killer->GetOwner())
             ProcDamageAndSpell(ProcSystemArguments(owner, victim, PROC_FLAG_KILL, PROC_FLAG_NONE, PROC_EX_NONE, 0));
 
-    ProcDamageAndSpell(ProcSystemArguments(killer, victim, PROC_FLAG_KILL, PROC_FLAG_HEARTBEAT, PROC_EX_NONE, 0));
+    ProcDamageAndSpell(ProcSystemArguments(killer, victim, PROC_FLAG_KILL, PROC_FLAG_NONE, PROC_EX_NONE, 0));
 
     ProcDamageAndSpell(ProcSystemArguments(victim, victim, PROC_FLAG_NONE, PROC_FLAG_DEATH, PROC_EX_NONE, 0));
 
@@ -11518,6 +11539,17 @@ void Unit::UpdateSplinePosition(bool relocateOnly)
         static_cast<Player*>(this)->SetPosition(pos.x, pos.y, pos.z, pos.o);
     else
         GetMap()->CreatureRelocation((Creature*)this, pos.x, pos.y, pos.z, pos.o);
+}
+
+void Unit::SendFlightSplineSyncIfNeeded()
+{
+    if (movespline->Finalized() || !movespline->isCyclic())
+        return;
+
+    WorldPacket packet(SMSG_FLIGHT_SPLINE_SYNC, 4 + 8);
+    packet << movespline->GetElapsedValue();
+    packet << GetObjectGuid();
+    SendMessageToSet(packet, true);
 }
 
 void Unit::DisableSpline()

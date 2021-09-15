@@ -704,6 +704,14 @@ void GameObject::Update(const uint32 diff)
 
     if (m_AI)
         m_AI->UpdateAI(diff);
+
+    WorldObject::Update(diff);
+}
+
+void GameObject::Heartbeat()
+{
+    if (AI())
+        AI()->OnHeartbeat();
 }
 
 void GameObject::Refresh()

@@ -23,7 +23,7 @@
 
 using namespace MMAP;
 
-bool checkDirectories(bool debugOutput, char*& workdir)
+bool checkDirectories(bool debugOutput, const char* workdir)
 {
     vector<string> dirFiles;
     char maps_dir[1024];

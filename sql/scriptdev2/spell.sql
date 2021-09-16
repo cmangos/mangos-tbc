@@ -694,9 +694,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (41030, 'spell_food_animation'),
 (42207, 'spell_food_animation'),
 (42311, 'spell_food_animation'),
-(43180, 'spell_food_animation'),
 (43763, 'spell_food_animation'),
-(45548, 'spell_food_animation'),
 (45618, 'spell_food_animation'),
 (46683, 'spell_food_animation'),
 (46812, 'spell_food_animation'),
@@ -721,8 +719,6 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (42308, 'spell_drink_animation'),
 (42312, 'spell_drink_animation'),
 (43154, 'spell_drink_animation'),
-(43182, 'spell_drink_animation'),
-(43183, 'spell_drink_animation'),
 (44107, 'spell_drink_animation'),
 (44109, 'spell_drink_animation'),
 (44110, 'spell_drink_animation'),
@@ -734,7 +730,6 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (44116, 'spell_drink_animation'),
 (45019, 'spell_drink_animation'),
 (45020, 'spell_drink_animation');
-
 
 -- Battleground and Outdoor PvP
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

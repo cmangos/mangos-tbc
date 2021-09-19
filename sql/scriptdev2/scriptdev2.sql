@@ -516,7 +516,10 @@ UPDATE creature_template SET ScriptName='npc_bartolo_ginsetti' WHERE entry=20365
 INSERT INTO scripted_event_id VALUES
 (11111,'event_go_barrel_old_hillsbrad');
 INSERT INTO scripted_areatrigger VALUES
-(4501,'at_bartolo_ginsetti');
+(4501,'at_bartolo_ginsetti'),
+(4502,'at_beggar'),
+(4503,'at_beggar'),
+(4504,'at_beggar');
 
 /* THE DARK PORTAL */
 UPDATE creature_template SET ScriptName='boss_chrono_lord_deja' WHERE entry=17879;

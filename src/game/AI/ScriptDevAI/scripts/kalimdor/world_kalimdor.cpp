@@ -92,6 +92,7 @@ struct world_map_kalimdor : public ScriptedMap
             case NPC_THE_WINDREAVER:
             case NPC_BARON_CHARR:
             case NPC_HIGHLORD_KRUUL:
+            case NPC_BLIX_FIXWIDGET:
                 m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
                 break;
             case NPC_MASKED_ORPHAN_MATRON:

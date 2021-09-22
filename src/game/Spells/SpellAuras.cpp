@@ -7925,6 +7925,8 @@ void Aura::HandleFactionOverride(bool apply, bool Real)
         target->setFaction(GetMiscValue());
     else
         target->RestoreOriginalFaction();
+
+    target->RemoveUnattackableTargets();
 }
 
 void Aura::HandleOverrideClassScript(bool apply, bool /*real*/)

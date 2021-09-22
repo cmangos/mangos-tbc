@@ -632,6 +632,9 @@ INSERT INTO scripted_event_id VALUES
 (8428,'event_spells_warlock_dreadsteed');
 
 /* DUN MOROGH */
+UPDATE creature_template SET ScriptName='npc_belbi_quikswitch' WHERE entry=23710;
+INSERT INTO scripted_areatrigger VALUES
+(4718,'at_belbi_quikswitch');
 
 /* DUROTAR */
 UPDATE creature_template SET ScriptName='npc_lazy_peon' WHERE entry=10556;

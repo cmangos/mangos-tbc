@@ -30,6 +30,7 @@ EndScriptData */
 #include <array>
 #include <ctime>
 #include <cstring>
+#include "brewfest.h"
 
 enum
 {

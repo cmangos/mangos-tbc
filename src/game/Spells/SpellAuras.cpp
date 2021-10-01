@@ -3693,7 +3693,8 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                 // case 51010:                              // Dire Brew
                 // break;
                 default:
-                    sLog.outError("Aura::HandleAuraTransform, spell %u does not have creature entry defined, need custom defined model.", GetId());
+                    if (!m_modifier.m_amount) // can be set through script
+                        sLog.outError("Aura::HandleAuraTransform, spell %u does not have creature entry defined, need custom defined model.", GetId());
                     break;
             }
         }

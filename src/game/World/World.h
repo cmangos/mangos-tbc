@@ -677,6 +677,7 @@ class World
         void ResetMonthlyQuests();
 #ifdef BUILD_METRICS
         void GeneratePacketMetrics(); // thread safe due to atomics
+        uint32 GetAverageLatency() const;
 #endif
 
     private:

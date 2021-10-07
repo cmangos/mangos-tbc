@@ -8793,6 +8793,7 @@ bool SpellAuraHolder::IsSaveToDbHolder() const
             case 39953: // adals song of battle
             case 45444: // bonfires blessing
             case 46302: // kirus song of victory
+            case 47521: // Mole Machine Player Hide and Root
                 return false;
         }
     }

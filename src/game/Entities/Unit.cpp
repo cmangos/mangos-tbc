@@ -5787,6 +5787,20 @@ bool Unit::HasAuraTypeWithCaster(AuraType auratype, ObjectGuid caster) const
     return false;
 }
 
+bool Unit::HasMechanicMaskOrDispelMaskAura(uint32 dispelMask, uint32 mechanicMask, Unit const* caster) const
+{
+    Unit::SpellAuraHolderMap const& Auras = GetSpellAuraHolderMap();
+    for (auto itr = Auras.begin(); itr != Auras.end(); ++itr)
+    {
+        SpellAuraHolder* holder = itr->second;
+        if (dispelMask && holder->IsDispellableByMask(dispelMask, caster, nullptr))
+            return true;
+        if (mechanicMask && holder->HasMechanicMask(mechanicMask))
+            return true;
+    }
+    return false;
+}
+
 uint32 Unit::GetAuraCount(uint32 spellId) const
 {
     uint32 count = 0;
@@ -10034,19 +10048,18 @@ void CharmInfo::InitPossessCreateSpells()
 {
     InitEmptyActionBar();                                   // charm action bar
 
-    if (m_unit->GetTypeId() == TYPEID_PLAYER)               // possessed players don't have spells, keep the action bar empty
+    if (m_unit->IsPlayer())                                 // possessed players don't have spells, keep the action bar empty
         return;
 
-    Creature* creature = static_cast<Creature*>(m_unit);
-
+    std::vector<uint32> spells = m_unit->GetCharmSpells();
     for (uint32 x = 0; x < CREATURE_MAX_SPELLS; ++x)
     {
-        if (creature->m_spells[x] == 2)
+        if (spells[x] == 2 || (spells[x] == 0 && m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING)))
             SetActionBar(x, COMMAND_ATTACK, ACT_COMMAND);
-        if (IsPassiveSpell(creature->m_spells[x]))
-            m_unit->CastSpell(creature, creature->m_spells[x], TRIGGERED_OLD_TRIGGERED);
+        if (IsPassiveSpell(spells[x]))
+            m_unit->CastSpell(m_unit, spells[x], TRIGGERED_OLD_TRIGGERED);
         else
-            AddSpellToActionBar(creature->m_spells[x], ACT_PASSIVE, x);
+            AddSpellToActionBar(spells[x], ACT_PASSIVE, x);
     }
 }
 
@@ -10056,13 +10069,13 @@ void CharmInfo::InitCharmCreateSpells()
 
     SetActionBar(ACTION_BAR_INDEX_START, COMMAND_ATTACK, ACT_COMMAND);
 
-    if (m_unit->GetTypeId() == TYPEID_PLAYER)               // charmed players don't have spells
+    if (m_unit->IsPlayer())               // charmed players don't have spells
         return;
 
+    std::vector<uint32> spells = m_unit->GetCharmSpells();
     for (uint32 x = 0; x < CREATURE_MAX_SPELLS; ++x)
     {
-        uint32 spellId = ((Creature*)m_unit)->m_spells[x];
-
+        uint32 spellId = spells[x];
         if (!spellId)
         {
             m_charmspells[x].SetActionAndType(spellId, ACT_DISABLED);

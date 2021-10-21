@@ -1549,11 +1549,11 @@ enum npc_aoe_damage_trigger
     SPELL_CONSUMPTION_NPC_20570 = 35952,
 };
 
-struct npc_aoe_damage_triggerAI : public ScriptedAI, public TimerManager
+struct npc_aoe_damage_triggerAI : public ScriptedAI
 {
-    npc_aoe_damage_triggerAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiAuraPassive(SetAuraPassive())
+    npc_aoe_damage_triggerAI(Creature* pCreature) : ScriptedAI(pCreature, 0), m_uiAuraPassive(SetAuraPassive())
     {
-        AddCustomAction(1, GetTimer(), [&]() {CastConsumption(); });
+        AddCustomAction(1, GetTimer(), [&]() { CastConsumption(); });
         SetReactState(REACT_PASSIVE);
     }
 
@@ -1585,17 +1585,7 @@ struct npc_aoe_damage_triggerAI : public ScriptedAI, public TimerManager
     }
 
     void Reset() override {}
-
-    void UpdateAI(const uint32 diff) override
-    {
-        UpdateTimers(diff);
-    }
 };
-
-UnitAI* GetAI_npc_aoe_damage_trigger(Creature* pCreature)
-{
-    return new npc_aoe_damage_triggerAI(pCreature);
-}
 
 /*######
 ## npc_the_cleaner
@@ -1987,7 +1977,7 @@ enum
     SPELL_FIRE_NOVA_3       = 46551,
 };
 
-struct npc_fire_nova_totemAI : public ScriptedAI, public TimerManager
+struct npc_fire_nova_totemAI : public ScriptedAI
 {
     npc_fire_nova_totemAI(Creature* creature) : ScriptedAI(creature), m_fireNovaSpell(0), m_fireNovaTimer(0)
     {
@@ -1998,15 +1988,11 @@ struct npc_fire_nova_totemAI : public ScriptedAI, public TimerManager
         });
         SetCombatMovement(false);
         SetMeleeEnabled(false);
+        SetReactState(REACT_PASSIVE);
     }
 
     uint32 m_fireNovaSpell;
     uint32 m_fireNovaTimer;
-
-    void Reset() override
-    {
-
-    }
 
     void JustRespawned() override
     {
@@ -2019,17 +2005,7 @@ struct npc_fire_nova_totemAI : public ScriptedAI, public TimerManager
         }
         ResetTimer(1, m_fireNovaTimer);
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        UpdateTimers(diff);
-    }
 };
-
-UnitAI* GetAI_npc_fire_nova_totem(Creature* pCreature)
-{
-    return new npc_fire_nova_totemAI(pCreature);
-}
 
 /*######
 ## mob_phoenix
@@ -2850,7 +2826,7 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_aoe_damage_trigger";
-    pNewScript->GetAI = &GetAI_npc_aoe_damage_trigger;
+    pNewScript->GetAI = &GetNewAIInstance<npc_aoe_damage_triggerAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -2860,7 +2836,7 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_fire_nova_totem";
-    pNewScript->GetAI = &GetAI_npc_fire_nova_totem;
+    pNewScript->GetAI = &GetNewAIInstance<npc_fire_nova_totemAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

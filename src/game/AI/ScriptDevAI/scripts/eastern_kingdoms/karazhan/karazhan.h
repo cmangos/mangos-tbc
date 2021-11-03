@@ -79,6 +79,8 @@ enum
     NPC_TELEPORT_SW                 = 17174,
     NPC_TELEPORT_NW                 = 17175,
 
+    NPC_BLIZZARD                    = 17161,
+
     // Chess event
     NPC_ORC_GRUNT                   = 17469,                    // pawn
     NPC_ORC_WOLF                    = 21748,                    // knight
@@ -108,7 +110,11 @@ enum
     NPC_COLDMIST_WIDOW              = 16171,
 
     //prince malchezaar
-    NPC_INFERNAL_RELAY = 17645,
+    NPC_INFERNAL_RELAY              = 17645,
+    NPC_INFERNAL_TARGET             = 17644,
+    NPC_INFERNAL                    = 17646,
+
+    SPELL_HELLFIRE                  = 30859, // Infernal damage aura
 
     GO_STAGE_CURTAIN                = 183932,
     GO_STAGE_DOOR_LEFT              = 184278,
@@ -134,6 +140,7 @@ enum
     GO_RAJ_BACKDROP                 = 183443,
     GO_RAJ_MOON                     = 183494,
     GO_RAJ_BALCONY                  = 183495,
+    GO_CHESSBOARD                   = 185324,
 
     // Chess event spells
     SPELL_CLEAR_BOARD               = 37366,                    // spell cast to clear the board at the end of the event
@@ -205,6 +212,7 @@ class instance_karazhan : public ScriptedInstance
         void OnPlayerEnter(Player* pPlayer) override;
         void OnCreatureCreate(Creature* pCreature) override;
         void OnObjectCreate(GameObject* pGo) override;
+        void OnCreatureRespawn(Creature* creature) override;
 
         void OnCreatureEvade(Creature* creature) override;
         void OnCreatureDeath(Creature* pCreature) override;

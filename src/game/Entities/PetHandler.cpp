@@ -27,6 +27,37 @@
 #include "AI/BaseAI/CreatureAI.h"
 #include "Util.h"
 #include "Entities/Pet.h"
+#include "MotionGenerators/PathFinder.h"
+
+bool CheckPathToTarget(Unit* pet, Unit* target)
+{
+    float angle = target->GetAngle(pet);
+    float x, y, z;
+    target->GetNearPoint(pet, x, y, z, pet->GetObjectBoundingRadius(), pet->AI()->GetAttackDistance(), angle, target->IsInWater());
+
+    PathFinder pathFinder(pet);
+    bool result = pathFinder.calculate(x, y, z);
+
+    if (pathFinder.getPathType() & PATHFIND_NOPATH)
+        return false; // TODO send nopath
+
+    float collisionHeight = pet->GetCollisionHeight();
+    auto& path = pathFinder.getPath();
+    for (size_t i = 1; i < path.size(); ++i)
+    {
+        const G3D::Vector3& dataPrevious = path.at(i - 1);
+        const G3D::Vector3& data = path.at(i);
+        if (!pet->GetMap()->IsInLineOfSight(dataPrevious.x, dataPrevious.y, dataPrevious.z + collisionHeight, data.x, data.y, data.z + collisionHeight, true))
+            return false;
+    }
+
+    return true;
+}
+
+void SendNoPathToOwner(Unit* pet)
+{
+    pet->SendPetActionFeedback(FEEDBACK_CANT_ATT_TARGET); // in wotlk need to end actual error
+}
 
 void WorldSession::HandlePetAction(WorldPacket& recv_data)
 {
@@ -56,8 +87,11 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
         return;
     }
 
-    if (!petUnit->isAlive())
+    if (!petUnit->IsAlive())
+    {
+        petUnit->SendPetActionFeedback(FEEDBACK_PET_DEAD);
         return;
+    }
 
     CharmInfo* charmInfo = petUnit->GetCharmInfo();
     if (!charmInfo)
@@ -103,12 +137,19 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
                 {
                     Unit* targetUnit = targetGuid ? _player->GetMap()->GetUnit(targetGuid) : nullptr;
 
-                    if (targetUnit && targetUnit != petUnit && petUnit->CanAttack(targetUnit))
+                    if (!targetUnit)
                     {
-                        // This is true if pet has no target or has target but targets differs.
-                        if (petUnit->getVictim() != targetUnit)
-                            petUnit->Attack(targetUnit, true);
+                        petUnit->SendPetActionFeedback(FEEDBACK_NOTHING_TO_ATT);
+                        break;
                     }
+                    if (targetUnit == petUnit || !petUnit->CanAttack(targetUnit))
+                    {
+                        petUnit->SendPetActionFeedback(FEEDBACK_CANT_ATT_TARGET);
+                        break;
+                    }
+                    // This is true if pet has no target or has target but targets differs.
+                    if (petUnit->GetVictim() != targetUnit)
+                        petUnit->Attack(targetUnit, true);
                     break;
                 }
                 case COMMAND_DISMISS:
@@ -151,40 +192,56 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
                     Unit* targetUnit = targetGuid ? _player->GetMap()->GetUnit(targetGuid) : nullptr;
 
-                    if (targetUnit && targetUnit != petUnit && petUnit->CanAttack(targetUnit))
+                    if (!targetUnit)
                     {
-                        // This is true if pet has no target or has target but targets differs.
-                        if (petUnit->getVictim() != targetUnit)
+                        petUnit->SendPetActionFeedback(FEEDBACK_NOTHING_TO_ATT);
+                        break;
+                    }
+                    if (targetUnit == petUnit || !petUnit->CanAttack(targetUnit))
+                    {
+                        petUnit->SendPetActionFeedback(FEEDBACK_CANT_ATT_TARGET);
+                        break;
+                    }
+
+                    // This is true if pet has no target or has target but targets differs.
+                    if (petUnit->GetVictim() != targetUnit)
+                    {
+                        if (petUnit->hasUnitState(UNIT_STAT_POSSESSED))
                         {
-                            if (petUnit->hasUnitState(UNIT_STAT_POSSESSED))
+                            petUnit->AttackStop();
+                            petUnit->Attack(targetUnit, true);
+                        }
+                        else
+                        {
+                            charmInfo->SetPetLastAttackCommandTime(petUnit->GetMap()->GetCurrentMSTime());
+
+                            // Send pet response regardless of command result as acknowledgement of command being processed
+                            if (pet)
                             {
-                                petUnit->AttackStop();
-                                petUnit->Attack(targetUnit, true);
+                                // 10% chance to play special warlock pet attack talk, else growl
+                                if (pet->getPetType() == SUMMON_PET && roll_chance_i(10))
+                                    pet->SendPetTalk(uint32(PET_TALK_ATTACK));
+
+                                pet->SendPetAIReaction();
                             }
-                            else
+
+                            // Ignore command if target habitat is incompatible with pet
+                            if (!targetUnit->isInAccessablePlaceFor(petUnit))
+                                break;
+
+                            // Ignore command if target is moving home
+                            if (targetUnit->GetCombatManager().IsEvadingHome())
+                                break;
+
+                            if (!CheckPathToTarget(petUnit, targetUnit))
                             {
-                                // Send pet response regardless of command result as acknowledgement of command being processed
-                                if (pet)
-                                {
-                                    // 10% chance to play special warlock pet attack talk, else growl
-                                    if (pet->getPetType() == SUMMON_PET && roll_chance_i(10))
-                                        pet->SendPetTalk(uint32(PET_TALK_ATTACK));
-
-                                    pet->SendPetAIReaction();
-                                }
-
-                                // Ignore command if target habitat is incompatible with pet
-                                if (!targetUnit->isInAccessablePlaceFor(petUnit))
-                                    break;
-
-                                // Ignore command if target is moving home
-                                if (targetUnit->IsEvadingHome())
-                                    break;
-
-                                petUnit->AttackStop();
-                                petUnit->GetMotionMaster()->Clear();
-                                petUnit->AI()->AttackStart(targetUnit);
+                                SendNoPathToOwner(petUnit);
+                                break;
                             }
+
+                            petUnit->AttackStop();
+                            petUnit->GetMotionMaster()->Clear();
+                            petUnit->AI()->AttackStart(targetUnit);
                         }
                     }
                     break;
@@ -264,13 +321,16 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
             petUnit->clearUnitState(UNIT_STAT_MOVING);
 
-            uint32 flags = TRIGGERED_NONE;
+            uint32 flags = TRIGGERED_NORMAL_COMBAT_CAST;
             if (!petUnit->hasUnitState(UNIT_STAT_POSSESSED))
                 flags |= TRIGGERED_PET_CAST;
 
             const SpellRangeEntry* sRange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
 
-            if (unit_target && !(petUnit->IsWithinDistInMap(unit_target, sRange->maxRange) && petUnit->IsWithinLOSInMap(unit_target))
+            if (!IsSpellRequireTarget(spellInfo))
+                unit_target = nullptr;
+
+            if (unit_target && !(petUnit->IsWithinDistInMap(unit_target, sRange->maxRange) && petUnit->IsWithinLOSInMap(unit_target, true))
                     && petUnit->CanAttackNow(unit_target))
             {
                 charmInfo->SetSpellOpener(spellid, sRange->minRange, sRange->maxRange);
@@ -279,6 +339,12 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
                 if (!petUnit->hasUnitState(UNIT_STAT_POSSESSED))
                 {
+                    if (!CheckPathToTarget(petUnit, unit_target))
+                    {
+                        SendNoPathToOwner(petUnit);
+                        return;
+                    }
+
                     petUnit->GetMotionMaster()->Clear();
 
                     petUnit->AI()->AttackStart(unit_target);
@@ -351,7 +417,7 @@ void WorldSession::HandlePetStopAttack(WorldPacket& recv_data)
         return;
     }
 
-    if (!pet->isAlive())
+    if (!pet->IsAlive())
         return;
 
     pet->AttackStop();
@@ -544,7 +610,7 @@ void WorldSession::HandlePetRename(WorldPacket& recv_data)
     Pet* pet = _player->GetMap()->GetPet(petGuid);
     // check it!
     if (!pet || pet->getPetType() != HUNTER_PET ||
-            !pet->HasByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED) ||
+            !pet->HasByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PET_FLAGS, UNIT_CAN_BE_RENAMED) ||
             pet->GetOwnerGuid() != _player->GetObjectGuid() || !pet->GetCharmInfo())
         return;
 
@@ -566,7 +632,7 @@ void WorldSession::HandlePetRename(WorldPacket& recv_data)
     if (_player->GetGroup())
         _player->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_NAME);
 
-    pet->RemoveByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED);
+    pet->RemoveByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PET_FLAGS, UNIT_CAN_BE_RENAMED);
 
     if (isdeclined)
     {
@@ -674,7 +740,7 @@ void WorldSession::HandlePetUnlearnOpcode(WorldPacket& recvPacket)
         pet->unlearnSpell(spell_id, false);
     }
 
-    pet->SetTP(pet->getLevel() * (pet->GetLoyaltyLevel() - 1));
+    pet->SetTP(pet->GetLevel() * (pet->GetLoyaltyLevel() - 1));
 
     for (int i = 0; i < MAX_UNIT_ACTION_BAR_INDEX; ++i)
         if (UnitActionBarEntry const* ab = charmInfo->GetActionBarEntry(i))
@@ -769,8 +835,6 @@ void WorldSession::HandlePetCastSpellOpcode(WorldPacket& recvPacket)
     SpellCastTargets targets;
 
     recvPacket >> targets.ReadForCaster(petUnit);
-
-    petUnit->clearUnitState(UNIT_STAT_MOVING);
 
     if (HasMissingTargetFromClient(spellInfo))
         targets.setUnitTarget(petUnit->GetTarget());

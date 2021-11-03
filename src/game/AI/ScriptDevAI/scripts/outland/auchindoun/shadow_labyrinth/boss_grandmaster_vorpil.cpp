@@ -21,7 +21,7 @@ SDComment: Timers may need adjustments
 SDCategory: Auchindoun, Shadow Labyrinth
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "shadow_labyrinth.h"
 
 enum
@@ -154,7 +154,7 @@ struct boss_grandmaster_vorpilAI : public ScriptedAI
     void JustSummoned(Creature* pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_VOID_TRAVELER)
-            pSummoned->GetMotionMaster()->MoveFollow(m_creature, 0.0f, 0.0f);
+            pSummoned->GetMotionMaster()->MoveChase(m_creature, 0.0f, 0.0f);
 
         if (pSummoned->GetEntry() == NPC_VOID_PORTAL)
             pSummoned->CastSpell(pSummoned, SPELL_VOID_PORTAL_VISUAL, TRIGGERED_OLD_TRIGGERED);
@@ -192,7 +192,7 @@ struct boss_grandmaster_vorpilAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff) override
     {
         // Return since we have no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiRainOfFireTimer)

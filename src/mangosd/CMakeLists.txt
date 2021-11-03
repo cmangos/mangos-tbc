@@ -45,12 +45,6 @@ add_executable(${EXECUTABLE_NAME}
   ${EXECUTABLE_SRCS}
 )
 
-target_include_directories(${EXECUTABLE_NAME}
-  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}
-  PRIVATE ${OPENSSL_INCLUDE_DIR}
-  PRIVATE ${Boost_INCLUDE_DIRS}
-)
-
 target_link_libraries(${EXECUTABLE_NAME}
   shared
   game
@@ -58,13 +52,6 @@ target_link_libraries(${EXECUTABLE_NAME}
 )
 
 if(WIN32)
-  target_link_libraries(${EXECUTABLE_NAME}
-    optimized ${MYSQL_LIBRARY}
-    optimized ${OPENSSL_LIBRARIES}
-    debug ${MYSQL_DEBUG_LIBRARY}
-    debug ${OPENSSL_DEBUG_LIBRARIES}
-    ${Boost_LIBRARIES}
-  )
   if(MINGW)
     target_link_libraries(${EXECUTABLE_NAME}
       wsock32
@@ -80,28 +67,16 @@ if(WIN32)
   set_target_properties(${EXECUTABLE_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${DEV_BIN_DIR}")
   set_target_properties(${EXECUTABLE_NAME} PROPERTIES PROJECT_LABEL "WorldServer")
 
-  # Add provided dependency lib to dev folder
-  string(REGEX REPLACE "/" "\\\\" LibFolder ${DEV_PROVIDED_LIBS_FOLDER})
-  add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
-    COMMAND copy \"${LibFolder}\\*.dll\" \"$(OutDir)\")
-
   # Add conf file to dev folder
   add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${CMAKE_CURRENT_SOURCE_DIR}/mangosd.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/mangosd.conf.dist\")
-endif()
 
-if(UNIX)
-  target_link_libraries(${EXECUTABLE_NAME}
-    ${OPENSSL_LIBRARIES}
-    ${OPENSSL_EXTRA_LIBRARIES}
-    ${Boost_LIBRARIES}
-  )
+  add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${CMAKE_SOURCE_DIR}/src/game/Anticheat/module/anticheat.conf.dist.in\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/anticheat.conf.dist\")
 
-  if(POSTGRESQL AND POSTGRESQL_FOUND)
-    target_link_libraries(${EXECUTABLE_NAME} ${PostgreSQL_LIBRARIES})
-  else()
-    target_link_libraries(${EXECUTABLE_NAME} ${MYSQL_LIBRARY})
-  endif()
+  add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/src/game/Anticheat/module/warden_modules/ $<TARGET_FILE_DIR:${EXECUTABLE_NAME}>/warden_modules
+    DEPENDS ${EXECUTABLE_NAME})
 endif()
 
 set(EXECUTABLE_LINK_FLAGS "")
@@ -125,6 +100,14 @@ install(TARGETS ${EXECUTABLE_NAME} DESTINATION ${BIN_DIR})
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangosd.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/pomelod.conf.dist)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pomelod.conf.dist DESTINATION ${CONF_DIR})
 
+# Define BUILD_PLAYERBOT if need
+if (BUILD_PLAYERBOT)
+  add_definitions(-DBUILD_PLAYERBOT)
+endif()
+
 if(MSVC)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/\${BUILD_TYPE}/${EXECUTABLE_NAME}.pdb DESTINATION ${BIN_DIR} CONFIGURATIONS Debug)
 endif()
+
+install(FILES ${CMAKE_SOURCE_DIR}/src/game/Anticheat/module/anticheat.conf.dist.in DESTINATION ${CONF_DIR} RENAME anticheat.conf.dist)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/game/Anticheat/module/warden_modules DESTINATION ${BIN_DIR})

@@ -21,8 +21,9 @@ SDComment:
 SDCategory: Hellfire Citadel, Magtheridon's lair
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "magtheridons_lair.h"
+#include "Spells/Scripts/SpellScript.h"
 
 instance_magtheridons_lair::instance_magtheridons_lair(Map* pMap) : ScriptedInstance(pMap),
     m_uiRandYellTimer(90000),
@@ -57,6 +58,9 @@ void instance_magtheridons_lair::OnCreatureCreate(Creature* pCreature)
             break;
         case NPC_CHANNELER:
             m_lChannelerGuidList.push_back(pCreature->GetObjectGuid());
+            break;
+        case NPC_BURNING_ABYSSAL:
+            m_npcEntryGuidCollection[pCreature->GetEntry()].push_back(pCreature->GetObjectGuid());
             break;
     }
 }
@@ -96,7 +100,7 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                     {
                         if (Creature* pChanneler = instance->GetCreature(*itr))
                         {
-                            if (!pChanneler->isAlive())
+                            if (!pChanneler->IsAlive())
                                 pChanneler->Respawn();
                         }
                     }
@@ -106,6 +110,12 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                     {
                         if (GameObject* pColumn = instance->GetGameObject(*itr))
                             pColumn->ResetDoorOrButton();
+                    }
+
+                    {
+                        GuidVector abyssals;
+                        GetCreatureGuidVectorFromStorage(NPC_BURNING_ABYSSAL, abyssals);
+                        DespawnGuids(abyssals);
                     }
 
                     // Reset cubes
@@ -128,7 +138,7 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                 case IN_PROGRESS:
                     // Set boss in combat
                     if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
-                        if (pMagtheridon->isAlive())
+                        if (pMagtheridon->IsAlive())
                             pMagtheridon->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pMagtheridon, pMagtheridon);
                     // Enable cubes
                     for (GuidList::const_iterator itr = m_lCubeGuidList.begin(); itr != m_lCubeGuidList.end(); ++itr)
@@ -160,7 +170,7 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                 // Reset Magtheridon
                 if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
                 {
-                    if (pMagtheridon->isAlive())
+                    if (pMagtheridon->IsAlive())
                         pMagtheridon->AI()->EnterEvadeMode();
                 }
             }
@@ -169,10 +179,9 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
             {
                 if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
                 {
-                    if (pMagtheridon->isAlive())
+                    if (pMagtheridon->IsAlive())
                     {
-                        pMagtheridon->SetInCombatWithZone();
-                        DoScriptText(EMOTE_EVENT_BEGIN, pMagtheridon);
+                        pMagtheridon->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, pMagtheridon, pMagtheridon);
                         m_uiCageBreakTimer = MINUTE * IN_MILLISECONDS;
                     }
                 }
@@ -207,7 +216,7 @@ void instance_magtheridons_lair::Update(uint32 uiDiff)
                 case 0:
                     if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
                     {
-                        if (pMagtheridon->isAlive())
+                        if (pMagtheridon->IsAlive())
                         {
                             DoScriptText(EMOTE_NEARLY_FREE, pMagtheridon);
                             m_uiCageBreakTimer = MINUTE * IN_MILLISECONDS;
@@ -239,6 +248,18 @@ void instance_magtheridons_lair::Update(uint32 uiDiff)
         m_uiRandYellTimer -= uiDiff;
 }
 
+struct MentalInterferenceSpellScript : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        if (ObjectGuid target = spell->m_targets.getUnitTargetGuid())
+            if (target.GetEntry() != 16943 && target.GetEntry() != 20928)  // Mental Interference can be cast only on these two targets
+                return SPELL_FAILED_BAD_TARGETS;
+
+        return SPELL_CAST_OK;
+    }
+};
+
 InstanceData* GetInstanceData_instance_magtheridons_lair(Map* pMap)
 {
     return new instance_magtheridons_lair(pMap);
@@ -250,4 +271,6 @@ void AddSC_instance_magtheridons_lair()
     pNewScript->Name = "instance_magtheridons_lair";
     pNewScript->GetInstanceData = &GetInstanceData_instance_magtheridons_lair;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<MentalInterferenceSpellScript>("spell_mental_interference");
 }

@@ -26,7 +26,7 @@ boss_nexusprince_shaffar
 mob_ethereal_beacon
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 
 enum
@@ -166,9 +166,9 @@ struct boss_yorAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
@@ -190,6 +190,8 @@ bool GOUse_go_stasis_chamber_shaffar(Player* player, GameObject* go)
 
 enum
 {
+    SPELL_BLUE_BANISH_STATE = 39650,
+
     SAY_RELEASED_1 = -1557036,
     SAY_RELEASED_2 = -1557037,
 
@@ -219,7 +221,7 @@ struct npc_ethereum_prisoner_dungeonAI : public ScriptedAI, public CombatActions
     void JustRespawned() override
     {
         DoCastSpellIfCan(nullptr, SPELL_C_C_D, (CAST_AURA_NOT_PRESENT | CAST_TRIGGERED));
-        DoCastSpellIfCan(nullptr, SPELL_PURPLE_BANISH_STATE, (CAST_AURA_NOT_PRESENT | CAST_TRIGGERED));
+        DoCastSpellIfCan(nullptr, SPELL_BLUE_BANISH_STATE, (CAST_AURA_NOT_PRESENT | CAST_TRIGGERED));
         if (m_stasisGuid)
             if (GameObject* stasis = m_creature->GetMap()->GetGameObject(m_stasisGuid))
                 stasis->ResetDoorOrButton();
@@ -234,7 +236,7 @@ struct npc_ethereum_prisoner_dungeonAI : public ScriptedAI, public CombatActions
         if (go)
             m_stasisGuid = go->GetObjectGuid();
         m_creature->RemoveAurasDueToSpell(SPELL_C_C_D);
-        m_creature->RemoveAurasDueToSpell(SPELL_PURPLE_BANISH_STATE);
+        m_creature->RemoveAurasDueToSpell(SPELL_BLUE_BANISH_STATE);
         m_creature->UpdateEntry(NPC_AMBASSADOR_PAXIVI);
         float angle = m_unit->GetAngle(player);
         m_creature->SetFacingTo(angle);
@@ -253,7 +255,7 @@ struct npc_ethereum_prisoner_dungeonAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
     }
 };
 

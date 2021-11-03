@@ -9,3 +9,4 @@ CREATE TABLE creature_cooldowns (
   PRIMARY KEY (`entry`, `SpellId`)
 );
 
+

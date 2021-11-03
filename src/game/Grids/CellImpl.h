@@ -73,8 +73,8 @@ Cell::Visit(const CellPair& standing_cell, TypeContainerVisitor<T, CONTAINER>& v
         return;
     }
     // lets limit the upper value for search radius
-    if (radius > 333.0f)
-        radius = 333.0f;
+    if (radius > MAX_VISIBILITY_DISTANCE)
+        radius = MAX_VISIBILITY_DISTANCE;
 
     // lets calculate object coord offsets from cell borders.
     CellArea area = Cell::CalculateCellArea(x, y, radius);
@@ -196,10 +196,13 @@ inline void Cell::VisitWorldObjects(const WorldObject* center_obj, T& visitor, f
 template<class T>
 inline void Cell::VisitAllObjects(const WorldObject* center_obj, T& visitor, float radius, bool dont_load)
 {
-    // Workaround for boss_shirrak
+    // Pomelo: Workaround for boss_shirrak
     if (!center_obj)
         return;
 
+    // The assert below is required for https://github.com/cmangos/mangos-tbc/pull/344 and issue https://github.com/cmangos/issues/issues/2044
+    // A nullptr center_obj was passed as parameter leading to a crash. ToDo investigate why a nullptr came here in the first place.
+    MANGOS_ASSERT(center_obj != nullptr);
     CellPair p(MaNGOS::ComputeCellPair(center_obj->GetPositionX(), center_obj->GetPositionY()));
     Cell cell(p);
     if (dont_load)

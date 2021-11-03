@@ -21,8 +21,9 @@ SDComment: Some cleanup left along with save
 SDCategory: Auchindoun, Shadow Labyrinth
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "shadow_labyrinth.h"
+#include "Spells/Scripts/SpellScript.h"
 
 /* Shadow Labyrinth encounters:
 1 - Ambassador Hellmaw event
@@ -46,14 +47,9 @@ void instance_shadow_labyrinth::OnObjectCreate(GameObject* pGo)
     switch (pGo->GetEntry())
     {
         case GO_REFECTORY_DOOR:
-            if (m_auiEncounter[2] == DONE)
+            if (m_auiEncounter[TYPE_HELLMAW] == DONE)
                 pGo->SetGoState(GO_STATE_ACTIVE);
             break;
-        case GO_SCREAMING_HALL_DOOR:
-            if (m_auiEncounter[3] == DONE)
-                pGo->SetGoState(GO_STATE_ACTIVE);
-            break;
-
         default:
             return;
     }
@@ -67,9 +63,13 @@ void instance_shadow_labyrinth::OnCreatureCreate(Creature* pCreature)
     {
         case NPC_VORPIL:
         case NPC_HELLMAW:
+        case NPC_BLACKHEART_THE_INCITER:
+        case NPC_MURMUR:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         case NPC_CONTAINMENT_BEAM:
+        case NPC_CABAL_SPELLBINDER:
+        case NPC_CABAL_SUMMONER:
             m_npcEntryGuidCollection[pCreature->GetEntry()].push_back(pCreature->GetObjectGuid());
             break;
     }
@@ -90,8 +90,6 @@ void instance_shadow_labyrinth::SetData(uint32 uiType, uint32 uiData)
             break;
 
         case TYPE_VORPIL:
-            if (uiData == DONE)
-                // DoUseDoorOrButton(GO_SCREAMING_HALL_DOOR); should be handled when players move close to -166.0127, -270.3628, 17.0875, SMSG_UPDATE_WORLD_STATE VariableID: 13437 - Value: 247303520
             m_auiEncounter[2] = uiData;
             break;
 
@@ -192,10 +190,72 @@ InstanceData* GetInstanceData_instance_shadow_labyrinth(Map* pMap)
     return new instance_shadow_labyrinth(pMap);
 }
 
+struct go_screaming_hall_door : public GameObjectAI
+{
+    go_screaming_hall_door(GameObject* go) : GameObjectAI(go), m_doorCheckNearbyPlayersTimer(1000), m_doorOpen(false)
+    {
+        m_pInstance = (ScriptedInstance*)go->GetInstanceData();
+    }
+
+    ScriptedInstance* m_pInstance;
+    uint32 m_doorCheckNearbyPlayersTimer;
+    bool m_doorOpen;
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (m_doorOpen)
+            return;
+
+        if (m_doorCheckNearbyPlayersTimer <= diff)
+        {
+            // If player is in 35y range of door, open it if Vorpil boss is done
+            if (m_go->GetInstanceData()->GetData(TYPE_VORPIL) == DONE)
+            {
+                m_go->GetMap()->ExecuteDistWorker(m_go, 35.0f, [&](Player * player)
+                {
+                    if (m_doorOpen)
+                        return;
+                    m_go->Use(player);
+                    m_doorOpen = true;
+
+                    if (Creature* pMurmur = m_pInstance->GetSingleCreatureFromStorage(NPC_MURMUR))
+                        pMurmur->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, pMurmur, pMurmur);
+                });
+            }
+            m_doorCheckNearbyPlayersTimer = 1000;
+        }
+        else
+            m_doorCheckNearbyPlayersTimer -= diff;
+    }
+};
+
+GameObjectAI* GetAIgo_screaming_hall_door(GameObject* go)
+{
+    return new go_screaming_hall_door(go);
+}
+
+struct ShapeOfTheBeast : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            aura->GetCaster()->CastSpell(aura->GetCaster(), SPELL_SHAPE_OF_BEAST, TRIGGERED_OLD_TRIGGERED);
+        else
+            aura->GetCaster()->RemoveAurasDueToSpell(SPELL_SHAPE_OF_BEAST);
+    }
+};
+
 void AddSC_instance_shadow_labyrinth()
 {
+    RegisterAuraScript<ShapeOfTheBeast>("spell_shape_of_the_beast");
+
     Script* pNewScript = new Script;
     pNewScript->Name = "instance_shadow_labyrinth";
     pNewScript->GetInstanceData = &GetInstanceData_instance_shadow_labyrinth;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_screaming_hall_door";
+    pNewScript->GetGameObjectAI = &GetAIgo_screaming_hall_door;
     pNewScript->RegisterSelf();
 }

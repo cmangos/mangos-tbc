@@ -17,7 +17,7 @@
 /* ScriptData
 SDName: GO_Scripts
 SD%Complete: 100
-SDComment: Quest support: 5097, 5098
+SDComment: Quest support: 1920, 1960, 5097, 5098
 SDCategory: Game Objects
 EndScriptData */
 
@@ -25,9 +25,10 @@ EndScriptData */
 go_ethereum_prison
 go_ethereum_stasis
 go_andorhal_tower
+go_containment_coffer
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "GameEvents/GameEventMgr.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "Entities/TemporarySpawn.h"
@@ -226,9 +227,9 @@ struct npc_ethereum_prisonerAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         ExecuteActions();
@@ -391,7 +392,7 @@ struct go_ai_bell : public GameObjectAI
 
     uint32 GetBellSound(GameObject* pGo) const
     {
-        uint32 soundId;
+        uint32 soundId = 0;
         switch (pGo->GetEntry())
         {
             case GO_HORDE_BELL:
@@ -672,8 +673,8 @@ struct go_brewfest_music : public GameObjectAI
             switch (m_zoneTeam)
             {
                 case TEAM_NONE:
-                    m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetMap()->GetVisibilityDistance(),
-                                                      [&](Player * player)
+                    m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetVisibilityData().GetVisibilityDistance(),
+                    [&](Player * player)
                     {
                         if (player->GetTeam() == ALLIANCE)
                             PlayAllianceMusic();
@@ -731,8 +732,8 @@ struct go_midsummer_music : public GameObjectAI
 
         if (m_musicTimer <= diff)
         {
-            m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetMap()->GetVisibilityDistance(),
-                                              [&](Player * player)
+            m_go->GetMap()->ExecuteDistWorker(m_go, m_go->GetVisibilityData().GetVisibilityDistance(),
+            [&](Player * player)
             {
                 if (player->GetTeam() == ALLIANCE)
                     m_go->PlayMusic(EVENTMIDSUMMERFIREFESTIVAL_A, PlayPacketParameters(PLAY_TARGET, player));
@@ -989,6 +990,47 @@ GameObjectAI* GetAI_go_unadorned_spike(GameObject* go)
     return new go_unadorned_spike(go);
 }
 
+/*######################
+## go_containment_coffer
+######################*/
+
+enum
+{
+    NPC_RIFT_SPAWN = 6492
+};
+
+struct go_containment : public GameObjectAI
+{
+    go_containment(GameObject* go) : GameObjectAI(go), m_activated(false), m_startTimer(2000) {}
+
+    bool m_activated;
+    uint32 m_startTimer;
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (!m_activated)
+        {
+            if (m_startTimer < diff)
+            {
+                // Nearest Rift Spawn NPC must activate this GO_TYPE_BUTTON in order to trigger the linked trap
+                if (Creature* riftSpawn = GetClosestCreatureWithEntry(m_go, NPC_RIFT_SPAWN, 5.0f))
+                {
+                    m_go->Use(riftSpawn);
+                    m_activated = true;
+                    m_startTimer = 0;
+                }
+            }
+            else
+                m_startTimer -= diff;
+        }
+    }
+};
+
+GameObjectAI* GetAI_go_containment(GameObject* go)
+{
+    return new go_containment(go);
+}
+
 void AddSC_go_scripts()
 {
     Script* pNewScript = new Script;
@@ -1069,5 +1111,10 @@ void AddSC_go_scripts()
     pNewScript = new Script;
     pNewScript->Name = "go_unadorned_spike";
     pNewScript->GetGameObjectAI = &GetAI_go_unadorned_spike;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_containment_coffer";
+    pNewScript->GetGameObjectAI = &GetAI_go_containment;
     pNewScript->RegisterSelf();
 }

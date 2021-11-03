@@ -17,11 +17,14 @@
 /* ScriptData
 SDName: Boss_Heigan
 SD%Complete: 80
-SDComment: Missing poison inside the tunnel in phase 2
+SDComment: Missing poison inside the eye stalk tunnel in phase 2
+           Candidate spell is 30122 (correct damage range and already used in encounter) but there is no evidence of this
+           and of how the spell is cast and by who (no data found in sniffs as this part was removed in WotLK)
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
@@ -39,62 +42,90 @@ enum
     SAY_TAUNT4              = -1533117,
     SAY_CHANNELING          = -1533116,
     SAY_DEATH               = -1533118,
-    EMOTE_TELEPORT          = -1533136,
-    EMOTE_RETURN            = -1533137,
 
-    // Spells by boss
+    // Heigan spells
     SPELL_DECREPIT_FEVER    = 29998,
-    SPELL_DISRUPTION        = 29310,
-    SPELL_TELEPORT          = 30211,
-    SPELL_PLAGUE_CLOUD      = 29350,
-    // SPELL_PLAGUE_WAVE_SLOW    = 29351,                // removed from dbc. activates the traps during phase 1; triggers spell 30116, 30117, 30118, 30119 each 10 secs
-    // SPELL_PLAGUE_WAVE_FAST    = 30114,                // removed from dbc. activates the traps during phase 2; triggers spell 30116, 30117, 30118, 30119 each 3 secs
+    SPELL_MANA_BURN         = 29310,
+    SPELL_TELEPORT_SELF     = 30211,
+    SPELL_TELEPORT_PLAYERS  = 29273,
+    SPELL_PLAGUE_CLOUD      = 29350,                // Channel spell periodically triggering spell 30122
+    SPELL_PLAGUE_WAVE_SLOW  = 29351,                // Activates the traps during phase 1; triggers spell 30116, 30117, 30118, 30119 each 10 secs
+    SPELL_PLAGUE_WAVE_FAST  = 30114,                // Activates the traps during phase 2; triggers spell 30116, 30117, 30118, 30119 each 3 secs
 
-    MAX_PLAYERS_TELEPORT    = 3
+    MAX_PLAYERS_TELEPORT    = 3,
+
+    NPC_PLAGUE_WAVE         = 17293,                // Control plague waves
+    NPC_WORLD_TRIGGER       = 15384
 };
 
-static const float aTunnelLoc[4] = {2905.63f, -3769.96f, 273.62f, 3.13f};
+static const float resetX = 2825.0f;                // Beyond this X-line, Heigan is outside his room and should reset (leashing)
 
-struct boss_heiganAI : public ScriptedAI
+
+enum HeiganActions
 {
-    boss_heiganAI(Creature* pCreature) : ScriptedAI(pCreature)
+    HEIGAN_FEVER,
+    HEIGAN_MANA_BURN,
+    HEIGAN_TELEPORT_PLAYERS,
+    HEIGAN_TAUNT,
+    HEIGAN_ERUPTION,
+    HEIGAN_PLATFORM_PHASE,
+    HEIGAN_GROUND_PHASE,
+    HEIGAN_CHANNELING,
+    HEIGAN_ACTION_MAX,
+    HEIGAN_DOOR,
+};
+
+struct boss_heiganAI : public CombatAI
+{
+    boss_heiganAI(Creature* creature) : CombatAI(creature, HEIGAN_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
-        Reset();
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float /*y*/, float /*z*/)
+        {
+            float respawnX, respawnY, respawnZ;
+            m_creature->GetRespawnCoord(respawnX, respawnY, respawnZ);
+            return m_creature->GetDistance2d(respawnX, respawnY) > 90.f || x > resetX;
+        });
+        AddCombatAction(HEIGAN_FEVER, 4u * IN_MILLISECONDS);
+        AddCombatAction(HEIGAN_MANA_BURN, 5u * IN_MILLISECONDS);
+        AddCombatAction(HEIGAN_TELEPORT_PLAYERS, 35u * IN_MILLISECONDS, 45u * IN_MILLISECONDS);
+        AddCombatAction(HEIGAN_TAUNT, 25u * IN_MILLISECONDS, 90u * IN_MILLISECONDS);
+        AddCustomAction(HEIGAN_ERUPTION, true, [&]() { StartEruptions(m_phase == PHASE_GROUND ? SPELL_PLAGUE_WAVE_SLOW : SPELL_PLAGUE_WAVE_FAST); });
+        AddCustomAction(HEIGAN_GROUND_PHASE, true, [&]() { HandleGroundPhase(); });
+        AddCustomAction(HEIGAN_PLATFORM_PHASE, true, [&]() { HandlePlatformPhase(); });
+        AddCustomAction(HEIGAN_DOOR, true, [&]() { CloseEntrance(); });
+        AddCustomAction(HEIGAN_CHANNELING, true, [&]() { HandleChanneling(); });
     }
 
-    instance_naxxramas* m_pInstance;
+    ScriptedInstance* m_instance;
 
-    uint8 m_uiPhase;
-    uint8 m_uiPhaseEruption;
+    uint8 m_phase;
 
-    uint32 m_uiTeleportTimer;
-    uint32 m_uiFeverTimer;
-    uint32 m_uiDisruptionTimer;
-    uint32 m_uiEruptionTimer;
-    uint32 m_uiPhaseTimer;
-    uint32 m_uiTauntTimer;
-    uint32 m_uiStartChannelingTimer;
-
-    void ResetPhase()
-    {
-        m_uiPhaseEruption = 0;
-        m_uiFeverTimer = 4000;
-        m_uiEruptionTimer = m_uiPhase == PHASE_GROUND ? 15000 : 7500;
-        m_uiDisruptionTimer = 5000;
-        m_uiStartChannelingTimer = 1000;
-        m_uiPhaseTimer = m_uiPhase == PHASE_GROUND ? 90000 : 45000;
-        m_uiTeleportTimer = 60000;
-    }
+    SelectAttackingTargetParams m_teleportParams;
 
     void Reset() override
     {
-        m_uiPhase = PHASE_GROUND;
-        m_uiTauntTimer = urand(20000, 60000);               // TODO, find information
-        ResetPhase();
+        CombatAI::Reset();
+
+        m_phase = PHASE_GROUND;
+        m_teleportParams.range.minRange = 0;
+        m_teleportParams.range.maxRange = 40;
+
+        StopEruptions();
     }
 
-    void Aggro(Unit* /*pWho*/) override
+    uint32 GetSubsequentActionTimer(uint32 id)
+    {
+        switch (id)
+        {
+            case HEIGAN_FEVER: return 21u * IN_MILLISECONDS;
+            case HEIGAN_MANA_BURN: return 10u * IN_MILLISECONDS;
+            case HEIGAN_TAUNT: return urand(25, 90) * IN_MILLISECONDS;
+            case HEIGAN_TELEPORT_PLAYERS: return urand(35, 45) * IN_MILLISECONDS;
+            default: return 0; // never occurs but for compiler
+        }
+    }
+
+    void Aggro(Unit* unit) override
     {
         switch (urand(0, 2))
         {
@@ -103,168 +134,224 @@ struct boss_heiganAI : public ScriptedAI
             case 2: DoScriptText(SAY_AGGRO3, m_creature); break;
         }
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_HEIGAN, IN_PROGRESS);
+        if (m_instance)
+            m_instance->SetData(TYPE_HEIGAN, IN_PROGRESS);
+
+        ResetTimer(HEIGAN_ERUPTION, 5u * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_DOOR, 15u * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_PLATFORM_PHASE, 90u * IN_MILLISECONDS);
     }
 
-    void KilledUnit(Unit* /*pVictim*/) override
+    void KilledUnit(Unit* /*victim*/) override
     {
         DoScriptText(SAY_SLAY, m_creature);
     }
 
-    void JustDied(Unit* /*pKiller*/) override
+    void JustDied(Unit* /*killer*/) override
     {
         DoScriptText(SAY_DEATH, m_creature);
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_HEIGAN, DONE);
+        if (m_instance)
+            m_instance->SetData(TYPE_HEIGAN, DONE);
+
+        StopEruptions();
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_HEIGAN, FAIL);
+        if (m_instance)
+            m_instance->SetData(TYPE_HEIGAN, FAIL);
+
+        StopEruptions();
+
+        ScriptedAI::EnterEvadeMode();
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void HandleGroundPhase()
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        ResetAllTimers();
+        m_creature->InterruptNonMeleeSpells(true);
+        m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
+        StopEruptions();
+        m_phase = PHASE_GROUND;
+        ResetTimer(HEIGAN_ERUPTION, 100u);
+        ResetTimer(HEIGAN_PLATFORM_PHASE, 90u * IN_MILLISECONDS);
+    }
+
+    void HandlePlatformPhase()
+    {
+        for (uint32 action : {HEIGAN_FEVER, HEIGAN_TAUNT, HEIGAN_MANA_BURN, HEIGAN_TELEPORT_PLAYERS})
+            DisableCombatAction(action);
+        m_creature->GetMotionMaster()->MoveIdle();
+        if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_SELF) == CAST_OK)
+        {
+            StopEruptions();
+            m_phase = PHASE_PLATFORM;
+            ResetTimer(HEIGAN_ERUPTION, 3000u); // Small delay to let enough time for players to reach the first safe zone
+            ResetTimer(HEIGAN_CHANNELING, 100u);
+        }
+        ResetTimer(HEIGAN_GROUND_PHASE, 45u * IN_MILLISECONDS);
+    }
+
+    void StartEruptions(uint32 spellId)
+    {
+        // Clear current plague waves controller spell before applying the new one
+        if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_PLAGUE_WAVE, 100.0f))
+        {
+            trigger->RemoveAllAuras();
+            trigger->CastSpell(trigger, spellId, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+
+    void StopEruptions()
+    {
+        // Reset Plague Waves
+        if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_PLAGUE_WAVE, 100.0f))
+            trigger->RemoveAllAuras();
+    }
+
+    void CloseEntrance()
+    {
+        if (!m_instance)
             return;
 
-        if (m_uiPhase == PHASE_GROUND)
+        if (GameObject* door = m_instance->GetSingleGameObjectFromStorage(GO_PLAG_HEIG_ENTRY_DOOR))
+            door->SetGoState(GO_STATE_READY);
+    }
+
+    void HandleChanneling()
+    {
+        DoScriptText(SAY_CHANNELING, m_creature);
+        DoCastSpellIfCan(m_creature, SPELL_PLAGUE_CLOUD);
+        // ToDo: fill the tunnel with poison - required further research
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        if (!m_instance)
+            return;
+
+        switch (action)
         {
-            // Teleport to platform
-            if (m_uiPhaseTimer < uiDiff)
+            case HEIGAN_TAUNT:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT) == CAST_OK)
+                switch (urand(0, 3))
                 {
-                    DoScriptText(EMOTE_TELEPORT, m_creature);
-                    m_creature->GetMotionMaster()->MoveIdle();
-
-                    m_uiPhase = PHASE_PLATFORM;
-                    ResetPhase();
-                    return;
+                    case 0: DoScriptText(SAY_TAUNT1, m_creature); break;
+                    case 1: DoScriptText(SAY_TAUNT2, m_creature); break;
+                    case 2: DoScriptText(SAY_TAUNT3, m_creature); break;
+                    case 3: DoScriptText(SAY_TAUNT4, m_creature); break;
                 }
-            }
-            else
-                m_uiPhaseTimer -= uiDiff;
-
-            // Fever
-            if (m_uiFeverTimer < uiDiff)
-            {
-                DoCastSpellIfCan(m_creature, SPELL_DECREPIT_FEVER);
-                m_uiFeverTimer = 21000;
-            }
-            else
-                m_uiFeverTimer -= uiDiff;
-
-            // Disruption
-            if (m_uiDisruptionTimer < uiDiff)
-            {
-                DoCastSpellIfCan(m_creature, SPELL_DISRUPTION);
-                m_uiDisruptionTimer = 10000;
-            }
-            else
-                m_uiDisruptionTimer -= uiDiff;
-
-            if (m_uiTeleportTimer < uiDiff)
-            {
-                float fX, fY, fZ;
-                // Teleport players in the tunnel
-                for (uint8 i = 0; i < MAX_PLAYERS_TELEPORT; i++)
-                {
-                    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, uint32(0), SELECT_FLAG_PLAYER))
-                    {
-                        m_creature->GetRandomPoint(aTunnelLoc[0], aTunnelLoc[1], aTunnelLoc[2], 5.0f, fX, fY, fZ);
-                        pTarget->NearTeleportTo(fX, fY, fZ, aTunnelLoc[3]);
-                    }
-                }
-
-                m_uiTeleportTimer = 70000;
-            }
-            else
-                m_uiTeleportTimer -= uiDiff;
-
-        }
-        else                                                // Platform Phase
-        {
-            if (m_uiPhaseTimer <= uiDiff)                   // Return to fight
-            {
-                m_creature->InterruptNonMeleeSpells(true);
-                DoScriptText(EMOTE_RETURN, m_creature);
-                m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-
-                m_uiPhase = PHASE_GROUND;
-                ResetPhase();
+                ResetCombatAction(action, GetSubsequentActionTimer(action));
                 return;
             }
-            m_uiPhaseTimer -= uiDiff;
-
-            if (m_uiStartChannelingTimer)
+            case HEIGAN_FEVER:
             {
-                if (m_uiStartChannelingTimer <= uiDiff)
+                if (DoCastSpellIfCan(m_creature, SPELL_DECREPIT_FEVER) == CAST_OK)
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                return;
+            }
+            case HEIGAN_MANA_BURN:
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_MANA_BURN) == CAST_OK)
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                return;
+            }
+            case HEIGAN_TELEPORT_PLAYERS:
+            {
+                std::vector<Unit*> targets;
+                m_creature->SelectAttackingTargets(targets, ATTACKING_TARGET_ALL_SUITABLE, 0, nullptr, SELECT_FLAG_PLAYER | SELECT_FLAG_SKIP_TANK, m_teleportParams);
+
+                if (targets.size() > MAX_PLAYERS_TELEPORT)
                 {
-                    DoScriptText(SAY_CHANNELING, m_creature);
-                    DoCastSpellIfCan(m_creature, SPELL_PLAGUE_CLOUD);
-
-                    // ToDo: fill the tunnel with poison - required further research
-                    m_uiStartChannelingTimer = 0;           // no more
+                    std::shuffle(targets.begin(), targets.end(), *GetRandomGenerator());
+                    targets.resize(MAX_PLAYERS_TELEPORT);
                 }
-                else
-                    m_uiStartChannelingTimer -= uiDiff;
+
+                if (!targets.empty())
+                {
+                    for (auto& target : targets)
+                        target->CastSpell(target, SPELL_TELEPORT_PLAYERS, TRIGGERED_OLD_TRIGGERED);
+                }
+                DisableCombatAction(action);
+                return;
             }
+            default:
+                return;
         }
-
-        // Taunt
-        if (m_uiTauntTimer < uiDiff)
-        {
-            switch (urand(0, 3))
-            {
-                case 0: DoScriptText(SAY_TAUNT1, m_creature); break;
-                case 1: DoScriptText(SAY_TAUNT2, m_creature); break;
-                case 2: DoScriptText(SAY_TAUNT3, m_creature); break;
-                case 3: DoScriptText(SAY_TAUNT4, m_creature); break;
-            }
-            m_uiTauntTimer = urand(20000, 70000);
-        }
-        else
-            m_uiTauntTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
-
-        // Handling of the erruptions, this is not related to melee attack or spell-casting
-        if (!m_pInstance)
-            return;
-
-        // Eruption
-        if (m_uiEruptionTimer < uiDiff)
-        {
-            for (uint8 uiArea = 0; uiArea < MAX_HEIGAN_TRAP_AREAS; ++uiArea)
-            {
-                // Actually this is correct :P
-                if (uiArea == (m_uiPhaseEruption % 6) || uiArea == 6 - (m_uiPhaseEruption % 6))
-                    continue;
-
-                m_pInstance->DoTriggerHeiganTraps(m_creature, uiArea);
-            }
-
-            m_uiEruptionTimer = m_uiPhase == PHASE_GROUND ? 10000 : 3000;
-            ++m_uiPhaseEruption;
-        }
-        else
-            m_uiEruptionTimer -= uiDiff;
     }
 };
 
-UnitAI* GetAI_boss_heigan(Creature* pCreature)
+/*###################
+## npc_diseased_maggot
+####################*/
+
+struct npc_diseased_maggotAI : public ScriptedAI
 {
-    return new boss_heiganAI(pCreature);
+    npc_diseased_maggotAI(Creature* creature) : ScriptedAI(creature)
+    {
+        m_instance = (instance_naxxramas*)creature->GetInstanceData();
+        Reset();
+    }
+
+    instance_naxxramas* m_instance;
+
+    uint32 m_resetCheckTimer;
+
+    void Reset() override
+    {
+        m_resetCheckTimer = 3 * IN_MILLISECONDS;
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        // Do nothing if no target
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+            return;
+
+        if (m_resetCheckTimer <= diff)
+        {
+            // Check if we are in range of the trigger NPC in the middle of Heigan room, if so: force evade
+            if (Creature* trigger = GetClosestCreatureWithEntry(m_creature, NPC_WORLD_TRIGGER, 45.0f))
+                m_creature->AI()->EnterEvadeMode();
+            m_resetCheckTimer = 3 * IN_MILLISECONDS;
+        }
+        else
+            m_resetCheckTimer -= diff;
+
+        DoMeleeAttackIfReady();
+    }
+};
+
+UnitAI* GetAI_npc_diseased_maggot(Creature* creature)
+{
+    return new npc_diseased_maggotAI(creature);
 }
+
+struct PlagueWaveController : public AuraScript
+{
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& /* data */) const override
+    {
+        Unit* triggerTarget = aura->GetTriggerTarget();
+        uint32 spellForTick[6] = { 30116, 30117, 30118, 30119, 30118, 30117 };  // Circling back and forth through the 4 plague areas
+        uint32 tick = (aura->GetAuraTicks() - 1) % 6;
+
+        triggerTarget->CastSpell(triggerTarget, spellForTick[tick], TRIGGERED_OLD_TRIGGERED, nullptr, aura, aura->GetCasterGuid(), nullptr);
+    }
+};
 
 void AddSC_boss_heigan()
 {
-    Script* pNewScript = new Script;
-    pNewScript->Name = "boss_heigan";
-    pNewScript->GetAI = &GetAI_boss_heigan;
-    pNewScript->RegisterSelf();
+
+    Script* newScript = new Script;
+    newScript->Name = "boss_heigan";
+    newScript->GetAI = &GetNewAIInstance<boss_heiganAI>;
+    newScript->RegisterSelf();
+
+    newScript = new Script;
+    newScript->Name = "npc_diseased_maggot";
+    newScript->GetAI = &GetAI_npc_diseased_maggot;
+    newScript->RegisterSelf();
+
+    RegisterAuraScript<PlagueWaveController>("spell_plague_wave_controller");
 }

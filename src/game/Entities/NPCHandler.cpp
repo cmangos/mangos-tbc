@@ -180,7 +180,7 @@ void WorldSession::SendTrainerList(ObjectGuid guid) const
             if (!_player->IsSpellFitByClassAndRace(tSpell->learnedSpell, &reqLevel))
                 continue;
 
-            if (tSpell->conditionId && !sObjectMgr.IsPlayerMeetToCondition(tSpell->conditionId, GetPlayer(), unit->GetMap(), unit, CONDITION_FROM_TRAINER))
+            if (tSpell->conditionId && !sObjectMgr.IsConditionSatisfied(tSpell->conditionId, GetPlayer(), unit->GetMap(), unit, CONDITION_FROM_TRAINER))
                 continue;
 
             reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
@@ -203,7 +203,7 @@ void WorldSession::SendTrainerList(ObjectGuid guid) const
             if (!_player->IsSpellFitByClassAndRace(tSpell->learnedSpell, &reqLevel))
                 continue;
 
-            if (tSpell->conditionId && !sObjectMgr.IsPlayerMeetToCondition(tSpell->conditionId, GetPlayer(), unit->GetMap(), unit, CONDITION_FROM_TRAINER))
+            if (tSpell->conditionId && !sObjectMgr.IsConditionSatisfied(tSpell->conditionId, GetPlayer(), unit->GetMap(), unit, CONDITION_FROM_TRAINER))
                 continue;
 
             reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
@@ -310,7 +310,7 @@ void WorldSession::HandleGossipHelloOpcode(WorldPacket& recv_data)
         return;
     }
 
-    pCreature->StopMoving();
+    pCreature->GetMotionMaster()->PauseWaypoints();
 
     if (pCreature->isSpiritGuide())
         pCreature->SendAreaSpiritHealerQueryOpcode(_player);
@@ -333,14 +333,14 @@ void WorldSession::HandleGossipSelectOptionOpcode(WorldPacket& recv_data)
 
     recv_data >> guid >> menuId >> gossipListId;
 
-    if (_player->PlayerTalkClass->GossipOptionCoded(gossipListId))
+    if (_player->GetPlayerMenu()->GossipOptionCoded(gossipListId))
     {
         recv_data >> code;
         DEBUG_LOG("Gossip code: %s", code.c_str());
     }
 
-    uint32 sender = _player->PlayerTalkClass->GossipOptionSender(gossipListId);
-    uint32 action = _player->PlayerTalkClass->GossipOptionAction(gossipListId);
+    uint32 sender = _player->GetPlayerMenu()->GossipOptionSender(gossipListId);
+    uint32 action = _player->GetPlayerMenu()->GossipOptionAction(gossipListId);
 
     if (guid.IsAnyTypeCreature())
     {
@@ -409,8 +409,7 @@ void WorldSession::SendSpiritResurrect() const
     WorldSafeLocsEntry const* corpseGrave = nullptr;
     Corpse* corpse = _player->GetCorpse();
     if (corpse)
-        corpseGrave = sObjectMgr.GetClosestGraveYard(
-                          corpse->GetPositionX(), corpse->GetPositionY(), corpse->GetPositionZ(), corpse->GetMapId(), _player->GetTeam());
+        corpseGrave = _player->GetMap()->GetGraveyardManager().GetClosestGraveYard(corpse->GetPositionX(), corpse->GetPositionY(), corpse->GetPositionZ(), corpse->GetMapId(), _player->GetTeam());
 
     // now can spawn bones
     _player->SpawnCorpseBones();
@@ -418,11 +417,10 @@ void WorldSession::SendSpiritResurrect() const
     // teleport to nearest from corpse graveyard, if different from nearest to player ghost
     if (corpseGrave)
     {
-        WorldSafeLocsEntry const* ghostGrave = sObjectMgr.GetClosestGraveYard(
-                _player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetMapId(), _player->GetTeam());
+        WorldSafeLocsEntry const* ghostGrave = _player->GetMap()->GetGraveyardManager().GetClosestGraveYard(_player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetMapId(), _player->GetTeam());
 
         if (corpseGrave != ghostGrave)
-            _player->TeleportTo(corpseGrave->map_id, corpseGrave->x, corpseGrave->y, corpseGrave->z, _player->GetOrientation());
+            _player->TeleportTo(corpseGrave->map_id, corpseGrave->x, corpseGrave->y, corpseGrave->z, corpseGrave->o);
         // or update at original position
         else
         {
@@ -443,7 +441,7 @@ void WorldSession::HandleBinderActivateOpcode(WorldPacket& recv_data)
     ObjectGuid npcGuid;
     recv_data >> npcGuid;
 
-    if (!GetPlayer()->IsInWorld() || !GetPlayer()->isAlive())
+    if (!GetPlayer()->IsInWorld() || !GetPlayer()->IsAlive())
         return;
 
     Creature* unit = GetPlayer()->GetNPCIfCanInteractWith(npcGuid, UNIT_NPC_FLAG_INNKEEPER);
@@ -470,7 +468,7 @@ void WorldSession::SendBindPoint(Creature* npc) const
     data << uint32(3286);                                   // Bind
     SendPacket(data);
 
-    _player->PlayerTalkClass->CloseGossip();
+    _player->GetPlayerMenu()->CloseGossip();
 }
 
 void WorldSession::HandleListStabledPetsOpcode(WorldPacket& recv_data)
@@ -508,11 +506,11 @@ void WorldSession::SendStablePet(ObjectGuid guid) const
     PetSaveMode firstSlot = PET_SAVE_FIRST_STABLE_SLOT;     // have to be changed to PET_SAVE_AS_CURRENT if pet is currently temp unsummoned
 
     // not let move dead pet in slot
-    if (pet && pet->isAlive() && pet->getPetType() == HUNTER_PET)
+    if (pet && pet->IsAlive() && pet->getPetType() == HUNTER_PET)
     {
         data << uint32(pet->GetCharmInfo()->GetPetNumber());
         data << uint32(pet->GetEntry());
-        data << uint32(pet->getLevel());
+        data << uint32(pet->GetLevel());
         data << pet->GetName();                             // petname
         data << uint32(pet->GetLoyaltyLevel());             // loyalty
         data << uint8(0x01);                                // client slot 1 == current pet (0)
@@ -615,7 +613,7 @@ void WorldSession::HandleStablePet(WorldPacket& recv_data)
 
     recv_data >> npcGUID;
 
-    if (!GetPlayer()->isAlive())
+    if (!GetPlayer()->IsAlive())
     {
         SendStableResult(STABLE_ERR_STABLE);
         return;
@@ -633,7 +631,7 @@ void WorldSession::HandleStablePet(WorldPacket& recv_data)
     if (pet)
     {
         bool stop = false;
-        if (!pet->isAlive())
+        if (!pet->IsAlive())
         {
             _player->SendPetTameFailure(PETTAME_DEAD);
             stop = true;
@@ -764,7 +762,7 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
     if (pet)
     {
         bool stop = false;
-        if (!pet->isAlive())
+        if (!pet->IsAlive())
         {
             _player->SendPetTameFailure(PETTAME_DEAD);
             stop = true;
@@ -818,7 +816,7 @@ void WorldSession::HandleUnstablePet(WorldPacket& recv_data)
     }
 
     Pet* newpet = new Pet(HUNTER_PET);
-    if (!newpet->LoadPetFromDB(_player, creature_id, petnumber))
+    if (!newpet->LoadPetFromDB(_player, newpet->GetPetSpawnPosition(_player), creature_id, petnumber))
     {
         delete newpet;
         newpet = nullptr;
@@ -887,7 +885,7 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
     if (pet)
     {
         bool stop = false;
-        if (!pet->isAlive())
+        if (!pet->IsAlive())
         {
             _player->SendPetTameFailure(PETTAME_DEAD);
             stop = true;
@@ -964,7 +962,7 @@ void WorldSession::HandleStableSwapPet(WorldPacket& recv_data)
 
     // summon unstabled pet
     Pet* newpet = new Pet;
-    if (!newpet->LoadPetFromDB(_player, creature_id, pet_number))
+    if (!newpet->LoadPetFromDB(_player, newpet->GetPetSpawnPosition(_player), creature_id, pet_number))
     {
         delete newpet;
 

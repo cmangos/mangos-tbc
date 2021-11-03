@@ -21,7 +21,7 @@ SDComment: Instance Data Scripts and functions to acquire mobs and set encounter
 SDCategory: Black Temple
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "black_temple.h"
 
 /* Black Temple encounters:
@@ -36,7 +36,7 @@ EndScriptData */
 8 - Illidan Stormrage Event
 */
 
-instance_black_temple::instance_black_temple(Map* pMap) : ScriptedInstance(pMap)
+instance_black_temple::instance_black_temple(Map* pMap) : ScriptedInstance(pMap), m_akamaIllidanSequence(false)
 {
     Initialize();
 };
@@ -48,7 +48,14 @@ void instance_black_temple::Initialize()
 
 void instance_black_temple::OnPlayerEnter(Player* /*pPlayer*/)
 {
-    DoSpawnAkamaIfCan();
+    DoTeleportAkamaIfCan();
+}
+
+void instance_black_temple::OnPlayerResurrect(Player* player)
+{
+    if (GetData(TYPE_RELIQUIARY) == IN_PROGRESS)
+        if (Creature* trigger = GetSingleCreatureFromStorage(NPC_RELIQUARY_COMBAT_TRIGGER))
+            trigger->EngageInCombatWith(player);
 }
 
 bool instance_black_temple::IsEncounterInProgress() const
@@ -120,6 +127,75 @@ void instance_black_temple::OnCreatureCreate(Creature* creature)
             if (creature->GetPositionZ() > 160.0f)
                 creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
             break;
+        case NPC_RELIQUARY_COMBAT_TRIGGER:
+            creature->GetCombatManager().SetLeashingDisable(true);
+            m_npcEntryGuidStore[creature->GetEntry()] = creature->GetObjectGuid();
+            break;
+        case NPC_ANGERED_SOUL_FRAGMENT:
+        case NPC_SUFFERING_SOUL_FRAGMENT:
+        case NPC_HUNGERING_SOUL_FRAGMENT:
+            m_soulFragments.push_back(creature->GetObjectGuid());
+            break;
+        case NPC_ENSLAVED_SOUL:
+            m_enslavedSouls.push_back(creature->GetObjectGuid());
+            break;
+        case NPC_WORLD_TRIGGER:
+        {
+            float z = creature->GetPositionZ();
+            if (z > 355.f && z < 365.f)
+                m_illidanTriggersLower.push_back(creature->GetObjectGuid());
+            else if (z > 365.f)
+                m_illidanTriggersUpper.push_back(creature->GetObjectGuid());
+            break;
+        }
+        case NPC_BLADE_OF_AZZINOTH:
+            GuidVector& blades = m_npcEntryGuidCollection[creature->GetEntry()];
+            if (blades.size() == 2) // new attempt
+                blades.clear();
+            blades.push_back(creature->GetObjectGuid());
+            break;
+    }
+
+    switch (creature->GetEntry())
+    {
+        case NPC_FLAME_CRASH:
+        case NPC_BLADE_OF_AZZINOTH:
+        case NPC_ILLIDAN_TARGET:
+        case NPC_SHADOW_DEMON:
+        case NPC_ILLIDARI_ELITE:
+        case NPC_PARASITIC_SHADOWFIEND:
+        case NPC_FLAME_OF_AZZINOTH:
+        case NPC_DEMON_FIRE:
+        case NPC_BLAZE:
+        case NPC_CAGE_TRAP_DISTURB_TRIGGER:
+            m_illidanSpawns.push_back(creature->GetObjectGuid());
+            break;
+    }
+}
+
+void instance_black_temple::OnCreatureRespawn(Creature* creature)
+{
+    switch (creature->GetEntry())
+    {
+        case NPC_ASHTONGUE_BATTLELORD:
+        case NPC_ASHTONGUE_MYSTIC:
+        case NPC_ASHTONGUE_STORMCALLER:
+        case NPC_ASHTONGUE_PRIMALIST:
+        case NPC_STORM_FURY:
+        case NPC_ASHTONGUE_FERAL_SPIRIT:
+        case NPC_ASHTONGUE_STALKER:
+            if (m_auiEncounter[TYPE_SHADE] == DONE)
+                creature->setFaction(FACTION_ASHTONGUE_FRIENDLY);
+            break;
+        case NPC_ANGERED_SOUL_FRAGMENT:
+        case NPC_SUFFERING_SOUL_FRAGMENT:
+        case NPC_HUNGERING_SOUL_FRAGMENT:
+            if (GetData(NPC_RELIQUARY_OF_SOULS) == DONE)
+            {
+                creature->SetRespawnDelay(time(nullptr) + 7 * DAY);
+                creature->ForcedDespawn();
+            }
+            break;
     }
 }
 
@@ -150,9 +226,12 @@ void instance_black_temple::OnObjectCreate(GameObject* go)
             if (m_auiEncounter[TYPE_SHAHRAZ] == DONE)
                 go->SetGoState(GO_STATE_ACTIVE);
             break;
+        case GO_ILLIDAN_GATE:                               // Gate leading to Temple Summit
+            if (m_auiEncounter[TYPE_ILLIDAN] == DONE)
+                go->SetGoState(GO_STATE_ACTIVE);
+            break;
         case GO_PRE_COUNCIL_DOOR:                           // Door leading to the Council (grand promenade)
         case GO_COUNCIL_DOOR:                               // Door leading to the Council (inside)
-        case GO_ILLIDAN_GATE:                               // Gate leading to Temple Summit
         case GO_ILLIDAN_DOOR_R:                             // Right door at Temple Summit
         case GO_ILLIDAN_DOOR_L:                             // Left door at Temple Summit
             break;
@@ -164,6 +243,36 @@ void instance_black_temple::OnObjectCreate(GameObject* go)
             return;
     }
     m_goEntryGuidStore[go->GetEntry()] = go->GetObjectGuid();
+}
+
+void instance_black_temple::OnCreatureEvade(Creature* creature)
+{
+    switch (creature->GetEntry())
+    {
+        case NPC_RELIQUARY_COMBAT_TRIGGER:
+        {
+            if (Creature* reliquary = GetSingleCreatureFromStorage(NPC_RELIQUARY_OF_SOULS))
+                reliquary->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, reliquary, reliquary);
+            break;
+        }
+        default: break;
+    }
+}
+
+void instance_black_temple::OnCreatureDeath(Creature* creature)
+{
+    switch (creature->GetEntry())
+    {
+        case NPC_ANGERED_SOUL_FRAGMENT:
+        case NPC_SUFFERING_SOUL_FRAGMENT:
+        case NPC_HUNGERING_SOUL_FRAGMENT:
+            if (GetData(TYPE_RELIQUIARY) == DONE)
+            {
+                creature->SetRespawnDelay(time(nullptr) + 7 * DAY);
+                creature->SaveRespawnTime();
+            }
+            break;
+    }
 }
 
 void instance_black_temple::SetData(uint32 type, uint32 data)
@@ -222,8 +331,50 @@ void instance_black_temple::SetData(uint32 type, uint32 data)
             break;
         case TYPE_RELIQUIARY:
             m_auiEncounter[type] = data;
+            if (data == IN_PROGRESS)
+            {
+                if (Creature* trigger = GetSingleCreatureFromStorage(NPC_RELIQUARY_COMBAT_TRIGGER))
+                {
+                    trigger->SetActiveObjectState(true);
+                    trigger->SetInCombatWithZone(false);
+                    if (!trigger->IsInCombat())
+                    {
+                        SetData(TYPE_RELIQUIARY, FAIL);
+                        return;
+                    }
+                }
+            }
+            if (data == DONE || data == FAIL)
+            {
+                if (Creature* trigger = GetSingleCreatureFromStorage(NPC_RELIQUARY_COMBAT_TRIGGER))
+                {
+                    trigger->CombatStop();
+                    trigger->SetActiveObjectState(false);
+                }
+            }
             if (data == DONE)
+            {
+                for (ObjectGuid guid : m_soulFragments)
+                {
+                    if (Creature* soul = instance->GetCreature(guid))
+                    {
+                        soul->SetRespawnDelay(time(nullptr) + 7 * DAY);
+                        soul->ForcedDespawn();
+                    }
+                }
                 DoOpenPreMotherDoor();
+            }
+            if (data == FAIL)
+            {
+                for (ObjectGuid guid : m_soulFragments)
+                {
+                    if (Creature* soul = instance->GetCreature(guid))
+                    {
+                        soul->SetRespawnDelay(15);
+                        soul->Respawn();
+                    }
+                }
+            }
             break;
         case TYPE_SHAHRAZ:
             if (data == DONE)
@@ -234,21 +385,23 @@ void instance_black_temple::SetData(uint32 type, uint32 data)
             // Don't set the same data twice
             if (m_auiEncounter[type] == data)
                 return;
-            DoUseDoorOrButton(GO_COUNCIL_DOOR);
             m_auiEncounter[type] = data;
+            DoUseDoorOrButton(GO_COUNCIL_DOOR);
             if (data == DONE)
-                DoSpawnAkamaIfCan();
+                DoTeleportAkamaIfCan();
             break;
         case TYPE_ILLIDAN:
+            if (data == IN_PROGRESS && GetData(TYPE_COUNCIL) != DONE)
+                BanPlayersIfNoGm("Player engaged Illidan without killing council and Gamemaster being present in instance.");
             DoUseDoorOrButton(GO_ILLIDAN_DOOR_R);
             DoUseDoorOrButton(GO_ILLIDAN_DOOR_L);
+            m_auiEncounter[type] = data;
             if (data == FAIL)
             {
                 // Cleanup encounter
-                DoSpawnAkamaIfCan();
-                DoUseDoorOrButton(GO_ILLIDAN_GATE);
+                if (Creature* illidan = GetSingleCreatureFromStorage(NPC_ILLIDAN_STORMRAGE))
+                    illidan->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, illidan, illidan);
             }
-            m_auiEncounter[type] = data;
             break;
         default:
             script_error_log("Instance Black Temple: ERROR SetData = %u for type %u does not exist/not implemented.", type, data);
@@ -282,21 +435,24 @@ uint32 instance_black_temple::GetData(uint32 type) const
 void instance_black_temple::DoOpenPreMotherDoor()
 {
     if (GetData(TYPE_SHADE) == DONE && GetData(TYPE_GOREFIEND) == DONE && GetData(TYPE_BLOODBOIL) == DONE && GetData(TYPE_RELIQUIARY) == DONE)
+    {
         DoUseDoorOrButton(GO_PRE_SHAHRAZ_DOOR);
+        if (Creature* trigger = GetSingleCreatureFromStorage(NPC_BLACK_TEMPLE_TRIGGER))
+            DoScriptText(EMOTE_OPEN_MOTHER_DOOR, trigger);
+    }
 }
 
-void instance_black_temple::DoSpawnAkamaIfCan()
+void instance_black_temple::DoTeleportAkamaIfCan()
 {
-    if (GetData(TYPE_ILLIDAN) == DONE || GetData(TYPE_COUNCIL) != DONE)
+    if (GetData(TYPE_COUNCIL) != DONE || m_akamaIllidanSequence || GetData(TYPE_ILLIDAN) == DONE)
         return;
 
-    // If already spawned return
-    if (GetSingleCreatureFromStorage(NPC_AKAMA, true))
+    Creature* akama = GetSingleCreatureFromStorage(NPC_AKAMA, true);
+    if (!akama) // will happen on him being loaded
         return;
 
-    // Summon Akama after the council has been defeated
-    if (Player* pPlayer = GetPlayerInMap())
-        pPlayer->SummonCreature(NPC_AKAMA, 617.754f, 307.768f, 271.735f, 6.197f, TEMPSPAWN_DEAD_DESPAWN, 0);
+    m_akamaIllidanSequence = true;
+    akama->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, akama, akama);
 }
 
 void instance_black_temple::DespawnImpalingSpines()

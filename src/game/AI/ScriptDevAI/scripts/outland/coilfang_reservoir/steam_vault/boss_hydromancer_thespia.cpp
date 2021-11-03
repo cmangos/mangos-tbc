@@ -26,7 +26,7 @@ boss_hydromancer_thespia
 mob_coilfang_waterelemental
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "steam_vault.h"
 
 enum
@@ -103,7 +103,7 @@ struct boss_thespiaAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         // LightningCloud_Timer

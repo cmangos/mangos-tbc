@@ -23,6 +23,7 @@
 #include "Entities/ObjectGuid.h"
 
 class WorldPacket;
+class WorldSession;
 
 enum ObjectUpdateType
 {
@@ -66,6 +67,8 @@ class UpdateData
         void Clear();
 
         GuidSet const& GetOutOfRangeGUIDs() const { return m_outOfRangeGUIDs; }
+
+        void SendData(WorldSession& session);
 
     protected:
         GuidSet m_outOfRangeGUIDs;

@@ -21,7 +21,7 @@ SDComment: Timers may need some fine adjustments
 SDCategory: Tempest Keep, The Botanica
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 enum
 {
@@ -62,6 +62,7 @@ struct boss_high_botanist_freywinnAI : public ScriptedAI
         m_uiFrayerAddsCount     = 0;
         m_uiFrayerTimer         = 0;
         m_bCanMoveFree          = true;
+        SetCombatMovement(true);
     }
 
     void Aggro(Unit* /*pWho*/) override
@@ -75,8 +76,8 @@ struct boss_high_botanist_freywinnAI : public ScriptedAI
             ++m_uiFrayerAddsCount;
 
         // Attack players
-        if (m_creature->getVictim())
-            pSummoned->AI()->AttackStart(m_creature->getVictim());
+        if (m_creature->GetVictim())
+            pSummoned->AI()->AttackStart(m_creature->GetVictim());
     }
 
     void SummonedCreatureJustDied(Creature* pSummoned) override
@@ -90,13 +91,12 @@ struct boss_high_botanist_freywinnAI : public ScriptedAI
             {
                 m_uiTreeFormEndTimer = 0;
 
-                if (m_creature->getVictim())
-                    m_creature->GetMotionMaster()->MoveChase(m_creature->getVictim());
-
                 // Interrupt all spells and remove auras
                 m_creature->InterruptNonMeleeSpells(true);
                 m_creature->RemoveAllAuras();
                 m_bCanMoveFree = true;
+
+                SetCombatMovement(true, true);
             }
         }
     }
@@ -125,7 +125,7 @@ struct boss_high_botanist_freywinnAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget())
             return;
 
         if (m_uiTreeFormTimer < uiDiff)

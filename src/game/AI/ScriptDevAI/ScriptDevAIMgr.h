@@ -10,6 +10,8 @@
 #include "Server/SQLStorages.h"
 #include "Spells/SpellMgr.h"
 
+#include <functional>
+
 class Player;
 class Creature;
 class UnitAI;
@@ -61,6 +63,24 @@ enum EscortFaction
 
 // *********************************************************
 // ************* Some structures used globally *************
+
+template <typename T>
+UnitAI* GetNewAIInstance(Creature* creature)
+{
+    return new T(creature);
+}
+
+template <typename T>
+GameObjectAI* GetNewAIInstance(GameObject* gameobject)
+{
+    return new T(gameobject);
+}
+
+template <typename T>
+InstanceData* GetNewInstanceScript(Map* map)
+{
+    return new T(map);
+}
 
 struct Script
 {
@@ -177,7 +197,8 @@ class ScriptDevAIMgr
 // ************* Some functions used globally **************
 
 // Generic scripting text function
-void DoScriptText(int32 iTextEntry, WorldObject* pSource, Unit* pTarget = nullptr);
+void DoScriptText(int32 iTextEntry, WorldObject* pSource, Unit* pTarget = nullptr, uint32 chatTypeOverride = 0);
+void DoBroadcastText(int32 iTextEntry, WorldObject* pSource, Unit* pTarget = nullptr, uint32 chatTypeOverride = 0);
 void DoOrSimulateScriptTextForMap(int32 iTextEntry, uint32 uiCreatureEntry, Map* pMap, Creature* pCreatureSource = nullptr, Unit* pTarget = nullptr);
 
 #define sScriptDevAIMgr MaNGOS::Singleton<ScriptDevAIMgr>::Instance()

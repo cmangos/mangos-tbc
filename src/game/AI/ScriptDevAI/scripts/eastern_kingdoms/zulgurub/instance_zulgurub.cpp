@@ -21,7 +21,7 @@ SDComment: Missing reset function after killing a boss for Ohgan, Thekal.
 SDCategory: Zul'Gurub
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "zulgurub.h"
 
 instance_zulgurub::instance_zulgurub(Map* pMap) : ScriptedInstance(pMap),
@@ -96,12 +96,12 @@ void instance_zulgurub::SetData(uint32 uiType, uint32 uiData)
         case TYPE_THEKAL:
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)
-                DoLowerHakkarHitPoints();
+                RemoveHakkarPowerStack();
             break;
         case TYPE_MARLI:
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)
-                DoLowerHakkarHitPoints();
+                RemoveHakkarPowerStack();
             if (uiData == FAIL)
             {
                 for (GuidList::const_iterator itr = m_lSpiderEggGUIDList.begin(); itr != m_lSpiderEggGUIDList.end(); ++itr)
@@ -122,7 +122,7 @@ void instance_zulgurub::SetData(uint32 uiType, uint32 uiData)
             else if (GameObject* pForcefield = GetSingleGameObjectFromStorage(GO_FORCEFIELD))
                 pForcefield->ResetDoorOrButton();
             if (uiData == DONE)
-                DoLowerHakkarHitPoints();
+                RemoveHakkarPowerStack();
             if (uiData == FAIL)
             {
                 // Note: this gameobject should change flags - currently it despawns which isn't correct
@@ -167,16 +167,15 @@ void instance_zulgurub::SetData(uint32 uiType, uint32 uiData)
     }
 }
 
-// Each time High Priest dies lower Hakkar's HP
-void instance_zulgurub::DoLowerHakkarHitPoints()
+// Each time one of the High Priests dies, remove one stack of Hakkar's Power (lowering Hakkar's HP)
+void instance_zulgurub::RemoveHakkarPowerStack()
 {
-    if (Creature* pHakkar = GetSingleCreatureFromStorage(NPC_HAKKAR))
+    if (Creature* hakkar = GetSingleCreatureFromStorage(NPC_HAKKAR))
     {
-        if (pHakkar->isAlive() && pHakkar->GetMaxHealth() > HP_LOSS_PER_PRIEST)
-        {
-            pHakkar->SetMaxHealth(pHakkar->GetMaxHealth() - HP_LOSS_PER_PRIEST);
-            pHakkar->SetHealth(pHakkar->GetHealth() - HP_LOSS_PER_PRIEST);
-        }
+        if (!hakkar->IsAlive())
+            return;
+
+        hakkar->CastSpell(hakkar, SPELL_HAKKAR_POWER_DOWN, TRIGGERED_NONE);
     }
 }
 
@@ -238,7 +237,7 @@ bool AreaTrigger_at_zulgurub(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (pAt->id == AREATRIGGER_ENTER || pAt->id == AREATRIGGER_ALTAR)
     {
-        if (pPlayer->isGameMaster() || pPlayer->isDead())
+        if (pPlayer->IsGameMaster() || pPlayer->IsDead())
             return false;
 
         if (instance_zulgurub* pInstance = (instance_zulgurub*)pPlayer->GetInstanceData())

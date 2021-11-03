@@ -33,6 +33,7 @@ void VisibleChangesNotifier::Visit(CameraMapType& m)
     for (auto& iter : m)
     {
         iter.getSource()->UpdateVisibilityOf(&i_object);
+        m_unvisitedGuids.erase(iter.getSource()->GetOwner()->GetObjectGuid());
     }
 }
 
@@ -41,14 +42,15 @@ void VisibleNotifier::Notify()
     Player& player = *i_camera.GetOwner();
     // at this moment i_clientGUIDs have guids that not iterate at grid level checks
     // but exist one case when this possible and object not out of range: transports
-    if (Transport* transport = player.GetTransport())
+    if (GenericTransport* transport = player.GetTransport())
     {
         for (auto itr : transport->GetPassengers())
         {
             if (i_clientGUIDs.find(itr->GetObjectGuid()) != i_clientGUIDs.end())
             {
                 // ignore far sight case
-                itr->UpdateVisibilityOf(itr, &player);
+                if (itr->IsPlayer())
+                    static_cast<Player*>(itr)->UpdateVisibilityOf(static_cast<Player*>(itr), &player);
                 player.UpdateVisibilityOf(&player, itr, i_data, i_visibleNow);
                 i_clientGUIDs.erase(itr->GetObjectGuid());
             }
@@ -61,7 +63,7 @@ void VisibleNotifier::Notify()
         GuidSet::iterator current = itr++;
         if (WorldObject* obj = player.GetMap()->GetWorldObject(*current))
         {
-            if (!obj->IsVisibilityOverridden())
+            if (!obj->GetVisibilityData().IsVisibilityOverridden())
                 continue;
 
             player.UpdateVisibilityOf(&player, obj);
@@ -73,7 +75,15 @@ void VisibleNotifier::Notify()
     i_data.AddOutOfRangeGUID(i_clientGUIDs);
     for (GuidSet::iterator itr = i_clientGUIDs.begin(); itr != i_clientGUIDs.end(); ++itr)
     {
-        player.m_clientGUIDs.erase(*itr);
+        if (WorldObject* target = player.GetMap()->GetWorldObject(*itr))
+        {
+            if (target->GetTypeId() == TYPEID_UNIT)
+                player.BeforeVisibilityDestroy(static_cast<Creature*>(target));
+            player.RemoveAtClient(target);
+        }
+        else
+            sLog.outCustomLog("Object was %s in current map.", player.GetMap()->m_objRemoveList.find(*itr) == player.GetMap()->m_objRemoveList.end() ? "not found" : "found");
+        
 
         DEBUG_FILTER_LOG(LOG_FILTER_VISIBILITY_CHANGES, "%s is out of range (no in active cells set) now for %s",
                          itr->GetString().c_str(), player.GetGuidStr().c_str());

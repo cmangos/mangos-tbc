@@ -27,7 +27,7 @@ mob_fel_orc_convert
 mob_lesser_shadow_fissure
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "shattered_halls.h"
 
 enum
@@ -109,6 +109,8 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
         m_uiDeathCoilTimer = 20000;
         m_uiShadowFissureTimer = 8000;
         m_uiCleaveTimer = 5000;
+
+        SetCombatMovement(true);
     }
 
     void DoYellForPeonAggro()
@@ -194,7 +196,7 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
     // todo: use areatrigger 4347 instead (or when door lock is picked)
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_bIntroOnce && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*)pWho)->isGameMaster() && m_creature->IsWithinDistInMap(pWho, 45.0f) && m_creature->IsWithinLOSInMap(pWho))
+        if (!m_bIntroOnce && pWho->GetTypeId() == TYPEID_PLAYER && !((Player*) pWho)->IsGameMaster() && m_creature->IsWithinDistInMap(pWho, 45.0f) && m_creature->IsWithinLOSInMap(pWho))
         {
             m_bIntroOnce = true;
             m_bIsIntroEvent = true;
@@ -261,7 +263,7 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
             }
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_bIsMainEvent)
@@ -271,7 +273,7 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
         {
             if (m_uiCleaveTimer < uiDiff)
             {
-                DoCastSpellIfCan(m_creature->getVictim(), m_bIsRegularMode ? SPELL_SHADOW_CLEAVE : SPELL_SHADOW_SLAM_H);
+                DoCastSpellIfCan(m_creature->GetVictim(), m_bIsRegularMode ? SPELL_SHADOW_CLEAVE : SPELL_SHADOW_SLAM_H);
                 m_uiCleaveTimer = urand(6000, 8500);
             }
             else
@@ -312,6 +314,8 @@ struct boss_grand_warlock_nethekurseAI : public ScriptedAI
     }
 };
 
+static const int32 aRandomAggro[] = { -1540200, -1540201, -1540202, -1540203, -1540204, -1540205, -1540206 };
+
 struct mob_fel_orc_convertAI : public ScriptedAI
 {
     mob_fel_orc_convertAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -328,7 +332,11 @@ struct mob_fel_orc_convertAI : public ScriptedAI
         m_uiHemorrhageTimer = 3000;
     }
 
-    void MoveInLineOfSight(Unit* /*pWho*/) override { }
+    void MoveInLineOfSight(Unit* pWho) override
+    {
+        if (pWho->GetTypeId() == TYPEID_PLAYER && !((Player*) pWho)->IsGameMaster() && m_creature->IsWithinDistInMap(pWho, 20.0f) && m_creature->IsWithinLOSInMap(pWho))
+            m_creature->SetInCombatWithZone();
+    }
 
     void AttackedBy(Unit* pWho) override
     {
@@ -340,6 +348,9 @@ struct mob_fel_orc_convertAI : public ScriptedAI
 
     void Aggro(Unit* /*pWho*/) override
     {
+        if (urand(0, 4) == 4)
+            DoScriptText(aRandomAggro[urand(0, 6)], m_creature);
+
         if (m_pInstance)
         {
             Creature* pKurse = m_pInstance->GetSingleCreatureFromStorage(NPC_NETHEKURSE);
@@ -372,12 +383,12 @@ struct mob_fel_orc_convertAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiHemorrhageTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_HEMORRHAGE);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HEMORRHAGE);
             m_uiHemorrhageTimer = 15000;
         }
         else

@@ -65,10 +65,14 @@ enum
     SPELL_BANISH_HELPER     = 31550,            // used by the main bosses to banish the time keeprs
     SPELL_CORRUPT_AEONUS    = 37853,            // used by Aeonus to corrupt Medivh
 
+    SPELL_ARCANE_EXPLOSION  = 32614,            // used by Dark Portal Crystal Stalker per 25% shield lost (handled in dummy effect for spell 32589)
+
     // cosmetic spells
     SPELL_PORTAL_CRYSTAL    = 32564,            // summons 18553 - Dark Portal Crystal stalker
     SPELL_BANISH_GREEN      = 32567,
     SPELL_CRYSTAL_SHATTER   = 32589,            // used by Dark Portal Dummy to remove 1 crystal per 25% shield lost
+    SPELL_PORTAL_BEAM       = 32579,            // summons 18555 - Dark Portal Beam Invisible Stalker (serverside)
+    SPELL_TELEPORT          = 7791,             // TODO: should be casted by all summons just before they despawn on event fail
 
     // yells during the event
     SAY_SAAT_WELCOME        = -1269019,
@@ -141,6 +145,9 @@ class instance_dark_portal : public ScriptedInstance
 
         void Update(const uint32 diff) override;
 
+        void ShowChatCommands(ChatHandler* handler) override;
+        void ExecuteChatCommand(ChatHandler* handler, char* args) override;
+
     private:
         bool IsBossTimeRift() const { return m_uiWorldStateRiftCount == 6 || m_uiWorldStateRiftCount == 12; }
         void UpdateWorldState(bool bEnable = true);
@@ -163,6 +170,7 @@ class instance_dark_portal : public ScriptedInstance
 
         uint32 m_uiNextPortalTimer;
         uint32 m_uiSummonCrystalTimer;
+        uint32 m_uiSummonBeamStalkerTimer;
         uint8 m_uiCurrentRiftId;
 
         uint32 m_uiPostEventTimer;

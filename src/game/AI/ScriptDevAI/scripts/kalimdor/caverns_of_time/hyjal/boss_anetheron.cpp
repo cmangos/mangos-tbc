@@ -14,9 +14,10 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "hyjal.h"
-#include "AI/ScriptDevAI/base/TimerAI.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
+#include "Spells/Scripts/SpellScript.h"
 
 enum
 {
@@ -53,15 +54,14 @@ enum AnetheronActions
     ANETHERON_ACTION_INFERNAL_STUN,
 };
 
-struct boss_anetheronAI : public ScriptedAI, public CombatActions
+struct boss_anetheronAI : public CombatAI
 {
-    boss_anetheronAI(Creature* creature) : ScriptedAI(creature), CombatActions(ANETHERON_ACTION_MAX)
+    boss_anetheronAI(Creature* creature) : CombatAI(creature, ANETHERON_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_instance = static_cast<ScriptedInstance*>(creature->GetInstanceData());
-        AddCombatAction(ANETHERON_ACTION_CARRION_SWARM, 0u);
-        AddCombatAction(ANETHERON_ACTION_SLEEP, 0u);
-        AddCombatAction(ANETHERON_ACTION_INFERNO, 0u);
-        AddCombatAction(ANETHERON_ACTION_ENRAGE, 0u);
+        AddCombatAction(ANETHERON_ACTION_CARRION_SWARM, 20000, 28000);
+        AddCombatAction(ANETHERON_ACTION_SLEEP, 25000, 32000);
+        AddCombatAction(ANETHERON_ACTION_INFERNO, 30000, 48000);
+        AddCombatAction(ANETHERON_ACTION_ENRAGE, 600000u);
         AddCustomAction(ANETHERON_ACTION_INFERNAL_STUN, true, [&]()
         {
             // Last summoned infernal
@@ -73,6 +73,7 @@ struct boss_anetheronAI : public ScriptedAI, public CombatActions
                 infernal->SetInCombatWithZone();
             }
         });
+        AddOnKillText(SAY_KILL1, SAY_KILL2, SAY_KILL3);
         Reset();
     }
 
@@ -82,33 +83,13 @@ struct boss_anetheronAI : public ScriptedAI, public CombatActions
 
     void Reset() override
     {
-        for (uint32 i = 0; i < ANETHERON_ACTION_MAX; ++i)
-            SetActionReadyStatus(i, false);
-
-        ResetTimer(ANETHERON_ACTION_CARRION_SWARM,  GetInitialActionTimer(ANETHERON_ACTION_CARRION_SWARM));
-        ResetTimer(ANETHERON_ACTION_SLEEP,          GetInitialActionTimer(ANETHERON_ACTION_SLEEP));
-        ResetTimer(ANETHERON_ACTION_INFERNO,        GetInitialActionTimer(ANETHERON_ACTION_INFERNO));
-        ResetTimer(ANETHERON_ACTION_ENRAGE,         GetInitialActionTimer(ANETHERON_ACTION_ENRAGE));
-
-        DisableTimer(ANETHERON_ACTION_INFERNAL_STUN);
+        CombatAI::Reset();
 
         for (ObjectGuid& guid : m_infernals)
             if (Creature* infernal = m_creature->GetMap()->GetCreature(guid))
                 infernal->ForcedDespawn();
 
         m_infernals.clear();
-    }
-
-    uint32 GetInitialActionTimer(const uint32 action) const
-    {
-        switch (action)
-        {
-            case ANETHERON_ACTION_CARRION_SWARM: return urand(20000, 28000);
-            case ANETHERON_ACTION_SLEEP: return urand(25000, 32000);
-            case ANETHERON_ACTION_INFERNO: return urand(30000, 48000);
-            case ANETHERON_ACTION_ENRAGE: return 600000;
-            default: return 0; // never occurs but for compiler
-        }
     }
 
     uint32 GetSubsequentActionTimer(const uint32 action) const
@@ -147,21 +128,6 @@ struct boss_anetheronAI : public ScriptedAI, public CombatActions
         m_infernals.clear();
     }
 
-    void KilledUnit(Unit* victim) override
-    {
-        if (victim->GetTypeId() != TYPEID_PLAYER)
-            return;
-
-        uint32 textId;
-        switch (urand(0, 2))
-        {
-            case 0: textId = SAY_KILL1; break;
-            case 1: textId = SAY_KILL2; break;
-            case 2: textId = SAY_KILL3; break;
-        }
-        DoScriptText(textId, m_creature);
-    }
-
     void JustSummoned(Creature* summoned) override
     {
         UnitAI* ai = summoned->AI();
@@ -176,88 +142,64 @@ struct boss_anetheronAI : public ScriptedAI, public CombatActions
         summoned->RemoveAurasDueToSpell(SPELL_INFERNAL_IMMOLATION);
     }
 
-    void ExecuteActions()
+    void OnSpellCooldownAdded(SpellEntry const* spellInfo) override
     {
-        if (!CanExecuteCombatAction())
-            return;
+        if (spellInfo->Id == SPELL_INFERNO)
+            ResetCombatAction(ANETHERON_ACTION_INFERNO, GetSubsequentActionTimer(ANETHERON_ACTION_INFERNO));
+    }
 
-        for (uint32 i = 0; i < ANETHERON_ACTION_MAX; ++i)
+    void ExecuteAction(uint32 action) override
+    {
+        switch (action)
         {
-            if (GetActionReadyStatus(i))
+            case ANETHERON_ACTION_CARRION_SWARM:
             {
-                switch (i)
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CARRION_SWARM, SELECT_FLAG_PLAYER))
                 {
-                    case ANETHERON_ACTION_CARRION_SWARM:
+                    if (DoCastSpellIfCan(target, SPELL_CARRION_SWARM) == CAST_OK)
                     {
-                        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CARRION_SWARM, SELECT_FLAG_PLAYER))
-                        {
-                            if (DoCastSpellIfCan(target, SPELL_CARRION_SWARM) == CAST_OK)
-                            {
-                                DoScriptText(urand(0, 1) ? SAY_SWARM1 : SAY_SWARM2, m_creature);
-                                ResetTimer(i, GetSubsequentActionTimer(i));
-                                SetActionReadyStatus(i, false);
-                                return;
-                            }
-                        }
-                        break;
-                    }
-                    case ANETHERON_ACTION_SLEEP:
-                    {
-                        if (DoCastSpellIfCan(nullptr, SPELL_SLEEP) == CAST_OK)
-                        {
-                            DoScriptText(urand(0, 1) ? SAY_SLEEP1 : SAY_SLEEP2, m_creature);
-                            ResetTimer(i, GetSubsequentActionTimer(i));
-                            SetActionReadyStatus(i, false);
-                            return;
-                        }
-                        break;
-                    }
-                    case ANETHERON_ACTION_INFERNO:
-                    {
-                        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_INFERNO, SELECT_FLAG_PLAYER))
-                        {
-                            if (DoCastSpellIfCan(target, SPELL_INFERNO) == CAST_OK)
-                            {
-                                DoScriptText(urand(0, 1) ? SAY_INFERNO1 : SAY_INFERNO2, m_creature);
-                                ResetTimer(i, GetSubsequentActionTimer(i));
-                                SetActionReadyStatus(i, false);
-                                return;
-                            }
-                        }
-                        break;
-                    }
-                    case ANETHERON_ACTION_ENRAGE:
-                    {
-                        if (DoCastSpellIfCan(nullptr, SPELL_ENRAGE) == CAST_OK)
-                        {
-                            ResetTimer(i, GetSubsequentActionTimer(i));
-                            SetActionReadyStatus(i, false);
-                            return;
-                        }
-                        break;
+                        DoScriptText(urand(0, 1) ? SAY_SWARM1 : SAY_SWARM2, m_creature);
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
                     }
                 }
+                break;
+            }
+            case ANETHERON_ACTION_SLEEP:
+            {
+                if (DoCastSpellIfCan(nullptr, SPELL_SLEEP) == CAST_OK)
+                {
+                    DoScriptText(urand(0, 1) ? SAY_SLEEP1 : SAY_SLEEP2, m_creature);
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                }
+                break;
+            }
+            case ANETHERON_ACTION_INFERNO:
+            {
+                // cooldown done on cooldown added
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_INFERNO, SELECT_FLAG_PLAYER))
+                    if (DoCastSpellIfCan(target, SPELL_INFERNO) == CAST_OK)
+                        DoScriptText(urand(0, 1) ? SAY_INFERNO1 : SAY_INFERNO2, m_creature);
+                break;
+            }
+            case ANETHERON_ACTION_ENRAGE:
+            {
+                if (DoCastSpellIfCan(nullptr, SPELL_ENRAGE) == CAST_OK)
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                break;
             }
         }
     }
-
-    void UpdateAI(const uint32 diff)
-    {
-        UpdateTimers(diff, m_creature->isInCombat());
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        ExecuteActions();
-
-        DoMeleeAttackIfReady();
-    }
 };
 
-UnitAI* GetAI_boss_anetheron(Creature* pCreature)
+struct AnetheronSleep : public SpellScript
 {
-    return new boss_anetheronAI(pCreature);
-}
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const
+    {
+        if (spell->GetCaster()->GetVictim() == target)
+            return false;
+        return true;
+    }
+};
 
 void AddSC_boss_anetheron()
 {
@@ -265,6 +207,8 @@ void AddSC_boss_anetheron()
 
     pNewScript = new Script;
     pNewScript->Name = "boss_anetheron";
-    pNewScript->GetAI = &GetAI_boss_anetheron;
+    pNewScript->GetAI = &GetNewAIInstance<boss_anetheronAI>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<AnetheronSleep>("spell_anetheron_sleep");
 }

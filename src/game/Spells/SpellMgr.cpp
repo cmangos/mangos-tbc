@@ -77,12 +77,12 @@ int32 CalculateSpellDuration(SpellEntry const* spellInfo, Unit const* caster)
 {
     int32 duration = GetSpellDuration(spellInfo);
 
-    if (duration != -1 && caster && !spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
+    if (duration != -1 && caster && !spellInfo->HasAttribute(SPELL_ATTR_EX3_IGNORE_CASTER_MODIFIERS))
     {
         int32 maxduration = GetSpellMaxDuration(spellInfo);
 
         if (duration != maxduration && caster->GetTypeId() == TYPEID_PLAYER)
-            duration += int32((maxduration - duration) * ((Player*)caster)->GetComboPoints() / 5);
+            duration += int32((maxduration - duration) * caster->GetComboPoints() / 5);
 
         if (Player* modOwner = caster->GetSpellModOwner())
         {
@@ -99,17 +99,17 @@ int32 CalculateSpellDuration(SpellEntry const* spellInfo, Unit const* caster)
     return duration;
 }
 
-uint32 GetSpellCastTime(SpellEntry const* spellInfo, WorldObject* caster, Spell* spell)
+uint32 GetSpellCastTime(SpellEntry const* spellInfo, WorldObject* caster, Spell* spell, bool consume)
 {
     if (spell)
     {
         // Workaround for custom cast time
         switch (spellInfo->Id)
         {
-            case 3366: // Opening - seems to have a settable timer per usage
-                if (spell->m_CastItem)
+            case 3366:  // Opening - seems to have a settable timer per usage
+                if (Item* item = spell->GetCastItem())
                 {
-                    switch (spell->m_CastItem->GetEntry())
+                    switch (item->GetEntry())
                     {
                         case 31088: // Tainted Core - instant opening
                             return 0;
@@ -129,8 +129,8 @@ uint32 GetSpellCastTime(SpellEntry const* spellInfo, WorldObject* caster, Spell*
             return 0;
 
         // spell targeted to non-trading trade slot item instant at trade success apply
-        if (spell->GetCaster()->GetTypeId() == TYPEID_PLAYER)
-            if (TradeData* my_trade = ((Player*)(spell->GetCaster()))->GetTradeData())
+        if (caster->IsPlayer())
+            if (TradeData* my_trade = static_cast<Player*>(caster)->GetTradeData())
                 if (Item* nonTrade = my_trade->GetTraderData()->GetItem(TRADE_SLOT_NONTRADED))
                     if (nonTrade == spell->m_targets.getItemTarget())
                         return 0;
@@ -152,13 +152,17 @@ uint32 GetSpellCastTime(SpellEntry const* spellInfo, WorldObject* caster, Spell*
 
     if (spell)
     {
-        if (Player* modOwner = spell->GetCaster()->GetSpellModOwner())
-            modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_CASTING_TIME, castTime, spell);
+        if (Player* modOwner = caster->GetSpellModOwner())
+            modOwner->ApplySpellMod(spellInfo->Id, SPELLMOD_CASTING_TIME, castTime, consume);
 
-        if (!spellInfo->HasAttribute(SPELL_ATTR_ABILITY) && !spellInfo->HasAttribute(SPELL_ATTR_TRADESPELL) && !spellInfo->HasAttribute(SPELL_ATTR_EX3_NO_DONE_BONUS))
-            castTime = int32(castTime * spell->GetCaster()->GetFloatValue(UNIT_MOD_CAST_SPEED));
-        else if (spell->IsRangedSpell() && !spell->IsAutoRepeat())
-            castTime = int32(castTime * spell->GetCaster()->m_modAttackSpeedPct[RANGED_ATTACK]);
+        if (caster->IsUnit())
+        {
+            Unit* unitCaster = static_cast<Unit*>(caster);
+            if (!spellInfo->HasAttribute(SPELL_ATTR_ABILITY) && !spellInfo->HasAttribute(SPELL_ATTR_TRADESPELL) && !spellInfo->HasAttribute(SPELL_ATTR_EX3_IGNORE_CASTER_MODIFIERS))
+                castTime = int32(castTime * unitCaster->GetFloatValue(UNIT_MOD_CAST_SPEED));
+            else if (spell->IsRangedSpell() && !spell->IsAutoRepeat())
+                castTime = int32(castTime * unitCaster->m_modAttackSpeedPct[RANGED_ATTACK]);
+        }
     }
 
     return (castTime > 0) ? uint32(castTime) : 0;
@@ -337,7 +341,6 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
         case SPELL_DAMAGE_CLASS_RANGED:
             return RANGED_ATTACK;
         default:
-            // Wands
         {
             // Wands
             if (spellInfo->HasAttribute(SPELL_ATTR_EX2_AUTOREPEAT_FLAG))
@@ -379,6 +382,10 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->IsFitToFamilyMask(uint64(0x12040000)))
                 return SPELL_MAGE_ARMOR;
 
+            // Pre-Wrath Arcane Power (no mask):
+            if (spellInfo->Id == 12042)
+                return SPELL_BUFF_CASTER_POWER;
+
             break;
         }
         case SPELLFAMILY_WARRIOR:
@@ -398,13 +405,17 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->IsFitToFamilyMask(uint64(0x0000002000000000)))
                 return SPELL_WARLOCK_ARMOR;
 
-            // Drain Soul and Shadowburn
-            if (IsSpellHaveAura(spellInfo, SPELL_AURA_CHANNEL_DEATH_ITEM))
-                return SPELL_SOUL_CAPTURE;
-
             // Corruption and Seed of Corruption
             if (spellInfo->IsFitToFamilyMask(uint64(0x1000000002)))
                 return SPELL_CORRUPTION;
+
+            break;
+        }
+        case SPELLFAMILY_PRIEST:
+        {
+            // Power Infusion:
+            if (spellInfo->Id == 10060)
+                return SPELL_BUFF_CASTER_POWER;
 
             break;
         }
@@ -464,7 +475,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
 
 bool IsExplicitPositiveTarget(uint32 targetA)
 {
-    // positive targets that in target selection code expect target in m_targers, so not that auto-select target by spell data by m_caster and etc
+    // positive targets that in target selection code expect target in m_targets, so not that auto-select target by spell data by m_caster and etc
     switch (targetA)
     {
         case TARGET_UNIT_FRIEND:
@@ -481,7 +492,7 @@ bool IsExplicitPositiveTarget(uint32 targetA)
 
 bool IsExplicitNegativeTarget(uint32 targetA)
 {
-    // non-positive targets that in target selection code expect target in m_targers, so not that auto-select target by spell data by m_caster and etc
+    // non-positive targets that in target selection code expect target in m_targets, so not that auto-select target by spell data by m_caster and etc
     switch (targetA)
     {
         case TARGET_UNIT_ENEMY:
@@ -739,7 +750,7 @@ struct DoSpellProcEvent
         if (spe.procFlags == 0)
         {
             if (spell->procFlags == 0)
-                sLog.outErrorDb("Spell %u listed in `spell_proc_event` probally not triggered spell (no proc flags)", spell->Id);
+                sLog.outErrorDb("Spell %u listed in `spell_proc_event` probably not triggered spell (no proc flags)", spell->Id);
         }
         else
         {
@@ -753,7 +764,7 @@ struct DoSpellProcEvent
         {
             /* enable for re-check cases, 0 chance ok for some cases because in some cases it set by another spell/talent spellmod)
             if (spell->procChance==0 && !spe.ppmRate)
-                sLog.outErrorDb("Spell %u listed in `spell_proc_event` probally not triggered spell (no chance or ppm)", spell->Id);
+                sLog.outErrorDb("Spell %u listed in `spell_proc_event` probably not triggered spell (no chance or ppm)", spell->Id);
             */
         }
         else
@@ -1063,7 +1074,7 @@ void SpellMgr::LoadSpellBonuses()
     sLog.outString();
 }
 
-bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellProcEvent, uint32 EventProcFlag, SpellEntry const* procSpell, uint32 procFlags, uint32 procExtra)
+bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellProcEvent, uint32 EventProcFlag, SpellEntry const* spellInfo, uint32 procFlags, uint32 procExtra)
 {
     // No extra req need
     uint32 procEvent_procEx = PROC_EX_NONE;
@@ -1073,43 +1084,43 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellPr
         return false;
 
     // Always trigger for this
-    if (EventProcFlag & (PROC_FLAG_KILLED | PROC_FLAG_KILL | PROC_FLAG_ON_TRAP_ACTIVATION | PROC_FLAG_DEATH))
+    if (EventProcFlag & (PROC_FLAG_HEARTBEAT | PROC_FLAG_KILL | PROC_FLAG_DEAL_HELPFUL_PERIODIC | PROC_FLAG_DEATH))
         return true;
 
-    if (procFlags & PROC_FLAG_ON_DO_PERIODIC && EventProcFlag & PROC_FLAG_ON_DO_PERIODIC)
+    if (procFlags & PROC_FLAG_DEAL_HARMFUL_PERIODIC && EventProcFlag & PROC_FLAG_DEAL_HARMFUL_PERIODIC)
     {
         if (procExtra & PROC_EX_INTERNAL_HOT)
         {
-            if (EventProcFlag == PROC_FLAG_ON_DO_PERIODIC)
+            if (EventProcFlag == PROC_FLAG_DEAL_HARMFUL_PERIODIC)
             {
-                /// no aura with only PROC_FLAG_DONE_PERIODIC and spellFamilyName == 0 can proc from a HOT.
-                if (!procSpell->SpellFamilyName)
+                // no aura with only PROC_FLAG_DONE_PERIODIC and spellFamilyName == 0 can proc from a HOT.
+                if (!spellInfo->SpellFamilyName)
                     return false;
             }
-            /// Aura must have positive procflags for a HOT to proc
-            else if (!(EventProcFlag & (PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_POS | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_POS)))
+            // Aura must have positive procflags for a HOT to proc
+            else if (!(EventProcFlag & (PROC_FLAG_DEAL_HELPFUL_SPELL | PROC_FLAG_DEAL_HELPFUL_ABILITY)))
                 return false;
         }
-        /// Aura must have negative or neutral(PROC_FLAG_DONE_PERIODIC only) procflags for a DOT to proc
-        else if (EventProcFlag != PROC_FLAG_ON_DO_PERIODIC)
-            if (!(EventProcFlag & (PROC_FLAG_DONE_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_DONE_SPELL_NONE_DMG_CLASS_NEG)))
+        // Aura must have negative or neutral(PROC_FLAG_DONE_PERIODIC only) procflags for a DOT to proc
+        else if (EventProcFlag != PROC_FLAG_DEAL_HARMFUL_PERIODIC)
+            if (!(EventProcFlag & (PROC_FLAG_DEAL_HARMFUL_SPELL | PROC_FLAG_DEAL_HARMFUL_ABILITY)))
                 return false;
     }
 
-    if (procFlags & PROC_FLAG_ON_TAKE_PERIODIC && EventProcFlag & PROC_FLAG_ON_TAKE_PERIODIC)
+    if (procFlags & PROC_FLAG_TAKE_HARMFUL_PERIODIC && EventProcFlag & PROC_FLAG_TAKE_HARMFUL_PERIODIC)
     {
         if (procExtra & PROC_EX_INTERNAL_HOT)
         {
-            /// No aura that only has PROC_FLAG_TAKEN_PERIODIC can proc from a HOT.
-            if (EventProcFlag == PROC_FLAG_ON_TAKE_PERIODIC)
+            // No aura that only has PROC_FLAG_TAKEN_PERIODIC can proc from a HOT.
+            if (EventProcFlag == PROC_FLAG_TAKE_HARMFUL_PERIODIC)
                 return false;
-            /// Aura must have positive procflags for a HOT to proc
-            if (!(EventProcFlag & (PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_POS | PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_POS)))
+            // Aura must have positive procflags for a HOT to proc
+            if (!(EventProcFlag & (PROC_FLAG_TAKE_HELPFUL_SPELL | PROC_FLAG_TAKE_HELPFUL_ABILITY)))
                 return false;
         }
-        /// Aura must have negative or neutral(PROC_FLAG_TAKEN_PERIODIC only) procflags for a DOT to proc
-        else if (EventProcFlag != PROC_FLAG_ON_TAKE_PERIODIC)
-            if (!(EventProcFlag & (PROC_FLAG_TAKEN_SPELL_MAGIC_DMG_CLASS_NEG | PROC_FLAG_TAKEN_SPELL_NONE_DMG_CLASS_NEG)))
+        // Aura must have negative or neutral(PROC_FLAG_TAKEN_PERIODIC only) procflags for a DOT to proc
+        else if (EventProcFlag != PROC_FLAG_TAKE_HARMFUL_PERIODIC)
+            if (!(EventProcFlag & (PROC_FLAG_TAKE_HARMFUL_SPELL | PROC_FLAG_TAKE_HARMFUL_ABILITY)))
                 return false;
     }
 
@@ -1119,7 +1130,7 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellPr
         procEvent_procEx = spellProcEvent->procEx;
 
         // For melee triggers
-        if (procSpell == nullptr)
+        if (spellInfo == nullptr)
         {
             // Check (if set) for school (melee attack have Normal school)
             if (spellProcEvent->schoolMask && (spellProcEvent->schoolMask & SPELL_SCHOOL_MASK_NORMAL) == 0)
@@ -1128,11 +1139,11 @@ bool SpellMgr::IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellPr
         else // For spells need check school/spell family/family mask
         {
             // Check (if set) for school
-            if (spellProcEvent->schoolMask && (spellProcEvent->schoolMask & procSpell->SchoolMask) == 0)
+            if (spellProcEvent->schoolMask && (spellProcEvent->schoolMask & spellInfo->SchoolMask) == 0)
                 return false;
 
             // Check (if set) for spellFamilyName
-            if (spellProcEvent->spellFamilyName && (spellProcEvent->spellFamilyName != procSpell->SpellFamilyName))
+            if (spellProcEvent->spellFamilyName && (spellProcEvent->spellFamilyName != spellInfo->SpellFamilyName))
                 return false;
         }
     }
@@ -1241,12 +1252,24 @@ struct DoSpellThreat
         threatMap[spell->Id] = ste;
 
         // flat threat bonus and attack power bonus currently only work properly when all
-        // effects have same targets, otherwise, we'd need to seperate it by effect index
+        // effects have same targets, otherwise, we'd need to separate it by effect index
         if (ste.threat || ste.ap_bonus != 0.f)
         {
             const uint32* targetA = spell->EffectImplicitTargetA;
-            if ((targetA[EFFECT_INDEX_1] && targetA[EFFECT_INDEX_1] != targetA[EFFECT_INDEX_0]) ||
-                    (targetA[EFFECT_INDEX_2] && targetA[EFFECT_INDEX_2] != targetA[EFFECT_INDEX_0]))
+
+            uint32 target = 0;
+            bool failed = false;
+            for (int i = 0; i < MAX_EFFECT_INDEX; i++)
+            {
+                if (targetA[i] != 0)
+                {
+                    if (target == 0)
+                        target = targetA[i];
+                    else if (targetA[i] != target)
+                        failed = true;
+                }
+            }
+            if (failed)
                 sLog.outErrorDb("Spell %u listed in `spell_threat` has effects with different targets, threat may be assigned incorrectly", spell->Id);
         }
         ++count;
@@ -1407,21 +1430,25 @@ SpellEntry const* SpellMgr::SelectAuraRankForLevel(SpellEntry const* spellInfo, 
     if (!needRankSelection || GetSpellRank(spellInfo->Id) == 0)
         return spellInfo;
 
-    for (uint32 nextSpellId = spellInfo->Id; nextSpellId != 0; nextSpellId = GetPrevSpellInChain(nextSpellId))
+    // Check for lower rank of same spell if config is set to auto downrank
+    if (sWorld.getConfig(CONFIG_BOOL_AUTO_DOWNRANK))
     {
-        SpellEntry const* nextSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(nextSpellId);
-        if (!nextSpellInfo)
-            break;
+        for (uint32 nextSpellId = spellInfo->Id; nextSpellId != 0; nextSpellId = GetPrevSpellInChain(nextSpellId))
+        {
+            SpellEntry const* nextSpellInfo = sSpellTemplate.LookupEntry<SpellEntry>(nextSpellId);
+            if (!nextSpellInfo)
+                break;
 
-        // if found appropriate level
+            // if found appropriate level
         // partial Playerbot mod: fix for core bug (commit 073cdd0e...)
-        if (level + 10 >= nextSpellInfo->spellLevel)
-            return nextSpellInfo;
+            if (level + 10 >= nextSpellInfo->spellLevel)
+                return nextSpellInfo;
 
-        // one rank less then
+            // one rank less then
+        }
     }
 
-    // not found
+    // Recipient is too low level
     return nullptr;
 }
 
@@ -2056,6 +2083,18 @@ void SpellMgr::LoadSpellScriptTarget()
                 }
                 break;
             }
+            case SPELL_TARGET_TYPE_GAMEOBJECT_GUID:
+            {
+                if (!itr->targetEntry)
+                    break;
+
+                if (!sObjectMgr.GetGOData(itr->targetEntry))
+                {
+                    sLog.outErrorDb("Table `spell_script_target`: gameobject entry %u does not exist.", itr->targetEntry);
+                    sSpellScriptTargetStorage.EraseEntry(itr->spellId);
+                }
+                break;
+            }
             case SPELL_TARGET_TYPE_CREATURE_GUID:
             {
                 if (!sObjectMgr.GetCreatureData(itr->targetEntry))
@@ -2351,7 +2390,7 @@ void SpellMgr::LoadSpellAreas()
             continue;
         }
 
-        if (spellArea.conditionId && !sConditionStorage.LookupEntry<PlayerCondition>(spellArea.conditionId))
+        if (spellArea.conditionId && !sConditionStorage.LookupEntry<ConditionEntry>(spellArea.conditionId))
         {
             sLog.outErrorDb("Spell %u listed in `spell_area` have wrong conditionId (%u) requirement", spell, spellArea.conditionId);
             continue;
@@ -2490,7 +2529,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
         return SPELL_FAILED_REQUIRES_AREA;
 
     // continent limitation (virtual continent), ignore for GM
-    if (spellInfo->HasAttribute(SPELL_ATTR_EX4_CAST_ONLY_IN_OUTLAND) && !(player && player->isGameMaster()))
+    if (spellInfo->HasAttribute(SPELL_ATTR_EX4_CAST_ONLY_IN_OUTLAND) && !(player && player->IsGameMaster()))
     {
         uint32 v_map = GetVirtualMapForMapAndZone(map_id, zone_id);
         MapEntry const* mapEntry = sMapStore.LookupEntry(v_map);
@@ -2552,10 +2591,6 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
             return map_id == 566 && player && player->InBattleGround() ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
         case 2584:                                          // Waiting to Resurrect
         case 42792:                                         // Recently Dropped Flag
-        case 43681:                                         // Inactive
-        {
-            return player && player->InBattleGround() ? SPELL_CAST_OK : SPELL_FAILED_ONLY_BATTLEGROUNDS;
-        }
         case 22011:                                         // Spirit Heal Channel
         case 22012:                                         // Spirit Heal
         case 24171:                                         // Resurrection Impact Visual
@@ -2904,7 +2939,16 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // some generic arena related spells have by some strange reason MECHANIC_TURN
             if (spellproto->Mechanic == MECHANIC_TURN)
                 return DIMINISHING_NONE;
+            // Hunter Pet Intimidation
+            else if (spellproto->Id == 24394)
+                return DIMINISHING_CONTROL_STUN;
             break;
+        case SPELLFAMILY_MAGE:
+        {
+            if (spellproto->IsFitToFamilyMask(uint64(0x000800000)))
+                return DIMINISHING_DRAGONS_BREATH;
+            break;
+        }
         case SPELLFAMILY_ROGUE:
         {
             // Kidney Shot
@@ -2925,11 +2969,16 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
         case SPELLFAMILY_WARLOCK:
         {
             // Seduction
-            if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)))
+            // ToDo: Fix  diminishing returns aspect of this spell, currently limited to 10secs in pvp only as setting DIMINISHING_FEAR to DRTYPE_ALL messes with PvE
+            if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)) && spellproto->Id != 7870) // Exclude Lesser Invisibility
                 return DIMINISHING_FEAR;
             // Curses/etc
             if (spellproto->IsFitToFamilyMask(uint64(0x00080000000)))
                 return DIMINISHING_LIMITONLY;
+            /* Unstable Affliction Dispel Silence
+            // ToDo: Fix diminishing returns aspect for this spell 5 2.5 1.25 0
+            else if (spellproto->Id == 31117)
+                return DIMINISHING_UNSTABLE_AFFLICTION_SILENCE;*/
             break;
         }
         case SPELLFAMILY_DRUID:
@@ -2937,6 +2986,12 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // Cyclone
             if (spellproto->IsFitToFamilyMask(uint64(0x02000000000)))
                 return DIMINISHING_BLIND_CYCLONE;
+            // Nature's Grasp Triggered Root
+            else if (spellproto->SpellFamilyFlags & 0x00000000200LL && spellproto->Attributes == 0x49010000)
+                return DIMINISHING_CONTROL_ROOT;
+            // Feral Charge Root Effect
+            else if (spellproto->Id == 45334)
+                return DIMINISHING_NONE;
             break;
         }
         case SPELLFAMILY_WARRIOR:
@@ -2946,6 +3001,17 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
                 return DIMINISHING_LIMITONLY;
             break;
         }
+        case SPELLFAMILY_PALADIN:
+        {
+            // ToDo: Fix  diminishing returns aspect of this spell, currently limited to 10secs in pvp only as setting DIMINISHING_FEAR to DRTYPE_ALL messes with PvE
+            // Turn Evil - Turn Undead(Rank 3):This spell has been reworked and has been renamed to "Turn Evil".
+            // It will now work on Demons in addition to Undead. Turn Evil is subject to diminishing returns, and lasts 10 seconds in PvP. - https://wowwiki.fandom.com/wiki/Patch_2.4.0
+            if (spellproto->IsFitToFamilyMask(uint64(0x0000400000000000)) && spellproto->Attributes == 0x40010000)
+                return DIMINISHING_FEAR;
+            break;
+        }
+        case SPELLFAMILY_UNK1:
+            return DIMINISHING_NONE;
         default:
             break;
     }
@@ -2960,15 +3026,15 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
     if (mechanic & (1 << (MECHANIC_SLEEP - 1)))
         return DIMINISHING_SLEEP;
     if (mechanic & ((1 << (MECHANIC_KNOCKOUT - 1)) | (1 << (MECHANIC_SAPPED - 1)) | (1 << (MECHANIC_POLYMORPH - 1))))
-        return DIMINISHING_POLYMORPH_KNOCKOUT;
+        return DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED;
     if (mechanic & (1 << (MECHANIC_ROOT - 1)))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
     if (mechanic & (1 << (MECHANIC_FEAR - 1)))
         return DIMINISHING_FEAR;
     if (mechanic & (1 << (MECHANIC_CHARM - 1)))
         return DIMINISHING_CHARM;
-    if (mechanic & (1 << (MECHANIC_SILENCE - 1)))
-        return DIMINISHING_SILENCE;
+    //if (mechanic & (1 << (MECHANIC_SILENCE - 1)))
+    //    return DIMINISHING_SILENCE;
     if (mechanic & (1 << (MECHANIC_DISARM - 1)))
         return DIMINISHING_DISARM;
     if (mechanic & (1 << (MECHANIC_FREEZE - 1)))
@@ -2993,14 +3059,26 @@ bool IsDiminishingReturnsGroupDurationLimited(DiminishingGroup group)
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
         case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH_KNOCKOUT:
+        case DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED:
         case DIMINISHING_FREEZE:
         case DIMINISHING_BLIND_CYCLONE:
         case DIMINISHING_BANISH:
         case DIMINISHING_LIMITONLY:
+        case DIMINISHING_DRAGONS_BREATH:
             return true;
         default:
             return false;
+    }
+}
+
+bool IsDiminishingReturnsGroupDurationDiminished(DiminishingGroup group, bool pvp)
+{
+    switch (group)
+    {
+        case DIMINISHING_CHARM:
+            return pvp;
+        default:
+            return true;
     }
 }
 
@@ -3012,24 +3090,33 @@ DiminishingReturnsType GetDiminishingReturnsGroupType(DiminishingGroup group)
         case DIMINISHING_CONTROL_STUN:
         case DIMINISHING_TRIGGER_STUN:
         case DIMINISHING_KIDNEYSHOT:
+        case DIMINISHING_CHARM:
+        //case DIMINISHING_FEAR: Fix PvE no DR vs PvP DR
             return DRTYPE_ALL;
         case DIMINISHING_SLEEP:
         case DIMINISHING_CONTROL_ROOT:
         case DIMINISHING_TRIGGER_ROOT:
         case DIMINISHING_FEAR:
-        case DIMINISHING_CHARM:
-        case DIMINISHING_POLYMORPH_KNOCKOUT:
-        case DIMINISHING_SILENCE:
+        case DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED:
+        //case DIMINISHING_SILENCE: Patch 3.0.8+ only
         case DIMINISHING_DISARM:
         case DIMINISHING_DEATHCOIL:
         case DIMINISHING_FREEZE:
         case DIMINISHING_BANISH:
+        case DIMINISHING_DRAGONS_BREATH:
             return DRTYPE_PLAYER;
         default:
             break;
     }
 
     return DRTYPE_NONE;
+}
+
+bool IsSubjectToDiminishingLevels(DiminishingGroup group, bool pvp)
+{
+    if ((GetDiminishingReturnsGroupType(group) == DRTYPE_PLAYER && pvp) || GetDiminishingReturnsGroupType(group) == DRTYPE_ALL)
+        return true;
+    return false;
 }
 
 bool IsCreatureDRSpell(SpellEntry const* spellInfo)
@@ -3047,7 +3134,7 @@ bool SpellArea::IsFitToRequirements(Player const* player, uint32 newZone, uint32
 {
     if (conditionId)
     {
-        if (!player || !sObjectMgr.IsPlayerMeetToCondition(conditionId, player, player->GetMap(), nullptr, CONDITION_FROM_SPELL_AREA))
+        if (!player || !sObjectMgr.IsConditionSatisfied(conditionId, player, player->GetMap(), nullptr, CONDITION_FROM_SPELL_AREA))
             return false;
     }
     else                                                    // This block will be removed

@@ -27,6 +27,7 @@
 #include "Grids/CellImpl.h"
 #include "Globals/ObjectMgr.h"
 #include "Pomelo/DungeonSwitchMgr.h"
+#include "Maps/MapWorkers.h"
 #include <future>
 
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<MapManager, std::recursive_mutex>
@@ -34,7 +35,7 @@ INSTANTIATE_SINGLETON_2(MapManager, CLASS_LOCK);
 INSTANTIATE_CLASS_MUTEX(MapManager, std::recursive_mutex);
 
 MapManager::MapManager()
-    : i_GridStateErrorCount(0), i_gridCleanUpDelay(sWorld.getConfig(CONFIG_UINT32_INTERVAL_GRIDCLEAN))
+    : i_gridCleanUpDelay(sWorld.getConfig(CONFIG_UINT32_INTERVAL_GRIDCLEAN))
 {
     i_timer.SetInterval(sWorld.getConfig(CONFIG_UINT32_INTERVAL_MAPUPDATE));
 }
@@ -44,18 +45,18 @@ MapManager::~MapManager()
     for (auto& i_map : i_maps)
         delete i_map.second;
 
-    for (auto m_Transport : m_Transports)
-        delete m_Transport;
-
     DeleteStateMachine();
 }
 
-void
-MapManager::Initialize()
+void MapManager::Initialize()
 {
     InitStateMachine();
     InitMaxInstanceId();
     CreateContinents();
+
+    int num_threads(sWorld.getConfig(CONFIG_UINT32_NUM_MAP_THREADS));
+    if (num_threads > 0)
+        m_updater.activate(num_threads);
 }
 
 void MapManager::InitStateMachine()
@@ -112,11 +113,12 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
 {
     Guard _guard(*this);
 
+    Map* m = nullptr;
+
     const MapEntry* entry = sMapStore.LookupEntry(id);
     if (!entry)
         return nullptr;
 
-    Map* m;
     if (entry->Instanceable())
     {
         MANGOS_ASSERT(obj && obj->GetTypeId() == TYPEID_PLAYER);
@@ -129,6 +131,7 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
         m = FindMap(id);
         if (m == nullptr)
         {
+            std::lock_guard<std::mutex> lock(m_lock);
             m = new WorldMap(id, i_gridCleanUpDelay);
             // add map into container
             i_maps[MapID(id)] = m;
@@ -191,11 +194,16 @@ void MapManager::Update(uint32 diff)
     if (!i_timer.Passed())
         return;
 
-    for (auto& i_map : i_maps)
-        i_map.second->Update((uint32)i_timer.GetCurrent());
+    for (auto& map : i_maps)
+    {
+        if (m_updater.activated())
+            m_updater.schedule_update(new MapUpdateWorker(*map.second, (uint32)i_timer.GetCurrent(), m_updater));
+        else
+            map.second->Update((uint32)i_timer.GetCurrent());
+    }
 
-    for (Transport* m_Transport : m_Transports)
-        m_Transport->Update((uint32)i_timer.GetCurrent());
+    if (m_updater.activated())
+        m_updater.wait();
 
     // remove all maps which can be unloaded
     MapMapType::iterator iter = i_maps.begin();
@@ -251,6 +259,9 @@ void MapManager::UnloadAll()
         i_maps.erase(i_maps.begin());
     }
 
+    if (m_updater.activated())
+        m_updater.deactivate();
+
     TerrainManager::Instance().UnloadAll();
 }
 
@@ -268,6 +279,8 @@ void MapManager::InitMaxInstanceId()
 
 uint32 MapManager::GetNumInstances()
 {
+    std::lock_guard<std::mutex> lock(m_lock);
+
     uint32 ret = 0;
     for (auto& i_map : i_maps)
     {
@@ -280,6 +293,7 @@ uint32 MapManager::GetNumInstances()
 
 uint32 MapManager::GetNumPlayersInInstances()
 {
+    std::lock_guard<std::mutex> lock(m_lock);
     uint32 ret = 0;
     for (auto& i_map : i_maps)
     {
@@ -290,31 +304,13 @@ uint32 MapManager::GetNumPlayersInInstances()
     return ret;
 }
 
-uint32 MapManager::GetMapUpdateMinTime(uint32 mapId, uint32 instance)
-{
-    std::lock_guard<std::mutex> lock(m_lock);
-    return i_maps[MapID(mapId, instance)]->GetUpdateTimeMin();
-}
-
-uint32 MapManager::GetMapUpdateMaxTime(uint32 mapId, uint32 instance)
-{
-    std::lock_guard<std::mutex> lock(m_lock);
-    return i_maps[MapID(mapId, instance)]->GetUpdateTimeMax();
-}
-
-uint32 MapManager::GetMapUpdateAvgTime(uint32 mapId, uint32 instance)
-{
-    std::lock_guard<std::mutex> lock(m_lock);
-    return i_maps[MapID(mapId, instance)]->GetUpdateTimeAvg();
-}
-
 ///// returns a new or existing Instance
 ///// in case of battlegrounds it will only return an existing map, those maps are created by bg-system
 Map* MapManager::CreateInstance(uint32 id, Player* player)
 {
     Map* map = nullptr;
     Map* pNewMap = nullptr;
-    uint32 NewInstanceId;                                    // instanceId of the resulting map
+    uint32 NewInstanceId = 0;                               // instanceId of the resulting map
     const MapEntry* entry = sMapStore.LookupEntry(id);
 
     if (entry->IsBattleGroundOrArena())
@@ -396,7 +392,7 @@ DungeonMap* MapManager::CreateDungeonMap(uint32 id, uint32 InstanceId, Difficult
 
 BattleGroundMap* MapManager::CreateBattleGroundMap(uint32 id, uint32 InstanceId, BattleGround* bg)
 {
-    DEBUG_LOG("MapInstanced::CreateBattleGroundMap: instance:%d for map:%d and bgType:%d created.", InstanceId, id, bg->GetTypeID());
+    DEBUG_LOG("MapInstanced::CreateBattleGroundMap: instance:%d for map:%d and bgType:%d created.", InstanceId, id, bg->GetTypeId());
 
     BattleGroundMap* map = new BattleGroundMap(id, i_gridCleanUpDelay, InstanceId);
     MANGOS_ASSERT(map->IsBattleGroundOrArena());

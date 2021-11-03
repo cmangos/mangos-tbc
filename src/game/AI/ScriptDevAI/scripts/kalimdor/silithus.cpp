@@ -25,7 +25,7 @@ EndScriptData */
 npc_anachronos_the_ancient
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 /*###
 ## npc_anachronos_the_ancient
@@ -306,7 +306,7 @@ struct npc_anachronos_the_ancientAI : public ScriptedAI, private DialogueHelper
                 {
                     pMerithra->CastSpell(pMerithra, SPELL_HOVER, TRIGGERED_NONE);
                     pMerithra->HandleEmote(EMOTE_ONESHOT_LIFTOFF);
-                    pMerithra->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+                    pMerithra->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
                     pMerithra->SetLevitate(true);
                 }
                 break;
@@ -358,7 +358,7 @@ struct npc_anachronos_the_ancientAI : public ScriptedAI, private DialogueHelper
                 {
                     pArygos->CastSpell(pArygos, SPELL_HOVER, TRIGGERED_NONE);
                     pArygos->HandleEmote(EMOTE_ONESHOT_LIFTOFF);
-                    pArygos->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+                    pArygos->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
                     pArygos->SetLevitate(true);
                 }
                 break;
@@ -366,7 +366,7 @@ struct npc_anachronos_the_ancientAI : public ScriptedAI, private DialogueHelper
                 if (Creature* pArygos = m_creature->GetMap()->GetCreature(m_arygosGuid))
                 {
                     pArygos->HandleEmote(EMOTE_ONESHOT_LIFTOFF);
-                    pArygos->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+                    pArygos->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
                     pArygos->SetLevitate(true);
                     pArygos->CastSpell(pArygos, SPELL_ARYGOS_VENGEANCE, TRIGGERED_NONE);
                 }
@@ -399,7 +399,7 @@ struct npc_anachronos_the_ancientAI : public ScriptedAI, private DialogueHelper
                 {
                     pCaelestrasz->CastSpell(pCaelestrasz, SPELL_HOVER, TRIGGERED_NONE);
                     pCaelestrasz->HandleEmote(EMOTE_ONESHOT_LIFTOFF);
-                    pCaelestrasz->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+                    pCaelestrasz->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
                     pCaelestrasz->SetLevitate(true);
                 }
                 break;
@@ -650,7 +650,7 @@ struct npc_anachronos_the_ancientAI : public ScriptedAI, private DialogueHelper
                 m_uiEventTimer = 4000;
                 break;
             case POINT_ID_EXIT:
-                m_creature->SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+                m_creature->SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
                 m_creature->SetLevitate(true);
                 DoCastSpellIfCan(m_creature, SPELL_BRONZE_DRAGON_TRANSFORM);
                 DoCastSpellIfCan(m_creature, SPELL_HOVER);
@@ -892,8 +892,8 @@ struct npc_solenorAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned) override
     {
-        if (m_creature->getVictim())
-            pSummoned->AI()->AttackStart(m_creature->getVictim());
+        if (m_creature->GetVictim())
+            pSummoned->AI()->AttackStart(m_creature->GetVictim());
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -922,12 +922,8 @@ struct npc_solenorAI : public ScriptedAI
                 {
                     if (Unit* pUnit = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                     {
-                        if (pUnit->isAlive())
-                        {
-                            pCleaner->SetInCombatWith(pUnit);
-                            pCleaner->AddThreat(pUnit);
+                        if (pUnit->IsAlive())
                             pCleaner->AI()->AttackStart(pUnit);
-                        }
                     }
                 }
             }
@@ -976,7 +972,7 @@ struct npc_solenorAI : public ScriptedAI
         {
             if (m_uiDespawn_Timer <= uiDiff)
             {
-                if (m_creature->isAlive() && !m_creature->isInCombat())
+                if (m_creature->IsAlive() && !m_creature->IsInCombat())
                     DemonDespawn(false);
             }
             else
@@ -995,13 +991,13 @@ struct npc_solenorAI : public ScriptedAI
                 m_uiCastSoulFlame_Timer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_creature->HasAura(SPELL_SOUL_FLAME) && m_creature->HasAura(SPELL_FROST_TRAP))
             m_creature->RemoveAurasDueToSpell(SPELL_SOUL_FLAME);
 
-        if (m_creature->getThreatManager().getThreatList().size() > 1 /*|| pHunter->isDead()*/)
+        if (m_creature->getThreatManager().getThreatList().size() > 1 /*|| pHunter->IsDead()*/)
             DemonDespawn();
 
         if (m_uiCreepingDoom_Timer < uiDiff)
@@ -1014,7 +1010,7 @@ struct npc_solenorAI : public ScriptedAI
 
         if (m_uiDreadfulFright_Timer < uiDiff)
         {
-            if (Unit* pUnit = m_creature->getVictim())
+            if (Unit* pUnit = m_creature->GetVictim())
             {
                 if (m_creature->GetDistance(pUnit, false) > 5.0f)
                 {

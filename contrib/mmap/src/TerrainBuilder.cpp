@@ -215,7 +215,7 @@ namespace MMAP
                 if (!(lheader.flags & MAP_LIQUID_NO_TYPE))
                 {
                     if (fread(liquid_entry, sizeof(liquid_entry), 1, mapFile) == 1 &&
-                        fread(liquid_flags, sizeof(liquid_flags), 1, mapFile) == 1)
+                            fread(liquid_flags, sizeof(liquid_flags), 1, mapFile) == 1)
                         liquid_type_loaded = true;
                 }
                 else
@@ -455,7 +455,7 @@ namespace MMAP
     /**************************************************************************/
     void TerrainBuilder::getHeightCoord(int index, Grid grid, float xOffset, float yOffset, float* coord, float* v)
     {
-        // wow coords: x, y, height
+        // world coords: x, y, height
         // coord is mirroed about the horizontal axes
         switch (grid)
         {
@@ -523,7 +523,7 @@ namespace MMAP
     /**************************************************************************/
     void TerrainBuilder::getLiquidCoord(int index, int index2, float xOffset, float yOffset, float* coord, float* v)
     {
-        // wow coords: x, y, height
+        // world coords: x, y, height
         // coord is mirroed about the horizontal axes
         coord[0] = (xOffset + index % (V9_SIZE) * GRID_PART_SIZE) * -1.f;
         coord[1] = (yOffset + (int)(index / (V9_SIZE)) * GRID_PART_SIZE) * -1.f;
@@ -577,7 +577,7 @@ namespace MMAP
             if (!instanceTrees[mapID])
                 break;
 
-            ModelInstance* models = NULL;
+            ModelInstance* models = nullptr;
             uint32 count = 0;
             instanceTrees[mapID]->getModelInstances(models, count);
 
@@ -614,7 +614,7 @@ namespace MMAP
                     vector<Vector3> tempVertices;
                     vector<Vector3> transformedVertices;
                     vector<MeshTriangle> tempTriangles;
-                    WmoLiquid* liquid = NULL;
+                    WmoLiquid* liquid = nullptr;
 
                     (*it).getMeshData(tempVertices, tempTriangles, liquid);
 
@@ -818,7 +818,7 @@ namespace MMAP
     void TerrainBuilder::loadOffMeshConnections(uint32 mapID, uint32 tileX, uint32 tileY, MeshData& meshData, const char* offMeshFilePath)
     {
         // no meshfile input given?
-        if (offMeshFilePath == NULL)
+        if (offMeshFilePath == nullptr)
             return;
 
         FILE* fp = fopen(offMeshFilePath, "rb");

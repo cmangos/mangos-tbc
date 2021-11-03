@@ -21,7 +21,7 @@ SDComment: Timers may need improvemets.
 SDCategory: Coilfang Resevoir, Serpent Shrine Cavern
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "serpent_shrine.h"
 
 // Note: As of March 21 2007 Hydross should not crush tanks
@@ -64,13 +64,13 @@ static const uint32 aMarkCorruption[MAX_HYDROSS_MARKS] = {38219, 38220, 38221, 3
 
 struct boss_hydross_the_unstableAI : public ScriptedAI
 {
-    boss_hydross_the_unstableAI(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_hydross_the_unstableAI(Creature* creature) : ScriptedAI(creature)
     {
-        m_pInstance = (instance_serpentshrine_cavern*)pCreature->GetInstanceData();
+        m_instance = dynamic_cast<instance_serpentshrine_cavern*>(creature->GetInstanceData());
         Reset();
     }
 
-    instance_serpentshrine_cavern* m_pInstance;
+    instance_serpentshrine_cavern* m_instance;
 
     uint32 m_uiBeamInitTimer;
     uint32 m_uiElementalTimer;
@@ -104,8 +104,8 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
     {
         DoScriptText(SAY_AGGRO, m_creature);
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_HYDROSS_EVENT, IN_PROGRESS);
+        if (m_instance)
+            m_instance->SetData(TYPE_HYDROSS_EVENT, IN_PROGRESS);
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
@@ -120,14 +120,14 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
     {
         DoScriptText(m_bCorruptedForm ? SAY_CORRUPT_DEATH : SAY_CLEAN_DEATH, m_creature);
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_HYDROSS_EVENT, DONE);
+        if (m_instance)
+            m_instance->SetData(TYPE_HYDROSS_EVENT, DONE);
     }
 
     void JustReachedHome() override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_HYDROSS_EVENT, FAIL);
+        if (m_instance)
+            m_instance->SetData(TYPE_HYDROSS_EVENT, FAIL);
     }
 
     // Adds summon during phase switch
@@ -147,11 +147,11 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
     // Wrapper to handle the blue beams animation
     void DoHandleBeamHelpers(bool bReset)
     {
-        if (!m_pInstance)
+        if (!m_instance)
             return;
 
         GuidList lBeamHelpersGuid;
-        m_pInstance->GetBeamHelpersGUIDList(lBeamHelpersGuid);
+        m_instance->GetBeamHelpersGUIDList(lBeamHelpersGuid);
 
         for (GuidList::const_iterator itr = lBeamHelpersGuid.begin(); itr != lBeamHelpersGuid.end(); ++itr)
         {
@@ -167,9 +167,9 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
 
     bool CheckTransition() // checks whether hydross is within initial circle
     {
-        float x, y, z, o;
-        m_creature->GetCombatStartPosition(x, y, z, o);
-        return m_creature->IsWithinDist2d(x, y, SWITCH_RADIUS);
+        Position pos;
+        m_creature->GetCombatStartPosition(pos);
+        return m_creature->IsWithinDist2d(pos.GetPositionX(), pos.GetPositionY(), SWITCH_RADIUS);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -185,7 +185,7 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
                 m_uiBeamInitTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         {
             // handle elementals on OOC timer
             if (m_uiElementalTimer < uiDiff)
@@ -313,11 +313,6 @@ struct boss_hydross_the_unstableAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_boss_hydross_the_unstable(Creature* pCreature)
-{
-    return new boss_hydross_the_unstableAI(pCreature);
-}
-
 struct npc_spawn_of_hydrossAI : public ScriptedAI
 {
     npc_spawn_of_hydrossAI(Creature* pCreature) : ScriptedAI(pCreature)
@@ -354,27 +349,22 @@ struct npc_spawn_of_hydrossAI : public ScriptedAI
                 m_uiAttackDelayTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
     }
 };
 
-UnitAI* GetAI_npc_spawn_of_hydross(Creature* pCreature)
-{
-    return new npc_spawn_of_hydrossAI(pCreature);
-}
-
 void AddSC_boss_hydross_the_unstable()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_hydross_the_unstable";
-    pNewScript->GetAI = &GetAI_boss_hydross_the_unstable;
+    pNewScript->GetAI = &GetNewAIInstance<boss_hydross_the_unstableAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_spawn_of_hydross";
-    pNewScript->GetAI = &GetAI_npc_spawn_of_hydross;
+    pNewScript->GetAI = &GetNewAIInstance<npc_spawn_of_hydrossAI>;
     pNewScript->RegisterSelf();
 }

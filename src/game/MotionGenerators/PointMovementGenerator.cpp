@@ -17,21 +17,21 @@
  */
 
 #include "MotionGenerators/PointMovementGenerator.h"
-#include "Entities/Creature.h"
-#include "AI/BaseAI/UnitAI.h"
-#include "Entities/TemporarySpawn.h"
-#include "World/World.h"
 #include "Movement/MoveSpline.h"
 #include "Movement/MoveSplineInit.h"
+#include "Entities/Creature.h"
+#include "Entities/TemporarySpawn.h"
+#include "AI/BaseAI/UnitAI.h"
 
 //----- Point Movement Generator
+
 void PointMovementGenerator::Initialize(Unit& unit)
 {
     if (unit.hasUnitState(UNIT_STAT_NO_FREE_MOVE | UNIT_STAT_NOT_MOVE))
         return;
 
     // Stop any previously dispatched splines no matter the source
-    if (!unit.movespline->Finalized() && !i_speedChanged)
+    if (!unit.movespline->Finalized() && !m_speedChanged)
     {
         if (unit.IsClientControlled())
             unit.StopMoving(true);
@@ -41,16 +41,9 @@ void PointMovementGenerator::Initialize(Unit& unit)
 
     unit.addUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
 
-    Movement::MoveSplineInit init(unit);
-    init.MoveTo(i_x, i_y, i_z, m_generatePath);
-    if (m_forcedMovement == FORCED_MOVEMENT_WALK)
-        init.SetWalk(true);
-    if (i_o != 0.f)
-        init.SetFacing(i_o);
-    init.SetVelocity(i_speed);
-    init.Launch();
+    Move(unit);
 
-    i_speedChanged = false;
+    m_speedChanged = false;
 }
 
 void PointMovementGenerator::Finalize(Unit& unit)
@@ -71,14 +64,14 @@ void PointMovementGenerator::Finalize(Unit& unit)
 
 void PointMovementGenerator::Interrupt(Unit& unit)
 {
-    unit.InterruptMoving();
     unit.clearUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
+    unit.InterruptMoving();
 }
 
 void PointMovementGenerator::Reset(Unit& unit)
 {
-    unit.StopMoving();
-    unit.addUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
+    unit.addUnitState(UNIT_STAT_ROAMING);
+    Initialize(unit);
 }
 
 bool PointMovementGenerator::Update(Unit& unit, const uint32&/* diff*/)
@@ -94,10 +87,28 @@ bool PointMovementGenerator::Update(Unit& unit, const uint32&/* diff*/)
         return true;
     }
 
-    if ((!unit.hasUnitState(UNIT_STAT_ROAMING_MOVE) && unit.movespline->Finalized()) || i_speedChanged)
+    if ((!unit.hasUnitState(UNIT_STAT_ROAMING_MOVE) && unit.movespline->Finalized()) || m_speedChanged)
         Initialize(unit);
 
     return !unit.movespline->Finalized();
+}
+
+void PointMovementGenerator::Move(Unit& unit)
+{
+    Movement::MoveSplineInit init(unit);
+    init.MoveTo(m_x, m_y, m_z, m_generatePath);
+    if (m_forcedMovement == FORCED_MOVEMENT_WALK)
+        init.SetWalk(true);
+    else if (m_forcedMovement == FORCED_MOVEMENT_RUN)
+        init.SetWalk(false);
+    else
+        init.SetWalk(!unit.hasUnitState(UNIT_STAT_RUNNING));
+    if (m_forcedMovement == FORCED_MOVEMENT_FLIGHT)
+        init.SetFly();
+    if (m_o != 0.f)
+        init.SetFacing(m_o);
+    init.SetVelocity(m_speed);
+    init.Launch();
 }
 
 void PointMovementGenerator::MovementInform(Unit& unit)
@@ -204,28 +215,18 @@ bool StayMovementGenerator::Update(Unit& unit, const uint32& diff)
     return true;
 }
 
-void FlyOrLandMovementGenerator::Initialize(Unit& unit)
+void PointTOLMovementGenerator::Move(Unit& unit)
 {
-    if (unit.hasUnitState(UNIT_STAT_NO_FREE_MOVE | UNIT_STAT_NOT_MOVE))
-        return;
-
-    // Stop any previously dispatched splines no matter the source
-    if (!unit.movespline->Finalized() && !i_speedChanged)
-    {
-        if (unit.IsClientControlled())
-            unit.StopMoving(true);
-        else
-            unit.InterruptMoving();
-    }
-
-    unit.addUnitState(UNIT_STAT_ROAMING | UNIT_STAT_ROAMING_MOVE);
-
     Movement::MoveSplineInit init(unit);
+    init.MoveTo(m_x, m_y, m_z, false);
+    if (m_forcedMovement == FORCED_MOVEMENT_WALK)
+        init.SetWalk(true);
+    else
+        init.SetWalk(!unit.hasUnitState(UNIT_STAT_RUNNING));
+    if (m_o != 0.f)
+        init.SetFacing(m_o);
+    init.SetVelocity(m_speed);
     init.SetFly();
-    init.MoveTo(i_x, i_y, i_z, false);
+    init.SetWalk(!unit.hasUnitState(UNIT_STAT_RUNNING));
     init.Launch();
-
-    i_speedChanged = false;
 }
-
-

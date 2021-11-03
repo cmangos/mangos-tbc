@@ -165,7 +165,7 @@ void GameEventMgr::LoadFromDB()
                 gameEvent.occurence = gameEvent.length;
             }
 			
-            if (gameEvent.length == 0)                     // length>0 is validity check
+            if (gameEvent.length == 0 && gameEvent.scheduleType != GAME_EVENT_SCHEDULE_SERVERSIDE) // length>0 is validity check
             {
                 sLog.outErrorDb("`game_event` game event id (%i) have length 0 and can't be used.", event_id);
                 gameEvent.start = time_t(FAR_FUTURE);
@@ -675,7 +675,7 @@ uint32 GameEventMgr::Update(ActiveEvents const* activeAtShutdown /*= nullptr*/)
     uint32 nextEventDelay = max_ge_check_delay;             // 1 day
     for (uint16 itr = 1; itr < m_gameEvents.size(); ++itr)
     {
-        if (m_gameEvents[itr].occurence == 0 || m_gameEvents[itr].scheduleType == GAME_EVENT_SCHEDULE_SERVERSIDE)
+        if ((m_gameEvents[itr].occurence == 0 && m_gameEvents[itr].scheduleType != GAME_EVENT_SCHEDULE_SERVERSIDE) || (m_gameEvents[itr].scheduleType == GAME_EVENT_SCHEDULE_SERVERSIDE && m_isGameEventsInit))
             continue;
         // sLog.outErrorDb("Checking event %u",itr);
         if (CheckOneGameEvent(itr, currenttime))
@@ -694,11 +694,7 @@ uint32 GameEventMgr::Update(ActiveEvents const* activeAtShutdown /*= nullptr*/)
         {
             // DEBUG_LOG("GameEvent %u is not active",itr->first);
             if (IsActiveEvent(itr))
-            {
                 StopEvent(itr);
-                if (m_gameEvents[itr].linkedTo != 0)
-                    StopEvent(m_gameEvents[itr].linkedTo);
-            }
             else
             {
                 if (!m_isGameEventsInit)
@@ -1066,7 +1062,7 @@ GameEventMgr::GameEventMgr()
     m_isGameEventsInit = false;
 }
 
-bool GameEventMgr::IsActiveHoliday(HolidayIds id)
+bool GameEventMgr::IsActiveHoliday(HolidayIds id) const
 {
     if (id == HOLIDAY_NONE)
         return false;
@@ -1112,6 +1108,7 @@ void GameEventMgr::ComputeEventStartAndEndTime(GameEventData& data)
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_1_3:
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_2_3:
         case GAME_EVENT_SCHEDULE_DMF_3: firstMonday.tm_mon += (3 - monthRemainder + 2) % 3; break; // 2 1 0 - x + 3 - 1
+        default: break;
     }
     mktime(&firstMonday);
     firstMonday.tm_mday = (firstMonday.tm_mday - 1 - (firstMonday.tm_wday - 1) + 7) % 7 + 1; // get this weeks monday
@@ -1123,6 +1120,7 @@ void GameEventMgr::ComputeEventStartAndEndTime(GameEventData& data)
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_2_1:
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_2_2:
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_2_3: firstMonday.tm_mday -= 1; break;
+        default: break;
     }
     data.start = mktime(&firstMonday);
     switch (data.scheduleType)
@@ -1136,6 +1134,7 @@ void GameEventMgr::ComputeEventStartAndEndTime(GameEventData& data)
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_2_1:
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_2_2:
         case GAME_EVENT_SCHEDULE_DMF_BUILDING_STAGE_2_3: firstMonday.tm_mday += 1; break;
+        default: break;
     }
     data.end = mktime(&firstMonday);
 }

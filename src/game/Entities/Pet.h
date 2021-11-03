@@ -143,9 +143,6 @@ typedef std::vector<uint32> AutoSpellList;
 
 #define ACTIVE_SPELLS_MAX           4
 
-#define PET_FOLLOW_DIST  1.0f
-#define PET_FOLLOW_ANGLE (M_PI_F / 2.0f)
-
 class Player;
 
 class Pet : public Creature
@@ -161,11 +158,13 @@ class Pet : public Creature
         void setPetType(PetType type) { m_petType = type; }
         bool isControlled() const { return getPetType() == SUMMON_PET || getPetType() == HUNTER_PET; }
         bool isTemporarySummoned() const { return m_duration > 0; }
+        bool IsGuardian() const { return getPetType() == GUARDIAN_PET; }
 
         bool Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, uint32 pet_number);
         bool CreateBaseAtCreature(Creature* creature);
-        bool LoadPetFromDB(Player* owner, uint32 petentry = 0, uint32 petnumber = 0, bool current = false, uint32 healthPercentage = 0, bool permanentOnly = false, bool forced = false);
+        bool LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry = 0, uint32 petnumber = 0, bool current = false, uint32 healthPercentage = 0, bool permanentOnly = false, bool forced = false);
         void SavePetToDB(PetSaveMode mode, Player* owner);
+        Position GetPetSpawnPosition(Player* owner);
         bool isLoading() const { return m_loading; }
         void SetLoading(bool state) { m_loading = state; }
         void Unsummon(PetSaveMode mode, Unit* owner = nullptr);
@@ -193,13 +192,12 @@ class Pet : public Creature
 
         bool CanSwim() const
         {
-            Unit const* owner = GetOwner();
-            if (owner)
-                return owner->GetTypeId() == TYPEID_PLAYER ? true : ((Creature const*)owner)->CanSwim();
+            if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+                return true;
+            if (Unit const* owner = GetOwner())
+                return static_cast<Creature const*>(owner)->CanSwim();
             return Creature::CanSwim();
         }
-
-        bool CanFly() const { return false; } // pet are not able to fly. TODO: check if this is right
 
         void RegenerateAll(uint32 update_diff) override;    // overwrite Creature::RegenerateAll
         void LooseHappiness();
@@ -209,7 +207,7 @@ class Pet : public Creature
         uint32 GetMaxLoyaltyPoints(uint32 level) const;
         uint32 GetStartLoyaltyPoints(uint32 level) const;
         void KillLoyaltyBonus(uint32 level);
-        uint32 GetLoyaltyLevel() { return GetByteValue(UNIT_FIELD_BYTES_1, 1); }
+        uint32 GetLoyaltyLevel() { return GetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_PET_LOYALTY); }
         void SetLoyaltyLevel(LoyaltyLevel level);
         void GivePetXP(uint32 xp);
         void GivePetLevel(uint32 level);
@@ -220,9 +218,6 @@ class Pet : public Creature
         uint32 GetCurrentFoodBenefitLevel(uint32 itemlevel) const;
         void SetDuration(int32 dur) { m_duration = dur; }
         int32 GetDuration() const { return m_duration; }
-
-        int32 GetBonusDamage() const { return m_bonusdamage; }
-        void SetBonusDamage(int32 damage) { m_bonusdamage = damage; }
 
         bool UpdateStats(Stats stat) override;
         bool UpdateAllStats() override;
@@ -301,13 +296,15 @@ class Pet : public Creature
 
         virtual void RegenerateHealth() override;
 
+        void ResetCorpseRespawn();
+
+        void ForcedDespawn(uint32 timeMSToDespawn = 0, bool onlyAlive = false) override;
     protected:
         uint32  m_happinessTimer;
         uint32  m_loyaltyTimer;
         PetType m_petType;
         int32   m_duration;                                 // time until unsummon (used mostly for summoned guardians and not used for controlled pets)
         int32   m_loyaltyPoints;
-        int32   m_bonusdamage;
         bool    m_loading;
         uint32  m_xpRequiredForNextLoyaltyLevel;
         DeclinedName* m_declinedname;
@@ -315,6 +312,7 @@ class Pet : public Creature
     private:
         PetModeFlags m_petModeFlags;
         CharmInfo*   m_originalCharminfo;
+        bool m_inStatsUpdate;
 
         void SaveToDB(uint32, uint8) override               // overwrited of Creature::SaveToDB     - don't must be called
         {

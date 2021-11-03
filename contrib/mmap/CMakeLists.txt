@@ -55,6 +55,7 @@ target_link_libraries(vmaplib
 
 target_include_directories(vmaplib
     PUBLIC "${CMAKE_SOURCE_DIR}/src/framework"
+    PUBLIC ${ROOT_DIR}/dep/json
 )
 
 add_library(mmaplib STATIC
@@ -78,7 +79,7 @@ if (MSVC)
 endif()
 
 if (BUILD_EXTRACTORS)
-  add_executable(${EXECUTABLE_NAME} ./src/generator.cpp)
+  add_executable(${EXECUTABLE_NAME} ./src/generator.cpp ./src/IntermediateValues.h ./src/IntermediateValues.cpp ./src/MapBuilder.h ./src/MapBuilder.cpp ./src/MMapCommon.h ./src/TerrainBuilder.cpp ./src/TerrainBuilder.h ./src/VMapExtensions.cpp )
 
   target_link_libraries(${EXECUTABLE_NAME}
     vmaplib
@@ -97,6 +98,7 @@ if (BUILD_EXTRACTORS)
 
     # Add script file to dev folder
     set(FILES_LIST_TO_COPY
+          \"${CMAKE_SOURCE_DIR}/contrib/extractor_scripts/config.json\"
           \"${CMAKE_SOURCE_DIR}/contrib/extractor_scripts/MoveMapGen.sh\"
           \"${CMAKE_SOURCE_DIR}/contrib/extractor_scripts/offmesh.txt\")
     add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD

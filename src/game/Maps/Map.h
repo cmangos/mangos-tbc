@@ -35,6 +35,9 @@
 #include "Entities/CreatureLinkingMgr.h"
 #include "vmap/DynamicTree.h"
 #include "Pomelo/AdvancedDifficultyMgr.h"
+#include "Multithreading/Messager.h"
+#include "Globals/GraveyardManager.h"
+#include "Maps/SpawnManager.h"
 
 #include <bitset>
 #include <functional>
@@ -55,7 +58,9 @@ class BattleGround;
 class GridMap;
 class GameObjectModel;
 class WeatherSystem;
+class GenericTransport;
 namespace MaNGOS { struct ObjectUpdater; }
+class Transport;
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
 #if defined( __GNUC__ )
@@ -148,6 +153,7 @@ class Map : public GridRefManager<NGridType>
 
         void PlayerRelocation(Player*, float x, float y, float z, float orientation);
         void CreatureRelocation(Creature* creature, float x, float y, float z, float ang);
+        void GameObjectRelocation(GameObject* go, float x, float y, float z, float orientation, bool respawnRelocationOnFail = true);
 
         template<class T, class CONTAINER> void Visit(const Cell& cell, TypeContainerVisitor<T, CONTAINER>& visitor);
 
@@ -171,7 +177,7 @@ class Map : public GridRefManager<NGridType>
 
         void ResetGridExpiry(NGridType& grid, float factor = 1) const
         {
-            grid.ResetTimeTracker((time_t)((float)i_gridExpiry * factor));
+            grid.ResetTimeTracker((time_t)((double)i_gridExpiry * factor));
         }
 
         time_t GetGridExpiry(void) const { return i_gridExpiry; }
@@ -263,6 +269,14 @@ class Map : public GridRefManager<NGridType>
         Corpse* GetCorpse(ObjectGuid guid) const;                 // !!! find corpse can be not in world
         Unit* GetUnit(ObjectGuid guid);                     // only use if sure that need objects at current map, specially for player case
         WorldObject* GetWorldObject(ObjectGuid guid);       // only use if sure that need objects at current map, specially for player case
+        // dbguid methods
+        Creature* GetCreature(uint32 dbguid);
+        std::vector<Creature*> GetCreatures(uint32 dbguid);
+        GameObject* GetGameObject(uint32 dbguid);
+        std::vector<GameObject*> GetGameObjects(uint32 dbguid);
+
+        void AddDbGuidObject(WorldObject* obj);
+        void RemoveDbGuidObject(WorldObject* obj);
 
         typedef TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid> MapStoredObjectTypesContainer;
         MapStoredObjectTypesContainer& GetObjectsStore() { return m_objectsStore; }
@@ -294,7 +308,7 @@ class Map : public GridRefManager<NGridType>
         void PlayDirectSoundToMap(uint32 soundId, uint32 zoneId = 0) const;
 
         // Dynamic VMaps
-        float GetHeight(float x, float y, float z) const;
+        float GetHeight(float x, float y, float z, bool swim = false) const;
         bool GetHeightInRange(float x, float y, float& z, float maxSearchDist = 4.0f) const;
         bool IsInLineOfSight(float x1, float y1, float z1, float x2, float y2, float z2, bool ignoreM2Model) const;
         bool GetHitPosition(float srcX, float srcY, float srcZ, float& destX, float& destY, float& destZ, float modifyDist) const;
@@ -326,15 +340,9 @@ class Map : public GridRefManager<NGridType>
         bool GetRandomPointInTheAir(float& x, float& y, float& z, float radius, bool randomRange = true) const;
         bool GetRandomPointUnderWater(float& x, float& y, float& z, float radius, GridMapLiquidData& liquid_status, bool randomRange = true) const;
 
-        void AddMessage(const std::function<void(Map*)>& message);
-
         uint32 SpawnedCountForEntry(uint32 entry);
         void AddToSpawnCount(const ObjectGuid& guid);
         void RemoveFromSpawnCount(const ObjectGuid& guid);
-
-        uint32 GetUpdateTimeMin() { return m_updateTimeMin; }
-        uint32 GetUpdateTimeMax() { return m_updateTimeMax; }
-        uint32 GetUpdateTimeAvg() { return uint32(m_updateTimeTotal / m_cycleCounter); }
 
         uint32 GetCurrentMSTime() const;
         TimePoint GetCurrentClockTime() const;
@@ -343,6 +351,24 @@ class Map : public GridRefManager<NGridType>
         void CreatePlayerOnClient(Player* player);
 
         uint32 GetLoadedGridsCount();
+
+        Messager<Map>& GetMessager() { return m_messager; }
+
+        typedef std::set<Transport*> TransportSet;
+        GenericTransport* GetTransport(ObjectGuid guid);
+        TransportSet const& GetTransports() { return m_transports; }
+
+        GraveyardManager& GetGraveyardManager() { return m_graveyardManager; }
+
+        void AddTransport(Transport* transport);
+        void RemoveTransport(Transport* transport);
+
+        bool CanSpawn(TypeID typeId, uint32 dbGuid);
+
+        SpawnManager& GetSpawnManager() { return m_spawnManager; }
+
+        // debug
+        std::set<ObjectGuid> m_objRemoveList; // this will eventually eat up too much memory - only used for debugging VisibleNotifier::Notify() customlog leak
 
     private:
         void LoadMapAndVMap(int gx, int gy);
@@ -353,6 +379,7 @@ class Map : public GridRefManager<NGridType>
 
         void SendInitTransports(Player* player) const;
         void SendRemoveTransports(Player* player) const;
+        void LoadTransports();
 
         bool CreatureCellRelocation(Creature* c, const Cell& new_cell);
 
@@ -398,13 +425,14 @@ class Map : public GridRefManager<NGridType>
         MapStoredObjectTypesContainer m_objectsStore;
         std::map<uint32, uint32> m_tempCreatures;
         std::map<uint32, uint32> m_tempPets;
-
-        std::vector<std::function<void(Map*)>> m_messageVector;
-        std::mutex m_messageMutex;
+        std::map<std::pair<HighGuid, uint32>, std::vector<WorldObject*>> m_dbGuidObjects;
 
         WorldObjectSet m_onEventNotifiedObjects;
         WorldObjectSet::iterator m_onEventNotifiedIter;
 
+        Messager<Map> m_messager;
+
+        GraveyardManager m_graveyardManager;
     private:
         time_t i_gridExpiry;
 
@@ -418,7 +446,7 @@ class Map : public GridRefManager<NGridType>
 
         WorldObjectSet i_objectsToRemove;
 
-        typedef std::multimap<time_t, ScriptAction> ScriptScheduleMap;
+        typedef std::multimap<TimePoint, ScriptAction> ScriptScheduleMap;
         ScriptScheduleMap m_scriptSchedule;
 
         InstanceData* i_data;
@@ -427,6 +455,7 @@ class Map : public GridRefManager<NGridType>
         // Map local low guid counters
         ObjectGuidGenerator<HIGHGUID_UNIT> m_CreatureGuids;
         ObjectGuidGenerator<HIGHGUID_GAMEOBJECT> m_GameObjectGuids;
+        ObjectGuidGenerator<HIGHGUID_TRANSPORT> m_transportGuids;
         ObjectGuidGenerator<HIGHGUID_DYNAMICOBJECT> m_DynObjectGuids;
         ObjectGuidGenerator<HIGHGUID_PET> m_PetGuids;
 
@@ -445,13 +474,14 @@ class Map : public GridRefManager<NGridType>
         // WeatherSystem
         WeatherSystem* m_weatherSystem;
 
+        // Transports
+        TransportSet m_transports;
+        TransportSet::iterator m_transportsIterator;
+
         std::unordered_map<uint32, std::set<ObjectGuid>> m_spawnedCount;
 
-        // Map update performance logging
-        std::atomic<uint32> m_cycleCounter;
-        std::atomic<uint32> m_updateTimeMin;
-        std::atomic<uint32> m_updateTimeMax;
-        std::atomic<uint64> m_updateTimeTotal;
+        // spawning
+        SpawnManager m_spawnManager;
 };
 
 class WorldMap : public Map
@@ -477,7 +507,7 @@ class DungeonMap : public Map
         void Remove(Player*, bool) override;
         void Update(const uint32&) override;
         bool Reset(InstanceResetMethod method);
-        void PermBindAllPlayers(Player* player);
+        void PermBindAllPlayers(Player* player = nullptr);
         void UnloadAll(bool pForce) override;
         void SendResetWarnings(uint32 timeLeft) const;
         void SetResetSchedule(bool on);

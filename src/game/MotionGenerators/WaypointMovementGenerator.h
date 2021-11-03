@@ -28,11 +28,18 @@
 #include "MotionGenerators/MovementGenerator.h"
 #include "MotionGenerators/WaypointManager.h"
 #include "Server/DBCStructure.h"
+#include "Entities/Object.h"
 
 #include <set>
 
 #define FLIGHT_TRAVEL_UPDATE  100
 #define STOP_TIME_FOR_PLAYER  (3 * MINUTE * IN_MILLISECONDS)// 3 Minutes
+
+// forward declaration (declared in MovementSplineInit.h)
+namespace Movement
+{
+    typedef std::vector<G3D::Vector3> PointsArray;
+}
 
 template<class T, class P>
 class PathMovementBase
@@ -64,7 +71,9 @@ class WaypointMovementGenerator<Creature>
       public PathMovementBase<Creature, WaypointPath const*>
 {
     public:
-        WaypointMovementGenerator(Creature&) : i_nextMoveTime(0), m_isArrivalDone(false), m_lastReachedWaypoint(0), m_pathId(0), m_PathOrigin()
+        WaypointMovementGenerator(Creature&) :
+            i_nextMoveTime(0), m_scriptTime(0), m_lastReachedWaypoint(0), m_pathId(0),
+            m_pathDuration(0), m_PathOrigin(), m_speedChanged(false), m_forcedMovement(FORCED_MOVEMENT_NONE)
         {}
         ~WaypointMovementGenerator() { i_path = nullptr; }
         void Initialize(Creature& creature);
@@ -81,44 +90,37 @@ class WaypointMovementGenerator<Creature>
         void GetPathInformation(uint32& pathId, WaypointPathOrigin& wpOrigin) const { pathId = m_pathId; wpOrigin = m_PathOrigin; }
         void GetPathInformation(std::ostringstream& oss) const;
 
-        void AddToWaypointPauseTime(int32 waitTimeDiff);
+        void AddToWaypointPauseTime(int32 waitTimeDiff, bool force = false);
         bool SetNextWaypoint(uint32 pointId);
+        void SetForcedMovement(ForcedMovement forcedMovement) { m_forcedMovement = forcedMovement; }
+
+        void UnitSpeedChanged() override { m_speedChanged = true; }
 
     private:
         void LoadPath(Creature& creature, int32 pathId, WaypointPathOrigin wpOrigin, uint32 overwriteEntry);
+        uint32 BuildIntPath(Movement::PointsArray& path, Creature& creature, G3D::Vector3 const& endPos);
 
         void Stop(int32 time) { i_nextMoveTime.Reset(time); }
         bool Stopped(Creature& u);
         bool CanMove(int32 diff, Creature& u);
 
         void OnArrived(Creature&);
-        void StartMove(Creature&);
+        void SendNextWayPointPath(Creature&);
         void InformAI(Creature& creature, uint32 type, uint32 data);
 
+        WaypointPath::const_iterator m_currentWaypointNode;
         ShortTimeTracker i_nextMoveTime;
-        bool m_isArrivalDone;
+        int32 m_scriptTime;                                 // filled with delay change when script is instantly executed and want to change node delay
         uint32 m_lastReachedWaypoint;
+        Position m_resetPoint;
 
         uint32 m_pathId;
+        int32 m_pathDuration;
+        std::list<int32> m_nodeIndexes;
         WaypointPathOrigin m_PathOrigin;
-};
 
-/** TaxiMovementGenerator generates movement of the player for the paths
- * and hence generates ground and activities for the player.
- */
-class TaxiMovementGenerator
-    : public MovementGeneratorMedium< Player, TaxiMovementGenerator >
-{
-    public:
-        void Initialize(Player&);
-        void Finalize(Player&);
-        void Interrupt(Player&);
-        void Reset(Player&);
-        bool Update(Player&, const uint32&);
-
-        MovementGeneratorType GetMovementGeneratorType() const override { return TAXI_MOTION_TYPE; }
-
-        bool Resume(Player& player) const;
+        bool m_speedChanged;
+        ForcedMovement m_forcedMovement;
 };
 
 #endif

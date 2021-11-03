@@ -362,7 +362,7 @@ void ArenaTeam::Roster(WorldSession* session)
         data << uint8((pl ? 1 : 0));                        // online flag
         data << itr->name;                                  // member name
         data << uint32((itr->guid == GetCaptainGuid() ? 0 : 1));// captain flag 0 captain 1 member
-        data << uint8((pl ? pl->getLevel() : 0));           // unknown, level?
+        data << uint8((pl ? pl->GetLevel() : 0));           // unknown, level?
         data << uint8(itr->Class);                          // class
         data << uint32(itr->games_week);                    // played this week
         data << uint32(itr->wins_week);                     // wins this week
@@ -779,4 +779,11 @@ void ArenaTeam::FinishSeason()
         itr->wins_season = 0;
         itr->personal_rating = 1500;
     }
+}
+
+void ArenaTeam::SetRatingForAll(uint32 rating)
+{
+    m_stats.rating = rating;
+    for (auto& memberData : m_members)
+        memberData.personal_rating = rating;
 }

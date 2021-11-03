@@ -29,12 +29,13 @@
 #include "Util.h"
 #include "Tools/Language.h"
 #include "World/World.h"
+#include "Anticheat/Anticheat.hpp"
 
 //// MemberSlot ////////////////////////////////////////////
 void MemberSlot::SetMemberStats(Player* player)
 {
     Name   = player->GetName();
-    Level  = player->getLevel();
+    Level  = player->GetLevel();
     Class  = player->getClass();
     Gender_ = player->getGender();
     ZoneId = player->IsInWorld() ? player->GetZoneId() : player->GetCachedZoneId();
@@ -116,6 +117,13 @@ bool Guild::Create(Player* leader, std::string gname)
     if (!lSession)
         return false;
 
+    // Check guild name
+    if (sAnticheatLib->ValidateGuildName(gname))
+    {
+        sLog.outBasic("Attempt to create guild with spam name \"%s\"", gname.c_str());
+        return false;
+    }
+
     m_LeaderGuid = leader->GetObjectGuid();
     m_Name = gname;
     GINFO.clear();
@@ -196,7 +204,7 @@ bool Guild::AddMember(ObjectGuid plGuid, uint32 plRank)
     {
         newmember.accountId = pl->GetSession()->GetAccountId();
         newmember.Name   = pl->GetName();
-        newmember.Level  = pl->getLevel();
+        newmember.Level  = pl->GetLevel();
         newmember.Class  = pl->getClass();
         newmember.Gender_ = pl->getGender();
         newmember.ZoneId = pl->GetZoneId();
@@ -782,7 +790,7 @@ void Guild::Roster(WorldSession* session /*= nullptr*/)
             data << uint8(1);
             data << pl->GetName();
             data << uint32(itr->second.RankId);
-            data << uint8(pl->getLevel());
+            data << uint8(pl->GetLevel());
             data << uint8(pl->getClass());
             data << uint8(pl->getGender());                                     // new 2.4.0
             data << uint32(pl->GetZoneId());
@@ -1185,18 +1193,18 @@ void Guild::LoadGuildBankFromDB()
     delete result;
 
     // data needs to be at first place for Item::LoadFromDB
-    //                                        0     1      2       3          4
-    result = CharacterDatabase.PQuery("SELECT data, TabId, SlotId, item_guid, item_entry FROM guild_bank_item JOIN item_instance ON item_guid = guid WHERE guildid='%u' ORDER BY TabId", m_Id);
+    //                                        0          1            2                3      4         5        6      7             8                 9           10          11     12      13         14
+    result = CharacterDatabase.PQuery("SELECT itemEntry, creatorGuid, giftCreatorGuid, count, duration, charges, flags, enchantments, randomPropertyId, durability, itemTextId, TabId, SlotId, item_guid, item_entry FROM guild_bank_item JOIN item_instance ON item_guid = guid WHERE guildid='%u' ORDER BY TabId", m_Id);
     if (!result)
         return;
 
     do
     {
         Field* fields = result->Fetch();
-        uint8 TabId = fields[1].GetUInt8();
-        uint8 SlotId = fields[2].GetUInt8();
-        uint32 ItemGuid = fields[3].GetUInt32();
-        uint32 ItemEntry = fields[4].GetUInt32();
+        uint8 TabId = fields[11].GetUInt8();
+        uint8 SlotId = fields[12].GetUInt8();
+        uint32 ItemGuid = fields[13].GetUInt32();
+        uint32 ItemEntry = fields[14].GetUInt32();
 
         if (TabId >= GetPurchasedTabs())
         {

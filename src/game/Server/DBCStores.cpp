@@ -20,6 +20,8 @@
 #include "Policies/Singleton.h"
 #include "Log.h"
 #include "ProgressBar.h"
+#include "Util.h"
+#include "Globals/Locales.h"
 #include "Globals/SharedDefines.h"
 #include "Server/SQLStorages.h"
 
@@ -47,7 +49,7 @@ struct WMOAreaTableTripple
     int32 adtId;
 };
 
-typedef std::map<WMOAreaTableTripple, WMOAreaTableEntry const*> WMOAreaInfoByTripple;
+typedef std::map<WMOAreaTableTripple, std::vector<WMOAreaTableEntry const*>> WMOAreaInfoByTripple;
 
 DBCStorage <AreaTableEntry> sAreaStore(AreaTableEntryfmt);
 static AreaFlagByAreaID sAreaFlagByAreaID;
@@ -62,6 +64,10 @@ DBCStorage <BattlemasterListEntry> sBattlemasterListStore(BattlemasterListEntryf
 DBCStorage <CharStartOutfitEntry> sCharStartOutfitStore(CharStartOutfitEntryfmt);
 DBCStorage <CharTitlesEntry> sCharTitlesStore(CharTitlesEntryfmt);
 DBCStorage <ChatChannelsEntry> sChatChannelsStore(ChatChannelsEntryfmt);
+DBCStorage <CharacterFacialHairStylesEntry> sCharacterFacialHairStylesStore(CharacterFacialHairStylesfmt);
+std::unordered_map<uint32, CharacterFacialHairStylesEntry const*> sCharFacialHairMap;
+DBCStorage <CharSectionsEntry> sCharSectionsStore(CharSectionsEntryfmt);
+std::multimap<uint32, CharSectionsEntry const*> sCharSectionMap;
 DBCStorage <ChrClassesEntry> sChrClassesStore(ChrClassesEntryfmt);
 DBCStorage <ChrRacesEntry> sChrRacesStore(ChrRacesEntryfmt);
 DBCStorage <CinematicCameraEntry> sCinematicCameraStore(CinematicCameraEntryfmt);
@@ -69,6 +75,7 @@ DBCStorage <CinematicSequencesEntry> sCinematicSequencesStore(CinematicSequences
 DBCStorage <CreatureDisplayInfoEntry> sCreatureDisplayInfoStore(CreatureDisplayInfofmt);
 DBCStorage <CreatureDisplayInfoExtraEntry> sCreatureDisplayInfoExtraStore(CreatureDisplayInfoExtrafmt);
 DBCStorage <CreatureFamilyEntry> sCreatureFamilyStore(CreatureFamilyfmt);
+DBCStorage <CreatureModelDataEntry> sCreatureModelDataStore(CreatureModelDatafmt);
 DBCStorage <CreatureSpellDataEntry> sCreatureSpellDataStore(CreatureSpellDatafmt);
 DBCStorage <CreatureTypeEntry> sCreatureTypeStore(CreatureTypefmt);
 
@@ -83,6 +90,11 @@ DBCStorage <FactionTemplateEntry> sFactionTemplateStore(FactionTemplateEntryfmt)
 
 DBCStorage <GameObjectDisplayInfoEntry> sGameObjectDisplayInfoStore(GameObjectDisplayInfofmt);
 DBCStorage <GemPropertiesEntry> sGemPropertiesStore(GemPropertiesEntryfmt);
+
+DBCStorage <GMSurveyCurrentSurveyEntry> sGMSurveyCurrentSurveyStore(GMSurveyCurrentSurveyfmt);
+DBCStorage <GMSurveyQuestionsEntry> sGMSurveyQuestionsStore(GMSurveyQuestionsfmt);
+DBCStorage <GMSurveyEntry> sGMSurveySurveysStore(GMSurveySurveysfmt);
+DBCStorage <GMTicketCategoryEntry> sGMTicketCategoryStore(GMTicketCategoryfmt);
 
 DBCStorage <GtCombatRatingsEntry>         sGtCombatRatingsStore(GtCombatRatingsfmt);
 DBCStorage <GtChanceToMeleeCritBaseEntry> sGtChanceToMeleeCritBaseStore(GtChanceToMeleeCritBasefmt);
@@ -157,11 +169,12 @@ DBCStorage <TaxiPathEntry> sTaxiPathStore(TaxiPathEntryfmt);
 TaxiPathNodesByPath sTaxiPathNodesByPath;
 static DBCStorage <TaxiPathNodeEntry> sTaxiPathNodeStore(TaxiPathNodeEntryfmt);
 
+DBCStorage <TransportAnimationEntry> sTransportAnimationStore(TransportAnimationfmt);
+
 DBCStorage <TotemCategoryEntry> sTotemCategoryStore(TotemCategoryEntryfmt);
 DBCStorage <WMOAreaTableEntry>  sWMOAreaTableStore(WMOAreaTableEntryfmt);
 DBCStorage <WorldMapAreaEntry>  sWorldMapAreaStore(WorldMapAreaEntryfmt);
 // DBCStorage <WorldMapOverlayEntry> sWorldMapOverlayStore(WorldMapOverlayEntryfmt);
-DBCStorage <WorldSafeLocsEntry> sWorldSafeLocsStore(WorldSafeLocsEntryfmt);
 
 typedef std::list<std::string> StoreProblemList;
 
@@ -232,7 +245,7 @@ void LoadDBCStores(const std::string& dataPath)
 {
     std::string dbcPath = dataPath + "dbc/";
 
-    const uint32 DBCFilesCount = 66;
+    const uint32 DBCFilesCount = 68;
 
     BarGoLink bar(DBCFilesCount);
 
@@ -264,6 +277,19 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharStartOutfitStore,     dbcPath, "CharStartOutfit.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharTitlesStore,          dbcPath, "CharTitles.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChatChannelsStore,        dbcPath, "ChatChannels.dbc");
+
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharacterFacialHairStylesStore, dbcPath, "CharacterFacialHairStyles.dbc");
+    for (uint32 i = 0; i < sCharacterFacialHairStylesStore.GetNumRows(); ++i)
+        if (CharacterFacialHairStylesEntry const* entry = sCharacterFacialHairStylesStore.LookupEntry(i))
+            if (entry->RaceID && ((1 << (entry->RaceID - 1)) & RACEMASK_ALL_PLAYABLE) != 0) // ignore nonplayable races
+                sCharFacialHairMap.insert({ entry->RaceID | (entry->SexID << 8) | (entry->VariationID << 16), entry });
+
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharSectionsStore, dbcPath, "CharSections.dbc");
+    for (uint32 i = 0; i < sCharSectionsStore.GetNumRows(); ++i)
+        if (CharSectionsEntry const* entry = sCharSectionsStore.LookupEntry(i))
+            if (entry->Race && ((1 << (entry->Race - 1)) & RACEMASK_ALL_PLAYABLE) != 0) //ignore Nonplayable races
+                sCharSectionMap.emplace(uint8(entry->BaseSection) | (uint8(entry->Gender) << 8) | (uint8(entry->Race) << 16), entry);
+
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrClassesStore,          dbcPath, "ChrClasses.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrRacesStore,            dbcPath, "ChrRaces.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCinematicCameraStore,     dbcPath, "CinematicCamera.dbc");
@@ -271,6 +297,7 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCreatureDisplayInfoStore, dbcPath, "CreatureDisplayInfo.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCreatureDisplayInfoExtraStore, dbcPath, "CreatureDisplayInfoExtra.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCreatureFamilyStore,      dbcPath, "CreatureFamily.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCreatureModelDataStore,   dbcPath, "CreatureModelData.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCreatureSpellDataStore,   dbcPath, "CreatureSpellData.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCreatureTypeStore,        dbcPath, "CreatureType.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sDurabilityCostsStore,     dbcPath, "DurabilityCosts.dbc");
@@ -282,6 +309,11 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sFactionTemplateStore,     dbcPath, "FactionTemplate.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGameObjectDisplayInfoStore, dbcPath, "GameObjectDisplayInfo.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGemPropertiesStore,       dbcPath, "GemProperties.dbc");
+
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMSurveyCurrentSurveyStore,  dbcPath, "GMSurveyCurrentSurvey.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMSurveyQuestionsStore,  dbcPath, "GMSurveyQuestions.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMSurveySurveysStore,  dbcPath, "GMSurveySurveys.dbc");
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGMTicketCategoryStore, dbcPath, "GMTicketCategory.dbc");
 
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sGtCombatRatingsStore,     dbcPath, "gtCombatRatings.dbc");
 
@@ -332,8 +364,19 @@ void LoadDBCStores(const std::string& dataPath)
         if (!skillLine)
             continue;
 
+        std::set<uint32> wrongIds = { 4073, 12749, 19804, 13258, 13166 };
+        if (wrongIds.find(skillLine->spellId) != wrongIds.end())
+        {
+            // repairs entry for netherstorm - should be moved to SQL
+            auto fixedEntry = new SkillLineAbilityEntry(*skillLine);
+            fixedEntry->learnOnGetSkill = 0;
+            sSkillLineAbilityStore.EraseEntry(j);
+            sSkillLineAbilityStore.InsertEntry(fixedEntry, j);
+            skillLine = fixedEntry;
+        }
+
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(skillLine->spellId);
-        if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_HIDDEN_CLIENTSIDE | SPELL_ATTR_HIDE_IN_COMBAT_LOG))
+        if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_DO_NOT_DISPLAY | SPELL_ATTR_HIDE_IN_COMBAT_LOG)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_DO_NOT_DISPLAY | SPELL_ATTR_HIDE_IN_COMBAT_LOG))
         {
             for (unsigned int i = 1; i < sCreatureFamilyStore.GetNumRows(); ++i)
             {
@@ -477,7 +520,7 @@ void LoadDBCStores(const std::string& dataPath)
     // fill data (pointers to sTaxiPathNodeStore elements
     for (uint32 i = 1; i < sTaxiPathNodeStore.GetNumRows(); ++i)
         if (TaxiPathNodeEntry const* entry = sTaxiPathNodeStore.LookupEntry(i))
-            sTaxiPathNodesByPath[entry->path][entry->index] = entry;
+            sTaxiPathNodesByPath[entry->path].set(entry->index, entry);
 
     // Initialize global taxinodes mask
     // include existing nodes that have at least single not spell base (scripted) path
@@ -521,6 +564,8 @@ void LoadDBCStores(const std::string& dataPath)
         }
     }
 
+    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sTransportAnimationStore,  dbcPath, "TransportAnimation.dbc");
+
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sTotemCategoryStore,       dbcPath, "TotemCategory.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sWorldMapAreaStore,        dbcPath, "WorldMapArea.dbc");
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sWMOAreaTableStore,        dbcPath, "WMOAreaTable.dbc");
@@ -528,11 +573,11 @@ void LoadDBCStores(const std::string& dataPath)
     {
         if (WMOAreaTableEntry const* entry = sWMOAreaTableStore.LookupEntry(i))
         {
-            sWMOAreaInfoByTripple.insert(WMOAreaInfoByTripple::value_type(WMOAreaTableTripple(entry->rootId, entry->adtId, entry->groupId), entry));
+            sWMOAreaInfoByTripple[WMOAreaTableTripple(entry->rootId, entry->adtId, entry->groupId)].push_back(entry);
         }
     }
     // LoadDBC(availableDbcLocales,bar,bad_dbc_files,sWorldMapOverlayStore,     dbcPath,"WorldMapOverlay.dbc");
-    LoadDBC(availableDbcLocales, bar, bad_dbc_files, sWorldSafeLocsStore,       dbcPath, "WorldSafeLocs.dbc");
+    // LoadDBC(availableDbcLocales, bar, bad_dbc_files, sWorldSafeLocsStore,       dbcPath, "WorldSafeLocs.dbc");
 
     // error checks
     if (bad_dbc_files.size() >= DBCFilesCount)
@@ -610,12 +655,28 @@ int32 GetAreaFlagByAreaID(uint32 area_id)
     return i->second;
 }
 
-WMOAreaTableEntry const* GetWMOAreaTableEntryByTripple(int32 rootid, int32 adtid, int32 groupid)
+uint32 GetAreaIdByLocalizedName(const std::string& name)
 {
-    WMOAreaInfoByTripple::iterator i = sWMOAreaInfoByTripple.find(WMOAreaTableTripple(rootid, adtid, groupid));
-    if (i == sWMOAreaInfoByTripple.end())
-        return nullptr;
-    return i->second;
+    for (uint32 i = 0; i <= sAreaStore.GetNumRows(); i++)
+    {
+        if (AreaTableEntry const* AreaEntry = sAreaStore.LookupEntry(i))
+        {
+            for (uint32 i = 0; i < MAX_LOCALE; ++i)
+            {
+                std::string area_name(AreaEntry->area_name[i]);
+                if (area_name.size() > 0 && name.find(" - " + area_name) != std::string::npos)
+                {
+                    return AreaEntry->ID;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+std::vector<WMOAreaTableEntry const*>& GetWMOAreaTableEntriesByTripple(int32 rootid, int32 adtid, int32 groupid)
+{
+    return sWMOAreaInfoByTripple[WMOAreaTableTripple(rootid, adtid, groupid)];
 }
 
 AreaTableEntry const* GetAreaEntryByAreaID(uint32 area_id)
@@ -674,14 +735,73 @@ ContentLevels GetContentLevelsForMapAndZone(uint32 mapid, uint32 zoneId)
     }
 }
 
-ChatChannelsEntry const* GetChannelEntryFor(uint32 channel_id)
+CharacterFacialHairStylesEntry const* GetCharFacialHairEntry(uint8 race, uint8 gender, uint8 facialHairId)
 {
+    auto itr = sCharFacialHairMap.find(uint32(race) | uint32(gender << 8) | uint32(facialHairId << 16));
+    if (itr == sCharFacialHairMap.end())
+        return nullptr;
+
+    return itr->second;
+}
+
+CharSectionsEntry const* GetCharSectionEntry(uint8 race, CharSectionType genType, uint8 gender, uint8 type, uint8 color)
+{
+    auto eqr = sCharSectionMap.equal_range(uint32(genType) | uint32(gender << 8) | uint32(race << 16));
+    for (auto itr = eqr.first; itr != eqr.second; ++itr)
+    {
+        if (itr->second->VariationIndex == type && itr->second->ColorIndex == color && !itr->second->HasFlag(SECTION_FLAG_UNAVAILABLE))
+            return itr->second;
+    }
+
+    return nullptr;
+}
+
+ChatChannelsEntry const* GetChatChannelsEntryFor(const std::string& name, uint32 channel_id/* = 0*/)
+{
+    std::wstring wname;
+
+    Utf8toWStr(name, wname);
+
+    if (!channel_id && wname.empty())
+        return nullptr;
+
     // not sorted, numbering index from 0
     for (uint32 i = 0; i < sChatChannelsStore.GetNumRows(); ++i)
     {
-        ChatChannelsEntry const* ch = sChatChannelsStore.LookupEntry(i);
-        if (ch && ch->ChannelID == channel_id)
-            return ch;
+        if (ChatChannelsEntry const* entry = sChatChannelsStore.LookupEntry(i))
+        {
+            std::wstring wpattern;
+
+            // try to match by name first, avoid creating custom channels with same name
+            if (!wname.empty())
+            {
+                for (uint32 i = 0; i < MAX_LOCALE; ++i)
+                {
+                    Utf8toWStr(entry->pattern[i], wpattern);
+
+                    if (wpattern.empty())
+                        continue;
+
+                    size_t argpos = wpattern.find(L"%s");
+
+                    // formatting arg present: strip and attempt partial match
+                    if (argpos != std::wstring::npos)
+                    {
+                        wpattern.replace(argpos, 2, L"");
+
+                        if (wname.find(wpattern) != std::wstring::npos)
+                            return entry;
+                    }
+                    // attempt full match
+                    else if (wname.compare(wpattern) == 0)
+                        return entry;
+                }
+            }
+
+            // name still not found, but channel id is provided: possibly no dbc data for client locale
+            if (channel_id && channel_id == entry->ChannelID)
+                return entry;
+        }
     }
     return nullptr;
 }

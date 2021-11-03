@@ -29,6 +29,8 @@
 #include <thread>
 #include <cstdarg>
 
+#include <boost/stacktrace.hpp>
+
 INSTANTIATE_SINGLETON_1(Log);
 
 LogFilterData logFilterData[LOG_FILTER_COUNT] =
@@ -47,8 +49,8 @@ LogFilterData logFilterData[LOG_FILTER_COUNT] =
     { "combat",              "LogFilter_Combat",             false },
     { "spell_cast",          "LogFilter_SpellCast",          false },
     { "db_stricted_check",   "LogFilter_DbStrictedCheck",    true  },
-    { "ahbot_seller",        "LogFilter_AhbotSeller",        true  },
-    { "ahbot_buyer",         "LogFilter_AhbotBuyer",         true  },
+    { "",                    "",                             true  },
+    { "",                    "",                             true  },
     { "pathfinding",         "LogFilter_Pathfinding",        true  },
     { "map_loading",         "LogFilter_MapLoading",         true  },
     { "event_ai_dev",        "LogFilter_EventAiDev",         true  },
@@ -1099,4 +1101,25 @@ void script_error_log(const char* str, ...)
     va_end(ap);
 
     sLog.outErrorScriptLib("%s", buf);
+}
+
+void Log::traceLog()
+{
+    std::lock_guard<std::mutex> guard(m_worldLogMtx);
+    if (customLogFile)
+    {
+        fprintf(customLogFile, "%s\n", GetTraceLog().data());
+        fflush(customLogFile);
+    }
+
+    fflush(stdout);
+}
+
+// has to be in a locked enviroment on linux
+std::string Log::GetTraceLog()
+{
+    std::lock_guard<std::mutex> guard(m_traceLogMtx);
+    std::stringstream ss;
+    ss << boost::stacktrace::stacktrace(); // warning - not async-safe - hence the locking
+    return ss.str();
 }

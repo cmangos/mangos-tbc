@@ -21,156 +21,158 @@ SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
 {
-    // EMOTE_AURA_BLOCKING   = -1533143,
-    // EMOTE_AURA_WANE       = -1533144,
-    // EMOTE_AURA_FADING     = -1533145,
-
     SPELL_CORRUPTED_MIND    = 29201,            // this triggers the following spells on targets (based on class): 29185, 29194, 29196, 29198
     SPELL_POISON_AURA       = 29865,
     SPELL_INEVITABLE_DOOM   = 29204,
     SPELL_SUMMON_SPORE      = 29234,
     SPELL_REMOVE_CURSE      = 30281,
-    // SPELL_BERSERK         = 26662,
 
     NPC_SPORE               = 16286
 };
 
-struct boss_loathebAI : public ScriptedAI
+enum LoathebActions
 {
-    boss_loathebAI(Creature* pCreature) : ScriptedAI(pCreature)
+    LOATHEB_POISON_AURA,
+    LOATHEB_CORRUPTED_MIND,
+    LOATHEB_INEVITABLE_DOOM,
+    LOATHEB_REMOVE_CURSE,
+    LOATHEB_SUMMON,
+    LOATHEB_ACTION_MAX,
+};
+
+struct boss_loathebAI : public CombatAI
+{
+    boss_loathebAI(Creature* creature) : CombatAI(creature, LOATHEB_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
-        Reset();
+        AddCombatAction(LOATHEB_POISON_AURA, 5000u);
+        AddCombatAction(LOATHEB_CORRUPTED_MIND, 4000u);
+        AddCombatAction(LOATHEB_REMOVE_CURSE, 2000u);
+        AddCombatAction(LOATHEB_INEVITABLE_DOOM, 120000u);
+        AddCombatAction(LOATHEB_SUMMON, 12000u);
     }
 
-    instance_naxxramas* m_pInstance;
+    ScriptedInstance* m_instance;
 
-    uint32 m_uiPoisonAuraTimer;
-    uint32 m_uiCorruptedMindTimer;
-    uint32 m_uiInevitableDoomTimer;
-    uint32 m_uiRemoveCurseTimer;
-    uint32 m_uiSummonTimer;
-    // uint32 m_uiBerserkTimer;
-    uint8 m_uiCorruptedMindCount;
+    uint8 m_corruptedMindCount;
 
     void Reset() override
     {
-        m_uiPoisonAuraTimer = 5000;
-        m_uiCorruptedMindTimer = 4000;
-        m_uiRemoveCurseTimer = 2000;
-        m_uiInevitableDoomTimer = MINUTE * 2 * IN_MILLISECONDS;
-        m_uiSummonTimer = 12000;
-        // m_uiBerserkTimer = MINUTE*12*IN_MILLISECONDS;    // not used
-        m_uiCorruptedMindCount = 0;
+        CombatAI::Reset();
+
+        m_corruptedMindCount = 0;
     }
 
-    void Aggro(Unit* /*pWho*/) override
+    void Aggro(Unit* /*who*/) override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_LOATHEB, IN_PROGRESS);
+        if (m_instance)
+            m_instance->SetData(TYPE_LOATHEB, IN_PROGRESS);
     }
 
-    void JustDied(Unit* /*pKiller*/) override
+    void JustDied(Unit* /*killer*/) override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_LOATHEB, DONE);
+        if (m_instance)
+            m_instance->SetData(TYPE_LOATHEB, DONE);
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_LOATHEB, NOT_STARTED);
+        CombatAI::EnterEvadeMode();
+
+        if (m_instance)
+            m_instance->SetData(TYPE_LOATHEB, NOT_STARTED);
     }
 
-    void JustSummoned(Creature* pSummoned) override
+    void JustSummoned(Creature* summoned) override
     {
-        if (pSummoned->GetEntry() != NPC_SPORE)
-            return;
-
-        if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-            pSummoned->AddThreat(pTarget);
+        if (summoned->GetEntry() == NPC_SPORE)
+            summoned->SetInCombatWithZone();
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        /* Berserk - not used
-        if (m_uiBerserkTimer < uiDiff)
+        switch (action)
         {
-            DoCastSpellIfCan(m_creature, SPELL_BERSERK);
-            m_uiBerserkTimer = 300000;
-        }
-        else
-            m_uiBerserkTimer -= uiDiff;*/
-
-        // Inevitable Doom
-        if (m_uiInevitableDoomTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_INEVITABLE_DOOM) == CAST_OK)
-                m_uiInevitableDoomTimer = (m_uiCorruptedMindCount <= 5) ? 30000 : 15000;
-        }
-        else
-            m_uiInevitableDoomTimer -= uiDiff;
-
-        // Corrupted Mind
-        if (m_uiCorruptedMindTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_CORRUPTED_MIND) == CAST_OK)
+            case LOATHEB_INEVITABLE_DOOM:
             {
-                ++m_uiCorruptedMindCount;
-                m_uiCorruptedMindTimer = 60000;
+                if (DoCastSpellIfCan(m_creature, SPELL_INEVITABLE_DOOM, CAST_TRIGGERED) == CAST_OK)
+                    ResetCombatAction(action, ((m_corruptedMindCount <= 5) ? 30 : 15) * IN_MILLISECONDS);
+                break;
             }
+            case LOATHEB_CORRUPTED_MIND:
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_CORRUPTED_MIND, CAST_TRIGGERED) == CAST_OK)
+                {
+                    ++m_corruptedMindCount;
+                    ResetCombatAction(action, 60 * IN_MILLISECONDS);
+                }
+                break;
+            }
+            case LOATHEB_SUMMON:
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPORE, CAST_TRIGGERED) == CAST_OK)
+                    ResetCombatAction(action, 12 * IN_MILLISECONDS);
+                break;
+            }
+            case LOATHEB_POISON_AURA:
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_POISON_AURA) == CAST_OK)
+                    ResetCombatAction(action, 12 * IN_MILLISECONDS);
+                break;
+            }
+            case LOATHEB_REMOVE_CURSE:
+            {
+                SpellCastResult decurseResult = m_creature->CastSpell(m_creature, SPELL_REMOVE_CURSE, TRIGGERED_OLD_TRIGGERED);
+                if (decurseResult == SPELL_CAST_OK || decurseResult == SPELL_FAILED_NOTHING_TO_DISPEL)  // Don't throw an error if there is nothing to dispel
+                    ResetCombatAction(action, 30 * IN_MILLISECONDS);
+                break;
+            }
+            default:
+                break;
         }
-        else
-            m_uiCorruptedMindTimer -= uiDiff;
-
-        // Summon
-        if (m_uiSummonTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPORE) == CAST_OK)
-                m_uiSummonTimer = 12000;
-        }
-        else
-            m_uiSummonTimer -= uiDiff;
-
-        // Poison Aura
-        if (m_uiPoisonAuraTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_POISON_AURA) == CAST_OK)
-                m_uiPoisonAuraTimer = 12000;
-        }
-        else
-            m_uiPoisonAuraTimer -= uiDiff;
-
-        // Remove Curse
-        if (m_uiRemoveCurseTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_REMOVE_CURSE) == CAST_OK)
-                m_uiRemoveCurseTimer = 30000;
-        }
-        else
-            m_uiRemoveCurseTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 
-UnitAI* GetAI_boss_loatheb(Creature* pCreature)
+struct CorruptedMind : public SpellScript
 {
-    return new boss_loathebAI(pCreature);
-}
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            if (Unit* target = spell->GetUnitTarget())
+            {
+                // This spell only works on players as it triggers spells that override spell class scripts
+                if (target->GetTypeId() != TYPEID_PLAYER)
+                    return;
+
+                // Determine which sub-spell to trigger for each healing class
+                uint32 spellId = 0;
+                switch (target->getClass())
+                {
+                    case CLASS_PALADIN: spellId = 29196; break;
+                    case CLASS_PRIEST: spellId = 29185; break;
+                    case CLASS_SHAMAN: spellId = 29198; break;
+                    case CLASS_DRUID: spellId = 29194; break;
+                    default: break;
+                }
+                if (spellId != 0)
+                    spell->GetCaster()->CastSpell(target, spellId, TRIGGERED_OLD_TRIGGERED, nullptr);
+            }
+        }
+    }
+};
 
 void AddSC_boss_loatheb()
 {
-    Script* pNewScript = new Script;
-    pNewScript->Name = "boss_loatheb";
-    pNewScript->GetAI = &GetAI_boss_loatheb;
-    pNewScript->RegisterSelf();
+    Script* newScript = new Script;
+    newScript->Name = "boss_loatheb";
+    newScript->GetAI = &GetNewAIInstance<boss_loathebAI>;
+    newScript->RegisterSelf();
+
+    RegisterSpellScript<CorruptedMind>("spell_loatheb_corrupted_mind");
 }

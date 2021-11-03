@@ -25,7 +25,6 @@
 #include "Globals/SharedDefines.h"
 #include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
-#include "BattleGround/BattleGroundAV.h"
 #include "Entities/ItemEnchantmentMgr.h"
 #include "Tools/Language.h"
 #include <sstream>
@@ -129,14 +128,14 @@ void LootStore::LoadLootTable()
 
             if (conditionId)
             {
-                const PlayerCondition* condition = sConditionStorage.LookupEntry<PlayerCondition>(conditionId);
+                const ConditionEntry* condition = sConditionStorage.LookupEntry<ConditionEntry>(conditionId);
                 if (!condition)
                 {
                     sLog.outErrorDb("Table `%s` for entry %u, item %u has condition_id %u that does not exist in `conditions`, ignoring", GetName(), entry, item, uint32(conditionId));
                     continue;
                 }
 
-                if (mincountOrRef < 0 && !PlayerCondition::CanBeUsedWithoutPlayer(conditionId))
+                if (mincountOrRef < 0 && !ConditionEntry::CanBeUsedWithoutPlayer(conditionId))
                 {
                     sLog.outErrorDb("Table '%s' entry %u mincountOrRef %i < 0 and has condition %u that requires a player and is not supported, skipped", GetName(), entry, mincountOrRef, uint32(conditionId));
                     continue;
@@ -396,7 +395,7 @@ LootItem::LootItem(uint32 _itemId, uint32 _count, uint32 _randomSuffix, int32 _r
 
 
 // Basic checks for player/item compatibility - if false no chance to see the item in the loot
-bool LootItem::AllowedForPlayer(Player const* player, WorldObject const* lootTarget) const
+bool LootItem::AllowedForPlayer(Player const* player, WorldObject const* lootTarget, Player const* masterLooter) const
 {
     if (!itemProto)
         return false;
@@ -408,7 +407,7 @@ bool LootItem::AllowedForPlayer(Player const* player, WorldObject const* lootTar
 
         case LOOTITEM_TYPE_CONDITIONNAL:
             // DB conditions check
-            if (!sObjectMgr.IsPlayerMeetToCondition(conditionId, player, player->GetMap(), lootTarget, CONDITION_FROM_LOOT))
+            if (!sObjectMgr.IsConditionSatisfied(conditionId, player, player->GetMap(), lootTarget, CONDITION_FROM_LOOT))
                 return false;
             break;
 
@@ -423,7 +422,7 @@ bool LootItem::AllowedForPlayer(Player const* player, WorldObject const* lootTar
     }
 
     // Not quest only drop (check quest starting items for already accepted non-repeatable quests)
-    if (itemProto->StartQuest && player->GetQuestStatus(itemProto->StartQuest) != QUEST_STATUS_NONE && !player->HasQuestForItem(itemId))
+    if (player != masterLooter && itemProto->StartQuest && player->GetQuestStatus(itemProto->StartQuest) != QUEST_STATUS_NONE && !player->HasQuestForItem(itemId))
         return false;
 
     return true;
@@ -448,7 +447,10 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
                 return LOOT_SLOT_OWNER;
 
             default:
-                if (loot->m_isChest)
+                if (!isUnderThreshold && lootItemType == LOOTITEM_TYPE_CONDITIONNAL && loot->m_lootMethod == MASTER_LOOT)
+                    break;
+
+                if (loot->m_isChest || loot->m_lootType == LOOT_FISHINGHOLE)
                     return LOOT_SLOT_OWNER;
 
                 if (isBlocked)
@@ -470,7 +472,7 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
         {
             if (!isBlocked)
             {
-                if (loot->m_isChest)
+                if (loot->m_isChest || loot->m_lootType == LOOT_FISHINGHOLE)
                     return LOOT_SLOT_NORMAL;
 
                 if (isReleased || currentLooterPass || player->GetObjectGuid() == loot->m_currentLooterGuid)
@@ -504,7 +506,7 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
         }
         case ROUND_ROBIN:
         {
-            if (loot->m_isChest)
+            if (loot->m_isChest || loot->m_lootType == LOOT_FISHINGHOLE)
                 return LOOT_SLOT_NORMAL;
 
             if (isReleased || currentLooterPass || player->GetObjectGuid() == loot->m_currentLooterGuid)
@@ -525,7 +527,7 @@ bool LootItem::IsAllowed(Player const* player, Loot const* loot) const
         return allowedGuid.find(player->GetObjectGuid()) != allowedGuid.end();
 
     if (allowedGuid.empty() || (freeForAll && allowedGuid.find(player->GetObjectGuid()) == allowedGuid.end()))
-        return AllowedForPlayer(player, loot->GetLootTarget());
+        return AllowedForPlayer(player, loot->GetLootTarget(), nullptr);
 
     return false;
 }
@@ -613,6 +615,9 @@ void GroupLootRoll::SendLootRollWon(ObjectGuid const& targetGuid, uint32 rollNum
             case ROLL_NOT_VALID:
                 SendRoll(itr->first, 128, 128);
                 break;
+            case ROLL_GREED:
+                if (rollType == ROLL_NEED)
+                    break;
             default:
                 SendRoll(itr->first, itr->second.number, itr->second.vote);
                 break;
@@ -949,7 +954,7 @@ bool Loot::FillLoot(uint32 loot_id, LootStore const& store, Player* lootOwner, b
         // assign permission for non chest items
         for (auto lootItem : m_lootItems)
         {
-            if (player && (lootItem->AllowedForPlayer(player, GetLootTarget())))
+            if (player && (lootItem->AllowedForPlayer(player, GetLootTarget(), masterLooter)))
             {
                 if (!m_isChest)
                     lootItem->allowedGuid.emplace(player->GetObjectGuid());
@@ -1064,6 +1069,9 @@ bool Loot::CanLoot(Player const* player)
         return true;
 
     if (m_lootMethod == NOT_GROUP_TYPE_LOOT || m_lootMethod == FREE_FOR_ALL)
+        return true;
+
+    if (m_lootType == LOOT_FISHINGHOLE)
         return true;
 
     if (m_haveItemOverThreshold)
@@ -1393,12 +1401,12 @@ void Loot::Release(Player* player)
                 {
                     Creature* creature = (Creature*)m_lootTarget;
                     SetPlayerIsNotLooting(player);
+                    updateClients = true;
 
                     if (m_isFakeLoot)
                     {
                         SendReleaseForAll();
                         creature->SetLootStatus(CREATURE_LOOT_STATUS_LOOTED);
-                        m_lootTarget->ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);
                         break;
                     }
 
@@ -1700,8 +1708,8 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
             }
 
             // Generate extra money for pick pocket loot
-            const uint32 a = urand(0, creature->getLevel() / 2);
-            const uint32 b = urand(0, player->getLevel() / 2);
+            const uint32 a = urand(0, creature->GetLevel() / 2);
+            const uint32 b = urand(0, player->GetLevel() / 2);
             m_gold = uint32(10 * (a + b) * sWorld.getConfig(CONFIG_FLOAT_RATE_DROP_MONEY));
 
             break;
@@ -1727,7 +1735,7 @@ Loot::Loot(Player* player, Creature* creature, LootType type) :
     return;
 }
 
-Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
+Loot::Loot(Player* player, GameObject* gameObject, LootType type, bool lootSnapshot) :
     m_lootTarget(nullptr), m_itemTarget(nullptr), m_gold(0), m_maxSlot(0), m_lootType(type),
     m_clientLootType(CLIENT_LOOT_CORPSE), m_lootMethod(NOT_GROUP_TYPE_LOOT), m_threshold(ITEM_QUALITY_UNCOMMON), m_maxEnchantSkill(0), m_haveItemOverThreshold(false),
     m_isChecked(false), m_isChest(false), m_isChanged(false), m_isFakeLoot(false), m_createTime(World::GetCurrentClockTime())
@@ -1750,27 +1758,20 @@ Loot::Loot(Player* player, GameObject* gameObject, LootType type) :
 
     // not check distance for GO in case owned GO (fishing bobber case, for example)
     // And permit out of range GO with no owner in case fishing hole
-    if ((type != LOOT_FISHINGHOLE &&
-            ((type != LOOT_FISHING && type != LOOT_FISHING_FAIL) || gameObject->GetOwnerGuid() != player->GetObjectGuid()) &&
-            !gameObject->IsWithinDistInMap(player, INTERACTION_DISTANCE)))
+    if (!lootSnapshot) // ignores distance
     {
-        sLog.outError("Loot::CreateLoot> cannot create game object loot, basic check failed for gameobject %u!", gameObject->GetEntry());
-        return;
+        if ((type != LOOT_FISHINGHOLE &&
+            ((type != LOOT_FISHING && type != LOOT_FISHING_FAIL) || gameObject->GetOwnerGuid() != player->GetObjectGuid()) &&
+            !gameObject->IsAtInteractDistance(player)))
+        {
+            sLog.outError("Loot::CreateLoot> cannot create game object loot, basic check failed for gameobject %u!", gameObject->GetEntry());
+            return;
+        }
     }
 
     // generate loot only if ready for open and spawned in world
     if (gameObject->GetLootState() == GO_READY && gameObject->IsSpawned())
     {
-        if ((gameObject->GetEntry() == BG_AV_OBJECTID_MINE_N || gameObject->GetEntry() == BG_AV_OBJECTID_MINE_S))
-        {
-            if (BattleGround* bg = player->GetBattleGround())
-                if (bg->GetTypeID() == BATTLEGROUND_AV)
-                    if (!(((BattleGroundAV*)bg)->PlayerCanDoMineQuest(gameObject->GetEntry(), player->GetTeam())))
-                    {
-                        return;
-                    }
-        }
-
         switch (type)
         {
             case LOOT_FISHING_FAIL:
@@ -1854,15 +1855,15 @@ Loot::Loot(Player* player, Corpse* corpse, LootType type) :
         corpse->lootForBody = true;
         uint32 pLevel;
         if (Player* plr = sObjectAccessor.FindPlayer(corpse->GetOwnerGuid()))
-            pLevel = plr->getLevel();
+            pLevel = plr->GetLevel();
         else
-            pLevel = player->getLevel(); // TODO:: not correct, need to save real player level in the corpse data in case of logout
+            pLevel = player->GetLevel(); // TODO:: not correct, need to save real player level in the corpse data in case of logout
 
          m_ownerSet.insert(player->GetObjectGuid());
          m_lootMethod = NOT_GROUP_TYPE_LOOT;
          m_clientLootType = CLIENT_LOOT_CORPSE;
 
-        if (player->GetBattleGround()->GetTypeID() == BATTLEGROUND_AV)
+        if (player->GetBattleGround()->GetTypeId() == BATTLEGROUND_AV)
             FillLoot(0, LootTemplates_Creature, player, false);
 
         // It may need a better formula
@@ -1980,7 +1981,7 @@ InventoryResult Loot::SendItem(Player* target, uint32 itemSlot)
     return SendItem(target, lootItem);
 }
 
-InventoryResult Loot::SendItem(Player* target, LootItem* lootItem)
+InventoryResult Loot::SendItem(Player* target, LootItem* lootItem, bool sendError)
 {
     if (!target)
         return EQUIP_ERR_OUT_OF_RANGE;
@@ -2029,7 +2030,7 @@ InventoryResult Loot::SendItem(Player* target, LootItem* lootItem)
             playerGotItem = true;
             m_isChanged = true;
         }
-        else
+        else if (sendError)
             target->SendEquipError(msg, nullptr, nullptr, lootItem->itemId);
     }
 
@@ -2130,10 +2131,6 @@ void Loot::ForceLootAnimationClientUpdate() const
             break;
         case TYPEID_GAMEOBJECT:
             return;
-            // we have to update sparkles/loot for this object
-            if (m_isChest)
-                m_lootTarget->ForceValuesUpdateAtIndex(GAMEOBJECT_DYN_FLAGS);
-            break;
         default:
             break;
     }
@@ -2352,7 +2349,7 @@ LootStoreItem const* LootTemplate::LootGroup::Roll(Loot const& loot, Player cons
             lootStoreItemVector.push_back(&itr);
 
         // randomize the new vector
-        random_shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end());
+        shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), *GetRandomGenerator());
 
         float chance = rand_chance_f();
 
@@ -2385,7 +2382,7 @@ LootStoreItem const* LootTemplate::LootGroup::Roll(Loot const& loot, Player cons
             lootStoreItemVector.push_back(&itr);
 
         // randomize the new vector
-        random_shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end());
+        std::shuffle(lootStoreItemVector.begin(), lootStoreItemVector.end(), *GetRandomGenerator());
 
         // as the new vector is randomized we can start from first element and stop at first one that meet the condition
         for (std::vector <LootStoreItem const*>::const_iterator itr = lootStoreItemVector.begin(); itr != lootStoreItemVector.end(); ++itr)
@@ -2637,11 +2634,11 @@ bool LootTemplate::PlayerOrGroupFulfilsCondition(const Loot& loot, Player const*
     auto& ownerSet = loot.GetOwnerSet();
     // optimization - no need to look up when player is solo
     if (ownerSet.size() <= 1)
-        return sObjectMgr.IsPlayerMeetToCondition(conditionId, lootOwner, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT);
+        return sObjectMgr.IsConditionSatisfied(conditionId, lootOwner, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT);
 
     for (const ObjectGuid& guid : ownerSet)
         if (Player* player = map->GetPlayer(guid))
-            if (sObjectMgr.IsPlayerMeetToCondition(conditionId, player, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT))
+            if (sObjectMgr.IsConditionSatisfied(conditionId, player, map, loot.GetLootTarget(), CONDITION_FROM_REFERING_LOOT))
                 return true;
 
     return false;
@@ -2959,7 +2956,7 @@ Loot* LootMgr::GetLoot(Player* player, ObjectGuid const& targetGuid) const
 
             // not check distance for GO in case owned GO (fishing bobber case, for example)
             if (gob)
-                loot = gob->loot;
+                loot = gob->m_loot;
 
             break;
         }
@@ -2968,7 +2965,7 @@ Loot* LootMgr::GetLoot(Player* player, ObjectGuid const& targetGuid) const
             Corpse* bones = player->GetMap()->GetCorpse(lguid);
 
             if (bones)
-                loot = bones->loot;
+                loot = bones->m_loot;
 
             break;
         }
@@ -2976,7 +2973,7 @@ Loot* LootMgr::GetLoot(Player* player, ObjectGuid const& targetGuid) const
         {
             Item* item = player->GetItemByGuid(lguid);
             if (item && item->HasGeneratedLoot())
-                loot = item->loot;
+                loot = item->m_loot;
             break;
         }
         case HIGHGUID_UNIT:
@@ -2984,7 +2981,7 @@ Loot* LootMgr::GetLoot(Player* player, ObjectGuid const& targetGuid) const
             Creature* creature = player->GetMap()->GetCreature(lguid);
 
             if (creature)
-                loot = creature->loot;
+                loot = creature->m_loot;
 
             break;
         }

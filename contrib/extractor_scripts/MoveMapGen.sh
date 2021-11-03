@@ -16,7 +16,7 @@
 ## Third param can be an addition filename for storing detailed log
 
 ## Additional Parameters to be forwarded to MoveMapGen, see mmaps/readme for instructions
-PARAMS="--silent"
+PARAMS="--silent --configInputPath config.json"
 
 ## Already a few map extracted, and don't care anymore
 EXCLUDE_MAPS=""
@@ -122,11 +122,13 @@ case "$1" in
  "1" )
    createHeader $1
    createMMaps $LIST_A $LIST_B $LIST_C $LIST_D $LIST_E $LIST_F $LIST_G $LIST_H $LIST_I $LIST_J $LIST_K $LIST_L $LIST_M &
+   ./MoveMapGen $PARAMS $OFFMESH --onlyGO
    ;;
  "2" )
    createHeader $1
    createMMaps $LIST_A $LIST_D $LIST_F $LIST_G $LIST_I $LIST_J $LIST_M &
    createMMaps $LIST_B $LIST_C $LIST_E $LIST_H $LIST_K $LIST_L &
+   ./MoveMapGen $PARAMS $OFFMESH --onlyGO
    ;;
  "4" )
    createHeader $1
@@ -134,7 +136,7 @@ case "$1" in
    createMMaps $LIST_B &
    createMMaps $LIST_C $LIST_G $LIST_I $LIST_J $LIST_L $LIST_M &
    createMMaps $LIST_D $LIST_E $LIST_F $LIST_H $LIST_K &
-
+   ./MoveMapGen $PARAMS $OFFMESH --onlyGO
    ;;
  "8" )
    createHeader $1
@@ -146,6 +148,7 @@ case "$1" in
    createMMaps $LIST_F $LIST_K &
    createMMaps $LIST_G $LIST_L &
    createMMaps $LIST_H $LIST_M &
+   ./MoveMapGen $PARAMS $OFFMESH --onlyGO
    ;;
  "offmesh" )
    echo "`date`: Recreate offmeshs from file $OFFMESH_FILE" | tee -a $LOG_FILE

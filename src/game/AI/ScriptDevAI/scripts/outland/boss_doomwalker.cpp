@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Shadowmoon Valley
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 enum
 {
@@ -91,6 +91,8 @@ struct boss_doomwalkerAI : public ScriptedAI
         m_overrunParams.range.maxRange = 30;
 
         m_creature->RemoveAurasDueToSpell(SPELL_MARK_OF_DEATH_AURA);
+
+        m_creature->SetWalk(true);
     }
 
     void KilledUnit(Unit* pVictim) override
@@ -115,7 +117,7 @@ struct boss_doomwalkerAI : public ScriptedAI
     {
         if (movementType == POINT_MOTION_TYPE && data == POINT_OVERRUN)
         {
-            if (Unit* victim = m_creature->getVictim())
+            if (Unit* victim = m_creature->GetVictim())
             {
                 m_creature->MeleeAttackStart(victim);
                 m_creature->SetTarget(victim);
@@ -129,12 +131,12 @@ struct boss_doomwalkerAI : public ScriptedAI
 
     void JustSummoned(Creature* summoned) override
     {
-        m_creature->MeleeAttackStop(m_creature->getVictim());
+        m_creature->MeleeAttackStop(m_creature->GetVictim());
         m_creature->SetTarget(nullptr);
         SetCombatScriptStatus(true);
         float x, y, z;
         summoned->GetNearPoint(m_creature, x, y, z, 0.f, 0.f, summoned->GetAngle(m_creature));
-        m_creature->GetMotionMaster()->MovePoint(POINT_OVERRUN, x, y, z);
+        m_creature->GetMotionMaster()->MovePoint(POINT_OVERRUN, x, y, z, FORCED_MOVEMENT_RUN);
         m_overrunExecTimer = 250;
     }
 
@@ -150,7 +152,7 @@ struct boss_doomwalkerAI : public ScriptedAI
         GetCreatureListWithEntryInGrid(npcList, m_creature, NPC_ILLIDARI_SUCCUBUS, 200.0f);
 
         for (Creature* creature : npcList)
-            creature->DealDamage(creature, creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, nullptr, false);
+            creature->Suicide();
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -167,7 +169,7 @@ struct boss_doomwalkerAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (GetCombatScriptStatus())
@@ -200,12 +202,11 @@ struct boss_doomwalkerAI : public ScriptedAI
             while (targets.size() > COUNT_OVERRUN)
                 targets.erase(targets.begin() + urand(0, targets.size() - 1));
 
-            if (!targets.empty())
+            if (!targets.empty() && DoCastSpellIfCan(nullptr, SPELL_OVERRUN) == CAST_OK)
             {
                 float angle = m_creature->GetAngle(targets[0]);
                 m_creature->SetFacingTo(angle);
                 m_creature->SetOrientation(angle);
-                m_creature->CastSpell(nullptr, SPELL_OVERRUN, TRIGGERED_NONE);
                 m_creature->CastSpell(nullptr, SPELL_OVERRUN_TRIGGER_SPAWN, TRIGGERED_OLD_TRIGGERED); // shouldnt be sent to client
                 DoScriptText(urand(0, 1) ? SAY_OVERRUN_1 : SAY_OVERRUN_2, m_creature);
                 m_uiOverrunTimer = urand(25000, 40000);
@@ -231,7 +232,7 @@ struct boss_doomwalkerAI : public ScriptedAI
         {
             Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER);
             if (!pTarget)
-                pTarget = m_creature->getVictim();
+                pTarget = m_creature->GetVictim();
 
             if (pTarget)
             {
@@ -245,7 +246,7 @@ struct boss_doomwalkerAI : public ScriptedAI
         // Spell Sunder Armor
         if (m_uiArmorTimer < uiDiff)
         {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_CRUSH_ARMOR) == CAST_OK)
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CRUSH_ARMOR) == CAST_OK)
                 m_uiArmorTimer = urand(10000, 25000);
         }
         else

@@ -21,7 +21,7 @@ SDComment: Quest support: 9836, 10297. Some visuals for the event are missing;
 SDCategory: Caverns of Time, The Dark Portal
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "dark_portal.h"
 
 instance_dark_portal::instance_dark_portal(Map* pMap) : ScriptedInstance(pMap),
@@ -33,6 +33,7 @@ instance_dark_portal::instance_dark_portal(Map* pMap) : ScriptedInstance(pMap),
     m_uiMedivhYellCount(1),
     m_uiNextPortalTimer(0),
     m_uiSummonCrystalTimer(0),
+    m_uiSummonBeamStalkerTimer(0),
     m_uiCurrentRiftId(0),
     m_uiPostEventTimer(0),
     m_uiPostEventStep(0)
@@ -57,6 +58,7 @@ void instance_dark_portal::DoResetEvent()
     m_uiNextPortalTimer  = 0;
     m_uiMedivhYellCount  = 1;
     m_uiSummonCrystalTimer = 0;
+    m_uiSummonBeamStalkerTimer = 0;
 }
 
 void instance_dark_portal::UpdateWorldState(bool bEnable)
@@ -125,7 +127,7 @@ void instance_dark_portal::SetData(uint32 uiType, uint32 uiData)
             {
                 if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
                 {
-                    if (pMedivh->isAlive())
+                    if (pMedivh->IsAlive())
                     {
                         DoScriptText(SAY_MEDIVH_ENTER, pMedivh);
 
@@ -137,12 +139,10 @@ void instance_dark_portal::SetData(uint32 uiType, uint32 uiData)
                         return;
                 }
 
-                // ToDo:
-                // Start summoning the Dark Portal Beams
-
                 UpdateWorldState();
                 m_uiNextPortalTimer = 3000;
                 m_uiSummonCrystalTimer = 1000;
+                m_uiSummonBeamStalkerTimer = 1000;
             }
             if (uiData == DONE)
             {
@@ -183,10 +183,10 @@ void instance_dark_portal::SetData(uint32 uiType, uint32 uiData)
                 // Kill the npc when the shield is broken
                 if (!m_uiWorldStateShieldCount)
                 {
-                    if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
+                    if (Creature* medivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
                     {
-                        if (pMedivh->isAlive())
-                            pMedivh->DealDamage(pMedivh, pMedivh->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
+                        if (medivh->IsAlive())
+                            medivh->Suicide();
                     }
                 }
             }
@@ -534,6 +534,20 @@ void instance_dark_portal::Update(uint32 uiDiff)
         else
             m_uiSummonCrystalTimer -= uiDiff;
     }
+
+    if (m_uiSummonBeamStalkerTimer)
+    {
+        if (m_uiSummonBeamStalkerTimer <= uiDiff)
+        {
+            if (Creature* pDarkPortalDummy = GetSingleCreatureFromStorage(NPC_DARK_PORTAL_DUMMY))
+            {
+                pDarkPortalDummy->CastSpell(pDarkPortalDummy, SPELL_PORTAL_BEAM, TRIGGERED_OLD_TRIGGERED);
+                m_uiSummonBeamStalkerTimer = urand(1000, 2000);
+            }
+        }
+        else
+            m_uiSummonBeamStalkerTimer -= uiDiff;
+    }
 }
 
 bool instance_dark_portal::CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const
@@ -547,7 +561,7 @@ bool instance_dark_portal::CheckConditionCriteriaMeet(Player const* pPlayer, uin
 
             if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
             {
-                if (pMedivh->isAlive())
+                if (pMedivh->IsAlive())
                     return true;
                 else
                     return false;
@@ -572,7 +586,7 @@ bool AreaTrigger_at_dark_portal(Player* pPlayer, AreaTriggerEntry const* pAt)
 {
     if (pAt->id == AREATRIGGER_MEDIVH || pAt->id == AREATRIGGER_ENTER)
     {
-        if (pPlayer->isGameMaster() || pPlayer->isDead())
+        if (pPlayer->IsGameMaster() || pPlayer->IsDead())
             return false;
 
         if (instance_dark_portal* pInstance = (instance_dark_portal*)pPlayer->GetInstanceData())
@@ -580,6 +594,34 @@ bool AreaTrigger_at_dark_portal(Player* pPlayer, AreaTriggerEntry const* pAt)
     }
 
     return false;
+}
+
+void instance_dark_portal::ShowChatCommands(ChatHandler* handler)
+{
+    handler->SendSysMessage("This instance supports the following commands: setrift");
+}
+
+void instance_dark_portal::ExecuteChatCommand(ChatHandler* handler, char* args)
+{
+    char* result = handler->ExtractLiteralArg(&args);
+    if (!result)
+        return;
+    std::string val = result;
+    if (val == "setrift")
+    {
+        uint32 riftId;
+        handler->ExtractUInt32(&args, riftId);
+
+        if (riftId > 18 || riftId < 1)
+        {
+            handler->PSendSysMessage("Could not spawn rift %u because it doesn't exist. Please specify a value 1-18", riftId);
+            return;
+        }
+
+        m_uiWorldStateRiftCount = riftId;
+        DoUpdateWorldState(WORLD_STATE_OPENING_THE_DARK_PORTAL_RIFT_STATE, riftId);
+        DoSpawnNextPortal();
+    }
 }
 
 void AddSC_instance_dark_portal()

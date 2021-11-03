@@ -32,11 +32,11 @@ at_nats_landing
 boss_tethyr
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "Entities/TemporarySpawn.h"
 #include "World/WorldStateDefines.h"
-#include "AI/ScriptDevAI/scripts/world/world_map_scripts.h"
+#include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
 
 /*######
 ## mobs_risen_husk_spirit
@@ -75,30 +75,30 @@ struct mobs_risen_husk_spiritAI : public ScriptedAI
             m_pCreditPlayer->RewardPlayerAndGroupAtEventCredit(pSummoned->GetEntry(), pSummoned);
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        if (damage < m_creature->GetHealth())
+        if (damage < m_creature->GetHealth() || !dealer)
             return;
 
-        if (Player* pPlayer = pDoneBy->GetBeneficiaryPlayer())
+        if (Player* pPlayer = dealer->GetBeneficiaryPlayer())
         {
             if (pPlayer->GetQuestStatus(QUEST_WHATS_HAUNTING_WITCH_HILL) == QUEST_STATUS_INCOMPLETE)
             {
                 m_pCreditPlayer = pPlayer;
-                m_creature->CastSpell(pDoneBy, SPELL_SUMMON_RESTLESS_APPARITION, TRIGGERED_OLD_TRIGGERED);
+                m_creature->CastSpell(dealer, SPELL_SUMMON_RESTLESS_APPARITION, TRIGGERED_OLD_TRIGGERED);
             }
         }
     }
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiConsumeFlesh_Timer < uiDiff)
         {
             if (m_creature->GetEntry() == NPC_RISEN_HUSK)
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_CONSUME_FLESH);
+                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CONSUME_FLESH);
 
             m_uiConsumeFlesh_Timer = 15000;
         }
@@ -108,7 +108,7 @@ struct mobs_risen_husk_spiritAI : public ScriptedAI
         if (m_uiIntangiblePresence_Timer < uiDiff)
         {
             if (m_creature->GetEntry() == NPC_RISEN_SPIRIT)
-                DoCastSpellIfCan(m_creature->getVictim(), SPELL_INTANGIBLE_PRESENCE);
+                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_INTANGIBLE_PRESENCE);
 
             m_uiIntangiblePresence_Timer = 20000;
         }
@@ -233,7 +233,7 @@ struct npc_morokkAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 SetEscortPaused(true);
                 break;
         }
@@ -241,13 +241,13 @@ struct npc_morokkAI : public npc_escortAI
 
     void UpdateEscortAI(const uint32 /*uiDiff*/) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         {
             if (HasEscortState(STATE_ESCORT_PAUSED))
             {
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
-                    if (pPlayer->isAlive() && pPlayer->IsInRange(m_creature, 0, 70))
+                    if (pPlayer->IsAlive() && pPlayer->IsInRange(m_creature, 0, 70))
                     {
                         m_bIsSuccess = false;
                         DoScriptText(SAY_MOR_CHALLENGE, m_creature, pPlayer);
@@ -399,7 +399,7 @@ struct npc_ogronAI : public npc_escortAI
         {
             for (auto& itr : lCreatureList)
             {
-                if (itr->GetEntry() == uiCreatureEntry && itr->isAlive())
+                if (itr->GetEntry() == uiCreatureEntry && itr->IsAlive())
                     return itr;
             }
         }
@@ -411,14 +411,14 @@ struct npc_ogronAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 9:
+            case 10:
                 DoScriptText(SAY_OGR_SPOT, m_creature);
                 break;
-            case 10:
+            case 11:
                 if (Creature* pReethe = GetCreature(NPC_REETHE))
                     DoScriptText(SAY_OGR_RET_WHAT, pReethe);
                 break;
-            case 11:
+            case 12:
                 SetEscortPaused(true);
                 break;
         }
@@ -452,7 +452,7 @@ struct npc_ogronAI : public npc_escortAI
                 if (itr->GetEntry() == NPC_REETHE)
                     continue;
 
-                if (itr->isAlive())
+                if (itr->IsAlive())
                 {
                     itr->setFaction(FACTION_THER_HOSTILE);
                     itr->AI()->AttackStart(m_creature);
@@ -463,7 +463,7 @@ struct npc_ogronAI : public npc_escortAI
 
     void UpdateEscortAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
         {
             if (HasEscortState(STATE_ESCORT_PAUSED))
             {
@@ -668,7 +668,7 @@ struct npc_private_hendelAI : public ScriptedAI
 
     void AttackedBy(Unit* pAttacker) override
     {
-        if (m_creature->getVictim())
+        if (m_creature->GetVictim())
             return;
 
         if (!m_creature->CanAttackNow(pAttacker))
@@ -688,11 +688,14 @@ struct npc_private_hendelAI : public ScriptedAI
         }
     }
 
-    void DamageTaken(Unit* pDoneBy, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
+        if (!dealer)
+            return;
+
         if (damage > m_creature->GetHealth() || m_creature->GetHealthPercent() < 20.0f)
         {
-            if (Player* pPlayer = pDoneBy->GetBeneficiaryPlayer())
+            if (Player* pPlayer = dealer->GetBeneficiaryPlayer())
             {
                 if (pPlayer->GetQuestStatus(QUEST_MISSING_DIPLO_PT16) == QUEST_STATUS_INCOMPLETE)
                     guidPlayer = pPlayer->GetObjectGuid();  // Store the player to give quest credit later
@@ -709,7 +712,7 @@ struct npc_private_hendelAI : public ScriptedAI
 
             for (CreatureList::const_iterator itr = lSentryList.begin(); itr != lSentryList.end(); ++itr)
             {
-                if ((*itr)->isAlive())
+                if ((*itr)->IsAlive())
                 {
                     (*itr)->RemoveAllAurasOnEvade();
                     (*itr)->CombatStop(true);
@@ -757,7 +760,7 @@ bool QuestAccept_npc_private_hendel(Player* pPlayer, Creature* pCreature, const 
 
         for (CreatureList::const_iterator itr = lSentryList.begin(); itr != lSentryList.end(); ++itr)
         {
-            if ((*itr)->isAlive())
+            if ((*itr)->IsAlive())
             {
                 (*itr)->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_COMBAT_STOP | TEMPFACTION_RESTORE_RESPAWN);
                 (*itr)->AI()->AttackStart(pPlayer);
@@ -791,6 +794,7 @@ enum
     SAY_STINKY_THIRD_STOP_3             = -1001144,
     SAY_STINKY_PLANT_GATHERED           = -1001145,
     SAY_STINKY_END                      = -1000962,
+    SAY_STINKY_END_EMOTE                = -1010032,
     SAY_STINKY_AGGRO_1                  = -1000960,
     SAY_STINKY_AGGRO_2                  = -1000961,
     SAY_STINKY_AGGRO_3                  = -1001146,
@@ -801,7 +805,11 @@ enum
 
 struct npc_stinky_ignatzAI : public npc_escortAI
 {
-    npc_stinky_ignatzAI(Creature* pCreature) : npc_escortAI(pCreature) { Reset(); }
+    npc_stinky_ignatzAI(Creature* pCreature) : npc_escortAI(pCreature)
+    {
+        SetReactState(REACT_DEFENSIVE);
+        Reset();
+    }
 
     ObjectGuid m_bogbeanPlantGuid;
 
@@ -833,16 +841,16 @@ struct npc_stinky_ignatzAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 5:
+            case 6:
                 DoScriptText(SAY_STINKY_FIRST_STOP, m_creature);
                 break;
-            case 10:
+            case 11:
                 DoScriptText(SAY_STINKY_SECOND_STOP, m_creature);
                 break;
-            case 24:
+            case 25:
                 DoScriptText(SAY_STINKY_THIRD_STOP_1, m_creature);
                 break;
-            case 25:
+            case 26:
                 DoScriptText(SAY_STINKY_THIRD_STOP_2, m_creature);
                 if (GameObject* pBogbeanPlant = GetClosestGameObjectWithEntry(m_creature, GO_BOGBEAN_PLANT, DEFAULT_VISIBILITY_DISTANCE))
                 {
@@ -850,29 +858,32 @@ struct npc_stinky_ignatzAI : public npc_escortAI
                     m_creature->SetFacingToObject(pBogbeanPlant);
                 }
                 break;
-            case 26:
+            case 27:
                 if (Player* pPlayer = GetPlayerForEscort())
                     DoScriptText(SAY_STINKY_THIRD_STOP_3, m_creature, pPlayer);
                 break;
-            case 29:
+            case 30:
                 m_creature->HandleEmote(EMOTE_STATE_USESTANDING);
                 break;
-            case 30:
+            case 31:
                 DoScriptText(SAY_STINKY_PLANT_GATHERED, m_creature);
                 break;
-            case 39:
+            case 40:
                 if (Player* pPlayer = GetPlayerForEscort())
                 {
                     pPlayer->RewardPlayerAndGroupAtEventExplored(pPlayer->GetTeam() == ALLIANCE ? QUEST_ID_STINKYS_ESCAPE_ALLIANCE : QUEST_ID_STINKYS_ESCAPE_HORDE, m_creature);
                     DoScriptText(SAY_STINKY_END, m_creature, pPlayer);
                 }
                 break;
+            case 41:
+                DoScriptText(SAY_STINKY_END_EMOTE, m_creature);
+                break;
         }
     }
 
     void WaypointStart(uint32 uiPointId)
     {
-        if (uiPointId == 30)
+        if (uiPointId == 31)
         {
             if (GameObject* pBogbeanPlant = m_creature->GetMap()->GetGameObject(m_bogbeanPlantGuid))
                 pBogbeanPlant->Use(m_creature);
@@ -963,6 +974,7 @@ struct mob_invis_firework_helper : public Scripted_NoMovementAI
     void UpdateAI(const uint32 uiDiff) override
     {
         if (m_uiFireworkTimer)
+        {
             if (m_uiFireworkTimer < uiDiff)
             {
                 if (++m_uiFireworkCounter >= 5)
@@ -984,7 +996,10 @@ struct mob_invis_firework_helper : public Scripted_NoMovementAI
                 }
             }
             else
+            {
                 m_uiFireworkTimer -= uiDiff;
+            }
+        }
     }
 };
 
@@ -1052,8 +1067,9 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
 
     void JustDied(Unit* /*pVictim*/) override
     {
-        // TODO: reward credit?
-        //pPlayer->RewardPlayerAndGroupAtEventCredit(pCreature->GetEntry(), pCreature); // Needed?
+        if (Unit* spawner = m_creature->GetSpawner())
+            if (UnitAI* ai = spawner->AI())
+                ai->SendAIEvent(AI_EVENT_CUSTOM_A, spawner, spawner);
 
         // fireworks! 
         std::list<Creature*> lFirworkHelpers;
@@ -1104,8 +1120,6 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
                     {
                         m_lMarksmenGUIDs.push_back((*itr)->GetObjectGuid());
 
-                        //(*itr)->SetInCombatWith(m_creature);
-                        //(*itr)->AddThreat(m_creature);
                         (*itr)->AI()->AttackStart(m_creature);
                         AttackStart(*itr);
                     }
@@ -1296,11 +1310,17 @@ struct npc_major_mills : public ScriptedAI
         Reset();
     }
 
+    ObjectGuid m_playerGuid;
+
     void Reset() override {}
 
-    void UpdateAI(const uint32 uiDiff) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
     {
-        ScriptedAI::UpdateAI(uiDiff);
+        if (eventType == AI_EVENT_CUSTOM_A)
+        {
+            if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
+                player->RewardPlayerAndGroupAtEventExplored(QUEST_TAKE_DOWN_TETHYR, m_creature);
+        }
     }
 };
 
@@ -1309,13 +1329,15 @@ UnitAI* GetAI_npc_major_mills(Creature* pCreature)
     return new npc_major_mills(pCreature);
 }
 
-bool QuestAccept_npc_major_mills(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+bool QuestAccept_npc_major_mills(Player* player, Creature* creature, const Quest* quest)
 {
-    if (pQuest->GetQuestId() == QUEST_TAKE_DOWN_TETHYR)
+    if (quest->GetQuestId() == QUEST_TAKE_DOWN_TETHYR)
     {
-        if (pCreature->GetMap()->GetInstanceData()->GetData(TYPE_TETHYR) == NOT_STARTED)
+        if (creature->GetMap()->GetInstanceData()->GetData(TYPE_TETHYR) == NOT_STARTED)
         {
-            pCreature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_RELAY_TAKE_DOWN_TETHYR, pCreature, pPlayer);
+            if (npc_major_mills* ai = static_cast<npc_major_mills*>(creature->AI()))
+                ai->m_playerGuid = player->GetObjectGuid();
+            creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_RELAY_TAKE_DOWN_TETHYR, creature, player);
         }
     }
 
@@ -1332,7 +1354,7 @@ enum SentryPoint
 bool AreaTrigger_at_sentry_point(Player* pPlayer, const AreaTriggerEntry* /*pAt*/)
 {
     QuestStatus quest_status = pPlayer->GetQuestStatus(QUEST_MISSING_DIPLO_PT14);
-    if (pPlayer->isDead() || quest_status == QUEST_STATUS_NONE || quest_status == QUEST_STATUS_COMPLETE)
+    if (pPlayer->IsDead() || quest_status == QUEST_STATUS_NONE || quest_status == QUEST_STATUS_COMPLETE)
         return false;
 
     if (!GetClosestCreatureWithEntry(pPlayer, NPC_TERVOSH, 100.0f))
@@ -1456,7 +1478,7 @@ struct npc_smolderwing : public ScriptedAI, private DialogueHelper
 
         DialogueUpdate(uiDiff);
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();

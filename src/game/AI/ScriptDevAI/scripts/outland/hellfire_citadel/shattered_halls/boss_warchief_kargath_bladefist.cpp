@@ -25,7 +25,7 @@ EndScriptData */
 boss_warchief_kargath_bladefist
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "shattered_halls.h"
 
 enum
@@ -62,6 +62,10 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
     {
         m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        {
+            return x > 270.0f || x < 185.0f;
+        });        
         Reset();
     }
 
@@ -95,6 +99,10 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
         m_uiBladeDanceTimer = 45000;
         m_uiSummonAssistantTimer = 20000;
         m_uiAssassinsTimer = 5000;
+
+        SetCombatScriptStatus(false);
+        SetCombatMovement(true);
+        SetMeleeEnabled(true);
 
         DoCastSpellIfCan(m_creature, SPELL_DOUBLE_ATTACK, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
@@ -153,6 +161,11 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
             m_pInstance->SetData(TYPE_BLADEFIST, FAIL);
     }
 
+    void OnLeash() override
+    {
+        DoScriptText(SAY_EVADE, m_creature);
+    }
+
     // Note: this should be done by creature linkin in core
     void DoDespawnAdds()
     {
@@ -189,7 +202,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                 m_bladeDanceTargetGuids.push_back(target->GetObjectGuid());
                 break;
             case SPELL_BLADE_DANCE_CHARGE:
-                m_uiWaitTimer = 1;
+                m_uiWaitTimer = 500;
                 m_creature->CastSpell(nullptr, SPELL_BLADE_DANCE, TRIGGERED_OLD_TRIGGERED);
                 break;
         }            
@@ -197,13 +210,10 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        // Check if out of range
-        if (EnterEvadeIfOutOfCombatArea(uiDiff))
+        if (!m_creature->SelectHostileTarget())
         {
-            DoScriptText(SAY_EVADE, m_creature);
+            if (GetCombatScriptStatus())
+                EnterEvadeMode();
             return;
         }
 
@@ -229,8 +239,8 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                         // stop bladedance
                         m_bInBlade = false;
                         SetCombatScriptStatus(false);
-                        SetCombatMovement(true);
-                        DoStartMovement(m_creature->getVictim());
+                        SetCombatMovement(true, true);
+                        SetMeleeEnabled(true);
                         m_uiWaitTimer = 0;
                         if (!m_bIsRegularMode)
                             m_uiChargeTimer = 500;
@@ -270,6 +280,7 @@ struct boss_warchief_kargath_bladefistAI : public ScriptedAI
                 m_bInBlade = true;
                 SetCombatScriptStatus(true);
                 SetCombatMovement(false);
+                SetMeleeEnabled(false);
                 m_uiBladeDanceTimer = 30000;
                 m_bladeDanceTargetGuids.clear();
                 m_creature->CastSpell(nullptr, SPELL_BLADE_DANCE_TARGETING, TRIGGERED_NONE);
@@ -324,9 +335,9 @@ struct npc_blade_dance_targetAI : public ScriptedAI
 {
     npc_blade_dance_targetAI(Creature* creature) : ScriptedAI(creature) {}
     void Reset() override {}
-    void DamageTaken(Unit* /*pDealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        damage = std::min(m_creature->GetHealth() - 1, damage);
+        damage = std::max(m_creature->GetMaxHealth(), damage);
     }
 };
 

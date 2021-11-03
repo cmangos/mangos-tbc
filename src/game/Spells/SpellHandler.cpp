@@ -108,7 +108,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (pUser->isInCombat())
+    if (pUser->IsInCombat())
     {
         for (const auto& Spell : proto->Spells)
         {
@@ -256,7 +256,7 @@ void WorldSession::HandleOpenItemOpcode(WorldPacket& recvPacket)
     }
     else
     {
-        Loot*& loot = pItem->loot;
+        Loot*& loot = pItem->m_loot;
         if (!loot)
             loot = new Loot(pUser, pItem, LOOT_PICKPOCKETING);
 
@@ -276,11 +276,14 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
     if (!_player->IsSelfMover())
         return;
 
+    if (_player->IsBeingTeleported())
+        return;
+
     GameObject* obj = _player->GetMap()->GetGameObject(guid);
     if (!obj)
         return;
 
-    if (!obj->IsWithinDistInMap(_player, obj->GetInteractionDistance()))
+    if (!obj->IsAtInteractDistance(_player))
         return;
 
     // Additional check preventing exploits (ie loot despawned chests)
@@ -297,12 +300,22 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
         return;
     }
 
+    if (obj->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED)) // we should not allow use of a locked GO
+        return;
+
+    if (obj->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_IN_USE))
+        return;
+
     // Never expect this opcode for non intractable GO's
     if (obj->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT))
     {
         sLog.outError("HandleGameObjectUseOpcode: CMSG_GAMEOBJ_USE for GameObject (Entry %u) with non intractable flag (Flags %u), didn't expect this to happen.", obj->GetEntry(), obj->GetUInt32Value(GAMEOBJECT_FLAGS));
         return;
     }
+
+    // client checks this but needs recheck
+    if (obj->GetGOInfo()->CannotBeUsedUnderImmunity() && _player->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE))
+        return;
 
     obj->Use(_player);
 }
@@ -371,16 +384,41 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     if (Unit* target = targets.getUnitTarget())
     {
         // if rank not found then function return nullptr but in explicit cast case original spell can be casted and later failed with appropriate error message
-        if (SpellEntry const* actualSpellInfo = sSpellMgr.SelectAuraRankForLevel(spellInfo, target->getLevel()))
+        if (SpellEntry const* actualSpellInfo = sSpellMgr.SelectAuraRankForLevel(spellInfo, target->GetLevel()))
             spellInfo = actualSpellInfo;
     }
 
     if (HasMissingTargetFromClient(spellInfo))
         targets.setUnitTarget(mover->GetTarget());
 
+    if (_player->HasQueuedSpell())
+        return;
+
+    bool handled = false;
     Spell* spell = new Spell(mover, spellInfo, TRIGGERED_NONE);
     spell->m_cast_count = cast_count;                       // set count of casts
-    spell->SpellStart(&targets);
+    spell->m_clientCast = true;
+    if (mover->HasGCD(spellInfo) || !mover->IsSpellReady(*spellInfo))
+    {
+        if (mover->HasGCDOrCooldownWithinMargin(*spellInfo))
+        {
+            handled = true;
+            _player->SetQueuedSpell(spell);
+            GetMessager().AddMessage([guid = mover->GetObjectGuid(), targets = targets](WorldSession* session) mutable
+            {
+                if (session->GetPlayer()) // in case of logout
+                {
+                    if (session->GetPlayer()->GetMover()->GetObjectGuid() == guid) // in case of mind control end
+                        session->GetPlayer()->CastQueuedSpell(targets);
+                    else
+                        session->GetPlayer()->ClearQueuedSpell();
+                }
+            });
+        }
+    }
+
+    if (!handled)
+        spell->SpellStart(&targets);
 }
 
 void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
@@ -394,8 +432,7 @@ void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
     if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
         return;
 
-    // FIXME: hack, ignore unexpected client cancel Deadly Throw cast
-    if (spellId == 26679)
+    if (!_player->IsClientControlled(_player))
         return;
 
     if (_player->IsNonMeleeSpellCasted(false))
@@ -497,7 +534,7 @@ void WorldSession::HandlePetCancelAuraOpcode(WorldPacket& recvPacket)
         return;
     }
 
-    if (!pet->isAlive())
+    if (!pet->IsAlive())
     {
         pet->SendPetActionFeedback(FEEDBACK_PET_DEAD);
         return;

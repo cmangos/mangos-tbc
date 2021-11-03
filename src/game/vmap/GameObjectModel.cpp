@@ -140,7 +140,7 @@ GameObjectModel* GameObjectModel::construct(const GameObject* const pGo)
     return mdl;
 }
 
-bool GameObjectModel::intersectRay(const G3D::Ray& ray, float& MaxDist, bool StopAtFirstHit) const
+bool GameObjectModel::intersectRay(const G3D::Ray& ray, float& MaxDist, bool StopAtFirstHit, bool ignoreM2Model) const
 {
     if (!collision_enabled)
         return false;
@@ -153,11 +153,52 @@ bool GameObjectModel::intersectRay(const G3D::Ray& ray, float& MaxDist, bool Sto
     Vector3 p = iInvRot * (ray.origin() - iPos) * iInvScale;
     Ray modRay(p, iInvRot * ray.direction());
     float distance = MaxDist * iInvScale;
-    bool hit = iModel->IntersectRay(modRay, distance, StopAtFirstHit);
+    bool hit = iModel->IntersectRay(modRay, distance, StopAtFirstHit, ignoreM2Model);
     if (hit)
     {
         distance *= iScale;
         MaxDist = distance;
     }
     return hit;
+}
+
+bool GameObjectModel::Relocate(GameObject const& go)
+{
+    if (!iModel)
+        return false;
+
+    ModelList::const_iterator it = model_list.find(go.GetDisplayId());
+    if (it == model_list.end())
+        return false;
+
+    G3D::AABox mdl_box(it->second.bound);
+    // ignore models with no bounds
+    if (mdl_box == G3D::AABox::zero())
+    {
+        DEBUG_LOG("GameObject model %s has zero bounds, loading skipped", it->second.name.c_str());
+        return false;
+    }
+
+    iPos = Vector3(go.GetPositionX(), go.GetPositionY(), go.GetPositionZ());
+
+    G3D::Matrix3 iRotation = G3D::Matrix3::fromEulerAnglesZYX(go.GetOrientation(), 0, 0);
+    iInvRot = iRotation.inverse();
+    // transform bounding box:
+    mdl_box = AABox(mdl_box.low() * iScale, mdl_box.high() * iScale);
+    AABox rotated_bounds;
+    for (int i = 0; i < 8; ++i)
+        rotated_bounds.merge(iRotation * mdl_box.corner(i));
+
+    iBound = rotated_bounds + iPos;
+#ifdef SPAWN_CORNERS
+    // test:
+    for (int i = 0; i < 8; ++i)
+    {
+        Vector3 pos(iBound.corner(i));
+        Creature* c = ((GameObject*)&go)->SummonCreature(1, pos.x, pos.y, pos.z, 0, TEMPSUMMON_TIMED_DESPAWN, 4000);
+        c->SetFly(true);
+        c->SendHeartBeat();
+    }
+#endif
+    return true;
 }

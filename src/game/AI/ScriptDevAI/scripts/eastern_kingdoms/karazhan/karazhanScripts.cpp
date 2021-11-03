@@ -29,9 +29,10 @@ npc_image_arcanagos
 event_spell_medivh_journal
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "Spells/Scripts/SpellScript.h"
 
 /*######
 # npc_barnesAI
@@ -129,12 +130,12 @@ struct npc_barnesAI : public npc_escortAI, private DialogueHelper
 
         switch (uiPointId)
         {
-            case 0:
+            case 1:
                 DoCastSpellIfCan(m_creature, SPELL_TUXEDO);
                 if (m_pInstance->GetData(TYPE_OPERA) != FAIL)
                     m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
                 break;
-            case 4:
+            case 5:
                 switch (m_pInstance->GetData(TYPE_OPERA_PERFORMANCE))
                 {
                     case OPERA_EVENT_WIZARD_OZ:
@@ -148,12 +149,12 @@ struct npc_barnesAI : public npc_escortAI, private DialogueHelper
                         break;
                 }
                 SetEscortPaused(true);
-                m_creature->SummonCreature(NPC_SPOTLIGHT, 0, 0, 0, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
-                break;
-            case 8:
-                m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
+                m_creature->SummonCreature(NPC_SPOTLIGHT, -10895.27, -1782.626, 90.55984, 3.769911, TEMPSPAWN_DEAD_DESPAWN, 0);
                 break;
             case 9:
+                m_pInstance->DoUseDoorOrButton(GO_STAGE_DOOR_LEFT);
+                break;
+            case 10:
                 m_pInstance->DoPrepareOperaStage(m_creature);
                 break;
         }
@@ -200,7 +201,7 @@ bool GossipHello_npc_barnes(Player* pPlayer, Creature* pCreature)
                 case NOT_STARTED:
                     pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_OPERA_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
                     // for GMs we add the possibility to change the event
-                    if (pPlayer->isGameMaster())
+                    if (pPlayer->IsGameMaster())
                     {
                         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_OZ", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
                         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_HOOD", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
@@ -209,7 +210,7 @@ bool GossipHello_npc_barnes(Player* pPlayer, Creature* pCreature)
                     pPlayer->SEND_GOSSIP_MENU(TEXT_ID_OPERA_1, pCreature->GetObjectGuid());
                     break;
                 case FAIL:
-                    if (pPlayer->isGameMaster())
+                    if (pPlayer->IsGameMaster())
                     {
                         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_OZ", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
                         pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_DOT, "[GM] Change event to EVENT_HOOD", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
@@ -380,7 +381,7 @@ struct npc_image_of_medivhAI : public ScriptedAI, private DialogueHelper
             pSummoned->SetLevitate(true);
             pSummoned->SetWalk(false);
             pSummoned->GetMotionMaster()->MovePoint(POINT_ID_INTRO, afArcanagosMoveLoc[0], afArcanagosMoveLoc[1], afArcanagosMoveLoc[2]);
-            pSummoned->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+            pSummoned->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
         }
     }
 
@@ -464,12 +465,12 @@ struct npc_image_arcanagosAI : public ScriptedAI
         if (pSpell->Id == SPELL_FIREBALL && pCaster->GetEntry() == NPC_IMAGE_OF_MEDIVH)
         {
             // !!!Workaround Alert!!! - the spell should be cast on Medivh without changing the unit flags!
-            pCaster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            pCaster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
 
             DoCastSpellIfCan(pCaster, SPELL_FIREBALL_REFLECT, CAST_TRIGGERED);
             DoCastSpellIfCan(m_creature, SPELL_REFLECTION, CAST_TRIGGERED);
 
-            pCaster->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+            pCaster->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
         }
     }
 
@@ -505,6 +506,72 @@ bool ProcessEventId_event_spell_medivh_journal(uint32 /*uiEventId*/, Object* pSo
     return true;
 }
 
+enum
+{
+    SPELL_BLINK = 29884,
+};
+
+struct BlinkArcaneAnomaly : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            if (Unit* target = spell->GetUnitTarget())
+            {
+                spell->GetCaster()->CastSpell(target, SPELL_BLINK, TRIGGERED_OLD_TRIGGERED);
+                spell->GetCaster()->getThreatManager().modifyAllThreatPercent(-100);
+                spell->GetCaster()->AddThreat(target, 1000.f);
+            }
+        }
+    }
+};
+
+struct WrathOfTheTitansStacker : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        uint32 count = caster->GetAuraCount(30554);
+        for (uint32 i = count; i < 5; ++i)
+            caster->CastSpell(nullptr, 30554, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+struct WrathOfTheTitansProcAura : public AuraScript
+{
+    bool OnCheckProc(Aura* aura, ProcExecutionData& data) const override
+    {
+        std::set<uint32> spells = { 30605, 30606, 30607, 30609, 30608 };
+        if (spells.find(data.spellInfo->Id) != spells.end())
+            return false;
+        return true;
+    }
+
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    {
+        SpellEntry const* spellInfo = aura->GetSpellProto();
+        switch (GetFirstSchoolInMask(GetSpellSchoolMask(spellInfo)))
+        {
+            case SPELL_SCHOOL_NORMAL: return SPELL_AURA_PROC_FAILED;  // ignore
+            case SPELL_SCHOOL_FIRE:   procData.triggeredSpellId = 30607; break; // Flame of Khaz'goroth
+            case SPELL_SCHOOL_NATURE: procData.triggeredSpellId = 30606; break; // Bolt of Eonar
+            case SPELL_SCHOOL_FROST:  procData.triggeredSpellId = 30609; break; // Chill of Norgannon
+            case SPELL_SCHOOL_SHADOW: procData.triggeredSpellId = 30608; break; // Spite of Sargeras
+            case SPELL_SCHOOL_ARCANE: procData.triggeredSpellId = 30605; break; // Blast of Amanthul
+            default: return SPELL_AURA_PROC_FAILED;
+        }
+        procData.attacker->RemoveAuraHolderFromStack(30554);
+        procData.triggerTarget = procData.victim;
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
 void AddSC_karazhan()
 {
     Script* pNewScript = new Script;
@@ -528,4 +595,8 @@ void AddSC_karazhan()
     pNewScript->Name = "event_spell_medivh_journal";
     pNewScript->pProcessEventId = &ProcessEventId_event_spell_medivh_journal;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<BlinkArcaneAnomaly>("spell_blink_arcane_anomaly");
+    RegisterSpellScript<WrathOfTheTitansStacker>("spell_wrath_of_the_titans_stacker");
+    RegisterAuraScript<WrathOfTheTitansProcAura>("spell_wrath_of_the_titans_proc_aura");
 }

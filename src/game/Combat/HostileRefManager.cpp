@@ -37,8 +37,11 @@ HostileRefManager::~HostileRefManager()
 // The pVictim is hated than by them as well
 // use for buffs and healing threat functionality
 
-void HostileRefManager::threatAssist(Unit* victim, float threat, SpellEntry const* threatSpell, bool singleTarget)
+void HostileRefManager::threatAssist(Unit* victim, float threat, SpellEntry const* threatSpell, bool singleTarget, bool ignoreTimer)
 {
+    if (threatSpell->HasAttribute(SPELL_ATTR_EX2_NO_INITIAL_THREAT) || threatSpell->HasAttribute(SPELL_ATTR_EX_NO_THREAT) || !getOwner()->CanEnterCombat() || !victim->CanEnterCombat())
+        return;
+
     HostileReference* ref = getFirst();
     if (!ref)
         return;
@@ -55,7 +58,11 @@ void HostileRefManager::threatAssist(Unit* victim, float threat, SpellEntry cons
     uint32 size = singleTarget ? 1 : validRefs.size();            // if singleTarget do not devide threat
     float threatPerTarget = threat / size;
     for (HostileReference* validReference : validRefs)
-        validReference->getSource()->addThreat(victim, threatPerTarget, false, (threatSpell ? GetSpellSchoolMask(threatSpell) : SPELL_SCHOOL_MASK_NORMAL), threatSpell);
+    {
+        validReference->getSource()->addThreat(victim, threatPerTarget, false, (threatSpell ? GetSpellSchoolMask(threatSpell) : SPELL_SCHOOL_MASK_NORMAL), threatSpell, true);
+        if (!ignoreTimer)
+            victim->GetCombatManager().TriggerCombatTimer(validReference->getSource()->getOwner());
+    }
 }
 
 //=================================================
@@ -107,7 +114,7 @@ void HostileRefManager::updateOnlineOfflineState(bool pIsOnline)
     if (pIsOnline && iOwner)
     {
         // Do not set online while feigning death in combat
-        if (iOwner->IsFeigningDeathSuccessfully() && iOwner->isInCombat())
+        if (iOwner->IsFeigningDeathSuccessfully() && iOwner->IsInCombat())
             return;
     }
     setOnlineOfflineState(pIsOnline);
@@ -218,7 +225,7 @@ void HostileRefManager::HandleSuppressed(bool apply, bool immunity)
             {
                 Unit* source = ref.getSource()->getOwner();
                 Unit* target = ref.getTarget();
-                if (!target->IsImmuneToDamage(source->GetMeleeDamageSchoolMask()))
+                if (!target->IsImmuneToDamage(source->GetMainAttackSchoolMask()))
                     continue;
             }
             ref.SetHostileState(STATE_SUPPRESSED);
@@ -231,7 +238,7 @@ void HostileRefManager::HandleSuppressed(bool apply, bool immunity)
             HostileReference& ref = static_cast<HostileReference&>(data);
             Unit* source = ref.getSource()->getOwner();
             Unit* target = ref.getTarget();
-            if (!target->IsSuppressedTarget(source))
+            if (!source->IsSuppressedTarget(target))
             {
                 ref.SetSuppressabilityToggle();
                 continue;

@@ -119,8 +119,8 @@ namespace MaNGOS
                     nLevelDiff = 4;
                 return nBaseExp * (1.0f + (0.05f * nLevelDiff));
             }
-            uint32 gray_level = GetGrayLevel(unit_level);
-            if (mob_level > gray_level)
+
+            if (!IsTrivialLevelDifference(unit_level, mob_level))
             {
                 uint32 ZD = GetZeroDifference(unit_level);
                 uint32 nLevelDiff = unit_level - mob_level;
@@ -134,7 +134,7 @@ namespace MaNGOS
             if (target->IsTotem() || target->IsPet() || target->IsNoXp() || target->IsCritter())
                 return 0;
 
-            uint32 xp_gain = BaseGain(unit->getLevel(), target->getLevel(), GetContentLevelsForMapAndZone(unit->GetMapId(), unit->GetZoneId()));
+            uint32 xp_gain = BaseGain(unit->GetLevel(), target->GetLevel(), GetContentLevelsForMapAndZone(unit->GetMapId(), unit->GetZoneId()));
             if (xp_gain == 0.0f)
                 return 0;
 

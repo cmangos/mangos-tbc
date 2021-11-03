@@ -30,7 +30,7 @@ mobs_spectral_ghostly_citizen
 npc_aurius
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "stratholme.h"
 
 /*######
@@ -164,7 +164,7 @@ struct mob_restless_soulAI : public ScriptedAI
     {
         if (pCaster->GetTypeId() == TYPEID_PLAYER)
         {
-            if (!m_bIsTagged && pSpell->Id == SPELL_EGAN_BLASTER && ((Player*)pCaster)->GetQuestStatus(QUEST_RESTLESS_SOUL) == QUEST_STATUS_INCOMPLETE)
+            if (!m_bIsTagged && pSpell->Id == SPELL_EGAN_BLASTER && static_cast<Player*>(pCaster)->GetQuestStatus(QUEST_RESTLESS_SOUL) == QUEST_STATUS_INCOMPLETE)
             {
                 m_bIsTagged = true;
                 m_taggerGuid = pCaster->GetObjectGuid();
@@ -176,23 +176,27 @@ struct mob_restless_soulAI : public ScriptedAI
     {
         if (m_bIsTagged)
         {
-            if (m_uiDieTimer < uiDiff)
+            if (m_uiDieTimer)
             {
-                m_creature->UpdateEntry(NPC_FREED_SOUL);
-                m_creature->ForcedDespawn(60000);
-                switch (urand(0, 6)) // not always
+                if (m_uiDieTimer < uiDiff)
                 {
-                    case 0: DoScriptText(SAY_ZAPPED0, m_creature); break;
-                    case 1: DoScriptText(SAY_ZAPPED1, m_creature); break;
-                    case 2: DoScriptText(SAY_ZAPPED2, m_creature); break;
-                    case 3: DoScriptText(SAY_ZAPPED3, m_creature); break;
-                    default: break;
+                    m_uiDieTimer = 0;
+                    m_creature->UpdateEntry(NPC_FREED_SOUL);
+                    m_creature->ForcedDespawn(60000);
+                    switch (urand(0, 6)) // not always
+                    {
+                        case 0: DoScriptText(SAY_ZAPPED0, m_creature); break;
+                        case 1: DoScriptText(SAY_ZAPPED1, m_creature); break;
+                        case 2: DoScriptText(SAY_ZAPPED2, m_creature); break;
+                        case 3: DoScriptText(SAY_ZAPPED3, m_creature); break;
+                        default: break;
+                    }
+                    if (Player* player = m_creature->GetMap()->GetPlayer(m_taggerGuid))
+                        player->RewardPlayerAndGroupAtEventCredit(NPC_RESTLESS_SOUL, m_creature);
                 }
-                if (Player* player = m_creature->GetMap()->GetPlayer(m_taggerGuid))
-                    player->RewardPlayerAndGroupAtEventCredit(NPC_RESTLESS_SOUL, m_creature);
+                else
+                    m_uiDieTimer -= uiDiff;
             }
-            else
-                m_uiDieTimer -= uiDiff;
         }
     }
 };
@@ -258,7 +262,7 @@ struct mobs_spectral_ghostly_citizenAI : public ScriptedAI
                 m_uiDieTimer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();

@@ -50,6 +50,10 @@ enum
     QUEST_ENTRY_DIVERSION           = 10283,
     QUEST_ENTRY_ESCAPE              = 10284,
     QUEST_ENTRY_RETURN              = 10285,
+
+    // RP scripts
+    NPC_BARTOLO                     = 20365,
+    NPC_BEGGAR                      = 20432,
 };
 
 static const float afInstanceLoc[][4] =
@@ -58,7 +62,7 @@ static const float afInstanceLoc[][4] =
     {2192.58f, 238.44f, 52.44f, 0},                 // left orcs outside loc
 };
 
-static const float aDrakeSummonLoc[4] = {2150.68f, 126.91f, 77.71f, 4.19f};
+static const float aDrakeSummonLoc[4] = {2170.7588f, 146.05963f, 87.63939f, 4.19093f};
 
 class instance_old_hillsbrad : public ScriptedInstance
 {
@@ -85,6 +89,8 @@ class instance_old_hillsbrad : public ScriptedInstance
         void Load(const char* chrIn) override;
 
         void Update(const uint32 diff) override;
+
+        TimePoint m_beggarScriptTime;
 
     protected:
         void HandleThrallRelocation();

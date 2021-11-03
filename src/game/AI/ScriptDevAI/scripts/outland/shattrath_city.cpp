@@ -28,9 +28,11 @@ npc_khadgars_servant
 npc_salsalabim
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "World/WorldState.h"
+#include "AI/ScriptDevAI/base/TimerAI.h"
+#include "Spells/Scripts/SpellScript.h"
 
 enum
 {
@@ -115,7 +117,7 @@ struct npc_dirty_larryAI : public ScriptedAI
         {
             if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
             {
-                if (!pCreepjack->IsInEvadeMode() && pCreepjack->isAlive())
+                if (!pCreepjack->GetCombatManager().IsInEvadeMode() && pCreepjack->IsAlive())
                     pCreepjack->AI()->EnterEvadeMode();
 
                 pCreepjack->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
@@ -123,7 +125,7 @@ struct npc_dirty_larryAI : public ScriptedAI
 
             if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
             {
-                if (!pMalone->IsInEvadeMode() && pMalone->isAlive())
+                if (!pMalone->GetCombatManager().IsInEvadeMode() && pMalone->IsAlive())
                     pMalone->AI()->EnterEvadeMode();
 
                 pMalone->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
@@ -164,22 +166,22 @@ struct npc_dirty_larryAI : public ScriptedAI
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 SetReactState(REACT_AGGRESSIVE);
 
-                if (pPlayer->isAlive())
+                if (pPlayer->IsAlive())
                 {
-                    if (!m_creature->isInCombat())
+                    if (!m_creature->IsInCombat())
                         AttackStart(pPlayer);
 
                     if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
                     {
                         pMalone->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                        if (!pMalone->isInCombat())
+                        if (!pMalone->IsInCombat())
                             pMalone->AI()->AttackStart(pPlayer);
                     }
 
                     if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
                     {
                         pCreepjack->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                        if (!pCreepjack->isInCombat())
+                        if (!pCreepjack->IsInCombat())
                             pCreepjack->AI()->AttackStart(pPlayer);
                     }
                 }
@@ -200,7 +202,7 @@ struct npc_dirty_larryAI : public ScriptedAI
 
     void AttackedBy(Unit* pAttacker) override
     {
-        if (m_creature->getVictim())
+        if (m_creature->GetVictim())
             return;
 
         if (!bActiveAttack)
@@ -209,7 +211,7 @@ struct npc_dirty_larryAI : public ScriptedAI
         AttackStart(pAttacker);
     }
 
-    void DamageTaken(Unit* /*pDoneBy*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         if (damage < m_creature->GetHealth())
             return;
@@ -228,14 +230,14 @@ struct npc_dirty_larryAI : public ScriptedAI
 
             if (Creature* pCreepjack = m_creature->GetMap()->GetCreature(m_creepjackGuid))
             {
-                if (!pCreepjack->IsInEvadeMode() && pCreepjack->isAlive())
+                if (!pCreepjack->GetCombatManager().IsInEvadeMode() && pCreepjack->IsAlive())
                     pCreepjack->AI()->EnterEvadeMode();
 
                 pCreepjack->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
             }
             if (Creature* pMalone = m_creature->GetMap()->GetCreature(m_maloneGuid))
             {
-                if (!pMalone->IsInEvadeMode() && pMalone->isAlive())
+                if (!pMalone->GetCombatManager().IsInEvadeMode() && pMalone->IsAlive())
                     pMalone->AI()->EnterEvadeMode();
 
                 pMalone->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
@@ -255,7 +257,7 @@ struct npc_dirty_larryAI : public ScriptedAI
                 m_uiSayTimer -= diff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -346,15 +348,12 @@ enum
     QUEST_CITY_LIGHT        = 10211
 };
 
-struct npc_khadgars_servantAI : public npc_escortAI
+struct npc_khadgars_servantAI : public npc_escortAI, public TimerManager
 {
-    npc_khadgars_servantAI(Creature* pCreature) : npc_escortAI(pCreature)
+    npc_khadgars_servantAI(Creature* creature) : npc_escortAI(creature), m_startPhase(0)
     {
-        if (pCreature->GetOwner() && pCreature->GetOwner()->GetTypeId() == TYPEID_PLAYER)
-            Start(false, (Player*)pCreature->GetOwner());
-        else
-            script_error_log("npc_khadgars_servant can not obtain owner or owner is not a player.");
-
+        AddCustomAction(0, 2000u, [=]() { HandleStart(); });
+        SetReactState(REACT_PASSIVE);
         Reset();
     }
 
@@ -362,6 +361,8 @@ struct npc_khadgars_servantAI : public npc_escortAI
     uint32 m_uiTalkTimer;
     uint32 m_uiTalkCount;
     uint32 m_uiRandomTalkCooldown;
+
+    uint32 m_startPhase;
 
     void Reset() override
     {
@@ -396,10 +397,30 @@ struct npc_khadgars_servantAI : public npc_escortAI
         }
     }
 
-    void WaypointStart(uint32 uiPointId) override
+    void HandleStart()
     {
-        if (uiPointId == 2)
-            DoScriptText(SAY_KHAD_SERV_0, m_creature);
+        uint32 timer = 0;
+        switch (m_startPhase)
+        {
+            case 0: // khadgar talks
+                if (Creature* pKhadgar = GetClosestCreatureWithEntry(m_creature, NPC_KHADGAR, 10.0f))
+                    DoScriptText(SAY_KHAD_START, pKhadgar);
+                timer = 3000;
+                break;
+            case 1: // servant talks
+                DoScriptText(SAY_KHAD_SERV_0, m_creature);
+                timer = 4000;
+                break;
+            case 2: // wps start
+                if (m_creature->GetOwner() && m_creature->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+                    Start(false, static_cast<Player*>(m_creature->GetOwner()));
+                else
+                    script_error_log("npc_khadgars_servant can not obtain owner or owner is not a player.");
+                break;
+        }
+        ++m_startPhase;
+        if (timer)
+            ResetTimer(0, timer);
     }
 
     void WaypointReached(uint32 uiPointId) override
@@ -408,42 +429,42 @@ struct npc_khadgars_servantAI : public npc_escortAI
 
         switch (uiPointId)
         {
-            case 0:
-                if (Creature* pKhadgar = GetClosestCreatureWithEntry(m_creature, NPC_KHADGAR, 10.0f))
-                    DoScriptText(SAY_KHAD_START, pKhadgar);
+            case 1:
                 break;
-            case 5:
-            case 24:
-            case 50:
-            case 63:
-            case 74:
-            case 75:
+            case 7:
+            case 26:
+            case 52:
+            case 65:
+            case 76:
+            case 77:
                 SetEscortPaused(true);
                 break;
-            case 34:
+            case 36:
                 if (Creature* pIzzard = GetClosestCreatureWithEntry(m_creature, NPC_IZZARD, 10.0f))
                     DoScriptText(SAY_KHAD_MIND_YOU, pIzzard);
                 break;
-            case 35:
+            case 37:
                 if (Creature* pAdyria = GetClosestCreatureWithEntry(m_creature, NPC_ADYRIA, 10.0f))
                     DoScriptText(SAY_KHAD_MIND_ALWAYS, pAdyria);
                 break;
         }
     }
 
-    void UpdateEscortAI(const uint32 uiDiff) override
+    void UpdateEscortAI(const uint32 diff) override
     {
+        UpdateTimers(diff);
+
         if (m_uiRandomTalkCooldown)
         {
-            if (m_uiRandomTalkCooldown <= uiDiff)
+            if (m_uiRandomTalkCooldown <= diff)
                 m_uiRandomTalkCooldown = 0;
             else
-                m_uiRandomTalkCooldown -= uiDiff;
+                m_uiRandomTalkCooldown -= diff;
         }
 
         if (HasEscortState(STATE_ESCORT_PAUSED))
         {
-            if (m_uiTalkTimer <= uiDiff)
+            if (m_uiTalkTimer <= diff)
             {
                 ++m_uiTalkCount;
                 m_uiTalkTimer = 7500;
@@ -455,7 +476,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
 
                 switch (m_uiPointId)
                 {
-                    case 5:                                 // to lower city
+                    case 7:                                 // to lower city
                     {
                         switch (m_uiTalkCount)
                         {
@@ -475,7 +496,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 24:                                // in lower city
+                    case 26:                                // in lower city
                     {
                         switch (m_uiTalkCount)
                         {
@@ -495,7 +516,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 50:                                // outside
+                    case 52:                                // outside
                     {
                         switch (m_uiTalkCount)
                         {
@@ -515,7 +536,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 63:                                // scryer
+                    case 65:                                // scryer
                     {
                         switch (m_uiTalkCount)
                         {
@@ -529,7 +550,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 74:                                // aldor
+                    case 76:                                // aldor
                     {
                         switch (m_uiTalkCount)
                         {
@@ -549,7 +570,7 @@ struct npc_khadgars_servantAI : public npc_escortAI
                         }
                         break;
                     }
-                    case 75:                                // a'dal
+                    case 77:                                // a'dal
                     {
                         switch (m_uiTalkCount)
                         {
@@ -573,15 +594,10 @@ struct npc_khadgars_servantAI : public npc_escortAI
                 }
             }
             else
-                m_uiTalkTimer -= uiDiff;
+                m_uiTalkTimer -= diff;
         }
     }
 };
-
-UnitAI* GetAI_npc_khadgars_servant(Creature* pCreature)
-{
-    return new npc_khadgars_servantAI(pCreature);
-}
 
 /*######
 # npc_salsalabim
@@ -593,6 +609,8 @@ enum
     QUEST_10004                     = 10004,
 
     SPELL_MAGNETIC_PULL             = 31705,
+
+    SAY_SAL_AGGRO                   = -1015104
 };
 
 struct npc_salsalabimAI : public ScriptedAI
@@ -608,7 +626,7 @@ struct npc_salsalabimAI : public ScriptedAI
 
     void DamageTaken(Unit* pDoneBy, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
-        if (pDoneBy->GetTypeId() == TYPEID_PLAYER)
+        if (pDoneBy && pDoneBy->GetTypeId() == TYPEID_PLAYER)
         {
             if (m_creature->GetHealthPercent() < 20.0f)
             {
@@ -621,12 +639,12 @@ struct npc_salsalabimAI : public ScriptedAI
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (m_uiMagneticPullTimer < uiDiff)
         {
-            DoCastSpellIfCan(m_creature->getVictim(), SPELL_MAGNETIC_PULL);
+            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MAGNETIC_PULL);
             m_uiMagneticPullTimer = 15000;
         }
         else
@@ -641,19 +659,14 @@ UnitAI* GetAI_npc_salsalabim(Creature* pCreature)
     return new npc_salsalabimAI(pCreature);
 }
 
-bool GossipHello_npc_salsalabim(Player* pPlayer, Creature* pCreature)
+bool GossipSelect_npc_salsalabim(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
-    if (pPlayer->GetQuestStatus(QUEST_10004) == QUEST_STATUS_INCOMPLETE)
+    if (uiAction == 1)
     {
-        pCreature->SetFactionTemporary(FACTION_HOSTILE_SA, TEMPFACTION_RESTORE_REACH_HOME);
-        pCreature->AI()->AttackStart(pPlayer);
-    }
-    else
-    {
-        if (pCreature->isQuestGiver())
-            pPlayer->PrepareQuestMenu(pCreature->GetObjectGuid());
-
-        pPlayer->SEND_GOSSIP_MENU(pPlayer->GetGossipTextId(pCreature), pCreature->GetObjectGuid());
+       pCreature->SetFactionTemporary(FACTION_HOSTILE_SA, TEMPFACTION_RESTORE_REACH_HOME);
+       pCreature->AI()->AttackStart(pPlayer);
+       DoScriptText(SAY_SAL_AGGRO, pCreature, pPlayer);
+       pPlayer->CLOSE_GOSSIP_MENU();
     }
 
     return true;
@@ -678,13 +691,41 @@ bool QuestRewarded_npc_adal(Player* player, Creature* creature, Quest const* que
                 player->SetTitle(TITLE_CHAMPION_OF_THE_NAARU);
             break;
         case QUEST_KAELTHAS_AND_THE_VERDANT_SPHERE:
-            sWorldState.HandleExternalEvent(CUSTOM_EVENT_ADALS_SONG_OF_BATTLE);
+            sWorldState.HandleExternalEvent(CUSTOM_EVENT_ADALS_SONG_OF_BATTLE, 0);
             player->GetMap()->ScriptsStart(sRelayScripts, SCRIPT_RELAY_ID, creature, player, Map::SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE); // only once active per adal
             return true; // handled
     }
 
     return false; // unhandled
 }
+
+enum
+{
+    SPELL_DEMON_BROILED_SURPRISE    = 43753,
+};
+
+struct DemonBroiledSurprise : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool strict) const
+    {
+        if (strict)
+        {
+            float radius = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spell->m_spellInfo->rangeIndex));
+            UnitList tempUnitList;
+            GameObjectList tempGOList;
+            return spell->CheckScriptTargeting(EFFECT_INDEX_1, 1, radius, TARGET_ENUM_UNITS_SCRIPT_AOE_AT_SRC_LOC, tempUnitList, tempGOList);
+        }
+        return SPELL_CAST_OK;
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        spell->GetCaster()->CastSpell(nullptr, SPELL_DEMON_BROILED_SURPRISE, TRIGGERED_NONE);
+    }
+};
 
 void AddSC_shattrath_city()
 {
@@ -697,17 +738,19 @@ void AddSC_shattrath_city()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_khadgars_servant";
-    pNewScript->GetAI = &GetAI_npc_khadgars_servant;
+    pNewScript->GetAI = &GetNewAIInstance<npc_khadgars_servantAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_salsalabim";
     pNewScript->GetAI = &GetAI_npc_salsalabim;
-    pNewScript->pGossipHello = &GossipHello_npc_salsalabim;
+    pNewScript->pGossipSelect = &GossipSelect_npc_salsalabim;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_adal";
     pNewScript->pQuestRewardedNPC = &QuestRewarded_npc_adal;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<DemonBroiledSurprise>("spell_demon_broiled_surprise");
 }

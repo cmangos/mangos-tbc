@@ -22,10 +22,10 @@ SDCategory: Spell
 EndScriptData */
 
 /* ContentData
-spell 8913
 spell 19512
 spell 21014
 spell 21050
+spell 26275
 spell 29528
 spell 29866
 spell 34665
@@ -36,7 +36,11 @@ spell 45109
 spell 45111
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
+#include "Spells/Scripts/SpellScript.h"
+#include "Grids/GridNotifiers.h"
+#include "Grids/GridNotifiersImpl.h"
+#include "Grids/CellImpl.h"
 
 /* When you make a spell effect:
 - always check spell id and effect index
@@ -117,11 +121,6 @@ enum
     NPC_CURED_DEER                      = 12299,
     NPC_CURED_GAZELLE                   = 12297,
 
-    // target morbent fel
-    SPELL_SACRED_CLEANSING              = 8913,
-    NPC_MORBENT                         = 1200,
-    NPC_WEAKENED_MORBENT                = 24782,
-
     // quest 11515
     SPELL_FEL_SIPHON_DUMMY              = 44936,
     NPC_FELBLOOD_INITIATE               = 24918,
@@ -149,12 +148,6 @@ enum
     SPELL_SPIRIT_PARTICLES              = 17327,
     NPC_FRANCLORN_FORGEWRIGHT           = 8888,
     NPC_GAERIYAN                        = 9299,
-
-    // quest 11521
-    SPELL_EXPOSE_RAZORTHORN_ROOT        = 44935,
-    SPELL_SUMMON_RAZORTHORN_ROOT        = 44941,
-    NPC_RAZORTHORN_RAVAGER              = 24922,
-    GO_RAZORTHORN_DIRT_MOUND            = 187073,
 
     //  for quest 10584
     SPELL_PROTOVOLTAIC_MAGNETO_COLLECTOR = 37136,
@@ -246,13 +239,13 @@ bool EffectAuraDummy_spell_aura_dummy_npc(const Aura* pAura, bool bApply)
 
             Creature* pTarget = (Creature*)pAura->GetTarget();
 
-            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_MYRMIDON, 25.0f))
+            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_MYRMIDON, 50.0f))
             {
                 pTarget->AI()->AttackStart(pCreature);
                 return true;
             }
 
-            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_SIREN, 25.0f))
+            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_SIREN, 50.0f))
             {
                 pTarget->AI()->AttackStart(pCreature);
                 return true;
@@ -360,18 +353,6 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
             }
             return true;
         }
-        case SPELL_SACRED_CLEANSING:
-        {
-            if (uiEffIndex == EFFECT_INDEX_1)
-            {
-                if (pCreatureTarget->GetEntry() != NPC_MORBENT)
-                    return true;
-
-                pCreatureTarget->UpdateEntry(NPC_WEAKENED_MORBENT);
-                return true;
-            }
-            return true;
-        }
         case SPELL_TAG_MURLOC_PROC:
         {
             if (uiEffIndex == EFFECT_INDEX_0)
@@ -402,34 +383,8 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
                         pCreatureTarget->SummonCreature(NPC_MINION_OF_GUROK, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_CORPSE_DESPAWN, 5000);
                 }
 
-                if (pCreatureTarget->getVictim())
-                {
-                    pCaster->DealDamage(pCreatureTarget, pCreatureTarget->GetMaxHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
-                    return true;
-                }
-
-                // If not in combat, no xp or loot
-                pCreatureTarget->SetDeathState(JUST_DIED);
-                pCreatureTarget->SetHealth(0);
+                pCreatureTarget->CastSpell(nullptr, 3617, TRIGGERED_OLD_TRIGGERED); // suicide spell
                 return true;
-            }
-            return true;
-        }
-        case SPELL_EXPOSE_RAZORTHORN_ROOT:
-        {
-            if (uiEffIndex == EFFECT_INDEX_0)
-            {
-                if (pCreatureTarget->GetEntry() != NPC_RAZORTHORN_RAVAGER)
-                    return true;
-
-                if (GameObject* pMound = GetClosestGameObjectWithEntry(pCreatureTarget, GO_RAZORTHORN_DIRT_MOUND, 20.0f))
-                {
-                    if (pMound->GetRespawnTime() != 0)
-                        return true;
-
-                    pCreatureTarget->CastSpell(pCreatureTarget, SPELL_SUMMON_RAZORTHORN_ROOT, TRIGGERED_OLD_TRIGGERED);
-                    pMound->SetLootState(GO_JUST_DEACTIVATED);
-                }
             }
             return true;
         }
@@ -453,6 +408,389 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
     return false;
 }
 
+struct GreaterInvisibilityMob : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            aura->ForcePeriodicity(1 * IN_MILLISECONDS); // tick every second
+    }
+
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (!target->IsCreature())
+            return;
+
+        Creature* invisible = static_cast<Creature*>(target);
+        std::list<Unit*> nearbyTargets;
+        MaNGOS::AnyUnitInObjectRangeCheck u_check(invisible, float(invisible->GetDetectionRange()));
+        MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(nearbyTargets, u_check);
+        Cell::VisitWorldObjects(invisible, searcher, invisible->GetDetectionRange());
+        for (Unit* nearby : nearbyTargets)
+        {
+            if (invisible->CanAttackOnSight(nearby) && invisible->IsWithinLOSInMap(nearby, true))
+            {
+                invisible->AI()->AttackStart(nearby);
+                return;
+            }
+        }
+    }
+};
+
+struct InebriateRemoval : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (!target->IsPlayer())
+            return;
+
+        SpellEffectIndex effIdx;
+        SpellEffectIndex effIdxInebriate;
+        switch (aura->GetSpellProto()->Id)
+        {
+            case 29690: effIdx = EFFECT_INDEX_1; effIdxInebriate = EFFECT_INDEX_2; break;
+            case 37591: effIdx = EFFECT_INDEX_0; effIdxInebriate = EFFECT_INDEX_1; break;
+            default: return;
+        }
+        Player* player = static_cast<Player*>(target);
+        if (!apply && aura->GetEffIndex() == effIdx)
+            player->SetDrunkValue(uint16(std::max(int32(player->GetDrunkValue()) - player->CalculateSpellEffectValue(player, aura->GetSpellProto(), effIdxInebriate) * 256, 0)));
+    }
+};
+
+struct AstralBite : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (Unit* caster = spell->GetCaster())
+            caster->getThreatManager().modifyAllThreatPercent(-100);
+    }
+};
+
+struct FelInfusion : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+        spell->SetFilteringScheme(EFFECT_INDEX_0, true, SCHEME_CLOSEST);
+    }
+
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (!target->IsInCombat())
+            return false;
+        return true;
+    }
+};
+
+enum
+{
+    SPELL_POSSESS       = 32830,
+    SPELL_POSSESS_BUFF  = 32831,
+    SPELL_POSSESS_INVIS = 32832,
+    SPELL_KNOCKDOWN     = 13360,
+};
+
+struct AuchenaiPossess : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+        {
+            Unit* caster = aura->GetCaster();
+            if (caster)
+                caster->CastSpell(nullptr, SPELL_POSSESS_INVIS, TRIGGERED_OLD_TRIGGERED);
+            aura->GetTarget()->CastSpell(nullptr, SPELL_POSSESS_BUFF, TRIGGERED_OLD_TRIGGERED);
+            aura->ForcePeriodicity(1000);
+        }
+        else
+        {
+            aura->GetTarget()->RemoveAurasDueToSpell(SPELL_POSSESS_BUFF);
+            aura->GetTarget()->CastSpell(aura->GetTarget(), SPELL_KNOCKDOWN, TRIGGERED_OLD_TRIGGERED);
+            if (Unit* caster = aura->GetCaster())
+                if (caster->IsCreature())
+                    static_cast<Creature*>(caster)->ForcedDespawn();
+        }
+    }
+
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        if (aura->GetTarget()->GetHealthPercent() < 50.f)
+            aura->GetTarget()->RemoveAurasDueToSpell(SPELL_POSSESS);
+    }
+};
+
+struct GettingSleepyAura : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply && aura->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
+            aura->GetTarget()->CastSpell(nullptr, 34801, TRIGGERED_OLD_TRIGGERED); // Sleep
+    }
+};
+
+struct AllergiesAura : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+            aura->ForcePeriodicity(10 * IN_MILLISECONDS);
+    }
+
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        if (urand(0, 2) > 0)
+            aura->GetTarget()->CastSpell(nullptr, 31428, TRIGGERED_OLD_TRIGGERED); // Sneeze
+    }
+};
+
+enum
+{
+    SPELL_USE_CORPSE = 33985,
+};
+
+struct RaiseDead : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (!target->IsCreature() || static_cast<Creature*>(target)->HasBeenHitBySpell(SPELL_USE_CORPSE))
+            return false;
+
+        return true;
+    }
+};
+
+struct UseCorpse : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (!target || !target->IsCreature())
+            return;
+
+        static_cast<Creature*>(target)->RegisterHitBySpell(SPELL_USE_CORPSE);
+    }
+};
+
+struct SplitDamage : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (spell->m_spellInfo->Effect[effIdx] != SPELL_EFFECT_SCHOOL_DAMAGE)
+            return;
+
+        uint32 count = 0;
+        auto& targetList = spell->GetTargetList();
+        for (Spell::TargetList::const_iterator ihit = targetList.begin(); ihit != targetList.end(); ++ihit)
+            if (ihit->effectHitMask & (1 << effIdx))
+                ++count;
+
+        spell->SetDamage(spell->GetDamage() / count); // divide to all targets
+    }
+};
+
+struct TKDive : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (spell->m_spellInfo->Effect[effIdx] != SPELL_EFFECT_SCHOOL_DAMAGE)
+            return;
+
+        Unit* target = spell->GetUnitTarget();
+        spell->GetCaster()->AddThreat(target, 1000000.f);
+    }
+};
+
+struct CurseOfPain : public AuraScript
+{
+    void OnPeriodicTickEnd(Aura* aura) const override
+    {
+        if (aura->GetTarget()->GetHealthPercent() < 50.f)
+            aura->GetTarget()->RemoveAurasDueToSpell(aura->GetId());
+    }
+};
+
+enum SeedOfCorruptionNpc
+{
+    SPELL_SEED_OF_CORRUPTION_PROC_DEFAULT   = 32865,
+    SPELL_SEED_OF_CORRUPTION_NPC_24558      = 44141,
+    SPELL_SEED_OF_CORRUPTION_PROC_NPC_24558 = 43991,
+};
+
+struct spell_seed_of_corruption_npc : public AuraScript
+{
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    {
+        if (aura->GetEffIndex() != EFFECT_INDEX_1)
+            return SPELL_AURA_PROC_OK;
+        Modifier* mod = procData.triggeredByAura->GetModifier();
+        // if damage is more than need deal finish spell
+        if (mod->m_amount <= (int32)procData.damage)
+        {
+            // remember guid before aura delete
+            ObjectGuid casterGuid = procData.triggeredByAura->GetCasterGuid();
+
+            int32 basePoints = 2000; // guesswork, need to fill for all spells that use this because its not in spell data
+
+            // Remove aura (before cast for prevent infinite loop handlers)
+            procData.victim->RemoveAurasByCasterSpell(procData.triggeredByAura->GetId(), procData.triggeredByAura->GetCasterGuid());
+
+            // Cast finish spell (triggeredByAura already not exist!)
+            uint32 triggered_spell_id = 0;
+            switch (aura->GetSpellProto()->Id)
+            {
+                case SPELL_SEED_OF_CORRUPTION_NPC_24558: triggered_spell_id = SPELL_SEED_OF_CORRUPTION_PROC_NPC_24558; break;
+                default: triggered_spell_id = SPELL_SEED_OF_CORRUPTION_PROC_DEFAULT; break;
+            }
+            if (Unit* caster = procData.triggeredByAura->GetCaster())
+                caster->CastCustomSpell(procData.victim, triggered_spell_id, &basePoints, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+
+            return SPELL_AURA_PROC_OK;              // no hidden cooldown
+        }
+
+        // Damage counting
+        mod->m_amount -= procData.damage;
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
+/* *****************************
+*  PX-238 Winter Wondervolt TRAP
+*******************************/
+struct WondervoltTrap : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            if (Unit* target = spell->GetUnitTarget())
+            {
+                if (WorldObject* source = spell->GetCastingObject())
+                    if (!source->IsWithinDist(target, 1.0f))
+                        return;
+
+                if (spell->GetUnitTarget()->getGender() == GENDER_MALE)
+                {
+                    target->RemoveAurasDueToSpell(26157);
+                    target->RemoveAurasDueToSpell(26273);
+                    target->CastSpell(target, urand(0, 1) ? 26157 : 26273, TRIGGERED_OLD_TRIGGERED);
+                }
+                else
+                {
+                    target->RemoveAurasDueToSpell(26272);
+                    target->RemoveAurasDueToSpell(26274);
+                    target->CastSpell(target, urand(0, 1) ? 26272 : 26274, TRIGGERED_OLD_TRIGGERED);
+                }
+            }
+            return;
+        }
+    }
+};
+
+/* ************************************************************
+*  Arcane Cloaking
+*  Quests 9121, 9122, 9123, 9378 - Naxxramas, The Dread Citadel
+**************************************************************/
+
+struct ArcaneCloaking : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_0)
+        {
+            Unit* caster = spell->GetCaster();
+            // Naxxramas Entry Flag Effect DND
+            if (caster && caster->GetTypeId() == TYPEID_PLAYER)
+                caster->CastSpell(caster, 29296, TRIGGERED_OLD_TRIGGERED);  // Cast Naxxramas Entry Flag Trigger DND
+        }
+    }
+};
+
+enum SpellVisualKitFoodOrDrink
+{
+    SPELL_VISUAL_KIT_FOOD = 406,
+    SPELL_VISUAL_KIT_DRINK = 438
+};
+
+struct FoodAnimation : public AuraScript
+{
+    void OnHeartbeat(Aura* aura) const override
+    {
+        aura->GetTarget()->PlaySpellVisual(SPELL_VISUAL_KIT_FOOD);
+    }
+};
+
+struct DrinkAnimation : public AuraScript
+{
+    void OnHeartbeat(Aura* aura) const override
+    {
+        aura->GetTarget()->PlaySpellVisual(SPELL_VISUAL_KIT_DRINK);
+    }
+};
+
+struct Drink : public DrinkAnimation
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply || aura->GetEffIndex() != EFFECT_INDEX_0)
+            return;
+
+        if (!aura->GetTarget()->IsPlayer())
+            return;
+
+        if (aura->GetTarget()->GetMap()->IsBattleArena())
+            return;
+
+        if (Aura* periodicAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() + 1)))
+            aura->GetModifier()->m_amount = periodicAura->GetModifier()->m_amount;
+    }
+
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        if (aura->GetEffIndex() != EFFECT_INDEX_1)
+            return;
+
+        if (!aura->GetTarget()->IsPlayer())
+            return;
+
+        if (!aura->GetTarget()->GetMap()->IsBattleArena())
+            return;
+
+        //if (aura->GetAuraTicks() != 2) // todo: wait for 2nd tick to update regen in Arena only? (needs confirmation)
+        //    return;
+
+        aura->ForcePeriodicity(0);
+
+        if (Aura* regenAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() - 1)))
+        {
+            regenAura->GetModifier()->m_amount = aura->GetModifier()->m_amount;
+            ((Player*)aura->GetTarget())->UpdateManaRegen();
+        }
+    }
+};
+
+struct spell_effect_summon_no_follow_movement : public SpellScript
+{
+    void OnSummon(Spell* spell, Creature* summon) const override
+    {
+        summon->AI()->SetFollowMovement(false);
+    }
+};
+
+struct SpellHasteHealerTrinket : public AuraScript
+{
+    bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
+    {
+        // should only proc off of direct heals or HoT applications
+        if (data.spell && (data.isHeal || IsSpellHaveAura(data.spellInfo, SPELL_AURA_PERIODIC_HEAL)))
+            return true;
+
+        return false;
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -465,4 +803,25 @@ void AddSC_spell_scripts()
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_dummy_npc;
     pNewScript->pEffectAuraDummy = &EffectAuraDummy_spell_aura_dummy_npc;
     pNewScript->RegisterSelf();
+
+    RegisterAuraScript<GreaterInvisibilityMob>("spell_greater_invisibility_mob");
+    RegisterAuraScript<InebriateRemoval>("spell_inebriate_removal");
+    RegisterSpellScript<AstralBite>("spell_astral_bite");
+    RegisterSpellScript<FelInfusion>("spell_fel_infusion");
+    RegisterAuraScript<AuchenaiPossess>("spell_auchenai_possess");
+    RegisterAuraScript<GettingSleepyAura>("spell_getting_sleepy_aura");
+    RegisterAuraScript<AllergiesAura>("spell_allergies");
+    RegisterSpellScript<UseCorpse>("spell_use_corpse");
+    RegisterSpellScript<RaiseDead>("spell_raise_dead");
+    RegisterSpellScript<SplitDamage>("spell_split_damage");
+    RegisterSpellScript<TKDive>("spell_tk_dive");
+    RegisterAuraScript<CurseOfPain>("spell_curse_of_pain");
+    RegisterAuraScript<spell_seed_of_corruption_npc>("spell_seed_of_corruption_npc");
+    RegisterSpellScript<WondervoltTrap>("spell_wondervolt_trap");
+    RegisterSpellScript<ArcaneCloaking>("spell_arcane_cloaking");
+    RegisterAuraScript<FoodAnimation>("spell_food_animation");
+    RegisterAuraScript<DrinkAnimation>("spell_drink_animation");
+    RegisterAuraScript<Drink>("spell_drink");
+    RegisterSpellScript<spell_effect_summon_no_follow_movement>("spell_effect_summon_no_follow_movement");
+    RegisterAuraScript<SpellHasteHealerTrinket>("spell_spell_haste_healer_trinket");
 }

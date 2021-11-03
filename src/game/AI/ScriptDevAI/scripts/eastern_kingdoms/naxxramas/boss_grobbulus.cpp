@@ -16,8 +16,8 @@
 
 /* ScriptData
 SDName: Boss_Grobbulus
-SD%Complete: 80
-SDComment: Timer need more care; Spells of Adds (Posion Cloud) need Mangos Fixes, and further handling
+SD%Complete: 100
+SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
@@ -27,183 +27,162 @@ Fallout slime 28218
 Mutating Injection 28169
 Enrages 26527*/
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "naxxramas.h"
 
 enum
 {
-    EMOTE_SPRAY_SLIME               = -1533021,
-
     SPELL_SLIME_STREAM              = 28137,
     SPELL_MUTATING_INJECTION        = 28169,
+    SPELL_EMBALMING_CLOUD           = 28322,
+    SPELL_MUTAGEN_EXPLOSION         = 28206,
     SPELL_POISON_CLOUD              = 28240,
     SPELL_SLIME_SPRAY               = 28157,
+    SPELL_SUMMON_FALLOUT_SLIME      = 28218,
     SPELL_BERSERK                   = 26662,
 
-    NPC_FALLOUT_SLIME               = 16290
+    SPELL_DESPAWN_SUMMONS           = 30134,            // Spell ID unsure: there are several spells doing the same thing in DBCs within Naxxramas spell IDs range
+                                                        // but it is not always clear which one is for each boss so some are assigned randomly like this one
 };
 
-struct boss_grobbulusAI : public ScriptedAI
+enum GrobbulusActions
 {
-    boss_grobbulusAI(Creature* pCreature) : ScriptedAI(pCreature)
+    GROBBULUS_SLIME_STREAM,
+    GROBBULUS_SLIME_SPRAY,
+    GROBBULUS_INJECTION,
+    GROBBULUS_POISON_CLOUD,
+    GROBBULUS_BERSERK,
+    GROBBULUS_ACTION_MAX,
+};
+
+struct boss_grobbulusAI : public CombatAI
+{
+    boss_grobbulusAI(Creature* creature) : CombatAI(creature, GROBBULUS_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_pInstance = (instance_naxxramas*)pCreature->GetInstanceData();
-        Reset();
+        AddCombatAction(GROBBULUS_SLIME_STREAM, 5u * IN_MILLISECONDS);
+        AddCombatAction(GROBBULUS_SLIME_SPRAY, 20u * IN_MILLISECONDS, 30u * IN_MILLISECONDS);
+        AddCombatAction(GROBBULUS_INJECTION, 13u * IN_MILLISECONDS);
+        AddCombatAction(GROBBULUS_POISON_CLOUD, 20u * IN_MILLISECONDS, 25u * IN_MILLISECONDS);
+        AddCombatAction(GROBBULUS_BERSERK,  (uint32)(12 * MINUTE * IN_MILLISECONDS));
     }
 
-    instance_naxxramas* m_pInstance;
+    ScriptedInstance* m_instance;
 
-    uint32 m_uiInjectionTimer;
-    uint32 m_uiPoisonCloudTimer;
-    uint32 m_uiSlimeSprayTimer;
-    uint32 m_uiBerserkTimer;
-    uint32 m_uiSlimeStreamTimer;
-
-    void Reset() override
+    void Aggro(Unit* /*who*/) override
     {
-        m_uiInjectionTimer = 12 * IN_MILLISECONDS;
-        m_uiPoisonCloudTimer = urand(20 * IN_MILLISECONDS, 25 * IN_MILLISECONDS);
-        m_uiSlimeSprayTimer = urand(20 * IN_MILLISECONDS, 30 * IN_MILLISECONDS);
-        m_uiBerserkTimer = 12 * MINUTE * IN_MILLISECONDS;
-        m_uiSlimeStreamTimer = 5 * IN_MILLISECONDS;         // The first few secs it is ok to be out of range
+        if (m_instance)
+            m_instance->SetData(TYPE_GROBBULUS, IN_PROGRESS);
+
+        ResetIfNotStarted(GROBBULUS_SLIME_STREAM, 5u * IN_MILLISECONDS);
     }
 
-    void Aggro(Unit* /*pWho*/) override
+    void JustDied(Unit* /*killer*/) override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_GROBBULUS, IN_PROGRESS);
+        if (m_instance)
+            m_instance->SetData(TYPE_GROBBULUS, DONE);
     }
 
-    void JustDied(Unit* /*pKiller*/) override
+    void EnterEvadeMode() override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_GROBBULUS, DONE);
+        if (m_instance)
+            m_instance->SetData(TYPE_GROBBULUS, FAIL);
+
+        // Clean-up stage
+        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_SUMMONS, CAST_TRIGGERED);
+
+        CombatAI::EnterEvadeMode();
     }
 
-    void JustReachedHome() override
+    void SpellHitTarget(Unit* target, const SpellEntry* spell) override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_GROBBULUS, FAIL);
+        // Summon a Fallout Slime for every player hit by Slime Spray
+        if ((spell->Id == SPELL_SLIME_SPRAY) && target->GetTypeId() == TYPEID_PLAYER)
+            DoCastSpellIfCan(target, SPELL_SUMMON_FALLOUT_SLIME, CAST_TRIGGERED);
     }
 
-    // This custom selecting function, because we only want to select players without mutagen aura
-    bool DoCastMutagenInjection()
+    uint32 GetSubsequentActionTimer(uint32 id)
     {
-        if (m_creature->IsNonMeleeSpellCasted(true))
-            return false;
-
-        std::vector<Unit*> suitableTargets;
-        ThreatList const& threatList = m_creature->getThreatManager().getThreatList();
-
-        for (auto itr : threatList)
+        switch (id)
         {
-            if (Unit* pTarget = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
+            // Mutagen Injection is used more often when below 30% HP
+            case GROBBULUS_INJECTION: return m_creature->GetHealthPercent() > 30.0f ? urand(7, 13) * IN_MILLISECONDS : urand(3, 7) * IN_MILLISECONDS;
+            case GROBBULUS_POISON_CLOUD: return 15u * IN_MILLISECONDS;
+            case GROBBULUS_SLIME_SPRAY: return urand(20, 30) * IN_MILLISECONDS;
+            default: return 0;
+        }
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        switch (action)
+        {
+            case GROBBULUS_SLIME_STREAM:
             {
-                if (pTarget->GetTypeId() == TYPEID_PLAYER && !pTarget->HasAura(SPELL_MUTATING_INJECTION))
-                    suitableTargets.push_back(pTarget);
+                if (!m_creature->CanReachWithMeleeAttack(m_creature->GetVictim()))
+                    DoCastSpellIfCan(m_creature, SPELL_SLIME_STREAM, CAST_TRIGGERED);
+                ResetCombatAction(action, 3u * IN_MILLISECONDS);
+                break;
             }
-        }
-
-        if (suitableTargets.empty())
-            return false;
-
-        Unit* pTarget = suitableTargets[urand(0, suitableTargets.size() - 1)];
-        if (DoCastSpellIfCan(pTarget, SPELL_MUTATING_INJECTION) == CAST_OK)
-            return true;
-
-        return false;
-    }
-
-    void SpellHitTarget(Unit* pTarget, const SpellEntry* pSpell) override
-    {
-        if ((pSpell->Id == SPELL_SLIME_SPRAY) && pTarget->GetTypeId() == TYPEID_PLAYER)
-            m_creature->SummonCreature(NPC_FALLOUT_SLIME, pTarget->GetPositionX(), pTarget->GetPositionY(), pTarget->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10 * IN_MILLISECONDS);
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        // Slime Stream
-        if (!m_uiSlimeStreamTimer)
-        {
-            if (!m_creature->CanReachWithMeleeAttack(m_creature->getVictim()))
+            case GROBBULUS_INJECTION:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_SLIME_STREAM) == CAST_OK)
-                    // Give some time, to re-reach grobbulus
-                    m_uiSlimeStreamTimer = 3 * IN_MILLISECONDS;
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_MUTATING_INJECTION, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_AURA))
+                {
+                    if (DoCastSpellIfCan(target, SPELL_MUTATING_INJECTION, CAST_TRIGGERED) == CAST_OK)
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
+                }
+                break;
             }
-        }
-        else
-        {
-            if (m_uiSlimeStreamTimer < uiDiff)
-                m_uiSlimeStreamTimer = 0;
-            else
-                m_uiSlimeStreamTimer -= uiDiff;
-        }
-
-        // Berserk
-        if (m_uiBerserkTimer)
-        {
-            if (m_uiBerserkTimer <= uiDiff)
+            case GROBBULUS_POISON_CLOUD:
+            {
+                if (DoCastSpellIfCan(m_creature, SPELL_POISON_CLOUD) == CAST_OK)
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                break;
+            }
+            case GROBBULUS_SLIME_SPRAY:
+            {
+                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SLIME_SPRAY) == CAST_OK)
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                break;
+            }
+            case GROBBULUS_BERSERK:
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
-                    m_uiBerserkTimer = 0;
-            }
-            else
-                m_uiBerserkTimer -= uiDiff;
-        }
-
-        // SlimeSpray
-        if (m_uiSlimeSprayTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->getVictim(), SPELL_SLIME_SPRAY) == CAST_OK)
-            {
-                m_uiSlimeSprayTimer = urand(30 * IN_MILLISECONDS, 60 * IN_MILLISECONDS);
-                DoScriptText(EMOTE_SPRAY_SLIME, m_creature);
+                    DisableCombatAction(action);
+                break;
             }
         }
-        else
-            m_uiSlimeSprayTimer -= uiDiff;
-
-        // Mutagen Injection
-        if (m_uiInjectionTimer < uiDiff)
-        {
-            if (DoCastMutagenInjection())
-            {
-                // Mutagen Injection should be used more often when below 30%
-                if (m_creature->GetHealthPercent() > 30.0f)
-                    m_uiInjectionTimer = urand(7000, 13000);
-                else
-                    m_uiInjectionTimer = urand(3000, 7000);
-            }
-        }
-        else
-            m_uiInjectionTimer -= uiDiff;
-
-        // Poison Cloud
-        if (m_uiPoisonCloudTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_POISON_CLOUD) == CAST_OK)
-                m_uiPoisonCloudTimer = 15 * IN_MILLISECONDS;
-        }
-        else
-            m_uiPoisonCloudTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 
-UnitAI* GetAI_boss_grobbulus(Creature* pCreature)
+struct MutatingInjection : public AuraScript
 {
-    return new boss_grobbulusAI(pCreature);
-}
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+        {
+            Unit* target = aura->GetTarget();
+            if (!target)
+                return;
+
+            if (aura->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
+                // Embalming Cloud
+                target->CastSpell(target, SPELL_EMBALMING_CLOUD, TRIGGERED_OLD_TRIGGERED, nullptr, aura);
+            else // Removed by dispel
+                // Mutagen Explosion
+                target->CastSpell(target, SPELL_MUTAGEN_EXPLOSION, TRIGGERED_OLD_TRIGGERED, nullptr, aura);
+            // Poison Cloud
+            target->CastSpell(target, SPELL_POISON_CLOUD, TRIGGERED_OLD_TRIGGERED, nullptr, aura);
+        }
+    }
+};
 
 void AddSC_boss_grobbulus()
 {
-    Script* pNewScript = new Script;
-    pNewScript->Name = "boss_grobbulus";
-    pNewScript->GetAI = &GetAI_boss_grobbulus;
-    pNewScript->RegisterSelf();
+    Script* newScript = new Script;
+    newScript->Name = "boss_grobbulus";
+    newScript->GetAI = &GetNewAIInstance<boss_grobbulusAI>;
+    newScript->RegisterSelf();
+
+    RegisterAuraScript<MutatingInjection>("spell_grobbulus_mutating_injection");
 }

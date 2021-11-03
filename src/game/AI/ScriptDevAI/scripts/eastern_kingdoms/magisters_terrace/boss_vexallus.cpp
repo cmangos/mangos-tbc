@@ -21,7 +21,7 @@ SDComment: Timers.
 SDCategory: Magister's Terrace
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "magisters_terrace.h"
 #include "Entities/TemporarySpawn.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
@@ -39,7 +39,7 @@ enum
     SPELL_ENERGY_BOLT_PERIODIC      = 46156,
     SPELL_ENERGY_FEEDBACK_CHANNELED = 44328, // Channel
     SPELL_ENERGY_FEEDBACK_DEBUFF    = 44335, // The actual debuff
-    //SPELL_ENERGY_FEEDBACK_VISUAL    = 44339, // Visual
+    //SPELL_ENERGY_FEEDBACK_VISUAL    = 44339, // Visual procced by 44328
 
     SPELL_ENERGY_PASSIVE            = 44326,
     SPELL_ENERGY_BOLT               = 44342,
@@ -79,6 +79,14 @@ struct boss_vexallusAI : public CombatAI
         AddCombatAction(VEXALLUS_ACTION_SHOCK, 25000, 30000);
         AddTimerlessCombatAction(VEXALLUS_SUMMON_PURE_ENERGY, true);
         AddTimerlessCombatAction(VEXALLUS_OVERLOAD, true);
+        AddOnKillText(SAY_KILL);
+        if (m_instance)
+        {
+            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
+            {
+                return static_cast<ScriptedInstance*>(unit->GetInstanceData())->GetPlayerInMap(true, false) == nullptr;
+            });
+        }
     }
 
     ScriptedInstance* m_instance;
@@ -87,12 +95,16 @@ struct boss_vexallusAI : public CombatAI
 
     float m_intervalHealthAmount;
 
+    GuidVector m_sparks;
+
     void Reset() override
     {
         CombatAI::Reset();
 
         SetCombatMovement(true);
         m_intervalHealthAmount = 85;
+
+        DespawnGuids(m_sparks);
     }
 
     uint32 GetSubsequentActionTimer(uint32 id)
@@ -105,11 +117,6 @@ struct boss_vexallusAI : public CombatAI
         }
     }
 
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_KILL, m_creature);
-    }
-
     void JustReachedHome() override
     {
         if (m_instance)
@@ -118,10 +125,12 @@ struct boss_vexallusAI : public CombatAI
 
     void JustDied(Unit* /*killer*/) override
     {
-        m_creature->CastSpell(nullptr, SPELL_CLEAR_ENERGY_FEEDBACK, TRIGGERED_NONE);
+        m_creature->CastSpell(nullptr, SPELL_CLEAR_ENERGY_FEEDBACK, TRIGGERED_OLD_TRIGGERED);
 
         if (m_instance)
             m_instance->SetData(TYPE_VEXALLUS, DONE);
+
+        DespawnGuids(m_sparks);
     }
 
     void Aggro(Unit* /*who*/) override
@@ -142,6 +151,7 @@ struct boss_vexallusAI : public CombatAI
             summoned->AddThreat(target, 1000000.f);
             summoned->AI()->AttackStart(target);
         }
+        m_sparks.push_back(summoned->GetObjectGuid());
     }
 
     void ExecuteAction(uint32 action) override
@@ -197,16 +207,13 @@ struct boss_vexallusAI : public CombatAI
     }
 };
 
-UnitAI* GetAI_boss_vexallus(Creature* creature)
-{
-    return new boss_vexallusAI(creature);
-};
-
 struct mob_pure_energyAI : public ScriptedAI
 {
     mob_pure_energyAI(Creature* creature) : ScriptedAI(creature)
     {
         SetDeathPrevention(true);
+        SetMeleeEnabled(false);
+        SetCombatMovement(true);
         Reset();
     }
 
@@ -214,10 +221,14 @@ struct mob_pure_energyAI : public ScriptedAI
 
     void JustPreventedDeath(Unit* attacker) override
     {
-        Unit* victim = m_creature->getVictim() ? m_creature->getVictim() : attacker;
+        if (attacker->IsUnit() && attacker->IsControlledByPlayer())
+            attacker = const_cast<Player*>(attacker->GetControllingPlayer());
+
         DoFakeDeath();
-        m_creature->CastSpell(victim, SPELL_ENERGY_FEEDBACK_CHANNELED, TRIGGERED_NONE);
-        victim->CastSpell(nullptr, SPELL_ENERGY_FEEDBACK_DEBUFF, TRIGGERED_OLD_TRIGGERED);
+        m_creature->RemoveAurasDueToSpell(SPELL_ENERGY_BOLT_PERIODIC);
+        SetCombatMovement(false);
+        m_creature->CastSpell(attacker, SPELL_ENERGY_FEEDBACK_CHANNELED, TRIGGERED_NONE);
+        attacker->CastSpell(nullptr, SPELL_ENERGY_FEEDBACK_DEBUFF, TRIGGERED_OLD_TRIGGERED);
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
@@ -227,20 +238,26 @@ struct mob_pure_energyAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_mob_pure_energy(Creature* creature)
+struct spell_clear_energy_feedback : public SpellScript
 {
-    return new mob_pure_energyAI(creature);
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (spell->GetUnitTarget())
+            spell->GetUnitTarget()->RemoveAurasDueToSpell(SPELL_ENERGY_FEEDBACK_DEBUFF);
+    }
 };
 
 void AddSC_boss_vexallus()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_vexallus";
-    pNewScript->GetAI = &GetAI_boss_vexallus;
+    pNewScript->GetAI = &GetNewAIInstance<boss_vexallusAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_pure_energy";
-    pNewScript->GetAI = &GetAI_mob_pure_energy;
+    pNewScript->GetAI = &GetNewAIInstance<mob_pure_energyAI>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<spell_clear_energy_feedback>("spell_clear_energy_feedback");
 }

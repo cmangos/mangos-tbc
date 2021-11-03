@@ -21,7 +21,10 @@ SDComment:
 SDCategory: Auchindoun, Auchenai Crypts
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
+#include "Spells/SpellAuras.h"
+#include "Spells/Scripts/SpellScript.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 
 enum
 {
@@ -34,24 +37,29 @@ enum
     SPELL_ATTRACT_MAGIC             = 32265,
 
     SPELL_FOCUS_TARGET_VISUAL       = 32286,
-    SPELL_BIRTH                     = 26262, // supposed to remove unit flag 2, which now it doesnt
+    SPELL_BIRTH                     = 26262,
     SPELL_FOCUS_FIRE_SUMMON         = 32283,
     NPC_FOCUS_FIRE                  = 18374  // summoned by 32283 
 };
 
-struct boss_shirrakAI : public ScriptedAI
+enum ShirrakActions
 {
-    boss_shirrakAI(Creature* pCreature) : ScriptedAI(pCreature)
+    SHIRRAK_FOCUS_FIRE,
+    SHIRRAK_CARNIVOROUS_BITE,
+    SHIRRAK_ATTRACT_MAGIC,
+    SHIRRAK_ACTION_MAX,
+};
+
+struct boss_shirrakAI : public CombatAI
+{
+    boss_shirrakAI(Creature* creature) : CombatAI(creature, SHIRRAK_ACTION_MAX), m_bIsRegularMode(creature->GetMap()->IsRegularDifficulty())
     {
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
+        AddCombatAction(SHIRRAK_CARNIVOROUS_BITE, 4000, 7000);
+        AddCombatAction(SHIRRAK_FOCUS_FIRE, 15000u);
+        AddCombatAction(SHIRRAK_ATTRACT_MAGIC, 20000, 24000);
     }
 
     bool m_bIsRegularMode;
-
-    uint32 m_uiCarnivorousBiteTimer;
-    uint32 m_uiFocusFireTimer;
-    uint32 m_uiAttractMagicTimer;
 
     uint8 m_uiFocusFireCount;
 
@@ -59,9 +67,7 @@ struct boss_shirrakAI : public ScriptedAI
 
     void Reset() override
     {
-        m_uiCarnivorousBiteTimer    = urand(4000, 7000);
-        m_uiFocusFireTimer          = 15000;
-        m_uiAttractMagicTimer       = urand(20000, 24000);
+        CombatAI::Reset();
         m_uiFocusFireCount          = 0;
 
         DoCastSpellIfCan(m_creature, SPELL_INHIBIT_MAGIC_TRIGGER, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
@@ -72,80 +78,97 @@ struct boss_shirrakAI : public ScriptedAI
         m_creature->RemoveAurasDueToSpell(SPELL_INHIBIT_MAGIC_TRIGGER); // TODO: Investigate passive spell removal on death
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        if (m_uiCarnivorousBiteTimer < uiDiff)
+        switch (action)
         {
-            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_CARNIVOROUS_BITE : SPELL_CARNIVOROUS_BITE_H) == CAST_OK)
-                m_uiCarnivorousBiteTimer = urand(4000, 10000);
-        }
-        else
-            m_uiCarnivorousBiteTimer -= uiDiff;
-
-        if (m_uiAttractMagicTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_ATTRACT_MAGIC) == CAST_OK)
-                m_uiAttractMagicTimer = urand(25000, 38000);
-        }
-        else
-            m_uiAttractMagicTimer -= uiDiff;
-
-        if (m_uiFocusFireTimer < uiDiff)
-        {
-            ++m_uiFocusFireCount;
-            Unit* target = nullptr;
-
-            switch (m_uiFocusFireCount)
+            case SHIRRAK_CARNIVOROUS_BITE:
+                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_CARNIVOROUS_BITE : SPELL_CARNIVOROUS_BITE_H) == CAST_OK)
+                    ResetCombatAction(action, urand(4000, 10000));
+                break;
+            case SHIRRAK_FOCUS_FIRE:
             {
-                case 1:
+                ++m_uiFocusFireCount;
+                Unit* target = nullptr;
+
+                switch (m_uiFocusFireCount)
                 {
-                    // engage the target
-                    target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER);
+                    case 1:
+                    {
+                        // engage the target
+                        target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER);
 
-                    if (!target)
-                        target = m_creature->getVictim();
+                        if (!target)
+                            target = m_creature->GetVictim();
 
-                    DoScriptText(EMOTE_FOCUS, m_creature, target);
-                    m_focusTargetGuid = target->GetObjectGuid();
-                    // no break;
+                        DoScriptText(EMOTE_FOCUS, m_creature, target);
+                        m_focusTargetGuid = target->GetObjectGuid();
+                        // no break;
+                    }
+                    case 2:
+                        // we have a delay of 1 sec between the summons
+                        ResetCombatAction(action, 1000);
+                        break;
+                    case 3:
+                        // reset the timers and the summon count
+                        m_uiFocusFireCount = 0;
+                        ResetCombatAction(action, 15000);
+                        break;
                 }
-                case 2:
-                    // we have a delay of 1 sec between the summons
-                    m_uiFocusFireTimer = 1000;
-                    break;
-                case 3:
-                    // reset the timers and the summon count
-                    m_uiFocusFireCount = 0;
-                    m_uiFocusFireTimer = 15000;
-                    break;
+
+                if (!target)
+                    target = m_creature->GetMap()->GetUnit(m_focusTargetGuid);
+
+                // Summon focus fire at target location
+                if (target)
+                    target->CastSpell(nullptr, SPELL_FOCUS_FIRE_SUMMON, TRIGGERED_OLD_TRIGGERED);
+                break;
             }
-
-            if (!target)
-                target = m_creature->GetMap()->GetUnit(m_focusTargetGuid);
-
-            // Summon focus fire at target location
-            if (target)
-                target->CastSpell(nullptr, SPELL_FOCUS_FIRE_SUMMON, TRIGGERED_OLD_TRIGGERED);
+            case SHIRRAK_ATTRACT_MAGIC:
+                if (DoCastSpellIfCan(m_creature, SPELL_ATTRACT_MAGIC) == CAST_OK)
+                    ResetCombatAction(action, urand(25000, 38000));
+                break;
         }
-        else
-            m_uiFocusFireTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 
-UnitAI* GetAI_boss_shirrak(Creature* pCreature)
+struct InhibitMagic : public AuraScript
 {
-    return new boss_shirrakAI(pCreature);
-}
+    void OnHolderInit(SpellAuraHolder* holder, WorldObject* caster) const override
+    {
+        uint32 stacks = 1;
+        if (caster)
+        {
+            float dist = holder->GetTarget()->GetDistance(caster, true, DIST_CALC_COMBAT_REACH);
+            if (dist > 45.f)
+                stacks = 1;
+            else if (dist > 30.f)
+                stacks = 2;
+            else if (dist > 15.f)
+                stacks = 3;
+            else
+                stacks = 4;
+        }
+        holder->PresetAuraStacks(stacks);
+    }
+};
+
+struct FocusTargetVisual : public AuraScript
+{
+    void OnPersistentAreaAuraEnd(DynamicObject* dynGo) const override
+    {
+        if (Unit* owner = dynGo->GetCaster())
+            owner->CastSpell(nullptr, 32301, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, dynGo->GetObjectGuid());
+    }
+};
 
 void AddSC_boss_shirrak()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_shirrak";
-    pNewScript->GetAI = &GetAI_boss_shirrak;
+    pNewScript->GetAI = &GetNewAIInstance<boss_shirrakAI>;
     pNewScript->RegisterSelf();
+
+    RegisterAuraScript<InhibitMagic>("spell_shirrak_inhibit_magic");
+    RegisterAuraScript<FocusTargetVisual>("spell_focus_target_visual");
 }

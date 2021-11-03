@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Tempest Keep, The Eye
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "the_eye.h"
 
 instance_the_eye::instance_the_eye(Map* pMap) : ScriptedInstance(pMap),
@@ -50,6 +50,7 @@ void instance_the_eye::OnCreatureCreate(Creature* pCreature)
 {
     switch (pCreature->GetEntry())
     {
+        case NPC_ALAR:
         case NPC_THALADRED:
         case NPC_TELONICUS:
         case NPC_CAPERNIAN:
@@ -59,6 +60,17 @@ void instance_the_eye::OnCreatureCreate(Creature* pCreature)
             break;
         case NPC_WORLD_TRIGGER_LARGE:
             m_npcEntryGuidCollection[pCreature->GetEntry()].push_back(pCreature->GetObjectGuid());
+            break;
+    }
+}
+
+void instance_the_eye::OnCreatureRespawn(Creature* creature)
+{
+    switch (creature->GetEntry())
+    {
+        case NPC_EMBER_OF_ALAR:
+            if (Creature* alar = GetSingleCreatureFromStorage(NPC_ALAR))
+                alar->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, creature, alar);
             break;
     }
 }
@@ -85,6 +97,22 @@ void instance_the_eye::OnObjectCreate(GameObject* pGo)
     }
 }
 
+void instance_the_eye::OnCreatureEvade(Creature* creature)
+{
+    switch (creature->GetEntry())
+    {
+        case NPC_NETHERSTRAND_LONGBOW:
+        case NPC_DEVASTATION:
+        case NPC_COSMIC_INFUSER:
+        case NPC_INFINITY_BLADES:
+        case NPC_WARP_SLICER:
+        case NPC_PHASESHIFT_BULWARK:
+        case NPC_STAFF_OF_DISINTEGRATION:
+            SetData(TYPE_KAELTHAS, FAIL);
+            break;
+    }
+}
+
 void instance_the_eye::SetData(uint32 uiType, uint32 uiData)
 {
     switch (uiType)
@@ -93,8 +121,10 @@ void instance_the_eye::SetData(uint32 uiType, uint32 uiData)
         case TYPE_SOLARIAN:
         case TYPE_VOIDREAVER:
             m_auiEncounter[uiType] = uiData;
+#ifdef PRENERF_2_0_3
             if (CheckDoorOpening())
                 OpenDoors();
+#endif
             break;
         case TYPE_KAELTHAS:
             // Don't set the same data twice
@@ -111,16 +141,16 @@ void instance_the_eye::SetData(uint32 uiType, uint32 uiData)
                 if (GameObject* pGo = GetSingleGameObjectFromStorage(GO_BRIDGE_WINDOW))
                     pGo->ResetDoorOrButton();
 
-                // Respawn or reset the advisors
+                // despawn the advisors
                 for (unsigned int aAdvisor : aAdvisors)
+                    if (Creature* add = GetSingleCreatureFromStorage(aAdvisor))
+                        add->ForcedDespawn();
+
+                if (Creature* kael = GetSingleCreatureFromStorage(NPC_KAELTHAS))
                 {
-                    if (Creature* pTemp = GetSingleCreatureFromStorage(aAdvisor))
-                    {
-                        if (!pTemp->isAlive())
-                            pTemp->Respawn();
-                        else
-                            pTemp->AI()->EnterEvadeMode();
-                    }
+                    kael->AI()->SendAIEvent(AI_EVENT_CUSTOM_B, kael, kael);
+                    kael->SetRespawnDelay(30, true);
+                    kael->ForcedDespawn();
                 }
             }
             m_auiEncounter[uiType] = uiData;
@@ -179,21 +209,16 @@ bool instance_the_eye::CheckDoorOpening() const
 
 void instance_the_eye::OpenDoors()
 {
-    DoUseDoorOrButton(GO_RAID_DOOR_3);
-    DoUseDoorOrButton(GO_RAID_DOOR_4);
-    DoUseDoorOrButton(GO_ARCANE_DOOR_VERT_3);
-    DoUseDoorOrButton(GO_ARCANE_DOOR_VERT_4);
-}
-
-InstanceData* GetInstanceData_instance_the_eye(Map* pMap)
-{
-    return new instance_the_eye(pMap);
+    DoUseOpenableObject(GO_RAID_DOOR_3, true);
+    DoUseOpenableObject(GO_RAID_DOOR_4, true);
+    DoUseOpenableObject(GO_ARCANE_DOOR_VERT_3, true);
+    DoUseOpenableObject(GO_ARCANE_DOOR_VERT_4, true);
 }
 
 void AddSC_instance_the_eye()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "instance_the_eye";
-    pNewScript->GetInstanceData = &GetInstanceData_instance_the_eye;
+    pNewScript->GetInstanceData = &GetNewInstanceScript<instance_the_eye>;
     pNewScript->RegisterSelf();
 }

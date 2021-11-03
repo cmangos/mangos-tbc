@@ -21,7 +21,7 @@ SDComment: Instance Script for Karazhan to help in various encounters.
 SDCategory: Karazhan
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "karazhan.h"
 
 /*
@@ -189,6 +189,7 @@ void instance_karazhan::OnObjectCreate(GameObject* pGo)
         case GO_MASTERS_TERRACE_DOOR_1:
         case GO_MASTERS_TERRACE_DOOR_2:
         case GO_BLACKENED_URN:
+        case GO_CHESSBOARD:
             break;
 
         // Opera event backgrounds
@@ -211,6 +212,21 @@ void instance_karazhan::OnObjectCreate(GameObject* pGo)
     m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
 }
 
+void instance_karazhan::OnCreatureRespawn(Creature* creature)
+{
+    if (creature->GetEntry() == NPC_BLIZZARD)
+    {
+        creature->AI()->SetReactState(REACT_PASSIVE);
+    }
+    else if (creature->GetEntry() == NPC_INFERNAL)
+    {
+        if (GetData(TYPE_MALCHEZZAR) == IN_PROGRESS)
+            return;
+        else
+            creature->ForcedDespawn(1);
+    }
+}
+
 void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
 {
     switch (uiType)
@@ -222,7 +238,7 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
                 // Respawn Midnight on Fail
                 if (Creature* pMidnight = GetSingleCreatureFromStorage(NPC_MIDNIGHT))
                 {
-                    if (!pMidnight->isAlive())
+                    if (!pMidnight->IsAlive())
                         pMidnight->Respawn();
                 }
             }
@@ -270,7 +286,10 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
             break;
         case TYPE_CHESS:
             if (uiData == DONE)
+            {
+                static_cast<DungeonMap*>(instance)->PermBindAllPlayers();
                 DoFinishChessEvent();
+            }
             else if (uiData == FAIL)
                 DoFailChessEvent();
             else if (uiData == IN_PROGRESS || uiData == SPECIAL)
@@ -377,7 +396,7 @@ void instance_karazhan::OnCreatureEvade(Creature* creature)
         case NPC_LORD_ROBIN_DARIS:
         {
             if (Creature* moroes = GetSingleCreatureFromStorage(NPC_MOROES, true))
-                if (moroes->isAlive() && moroes->isInCombat())
+                if (moroes->IsAlive() && moroes->IsInCombat())
                     moroes->AI()->EnterEvadeMode();
             break;
         }
@@ -398,8 +417,8 @@ void instance_karazhan::OnCreatureDeath(Creature* pCreature)
             {
                 if (Creature* pCrone = pCreature->SummonCreature(NPC_CRONE, afChroneSpawnLoc[0], afChroneSpawnLoc[1], afChroneSpawnLoc[2], afChroneSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0))
                 {
-                    if (pCreature->getVictim())
-                        pCrone->AI()->AttackStart(pCreature->getVictim());
+                    if (pCreature->GetVictim())
+                        pCrone->AI()->AttackStart(pCreature->GetVictim());
                 }
             }
             break;
@@ -478,13 +497,9 @@ void instance_karazhan::DoPrepareChessEvent()
         }
     }
 
-    // add silence debuff
-    Map::PlayerList const& players = instance->GetPlayers();
-    for (const auto& player : players)
-    {
-        if (Player* pPlayer = player.getSource())
-            pPlayer->CastSpell(pPlayer, SPELL_GAME_IN_SESSION, TRIGGERED_OLD_TRIGGERED);
-    }
+    if (GameObject* chessboard = GetSingleGameObjectFromStorage(GO_CHESSBOARD))
+        if (GameObjectAI* ai = chessboard->AI())
+            ai->ReceiveAIEvent(AI_EVENT_CUSTOM_A, uint32(true));
 
     m_uiAllianceStalkerCount = 0;
     m_uiHordeStalkerCount = 0;
@@ -583,13 +598,9 @@ void instance_karazhan::DoFailChessEvent()
         pMedivh->CastSpell(pMedivh, SPELL_CLEAR_BOARD, TRIGGERED_OLD_TRIGGERED);
     }
 
-    // remove silence debuff
-    Map::PlayerList const& players = instance->GetPlayers();
-    for (const auto& player : players)
-    {
-        if (Player* pPlayer = player.getSource())
-            pPlayer->RemoveAurasDueToSpell(SPELL_GAME_IN_SESSION);
-    }
+    if (GameObject* chessboard = GetSingleGameObjectFromStorage(GO_CHESSBOARD))
+        if (GameObjectAI* ai = chessboard->AI())
+            ai->ReceiveAIEvent(AI_EVENT_CUSTOM_A, uint32(false));
 
     // chess figures stop attacking
     for (ObjectGuid guid : m_lChessPiecesAlliance)
@@ -635,6 +646,9 @@ void instance_karazhan::DoFinishChessEvent()
         DoUseDoorOrButton(GO_GAMESMANS_HALL_EXIT_DOOR);
         DoRespawnGameObject(GO_DUST_COVERED_CHEST, DAY);
         DoToggleGameObjectFlags(GO_DUST_COVERED_CHEST, GO_FLAG_NO_INTERACT, false);
+        if (GameObject* chest = GetSingleGameObjectFromStorage(GO_DUST_COVERED_CHEST))
+            if (Player* player = GetPlayerInMap(false, false))
+                chest->GenerateLootFor(player);
     }
 
     // cast game end spells
@@ -645,13 +659,9 @@ void instance_karazhan::DoFinishChessEvent()
         pMedivh->CastSpell(pMedivh, SPELL_CLEAR_BOARD, TRIGGERED_OLD_TRIGGERED);
     }    
 
-    // remove silence debuff
-    Map::PlayerList const& players = instance->GetPlayers();
-    for (const auto& player : players)
-    {
-        if (Player* pPlayer = player.getSource())
-            pPlayer->RemoveAurasDueToSpell(SPELL_GAME_IN_SESSION);
-    }
+    if (GameObject* chessboard = GetSingleGameObjectFromStorage(GO_CHESSBOARD))
+        if (GameObjectAI* ai = chessboard->AI())
+            ai->ReceiveAIEvent(AI_EVENT_CUSTOM_A, uint32(false));
 
     // chess figures stop attacking
     for (ObjectGuid guid : m_lChessPiecesAlliance)

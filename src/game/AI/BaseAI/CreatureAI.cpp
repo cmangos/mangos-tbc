@@ -54,9 +54,7 @@ void CreatureAI::AttackStart(Unit* who)
 
     if (m_creature->Attack(who, m_meleeEnabled))
     {
-        m_creature->AddThreat(who);
-        m_creature->SetInCombatWith(who);
-        who->SetInCombatWith(m_creature);
+        m_creature->EngageInCombatWith(who);
 
         // Cast "Spawn Guard" to help Civilian
         if (m_creature->IsCivilian())
@@ -74,7 +72,10 @@ void CreatureAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*da
         {
             damage = m_creature->GetHealth() - 1;
             if (!m_deathPrevented)
+            {
+                m_deathPrevented = true;
                 JustPreventedDeath(dealer);
+            }
         }        
     }
 }
@@ -89,7 +90,7 @@ void CreatureAI::SetDeathPrevention(bool state)
 void CreatureAI::DoFakeDeath(uint32 spellId)
 {
     m_creature->InterruptNonMeleeSpells(false);
-    m_creature->StopMoving();
+    m_creature->InterruptMoving();
     m_creature->ClearComboPointHolders();
     m_creature->RemoveAllAurasOnDeath();
     m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
@@ -116,14 +117,14 @@ void CreatureAI::RetreatingEnded()
         return; // prevent stack overflow by cyclic calls - TODO: remove once Motion Master is human again
     SetAIOrder(ORDER_NONE);
     SetCombatScriptStatus(false);
-    if (!m_creature->isAlive())
+    if (!m_creature->IsAlive())
         return;
-    DoStartMovement(m_creature->getVictim());
+    DoStartMovement(m_creature->GetVictim());
 }
 
 bool CreatureAI::DoRetreat()
 {
-    Unit* victim = m_creature->getVictim();
+    Unit* victim = m_creature->GetVictim();
     if (!victim)
         return false;
 
@@ -143,9 +144,9 @@ bool CreatureAI::DoRetreat()
 
     uint32 delay = sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY);
 
-    WorldLocation pos;
+    Position pos;
     ally->GetFirstCollisionPosition(pos, ally->GetCombatReach(), ally->GetAngle(m_creature));
-    m_creature->GetMotionMaster()->MoveRetreat(pos.coord_x, pos.coord_y, pos.coord_z, ally->GetAngle(victim), delay);
+    m_creature->GetMotionMaster()->MoveRetreat(pos.x, pos.y, pos.z, ally->GetAngle(victim), delay);
 
     SetAIOrder(ORDER_RETREATING);
     SetCombatScriptStatus(true);
@@ -155,4 +156,15 @@ bool CreatureAI::DoRetreat()
 void CreatureAI::DoCallForHelp(float radius)
 {
     m_creature->CallForHelp(radius);
+}
+
+void CreatureAI::HandleAssistanceCall(Unit* sender, Unit* invoker)
+{
+    if (m_creature->IsInCombat() || !invoker)
+        return;
+    if (m_creature->CanAssist(sender) && m_creature->CanAttackOnSight(invoker) && invoker->IsVisibleForOrDetect(m_creature, m_creature, false))
+    {
+        m_creature->SetNoCallAssistance(true);
+        AttackStart(invoker);
+    }
 }

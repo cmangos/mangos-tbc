@@ -2,7 +2,7 @@
 * This program is free software licensed under GPL version 2
 * Please see the included DOCS/LICENSE.TXT for more information */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 // battlegrounds
 extern void AddSC_battleground();
@@ -41,6 +41,13 @@ extern void AddSC_npcs_special();
 extern void AddSC_quests_scripts();
 extern void AddSC_spell_scripts();
 extern void AddSC_world_map_scripts();
+extern void AddSC_boss_highlord_kruul();
+extern void AddSC_war_effort();
+extern void AddSC_suns_reach_reclamation();
+extern void AddSC_shade_of_the_horseman();
+extern void AddSC_childrens_week_tbc();
+extern void AddSC_midsummer_festival();
+extern void AddSC_brewfest();
 
 // eastern kingdoms
 extern void AddSC_blackrock_depths();                       // blackrock_depths
@@ -144,6 +151,7 @@ extern void AddSC_boss_kalecgos();
 extern void AddSC_boss_kiljaeden();
 extern void AddSC_boss_muru();
 extern void AddSC_instance_sunwell_plateau();
+extern void AddSC_sunwell_plateau();
 extern void AddSC_boss_archaedas();                         // uldaman
 extern void AddSC_instance_uldaman();
 extern void AddSC_uldaman();
@@ -172,6 +180,7 @@ extern void AddSC_zulgurub();
 extern void AddSC_alterac_mountains();
 extern void AddSC_arathi_highlands();
 extern void AddSC_blasted_lands();
+extern void AddSC_boss_kazzakAI();
 extern void AddSC_burning_steppes();
 extern void AddSC_dun_morogh();
 extern void AddSC_eastern_plaguelands();
@@ -194,6 +203,7 @@ extern void AddSC_undercity();
 extern void AddSC_western_plaguelands();
 extern void AddSC_westfall();
 extern void AddSC_wetlands();
+extern void AddSC_world_eastern_kingdoms();
 
 // kalimdor
 extern void AddSC_instance_blackfathom_deeps();             // blackfathom_deeps
@@ -268,6 +278,7 @@ extern void AddSC_thousand_needles();
 extern void AddSC_thunder_bluff();
 extern void AddSC_ungoro_crater();
 extern void AddSC_winterspring();
+extern void AddSC_world_kalimdor();
 
 // northrend
 // removed
@@ -353,6 +364,8 @@ extern void AddSC_boss_pathaleon_the_calculator();
 extern void AddSC_instance_mechanar();
 
 extern void AddSC_blades_edge_mountains();
+extern void AddSC_bashir_landing();
+extern void AddSC_shartuul_transporter();
 extern void AddSC_boss_doomlordkazzak();
 extern void AddSC_boss_doomwalker();
 extern void AddSC_hellfire_peninsula();
@@ -362,6 +375,7 @@ extern void AddSC_shadowmoon_valley();
 extern void AddSC_shattrath_city();
 extern void AddSC_terokkar_forest();
 extern void AddSC_boss_terokk();
+extern void AddSC_OutlandWorldScript();
 extern void AddSC_zangarmarsh();
 
 void AddScripts()
@@ -403,6 +417,13 @@ void AddScripts()
     AddSC_quests_scripts();
     AddSC_spell_scripts();
     AddSC_world_map_scripts();
+    AddSC_boss_highlord_kruul();
+    AddSC_war_effort();
+    AddSC_suns_reach_reclamation();
+    AddSC_shade_of_the_horseman();
+    AddSC_childrens_week_tbc();
+    AddSC_midsummer_festival();
+    AddSC_brewfest();
 
     // eastern kingdoms
     AddSC_blackrock_depths();                               // blackrock_depths
@@ -506,6 +527,7 @@ void AddScripts()
     AddSC_boss_kiljaeden();
     AddSC_boss_muru();
     AddSC_instance_sunwell_plateau();
+    AddSC_sunwell_plateau();
     AddSC_boss_archaedas();                                 // uldaman
     AddSC_instance_uldaman();
     AddSC_uldaman();
@@ -534,6 +556,7 @@ void AddScripts()
     AddSC_alterac_mountains();
     AddSC_arathi_highlands();
     AddSC_blasted_lands();
+    AddSC_boss_kazzakAI();
     AddSC_burning_steppes();
     AddSC_dun_morogh();
     AddSC_eastern_plaguelands();
@@ -556,6 +579,7 @@ void AddScripts()
     AddSC_western_plaguelands();
     AddSC_westfall();
     AddSC_wetlands();
+    AddSC_world_eastern_kingdoms();
 
     // kalimdor
     AddSC_instance_blackfathom_deeps();                     // blackfathom deeps
@@ -630,6 +654,7 @@ void AddScripts()
     AddSC_thunder_bluff();
     AddSC_ungoro_crater();
     AddSC_winterspring();
+    AddSC_world_kalimdor();
 
     // northrend
     // removed
@@ -715,6 +740,8 @@ void AddScripts()
     AddSC_instance_mechanar();
 
     AddSC_blades_edge_mountains();
+    AddSC_bashir_landing();
+    AddSC_shartuul_transporter();
     AddSC_boss_doomlordkazzak();
     AddSC_boss_doomwalker();
     AddSC_hellfire_peninsula();
@@ -724,5 +751,6 @@ void AddScripts()
     AddSC_shattrath_city();
     AddSC_terokkar_forest();
     AddSC_boss_terokk();
+    AddSC_OutlandWorldScript();
     AddSC_zangarmarsh();
 }

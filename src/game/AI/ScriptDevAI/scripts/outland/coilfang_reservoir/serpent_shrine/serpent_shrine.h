@@ -5,6 +5,8 @@
 #ifndef DEF_SERPENT_SHRINE_H
 #define DEF_SERPENT_SHRINE_H
 
+#include "Chat/Chat.h"
+
 enum
 {
     MAX_ENCOUNTER                   = 7,
@@ -16,6 +18,7 @@ enum
     TYPE_LEOTHERAS_EVENT            = 3,
     TYPE_MOROGRIM_EVENT             = 4,
     TYPE_THELURKER_EVENT            = 5,
+    TYPE_COMBAT_MAX                 = 6,
     TYPE_LEOTHERAS_EVENT_DEMONS     = 6,
 
     DATA_WATERSTATE_EVENT           = 1,                    // DO NOT CHANGE! Used by Acid. - used to check the mobs for the water event.
@@ -32,6 +35,7 @@ enum
     NPC_TINY_TRIGGER                = 21987,
     NPC_WORLD_TRIGGER               = 21252,
     NPC_SEER_OLUM                   = 22820,
+    NPC_LURKER_BELOW                = 21217,
 
     // waterstate event related
     NPC_COILFANG_PRIESTESS          = 21220,
@@ -88,6 +92,9 @@ class instance_serpentshrine_cavern : public ScriptedInstance
 
         const char* Save() const override { return m_strInstData.c_str(); }
         void Load(const char* chrIn) override;
+
+        void ShowChatCommands(ChatHandler* handler) override;
+        void ExecuteChatCommand(ChatHandler* handler, char* args) override;
 
     private:
         void SpawnFishCorpses();

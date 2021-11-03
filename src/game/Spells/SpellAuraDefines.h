@@ -25,9 +25,9 @@
 enum AuraFlags
 {
     AFLAG_NONE                  = 0x00,
-    AFLAG_HELPFUL               = 0x01,
-    AFLAG_HARMFUL               = 0x02,
-    AFLAG_PASSIVE_DEPRECATED    = 0x04,     // Pre-WotLK: debuffs can't be queried using this flag. Unused in UI since 1.10.0, new meaning unknown (still the same?)
+    AFLAG_EFFECT_0              = 0x01,
+    AFLAG_EFFECT_1              = 0x02,
+    AFLAG_EFFECT_2              = 0x04,
     AFLAG_UNK4                  = 0x08,     // Pre-WotLK: unused in UI
     AFLAG_CANCELABLE            = 0x10,
     AFLAG_NOT_CANCELABLE        = 0x20,
@@ -150,7 +150,7 @@ enum AuraType
     /**
      * Changes whether the target is pacified or not depending on the apply flag.
      * Pacify makes the target silenced and have all it's attack skill disabled.
-     * See: http://www.wowhead.com/spell=6462/pacified
+     * See: http://classic.wowhead.com/spell=6462
      */
     SPELL_AURA_MOD_PACIFY = 25,
     /**
@@ -357,14 +357,14 @@ enum AuraType
     SPELL_AURA_MOD_RATING_FROM_STAT = 220,
     SPELL_AURA_DETAUNT = 221,
     SPELL_AURA_222 = 222,
-    SPELL_AURA_223 = 223,
+    SPELL_AURA_RAID_PROC_FROM_CHARGE = 223,
     SPELL_AURA_224 = 224,
-    SPELL_AURA_PRAYER_OF_MENDING = 225,
+    SPELL_AURA_RAID_PROC_FROM_CHARGE_WITH_VALUE = 225,
     SPELL_AURA_PERIODIC_DUMMY = 226,
     SPELL_AURA_PERIODIC_TRIGGER_SPELL_WITH_VALUE = 227,
     SPELL_AURA_DETECT_STEALTH = 228,
     SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE = 229,
-    SPELL_AURA_230 = 230,
+    SPELL_AURA_MOD_INCREASE_MAX_HEALTH = 230,
     SPELL_AURA_PROC_TRIGGER_SPELL_WITH_VALUE = 231,
     SPELL_AURA_MECHANIC_DURATION_MOD = 232,
     SPELL_AURA_233 = 233,
@@ -395,7 +395,7 @@ enum AuraType
     SPELL_AURA_258 = 258,
     SPELL_AURA_259 = 259,
     SPELL_AURA_260 = 260,
-    SPELL_AURA_PHASE = 261, // TODO: Implement for GameObjects, not needed for creatures in TBC
+    SPELL_AURA_PHASE = 261,
     TOTAL_AURAS = 262
 };
 
@@ -407,5 +407,35 @@ enum AreaAuraType
     AREA_AURA_PET,
     AREA_AURA_OWNER
 };
+
+// Spell aura states
+enum AuraState
+{
+    // (C) used in caster aura state     (T) used in target aura state
+    // (c) used in caster aura state-not (t) used in target aura state-not
+    AURA_STATE_DEFENSE                      = 1,            // C   |
+    AURA_STATE_HEALTHLESS_20_PERCENT        = 2,            // CcT |
+    AURA_STATE_BERSERKING                   = 3,            // C T |
+    AURA_STATE_FROZEN                       = 4,            //  c t| frozen target
+    AURA_STATE_JUDGEMENT                    = 5,            // C   |
+    // AURA_STATE_UNKNOWN6                   = 6,           //     | not used
+    AURA_STATE_HUNTER_PARRY                 = 7,            // C   |
+    AURA_STATE_ROGUE_ATTACK_FROM_STEALTH    = 7,            // C   | FIX ME: not implemented yet!
+    // AURA_STATE_UNKNOWN7c                  = 7,           //  c  | random/focused bursts spells (?)
+    // AURA_STATE_UNKNOWN8                   = 8,           //     | not used
+    // AURA_STATE_UNKNOWN9                   = 9,           //     | not used
+    AURA_STATE_WARRIOR_VICTORY_RUSH         = 10,           // C   | warrior victory rush
+    AURA_STATE_HUNTER_CRIT_STRIKE           = 10,           // C   | hunter crit strike
+    AURA_STATE_CRIT                         = 11,           // C   |
+    AURA_STATE_FAERIE_FIRE                  = 12,           //  c t|
+    AURA_STATE_HEALTHLESS_35_PERCENT        = 13,           // C T |
+    AURA_STATE_CONFLAGRATE                  = 14,           //   T | per-caster
+    AURA_STATE_SWIFTMEND                    = 15,           //   T |
+    AURA_STATE_DEADLY_POISON                = 16,           //   T |
+    AURA_STATE_FORBEARANCE                  = 17,           //  c t|
+    AURA_STATE_WEAKENED_SOUL                = 18,           //    t|
+    AURA_STATE_HYPOTHERMIA                  = 19            //  c  |
+};
+
 /** @} */
 #endif

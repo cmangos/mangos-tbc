@@ -21,7 +21,7 @@ SDComment:
 SDCategory: Auchindoun, Sethekk Halls
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "sethekk_halls.h"
 
@@ -57,6 +57,7 @@ enum TalonKingIkissActions // order based on priority
     TALON_KING_IKISS_ACTION_POLYMORPH,
     TALON_KING_IKISS_ACTION_ARCANE_VOLLEY,
     TALON_KING_IKISS_ACTION_MAX,
+    TALON_KING_IKISS_BLINK
 };
 
 struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
@@ -70,6 +71,7 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
         AddCombatAction(TALON_KING_IKISS_ACTION_SLOW, 0u);
         AddCombatAction(TALON_KING_IKISS_ACTION_POLYMORPH, 0u);
         AddCombatAction(TALON_KING_IKISS_ACTION_ARCANE_VOLLEY, 0u);
+        AddCustomAction(TALON_KING_IKISS_BLINK, true, [&]() { HandleBlink(); });
         Reset();
     }
 
@@ -77,9 +79,7 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
     bool m_isRegularMode;
 
     bool m_ManaShield;
-    bool m_Blink;
     bool m_Intro;
-    bool m_reinitCombatMovement;
     uint8 m_uiBlinkPhase;
     float m_HealthPercent;
 
@@ -98,9 +98,7 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
         m_uiBlinkPhase = 0;
         m_HealthPercent = 80.0f;
 
-        m_Blink = false;
         m_ManaShield = false;
-        m_reinitCombatMovement = false;
     }
 
     uint32 GetInitialActionTimer(const uint32 action) const
@@ -127,7 +125,7 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (!m_creature->getVictim() && m_creature->CanAttackOnSight(pWho) && pWho->isInAccessablePlaceFor(m_creature))
+        if (!m_creature->GetVictim() && m_creature->CanAttackOnSight(pWho) && pWho->isInAccessablePlaceFor(m_creature))
         {
             if (!m_Intro && m_creature->IsWithinDistInMap(pWho, 100.0f))
             {
@@ -169,6 +167,15 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
     void KilledUnit(Unit* /*pVctim*/) override
     {
         DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature);
+    }
+
+    void HandleBlink()
+    {
+        SetCombatMovement(true);
+        SetMeleeEnabled(true);
+        DoCastSpellIfCan(m_creature, m_isRegularMode ? SPELL_ARCANE_EXPLOSION : SPELL_ARCANE_EXPLOSION_H);
+        DoCastSpellIfCan(m_creature, SPELL_ARCANE_BUBBLE, CAST_TRIGGERED);
+        DoResetThreat();
     }
 
     void ExecuteActions()
@@ -221,23 +228,10 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
 
     void UpdateAI(const uint32 diff) override
     {
-        UpdateTimers(diff, m_creature->isInCombat());
+        UpdateTimers(diff, m_creature->IsInCombat());
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
-
-        if (EnterEvadeIfOutOfCombatArea(diff))
-            return;
-
-        if (m_Blink)
-        {
-            DoCastSpellIfCan(m_creature, m_isRegularMode ? SPELL_ARCANE_EXPLOSION : SPELL_ARCANE_EXPLOSION_H);
-            DoCastSpellIfCan(m_creature, SPELL_ARCANE_BUBBLE, CAST_TRIGGERED);
-            DoResetThreat();
-            m_Blink = false;
-            m_reinitCombatMovement = true;
-            SetCombatMovement(false);
-        }
 
         if (!m_ManaShield && m_creature->GetHealthPercent() < 15.0f)
         {
@@ -249,7 +243,8 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
         {
             if (DoCastSpellIfCan(m_creature, SPELL_BLINK, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
             {
-                m_Blink = true;
+                SetMeleeEnabled(false);
+                ResetTimer(TALON_KING_IKISS_BLINK, 1000);
                 DoScriptText(EMOTE_ARCANE_EXP, m_creature);
 
                 // There is no relationship between the health percentages
@@ -267,16 +262,9 @@ struct boss_talon_king_ikissAI : public ScriptedAI, public CombatActions
         if (m_creature->HasAura(SPELL_ARCANE_BUBBLE))
             return;
 
-        if (m_reinitCombatMovement)
-        {
-            m_reinitCombatMovement = false;
-            SetCombatMovement(true);
-        }
-
-        if (!m_Blink)
-            DoMeleeAttackIfReady();
-
         ExecuteActions();
+
+        DoMeleeAttackIfReady();
     }
 };
 

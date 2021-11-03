@@ -25,7 +25,7 @@ EndScriptData */
 npc_ranger_lilatha
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 
 /*######
@@ -55,6 +55,13 @@ struct npc_ranger_lilathaAI : public npc_escortAI
     ObjectGuid m_goCageGuid;
     ObjectGuid m_heliosGuid;
 
+    void JustRespawned() override
+    {
+        npc_escortAI::JustRespawned();
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+    }
+
     void MoveInLineOfSight(Unit* pUnit) override
     {
         if (HasEscortState(STATE_ESCORT_ESCORTING))
@@ -78,7 +85,7 @@ struct npc_ranger_lilathaAI : public npc_escortAI
 
         switch (i)
         {
-            case 0:
+            case 1:
                 if (GameObject* pGoTemp = GetClosestGameObjectWithEntry(m_creature, GO_CAGE, 10.0f))
                 {
                     m_goCageGuid = pGoTemp->GetObjectGuid();
@@ -86,39 +93,39 @@ struct npc_ranger_lilathaAI : public npc_escortAI
                 }
 
                 m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-
+                m_creature->SetFactionTemporary(FACTION_SMOON_E, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
                 DoScriptText(SAY_START, m_creature, pPlayer);
                 break;
-            case 1:
+            case 2:
                 if (GameObject* pGo = m_creature->GetMap()->GetGameObject(m_goCageGuid))
                     pGo->SetGoState(GO_STATE_READY);
                 break;
-            case 5:
+            case 6:
                 DoScriptText(SAY_PROGRESS1, m_creature, pPlayer);
                 break;
-            case 11:
+            case 12:
                 DoScriptText(SAY_PROGRESS2, m_creature, pPlayer);
                 break;
-            case 18:
+            case 19:
                 DoScriptText(SAY_PROGRESS3, m_creature, pPlayer);
                 if (Creature* pSum1 = m_creature->SummonCreature(16342, 7627.083984f, -7532.538086f, 152.128616f, 1.082733f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pSum1->AI()->AttackStart(m_creature);
                 if (Creature* pSum2 = m_creature->SummonCreature(16343, 7620.432129f, -7532.550293f, 152.454865f, 0.827478f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pSum2->AI()->AttackStart(pPlayer);
                 break;
-            case 19:
+            case 20:
                 SetRun();
                 break;
-            case 25:
+            case 26:
                 SetRun(false);
                 break;
-            case 30:
+            case 31:
                 pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_CATACOMBS, m_creature);
                 break;
-            case 32:
+            case 33:
                 DoScriptText(SAY_END1, m_creature, pPlayer);
                 break;
-            case 33:
+            case 34:
                 DoScriptText(SAY_END2, m_creature, pPlayer);
                 if (Creature* pHelios = m_creature->GetMap()->GetCreature(m_heliosGuid))
                     DoScriptText(CAPTAIN_ANSWER, pHelios, m_creature);
@@ -145,8 +152,8 @@ bool QuestAccept_npc_ranger_lilatha(Player* pPlayer, Creature* pCreature, const 
 {
     if (pQuest->GetQuestId() == QUEST_CATACOMBS)
     {
-        pCreature->SetFactionTemporary(FACTION_SMOON_E, TEMPFACTION_RESTORE_RESPAWN);
-
+        pCreature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        pCreature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
         if (npc_ranger_lilathaAI* pEscortAI = dynamic_cast<npc_ranger_lilathaAI*>(pCreature->AI()))
             pEscortAI->Start(false, pPlayer, pQuest);
     }

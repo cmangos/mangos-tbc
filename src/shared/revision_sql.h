@@ -1,6 +1,7 @@
 #ifndef __REVISION_SQL_H__
 #define __REVISION_SQL_H__
- #define REVISION_DB_REALMD "required_s2394_00_realmd_account_drop_sha"
- #define REVISION_DB_CHARACTERS "required_s2395_01_characters_WorldState"
- #define REVISION_DB_MANGOS "required_s2396_01_mangos_game_event_split"
+ #define REVISION_DB_REALMD "required_s2433_01_realmd_anticheat"
+ #define REVISION_DB_LOGS "required_s2433_01_logs_anticheat"
+ #define REVISION_DB_CHARACTERS "required_s2429_01_characters_raf"
+ #define REVISION_DB_MANGOS "required_s2434_01_mangos_dbscript_data_flags_widening"
 #endif // __REVISION_SQL_H__

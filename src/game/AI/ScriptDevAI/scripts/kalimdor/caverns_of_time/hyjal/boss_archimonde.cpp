@@ -21,9 +21,10 @@ SDComment: TODO: 2.2 patch - grip of the legion cant hit someone with air burst
 SDCategory: Caverns of Time, Mount Hyjal
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "hyjal.h"
 #include "Maps/MapManager.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 
 enum
 {
@@ -102,28 +103,26 @@ enum ArchimondeActions
     ARCHIMONDE_ACTION_MAX,
 };
 
-struct boss_archimondeAI : public ScriptedAI
+struct boss_archimondeAI : public CombatAI
 {
-    boss_archimondeAI(Creature* pCreature) : ScriptedAI(pCreature)
+    boss_archimondeAI(Creature* creature) : CombatAI(creature, ARCHIMONDE_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
         m_hasIntro = false;
-        m_actionTimers.insert({ ARCHIMONDE_ACTION_GRIP_OF_THE_LEGION , 0 });
-        m_actionTimers.insert({ ARCHIMONDE_ACTION_AIR_BURST , 0 });
-        m_actionTimers.insert({ ARCHIMONDE_ACTION_FEAR , 0 });
-        m_actionTimers.insert({ ARCHIMONDE_ACTION_DOOMFIRE , 0 });
-        m_actionTimers.insert({ ARCHIMONDE_ACTION_FINGER_OF_DEATH_COOLUP , 0 });
-        m_actionTimers.insert({ ARCHIMONDE_ACTION_HAND_OF_DEATH , 0 });
-        m_actionTimers.insert({ ARCHIMONDE_ACTION_SOUL_CHARGE , 0 });
-        m_drainNordrassilTimer = 5000;
+        AddTimerlessCombatAction(ARCHIMONDE_ACTION_PHASE_2, true);
+        AddCombatAction(ARCHIMONDE_ACTION_GRIP_OF_THE_LEGION, 5000, 25000);
+        AddCombatAction(ARCHIMONDE_ACTION_AIR_BURST, 25000, 40000);
+        AddCombatAction(ARCHIMONDE_ACTION_FEAR, 42000, 50000);
+        AddCombatAction(ARCHIMONDE_ACTION_DOOMFIRE, 15000u);
+        AddTimerlessCombatAction(ARCHIMONDE_ACTION_FINGER_OF_DEATH, false);
+        AddCombatAction(ARCHIMONDE_ACTION_FINGER_OF_DEATH_COOLUP, 10000u);
+        AddCombatAction(ARCHIMONDE_ACTION_HAND_OF_DEATH, uint32(10 * MINUTE * IN_MILLISECONDS));
+        AddCombatAction(ARCHIMONDE_ACTION_SOUL_CHARGE, 5000u);
         SetDeathPrevention(true);
+        AddOnKillText(SAY_SLAY1, SAY_SLAY2, SAY_SLAY3);
         Reset();
     }
 
-    ScriptedInstance* m_pInstance;
-
-    bool m_actionReadyStatus[ARCHIMONDE_ACTION_MAX];
-    std::map<uint32, uint32> m_actionTimers;
+    ScriptedInstance* m_instance;
 
     uint32 m_drainNordrassilTimer;
     uint32 m_summonWispTimer;
@@ -141,11 +140,7 @@ struct boss_archimondeAI : public ScriptedAI
 
     void Reset() override
     {
-        for (auto& data : m_actionTimers)
-            data.second = GetInitialActionTimer(data.first);
-
-        for (uint32 i = 0; i < ARCHIMONDE_ACTION_MAX; ++i)
-            m_actionReadyStatus[i] = false;
+        CombatAI::Reset();
 
         m_summonWispTimer = 0;
         m_outroTimer = 0;
@@ -158,21 +153,8 @@ struct boss_archimondeAI : public ScriptedAI
         SetMeleeEnabled(true);
 
         m_soulChargeId = 0;
-    }
 
-    uint32 GetInitialActionTimer(const uint32 action) const
-    {
-        switch (action)
-        {
-            case ARCHIMONDE_ACTION_HAND_OF_DEATH: return 10 * MINUTE * IN_MILLISECONDS;
-            case ARCHIMONDE_ACTION_GRIP_OF_THE_LEGION: return urand(5000, 25000);
-            case ARCHIMONDE_ACTION_AIR_BURST: return urand(25000, 40000);
-            case ARCHIMONDE_ACTION_FEAR: return 40000;
-            case ARCHIMONDE_ACTION_DOOMFIRE: return 15000;
-            case ARCHIMONDE_ACTION_FINGER_OF_DEATH_COOLUP: return 10000;
-            case ARCHIMONDE_ACTION_SOUL_CHARGE: return 0;
-            default: return 0; // never occurs but for compiler
-        }
+        m_creature->SetRespawnDelay(7 * DAY);
     }
 
     uint32 GetSubsequentActionTimer(const uint32 action) const
@@ -195,26 +177,18 @@ struct boss_archimondeAI : public ScriptedAI
         DoScriptText(SAY_AGGRO, m_creature);
     }
 
-    void KilledUnit(Unit* victim) override
+    void JustRespawned() override
     {
-        if (victim->GetTypeId() != TYPEID_PLAYER)
-            return;
-
-        switch (urand(0, 2))
-        {
-            case 0: DoScriptText(SAY_SLAY1, m_creature); break;
-            case 1: DoScriptText(SAY_SLAY2, m_creature); break;
-            case 2: DoScriptText(SAY_SLAY3, m_creature); break;
-        }
+        CombatAI::JustRespawned();
+        m_drainNordrassilTimer = 5000;
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_ARCHIMONDE, FAIL);
+        CombatAI::EnterEvadeMode();
 
-        m_drainNordrassilTimer = 5000;
-        ScriptedAI::JustReachedHome();
+        if (m_instance)
+            m_instance->SetData(TYPE_ARCHIMONDE, FAIL);
     }
 
     void MovementInform(uint32 movementType, uint32 data) override
@@ -270,146 +244,106 @@ struct boss_archimondeAI : public ScriptedAI
         }
     }
 
-    void UpdateTimers(const uint32 diff)
+    void OnSpellCooldownAdded(SpellEntry const* spellInfo) override
     {
-        for (auto& data : m_actionTimers)
-        {
-            uint32 index = data.first;
-            if (!m_actionReadyStatus[index])
-            {
-                if (data.second <= diff)
-                {
-                    data.second = 0;
-                    m_actionReadyStatus[index] = true;
-                }
-                else
-                    data.second -= diff;
-            }
-        }
+        CombatAI::OnSpellCooldownAdded(spellInfo);
+        if (spellInfo->Id == SPELL_AIR_BURST)
+            ResetCombatAction(ARCHIMONDE_ACTION_AIR_BURST, GetSubsequentActionTimer(ARCHIMONDE_ACTION_AIR_BURST));
     }
 
-    void ExecuteActions()
+    void ExecuteAction(uint32 action) override
     {
-        if (!CanExecuteCombatAction())
-            return;
-
-        for (uint32 i = 0; i < ARCHIMONDE_ACTION_MAX; ++i)
+        switch (action)
         {
-            if (m_actionReadyStatus[i])
+            case ARCHIMONDE_ACTION_PHASE_2:
             {
-                switch (i)
+                if (m_creature->GetHealthPercent() > 10.0f)
+                    return;
+
+                DoScriptText(SAY_EPILOGUE, m_creature);
+                m_creature->PlayDirectSound(10992);
+                m_creature->PlayDirectSound(10843);
+                // move at home position and start outro
+                SetCombatScriptStatus(true);
+                m_creature->GetMotionMaster()->MovePoint(POINT_EPILOGUE, outroPoint[0], outroPoint[1], outroPoint[2], FORCED_MOVEMENT_RUN);
+                SetCombatMovement(false);
+                m_creature->SetActiveObjectState(true);
+                SetMeleeEnabled(false);
+                m_phase = true;
+                return;
+            }
+            case ARCHIMONDE_ACTION_HAND_OF_DEATH:
+                if (DoCastSpellIfCan(nullptr, SPELL_HAND_OF_DEATH) == CAST_OK)
                 {
-                    case ARCHIMONDE_ACTION_PHASE_2:
+                    DoScriptText(SAY_ENRAGE, m_creature);
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                    EnterEvadeMode();
+                }
+                return;
+            case ARCHIMONDE_ACTION_GRIP_OF_THE_LEGION:
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
+                    if (DoCastSpellIfCan(target, SPELL_GRIP_OF_THE_LEGION) == CAST_OK)
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
+                return;
+            case ARCHIMONDE_ACTION_AIR_BURST:
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER | SELECT_FLAG_SKIP_TANK))
+                    if (DoCastSpellIfCan(target, SPELL_AIR_BURST) == CAST_OK)
+                        DoScriptText(urand(0, 1) ? SAY_AIR_BURST1 : SAY_AIR_BURST2, m_creature);
+                return;
+            case ARCHIMONDE_ACTION_FEAR:
+                if (DoCastSpellIfCan(nullptr, SPELL_FEAR) == CAST_OK)
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                return;
+            case ARCHIMONDE_ACTION_DOOMFIRE:
+                if (DoCastSpellIfCan(nullptr, SPELL_DOOMFIRE_STRIKE) == CAST_OK)
+                {
+                    DoScriptText(urand(0, 1) ? SAY_DOOMFIRE1 : SAY_DOOMFIRE2, m_creature);
+                    ResetCombatAction(action, GetSubsequentActionTimer(action));
+                }
+                return;
+            case ARCHIMONDE_ACTION_FINGER_OF_DEATH_COOLUP:
+                if (Unit* closest = m_creature->SelectAttackingTarget(ATTACKING_TARGET_NEAREST_BY, 0, nullptr, SELECT_FLAG_PLAYER))
+                {
+                    if (!m_creature->CanReachWithMeleeAttack(closest))
                     {
-                        DoScriptText(SAY_EPILOGUE, m_creature);
-                        m_creature->PlayDirectSound(10992);
-                        m_creature->PlayDirectSound(10843);
-                        // move at home position and start outro
-                        SetCombatScriptStatus(true);
-                        m_creature->GetMotionMaster()->MovePoint(POINT_EPILOGUE, outroPoint[0], outroPoint[1], outroPoint[2]);
-                        SetCombatMovement(false);
-                        m_creature->SetActiveObjectState(true);
-                        SetMeleeEnabled(false);
-                        m_phase = true;
-                        return;
-                    }
-                    case ARCHIMONDE_ACTION_HAND_OF_DEATH:
-                        if (DoCastSpellIfCan(nullptr, SPELL_HAND_OF_DEATH) == CAST_OK)
+                        if (DoCastSpellIfCan(nullptr, SPELL_FINGER_OF_DEATH_COOLUP) == CAST_OK)
                         {
-                            DoScriptText(SAY_ENRAGE, m_creature);
-                            m_actionTimers[i] = GetSubsequentActionTimer(i);
-                            m_actionReadyStatus[i] = false;
-                            continue;
+                            ResetCombatAction(action, GetSubsequentActionTimer(action));
+                            SetActionReadyStatus(ARCHIMONDE_ACTION_FINGER_OF_DEATH, true); // when GCD expires, cast this
                         }
-                        continue;
-                    case ARCHIMONDE_ACTION_GRIP_OF_THE_LEGION:
+                    }
+                }
+                return;
+            case ARCHIMONDE_ACTION_FINGER_OF_DEATH:
+                if (Unit* closest = m_creature->SelectAttackingTarget(ATTACKING_TARGET_NEAREST_BY, 0, nullptr, SELECT_FLAG_PLAYER))
+                {
+                    if (!m_creature->CanReachWithMeleeAttack(closest))
+                    {
                         if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
                         {
-                            if (DoCastSpellIfCan(target, SPELL_GRIP_OF_THE_LEGION) == CAST_OK)
+                            if (DoCastSpellIfCan(target, SPELL_FINGER_OF_DEATH) == CAST_OK)
                             {
-                                m_actionTimers[i] = GetSubsequentActionTimer(i);
-                                m_actionReadyStatus[i] = false;
-                                continue;
-                            }
-                        }
-                        continue;
-                    case ARCHIMONDE_ACTION_AIR_BURST:
-                        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER))
-                        {
-                            if (DoCastSpellIfCan(target, SPELL_AIR_BURST) == CAST_OK)
-                            {
-                                DoScriptText(urand(0, 1) ? SAY_AIR_BURST1 : SAY_AIR_BURST2, m_creature);
-                                m_actionTimers[i] = GetSubsequentActionTimer(i);
-                                m_actionReadyStatus[i] = false;
+                                SetActionReadyStatus(action, false);
                                 return;
                             }
                         }
-                        continue;
-                    case ARCHIMONDE_ACTION_FEAR:
-                        if (DoCastSpellIfCan(nullptr, SPELL_FEAR) == CAST_OK)
-                        {
-                            m_actionTimers[i] = GetSubsequentActionTimer(i);
-                            m_actionReadyStatus[i] = false;
-                            return;
-                        }
-                        continue;
-                    case ARCHIMONDE_ACTION_DOOMFIRE:
-                        if (DoCastSpellIfCan(nullptr, SPELL_DOOMFIRE_STRIKE) == CAST_OK)
-                        {
-                            DoScriptText(urand(0, 1) ? SAY_DOOMFIRE1 : SAY_DOOMFIRE2, m_creature);
-                            m_actionTimers[i] = GetSubsequentActionTimer(i);
-                            m_actionReadyStatus[i] = false;
-                            continue; // non exclusive
-                        }
-                        continue;
-                    case ARCHIMONDE_ACTION_FINGER_OF_DEATH_COOLUP:
-                        if (Unit* closest = m_creature->SelectAttackingTarget(ATTACKING_TARGET_NEAREST_BY, 0, nullptr, SELECT_FLAG_PLAYER))
-                        {
-                            if (!m_creature->CanReachWithMeleeAttack(closest))
-                            {
-                                if (DoCastSpellIfCan(nullptr, SPELL_FINGER_OF_DEATH_COOLUP) == CAST_OK)
-                                {
-                                    m_actionTimers[i] = GetSubsequentActionTimer(i);
-                                    m_actionReadyStatus[i] = false;
-                                    m_actionReadyStatus[ARCHIMONDE_ACTION_FINGER_OF_DEATH] = true; // when GCD expires, cast this
-                                }
-                                return;
-                            }
-                        }
-                        continue;
-                    case ARCHIMONDE_ACTION_FINGER_OF_DEATH:
-                        if (Unit* closest = m_creature->SelectAttackingTarget(ATTACKING_TARGET_NEAREST_BY, 0, nullptr, SELECT_FLAG_PLAYER))
-                        {
-                            if (!m_creature->CanReachWithMeleeAttack(closest))
-                            {
-                                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-                                {
-                                    if (DoCastSpellIfCan(target, SPELL_FINGER_OF_DEATH) == CAST_OK)
-                                    {
-                                        m_actionReadyStatus[i] = false;
-                                        return;
-                                    }
-                                }
-                            }
-                            else m_actionReadyStatus[i] = false; // if someone is tanking again, disable
-                        }
-                        continue;
-                    case ARCHIMONDE_ACTION_SOUL_CHARGE:
-                        uint32 spellId = 0;
-                        if (m_creature->HasAura(SPELL_SOUL_CHARGE_YELLOW_CHARGE))
-                            spellId = SPELL_SOUL_CHARGE_YELLOW;
-                        else if (m_creature->HasAura(SPELL_SOUL_CHARGE_RED_CHARGE))
-                            spellId = SPELL_SOUL_CHARGE_RED;
-                        else if (m_creature->HasAura(SPELL_SOUL_CHARGE_GREEN_CHARGE))
-                            spellId = SPELL_SOUL_CHARGE_GREEN;
-                        m_actionTimers[i] = GetSubsequentActionTimer(i); // does not seem to reset cd only on spell cast
-                        m_actionReadyStatus[i] = false;
-                        if (spellId)
-                            if (DoCastSpellIfCan(nullptr, spellId) == CAST_OK)
-                                return;
-                        continue;
+                    }
+                    else SetActionReadyStatus(action, false); // if someone is tanking again, disable
                 }
-            }
+                return;
+            case ARCHIMONDE_ACTION_SOUL_CHARGE:
+                uint32 spellId = 0;
+                if (m_creature->HasAura(SPELL_SOUL_CHARGE_YELLOW_CHARGE))
+                    spellId = SPELL_SOUL_CHARGE_YELLOW;
+                else if (m_creature->HasAura(SPELL_SOUL_CHARGE_RED_CHARGE))
+                    spellId = SPELL_SOUL_CHARGE_RED;
+                else if (m_creature->HasAura(SPELL_SOUL_CHARGE_GREEN_CHARGE))
+                    spellId = SPELL_SOUL_CHARGE_GREEN;
+                ResetCombatAction(action, GetSubsequentActionTimer(action)); // does not seem to reset cd only on spell cast
+                if (spellId)
+                    if (DoCastSpellIfCan(nullptr, spellId) == CAST_OK)
+                        return;
+                return;
         }
     }
 
@@ -425,7 +359,7 @@ struct boss_archimondeAI : public ScriptedAI
                 case 1: spellId = SPELL_FINGER_DEATH_DUMMY; break;
                 default: spellId = urand(0, 2) ? SPELL_FINGER_DEATH_SCRIPT : SPELL_FINGER_DEATH_DUMMY; break;
             }
-            if (DoCastSpellIfCan(m_creature, spellId) == CAST_OK)
+            if (DoCastSpellIfCan(nullptr, spellId) == CAST_OK)
                 ++m_stageCounter;
         }
 
@@ -461,12 +395,13 @@ struct boss_archimondeAI : public ScriptedAI
         {
             if (m_leashCheckTimer <= diff)
             {
-                float x, y, z, o;
-                m_creature->GetCombatStartPosition(x, y, z, o);
+                Position pos;
+                m_creature->GetCombatStartPosition(pos);
                 // Range stuff here
-                if (m_creature->GetDistance2d(x, y) >= 200.f || (x < 5534.752f && x > 5381.371f && y < -3507.099f && y > -3587.244f))
+                if (m_creature->GetDistance2d(pos.GetPositionX(), pos.GetPositionY()) >= 155.f || (pos.GetPositionX() < 5534.752f && pos.GetPositionX() > 5381.371f &&
+                    pos.GetPositionY() < -3507.099f && pos.GetPositionY() > -3587.244f))
                 {
-                    m_actionReadyStatus[ARCHIMONDE_ACTION_HAND_OF_DEATH] = true;
+                    SetActionReadyStatus(ARCHIMONDE_ACTION_HAND_OF_DEATH, true);
                     m_leashCheckTimer = 0;
                     DoScriptText(SAY_SLAY3, m_creature); // seems to be both used as leash yell and slay yell
                 }
@@ -486,7 +421,7 @@ struct boss_archimondeAI : public ScriptedAI
                 m_creature->RemoveAurasDueToSpell(SPELL_SOUL_CHARGE_YELLOW_CHARGE); // workaround for archi not despawning after wipe
                 m_creature->RemoveAurasDueToSpell(SPELL_SOUL_CHARGE_RED_CHARGE);
                 m_creature->RemoveAurasDueToSpell(SPELL_SOUL_CHARGE_GREEN_CHARGE);
-                if (DoCastSpellIfCan(m_creature, SPELL_DRAIN_TREE) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_DRAIN_TREE) == CAST_OK)
                 {
                     if (!m_hasIntro)
                     {
@@ -500,15 +435,14 @@ struct boss_archimondeAI : public ScriptedAI
                 m_drainNordrassilTimer -= diff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        UpdateTimers(diff, m_creature->IsInCombat());
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         if (!m_phase) // Phase 1
         {
-            if (m_creature->GetHealthPercent() < 10.0f)
-                m_actionReadyStatus[ARCHIMONDE_ACTION_PHASE_2] = true;
             CheckLeash(diff);
-            UpdateTimers(diff);
             ExecuteActions();
             DoMeleeAttackIfReady();
         }
@@ -522,7 +456,7 @@ static float const m_turnConstant = 0.785402f;
 /* This is the script for the Doomfire Spirit Mob. This mob controls the doomfire npc and allows it to move randomly around the map. */
 struct npc_doomfire_targetingAI : public ScriptedAI
 {
-    npc_doomfire_targetingAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+    npc_doomfire_targetingAI(Creature* creature) : ScriptedAI(creature) { Reset(); }
 
     ObjectGuid m_doomfireGuid;
 
@@ -541,9 +475,8 @@ struct npc_doomfire_targetingAI : public ScriptedAI
         if (m_uiChangeTargetTimer < uiDiff)
         {
             float nextOrientation = MapManager::NormalizeOrientation(m_creature->GetOrientation() + irand(-1, 1) * m_turnConstant);
-            WorldLocation pos;
-            m_creature->GetFirstCollisionPosition(pos, 8.f, nextOrientation); // both orientation and distance verified with sniffs
-            m_creature->NearTeleportTo(pos.coord_x, pos.coord_y, pos.coord_z, nextOrientation);
+            Position pos = m_creature->GetFirstRandomAngleCollisionPosition(8.f, nextOrientation); // both orientation and distance verified with sniffs
+            m_creature->NearTeleportTo(pos.x, pos.y, pos.z, nextOrientation);
 
             m_uiChangeTargetTimer = 1000;
         }
@@ -552,25 +485,15 @@ struct npc_doomfire_targetingAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_boss_archimonde(Creature* pCreature)
-{
-    return new boss_archimondeAI(pCreature);
-}
-
-UnitAI* GetAI_npc_doomfire_spirit(Creature* pCreature)
-{
-    return new npc_doomfire_targetingAI(pCreature);
-}
-
 void AddSC_boss_archimonde()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_archimonde";
-    pNewScript->GetAI = &GetAI_boss_archimonde;
+    pNewScript->GetAI = &GetNewAIInstance<boss_archimondeAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_doomfire_targeting";
-    pNewScript->GetAI = &GetAI_npc_doomfire_spirit;
+    pNewScript->GetAI = &GetNewAIInstance<npc_doomfire_targetingAI>;
     pNewScript->RegisterSelf();
 }

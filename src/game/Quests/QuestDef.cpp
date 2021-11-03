@@ -176,7 +176,7 @@ uint32 Quest::XPValue(Player* pPlayer) const
     {
         if (RewMoneyMaxLevel > 0)
         {
-            uint32 pLevel = pPlayer->getLevel();
+            uint32 pLevel = pPlayer->GetLevel();
             uint32 qLevel = QuestLevel > 0 ? (uint32)QuestLevel : 0;
             float fullxp = 0;
             if (qLevel >= 65)
@@ -232,4 +232,12 @@ uint32 Quest::GetCharTitleBitIndex() const
         return 0;
     CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(CharTitleId);
     return titleEntry ? titleEntry->bit_index : 0;
+}
+
+uint32 Quest::GetRewMoneyMaxLevel() const
+{
+    if (HasQuestFlag(QUEST_FLAGS_NO_MONEY_FROM_XP))
+        return 0;
+
+    return RewMoneyMaxLevel;
 }

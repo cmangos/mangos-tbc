@@ -25,7 +25,7 @@ EndScriptData */
 npc_lazy_peon
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 
 /*######
 ## npc_lazy_peon
@@ -107,6 +107,7 @@ struct npc_lazy_peonAI : public ScriptedAI
             pLumber->GetContactPoint(m_creature, fX, fY, fZ, CONTACT_DISTANCE);
             m_creature->HandleEmote(EMOTE_STATE_NONE); //cancel chopping
             m_creature->GetMotionMaster()->MovePoint(1, fX, fY, fZ);
+            m_uiChopTimer = 0;
             m_uiKneelTimer = 2500; //timer duration guessed, true retail time unknown
         }
         else

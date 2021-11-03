@@ -21,15 +21,20 @@ SDComment: Spore Strider should have Delayed Despawn on The Black Stalker Death
 SDCategory: Coilfang Resevoir, Underbog
 EndScriptData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
-#include "AI/ScriptDevAI/base/TimerAI.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 
 enum // order based on priority
 {
-    SPELL_LEVITATE              = 31704,
-    SPELL_STATIC_CHARGE             = 31715,
-    SPELL_CHAIN_LIGHTNING               = 31717,
-    SPELL_SUMMON_SPORE_STRIDER = 38755,
+    SPELL_SOMEONE_GRAB_ME       = 31702,
+    SPELL_MAGNETIC_PULL         = 31703,
+    SPELL_LEVITATE              = 31704, // triggers 31701 Levitation Pulse
+    SPELL_STATIC_CHARGE         = 31715,
+    SPELL_CHAIN_LIGHTNING       = 31717,
+    SPELL_SUSPENSION            = 31719,
+    SPELL_SUMMON_SPORE_STRIDER  = 38755,
+
+    NPC_BLACK_STALKER           = 17882,
 };
 
 enum BlackStalkerActions
@@ -39,46 +44,41 @@ enum BlackStalkerActions
     BLACK_STALKER_ACTION_CHAIN_LIGHTNING,
     BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER,
     BLACK_STALKER_ACTION_MAX,
+    BLACK_STALKER_ACTION_SUSPENSION,
 };
 
-struct boss_black_stalkerAI : public ScriptedAI, public CombatActions
+struct boss_black_stalkerAI : public CombatAI
 {
-    boss_black_stalkerAI(Creature* creature) : ScriptedAI(creature), CombatActions(BLACK_STALKER_ACTION_MAX)
+    boss_black_stalkerAI(Creature* creature) : CombatAI(creature, BLACK_STALKER_ACTION_MAX), m_isRegularMode(creature->GetMap()->IsRegularDifficulty())
     {
-        m_isRegularMode = creature->GetMap()->IsRegularDifficulty();
-        AddCombatAction(BLACK_STALKER_ACTION_LEVITATE, 0u);
-        AddCombatAction(BLACK_STALKER_ACTION_STATIC_CHARGE, 0u);
-        AddCombatAction(BLACK_STALKER_ACTION_CHAIN_LIGHTNING, 0u);
-        AddCombatAction(BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER, 0u);
-        Reset();
+        AddCombatAction(BLACK_STALKER_ACTION_LEVITATE, 15000u);
+        AddCombatAction(BLACK_STALKER_ACTION_STATIC_CHARGE, 33200, 39200);
+        AddCombatAction(BLACK_STALKER_ACTION_CHAIN_LIGHTNING, 0, 3000);
+        if (!m_isRegularMode)
+            AddCombatAction(BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER, 20000, 40000);
+        AddCustomAction(BLACK_STALKER_ACTION_SUSPENSION, true, [&]()
+        {
+            if (Player* player = m_creature->GetMap()->GetPlayer(m_suspensionGuid))
+            {
+                player->CastSpell(nullptr, SPELL_SUSPENSION, TRIGGERED_OLD_TRIGGERED);
+            }
+        });
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float x, float y, float /*z*/)->bool
+        {
+            return x < 100.0f || y < -30.0f;
+        });
     }
+
+    ObjectGuid m_suspensionGuid;
 
     bool m_isRegularMode;
 
     void Reset() override
     {
-        for (uint32 i = 0; i < BLACK_STALKER_ACTION_MAX; ++i)
-            SetActionReadyStatus(i, false);
-
-        ResetTimer(BLACK_STALKER_ACTION_LEVITATE, GetInitialActionTimer(BLACK_STALKER_ACTION_LEVITATE));
-        ResetTimer(BLACK_STALKER_ACTION_STATIC_CHARGE, GetInitialActionTimer(BLACK_STALKER_ACTION_STATIC_CHARGE));
-        ResetTimer(BLACK_STALKER_ACTION_CHAIN_LIGHTNING, GetInitialActionTimer(BLACK_STALKER_ACTION_CHAIN_LIGHTNING));
-        ResetTimer(BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER, GetInitialActionTimer(BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER));
+        CombatAI::Reset();
 
         SetCombatScriptStatus(false);
         SetCombatMovement(true);
-    }
-
-    uint32 GetInitialActionTimer(const uint32 action) const
-    {
-        switch (action)
-        {
-            case BLACK_STALKER_ACTION_LEVITATE: return 15000;
-            case BLACK_STALKER_ACTION_STATIC_CHARGE: return urand(33200, 39200);
-            case BLACK_STALKER_ACTION_CHAIN_LIGHTNING: return urand(0, 3000);
-            case BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER: return urand(10000, 15000);
-            default: return 0; // never occurs but for compiler
-        }
     }
 
     uint32 GetSubsequentActionTimer(const uint32 action) const
@@ -88,98 +88,126 @@ struct boss_black_stalkerAI : public ScriptedAI, public CombatActions
             case BLACK_STALKER_ACTION_LEVITATE: return 20500;
             case BLACK_STALKER_ACTION_STATIC_CHARGE: return urand(14000, 16000);
             case BLACK_STALKER_ACTION_CHAIN_LIGHTNING: return urand(12000, 29500);
-            case BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER: return urand(10000, 15000);
+            case BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER: return urand(20000, 30000);
             default: return 0; // never occurs but for compiler
         }
     }
 
-    void ExecuteActions()
+    void ExecuteAction(uint32 action) override
     {
-        if (!CanExecuteCombatAction())
+        switch (action)
+        {
+            case BLACK_STALKER_ACTION_LEVITATE:
+            {
+                if (m_creature->getThreatManager().getThreatList().size() > 1)
+                    if (DoCastSpellIfCan(nullptr, SPELL_LEVITATE) == CAST_OK)
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
+                break;
+            }
+            case BLACK_STALKER_ACTION_STATIC_CHARGE:
+            {
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_STATIC_CHARGE, SELECT_FLAG_PLAYER))
+                    if (DoCastSpellIfCan(target, SPELL_STATIC_CHARGE) == CAST_OK)
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
+                break;
+            }
+            case BLACK_STALKER_ACTION_CHAIN_LIGHTNING:
+            {
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CHAIN_LIGHTNING, SELECT_FLAG_PLAYER))
+                    if (DoCastSpellIfCan(target, SPELL_CHAIN_LIGHTNING) == CAST_OK)
+                        ResetCombatAction(action, GetSubsequentActionTimer(action));
+                break;
+            }
+            case BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER:
+            {
+                DoCastSpellIfCan(nullptr, SPELL_SUMMON_SPORE_STRIDER, CAST_TRIGGERED);
+                DoCastSpellIfCan(nullptr, SPELL_SUMMON_SPORE_STRIDER, CAST_TRIGGERED);
+                DoCastSpellIfCan(nullptr, SPELL_SUMMON_SPORE_STRIDER, CAST_TRIGGERED);
+                ResetCombatAction(action, GetSubsequentActionTimer(action));
+                break;
+            }
+        }
+    }
+};
+
+struct StalkerLevitate : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (spell->GetCaster()->GetVictim() == target || !target->IsPlayer()) // skip tank and non-player
+            return false;
+
+        return true;
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_1)
             return;
 
-        for (uint32 i = 0; i < BLACK_STALKER_ACTION_MAX; ++i)
+        if (Unit* unitTarget = spell->GetUnitTarget())
         {
-            if (GetActionReadyStatus(i))
+            unitTarget->CastSpell(nullptr, SPELL_SOMEONE_GRAB_ME, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+};
+
+struct SomeoneGrabMe : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (Unit* unitTarget = spell->GetUnitTarget())
+        {
+            unitTarget->CastSpell(spell->GetCaster(), SPELL_MAGNETIC_PULL, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+};
+
+struct MagneticPull : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_1)
+            return;
+
+        if (Unit* unitTarget = spell->GetUnitTarget())
+        {
+            if (unitTarget->IsPlayer())
             {
-                switch (i)
+                if (ScriptedInstance* pInstance = static_cast<ScriptedInstance*>(unitTarget->GetInstanceData()))
                 {
-                    case BLACK_STALKER_ACTION_LEVITATE:
+                    if (Creature* boss = pInstance->GetSingleCreatureFromStorage(NPC_BLACK_STALKER))
                     {
-                        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_LEVITATE, SELECT_FLAG_PLAYER | SELECT_FLAG_SKIP_TANK))
+                        if (boss_black_stalkerAI* stalkerAI = dynamic_cast<boss_black_stalkerAI*>(boss->AI()))
                         {
-                            if (DoCastSpellIfCan(target, SPELL_LEVITATE) == CAST_OK)
-                            {
-                                ResetTimer(i, GetSubsequentActionTimer(i));
-                                SetActionReadyStatus(i, false);
-                            }
+                            stalkerAI->m_suspensionGuid = unitTarget->GetObjectGuid();
+                            stalkerAI->ResetTimer(BLACK_STALKER_ACTION_SUSPENSION, 1000);
                         }
-                        break;
-                    }
-                    case BLACK_STALKER_ACTION_STATIC_CHARGE:
-                    {
-                        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_STATIC_CHARGE, SELECT_FLAG_PLAYER))
-                        {
-                            if (DoCastSpellIfCan(target, SPELL_STATIC_CHARGE) == CAST_OK)
-                            {
-                                ResetTimer(i, GetSubsequentActionTimer(i));
-                                SetActionReadyStatus(i, false);
-                            }
-                        }
-                        break;
-                    }
-                    case BLACK_STALKER_ACTION_CHAIN_LIGHTNING:
-                    {
-                        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_CHAIN_LIGHTNING, SELECT_FLAG_PLAYER))
-                        {
-                            if (DoCastSpellIfCan(target, SPELL_CHAIN_LIGHTNING) == CAST_OK)
-                            {
-                                ResetTimer(i, GetSubsequentActionTimer(i));
-                                SetActionReadyStatus(i, false);
-                            }
-                        }
-                        break;
-                    }
-                    case BLACK_STALKER_ACTION_SUMMON_SPORE_STRIDER:
-                    {
-                        if (!m_isRegularMode)
-                        {
-                            DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPORE_STRIDER, CAST_TRIGGERED);
-                            DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPORE_STRIDER, CAST_TRIGGERED);
-                            DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPORE_STRIDER, CAST_TRIGGERED);
-                            ResetTimer(i, GetSubsequentActionTimer(i));
-                            SetActionReadyStatus(i, false);
-                        }
-                        break;
                     }
                 }
             }
         }
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        UpdateTimers(diff, m_creature->isInCombat());
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
-            return;
-
-        ExecuteActions();
-
-        DoMeleeAttackIfReady();
-        EnterEvadeIfOutOfCombatArea(diff);
-    }
 };
-
-UnitAI* GetAI_boss_black_stalker(Creature* pCreature)
-{
-    return new boss_black_stalkerAI(pCreature);
-}
 
 void AddSC_boss_black_stalker()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_black_stalker";
-    pNewScript->GetAI = &GetAI_boss_black_stalker;
+    pNewScript->GetAI = &GetNewAIInstance<boss_black_stalkerAI>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<StalkerLevitate>("spell_levitate");
+    RegisterSpellScript<SomeoneGrabMe>("spell_someone_grab_me");
+    RegisterSpellScript<MagneticPull>("spell_magnetic_pull");
 }

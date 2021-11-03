@@ -25,7 +25,7 @@ EndScriptData */
 npc_grark_lorkrub
 EndContentData */
 
-#include "AI/ScriptDevAI/include/precompiled.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 
 /*######
@@ -221,7 +221,7 @@ struct npc_grark_lorkrubAI : public npc_escortAI, private DialogueHelper
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_PRECARIOUS_PREDICAMENT, m_creature);
                 // Kill self
-                m_creature->DealDamage(m_creature, m_creature->GetHealth(), nullptr, DIRECT_DAMAGE, SPELL_SCHOOL_MASK_NONE, nullptr, false);
+                m_creature->Suicide();
                 break;
         }
     }
@@ -290,7 +290,7 @@ struct npc_grark_lorkrubAI : public npc_escortAI, private DialogueHelper
     {
         DialogueUpdate(uiDiff);
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
@@ -462,12 +462,8 @@ struct npc_klinfranAI : public ScriptedAI
                 {
                     if (Unit* pUnit = m_creature->GetMap()->GetUnit(itr->getUnitGuid()))
                     {
-                        if (pUnit->isAlive())
-                        {
-                            pCleaner->SetInCombatWith(pUnit);
-                            pCleaner->AddThreat(pUnit);
+                        if (pUnit->IsAlive())
                             pCleaner->AI()->AttackStart(pUnit);
-                        }
                     }
                 }
             }
@@ -515,17 +511,17 @@ struct npc_klinfranAI : public ScriptedAI
         {
             if (m_uiDespawn_Timer <= uiDiff)
             {
-                if (m_creature->isAlive() && !m_creature->isInCombat())
+                if (m_creature->IsAlive() && !m_creature->IsInCombat())
                     DemonDespawn(false);
             }
             else
                 m_uiDespawn_Timer -= uiDiff;
         }
 
-        if (!m_creature->SelectHostileTarget() || !m_creature->getVictim())
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        if (m_creature->getThreatManager().getThreatList().size() > 1 /*|| pHunter->isDead()*/)
+        if (m_creature->getThreatManager().getThreatList().size() > 1 /*|| pHunter->IsDead()*/)
             DemonDespawn();
 
         if (m_uiDemonic_Frenzy_Timer < uiDiff)

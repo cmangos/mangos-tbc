@@ -383,7 +383,11 @@ BattleGroundMap* MapManager::CreateBattleGroundMap(uint32 id, uint32 InstanceId,
 {
     DEBUG_LOG("MapInstanced::CreateBattleGroundMap: instance:%d for map:%d and bgType:%d created.", InstanceId, id, bg->GetTypeId());
 
-    BattleGroundMap* map = new BattleGroundMap(id, i_gridCleanUpDelay, InstanceId);
+    uint8 spawnMode = uint8(DUNGEON_DIFFICULTY_NORMAL);
+    if (bg->GetTypeId() == BATTLEGROUND_AV && bg->GetMinLevel() >= 61)
+        spawnMode = uint8(DUNGEON_DIFFICULTY_HEROIC);        
+
+    BattleGroundMap* map = new BattleGroundMap(id, i_gridCleanUpDelay, InstanceId, spawnMode);
     MANGOS_ASSERT(map->IsBattleGroundOrArena());
     map->SetBG(bg);
     bg->SetBgMap(map);

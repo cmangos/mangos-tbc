@@ -1870,3 +1870,18 @@ bool ChatHandler::HandleDebugPacketLog(char* args)
     GetSession()->SetPacketLogging(value == 1);
     return true;
 }
+
+bool ChatHandler::HandleDebugDbscript(char* args)
+{
+    Unit* target = getSelectedUnit();
+    uint32 chosenId;
+    if (!ExtractUInt32(&args, chosenId))
+        return false;
+
+    Player* player = GetSession()->GetPlayer();
+    if (!player || !player->IsInWorld())
+        return false;
+
+    player->GetMap()->ScriptsStart(sRelayScripts, chosenId, player, target);
+    return true;
+}

@@ -51,8 +51,16 @@ bool TargetedMovementGeneratorMedium<T, D>::Update(T& owner, const uint32& time_
     // Trying to detect error
     if (i_target->GetMap() != owner.GetMap())
     {
-        sLog.outCustomLog("TargetedMovementGeneratorMedium::Update(): Target %s left map id %u for map id %u out of order!",
-                      i_target->GetGuidStr().c_str(), i_target->GetMapId(), owner.GetMapId());
+        if (i_target.getTarget() && i_target.getSource())
+        {
+            sLog.outCustomLog("TargetedMovementGeneratorMedium::Update(): Target %s left map id %u for map id %u out of order!",
+                i_target->GetGuidStr().c_str(), i_target->GetMapId(), owner.GetMapId());
+        }
+        else
+        {
+            sLog.outCustomLog("TargetedMovementGeneratorMedium::Update(): Target left for map id %u out of order!",
+                owner.GetMapId());
+        }
         return !static_cast<D*>(this)->RemoveOnInvalid();
     }
 

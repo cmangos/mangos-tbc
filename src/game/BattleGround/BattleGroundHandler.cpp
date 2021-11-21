@@ -410,6 +410,14 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
         return;
     }
 
+    // if player is not removed from queue by the time BG has ended
+    if (action == 1 && bg->GetStatus() == STATUS_WAIT_LEAVE)
+    {
+        sLog.outError("Battleground: Player %s (%u) tried to enter already finished battleground (%u)! Do not port him to battleground!",
+            _player->GetName(), _player->GetGUIDLow(), bg->GetTypeId());
+        action = 0;
+    }
+
     // some checks if player isn't cheating - it is not exactly cheating, but we cannot allow it
     if (action == 1 && queueInfo.arenaType == ARENA_TYPE_NONE)
     {

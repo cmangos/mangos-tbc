@@ -3639,10 +3639,9 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
         disabled = false; // talents should never be marked as disabled
 
     // unlearn non talent higher ranks (recursive)
-    SpellChainMapNext const& nextMap = sSpellMgr.GetSpellChainNext();
-    for (SpellChainMapNext::const_iterator itr2 = nextMap.lower_bound(spell_id); itr2 != nextMap.upper_bound(spell_id); ++itr2)
-        if (HasSpell(itr2->second) && !GetTalentSpellPos(itr2->second))
-            removeSpell(itr2->second, !IsPassiveSpell(itr2->second), false, sendUpdate);
+    if (uint32 nextSpell = sSpellMgr.GetNextSpellInChain(spell_id))
+        if (!GetTalentSpellPos(nextSpell))
+            removeSpell(nextSpell, !IsPassiveSpell(nextSpell), false, sendUpdate);
 
     // re-search, it can be corrupted in prev loop
     itr = m_spells.find(spell_id);
@@ -17000,11 +16999,18 @@ void Player::_SaveInventory()
         m_items[i]->FSetState(ITEM_NEW);
     }
 
+#ifdef ENABLE_PLAYERBOTS
+    if (!GetPlayerbotAI())  // hackfix for crash during save
+    {
+#endif
     // update enchantment durations
     for (EnchantDurationList::const_iterator itr = m_enchantDuration.begin(); itr != m_enchantDuration.end(); ++itr)
     {
         itr->item->SetEnchantmentDuration(itr->slot, itr->leftduration);
     }
+#ifdef ENABLE_PLAYERBOTS
+    }
+#endif
 
     // if no changes
     if (m_itemUpdateQueue.empty()) return;

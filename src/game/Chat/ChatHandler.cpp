@@ -604,10 +604,10 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
 
 #ifdef ENABLE_PLAYERBOTS
                     // if GM apply to all random bots
-                    if (GetSecurity() > SEC_PLAYER)
+                    if (GetSecurity() > SEC_PLAYER && GetPlayer()->IsGameMaster())
                         sRandomPlayerbotMgr.HandleCommand(type, msg, *_player);
                     else
-                        sRandomPlayerbotMgr.HandleCommand(type, msg, *_player, channel);
+                        sRandomPlayerbotMgr.HandleCommand(type, msg, *_player, "", GetPlayer()->GetTeam());
 
                     // apply to own bots
                     if (_player->GetPlayerbotMgr() && chn->GetFlags() & 0x18)

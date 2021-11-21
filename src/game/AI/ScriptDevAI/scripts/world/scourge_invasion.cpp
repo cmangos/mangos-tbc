@@ -293,7 +293,7 @@ class GoNecropolis : public GameObjectAI
         GoNecropolis(GameObject* gameobject) : GameObjectAI(gameobject)
         {
             m_go->SetActiveObjectState(true);
-            //m_go->SetVisibilityModifier(3000.0f);
+            m_go->GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Infinite);
         }
 };
 

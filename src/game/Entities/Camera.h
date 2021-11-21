@@ -55,7 +55,7 @@ class Camera
 
         // updates visibility of worldobjects around viewpoint for camera's owner
         void UpdateVisibilityForOwner() { UpdateVisibilityForOwner(false); }
-        void UpdateVisibilityForOwner(bool addToWorld);
+        void UpdateVisibilityForOwner(bool addToWorld, bool onlyUpdate = false);
 
     private:
         // called when viewpoint changes visibility state

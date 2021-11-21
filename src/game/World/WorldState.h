@@ -652,6 +652,9 @@ class WorldState
         bool m_highlordKruulSpawned;
         uint32 m_highlordKruulTimer;
         uint8 m_highlordKruulChosenPosition;
+
+        // Start Arena Season
+        void StartArenaSeason();
 };
 
 #define sWorldState MaNGOS::Singleton<WorldState>::Instance()

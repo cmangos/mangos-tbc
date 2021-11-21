@@ -953,6 +953,19 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (!pCurrChar->IsStandState() && !pCurrChar->IsStunned())
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
 
+    //Start Solocraft Functions
+    bool SoloCraftEnable = sWorld.getConfig(CONFIG_BOOL_SOLOCRAFT_ENABLED);
+    bool SoloCraftAnnounceModule = sWorld.getConfig(CONFIG_BOOL_SOLOCRAFT_ANNOUNCE);
+
+    if (SoloCraftEnable)
+    {
+        if (SoloCraftAnnounceModule)
+        {
+            ChatHandler(pCurrChar->GetSession()).SendSysMessage("This server is running |cff4CFF00SPP SoloCraft Custom |rmodule.");
+        }
+    }
+    //End Solocraft Functions
+
     m_playerLoading = false;
     delete holder;
 }

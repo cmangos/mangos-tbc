@@ -277,6 +277,10 @@ struct world_map_eastern_kingdoms : public ScriptedMap, public TimerManager
             case GO_SUMMON_CIRCLE:
                 m_goEntryGuidCollection[pGo->GetEntry()].push_back(pGo->GetObjectGuid());
                 break;
+            case GO_NECROPOLIS_CITY:
+                pGo->GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Infinite);
+                pGo->SetActiveObjectState(true);
+                break;
         }
     }
 

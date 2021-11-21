@@ -277,7 +277,9 @@ void instance_sunwell_plateau::OnObjectCreate(GameObject* go)
         case GO_FORCEFIELD:
         case GO_BOSS_COLLISION_1:
         case GO_BOSS_COLLISION_2:
+            break;
         case GO_ICE_BARRIER:
+            go->GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Gigantic);
             break;
         case GO_FIRE_BARRIER:
             if (m_auiEncounter[TYPE_FELMYST] == DONE)

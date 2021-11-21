@@ -449,6 +449,29 @@ class Map : public GridRefManager<NGridType>
 
         bool HasActiveAreas(ContinentArea areaId = MAP_NO_AREA) { if (areaId == MAP_NO_AREA) { return !m_activeAreas.empty(); } else { return !(find(m_activeAreas.begin(), m_activeAreas.end(), areaId) == m_activeAreas.end()); } }
 
+        //Start Solocraft Functions
+        bool SoloCraftDebuffEnable = 1;
+        float SoloCraftSpellMult = 1.0;
+        float SoloCraftStatsMult = 100.0;
+        uint32 SolocraftLevelDiff = 1;
+        std::map<uint32, float> _unitDifficulty;
+        std::unordered_map<uint32, uint32> dungeons;
+        std::unordered_map<uint32, float> diff_Multiplier;
+        std::unordered_map<uint32, float> diff_Multiplier_Heroics;
+        uint32 SolocraftDungeonLevel = 1;
+        float D5 = 1.0;
+        float D10 = 1.0;
+        float D25 = 1.0;
+        float D40 = 1.0;
+
+        int CalculateDifficulty(Map* map, Player* /*player*/);
+        int CalculateDungeonLevel(Map* map, Player* /*player*/);
+        int GetNumInGroup(Player* player);
+        void ApplyBuffs(Player* player, Map* map, float difficulty, int dunLevel, int numInGroup);
+        float GetGroupDifficulty(Player* player);
+        void ClearBuffs(Player* player, Map* map);
+        //End Solocraft Functions
+
     private:
         void LoadMapAndVMap(int gx, int gy);
 

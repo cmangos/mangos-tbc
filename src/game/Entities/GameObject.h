@@ -554,6 +554,17 @@ struct GameObjectInfo
         }
     }
 
+    bool IsInfiniteGameObject() const
+    {
+        switch (type)
+        {
+        case GAMEOBJECT_TYPE_DOOR:                  return true;
+        case GAMEOBJECT_TYPE_FLAGSTAND:             return true;
+        case GAMEOBJECT_TYPE_FLAGDROP:              return true;
+        default: return false;
+        }
+    }
+
     bool IsServerOnly() const
     {
         switch (type)

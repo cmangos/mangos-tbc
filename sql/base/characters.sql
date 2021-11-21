@@ -741,9 +741,52 @@ CREATE TABLE `character_stats` (
   `critPct` float unsigned NOT NULL DEFAULT '0',
   `rangedCritPct` float unsigned NOT NULL DEFAULT '0',
   `spellCritPct` float unsigned NOT NULL DEFAULT '0',
+  `holyCritPct` float unsigned NOT NULL DEFAULT '0',
+  `fireCritPct` float unsigned NOT NULL DEFAULT '0',
+  `natureCritPct` float unsigned NOT NULL DEFAULT '0',
+  `frostCritPct` float unsigned NOT NULL DEFAULT '0',
+  `shadowCritPct` float unsigned NOT NULL DEFAULT '0',
+  `arcaneCritPct` float unsigned NOT NULL DEFAULT '0',
   `attackPower` int(10) unsigned NOT NULL DEFAULT '0',
+  `attackPowerMod` int(10) unsigned NOT NULL DEFAULT '0',
   `rangedAttackPower` int(10) unsigned NOT NULL DEFAULT '0',
+  `rangedAttackPowerMod` int(10) unsigned NOT NULL DEFAULT '0',
   `spellPower` int(10) unsigned NOT NULL DEFAULT '0',
+  `holyDamage` int(10) unsigned NOT NULL DEFAULT '0',
+  `fireDamage` int(10) unsigned NOT NULL DEFAULT '0',
+  `natureDamage` int(10) unsigned NOT NULL DEFAULT '0',
+  `frostDamage` int(10) unsigned NOT NULL DEFAULT '0',
+  `shadowDamage` int(10) unsigned NOT NULL DEFAULT '0',
+  `arcaneDamage` int(10) unsigned NOT NULL DEFAULT '0',
+  `healBonus` int(10) unsigned NOT NULL DEFAULT '0',
+  `defenseRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `dodgeRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `parryRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `blockRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `resilience` int(10) unsigned NOT NULL DEFAULT '0',
+  `meleeHitRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `rangedHitRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `spellHitRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `meleeCritRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `rangedCritRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `spellCritRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `meleeHasteRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `rangedHasteRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `spellHasteRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `expertise` int(10) unsigned NOT NULL DEFAULT '0',
+  `expertiseRating` int(10) unsigned NOT NULL DEFAULT '0',
+  `mainHandDamageMin` float unsigned NOT NULL DEFAULT '0',
+  `mainHandDamageMax` float unsigned NOT NULL DEFAULT '0',
+  `mainHandSpeed` float unsigned NOT NULL DEFAULT '0',
+  `offHandDamageMin` float unsigned NOT NULL DEFAULT '0',
+  `offHandDamageMax` float unsigned NOT NULL DEFAULT '0',
+  `offHandSpeed` float unsigned NOT NULL DEFAULT '0',
+  `rangedDamageMin` float unsigned NOT NULL DEFAULT '0',
+  `rangedDamageMax` float unsigned NOT NULL DEFAULT '0',
+  `rangedSpeed` float unsigned NOT NULL DEFAULT '0',
+  `manaRegen` float unsigned NOT NULL DEFAULT '0',
+  `manaInterrupt` float unsigned NOT NULL DEFAULT '0',
+  `pvpRank` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -921,6 +964,29 @@ CREATE TABLE `creature_respawn` (
 LOCK TABLES `creature_respawn` WRITE;
 /*!40000 ALTER TABLE `creature_respawn` DISABLE KEYS */;
 /*!40000 ALTER TABLE `creature_respawn` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `custom_solocraft_character_stats`
+--
+
+DROP TABLE IF EXISTS `custom_solocraft_character_stats`;
+CREATE TABLE `custom_solocraft_character_stats` (
+  `GUID` int(11) unsigned NOT NULL,
+  `Difficulty` float NOT NULL,
+  `GroupSize` int(11) NOT NULL,
+  `SpellPower` int(10) unsigned NOT NULL DEFAULT '0',
+  `Stats` float NOT NULL DEFAULT '100',
+  PRIMARY KEY (`GUID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+--
+-- Dumping data for table `custom_solocraft_character_stats`
+--
+
+LOCK TABLES `custom_solocraft_character_stats` WRITE;
+/*!40000 ALTER TABLE `custom_solocraft_character_stats` DISABLE KEYS */;
+/*!40000 ALTER TABLE `custom_solocraft_character_stats` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -1780,6 +1846,22 @@ CREATE TABLE world_state(
    Data longtext,
    PRIMARY KEY(`Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='WorldState save system';
+
+--
+-- Table structure for table `character_armory_feed`
+--
+
+DROP TABLE IF EXISTS `character_armory_feed`;
+CREATE TABLE IF NOT EXISTS `character_armory_feed` (
+  `guid` int(11) NOT NULL,
+  `type` smallint(1) NOT NULL,
+  `data` int(11) NOT NULL,
+  `date` int(11) DEFAULT NULL,
+  `counter` int(11) NOT NULL,
+  `difficulty` smallint(6) DEFAULT '-1',
+  `item_guid` int(11) DEFAULT '-1',
+  `item_quality` smallint(6) NOT NULL DEFAULT '-1'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

@@ -143,10 +143,10 @@ template void Camera::UpdateVisibilityOf(Corpse*, UpdateData&, WorldObjectSet&);
 template void Camera::UpdateVisibilityOf(GameObject*, UpdateData&, WorldObjectSet&);
 template void Camera::UpdateVisibilityOf(DynamicObject*, UpdateData&, WorldObjectSet&);
 
-void Camera::UpdateVisibilityForOwner(bool addToWorld)
+void Camera::UpdateVisibilityForOwner(bool addToWorld, bool onlyUpdate)
 {
     MaNGOS::VisibleNotifier notifier(*this);
-    Cell::VisitAllObjects(m_source, notifier, addToWorld ? MAX_VISIBILITY_DISTANCE : m_source->GetVisibilityData().GetVisibilityDistance(), false);
+    Cell::VisitAllObjects(m_source, notifier, (addToWorld || onlyUpdate) ? MAX_VISIBILITY_DISTANCE : m_source->GetVisibilityData().GetVisibilityDistance(), onlyUpdate);
     notifier.Notify();
 }
 

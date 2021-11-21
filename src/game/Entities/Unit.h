@@ -1364,6 +1364,7 @@ class Unit : public WorldObject
         void SetMaxHealth(uint32 val);
         void SetHealthPercent(float percent);
         int32 ModifyHealth(int32 dVal);
+        void SetFullHealth() { SetHealth(GetMaxHealth()); }
         float OCTRegenHPPerSpirit() const;
         float OCTRegenMPPerSpirit() const;
 

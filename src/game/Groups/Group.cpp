@@ -741,6 +741,22 @@ void Group::BroadcastPacket(WorldPacket const& packet, bool ignorePlayersInBGRai
     }
 }
 
+void Group::BroadcastPacketInRange(WorldObject const* who, WorldPacket const& packet, bool ignorePlayersInBGRaid, int group, ObjectGuid ignore) const
+{
+    for (auto itr = GetFirstMember(); itr != nullptr; itr = itr->next())
+    {
+        Player* pl = itr->getSource();
+        if (!pl || (ignore && pl->GetObjectGuid() == ignore) || (ignorePlayersInBGRaid && pl->GetGroup() != this))
+            continue;
+
+        if (!pl->IsAtGroupRewardDistance(who))
+            continue;
+
+        if (pl->GetSession() && (group == -1 || itr->getSubGroup() == group))
+            pl->GetSession()->SendPacket(packet);
+    }
+}
+
 void Group::BroadcastReadyCheck(WorldPacket const& packet) const
 {
     for (auto itr = GetFirstMember(); itr != nullptr; itr = itr->next())

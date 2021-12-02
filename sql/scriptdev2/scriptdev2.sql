@@ -996,9 +996,6 @@ UPDATE creature_template SET ScriptName='npc_commander_arcus' WHERE entry IN(234
 UPDATE instance_template SET ScriptName='instance_onyxias_lair' WHERE map=249;
 UPDATE creature_template SET ScriptName='boss_onyxia' WHERE entry=10184;
 
-/* ORGRIMMAR */
-UPDATE creature_template SET ScriptName='npc_shenthul' WHERE entry=3401;
-
 /* RAGEFIRE CHASM */
 
 /* RAZORFEN DOWNS */

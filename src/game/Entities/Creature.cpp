@@ -147,7 +147,8 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_noXP(false), m_noLoot(false), m_noReputation(false), m_ignoringFeignDeath(false),
     m_countSpawns(false),
     m_creatureInfo(nullptr),
-    m_immunitySet(UINT32_MAX)
+    m_immunitySet(UINT32_MAX),
+    m_creatureGroup(nullptr)
 {
     m_regenTimer = 200;
     m_valuesCount = UNIT_END;
@@ -241,6 +242,8 @@ void Creature::RemoveFromWorld()
 
         if (m_countSpawns)
             GetMap()->RemoveFromSpawnCount(GetObjectGuid());
+
+        ClearCreatureGroup();
     }
 
     Unit::RemoveFromWorld();
@@ -730,6 +733,9 @@ void Creature::Update(const uint32 diff)
 
                 if (m_isCreatureLinkingTrigger)
                     GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_RESPAWN, this);
+
+                if (GetCreatureGroup())
+                    GetCreatureGroup()->TriggerLinkingEvent(CREATURE_GROUP_EVENT_RESPAWN, this);
 
                 GetMap()->Add(this);
 
@@ -1532,6 +1538,19 @@ bool Creature::GetSpellCooldown(uint32 spellId, uint32& cooldown) const
     return false;
 }
 
+void Creature::SetCreatureGroup(CreatureGroup* group)
+{
+    m_creatureGroup = group;
+    group->AddObject(GetDbGuid(), GetEntry());        
+}
+
+void Creature::ClearCreatureGroup()
+{
+    if (m_creatureGroup)
+        m_creatureGroup->RemoveObject(this);
+    m_creatureGroup = nullptr;
+}
+
 bool Creature::CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, const CreatureData* data /*=nullptr*/, GameEventCreatureData const* eventData /*=nullptr*/)
 {
     m_originalEntry = cinfo->Entry;
@@ -1546,7 +1565,7 @@ bool Creature::CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, const 
     return UpdateEntry(newEntry, data, eventData, false);
 }
 
-bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransport* transport)
+bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forcedEntry, GenericTransport* transport)
 {
     CreatureData const* data = sObjectMgr.GetCreatureData(dbGuid);
 
@@ -1556,7 +1575,7 @@ bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransp
         return false;
     }
 
-    uint32 entry = data->id;
+    uint32 entry = forcedEntry ? forcedEntry : data->id;
 
     // get data for dual spawn instances
     if (entry == 0)
@@ -1572,7 +1591,16 @@ bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransp
         return false;
     }
 
-    if ((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_DYNGUID) != 0 && dbGuid == newGuid)
+    SpawnGroupEntry* groupEntry = map->GetMapDataContainer().GetSpawnGroupByGuid(dbGuid, TYPEID_UNIT); // use dynguid by default \o/
+    CreatureGroup* group = nullptr;
+    if (groupEntry)
+    {
+        group = static_cast<CreatureGroup*>(map->GetSpawnManager().GetSpawnGroup(groupEntry->Id));
+        if (!entry)
+            entry = group->GetGuidEntry(dbGuid);
+    }
+
+    if (((cinfo->ExtraFlags & CREATURE_EXTRA_FLAG_DYNGUID) != 0 || groupEntry) && dbGuid == newGuid)
         newGuid = map->GenerateLocalLowGuid(cinfo->GetHighGuid());
 
     GameEventCreatureData const* eventData = sGameEventMgr.GetCreatureUpdateDataForActiveEvent(dbGuid);
@@ -1587,6 +1615,9 @@ bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransp
 
     if (!Create(newGuid, pos, cinfo, data, eventData))
         return false;
+
+    if (groupEntry)
+        SetCreatureGroup(group);
 
     SetRespawnCoord(pos);
     m_respawnradius = data->spawndist;
@@ -1645,6 +1676,9 @@ bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransp
     // Creature Linking, Initial load is handled like respawn
     if (m_isCreatureLinkingTrigger && IsAlive())
         GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_RESPAWN, this);
+
+    if (GetCreatureGroup())
+        GetCreatureGroup()->TriggerLinkingEvent(CREATURE_GROUP_EVENT_RESPAWN, this);
 
     // check if it is rabbit day
     if (IsAlive() && sWorld.getConfig(CONFIG_UINT32_RABBIT_DAY))
@@ -1781,7 +1815,7 @@ void Creature::SetDeathState(DeathState s)
         if (IsUsingNewSpawningSystem())
         {
             m_respawnTime = std::numeric_limits<time_t>::max();
-            if (m_respawnDelay)
+            if (m_respawnDelay && s == JUST_DIED && !GetCreatureGroup())
                 GetMap()->GetSpawnManager().AddCreature(m_respawnDelay, GetDbGuid());
         }
     }
@@ -1793,6 +1827,7 @@ void Creature::SetDeathState(DeathState s)
         SetTargetGuid(ObjectGuid());                        // remove target selection in any cases (can be set at aura remove in Unit::SetDeathState)
         SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
         Unmount();
+        ClearCreatureGroup();
 
         Unit::SetDeathState(CORPSE);
     }
@@ -2597,7 +2632,7 @@ struct SpawnCreatureInMapsWorker
         {
             Creature* pCreature = new Creature;
             // DEBUG_LOG("Spawning creature %u",*itr);
-            if (!pCreature->LoadFromDB(i_guid, map, i_guid))
+            if (!pCreature->LoadFromDB(i_guid, map, i_guid, 0))
             {
                 delete pCreature;
             }

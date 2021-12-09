@@ -2068,6 +2068,7 @@ class Unit : public WorldObject
         CombatManager& GetCombatManager() { return m_combatManager; }
         CombatManager const& GetCombatManager() const { return const_cast<Unit*>(this)->m_combatManager; }
         void TriggerEvadeEvents();
+        void TriggerHomeEvents();
         void EvadeTimerExpired();
 
         Aura* GetAura(uint32 spellId, SpellEffectIndex effindex);

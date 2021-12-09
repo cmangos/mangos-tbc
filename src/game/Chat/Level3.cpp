@@ -1104,6 +1104,14 @@ bool ChatHandler::HandleReloadCreatureSpellLists(char* /*args*/)
     return true;
 }
 
+bool ChatHandler::HandleReloadSpawnGroupsCommand(char* /*args*/)
+{
+    sLog.outString("Reloading spawn groups...");
+    sObjectMgr.LoadSpawnGroups();
+    SendGlobalSysMessage("Reloaded spawn groups.");
+    return true;
+}
+
 bool ChatHandler::HandleLoadScriptsCommand(char* args)
 {
     return *args != 0;
@@ -5209,7 +5217,18 @@ bool ChatHandler::HandleRespawnCommand(char* /*args*/)
         }
 
         if (target->IsDead())
-            ((Creature*)target)->Respawn();
+        {
+            Creature* creature = static_cast<Creature*>(target);
+            if (target->IsUsingNewSpawningSystem())
+            {
+                if (creature->GetCreatureGroup())
+                    target->GetMap()->GetPersistentState()->SaveCreatureRespawnTime(target->GetDbGuid(), time(nullptr));
+                else
+                    target->GetMap()->GetSpawnManager().RespawnCreature(target->GetDbGuid(), 0);
+            }
+            else
+                creature->Respawn();
+        }
         return true;
     }
 
@@ -6794,6 +6813,14 @@ bool ChatHandler::HandleLinkCheckCommand(char* args)
     if (!found)
         PSendSysMessage("Link for guids = %u , %u not found", masterCounter, player->GetSelectionGuid().GetCounter());
 
+    return true;
+}
+
+bool ChatHandler::HandleVariablePrint(char* args)
+{
+    Player* player = GetSession()->GetPlayer();
+
+    PSendSysMessage("%s", player->GetMap()->GetVariableManager().GetVariableList().data());
     return true;
 }
 

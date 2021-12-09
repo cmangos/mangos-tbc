@@ -99,6 +99,8 @@ GameObject::GameObject() : WorldObject(),
     m_despawnTimer = 0;
 
     m_delayedActionTimer = 0;
+
+    m_goGroup = nullptr;
 }
 
 GameObject::~GameObject()
@@ -170,6 +172,8 @@ void GameObject::RemoveFromWorld()
         GetMap()->GetObjectsStore().erase<GameObject>(GetObjectGuid(), (GameObject*)nullptr);
         if (GetDbGuid())
             GetMap()->RemoveDbGuidObject(this);
+
+        ClearGameObjectGroup();
     }
 
     WorldObject::RemoveFromWorld();
@@ -676,23 +680,25 @@ void GameObject::Update(const uint32 diff)
             if (sWorld.getConfig(CONFIG_BOOL_SAVE_RESPAWN_TIME_IMMEDIATELY))
                 SaveRespawnTime();
 
-            // if part of pool, let pool system schedule new spawn instead of just scheduling respawn
-            if (uint16 poolid = sPoolMgr.IsPartOfAPool<GameObject>(m_dbGuid))
-                sPoolMgr.UpdatePool<GameObject>(*GetMap()->GetPersistentState(), poolid, m_dbGuid);
-
-            // can be not in world at pool despawn
-            if (IsInWorld())
-                UpdateObjectVisibility();
-
-            if (IsUsingNewSpawningSystem()) // does not work nicely with pooling right now
+            if (IsUsingNewSpawningSystem()) // does not support pooling
             {
                 m_respawnTime = std::numeric_limits<time_t>::max();
-                if (m_respawnDelay)
+                if (m_respawnDelay && !GetGameObjectGroup())
                     GetMap()->GetSpawnManager().AddGameObject(m_respawnDelay, GetDbGuid());
 
                 if (m_respawnDelay || !m_spawnedByDefault || m_forcedDespawn)
                     AddObjectToRemoveList();
             }
+            else
+            {
+                // if part of pool, let pool system schedule new spawn instead of just scheduling respawn
+                if (uint16 poolid = sPoolMgr.IsPartOfAPool<GameObject>(m_dbGuid))
+                    sPoolMgr.UpdatePool<GameObject>(*GetMap()->GetPersistentState(), poolid, m_dbGuid);
+            }
+
+            // can be not in world at pool despawn
+            if (IsInWorld())
+                UpdateObjectVisibility();
 
             m_forcedDespawn = false;
 
@@ -835,7 +841,7 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask) const
     WorldDatabase.CommitTransaction();
 }
 
-bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid)
+bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forcedEntry)
 {
     GameObjectData const* data = sObjectMgr.GetGOData(dbGuid);
 
@@ -845,7 +851,7 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid)
         return false;
     }
 
-    uint32 entry = data->id;
+    uint32 entry = forcedEntry ? forcedEntry : data->id;
     // uint32 map_id = data->mapid;                         // already used before call
     float x = data->posX;
     float y = data->posY;
@@ -860,8 +866,17 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid)
     uint32 animprogress = data->animprogress;
     GOState go_state = data->go_state;
 
+    SpawnGroupEntry* groupEntry = map->GetMapDataContainer().GetSpawnGroupByGuid(dbGuid, TYPEID_GAMEOBJECT); // use dynguid by default \o/
+    GameObjectGroup* group = nullptr;
+    if (groupEntry)
+    {
+        group = static_cast<GameObjectGroup*>(map->GetSpawnManager().GetSpawnGroup(groupEntry->Id));
+        if (!entry)
+            entry = group->GetGuidEntry(dbGuid);
+    }
+
     GameObjectInfo const* goinfo = ObjectMgr::GetGameObjectInfo(entry);
-    if (goinfo && (goinfo->ExtraFlags & GAMEOBJECT_EXTRA_FLAG_DYNGUID) != 0 && dbGuid == newGuid)
+    if ((goinfo && (goinfo->ExtraFlags & GAMEOBJECT_EXTRA_FLAG_DYNGUID) != 0 || groupEntry) && dbGuid == newGuid)
         newGuid = map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT);
 
     m_dbGuid = dbGuid;
@@ -871,6 +886,9 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid)
 
     if (!Create(newGuid, entry, map, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state))
         return false;
+
+    if (group)
+        SetGameObjectGroup(group);
 
     if (!GetGOInfo()->GetDespawnPossibility() && !GetGOInfo()->IsDespawnAtAction() && data->spawntimesecsmin >= 0)
     {
@@ -2176,7 +2194,7 @@ struct SpawnGameObjectInMapsWorker
             MANGOS_ASSERT(data);
             GameObject* pGameobject = GameObject::CreateGameObject(data->id);
             // DEBUG_LOG("Spawning gameobject %u", *itr);
-            if (!pGameobject->LoadFromDB(i_guid, map, i_guid))
+            if (!pGameobject->LoadFromDB(i_guid, map, i_guid, 0))
             {
                 delete pGameobject;
             }
@@ -2673,6 +2691,19 @@ void GameObject::GenerateLootFor(Player* player)
 void GameObject::SetCooldown(uint32 cooldown)
 {
     m_cooldownTime = time(nullptr) + cooldown;
+}
+
+void GameObject::SetGameObjectGroup(GameObjectGroup* group)
+{
+    m_goGroup = group;
+    group->AddObject(GetDbGuid(), GetEntry());
+}
+
+void GameObject::ClearGameObjectGroup()
+{
+    if (m_goGroup)
+        m_goGroup->RemoveObject(this);
+    m_goGroup = nullptr;
 }
 
 QuaternionData GameObject::GetWorldRotation() const

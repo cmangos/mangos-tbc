@@ -10066,6 +10066,10 @@ void CharmInfo::InitPossessCreateSpells()
         return;
 
     std::vector<uint32> spells = m_unit->GetCharmSpells();
+ 
+    if (spells.empty())
+        return;
+ 
     for (uint32 x = 0; x < CREATURE_MAX_SPELLS; ++x)
     {
         if (spells[x] == 2 || (spells[x] == 0 && m_unit->hasUnitState(UNIT_STAT_MELEE_ATTACKING)))

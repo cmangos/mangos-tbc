@@ -7636,8 +7636,6 @@ void Aura::PeriodicDummyTick()
 //              case 42774: break;
 //              // Headless Horseman Climax - Summoning Rhyme Aura
 //              case 42879: break;
-//              // Tricky Treat
-//              case 42919: break;
 //              // Giddyup!
 //              case 42924: break;
 //              // Ram - Trot

@@ -427,6 +427,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (36577,'spell_effect_summon_no_follow_movement'),
 (38876,'spell_effect_summon_no_follow_movement'),
 (46875,'spell_effect_summon_no_follow_movement'),
+(41480,'spell_veras_deadly_poison'),
+(41485,'spell_veras_deadly_poison_tick'),
 (45091,'spell_spar_auras'),
 (45092,'spell_spar_auras'),
 (46801,'spell_open_portal_from_shattrath'),

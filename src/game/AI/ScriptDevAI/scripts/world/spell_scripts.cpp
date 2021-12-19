@@ -804,6 +804,17 @@ struct IncreasedHealingDoneDummy : public AuraScript
     }
 };
 
+struct spell_scourge_strike : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (target->IsPlayer() || (target->IsPlayerControlled()))
+            return false;
+
+        return true;
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -838,4 +849,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<spell_effect_summon_no_follow_movement>("spell_effect_summon_no_follow_movement");
     RegisterAuraScript<SpellHasteHealerTrinket>("spell_spell_haste_healer_trinket");
     RegisterAuraScript<IncreasedHealingDoneDummy>("spell_increased_healing_done_dummy");
+    RegisterSpellScript<spell_scourge_strike>("spell_scourge_strike");
 }

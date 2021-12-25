@@ -3600,10 +3600,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1532041','How could you? What a cruel, cruel world...','9178','1','0','0','15052','crone SAY_CRONE_DEATH'),
 ('-1532042','Fixed you, didn''t I?','9180','1','0','0','15051','crone SAY_CRONE_SLAY'),
 
-('-1532043','The better to own you with!','9276','1','0','0','14212','wolf SAY_WOLF_AGGRO'),
-('-1532044','Mmmm... delicious.','9277','1','0','0','15153','wolf SAY_WOLF_SLAY'),
-('-1532045','Run away little girl, run away!','9278','1','0','0','14213','wolf SAY_WOLF_HOOD'),
-
 ('-1532046','What devil art thou, that dost torment me thus?','9196','1','0','0','15070','julianne SAY_JULIANNE_AGGRO'),
 ('-1532047','Where is my lord? Where is my Romulo?','9199','1','0','0','0','julianne SAY_JULIANNE_ENTER'),
 ('-1532048','Romulo, I come! Oh... this do I drink to thee!','9198','1','0','0','15072','julianne SAY_JULIANNE_DEATH01'),

@@ -54,7 +54,7 @@ static inline const Player* LookingForGroupGetCurrentLeader(Player* _this)
 {
     if (Group* group = _this->GetGroup())
     {
-        if (!group->isBattleGroup() && !group->IsFull() && !group->IsLeader(_this->GetObjectGuid()))
+        if (!group->IsBattleGroup() && !group->IsFull() && !group->IsLeader(_this->GetObjectGuid()))
         {
             for (const GroupReference* itr = group->GetFirstMember(); itr; itr = itr->next())
             {
@@ -75,11 +75,9 @@ static inline void LookingForGroupUpdateChannelStatus(Player* _this)
 
     if (leader->m_lookingForGroup.isEmpty())
     {
-        if (sWorld.getConfig(CONFIG_BOOL_RESTRICTED_LFG_CHANNEL) && _this->GetSession()->GetSecurity() == SEC_PLAYER)
+        if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && _this->GetSession()->GetSecurity() == SEC_PLAYER)
             _this->LeaveLFGChannel();
     }
-    else
-        _this->JoinLFGChannel();
 }
 
 static inline bool LookingForGroupUpdateQueueStatus(Player* _this, WorldSession* _session)
@@ -88,7 +86,7 @@ static inline bool LookingForGroupUpdateQueueStatus(Player* _this, WorldSession*
 
     const bool autojoin = (_this->m_lookingForGroup.isAutoJoin() && _session->LookingForGroup_auto_join);
     const bool autofill = (_this->m_lookingForGroup.isAutoFill() && _session->LookingForGroup_auto_add);
-    const bool notraid = (!_group || (!_group->isRaidGroup() && _group->IsLeader(_this->GetObjectGuid())));
+    const bool notraid = (!_group || (!_group->IsRaidGroup() && _group->IsLeader(_this->GetObjectGuid())));
 
     const bool status = ((autojoin && !_group) || (autofill && notraid));
 
@@ -251,7 +249,7 @@ static void LookingForGroupTryJoin(Player* _player, bool initial = false)
     // skip not can autojoin cases and player group case
     if (Group* _group = _player->GetGroup())
     {
-        if (_group->isBattleGroup() || _group->IsFull() || !_group->IsLeader(_player->GetObjectGuid()))
+        if (_group->IsBattleGroup() || _group->IsFull() || !_group->IsLeader(_player->GetObjectGuid()))
             LookingForGroupClear(_player, _session);
         else
             LookingForGroupClearLFG(_player, _session);
@@ -283,7 +281,7 @@ static void LookingForGroupTryJoin(Player* _player, bool initial = false)
         Group* grp = plr->GetGroup();
 
         // skip players in not compatinle groups and dequeue them if discovered
-        if (grp && (grp->isBattleGroup() || grp->IsFull() || !grp->IsLeader(_player->GetObjectGuid())))
+        if (grp && (grp->IsBattleGroup() || grp->IsFull() || !grp->IsLeader(_player->GetObjectGuid())))
         {
             LookingForGroupClear(plr, session);
             continue;
@@ -320,7 +318,7 @@ static void LookingForGroupTryFill(Player* _player, bool initial = false)
     Group* _group = _player->GetGroup();
 
     // skip non auto-join slot or player in a battleground, not group leader, group is full cases
-    if (_group && (_group->isBattleGroup() || _group->IsFull() || !_group->IsLeader(_player->GetObjectGuid())))
+    if (_group && (_group->IsBattleGroup() || _group->IsFull() || !_group->IsLeader(_player->GetObjectGuid())))
     {
         LookingForGroupClear(_player, _session);
         return;
@@ -352,7 +350,7 @@ static void LookingForGroupTryFill(Player* _player, bool initial = false)
         // skip players in groups, dequeue and remove them from LFG if discovered
         if (Group* grp = plr->GetGroup())
         {
-            if (grp->isBattleGroup() || grp->IsFull() || !grp->IsLeader(plr->GetObjectGuid()))
+            if (grp->IsBattleGroup() || grp->IsFull() || !grp->IsLeader(plr->GetObjectGuid()))
                 LookingForGroupClear(plr, session);
             else
                 LookingForGroupClearLFG(plr, session);
@@ -419,7 +417,7 @@ static inline void LookingForGroupSetAutoFill(Player* _player, WorldSession* _se
 
     if (Group* _group = _player->GetGroup())
     {
-        if (_group->isRaidGroup())
+        if (_group->IsRaidGroup())
             result = 0x03;                                  // NO_RAID_GROUP
         else if (!_group->IsLeader(_player->GetObjectGuid()))
             result = 0x01;                                  // MUST_BE_LEADER
@@ -539,7 +537,7 @@ void WorldSession::HandleSetLfmOpcode(WorldPacket& recv_data)
     {
         ObjectGuid _guid = _player->GetObjectGuid();
 
-        if (_group->isBattleGroup() || _group->IsFull() || !_group->IsLeader(_guid))
+        if (_group->IsBattleGroup() || _group->IsFull() || !_group->IsLeader(_guid))
         {
             SendLFGUpdate();
             return;
@@ -633,7 +631,7 @@ void WorldSession::SendLFGListQueryResponse(LfgType type, uint32 entry)
 
         const Group* grp = plr->GetGroup();
 
-        if (grp && (grp->isBattleGroup() || grp->IsFull() || !grp->IsLeader(plr->GetObjectGuid())))
+        if (grp && (grp->IsBattleGroup() || grp->IsFull() || !grp->IsLeader(plr->GetObjectGuid())))
             continue;
 
         ++found;

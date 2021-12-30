@@ -17,6 +17,8 @@
 //#include "scriptPCH.h"
 #include "scourge_invasion.h"
 //#include "CreatureGroups.h"
+#include "AI/BaseAI/AIDefines.h"
+#include "AI/ScriptDevAI/base/TimerAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "Globals/ObjectMgr.h"
@@ -25,6 +27,7 @@
 #include "GameEvents/GameEventMgr.h"
 #include "Grids/GridNotifiers.h"
 #include "Grids/GridNotifiersImpl.h"
+#include <memory>
 
 inline uint32 GetCampType(Creature* unit) { return unit->HasAura(SPELL_CAMP_TYPE_GHOST_SKELETON) || unit->HasAura(SPELL_CAMP_TYPE_GHOST_GHOUL) || unit->HasAura(SPELL_CAMP_TYPE_GHOUL_SKELETON); };
 
@@ -774,9 +777,11 @@ struct npc_cultist_engineer : public ScriptedAI
             gameObject->Delete();
     }
 
-    void ReceiveAIEvent(uint32 eventType, Unit* /*sender*/, Unit* invoker, uint32 miscValue)
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 miscValue) override
     {
-        if (eventType == 7166 && miscValue == 0)
+        sLog.outError("invoker: %s eventType: %d miscValue: %d", invoker->GetName(), eventType, miscValue);
+        int32 eT = eventType;
+        if (eT == 7166 && miscValue == 0)
         {
             if (Player* player = dynamic_cast<Player*>(invoker))
             {
@@ -800,6 +805,7 @@ struct SummonBoss : public SpellScript
     virtual void OnSummon(Spell* spell, Creature* summon) const override
     {
         Unit* caster = spell->GetCaster();
+        sLog.outError("True Caster: %s, Caster: %s", spell->GetTrueCaster()->GetName(), caster->GetName());
         summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
         summon->SetFacingToObject(caster);
         summon->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, caster, summon, NPC_SHADOW_OF_DOOM);
@@ -814,6 +820,7 @@ Notes: Shard Minions, Rares and Shadow of Doom.
 */
 struct ScourgeMinion : public CombatAI
 {
+    int32 doomSpawnTimer = 0;
     ScourgeMinion(Creature* creature) : CombatAI(creature, 999)
     {
         switch (m_creature->GetEntry())
@@ -837,7 +844,6 @@ struct ScourgeMinion : public CombatAI
 
     ObjectGuid m_summonerGuid;
 
-
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 miscValue) override
     {
         if (!invoker)
@@ -847,7 +853,10 @@ struct ScourgeMinion : public CombatAI
         {
             if (miscValue == NPC_SHADOW_OF_DOOM)
             {
-                ResetTimer(EVENT_DOOM_START_ATTACK, 5000); // Remove Flag (immune to Players) after 5 seconds.
+                sLog.outError("Summon AI Event received");
+                //ResetTimer(EVENT_DOOM_START_ATTACK, 5000); // Remove Flag (immune to Players) after 5 seconds.
+                m_summonerGuid = invoker->GetObjectGuid();
+                doomSpawnTimer = 5000;
                 // Pickup random emote like here: https://youtu.be/evOs9aJa2Jw?t=229
                 DoBroadcastText(PickRandomValue(BCT_SHADOW_OF_DOOM_TEXT_0, BCT_SHADOW_OF_DOOM_TEXT_1, BCT_SHADOW_OF_DOOM_TEXT_2, BCT_SHADOW_OF_DOOM_TEXT_3), m_creature, invoker);
                 m_creature->CastSpell(m_creature, SPELL_SPAWN_SMOKE, TRIGGERED_OLD_TRIGGERED);
@@ -894,8 +903,10 @@ struct ScourgeMinion : public CombatAI
     {
         switch (action)
         {
+            sLog.outError("Execute Action: %d", action);
             case EVENT_DOOM_START_ATTACK:
             {
+                sLog.outError("StartAttack");
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 // Shadow of Doom seems to attack the Summoner here.
                 if (Player* player = m_creature->GetMap()->GetPlayer(m_summonerGuid))
@@ -932,6 +943,32 @@ struct ScourgeMinion : public CombatAI
     void UpdateAI(uint32 const diff) override
     {
         UpdateTimers(diff, m_creature->SelectHostileTarget());
+        if(m_creature->GetEntry() == NPC_SHADOW_OF_DOOM && !m_creature->IsInCombat()){
+            if(doomSpawnTimer)
+            {
+                if(diff>=doomSpawnTimer)
+                {
+                    doomSpawnTimer = 0;
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                    // Shadow of Doom seems to attack the Summoner here.
+                    if (Player* player = m_creature->GetMap()->GetPlayer(m_summonerGuid))
+                    {
+                        if (player->IsWithinLOSInMap(m_creature))
+                        {
+                            m_creature->SetInCombatWith(player);
+                            m_creature->SetDetectionRange(200.f);
+                            m_creature->AI()->AttackStart(player);
+                            ResetTimer(EVENT_DOOM_MINDFLAY, 2000u);
+                            ResetTimer(EVENT_DOOM_FEAR, 2000u);
+                        }
+                    }
+                }
+                else
+                {
+                    doomSpawnTimer-=diff;
+                }
+            }
+        }
 
         // Instakill every mob nearby, except Players, Pets or NPCs with the same faction.
         // m_creature->IsValidAttackTarget(m_creature->GetVictim(), true)

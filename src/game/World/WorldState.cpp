@@ -24,6 +24,7 @@
 #include "Entities/Object.h"
 #include "GameEvents/GameEventMgr.h"
 #include <algorithm>
+#include <chrono>
 #include <map>
 #include <World/WorldStateDefines.h>
 #include "AI/ScriptDevAI/scripts/world/scourge_invasion.h"
@@ -1405,6 +1406,7 @@ void WorldState::StartScourgeInvasion()
             ++i;
         }
         std::shuffle(randomIds.begin(), randomIds.end(), *GetRandomGenerator());
+        randomIds.resize(3);
         for (auto id : randomIds)
             OnEnable(m_siData.m_invasionPoints[id]);
     }
@@ -1744,6 +1746,10 @@ void WorldState::StartNewCityAttack(uint32 zoneId)
 
     uint32 SpawnLocationID = (urand(0, zone.pallid.size() - 1));
 
+    uint32 cityAttackTimer = urand(CITY_ATTACK_TIMER_MIN, CITY_ATTACK_TIMER_MAX);
+    auto now = sWorld.GetCurrentClockTime();
+    TimePoint next_attack =  now + std::chrono::milliseconds(cityAttackTimer * 1000);
+
     Map* mapPtr = GetMap(zone.map, zone.pallid[SpawnLocationID]);
 
     // If any of the required maps are not available we return. Will cause the invasion to be started
@@ -1864,7 +1870,7 @@ void WorldState::HandleActiveZone(uint32 attackTimeVar, uint32 zoneId, uint32 re
 
     // Calculate the next possible attack between ZONE_ATTACK_TIMER_MIN and ZONE_ATTACK_TIMER_MAX.
     uint32 zoneAttackTimer = urand(ZONE_ATTACK_TIMER_MIN, ZONE_ATTACK_TIMER_MAX);
-    TimePoint next_attack = now + std::chrono::milliseconds(zoneAttackTimer);
+    TimePoint next_attack = now + std::chrono::milliseconds(zoneAttackTimer * 1000);
     uint64 timeToNextAttack = (next_attack - now).count();
 
     if (zone.mouthGuid)

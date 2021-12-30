@@ -779,7 +779,6 @@ struct npc_cultist_engineer : public ScriptedAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 miscValue) override
     {
-        sLog.outError("invoker: %s eventType: %d miscValue: %d", invoker->GetName(), eventType, miscValue);
         int32 eT = eventType;
         if (eT == 7166 && miscValue == 0)
         {
@@ -805,7 +804,6 @@ struct SummonBoss : public SpellScript
     virtual void OnSummon(Spell* spell, Creature* summon) const override
     {
         Unit* caster = spell->GetCaster();
-        sLog.outError("True Caster: %s, Caster: %s", spell->GetTrueCaster()->GetName(), caster->GetName());
         summon->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
         summon->SetFacingToObject(caster);
         summon->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, caster, summon, NPC_SHADOW_OF_DOOM);
@@ -836,7 +834,7 @@ struct ScourgeMinion : public CombatAI
                     if (!m_creature->IsInCombat())
                         m_creature->CastSpell(m_creature, SPELL_DESPAWNER_SELF, TRIGGERED_OLD_TRIGGERED);
                     else
-                        ResetTimer(EVENT_MINION_FLAMESHOCKERS_DESPAWN, 60000);
+                        ResetCombatAction(EVENT_MINION_FLAMESHOCKERS_DESPAWN, 60000);
                 });
                 break;
         }
@@ -853,16 +851,14 @@ struct ScourgeMinion : public CombatAI
         {
             if (miscValue == NPC_SHADOW_OF_DOOM)
             {
-                sLog.outError("Summon AI Event received");
-                //ResetTimer(EVENT_DOOM_START_ATTACK, 5000); // Remove Flag (immune to Players) after 5 seconds.
                 m_summonerGuid = invoker->GetObjectGuid();
-                doomSpawnTimer = 5000;
+                doomSpawnTimer = 5000; // Remove Flag (immune to Players) after 5 seconds.
                 // Pickup random emote like here: https://youtu.be/evOs9aJa2Jw?t=229
                 DoBroadcastText(PickRandomValue(BCT_SHADOW_OF_DOOM_TEXT_0, BCT_SHADOW_OF_DOOM_TEXT_1, BCT_SHADOW_OF_DOOM_TEXT_2, BCT_SHADOW_OF_DOOM_TEXT_3), m_creature, invoker);
                 m_creature->CastSpell(m_creature, SPELL_SPAWN_SMOKE, TRIGGERED_OLD_TRIGGERED);
             }
             if (miscValue == NPC_FLAMESHOCKER)
-                ResetTimer(EVENT_MINION_FLAMESHOCKERS_DESPAWN, 60000);
+                ResetCombatAction(EVENT_MINION_FLAMESHOCKERS_DESPAWN, 60000);
         }
     }
 
@@ -903,38 +899,22 @@ struct ScourgeMinion : public CombatAI
     {
         switch (action)
         {
-            sLog.outError("Execute Action: %d", action);
-            case EVENT_DOOM_START_ATTACK:
-            {
-                sLog.outError("StartAttack");
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                // Shadow of Doom seems to attack the Summoner here.
-                if (Player* player = m_creature->GetMap()->GetPlayer(m_summonerGuid))
-                {
-                    if (player->IsWithinLOSInMap(m_creature))
-                    {
-                        m_creature->SetInCombatWith(player);
-                        m_creature->SetDetectionRange(2.0f);
-                    }
-                }
-                break;
-            }
             case EVENT_DOOM_MINDFLAY:
             {
                 DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MINDFLAY);
-                ResetTimer(EVENT_DOOM_MINDFLAY, urand(6500, 13000));
+                ResetCombatAction(EVENT_DOOM_MINDFLAY, urand(6500, 13000));
                 break;
             }
             case EVENT_DOOM_FEAR:
             {
                 DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FEAR);
-                ResetTimer(EVENT_DOOM_FEAR, 14500);
+                ResetCombatAction(EVENT_DOOM_FEAR, 14500);
                 break;
             }
             case EVENT_MINION_FLAMESHOCKERS_TOUCH:
             {
                 DoCastSpellIfCan(m_creature->GetVictim(), PickRandomValue(SPELL_FLAMESHOCKERS_TOUCH, SPELL_FLAMESHOCKERS_TOUCH2), CAST_TRIGGERED);
-                ResetTimer(EVENT_MINION_FLAMESHOCKERS_TOUCH, urand(30000, 45000));
+                ResetCombatAction(EVENT_MINION_FLAMESHOCKERS_TOUCH, urand(30000, 45000));
                 break;
             }
         }
@@ -942,7 +922,8 @@ struct ScourgeMinion : public CombatAI
 
     void UpdateAI(uint32 const diff) override
     {
-        UpdateTimers(diff, m_creature->SelectHostileTarget());
+        CombatAI::UpdateAI(diff);
+        //UpdateTimers(diff, m_creature->SelectHostileTarget());
         if(m_creature->GetEntry() == NPC_SHADOW_OF_DOOM && !m_creature->IsInCombat()){
             if(doomSpawnTimer)
             {
@@ -958,8 +939,8 @@ struct ScourgeMinion : public CombatAI
                             m_creature->SetInCombatWith(player);
                             m_creature->SetDetectionRange(200.f);
                             m_creature->AI()->AttackStart(player);
-                            ResetTimer(EVENT_DOOM_MINDFLAY, 2000u);
-                            ResetTimer(EVENT_DOOM_FEAR, 2000u);
+                            ResetCombatAction(EVENT_DOOM_MINDFLAY, 2000u);
+                            ResetCombatAction(EVENT_DOOM_FEAR, 2000u);
                         }
                     }
                 }
@@ -1080,13 +1061,13 @@ struct PallidHorrorAI : public CombatAI
             {
                 DoBroadcastText(PickRandomValue(BCT_PALLID_HORROR_YELL1, BCT_PALLID_HORROR_YELL2, BCT_PALLID_HORROR_YELL3, BCT_PALLID_HORROR_YELL4,
                     BCT_PALLID_HORROR_YELL5, BCT_PALLID_HORROR_YELL6, BCT_PALLID_HORROR_YELL7, BCT_PALLID_HORROR_YELL8), m_creature, nullptr, CHAT_TYPE_ZONE_YELL);
-                ResetTimer(EVENT_PALLID_RANDOM_YELL, urand(IN_MILLISECONDS * 65, IN_MILLISECONDS * 300));
+                ResetCombatAction(EVENT_PALLID_RANDOM_YELL, urand(IN_MILLISECONDS * 65, IN_MILLISECONDS * 300));
                 break;
             }
             case EVENT_PALLID_SPELL_DAMAGE_VS_GUARDS:
             {
                 DoCastSpellIfCan(m_creature->GetVictim(), SPELL_DAMAGE_VS_GUARDS, CAST_TRIGGERED);
-                ResetTimer(EVENT_PALLID_SPELL_DAMAGE_VS_GUARDS, urand(11000, 81000));
+                ResetCombatAction(EVENT_PALLID_SPELL_DAMAGE_VS_GUARDS, urand(11000, 81000));
                 break;
             }
             case EVENT_PALLID_SUMMON_FLAMESHOCKER:
@@ -1105,7 +1086,7 @@ struct PallidHorrorAI : public CombatAI
                         }
                     }
                 }
-                ResetTimer(EVENT_PALLID_SUMMON_FLAMESHOCKER, 2000);
+                ResetCombatAction(EVENT_PALLID_SUMMON_FLAMESHOCKER, 2000);
                 break;
             }
         }

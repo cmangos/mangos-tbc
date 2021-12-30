@@ -1697,6 +1697,9 @@ void WorldState::StartNewCityAttackIfTime(uint32 attackTimeVar, uint32 zoneId)
         return;
 
     StartNewCityAttack(zoneId);
+    uint32 cityAttackTimer = urand(CITY_ATTACK_TIMER_MIN, CITY_ATTACK_TIMER_MAX);
+    TimePoint next_attack = now + std::chrono::milliseconds(cityAttackTimer * 1000);
+    sWorldState.SetSITimer(SITimers(attackTimeVar), next_attack);
 }
 
 void WorldState::StartNewInvasion(uint32 zoneId)
@@ -1745,10 +1748,6 @@ void WorldState::StartNewCityAttack(uint32 zoneId)
     ScourgeInvasionData::CityAttack& zone = m_siData.m_attackPoints[zoneId];
 
     uint32 SpawnLocationID = (urand(0, zone.pallid.size() - 1));
-
-    uint32 cityAttackTimer = urand(CITY_ATTACK_TIMER_MIN, CITY_ATTACK_TIMER_MAX);
-    auto now = sWorld.GetCurrentClockTime();
-    TimePoint next_attack =  now + std::chrono::milliseconds(cityAttackTimer * 1000);
 
     Map* mapPtr = GetMap(zone.map, zone.pallid[SpawnLocationID]);
 

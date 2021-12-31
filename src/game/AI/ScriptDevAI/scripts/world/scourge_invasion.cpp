@@ -146,7 +146,7 @@ void DespawnEventDoodads(Creature* shard)
     std::list<GameObject*> doodadList;
     GetGameObjectListWithEntryInGrid(doodadList, shard, { GOBJ_SUMMON_CIRCLE, GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04, GOBJ_SUMMONER_SHIELD }, 60.0f);
     for (const auto pDoodad : doodadList)
-        pDoodad->ForcedDespawn();
+        pDoodad->Delete();
 
     std::list<Creature*> finderList;
     GetCreatureListWithEntryInGrid(finderList, shard, NPC_SCOURGE_INVASION_MINION_FINDER, 60.0f);
@@ -162,7 +162,7 @@ void DespawnNecropolis(Unit* despawner)
     std::list<GameObject*> necropolisList;
     GetGameObjectListWithEntryInGrid(necropolisList, despawner, { GOBJ_NECROPOLIS_TINY, GOBJ_NECROPOLIS_SMALL, GOBJ_NECROPOLIS_MEDIUM, GOBJ_NECROPOLIS_BIG, GOBJ_NECROPOLIS_HUGE }, ATTACK_DISTANCE);
     for (const auto pNecropolis : necropolisList)
-        pNecropolis->ForcedDespawn();
+        pNecropolis->Delete();
 }
 
 void SummonCultists(Unit* shard)
@@ -469,7 +469,10 @@ struct NecropolisProxyAI : public ScriptedAI
     {
         // Make sure m_creature despawn after SPELL_COMMUNIQUE_CAMP_TO_RELAY_DEATH hits the target to avoid getting hit by Purple bolt again.
         if (spellInfo->Id == SPELL_COMMUNIQUE_CAMP_TO_RELAY_DEATH)
+        {
+            m_creature->CleanupsBeforeDelete();
             m_creature->ForcedDespawn();
+        }
     }
 
     void UpdateAI(uint32 const diff) override {}

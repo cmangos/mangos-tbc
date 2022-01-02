@@ -407,8 +407,7 @@ void UnitAI::OnSpellCastStateChange(Spell const* spell, bool state, WorldObject*
     }
     else
     {
-        std::set<uint32> spellIdsForTurning = { 31306, 33813, 38739, 44811, 46292 };
-        if (!spell->GetCastTime() && spellIdsForTurning.find(spellInfo->Id) != spellIdsForTurning.end())
+        if (!spell->GetCastTime() && forceTarget)
         {
             HandleDelayedInstantAnimation(spellInfo);
         }

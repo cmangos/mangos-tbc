@@ -5,7 +5,7 @@
 #ifndef SC_GUARDAI_H
 #define SC_GUARDAI_H
 
-enum
+enum GuardAI
 {
     GENERIC_CREATURE_COOLDOWN       = 5000,
 
@@ -13,7 +13,24 @@ enum
     SAY_GUARD_SIL_AGGRO2            = -1000199,
     SAY_GUARD_SIL_AGGRO3            = -1000200,
 
-    NPC_CENARION_INFANTRY           = 15184
+    // Goblin Cities & Events
+    RATCHET_BRUISER                 = 3502,
+    BOOTY_BAY_BRUISER               = 4624,
+    GADGETZAN_BRUISER               = 9460,
+    EVERLOOK_BRUISER                = 11190,
+    STEAMWHEEDLE_BRUISER            = 16096,
+    AREA_52_BIG_BRUISER             = 20484,
+    AREA_52_BRUISER                 = 20485,
+    COSMOWRENCH_BRUISER             = 22494,
+    MUDSPROCKET_BRUISER             = 23636,
+    CONCERT_BRUISER                 = 23721,
+
+    SPELL_SHOOT                     = 23337, // not all shoot, currently unused
+    SPELL_NET                       = 12024,
+
+    // Cenarion Hold
+    CENARION_HOLD_INFANTRY          = 15184,
+    SPELL_INCAPACITATING_SHOUT      = 18328,
 };
 
 enum eShattrathGuard
@@ -54,6 +71,9 @@ struct guardAI : public ScriptedAI
 
         uint32 m_globalCooldown;                          // This variable acts like the global cooldown that players have (1.5 seconds)
         uint32 m_buffTimer;                               // This variable keeps track of buffs
+
+        uint32 m_IncapacitatingShoutTimer;
+        uint32 m_NetTimer;
 
         void Reset() override;
 

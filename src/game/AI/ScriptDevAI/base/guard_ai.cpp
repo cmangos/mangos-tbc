@@ -35,11 +35,13 @@ void guardAI::Reset()
 {
     m_globalCooldown = 0;
     m_buffTimer = 0;                                      // Rebuff as soon as we can
+    m_IncapacitatingShoutTimer = urand(3000, 24000);
+    m_NetTimer = urand(0, 21000);
 }
 
 void guardAI::Aggro(Unit* who)
 {
-    if (m_creature->GetEntry() == NPC_CENARION_INFANTRY)
+    if (m_creature->GetEntry() == CENARION_HOLD_INFANTRY)
     {
         switch (urand(0, 2))
         {
@@ -126,6 +128,41 @@ void guardAI::UpdateAI(const uint32 diff)
                 // Set our global cooldown
                 m_globalCooldown = GENERIC_CREATURE_COOLDOWN;
             }
+        }
+    }
+
+    switch (m_creature->GetEntry())
+    {
+        case CENARION_HOLD_INFANTRY:
+        {
+            if (m_IncapacitatingShoutTimer < diff)
+            {
+                DoCastSpellIfCan(nullptr, SPELL_INCAPACITATING_SHOUT);
+                m_IncapacitatingShoutTimer = urand(60000, 120000);
+            }
+            else
+                m_IncapacitatingShoutTimer -= diff;
+            break;
+        }
+        case RATCHET_BRUISER:
+        case BOOTY_BAY_BRUISER:
+        case GADGETZAN_BRUISER:
+        case EVERLOOK_BRUISER:
+        case STEAMWHEEDLE_BRUISER:
+        case AREA_52_BIG_BRUISER:
+        case AREA_52_BRUISER:
+        case COSMOWRENCH_BRUISER:
+        case MUDSPROCKET_BRUISER:
+        case CONCERT_BRUISER:
+        {
+            if (m_NetTimer < diff)
+            {
+                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_NET, CAST_AURA_NOT_PRESENT);
+                m_NetTimer = urand(30000, 60000);
+            }
+            else
+                m_NetTimer -= diff;
+            break;
         }
     }
 

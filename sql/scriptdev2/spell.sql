@@ -269,6 +269,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (37640,'spell_leotheras_whirlwind_aura'),
 (37641,'spell_leotheras_whirlwind_proc'),
 (33572,'spell_gronn_lords_grasp'),
+(33812,'spell_hurtful_strike_primer'),
 (38511,'spell_vashj_persuasion'),
 (38573,'spell_spore_drop_effect'),
 (33040,'spell_wota_main_cast_and_jump'),

@@ -1791,24 +1791,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     return;
                 }
                 //case 33390:                                 // Arcane Torrent (Npc Version)
-                case 33812:                                 // Gruul the Dragonkiller - Hateful Primer
-                {
-                    if (!unitTarget || m_UniqueTargetInfo.rbegin()->targetGUID != unitTarget->GetObjectGuid())
-                        return;
-
-                    Unit* target = unitTarget;
-                    for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
-                    {
-                        if (m_caster->GetMap()->GetPlayer(ihit->targetGUID) == m_caster->GetVictim())
-                            continue;
-
-                        if (m_caster->getThreatManager().getThreat(m_caster->GetMap()->GetPlayer(ihit->targetGUID)) > m_caster->getThreatManager().getThreat(target) || target == m_caster->GetVictim())
-                            target = m_caster->GetMap()->GetPlayer(ihit->targetGUID);
-                    }
-
-                    m_caster->CastSpell(target, 33813, TRIGGERED_OLD_TRIGGERED);
-                    return;
-                }
                 case 34063:                                 // Soul Mirror - Kill creature on spell and spawn mob
                 {
                     unitTarget->CastSpell(nullptr, 34064, TRIGGERED_OLD_TRIGGERED);

@@ -201,7 +201,6 @@ struct HurtfulStrikePrimer : public SpellScript
         if (!target || targetInfo.rbegin()->targetGUID != target->GetObjectGuid())
             return;
 
-        Unit* target = target;
         for (auto& targetInfo : targetInfo)
         {
             if (caster->GetMap()->GetPlayer(targetInfo.targetGUID) == caster->GetVictim())

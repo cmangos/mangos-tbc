@@ -2082,10 +2082,11 @@ bool Creature::IsVisibleInGridForPlayer(Player* pl) const
     return false;
 }
 
-void Creature::CallAssistance()
+void Creature::CallAssistance(Unit* enemy)
 {
     // FIXME: should player pets call for assistance?
-    if (!m_AlreadyCallAssistance && GetVictim() && !HasCharmer())
+    Unit* target = enemy ? enemy : GetVictim();
+    if (!m_AlreadyCallAssistance && target && !HasCharmer())
     {
         SetNoCallAssistance(true);
 
@@ -2095,7 +2096,7 @@ void Creature::CallAssistance()
         float radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS);
         if (GetCreatureInfo()->CallForHelp > 0)
             radius = GetCreatureInfo()->CallForHelp;
-        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, GetVictim(), sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY), radius);
+        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, target, sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY), radius);
     }
 }
 

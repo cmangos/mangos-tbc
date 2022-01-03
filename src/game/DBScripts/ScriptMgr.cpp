@@ -2447,6 +2447,8 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 static_cast<Unit*>(pSource)->AI()->SendAIEvent(AIEventType(m_script->sendAIEvent.eventType), nullptr, (Unit*)pTarget, m_script->sendAIEvent.value);
             else if (pSource->IsCreature() && pTarget->IsPlayer())
                 static_cast<Unit*>(pSource)->AI()->ReceiveAIEvent(AIEventType(m_script->sendAIEvent.eventType), (Unit*)pTarget, (Unit*)pTarget, m_script->sendAIEvent.value);
+            else if (pSource->IsPlayer() && pTarget->IsCreature())
+                static_cast<Unit*>(pTarget)->AI()->ReceiveAIEvent(AIEventType(m_script->sendAIEvent.eventType), (Unit*)pSource, (Unit*)pSource, m_script->sendAIEvent.value);
             break;
         }
         case SCRIPT_COMMAND_SET_FACING:                     // 36

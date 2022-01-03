@@ -498,10 +498,8 @@ struct NecropolisProxyAI : public ScriptedAI
     {
         m_creature->SetActiveObjectState(true);
         //m_creature->SetVisibilityModifier(3000.0f);
-        necro = GetClosestCreatureWithEntry(m_creature, NPC_NECROPOLIS_HEALTH, 300.f);
         Reset();
     }
-    Creature* necro;
 
     void Reset() override {}
 
@@ -526,9 +524,7 @@ struct NecropolisProxyAI : public ScriptedAI
     {
         // Make sure m_creature despawn after SPELL_COMMUNIQUE_CAMP_TO_RELAY_DEATH hits the target to avoid getting hit by Purple bolt again.
         if (spellInfo->Id == SPELL_COMMUNIQUE_CAMP_TO_RELAY_DEATH)
-        {
             m_creature->ForcedDespawn();
-        }
     }
 
     void UpdateAI(uint32 const diff) override {
@@ -919,7 +915,7 @@ struct ScourgeMinion : public CombatAI
                         if (player->IsWithinLOSInMap(m_creature))
                         {
                             m_creature->SetInCombatWith(player);
-                            m_creature->SetDetectionRange(200.f);
+                            m_creature->SetDetectionRange(2.f);
                             m_creature->AI()->AttackStart(player);
                             ResetCombatAction(EVENT_DOOM_MINDFLAY, 2000u);
                             ResetCombatAction(EVENT_DOOM_FEAR, 2000u);

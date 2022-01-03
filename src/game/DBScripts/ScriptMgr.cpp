@@ -2439,6 +2439,7 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 return false;
             if (LogIfNotUnit(pTarget))
                 break;
+
             // if radius is provided send AI event around
             if (m_script->sendAIEvent.radius)
                 ((Creature*)pSource)->AI()->SendAIEventAround(AIEventType(m_script->sendAIEvent.eventType), (Unit*)pTarget, 0, float(m_script->sendAIEvent.radius), m_script->sendAIEvent.value);

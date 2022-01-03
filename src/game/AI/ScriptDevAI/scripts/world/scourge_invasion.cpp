@@ -17,8 +17,6 @@
 //#include "scriptPCH.h"
 #include "scourge_invasion.h"
 //#include "CreatureGroups.h"
-#include "AI/BaseAI/AIDefines.h"
-#include "AI/ScriptDevAI/base/TimerAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "Globals/ObjectMgr.h"
@@ -27,7 +25,6 @@
 #include "GameEvents/GameEventMgr.h"
 #include "Grids/GridNotifiers.h"
 #include "Grids/GridNotifiersImpl.h"
-#include <memory>
 
 inline uint32 GetCampType(Creature* unit) { return unit->HasAura(SPELL_CAMP_TYPE_GHOST_SKELETON) || unit->HasAura(SPELL_CAMP_TYPE_GHOST_GHOUL) || unit->HasAura(SPELL_CAMP_TYPE_GHOUL_SKELETON); };
 
@@ -421,7 +418,9 @@ struct NecropolisHealthAI : public CombatAI
         });
         //m_creature->SetVisibilityModifier(3000.0f);
     }
+
     int m_zapped = 0; // 3 = death.
+
     void Reset() override {}
 
     void SpellHit(Unit* caster, SpellEntry const* spell) override

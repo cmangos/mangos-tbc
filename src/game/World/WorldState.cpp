@@ -24,7 +24,6 @@
 #include "Entities/Object.h"
 #include "GameEvents/GameEventMgr.h"
 #include <algorithm>
-#include <chrono>
 #include <map>
 #include <World/WorldStateDefines.h>
 #include "AI/ScriptDevAI/scripts/world/scourge_invasion.h"

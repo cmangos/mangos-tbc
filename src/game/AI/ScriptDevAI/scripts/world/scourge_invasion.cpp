@@ -147,10 +147,6 @@ void DespawnEventDoodads(Creature* shard)
     for (const auto pDoodad : doodadList)
     {
         pDoodad->SetRespawnDelay(-1);
-        if(pDoodad->GetEntry() == GOBJ_SUMMON_CIRCLE)
-        {
-            pDoodad->SetRespawnDelay(2700);
-        }
         pDoodad->ForcedDespawn();
     }
 
@@ -361,7 +357,13 @@ struct NecropolisAI : public ScriptedAI
             m_creature->CastSpell(m_creature, SPELL_COMMUNIQUE_TIMER_NECROPOLIS, TRIGGERED_OLD_TRIGGERED); // m_creature->AddAura(SPELL_COMMUNIQUE_TIMER_NECROPOLIS);
     }
 
-    void UpdateAI(uint32 const diff) override {}
+    void UpdateAI(uint32 const diff) override {
+        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+        {
+            Position respawn = m_creature->GetRespawnPosition();
+            m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
+        }
+    }
 };
 
 /*
@@ -482,6 +484,14 @@ struct NecropolisHealthAI : public ScriptedAI
             m_creature->ForcedDespawn();
         }
     }
+    void UpdateAI(uint32 const diff) override {
+        ScriptedAI::UpdateAI(diff);
+        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+        {
+            Position respawn = m_creature->GetRespawnPosition();
+            m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
+        }
+    }
 };
 
 /*
@@ -590,11 +600,12 @@ struct NecroticShard : public ScriptedAI
         {
             HandleShardMinionSpawnerSmall();
         });
-        AddCustomAction(11, false, [&](){
+        AddCustomAction(11, 15000u, [&](){
             if(!m_creature)
                 return;
-            if(!GetClosestGameObjectWithEntry(m_creature, GOBJ_SUMMON_CIRCLE, 2.f))
+            if(!GetClosestGameObjectWithEntry(m_creature, GOBJ_SUMMON_CIRCLE, 2.f) || !GetClosestCreatureWithEntry(m_creature, NPC_NECROPOLIS_HEALTH, 1000.f))
             {
+                DespawnEventDoodads(m_creature);
                 m_creature->ForcedDespawn();
                 return;
             }

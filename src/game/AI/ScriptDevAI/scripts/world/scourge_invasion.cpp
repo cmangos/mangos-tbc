@@ -283,13 +283,6 @@ class GoCircle : public GameObjectAI
         {
             //m_go->CastSpell(m_go, SPELL_CREATE_CRYSTAL, true);
             m_go->CastSpell(nullptr, nullptr, SPELL_CREATE_CRYSTAL, TRIGGERED_OLD_TRIGGERED);
-/*             Creature* necro = GetClosestCreatureWithEntry(m_go, NPC_NECROPOLIS_HEALTH, 500.f);
-            if(necro && necro->GetHealthPercent()>99.f && !m_go->IsSpawned())
-            {
-                m_go->SetRespawnDelay(0, true);
-                m_go->Respawn();
-                m_go->SetRespawnDelay(2700);
-            } */
         }
 };
 

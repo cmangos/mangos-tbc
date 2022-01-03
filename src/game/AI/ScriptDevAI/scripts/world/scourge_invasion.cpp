@@ -149,6 +149,7 @@ void DespawnEventDoodads(Creature* shard)
     GetGameObjectListWithEntryInGrid(doodadList, shard, { GOBJ_SUMMON_CIRCLE, GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04, GOBJ_SUMMONER_SHIELD }, 60.0f);
     for (const auto pDoodad : doodadList)
     {
+        pDoodad->SetRespawnDelay(-1);
         if(pDoodad->GetEntry() == GOBJ_SUMMON_CIRCLE)
         {
             pDoodad->SetRespawnDelay(2700);
@@ -634,6 +635,20 @@ struct NecroticShard : public ScriptedAI
             for (const auto shard : shardList)
                 if (shard != m_creature)
                     shard->ForcedDespawn();
+
+            AddCustomAction(10, 5000u, [&](){
+                GameObjectList objectList;
+                GetGameObjectListWithEntryInGrid(objectList, m_creature, {GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04, GOBJ_SUMMONER_SHIELD}, 50.f);
+
+                for(GameObject* object : objectList)
+                {
+                    if(object && !object->IsSpawned())
+                    {
+                        object->SetRespawnTime(0);
+                        object->Respawn();
+                    }
+                }
+            });
         }
         SetReactState(REACT_PASSIVE);
     }

@@ -136,6 +136,8 @@ void ChangeZoneEventStatus(Creature* mouth, bool on)
                 sGameEventMgr.StopEvent(GAME_EVENT_SCOURGE_INVASION_BURNING_STEPPES, true);
             break;
     }
+
+    sWorldState.Save(SAVE_ID_SCOURGE_INVASION);
 }
 
 void DespawnEventDoodads(Creature* shard)
@@ -146,7 +148,13 @@ void DespawnEventDoodads(Creature* shard)
     std::list<GameObject*> doodadList;
     GetGameObjectListWithEntryInGrid(doodadList, shard, { GOBJ_SUMMON_CIRCLE, GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04, GOBJ_SUMMONER_SHIELD }, 60.0f);
     for (const auto pDoodad : doodadList)
-        pDoodad->Delete();
+    {
+        if(pDoodad->GetEntry() == GOBJ_SUMMON_CIRCLE)
+        {
+            pDoodad->SetRespawnDelay(2700);
+        }
+        pDoodad->ForcedDespawn();
+    }
 
     std::list<Creature*> finderList;
     GetCreatureListWithEntryInGrid(finderList, shard, NPC_SCOURGE_INVASION_MINION_FINDER, 60.0f);
@@ -162,7 +170,7 @@ void DespawnNecropolis(Unit* despawner)
     std::list<GameObject*> necropolisList;
     GetGameObjectListWithEntryInGrid(necropolisList, despawner, { GOBJ_NECROPOLIS_TINY, GOBJ_NECROPOLIS_SMALL, GOBJ_NECROPOLIS_MEDIUM, GOBJ_NECROPOLIS_BIG, GOBJ_NECROPOLIS_HUGE }, ATTACK_DISTANCE);
     for (const auto pNecropolis : necropolisList)
-        pNecropolis->Delete();
+        pNecropolis->ForcedDespawn();
 }
 
 void SummonCultists(Unit* shard)
@@ -274,6 +282,13 @@ class GoCircle : public GameObjectAI
         {
             //m_go->CastSpell(m_go, SPELL_CREATE_CRYSTAL, true);
             m_go->CastSpell(nullptr, nullptr, SPELL_CREATE_CRYSTAL, TRIGGERED_OLD_TRIGGERED);
+/*             Creature* necro = GetClosestCreatureWithEntry(m_go, NPC_NECROPOLIS_HEALTH, 500.f);
+            if(necro && necro->GetHealthPercent()>99.f && !m_go->IsSpawned())
+            {
+                m_go->SetRespawnDelay(0, true);
+                m_go->Respawn();
+                m_go->SetRespawnDelay(2700);
+            } */
         }
 };
 
@@ -361,15 +376,58 @@ struct NecropolisAI : public ScriptedAI
 /*
 Necropolis Health
 */
-struct NecropolisHealthAI : public ScriptedAI
+struct NecropolisHealthAI : public CombatAI
 {
-    NecropolisHealthAI(Creature* creature) : ScriptedAI(creature)
+    NecropolisHealthAI(Creature* creature) : CombatAI(creature, 1)
     {
+        AddCustomAction(0, 5000u, [&](){
+            if(m_creature->GetHealthPercent()>99.f)
+            {
+                CreatureList proxies;
+                GetCreatureListWithEntryInGrid(proxies, m_creature, NPC_NECROPOLIS_PROXY, 200.f);
+
+                for(Creature* proxy : proxies)
+                {
+                    if(proxy && (proxy->IsDespawned() || !proxy->IsAlive()))
+                    {
+                        proxy->SetRespawnTime(0);
+                        proxy->Respawn();
+                    }
+                }
+
+                GameObjectList circles;
+                GetGameObjectListWithEntryInGrid(circles, m_creature, GOBJ_SUMMON_CIRCLE, 1000.f);
+
+                for(GameObject* circle : circles)
+                {
+                    if(circle && !circle->IsSpawned())
+                    {
+                        Creature* shard = GetClosestCreatureWithEntry(circle, NPC_NECROTIC_SHARD, 1.f);
+                        if(shard && shard->IsAlive())
+                        {
+                            circle->SetRespawnTime(0);
+                            circle->Respawn();
+                        }
+                    }
+                }
+                for(ScourgeInvasionMisc t_nectId : {GOBJ_NECROPOLIS_BIG, GOBJ_NECROPOLIS_HUGE, GOBJ_NECROPOLIS_MEDIUM, GOBJ_NECROPOLIS_SMALL, GOBJ_NECROPOLIS_TINY})
+                {
+                    if(GameObject* t_necGo = GetClosestGameObjectWithEntry(m_creature, t_nectId, 20.f))
+                    {
+                        if(!t_necGo->IsSpawned())
+                        {
+                            t_necGo->SetRespawnTime(0);
+                            t_necGo->Respawn();
+                        }
+                    }
+                }
+
+                ResetTimer(0, 60 * IN_MILLISECONDS);
+            }
+        });
         //m_creature->SetVisibilityModifier(3000.0f);
     }
-
     int m_zapped = 0; // 3 = death.
-
     void Reset() override {}
 
     void SpellHit(Unit* caster, SpellEntry const* spell) override
@@ -418,6 +476,7 @@ struct NecropolisHealthAI : public ScriptedAI
         uint32 remaining = sWorldState.GetSIRemaining(remainingID);
         if (remaining > 0)
             sWorldState.SetSIRemaining(remainingID, (remaining - 1));
+        sWorldState.Save(SAVE_ID_SCOURGE_INVASION);
     }
 
     void SpellHitTarget(Unit* target, SpellEntry const* spellInfo) override
@@ -431,7 +490,9 @@ struct NecropolisHealthAI : public ScriptedAI
         }
     }
 
-    void UpdateAI(uint32 const diff) override {}
+    void UpdateAI(uint32 const diff) override {
+        CombatAI::UpdateAI(diff);
+    }
 };
 
 /*
@@ -443,8 +504,10 @@ struct NecropolisProxyAI : public ScriptedAI
     {
         m_creature->SetActiveObjectState(true);
         //m_creature->SetVisibilityModifier(3000.0f);
+        necro = GetClosestCreatureWithEntry(m_creature, NPC_NECROPOLIS_HEALTH, 300.f);
         Reset();
     }
+    Creature* necro;
 
     void Reset() override {}
 
@@ -470,12 +533,17 @@ struct NecropolisProxyAI : public ScriptedAI
         // Make sure m_creature despawn after SPELL_COMMUNIQUE_CAMP_TO_RELAY_DEATH hits the target to avoid getting hit by Purple bolt again.
         if (spellInfo->Id == SPELL_COMMUNIQUE_CAMP_TO_RELAY_DEATH)
         {
-            m_creature->CleanupsBeforeDelete();
             m_creature->ForcedDespawn();
         }
     }
 
-    void UpdateAI(uint32 const diff) override {}
+    void UpdateAI(uint32 const diff) override {
+        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+        {
+            Position respawn = m_creature->GetRespawnPosition();
+            m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
+        }
+    }
 };
 
 /*
@@ -516,7 +584,13 @@ struct NecropolisRelayAI : public ScriptedAI
             m_creature->ForcedDespawn();
     }
 
-    void UpdateAI(uint32 const diff) override {}
+    void UpdateAI(uint32 const diff) override {
+        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-5))
+        {
+            Position respawn = m_creature->GetRespawnPosition();
+            m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
+        }
+    }
 };
 
 /*
@@ -668,6 +742,7 @@ struct NecroticShard : public ScriptedAI
                 DespawnCultists(m_creature);
                 // Remove Objects from the event around the Shard (Yes this is Blizzlike).
                 DespawnEventDoodads(m_creature);
+                sWorldState.Save(SAVE_ID_SCOURGE_INVASION);
                 break;
         }
     }
@@ -821,7 +896,6 @@ Notes: Shard Minions, Rares and Shadow of Doom.
 */
 struct ScourgeMinion : public CombatAI
 {
-    int32 doomSpawnTimer = 0;
     ScourgeMinion(Creature* creature) : CombatAI(creature, 999)
     {
         switch (m_creature->GetEntry())
@@ -829,6 +903,21 @@ struct ScourgeMinion : public CombatAI
             case NPC_SHADOW_OF_DOOM:
                 AddCombatAction(EVENT_DOOM_MINDFLAY, 2000u);
                 AddCombatAction(EVENT_DOOM_FEAR, 2000u);
+                AddCustomAction(EVENT_DOOM_START_ATTACK, 5000u, [&](){
+                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                    // Shadow of Doom seems to attack the Summoner here.
+                    if (Player* player = m_creature->GetMap()->GetPlayer(m_summonerGuid))
+                    {
+                        if (player->IsWithinLOSInMap(m_creature))
+                        {
+                            m_creature->SetInCombatWith(player);
+                            m_creature->SetDetectionRange(200.f);
+                            m_creature->AI()->AttackStart(player);
+                            ResetCombatAction(EVENT_DOOM_MINDFLAY, 2000u);
+                            ResetCombatAction(EVENT_DOOM_FEAR, 2000u);
+                        }
+                    }
+                });
                 break;
             case NPC_FLAMESHOCKER:
                 AddCombatAction(EVENT_MINION_FLAMESHOCKERS_TOUCH, 2000u);
@@ -855,7 +944,6 @@ struct ScourgeMinion : public CombatAI
             if (miscValue == NPC_SHADOW_OF_DOOM)
             {
                 m_summonerGuid = invoker->GetObjectGuid();
-                doomSpawnTimer = 5000; // Remove Flag (immune to Players) after 5 seconds.
                 // Pickup random emote like here: https://youtu.be/evOs9aJa2Jw?t=229
                 DoBroadcastText(PickRandomValue(BCT_SHADOW_OF_DOOM_TEXT_0, BCT_SHADOW_OF_DOOM_TEXT_1, BCT_SHADOW_OF_DOOM_TEXT_2, BCT_SHADOW_OF_DOOM_TEXT_3), m_creature, invoker);
                 m_creature->CastSpell(m_creature, SPELL_SPAWN_SMOKE, TRIGGERED_OLD_TRIGGERED);
@@ -927,32 +1015,6 @@ struct ScourgeMinion : public CombatAI
     {
         CombatAI::UpdateAI(diff);
         //UpdateTimers(diff, m_creature->SelectHostileTarget());
-        if(m_creature->GetEntry() == NPC_SHADOW_OF_DOOM && !m_creature->IsInCombat()){
-            if(doomSpawnTimer)
-            {
-                if(diff>=doomSpawnTimer)
-                {
-                    doomSpawnTimer = 0;
-                    m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                    // Shadow of Doom seems to attack the Summoner here.
-                    if (Player* player = m_creature->GetMap()->GetPlayer(m_summonerGuid))
-                    {
-                        if (player->IsWithinLOSInMap(m_creature))
-                        {
-                            m_creature->SetInCombatWith(player);
-                            m_creature->SetDetectionRange(200.f);
-                            m_creature->AI()->AttackStart(player);
-                            ResetCombatAction(EVENT_DOOM_MINDFLAY, 2000u);
-                            ResetCombatAction(EVENT_DOOM_FEAR, 2000u);
-                        }
-                    }
-                }
-                else
-                {
-                    doomSpawnTimer-=diff;
-                }
-            }
-        }
 
         // Instakill every mob nearby, except Players, Pets or NPCs with the same faction.
         // m_creature->IsValidAttackTarget(m_creature->GetVictim(), true)

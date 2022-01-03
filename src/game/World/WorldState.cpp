@@ -1379,7 +1379,6 @@ void WorldState::SetScourgeInvasionState(SIState state)
         StartScourgeInvasion();
     else if (state == STATE_0_DISABLED)
         StopScourgeInvasion();
-
     Save(SAVE_ID_SCOURGE_INVASION);
 }
 
@@ -1406,7 +1405,6 @@ void WorldState::StartScourgeInvasion()
             ++i;
         }
         std::shuffle(randomIds.begin(), randomIds.end(), *GetRandomGenerator());
-        randomIds.resize(3);
         for (auto id : randomIds)
             OnEnable(m_siData.m_invasionPoints[id]);
     }

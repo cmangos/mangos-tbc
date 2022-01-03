@@ -186,9 +186,9 @@ void CreatureAI::OnCallForHelp(Unit* caller, Unit* enemy)
 
 void CreatureAI::HandleAssistanceCall(Unit* sender, Unit* invoker)
 {
-    if (m_creature->IsInCombat() || !invoker)
+    if (!invoker)
         return;
-    if (m_creature->CanAssist(sender) && m_creature->CanAttackOnSight(invoker) && invoker->IsVisibleForOrDetect(m_creature, m_creature, false))
+    if (m_creature->CanAssistInCombatAgainst(sender, invoker) && m_creature->CanJoinInAttacking(invoker) && invoker->IsVisibleForOrDetect(m_creature, m_creature, false))
     {
         m_creature->SetNoCallAssistance(true);
         AttackStart(invoker);

@@ -1959,8 +1959,8 @@ void WorldState::OnDisable(ScourgeInvasionData::InvasionZone& zone)
 
     map->GetMessager().AddMessage([guid = zone.mouthGuid](Map* map)
     {
-        if (Creature* mouth = map->GetCreature(guid))
-            mouth->ForcedDespawn();
+        //if (Creature* mouth = map->GetCreature(guid))
+            //mouth->ForcedDespawn();
     });
 }
 

@@ -482,8 +482,6 @@ struct NecropolisHealthAI : public ScriptedAI
             m_creature->ForcedDespawn();
         }
     }
-
-    void UpdateAI(uint32 const diff) override {}
 };
 
 /*
@@ -591,6 +589,16 @@ struct NecroticShard : public ScriptedAI
         AddCustomAction(EVENT_SHARD_MINION_SPAWNER_SMALL, true, [&]() // Spawn Minions every 5 seconds.
         {
             HandleShardMinionSpawnerSmall();
+        });
+        AddCustomAction(11, false, [&](){
+            if(!m_creature)
+                return;
+            if(!GetClosestGameObjectWithEntry(m_creature, GOBJ_SUMMON_CIRCLE, 2.f))
+            {
+                m_creature->ForcedDespawn();
+                return;
+            }
+            ResetTimer(11, 60000u);
         });
         //m_creature->SetVisibilityModifier(3000.0f);
         if (m_creature->GetEntry() == NPC_DAMAGED_NECROTIC_SHARD)

@@ -367,9 +367,9 @@ struct NecropolisAI : public ScriptedAI
 /*
 Necropolis Health
 */
-struct NecropolisHealthAI : public CombatAI
+struct NecropolisHealthAI : public ScriptedAI
 {
-    NecropolisHealthAI(Creature* creature) : CombatAI(creature, 1)
+    NecropolisHealthAI(Creature* creature) : ScriptedAI(creature)
     {
         AddCustomAction(0, 5000u, [&](){
             if(m_creature->GetHealthPercent()>99.f)
@@ -483,9 +483,7 @@ struct NecropolisHealthAI : public CombatAI
         }
     }
 
-    void UpdateAI(uint32 const diff) override {
-        CombatAI::UpdateAI(diff);
-    }
+    void UpdateAI(uint32 const diff) override {}
 };
 
 /*
@@ -626,7 +624,7 @@ struct NecroticShard : public ScriptedAI
 
             AddCustomAction(10, 5000u, [&](){
                 GameObjectList objectList;
-                GetGameObjectListWithEntryInGrid(objectList, m_creature, {GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04, GOBJ_SUMMONER_SHIELD}, 50.f);
+                GetGameObjectListWithEntryInGrid(objectList, m_creature, {GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04}, 50.f);
 
                 for(GameObject* object : objectList)
                 {

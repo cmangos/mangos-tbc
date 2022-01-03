@@ -669,8 +669,7 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
     setActualEndPosition(m_pathPoints[pointCount - 1]);
 
     // force the given destination, if needed
-    if (m_forceDestination &&
-            (!(m_type & PATHFIND_NORMAL) || !inRange(getEndPosition(), getActualEndPosition(), 1.0f, 1.0f)))
+    if (m_forceDestination && ((m_type & PATHFIND_NORMAL) == 0 || getEndPosition() != getActualEndPosition()))
     {
         // we may want to keep partial subpath
         if (dist3DSqr(getActualEndPosition(), getEndPosition()) < 0.3f * dist3DSqr(getStartPosition(), getEndPosition()))

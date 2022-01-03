@@ -45,6 +45,7 @@
 #include "Timer.h"
 #include "AI/BaseAI/UnitAI.h"
 #include "Spells/SpellDefines.h"
+#include "Maps/SpawnGroupDefines.h"
 
 #include <list>
 #include <array>
@@ -2409,6 +2410,10 @@ class Unit : public WorldObject
         virtual bool CanCheckForHelp() const { return true; }
 
         virtual std::vector<uint32> GetCharmSpells() const { return {}; }
+
+        FormationSlotDataSPtr GetFormationSlot() { return m_formationSlot; }
+        void SetFormationSlot(FormationSlotDataSPtr fSlot) { m_formationSlot = fSlot; }
+
     protected:
         bool MeetsSelectAttackingRequirement(Unit* target, SpellEntry const* spellInfo, uint32 selectFlags, SelectAttackingTargetParams params) const;
 
@@ -2528,6 +2533,8 @@ class Unit : public WorldObject
         // Critter: permanent mini-pet unit guid (pre-WotLK compatibility replacement for critter guid field)
         ObjectGuid const& GetCritterGuid() const { return m_critterGuid; }
         void SetCritterGuid(ObjectGuid critterGuid) { m_critterGuid = critterGuid; }
+
+        FormationSlotDataSPtr m_formationSlot;
 
     private:
         void CleanupDeletedAuras();

@@ -359,7 +359,7 @@ struct NecropolisAI : public ScriptedAI
 
     void UpdateAI(uint32 const diff) override
     {
-        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ() - 10))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
@@ -376,7 +376,7 @@ struct NecropolisHealthAI : public ScriptedAI
     {
         AddCustomAction(0, 5000u, [&]()
         {
-            if (m_creature->GetHealthPercent()>99.f)
+            if (m_creature->GetHealthPercent() > 99.f)
             {
                 CreatureList proxies;
                 GetCreatureListWithEntryInGrid(proxies, m_creature, NPC_NECROPOLIS_PROXY, 200.f);
@@ -489,7 +489,7 @@ struct NecropolisHealthAI : public ScriptedAI
     void UpdateAI(uint32 const diff) override
     {
         ScriptedAI::UpdateAI(diff);
-        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ() - 10))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
@@ -537,7 +537,7 @@ struct NecropolisProxyAI : public ScriptedAI
 
     void UpdateAI(uint32 const diff) override
     {
-        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ() - 10))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
@@ -585,7 +585,7 @@ struct NecropolisRelayAI : public ScriptedAI
 
     void UpdateAI(uint32 const diff) override
     {
-        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-5))
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ() - 5))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());

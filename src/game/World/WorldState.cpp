@@ -1867,7 +1867,7 @@ void WorldState::HandleActiveZone(uint32 attackTimeVar, uint32 zoneId, uint32 re
     // Calculate the next possible attack between ZONE_ATTACK_TIMER_MIN and ZONE_ATTACK_TIMER_MAX.
     uint32 zoneAttackTimer = urand(ZONE_ATTACK_TIMER_MIN, ZONE_ATTACK_TIMER_MAX);
     TimePoint next_attack = now + std::chrono::seconds(zoneAttackTimer);
-    uint64 timeToNextAttack =std::chrono::duration_cast<std::chrono::minutes>(next_attack-now).count();
+    uint64 timeToNextAttack = std::chrono::duration_cast<std::chrono::minutes>(next_attack-now).count();
 
     if (zone.mouthGuid)
     {

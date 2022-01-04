@@ -357,8 +357,9 @@ struct NecropolisAI : public ScriptedAI
             m_creature->CastSpell(m_creature, SPELL_COMMUNIQUE_TIMER_NECROPOLIS, TRIGGERED_OLD_TRIGGERED); // m_creature->AddAura(SPELL_COMMUNIQUE_TIMER_NECROPOLIS);
     }
 
-    void UpdateAI(uint32 const diff) override {
-        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+    void UpdateAI(uint32 const diff) override
+    {
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
@@ -373,15 +374,16 @@ struct NecropolisHealthAI : public ScriptedAI
 {
     NecropolisHealthAI(Creature* creature) : ScriptedAI(creature)
     {
-        AddCustomAction(0, 5000u, [&](){
-            if(m_creature->GetHealthPercent()>99.f)
+        AddCustomAction(0, 5000u, [&]()
+        {
+            if (m_creature->GetHealthPercent()>99.f)
             {
                 CreatureList proxies;
                 GetCreatureListWithEntryInGrid(proxies, m_creature, NPC_NECROPOLIS_PROXY, 200.f);
 
                 for(Creature* proxy : proxies)
                 {
-                    if(proxy && (proxy->IsDespawned() || !proxy->IsAlive()))
+                    if (proxy && (proxy->IsDespawned() || !proxy->IsAlive()))
                     {
                         proxy->SetRespawnTime(0);
                         proxy->Respawn();
@@ -393,10 +395,10 @@ struct NecropolisHealthAI : public ScriptedAI
 
                 for(GameObject* circle : circles)
                 {
-                    if(circle && !circle->IsSpawned())
+                    if (circle && !circle->IsSpawned())
                     {
                         Creature* shard = GetClosestCreatureWithEntry(circle, NPC_NECROTIC_SHARD, 1.f);
-                        if(shard && shard->IsAlive())
+                        if (shard && shard->IsAlive())
                         {
                             circle->SetRespawnTime(0);
                             circle->Respawn();
@@ -405,9 +407,9 @@ struct NecropolisHealthAI : public ScriptedAI
                 }
                 for(ScourgeInvasionMisc t_nectId : {GOBJ_NECROPOLIS_BIG, GOBJ_NECROPOLIS_HUGE, GOBJ_NECROPOLIS_MEDIUM, GOBJ_NECROPOLIS_SMALL, GOBJ_NECROPOLIS_TINY})
                 {
-                    if(GameObject* t_necGo = GetClosestGameObjectWithEntry(m_creature, t_nectId, 20.f))
+                    if (GameObject* t_necGo = GetClosestGameObjectWithEntry(m_creature, t_nectId, 20.f))
                     {
-                        if(!t_necGo->IsSpawned())
+                        if (!t_necGo->IsSpawned())
                         {
                             t_necGo->SetRespawnTime(0);
                             t_necGo->Respawn();
@@ -484,9 +486,10 @@ struct NecropolisHealthAI : public ScriptedAI
             m_creature->ForcedDespawn();
         }
     }
-    void UpdateAI(uint32 const diff) override {
+    void UpdateAI(uint32 const diff) override
+    {
         ScriptedAI::UpdateAI(diff);
-        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
@@ -532,8 +535,9 @@ struct NecropolisProxyAI : public ScriptedAI
             m_creature->ForcedDespawn();
     }
 
-    void UpdateAI(uint32 const diff) override {
-        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
+    void UpdateAI(uint32 const diff) override
+    {
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-10))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
@@ -579,8 +583,9 @@ struct NecropolisRelayAI : public ScriptedAI
             m_creature->ForcedDespawn();
     }
 
-    void UpdateAI(uint32 const diff) override {
-        if(m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-5))
+    void UpdateAI(uint32 const diff) override
+    {
+        if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ()-5))
         {
             Position respawn = m_creature->GetRespawnPosition();
             m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
@@ -600,10 +605,11 @@ struct NecroticShard : public ScriptedAI
         {
             HandleShardMinionSpawnerSmall();
         });
-        AddCustomAction(11, 15000u, [&](){
-            if(!m_creature)
+        AddCustomAction(11, 15000u, [&]()
+        {
+            if (!m_creature)
                 return;
-            if(!GetClosestGameObjectWithEntry(m_creature, GOBJ_SUMMON_CIRCLE, 2.f) || !GetClosestCreatureWithEntry(m_creature, NPC_NECROPOLIS_HEALTH, 1000.f))
+            if (!GetClosestGameObjectWithEntry(m_creature, GOBJ_SUMMON_CIRCLE, 2.f) || !GetClosestCreatureWithEntry(m_creature, NPC_NECROPOLIS_HEALTH, 1000.f))
             {
                 DespawnEventDoodads(m_creature);
                 m_creature->ForcedDespawn();
@@ -641,13 +647,14 @@ struct NecroticShard : public ScriptedAI
                 if (shard != m_creature)
                     shard->ForcedDespawn();
 
-            AddCustomAction(10, 5000u, [&](){
+            AddCustomAction(10, 5000u, [&]()
+            {
                 GameObjectList objectList;
                 GetGameObjectListWithEntryInGrid(objectList, m_creature, {GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04}, 50.f);
 
                 for(GameObject* object : objectList)
                 {
-                    if(object && !object->IsSpawned())
+                    if (object && !object->IsSpawned())
                     {
                         object->SetRespawnTime(0);
                         object->Respawn();
@@ -868,9 +875,8 @@ struct npc_cultist_engineer : public ScriptedAI
     void JustDied(Unit*) override
     {
         if (Creature* shard = GetClosestCreatureWithEntry(m_creature, NPC_DAMAGED_NECROTIC_SHARD, 15.0f))
-        {
             shard->CastSpell(shard, SPELL_DAMAGE_CRYSTAL, TRIGGERED_OLD_TRIGGERED);
-        }
+
         if (GameObject* gameObject = GetClosestGameObjectWithEntry(m_creature, GOBJ_SUMMONER_SHIELD, CONTACT_DISTANCE))
             gameObject->Delete();
     }
@@ -923,7 +929,8 @@ struct ScourgeMinion : public CombatAI
             case NPC_SHADOW_OF_DOOM:
                 AddCombatAction(EVENT_DOOM_MINDFLAY, 2000u);
                 AddCombatAction(EVENT_DOOM_FEAR, 2000u);
-                AddCustomAction(EVENT_DOOM_START_ATTACK, 5000u, [&](){
+                AddCustomAction(EVENT_DOOM_START_ATTACK, 5000u, [&]()
+                {
                     m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                     // Shadow of Doom seems to attack the Summoner here.
                     if (Player* player = m_creature->GetMap()->GetPlayer(m_summonerGuid))

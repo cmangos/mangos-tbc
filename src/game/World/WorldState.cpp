@@ -1759,8 +1759,8 @@ void WorldState::StartNewCityAttack(uint32 zoneId)
     if (m_siData.m_pendingPallids.find(zoneId) != m_siData.m_pendingPallids.end())
         return;
 
-    if (!m_siData.m_attackPoints[zoneId].pallidGuid.IsEmpty())
-        return;
+    /*if (!m_siData.m_attackPoints[zoneId].pallidGuid.IsEmpty())
+        return;*/
 
     if (mapPtr && SummonPallid(mapPtr, zone, zone.pallid[SpawnLocationID], SpawnLocationID))
         sLog.outBasic("[Scourge Invasion Event] Pallid Horror summoned in zone %d.", zoneId);

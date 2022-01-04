@@ -37,8 +37,8 @@ Unit* SelectRandomFlameshockerSpawnTarget(Creature* unit, Unit* except, float ra
 {
     std::list<Unit*> targets;
 
-    MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck u_check(unit, radius);
-    MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(targets, u_check);
+    MaNGOS::AnyUnitInObjectRangeCheck u_check(unit, radius);
+    MaNGOS::UnitListSearcher<MaNGOS::AnyUnitInObjectRangeCheck> searcher(targets, u_check);
     Cell::VisitAllObjects(unit, searcher, radius);
 
     // remove current target
@@ -381,7 +381,7 @@ struct NecropolisHealthAI : public ScriptedAI
                 CreatureList proxies;
                 GetCreatureListWithEntryInGrid(proxies, m_creature, NPC_NECROPOLIS_PROXY, 200.f);
 
-                for(Creature* proxy : proxies)
+                for (Creature* proxy : proxies)
                 {
                     if (proxy && (proxy->IsDespawned() || !proxy->IsAlive()))
                     {
@@ -393,7 +393,7 @@ struct NecropolisHealthAI : public ScriptedAI
                 GameObjectList circles;
                 GetGameObjectListWithEntryInGrid(circles, m_creature, GOBJ_SUMMON_CIRCLE, 1000.f);
 
-                for(GameObject* circle : circles)
+                for (GameObject* circle : circles)
                 {
                     if (circle && !circle->IsSpawned())
                     {
@@ -405,7 +405,7 @@ struct NecropolisHealthAI : public ScriptedAI
                         }
                     }
                 }
-                for(ScourgeInvasionMisc t_nectId : {GOBJ_NECROPOLIS_BIG, GOBJ_NECROPOLIS_HUGE, GOBJ_NECROPOLIS_MEDIUM, GOBJ_NECROPOLIS_SMALL, GOBJ_NECROPOLIS_TINY})
+                for (ScourgeInvasionMisc t_nectId : {GOBJ_NECROPOLIS_BIG, GOBJ_NECROPOLIS_HUGE, GOBJ_NECROPOLIS_MEDIUM, GOBJ_NECROPOLIS_SMALL, GOBJ_NECROPOLIS_TINY})
                 {
                     if (GameObject* t_necGo = GetClosestGameObjectWithEntry(m_creature, t_nectId, 20.f))
                     {
@@ -540,7 +540,7 @@ struct NecropolisProxyAI : public ScriptedAI
         if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ() - 10))
         {
             Position respawn = m_creature->GetRespawnPosition();
-            m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
+            m_creature->NearTeleportTo(respawn.GetPositionX(), respawn.GetPositionY(), respawn.GetPositionZ(), respawn.GetPositionO());
         }
     }
 };
@@ -588,7 +588,7 @@ struct NecropolisRelayAI : public ScriptedAI
         if (m_creature && m_creature->IsAlive() && m_creature->GetPositionZ() < (m_creature->GetRespawnPosition().GetPositionZ() - 5))
         {
             Position respawn = m_creature->GetRespawnPosition();
-            m_creature->NearTeleportTo(respawn.GetPositionX(),respawn.GetPositionY(),respawn.GetPositionZ(),respawn.GetPositionO());
+            m_creature->NearTeleportTo(respawn.GetPositionX(), respawn.GetPositionY(), respawn.GetPositionZ(), respawn.GetPositionO());
         }
     }
 };
@@ -605,7 +605,7 @@ struct NecroticShard : public ScriptedAI
         {
             HandleShardMinionSpawnerSmall();
         });
-        AddCustomAction(11, 15000u, [&]()
+        AddCustomAction(11, 15000u, [&]() // Check if there are a summoning circle and a necropolis nearby, otherwise despawn
         {
             if (!m_creature)
                 return;
@@ -647,12 +647,12 @@ struct NecroticShard : public ScriptedAI
                 if (shard != m_creature)
                     shard->ForcedDespawn();
 
-            AddCustomAction(10, 5000u, [&]()
+            AddCustomAction(10, 5000u, [&]() // Check if Doodads are spawned 5 seconds after spawn. If not: spawn them
             {
                 GameObjectList objectList;
                 GetGameObjectListWithEntryInGrid(objectList, m_creature, {GOBJ_UNDEAD_FIRE, GOBJ_UNDEAD_FIRE_AURA, GOBJ_SKULLPILE_01, GOBJ_SKULLPILE_02, GOBJ_SKULLPILE_03, GOBJ_SKULLPILE_04}, 50.f);
 
-                for(GameObject* object : objectList)
+                for (GameObject* object : objectList)
                 {
                     if (object && !object->IsSpawned())
                     {
@@ -1055,21 +1055,41 @@ struct ScourgeMinion : public CombatAI
 struct PallidHorrorAI : public CombatAI
 {
     std::set<ObjectGuid> m_flameshockers;
+    std::unordered_map<ObjectGuid, uint32> m_flameshockFollowers;
 
     PallidHorrorAI(Creature* creature) : CombatAI(creature, 999)
     {
+        AddCustomAction(25, 2500u, [&]() // Hacky solution for flameshockers to remain in formation
+        {
+            for (std::pair<ObjectGuid, uint32> follower : m_flameshockFollowers)
+            {
+                if (Unit* f = m_creature->GetMap()->GetUnit(follower.first))
+                {
+                    if (!f->IsInCombat() && f->GetMotionMaster()->GetCurrentMovementGeneratorType() != FOLLOW_MOTION_TYPE)
+                    {
+                        float angle = (float(follower.second) * (M_PI / (m_flameshockFollowers.size() / static_cast<float>(2)))) + m_creature->GetOrientation();
+                        f->GetMotionMaster()->Clear(true, true);
+                        f->GetMotionMaster()->MoveFollow(m_creature, 2.5f, angle);
+                    }
+                }
+            }
+            ResetTimer(25, 2500u);
+        });
         uint32 amount = urand(5, 9); // sniffed are group sizes of 5-9 shockers on spawn.
 
         if (m_creature->GetHealthPercent() == 100.0f)
         {
             for (uint32 i = 0; i < amount; ++i)
             {
-                if (Creature* pFlameshocker = m_creature->SummonCreature(NPC_FLAMESHOCKER, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OR_DEAD_DESPAWN, HOUR * IN_MILLISECONDS, true))
+                if (Creature* pFlameshocker = m_creature->SummonCreature(NPC_FLAMESHOCKER, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, HOUR * IN_MILLISECONDS, true))
                 {
                     float angle = (float(i) * (M_PI / (amount / static_cast<float>(2)))) + m_creature->GetOrientation();
                     //pFlameshocker->JoinCreatureGroup(m_creature, 5.0f, angle - M_PI, OPTION_FORMATION_MOVE); // Perfect Circle around the Pallid.
+                    pFlameshocker->GetMotionMaster()->Clear(true, true);
+                    pFlameshocker->GetMotionMaster()->MoveFollow(m_creature, 2.5f, angle);
                     pFlameshocker->CastSpell(pFlameshocker, SPELL_MINION_SPAWN_IN, TRIGGERED_OLD_TRIGGERED);
                     m_flameshockers.insert(pFlameshocker->GetObjectGuid());
+                    m_flameshockFollowers.insert(std::pair<ObjectGuid, uint32>(pFlameshocker->GetObjectGuid(), i));
                 }
             }   
         }
@@ -1077,6 +1097,8 @@ struct PallidHorrorAI : public CombatAI
         AddCombatAction(EVENT_PALLID_RANDOM_YELL, 5000u);
         AddCombatAction(EVENT_PALLID_SPELL_DAMAGE_VS_GUARDS, 5000u);
         AddCombatAction(EVENT_PALLID_SUMMON_FLAMESHOCKER, 5000u);
+        AddCombatAction(25, 5000u);
+        m_creature->GetMap()->SetWeather(m_creature->GetZoneId(), WEATHER_TYPE_STORM, 0.25f, true);
     }
 
     void Reset() override
@@ -1084,6 +1106,7 @@ struct PallidHorrorAI : public CombatAI
         CombatAI::Reset();
         //m_creature->AddAura(SPELL_AURA_OF_FEAR);
         m_creature->CastSpell(m_creature, SPELL_AURA_OF_FEAR, TRIGGERED_OLD_TRIGGERED);
+        ResetTimer(25, 0);
     }
 
     void MoveInLineOfSight(Unit* pWho) override
@@ -1114,12 +1137,13 @@ struct PallidHorrorAI : public CombatAI
 
         TimePoint now = m_creature->GetMap()->GetCurrentClockTime();
         uint32 cityAttackTimer = urand(CITY_ATTACK_TIMER_MIN, CITY_ATTACK_TIMER_MAX);
-        TimePoint nextAttack = now + std::chrono::milliseconds(cityAttackTimer);
-        uint64 timeToNextAttack = (nextAttack - now).count();
+        TimePoint nextAttack = now + std::chrono::seconds(cityAttackTimer);
+        uint64 timeToNextAttack = std::chrono::duration_cast<std::chrono::minutes>(nextAttack - now).count();
         SITimers index = m_creature->GetZoneId() == ZONEID_UNDERCITY_A ? SI_TIMER_UNDERCITY : SI_TIMER_STORMWIND;
         sWorldState.SetSITimer(index, nextAttack);
         sWorldState.SetPallidGuid(index, ObjectGuid());
-        sLog.outBasic("[Scourge Invasion Event] The Scourge has been defeated in %s, next attack starting in %d minutes", m_creature->GetZoneId() == ZONEID_UNDERCITY_A ? "Undercity" : "Stormwind", uint32(timeToNextAttack / 60));
+        m_creature->GetMap()->SetWeather(m_creature->GetZoneId(), WEATHER_TYPE_RAIN, 0.0f, false);
+        sLog.outBasic("[Scourge Invasion Event] The Scourge has been defeated in %s, next attack starting in %ld minutes", m_creature->GetZoneId() == ZONEID_UNDERCITY_A ? "Undercity" : "Stormwind", timeToNextAttack);
     }
 
     void SummonedCreatureJustDied(Creature* unit) override
@@ -1127,6 +1151,8 @@ struct PallidHorrorAI : public CombatAI
         // Remove dead Flameshockers here to respawn them if needed.
         if (m_flameshockers.find(unit->GetObjectGuid()) != m_flameshockers.end())
             m_flameshockers.erase(unit->GetObjectGuid());
+        if (m_flameshockFollowers.find(unit->GetObjectGuid()) != m_flameshockFollowers.end())
+            m_flameshockFollowers.erase(unit->GetObjectGuid());
     }
 
     void SummonedCreatureDespawn(Creature* unit) override
@@ -1134,6 +1160,8 @@ struct PallidHorrorAI : public CombatAI
         // Remove despawned Flameshockers here to respawn them if needed.
         if (m_flameshockers.find(unit->GetObjectGuid()) != m_flameshockers.end())
             m_flameshockers.erase(unit->GetObjectGuid());
+        if (m_flameshockFollowers.find(unit->GetObjectGuid()) != m_flameshockFollowers.end())
+            m_flameshockFollowers.erase(unit->GetObjectGuid());
     }
 
     void OnRemoveFromWorld() override

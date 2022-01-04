@@ -1695,7 +1695,7 @@ void WorldState::StartNewCityAttackIfTime(uint32 attackTimeVar, uint32 zoneId)
 
     StartNewCityAttack(zoneId);
     uint32 cityAttackTimer = urand(CITY_ATTACK_TIMER_MIN, CITY_ATTACK_TIMER_MAX);
-    TimePoint next_attack = now + std::chrono::milliseconds(cityAttackTimer * 1000);
+    TimePoint next_attack = now + std::chrono::seconds(cityAttackTimer);
     sWorldState.SetSITimer(SITimers(attackTimeVar), next_attack);
 }
 
@@ -1866,8 +1866,8 @@ void WorldState::HandleActiveZone(uint32 attackTimeVar, uint32 zoneId, uint32 re
 
     // Calculate the next possible attack between ZONE_ATTACK_TIMER_MIN and ZONE_ATTACK_TIMER_MAX.
     uint32 zoneAttackTimer = urand(ZONE_ATTACK_TIMER_MIN, ZONE_ATTACK_TIMER_MAX);
-    TimePoint next_attack = now + std::chrono::milliseconds(zoneAttackTimer * 1000);
-    uint64 timeToNextAttack = (next_attack - now).count();
+    TimePoint next_attack = now + std::chrono::seconds(zoneAttackTimer);
+    uint64 timeToNextAttack =std::chrono::duration_cast<std::chrono::minutes>(next_attack-now).count();
 
     if (zone.mouthGuid)
     {
@@ -1884,7 +1884,7 @@ void WorldState::HandleActiveZone(uint32 attackTimeVar, uint32 zoneId, uint32 re
                 sWorldState.AddBattlesWon(1);
                 sWorldState.SetLastAttackZone(zoneId);
 
-                sLog.outBasic("[Scourge Invasion Event] The Scourge has been defeated in %d, next attack starting in %d minutes.", zoneId, uint32(timeToNextAttack / 60));
+                sLog.outBasic("[Scourge Invasion Event] The Scourge has been defeated in %d, next attack starting in %ld minutes.", zoneId, timeToNextAttack);
                 sLog.outBasic("[Scourge Invasion Event] %d victories", sWorldState.GetBattlesWon());
 
                 if (mouth)

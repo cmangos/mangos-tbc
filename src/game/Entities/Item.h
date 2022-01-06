@@ -181,10 +181,10 @@ enum EnchantmentOffset
 
 enum EnchantmentSlotMask
 {
-    ENCHANTMENT_CAN_SOULBOUND  = 0x01,
-    ENCHANTMENT_UNK1           = 0x02,
-    ENCHANTMENT_UNK2           = 0x04,
-    ENCHANTMENT_UNK3           = 0x08
+    ENCHANTMENT_SOULBOUND               = 0x01,
+    ENCHANTMENT_DO_NOT_LOG              = 0x02,
+    ENCHANTMENT_MAINHAND_ONLY           = 0x04, // Not actually implemented - spells target only MH
+    ENCHANTMENT_ALLOW_ENTERING_ARENA    = 0x08
 };
 
 enum ItemUpdateState
@@ -279,6 +279,7 @@ class Item : public Object
         bool IsSoulBound() const { return HasFlag(ITEM_FIELD_FLAGS, ITEM_DYNFLAG_BINDED); }
         bool IsBindedNotWith(Player const* player) const;
         bool IsBoundByEnchant() const;
+        bool CanEnterArenaEnchant(EnchantmentSlot slot) const;
         virtual void SaveToDB();
         virtual bool LoadFromDB(uint32 guidLow, Field* fields, ObjectGuid ownerGuid = ObjectGuid());
         virtual void DeleteFromDB();

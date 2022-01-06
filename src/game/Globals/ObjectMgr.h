@@ -1182,8 +1182,6 @@ class ObjectMgr
         **/
         CreatureClassLvlStats const* GetCreatureClassLvlStats(uint32 level, uint32 unitClass, int32 expansion) const;
 
-        bool IsEnchantNonRemoveInArena(uint32 enchantId) const { return m_roguePoisonEnchantIds.find(enchantId) != m_roguePoisonEnchantIds.end(); }
-
         CreatureImmunityVector const* GetCreatureImmunitySet(uint32 entry, uint32 setId) const;
 
         CreatureSpellList* GetCreatureSpellList(uint32 Id) const; // only for starttime checks - else use Map
@@ -1347,8 +1345,6 @@ class ObjectMgr
         CacheTrainerSpellMap m_mCacheTrainerSpellMap;
 
         BroadcastTextMap m_broadcastTextMap;
-
-        std::map<uint32, bool> m_roguePoisonEnchantIds;
 
         CreatureImmunityContainer m_creatureImmunities;
 

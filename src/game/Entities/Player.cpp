@@ -11651,10 +11651,13 @@ void Player::RemoveAllEnchantments(EnchantmentSlot slot, bool arena)
         {
             if (itr->item && itr->item->GetEnchantmentId(slot))
             {
-                if (arena && sObjectMgr.IsEnchantNonRemoveInArena(itr->item->GetEnchantmentId(slot)))
+                if (arena)
                 {
-                    ++next;
-                    continue;
+                    if (itr->item->CanEnterArenaEnchant(slot))
+                    {
+                        ++next;
+                        continue;
+                    }
                 }
 
                 // remove from stats
@@ -11674,9 +11677,9 @@ void Player::RemoveAllEnchantments(EnchantmentSlot slot, bool arena)
     // in inventory
     for (int i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; i++)
     {
-        Item* pItem = GetItemByPos(INVENTORY_SLOT_BAG_0, i);
-        if (pItem && pItem->GetEnchantmentId(slot) && (!arena || !sObjectMgr.IsEnchantNonRemoveInArena(pItem->GetEnchantmentId(slot))))
-            pItem->ClearEnchantment(slot);
+        Item* item = GetItemByPos(INVENTORY_SLOT_BAG_0, i);
+        if (item && item->GetEnchantmentId(slot) && (!arena || !item->CanEnterArenaEnchant(slot)))
+            item->ClearEnchantment(slot);
     }
 
     // in inventory bags
@@ -11687,9 +11690,9 @@ void Player::RemoveAllEnchantments(EnchantmentSlot slot, bool arena)
         {
             for (uint32 j = 0; j < pBag->GetBagSize(); j++)
             {
-                Item* pItem = pBag->GetItemByPos(j);
-                if (pItem && pItem->GetEnchantmentId(slot) && (!arena || !sObjectMgr.IsEnchantNonRemoveInArena(pItem->GetEnchantmentId(slot))))
-                    pItem->ClearEnchantment(slot);
+                Item* item = pBag->GetItemByPos(j);
+                if (item && item->GetEnchantmentId(slot) && (!arena || !item->CanEnterArenaEnchant(slot)))
+                    item->ClearEnchantment(slot);
             }
         }
     }

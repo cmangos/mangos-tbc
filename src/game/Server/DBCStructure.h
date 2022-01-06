@@ -1087,7 +1087,7 @@ struct SpellItemEnchantmentEntry
     char*       description[16];                            // 13-28    m_name_lang[16]
     // uint32      descriptionFlags;                        // 29 string flags
     uint32      aura_id;                                    // 30       m_itemVisual
-    uint32      slot;                                       // 31       m_flags
+    uint32      flags;                                      // 31       m_flags
     uint32      GemID;                                      // 32       m_src_itemID
     uint32      EnchantmentCondition;                       // 33       m_condition_id
 };

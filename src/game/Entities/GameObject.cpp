@@ -985,6 +985,11 @@ GameObjectInfo const* GameObject::GetGOInfo() const
     return m_goInfo;
 }
 
+GameObjectTemplateAddon const* GameObject::GetTemplateAddon() const
+{
+    return sObjectMgr.GetGOTemplateAddon(GetEntry());
+}
+
 /*********************************************************/
 /***                    QUEST SYSTEM                   ***/
 /*********************************************************/

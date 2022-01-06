@@ -673,6 +673,7 @@ class ObjectMgr
         void LoadGameObjectLocales();
         void LoadGameObjects();
         void LoadGameObjectSpawnEntry();
+        void LoadGameObjectTemplateAddons();
         void LoadItemPrototypes();
         void LoadItemRequiredTarget();
         void LoadItemLocales();
@@ -957,6 +958,8 @@ class ObjectMgr
             GameObjectDataPair const* dataPair = GetGODataPair(guid);
             return dataPair ? &dataPair->second : nullptr;
         }
+
+        GameObjectTemplateAddon const* GetGOTemplateAddon(uint32 entry) const;
 
         GameObjectData& NewGOData(uint32 guid) { return mGameObjectDataMap[guid]; }
         void DeleteGOData(uint32 guid);
@@ -1245,6 +1248,7 @@ class ObjectMgr
 
         std::unordered_map<uint32, std::vector<uint32>> m_creatureSpawnEntryMap;
         std::unordered_map<uint32, std::vector<uint32>> m_gameobjectSpawnEntryMap;
+        std::unordered_map<uint32, GameObjectTemplateAddon> m_gameobjectAddonTemplates;
 		
         PointOfInterestMap  mPointsOfInterest;
 

@@ -210,8 +210,9 @@ bool ExtractSingleWmo(std::string& fname)
             char temp[1024];
             strcpy(temp, fname.c_str());
             temp[fname.length() - 4] = 0;
-            char groupFileName[1024];
-            if (snprintf(groupFileName, sizeof(groupFileName), "%s_%03d.wmo", temp, i))
+            char groupFileName[1500];
+            int snRes = snprintf(groupFileName, sizeof(groupFileName), "%s_%03d.wmo", temp, i);
+            if (snRes < 0 || snRes >= sizeof(groupFileName))
             {
                 printf("ERROR: WMO Path is too long!\n");
                 return(false);
@@ -344,7 +345,7 @@ bool fillArchiveNameVector(std::vector<std::string>& pArchiveNames)
 
     printf("\nGame path: %s\n", input_path);
 
-    char path[1024];
+    char path[1500];
     string in_path(input_path);
     std::vector<std::string> locales, searchLocales;
 
@@ -389,7 +390,8 @@ bool fillArchiveNameVector(std::vector<std::string>& pArchiveNames)
 
     // now, scan for the patch levels in the core dir
     printf("Scanning patch levels from data directory.\n");
-    if (snprintf(path, sizeof(path), "%spatch", input_path))
+    int snRes = snprintf(path, sizeof(path), "%spatch", input_path);
+    if (snRes < 0 || snRes >= sizeof(path))
     {
         printf("ERROR: Path is too long!\n");
         return(false);
@@ -404,7 +406,8 @@ bool fillArchiveNameVector(std::vector<std::string>& pArchiveNames)
     for (std::vector<std::string>::iterator i = locales.begin(); i != locales.end(); ++i)
     {
         printf("Locale: %s\n", i->c_str());
-        if (snprintf(path, sizeof(path), "%s%s/patch-%s", input_path, i->c_str(), i->c_str()))
+        int snRes = snprintf(path, sizeof(path), "%s%s/patch-%s", input_path, i->c_str(), i->c_str());
+        if (snRes < 0 || snRes >= sizeof(path))
         {
             printf("ERROR: Path is too long!\n");
             return(false);

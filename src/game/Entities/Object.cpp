@@ -1686,6 +1686,7 @@ void WorldObject::MovePositionToFirstCollision(Position& pos, float dist, float 
             transport->CalculatePassengerOffset(src.x, src.y, src.z);
             transport->CalculatePassengerOffset(dest.x, dest.y, dest.z);
         }
+        UpdateAllowedPositionZ(dest.x, dest.y, dest.z);
         path.calculate(src, dest, false, true);
         if (path.getPathType())
         {

@@ -16,8 +16,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+#include "Globals/ObjectMgr.h"
 #include "Maps/SpawnManager.h"
 #include "Maps/Map.h"
+#include "Maps/SpawnGroupDefines.h"
 #include "Maps/MapPersistentStateMgr.h"
 
 bool operator<(SpawnInfo const& lhs, SpawnInfo const& rhs)
@@ -37,6 +39,40 @@ bool SpawnInfo::ConstructForMap(Map& map)
         SetUsed();
     m_inUse = false;
     return result;
+}
+
+SpawnManager::~SpawnManager()
+{
+    for (auto& groupData : m_spawnGroups)
+        delete groupData.second;
+}
+
+void SpawnManager::Initialize()
+{
+    auto spawnGroupData = m_map.GetMapDataContainer().GetSpawnGroups();
+    for (auto& groupData : spawnGroupData->spawnGroupMap)
+    {
+        SpawnGroupEntry const& entry = groupData.second;
+        if (entry.DbGuids.empty())
+            continue;
+        if (entry.Type == SPAWN_GROUP_CREATURE)
+        {
+            if (m_map.GetId() != sObjectMgr.GetCreatureData(entry.DbGuids[0].DbGuid)->mapid)
+                continue;
+        }
+        else
+        {
+            if (m_map.GetId() != sObjectMgr.GetGOData(entry.DbGuids[0].DbGuid)->mapid)
+                continue;
+        }
+
+        SpawnGroup* spawnGroup = nullptr;
+        if (entry.Type == SPAWN_GROUP_CREATURE)
+            spawnGroup = new CreatureGroup(entry, m_map);
+        else
+            spawnGroup = new GameObjectGroup(entry, m_map);
+        m_spawnGroups.emplace(entry.Id, spawnGroup);
+    }
 }
 
 void SpawnManager::AddCreature(uint32 respawnDelay, uint32 dbguid)
@@ -70,7 +106,7 @@ void SpawnManager::RespawnCreature(uint32 dbguid, uint32 respawnDelay)
     }
     if (!found)
         AddCreature(respawnDelay, dbguid);
-    else
+    else if (respawnDelay == 0)
         (*itr).ConstructForMap(m_map);
     if (respawnDelay > 0)
         std::sort(m_spawns.begin(), m_spawns.end());
@@ -95,7 +131,7 @@ void SpawnManager::RespawnGameObject(uint32 dbguid, uint32 respawnDelay)
     }
     if (!found)
         AddGameObject(respawnDelay, dbguid);
-    else
+    else if (respawnDelay == 0)
         (*itr).ConstructForMap(m_map);
     if (respawnDelay > 0)
         std::sort(m_spawns.begin(), m_spawns.end());
@@ -126,6 +162,9 @@ void SpawnManager::Update()
         else
             ++itr;
     }
+
+    for (auto& group : m_spawnGroups)
+        group.second->Update();
 }
 
 std::string SpawnManager::GetRespawnList()
@@ -152,4 +191,13 @@ std::string SpawnManager::GetRespawnList()
         }
     }
     return output;
+}
+
+SpawnGroup* SpawnManager::GetSpawnGroup(uint32 Id)
+{
+    auto itr = m_spawnGroups.find(Id);
+    if (itr == m_spawnGroups.end())
+        return nullptr;
+
+    return (*itr).second;
 }

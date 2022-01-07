@@ -243,9 +243,9 @@ class instance_zulaman : public ScriptedInstance
         void ShowChatCommands(ChatHandler* handler) override;
         void ExecuteChatCommand(ChatHandler* handler, char* args) override;
 
-        void FillInitialWorldStates(ByteBuffer& /*data*/, uint32& /*count*/, uint32 /*zoneId*/, uint32 /*areaId*/) override;
-
         void StartSpiritTimer();
+
+        std::vector<uint32>& GetMalacrassAddsEntryList() { return m_malacrassAddsEntryList; }
     private:
         uint8 GetKilledPreBosses();
         void DoTimeRunSay(RunEventSteps uiData);
@@ -267,6 +267,8 @@ class instance_zulaman : public ScriptedInstance
         GuidSet sAkilzonTrashGuidSet;
 
         uint32 m_spiritFadeTimer;
+
+        std::vector<uint32> m_malacrassAddsEntryList;
 };
 
 #endif

@@ -1,6 +1,4 @@
-/*
- * This file is part of the CMaNGOS Project. See AUTHORS file for Copyright information
- *
+/* This file is part of the ScriptDev2 Project. See AUTHORS file for Copyright information
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -16,26 +14,18 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "CritterAI.h"
-#include "Entities/Creature.h"
+#include "AI/ScriptDevAI/include/sc_common.h"
+#include "Spells/Scripts/SpellScript.h"
 
-int CritterAI::Permissible(const Creature* creature)
+struct TrickyTreat : public AuraScript
 {
-    if (creature->IsCritter())
-        return PERMIT_BASE_SPECIAL;
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        aura->GetTarget()->CastSpell(nullptr, 42966, TRIGGERED_OLD_TRIGGERED); // Upset Tummy
+    }
+};
 
-    return PERMIT_BASE_NO;
-}
-
-void CritterAI::EnterCombat(Unit* /*enemy*/)
+void AddSC_hallows_end()
 {
-    if (!m_creature->IsInPanic())
-        m_creature->SetInPanic(30000);
-}
-
-void CritterAI::UpdateAI(const uint32 /*diff*/)
-{
-    if (m_creature->IsInCombat())
-        if (!m_creature->hasUnitState(UNIT_STAT_FLEEING))
-            CreatureAI::EnterEvadeMode();
+    RegisterAuraScript<TrickyTreat>("spell_tricky_treat");
 }

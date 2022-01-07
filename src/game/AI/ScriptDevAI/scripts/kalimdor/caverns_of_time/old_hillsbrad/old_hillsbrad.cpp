@@ -55,8 +55,8 @@ bool GossipHello_npc_erozion(Player* pPlayer, Creature* pCreature)
         pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_NEED_BOMBS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
 
     // Need info, should have option to teleport or not
-    /*if (!pPlayer->GetQuestRewardStatus(QUEST_ENTRY_RETURN) && pPlayer->GetQuestStatus(QUEST_ENTRY_RETURN) == QUEST_STATUS_COMPLETE)
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "[PH] Teleport please, i'm tired.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);*/
+    if (pInstance && pInstance->GetData(TYPE_EPOCH) == DONE)
+        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Take me back to my time.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
 
     pPlayer->SEND_GOSSIP_MENU(TEXT_ID_DEFAULT, pCreature->GetObjectGuid());
 
@@ -1295,6 +1295,129 @@ bool GossipSelect_npc_taretha(Player* pPlayer, Creature* pCreature, uint32 /*uiS
     return true;
 }
 
+enum
+{
+    BARTOLO_SAY_1 = 18137,
+    BARTOLO_SAY_2 = 18138,
+};
+
+struct npc_bartolo_ginsetti : public ScriptedAI
+{
+    npc_bartolo_ginsetti(Creature* creature) : ScriptedAI(creature) { Reset(); }
+
+    bool m_bCanStartScript;
+    uint32 m_uiScriptCooldownTimer;
+    uint32 m_uiSayTwoTimer;
+    uint32 m_uiFlexTwoTimer;
+
+    void Reset() override
+    {
+        m_uiScriptCooldownTimer = 0;
+        m_uiSayTwoTimer         = 0;
+        m_uiFlexTwoTimer        = 0;
+        m_bCanStartScript       = true;
+    }
+
+    void StartScript(Player* player)
+    {
+        m_bCanStartScript = false;
+        m_uiScriptCooldownTimer = 60000;
+        m_uiFlexTwoTimer = 5000;
+        m_uiSayTwoTimer = 8000;
+        m_creature->HandleEmote(EMOTE_ONESHOT_POINT);
+        DoBroadcastText(BARTOLO_SAY_1, m_creature, player);
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (m_uiScriptCooldownTimer)
+        {
+            if (m_uiScriptCooldownTimer < diff)
+            {
+                m_uiScriptCooldownTimer = 0;
+                m_bCanStartScript = true;
+            }
+            else
+                m_uiScriptCooldownTimer -= diff;
+        }
+
+        if (m_uiFlexTwoTimer)
+        {
+            if (m_uiFlexTwoTimer < diff)
+            {
+                m_creature->HandleEmote(EMOTE_ONESHOT_FLEX);
+                m_uiFlexTwoTimer = 0;
+            }
+            else
+                m_uiFlexTwoTimer -= diff;
+        }
+
+        if (m_uiSayTwoTimer)
+        {
+            if (m_uiSayTwoTimer < diff)
+            {
+                m_creature->HandleEmote(EMOTE_ONESHOT_FLEX);
+                DoBroadcastText(BARTOLO_SAY_2, m_creature);
+                m_uiSayTwoTimer = 0;
+            }
+            else
+                m_uiSayTwoTimer -= diff;
+        }
+    }
+};
+
+bool AreaTrigger_at_bartolo_ginsetti(Player* player, AreaTriggerEntry const* /*pAt*/)
+{
+    if (player->IsGameMaster() || !player->IsAlive())
+        return false;
+
+    instance_old_hillsbrad* instance = (instance_old_hillsbrad*)player->GetInstanceData();
+
+    if (!instance)
+        return false;
+
+    if (Creature* bartolo = instance->GetSingleCreatureFromStorage(NPC_BARTOLO))
+    {
+        if (npc_bartolo_ginsetti* bartoloAI = dynamic_cast<npc_bartolo_ginsetti*>(bartolo->AI()))
+        {
+            if (bartoloAI->m_bCanStartScript)
+            {
+                bartolo->SetFacingToObject(player);
+                bartoloAI->StartScript(player);
+            }
+        }
+    }
+
+    return true;
+}
+
+std::vector<uint32> beggarTexts = { 18148, 18149, 18150, 18151, 18152, 18153, 18154 };
+
+bool AreaTrigger_at_beggar(Player* player, AreaTriggerEntry const* /*pAt*/)
+{
+    if (player->IsGameMaster() || !player->IsAlive())
+        return false;
+
+    instance_old_hillsbrad* instance = (instance_old_hillsbrad*)player->GetInstanceData();
+
+    if (!instance)
+        return false;
+
+    TimePoint currentTime = player->GetMap()->GetCurrentClockTime();
+
+    if (currentTime > instance->m_beggarScriptTime + std::chrono::seconds(5))
+    {
+        if (Creature* beggar = GetClosestCreatureWithEntry(player, NPC_BEGGAR, 25.f))
+        {
+            instance->m_beggarScriptTime = currentTime;
+            beggar->HandleEmote(EMOTE_ONESHOT_BEG);
+            DoBroadcastText(beggarTexts[urand(0, beggarTexts.size() - 1)], beggar, player);
+        }
+    }
+
+    return true;
+}
+
 void AddSC_old_hillsbrad()
 {
     Script* pNewScript = new Script;
@@ -1315,5 +1438,20 @@ void AddSC_old_hillsbrad()
     pNewScript->GetAI = &GetAI_npc_taretha;
     pNewScript->pGossipHello = &GossipHello_npc_taretha;
     pNewScript->pGossipSelect = &GossipSelect_npc_taretha;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_bartolo_ginsetti";
+    pNewScript->GetAI = &GetNewAIInstance<npc_bartolo_ginsetti>;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_bartolo_ginsetti";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_bartolo_ginsetti;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "at_beggar";
+    pNewScript->pAreaTrigger = &AreaTrigger_at_beggar;
     pNewScript->RegisterSelf();
 }

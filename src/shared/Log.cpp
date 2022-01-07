@@ -268,6 +268,7 @@ void Log::Initialize()
     eventAiErLogfile = openLogFile("EventAIErrorLogFile", nullptr, "a");
     raLogfile = openLogFile("RaLogFile", nullptr, "a");
     worldLogfile = openLogFile("WorldLogFile", "WorldLogTimestamp", "a");
+    scriptErrLogFile = openLogFile("SD2ErrorLogFile", nullptr, "a");
     customLogFile = openLogFile("CustomLogFile", nullptr, "a");
 
     // Main log file settings
@@ -351,7 +352,8 @@ std::string Log::GetTimestampStr()
     //       MM     minutes (2 digits 00-59)
     //       SS     seconds (2 digits 00-59)
     char buf[20];
-    snprintf(buf, 20, "%04d-%02d-%02d_%02d-%02d-%02d", aTm->tm_year + 1900, aTm->tm_mon + 1, aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec);
+    if (snprintf(buf, 20, "%04d-%02d-%02d_%02d-%02d-%02d", aTm->tm_year + 1900, aTm->tm_mon + 1, aTm->tm_mday, aTm->tm_hour, aTm->tm_min, aTm->tm_sec))
+        return "";
     return std::string(buf);
 }
 

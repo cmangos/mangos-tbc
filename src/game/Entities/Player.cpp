@@ -475,8 +475,6 @@ void TradeData::SetAccepted(bool state, bool crosssend /*= false*/)
 
 //== Player ====================================================
 
-UpdateMask Player::updateVisualBits;
-
 Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(this), m_camera(this), m_reputationMgr(this), m_launched(false)
 {
 #ifdef BUILD_PLAYERBOT
@@ -584,7 +582,8 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
     m_ArmorProficiency = 0;
     m_canParry = false;
     m_canBlock = false;
-    m_ammoDPS = 0.0f;
+    m_ammoDPSMin = 0.0f;
+    m_ammoDPSMax = 0.0f;
 
     m_temporaryUnsummonedPetNumber = 0;
     m_BGPetSpell = 0;
@@ -794,15 +793,15 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
 
     setFactionForRace(race);
 
-    SetByteValue(UNIT_FIELD_BYTES_0, 0, race);
-    SetByteValue(UNIT_FIELD_BYTES_0, 1, class_);
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, race);
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_CLASS, class_);
     SetSpellClass(class_);
-    SetByteValue(UNIT_FIELD_BYTES_0, 2, gender);
-    SetByteValue(UNIT_FIELD_BYTES_0, 3, powertype);
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, gender);
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_POWER_TYPE, powertype);
 
     InitDisplayIds();                                       // model, scale and model data
 
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+    SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
     SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);               // fix cast time showed in spell tooltip on client
@@ -1602,9 +1601,6 @@ void Player::Update(const uint32 diff)
     else
         m_createdInstanceClearTimer -= diff;
 
-    // Group update
-    SendUpdateToOutOfRangeGroupMembers();
-
     Pet* pet = GetPet();
     if (pet && !pet->IsWithinDistInMap(this, GetMap()->GetVisibilityDistance()) && (GetCharmGuid() && (pet->GetObjectGuid() != GetCharmGuid())))
         pet->Unsummon(PET_SAVE_REAGENTS, this);
@@ -1618,6 +1614,12 @@ void Player::Update(const uint32 diff)
     else if (m_playerbotMgr)
         m_playerbotMgr->UpdateAI(diff);
 #endif
+}
+
+void Player::Heartbeat()
+{
+    Unit::Heartbeat();
+    SendUpdateToOutOfRangeGroupMembers();
 }
 
 void Player::SetDeathState(DeathState s)
@@ -1634,9 +1636,6 @@ void Player::SetDeathState(DeathState s)
         ClearComboPoints();
 
         clearResurrectRequestData();
-
-        // remove form before other mods to prevent incorrect stats calculation
-        RemoveSpellsCausingAura(SPELL_AURA_MOD_SHAPESHIFT);
 
         if (Pet* pet = GetPet())
             RemovePet(pet->IsAlive() ? PET_SAVE_REAGENTS : PET_SAVE_AS_CURRENT);
@@ -2476,6 +2475,17 @@ GameObject* Player::GetGameObjectIfCanInteractWith(ObjectGuid guid, uint32 gameo
     return nullptr;
 }
 
+bool Player::CanSeeSpecialInfoOf(Unit const* target) const
+{
+    for (const auto& aura : target->GetAurasByType(SPELL_AURA_EMPATHY))
+    {
+        if (aura->GetCasterGuid() == GetObjectGuid())
+            return true;
+    }
+
+    return false;
+}
+
 struct SetGameMasterOnHelper
 {
     explicit SetGameMasterOnHelper() {}
@@ -2922,19 +2932,19 @@ void Player::InitStatsForLevel(bool reapplyMods)
 
     // cleanup unit flags (will be re-applied if need at aura load).
     RemoveFlag(UNIT_FIELD_FLAGS,
-               UNIT_FLAG_UNK_0 | UNIT_FLAG_NON_ATTACKABLE | UNIT_FLAG_CLIENT_CONTROL_LOST | UNIT_FLAG_NOT_ATTACKABLE_1 |
+               UNIT_FLAG_UNK_0 | UNIT_FLAG_SPAWNING | UNIT_FLAG_CLIENT_CONTROL_LOST | UNIT_FLAG_NOT_ATTACKABLE_1 |
                UNIT_FLAG_IMMUNE_TO_PLAYER | UNIT_FLAG_IMMUNE_TO_NPC    | UNIT_FLAG_LOOTING          |
                UNIT_FLAG_PET_IN_COMBAT  | UNIT_FLAG_SILENCED     | UNIT_FLAG_PACIFIED         |
                UNIT_FLAG_STUNNED        | UNIT_FLAG_IN_COMBAT    | UNIT_FLAG_DISARMED         |
                UNIT_FLAG_CONFUSED       | UNIT_FLAG_FLEEING      | UNIT_FLAG_POSSESSED        |
                UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_SKINNABLE    | UNIT_FLAG_MOUNT            |
-               UNIT_FLAG_TAXI_FLIGHT    | UNIT_FLAG_UNK_29);
+               UNIT_FLAG_TAXI_FLIGHT    | UNIT_FLAG_PREVENT_ANIM);
     SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);    // must be set
 
     // cleanup player flags (will be re-applied if need at aura load), to avoid have ghost flag without ghost aura, for example.
     RemoveFlag(PLAYER_FLAGS, PLAYER_FLAGS_AFK | PLAYER_FLAGS_DND | PLAYER_FLAGS_GM | PLAYER_FLAGS_GHOST | PLAYER_FLAGS_PVP_DESIRED | PLAYER_FLAGS_FFA_PVP | PLAYER_FLAGS_TAXI_BENCHMARK | PLAYER_FLAGS_COMMENTATOR | PLAYER_FLAGS_COMMENTATOR_UBER);
 
-    RemoveStandFlags(UNIT_STAND_FLAGS_ALL);                 // one form stealth modified bytes
+    RemoveVisFlags(UNIT_VIS_FLAGS_ALL);                   // one form stealth modified bytes
 
     // restore if need some important flags
     SetUInt32Value(PLAYER_FIELD_BYTES2, 0);                 // flags empty by default
@@ -3941,129 +3951,6 @@ void Player::SaveItemToInventory(Item* item)
     item->SaveToDB();                                   // item have unchanged inventory record and can be save standalone
 }
 
-void Player::_SetCreateBits(UpdateMask* updateMask, Player* target) const
-{
-    if (target == this)
-    {
-        Object::_SetCreateBits(updateMask, target);
-    }
-    else
-    {
-        for (uint16 index = 0; index < m_valuesCount; ++index)
-        {
-            if (GetUInt32Value(index) != 0 && updateVisualBits.GetBit(index))
-                updateMask->SetBit(index);
-        }
-    }
-}
-
-void Player::_SetUpdateBits(UpdateMask* updateMask, Player* target) const
-{
-    if (target == this)
-    {
-        Object::_SetUpdateBits(updateMask, target);
-    }
-    else
-    {
-        Object::_SetUpdateBits(updateMask, target);
-        *updateMask &= updateVisualBits;
-    }
-}
-
-void Player::InitVisibleBits()
-{
-    updateVisualBits.SetCount(PLAYER_END);
-
-    // TODO: really implement OWNER_ONLY and GROUP_ONLY. Flags can be found in UpdateFields.h
-
-    updateVisualBits.SetBit(OBJECT_FIELD_GUID);
-    updateVisualBits.SetBit(OBJECT_FIELD_TYPE);
-    updateVisualBits.SetBit(OBJECT_FIELD_SCALE_X);
-    updateVisualBits.SetBit(UNIT_FIELD_CHARM + 0);
-    updateVisualBits.SetBit(UNIT_FIELD_CHARM + 1);
-    updateVisualBits.SetBit(UNIT_FIELD_SUMMON + 0);
-    updateVisualBits.SetBit(UNIT_FIELD_SUMMON + 1);
-    updateVisualBits.SetBit(UNIT_FIELD_CHARMEDBY + 0);
-    updateVisualBits.SetBit(UNIT_FIELD_CHARMEDBY + 1);
-    updateVisualBits.SetBit(UNIT_FIELD_TARGET + 0);
-    updateVisualBits.SetBit(UNIT_FIELD_TARGET + 1);
-    updateVisualBits.SetBit(UNIT_FIELD_CHANNEL_OBJECT + 0);
-    updateVisualBits.SetBit(UNIT_FIELD_CHANNEL_OBJECT + 1);
-    updateVisualBits.SetBit(UNIT_FIELD_HEALTH);
-    updateVisualBits.SetBit(UNIT_FIELD_POWER1);
-    updateVisualBits.SetBit(UNIT_FIELD_POWER2);
-    updateVisualBits.SetBit(UNIT_FIELD_POWER3);
-    updateVisualBits.SetBit(UNIT_FIELD_POWER4);
-    updateVisualBits.SetBit(UNIT_FIELD_POWER5);
-    updateVisualBits.SetBit(UNIT_FIELD_MAXHEALTH);
-    updateVisualBits.SetBit(UNIT_FIELD_MAXPOWER1);
-    updateVisualBits.SetBit(UNIT_FIELD_MAXPOWER2);
-    updateVisualBits.SetBit(UNIT_FIELD_MAXPOWER3);
-    updateVisualBits.SetBit(UNIT_FIELD_MAXPOWER4);
-    updateVisualBits.SetBit(UNIT_FIELD_MAXPOWER5);
-    updateVisualBits.SetBit(UNIT_FIELD_LEVEL);
-    updateVisualBits.SetBit(UNIT_FIELD_FACTIONTEMPLATE);
-    updateVisualBits.SetBit(UNIT_FIELD_BYTES_0);
-    updateVisualBits.SetBit(UNIT_FIELD_FLAGS);
-    updateVisualBits.SetBit(UNIT_FIELD_FLAGS_2);
-    for (uint16 i = UNIT_FIELD_AURA; i < UNIT_FIELD_AURASTATE; ++i)
-        updateVisualBits.SetBit(i);
-    updateVisualBits.SetBit(UNIT_FIELD_AURASTATE);
-    updateVisualBits.SetBit(UNIT_FIELD_BASEATTACKTIME + 0);
-    updateVisualBits.SetBit(UNIT_FIELD_BASEATTACKTIME + 1);
-    updateVisualBits.SetBit(UNIT_FIELD_BOUNDINGRADIUS);
-    updateVisualBits.SetBit(UNIT_FIELD_COMBATREACH);
-    updateVisualBits.SetBit(UNIT_FIELD_DISPLAYID);
-    updateVisualBits.SetBit(UNIT_FIELD_NATIVEDISPLAYID);
-    updateVisualBits.SetBit(UNIT_FIELD_MOUNTDISPLAYID);
-    updateVisualBits.SetBit(UNIT_FIELD_BYTES_1);
-    updateVisualBits.SetBit(UNIT_FIELD_PETNUMBER);
-    updateVisualBits.SetBit(UNIT_FIELD_PET_NAME_TIMESTAMP);
-    updateVisualBits.SetBit(UNIT_DYNAMIC_FLAGS);
-    updateVisualBits.SetBit(UNIT_CHANNEL_SPELL);
-    updateVisualBits.SetBit(UNIT_MOD_CAST_SPEED);
-    updateVisualBits.SetBit(UNIT_FIELD_BYTES_2);
-
-    updateVisualBits.SetBit(PLAYER_DUEL_ARBITER + 0);
-    updateVisualBits.SetBit(PLAYER_DUEL_ARBITER + 1);
-    updateVisualBits.SetBit(PLAYER_FLAGS);
-    updateVisualBits.SetBit(PLAYER_GUILDID);
-    updateVisualBits.SetBit(PLAYER_GUILDRANK);
-    updateVisualBits.SetBit(PLAYER_BYTES);
-    updateVisualBits.SetBit(PLAYER_BYTES_2);
-    updateVisualBits.SetBit(PLAYER_BYTES_3);
-    updateVisualBits.SetBit(PLAYER_DUEL_TEAM);
-    updateVisualBits.SetBit(PLAYER_GUILD_TIMESTAMP);
-
-    // PLAYER_QUEST_LOG_x also visible bit on official (but only on party/raid)...
-    for (uint16 i = PLAYER_QUEST_LOG_1_1; i < PLAYER_QUEST_LOG_25_2; i += MAX_QUEST_OFFSET)
-        updateVisualBits.SetBit(i);
-
-    // Players visible items are not inventory stuff
-    //431) = 884 (0x374) = main weapon
-    for (uint16 i = 0; i < EQUIPMENT_SLOT_END; i++)
-    {
-        // item creator
-        updateVisualBits.SetBit(PLAYER_VISIBLE_ITEM_1_CREATOR + (i * MAX_VISIBLE_ITEM_OFFSET) + 0);
-        updateVisualBits.SetBit(PLAYER_VISIBLE_ITEM_1_CREATOR + (i * MAX_VISIBLE_ITEM_OFFSET) + 1);
-
-        uint16 visual_base = PLAYER_VISIBLE_ITEM_1_0 + (i * MAX_VISIBLE_ITEM_OFFSET);
-
-        // item entry
-        updateVisualBits.SetBit(visual_base + 0);
-
-        // item enchantment IDs
-        for (uint8 j = 0; j < MAX_INSPECTED_ENCHANTMENT_SLOT; ++j)
-            updateVisualBits.SetBit(visual_base + 1 + j);
-
-        // random properties
-        updateVisualBits.SetBit(PLAYER_VISIBLE_ITEM_1_PROPERTIES + 0 + (i * MAX_VISIBLE_ITEM_OFFSET));
-        updateVisualBits.SetBit(PLAYER_VISIBLE_ITEM_1_PROPERTIES + 1 + (i * MAX_VISIBLE_ITEM_OFFSET));
-    }
-
-    updateVisualBits.SetBit(PLAYER_CHOSEN_TITLE);
-}
-
 void Player::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const
 {
     if (target == this)
@@ -4521,7 +4408,7 @@ void Player::BuildPlayerRepop()
     corpse->ResetGhostTime();
 
     // set and clear other
-    SetByteValue(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+    SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
 }
 
 void Player::ResurrectPlayer(float restore_percent, bool applySickness)
@@ -4536,7 +4423,7 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
     // speed change, land walk
 
     // remove death flag + set aura
-    SetByteValue(UNIT_FIELD_BYTES_1, 3, 0x00);
+    SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, 0x00);
 
     SetDeathState(ALIVE);
 
@@ -6384,6 +6271,14 @@ void Player::SendMessageToSetInRange(WorldPacket const& data, float dist, bool s
         GetSession()->SendPacket(data);
 }
 
+void Player::SendMessageToAllWhoSeeMe(WorldPacket const& data, bool self) const
+{
+    Unit::SendMessageToAllWhoSeeMe(data, self);
+
+    if (self)
+        GetSession()->SendPacket(data);
+}
+
 void Player::SendDirectMessage(WorldPacket const& data) const
 {
     GetSession()->SendPacket(data);
@@ -8009,18 +7904,26 @@ void Player::_ApplyAmmoBonuses()
     if (!ammo_id)
         return;
 
-    float currentAmmoDPS;
+    float currentAmmoDPSMin;
+    float currentAmmoDPSMax;
 
     ItemPrototype const* ammo_proto = ObjectMgr::GetItemPrototype(ammo_id);
     if (!ammo_proto || ammo_proto->Class != ITEM_CLASS_PROJECTILE || !CheckAmmoCompatibility(ammo_proto))
-        currentAmmoDPS = 0.0f;
+    {
+        currentAmmoDPSMin = 0.f;
+        currentAmmoDPSMax = 0.f;
+    }
     else
-        currentAmmoDPS = ammo_proto->Damage[0].DamageMin;
+    {
+        currentAmmoDPSMin = ammo_proto->Damage[0].DamageMin;
+        currentAmmoDPSMax = ammo_proto->Damage[0].DamageMax;
+    }
 
-    if (currentAmmoDPS == GetAmmoDPS())
+    if (std::make_pair(currentAmmoDPSMin, currentAmmoDPSMax) == GetAmmoDPS())
         return;
 
-    m_ammoDPS = currentAmmoDPS;
+    m_ammoDPSMin = currentAmmoDPSMin;
+    m_ammoDPSMax = currentAmmoDPSMax;
 
     if (CanModifyStats())
         UpdateDamagePhysical(RANGED_ATTACK);
@@ -8179,6 +8082,8 @@ void Player::SendInitWorldStates(uint32 zoneid, uint32 areaid) const
         instanceData->FillInitialWorldStates(data, count, zoneid, areaid);
 
     sWorldState.FillInitialWorldStates(data, count, zoneid, areaid);
+
+    GetMap()->GetVariableManager().FillInitialWorldStates(data, count, zoneid, areaid);
 
     data.put<uint16>(count_pos, count);                     // set actual world state amount
 
@@ -10323,7 +10228,8 @@ void Player::RemoveAmmo()
 {
     SetUInt32Value(PLAYER_AMMO_ID, 0);
 
-    m_ammoDPS = 0.0f;
+    m_ammoDPSMin = 0.0f;
+    m_ammoDPSMax = 0.0f;
 
     if (CanModifyStats())
         UpdateDamagePhysical(RANGED_ATTACK);
@@ -11671,7 +11577,7 @@ void Player::UpdateItemDuration(uint32 time, bool realtimeonly)
     if (m_itemDuration.empty())
         return;
 
-    DEBUG_LOG("Player::UpdateItemDuration(%u,%u)", time, realtimeonly);
+    DEBUG_LOG("Player::UpdateItemDuration(%u,%s)", time, realtimeonly ? "true" : "false");
 
     for (ItemDurationList::const_iterator itr = m_itemDuration.begin(); itr != m_itemDuration.end();)
     {
@@ -12190,7 +12096,7 @@ void Player::SendNewItem(Item* item, uint32 count, bool received, bool created, 
 /***                    GOSSIP SYSTEM                  ***/
 /*********************************************************/
 
-void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
+void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId, bool forceQuests)
 {
     m_playerMenu->ClearMenus();
 
@@ -12201,7 +12107,7 @@ void Player::PrepareGossipMenu(WorldObject* pSource, uint32 menuId)
     Gender gender = GENDER_MALE;
 
     // prepares quest menu when true
-    bool canSeeQuests = menuId == GetDefaultGossipMenuForSource(pSource);
+    bool canSeeQuests = menuId == GetDefaultGossipMenuForSource(pSource) || forceQuests;
 
     // if canSeeQuests (the default, top level menu) and no menu options exist for this, use options from default options
     if (pMenuItemBounds.first == pMenuItemBounds.second && canSeeQuests)
@@ -14256,7 +14162,7 @@ void Player::KilledMonsterCredit(uint32 entry, ObjectGuid guid)
             continue;
         // just if !ingroup || !noraidgroup || raidgroup
         QuestStatusData& q_status = mQuestStatus[questid];
-        if (q_status.m_status == QUEST_STATUS_INCOMPLETE && (!GetGroup() || !GetGroup()->isRaidGroup() || qInfo->IsAllowedInRaid()))
+        if (q_status.m_status == QUEST_STATUS_INCOMPLETE && (!GetGroup() || !GetGroup()->IsRaidGroup() || qInfo->IsAllowedInRaid()))
         {
             if (qInfo->HasSpecialFlag(QUEST_SPECIAL_FLAG_KILL_OR_CAST))
             {
@@ -14540,7 +14446,7 @@ bool Player::HasQuestForItem(uint32 itemid) const
                 continue;
 
             // hide quest if player is in raid-group and quest is no raid quest
-            if (GetGroup() && GetGroup()->isRaidGroup() && !qinfo->IsAllowedInRaid() && !InBattleGround())
+            if (GetGroup() && GetGroup()->IsRaidGroup() && !qinfo->IsAllowedInRaid() && !InBattleGround())
                 continue;
 
             // There should be no mixed ReqItem/ReqSource drop
@@ -14968,15 +14874,15 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
     SetGuidValue(OBJECT_FIELD_GUID, guid);
 
     // overwrite some data fields
-    SetByteValue(UNIT_FIELD_BYTES_0, 0, fields[3].GetUInt8()); // race
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_RACE, fields[3].GetUInt8()); // race
     uint8 playerClass = fields[4].GetUInt8();
-    SetByteValue(UNIT_FIELD_BYTES_0, 1, fields[4].GetUInt8()); // class
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_CLASS, fields[4].GetUInt8()); // class
     SetSpellClass(playerClass);
 
     uint8 gender = fields[5].GetUInt8() & 0x01;             // allowed only 1 bit values male/female cases (for fit drunk gender part)
-    SetByteValue(UNIT_FIELD_BYTES_0, 2, gender);            // gender
+    SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, gender); // gender
 
-    SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+    SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     SetUInt32Value(UNIT_FIELD_LEVEL, fields[6].GetUInt8());
     SetUInt32Value(PLAYER_XP, fields[7].GetUInt32());
@@ -15615,7 +15521,7 @@ void Player::_LoadAuras(QueryResult* result, uint32 timediff)
                 continue;
             }
 
-            if (remaintime != -1 && !IsPositiveSpell(spellproto))
+            if (remaintime != -1 && (spellproto->HasAttribute(SPELL_ATTR_EX4_AURA_EXPIRES_OFFLINE) || !IsPositiveSpell(spellproto)))
             {
                 if (remaintime / IN_MILLISECONDS <= int32(timediff))
                     continue;
@@ -20055,7 +19961,7 @@ bool Player::HasQuestForGO(int32 GOId) const
             if (!qinfo)
                 continue;
 
-            if (GetGroup() && GetGroup()->isRaidGroup() && !qinfo->IsAllowedInRaid())
+            if (GetGroup() && GetGroup()->IsRaidGroup() && !qinfo->IsAllowedInRaid())
                 continue;
 
             for (int j = 0; j < QUEST_OBJECTIVES_COUNT; ++j)
@@ -20082,7 +19988,7 @@ void Player::UpdateForQuestWorldObjects()
         if (m_clientGUID.IsGameObject())
         {
             if (GameObject* obj = GetMap()->GetGameObject(m_clientGUID))
-                obj->BuildValuesUpdateBlockForPlayer(&updateData, this);
+                obj->BuildValuesUpdateBlockForPlayerWithFlags(updateData, this, UF_FLAG_DYNAMIC);
         }
     }
     for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
@@ -20101,11 +20007,8 @@ void Player::UpdateEverything()
     for (const auto guid : m_clientGUIDs)
         if (WorldObject* obj = GetMap()->GetWorldObject(guid))
             obj->BuildForcedValuesUpdateBlockForPlayer(&updateData, this);
-    for (size_t i = 0; i < updateData.GetPacketCount(); ++i)
-    {
-        WorldPacket packet = updateData.BuildPacket(i);
-        GetSession()->SendPacket(packet);
-    }
+
+    updateData.SendData(*GetSession());
 }
 
 void Player::SummonIfPossible(bool agree, ObjectGuid guid)
@@ -20727,8 +20630,9 @@ void Player::SetOriginalGroup(Group* group, int8 subgroup)
 
 void Player::UpdateTerainEnvironmentFlags(Map* m, float x, float y, float z)
 {
+    uint32 collisionHeight = GetCollisionHeight();
     GridMapLiquidData liquid_status;
-    GridMapLiquidStatus res = m->GetTerrain()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &liquid_status);
+    GridMapLiquidStatus res = m->GetTerrain()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &liquid_status, collisionHeight);
     if (!res)
     {
         SetEnvironmentFlags(ENVIRONMENT_MASK_LIQUID_FLAGS, false);
@@ -20781,7 +20685,7 @@ void Player::UpdateTerainEnvironmentFlags(Map* m, float x, float y, float z)
     SetEnvironmentFlags(ENVIRONMENT_FLAG_HIGH_SEA, (liquid_status.type_flags & MAP_LIQUID_TYPE_DEEP_WATER));
 
     // All liquid types: check if deep enough level for swimming
-    SetEnvironmentFlags(ENVIRONMENT_FLAG_HIGH_LIQUID, ((res & (LIQUID_MAP_UNDER_WATER | LIQUID_MAP_IN_WATER)) && liquid_status.level > (liquid_status.depth_level + 1.5f)));
+    SetEnvironmentFlags(ENVIRONMENT_FLAG_HIGH_LIQUID, ((res & (LIQUID_MAP_UNDER_WATER | LIQUID_MAP_IN_WATER)) && liquid_status.level > (liquid_status.depth_level + collisionHeight * 0.75)));
 }
 
 bool ItemPosCount::isContainedIn(ItemPosCountVec const& vec) const
@@ -21565,7 +21469,7 @@ AreaLockStatus Player::GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& m
 
     // Raid Requirements
     if (mapEntry->IsRaid() && !sWorld.getConfig(CONFIG_BOOL_INSTANCE_IGNORE_RAID))
-        if (!GetGroup() || !GetGroup()->isRaidGroup())
+        if (!GetGroup() || !GetGroup()->IsRaidGroup())
             return AREA_LOCKSTATUS_RAID_LOCKED;
 
     // Item Requirements: must have requiredItem OR requiredItem2, report the first one that's missing

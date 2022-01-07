@@ -389,6 +389,7 @@ class Object
         void SetObjectScale(float newScale);
 
         uint8 GetTypeId() const { return m_objectTypeId; }
+        uint8 GetTypeMask() const { return m_objectType; }
         bool isType(TypeMask mask) const { return (mask & m_objectType) != 0; }
 
         virtual void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const;
@@ -401,7 +402,9 @@ class Object
         void MarkForClientUpdate();
         void SendForcedObjectUpdate();
 
-        void BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const;
+        void BuildValuesUpdateBlockForPlayer(UpdateData& data, Player* target) const;
+        void BuildValuesUpdateBlockForPlayerWithFlags(UpdateData& data, Player* target, UpdateFieldFlags flags) const;
+        void BuildValuesUpdateBlockForPlayer(UpdateData& data, UpdateMask& updateMask, Player* target) const;
         void BuildForcedValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const;
         void BuildOutOfRangeUpdateBlock(UpdateData* data) const;
         void BuildMovementUpdateBlock(UpdateData* data, uint8 flags = 0) const;
@@ -458,7 +461,6 @@ class Object
         void SetGuidValue(uint16 index, ObjectGuid const& value) { SetUInt64Value(index, value.GetRawValue()); }
         void SetStatFloatValue(uint16 index, float value);
         void SetStatInt32Value(uint16 index, int32 value);
-        void ForceValuesUpdateAtIndex(uint16 index);
         void ApplyModUInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModPositiveFloatValue(uint16 index, float val, bool apply);
@@ -469,6 +471,9 @@ class Object
             val = val != -100.0f ? val : -99.9f ;
             SetFloatValue(index, GetFloatValue(index) * (apply ? (100.0f + val) / 100.0f : 100.0f / (100.0f + val)));
         }
+
+        void ForceValuesUpdateAtIndex(uint16 index);
+        void MarkUpdateFieldsWithFlagForUpdate(UpdateMask& updateMask, uint16 flag) const;
 
         void SetFlag(uint16 index, uint32 newFlag);
         void RemoveFlag(uint16 index, uint32 oldFlag);
@@ -606,9 +611,9 @@ class Object
         void _InitValues();
         void _Create(uint32 guidlow, uint32 entry, HighGuid guidhigh);
 
-        virtual void _SetUpdateBits(UpdateMask* updateMask, Player* target) const;
-
-        virtual void _SetCreateBits(UpdateMask* updateMask, Player* target) const;
+        uint16 GetUpdateFieldFlagsForTarget(Player const* target, uint16 const*& flags) const;
+        void _SetUpdateBits(UpdateMask& updateMask, Player* target) const;
+        void _SetCreateBits(UpdateMask& updateMask, Player* target) const;
 
         void BuildMovementUpdate(ByteBuffer* data, uint8 updateFlags) const;
         void BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* updateMask, Player* target) const;
@@ -668,6 +673,7 @@ struct TempSpawnSettings
     ObjectGuid ownerGuid;
     uint32 spawnDataEntry = 0;
     int32 movegen = -1;
+    WorldObject* dbscriptTarget = nullptr;
 
     // TemporarySpawnWaypoint subsystem
     bool tempSpawnMovegen = false;
@@ -866,7 +872,9 @@ class WorldObject : public Object
     public:
         virtual ~WorldObject() {}
 
-        virtual void Update(const uint32 /*diff*/) {}
+        virtual void Update(const uint32 /*diff*/);
+        virtual void Heartbeat() {}
+        virtual uint32 GetHeartbeatDuration() const { return 5000; }
 
         void _Create(uint32 guidlow, HighGuid guidhigh, uint32 phaseMask = 1);
 
@@ -980,6 +988,10 @@ class WorldObject : public Object
         float GetDistance(float x, float y, float z, DistanceCalculation distcalc = DIST_CALC_BOUNDING_RADIUS, bool transport = false) const;
         float GetDistance2d(float x, float y, DistanceCalculation distcalc = DIST_CALC_BOUNDING_RADIUS) const;
         float GetDistanceZ(const WorldObject* obj) const;
+        bool IsInMapIgnorePhase(const WorldObject* obj) const // only to be used by spells which ignore phase during search and similar
+        {
+            return IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap());
+        }
         bool IsInMap(const WorldObject* obj) const
         {
             return IsInWorld() && obj->IsInWorld() && (GetMap() == obj->GetMap()) && InSamePhase(obj);
@@ -988,9 +1000,9 @@ class WorldObject : public Object
         {
             return obj && _IsWithinCombatDist(obj, dist2compare, is3D);
         }
-        bool IsWithinCombatDistInMap(WorldObject const* obj, float dist2compare, bool is3D = true) const
+        bool IsWithinCombatDistInMap(WorldObject const* obj, float dist2compare, bool is3D = true, bool ignorePhase = false) const
         {
-            return obj && IsInMap(obj) && _IsWithinCombatDist(obj, dist2compare, is3D);
+            return obj && (ignorePhase ? IsInMapIgnorePhase(obj) : IsInMap(obj)) && _IsWithinCombatDist(obj, dist2compare, is3D);
         }
         bool IsWithinDist3d(float x, float y, float z, float dist2compare) const;
         bool IsWithinDist2d(float x, float y, float dist2compare) const;
@@ -1003,9 +1015,9 @@ class WorldObject : public Object
             return obj && _IsWithinDist(obj, dist2compare, is3D);
         }
 
-        bool IsWithinDistInMap(WorldObject const* obj, float dist2compare, bool is3D = true) const
+        bool IsWithinDistInMap(WorldObject const* obj, float dist2compare, bool is3D = true, bool ignorePhase = false) const
         {
-            return obj && IsInMap(obj) && _IsWithinDist(obj, dist2compare, is3D);
+            return obj && (ignorePhase ? IsInMapIgnorePhase(obj) : IsInMap(obj)) && _IsWithinDist(obj, dist2compare, is3D);
         }
         bool IsWithinLOS(float ox, float oy, float oz, bool ignoreM2Model = false) const;
         bool IsWithinLOSForMe(float x, float y, float z, float collisionHeight, bool ignoreM2Model = false) const;
@@ -1035,12 +1047,13 @@ class WorldObject : public Object
         virtual void SendMessageToSet(WorldPacket const& data, bool self) const;
         virtual void SendMessageToSetInRange(WorldPacket const& data, float dist, bool self) const;
         void SendMessageToSetExcept(WorldPacket const& data, Player const* skipped_receiver) const;
+        virtual void SendMessageToAllWhoSeeMe(WorldPacket const& data, bool self) const;
 
         void MonsterSay(const char* text, uint32 language, Unit const* target = nullptr) const;
         void MonsterYell(const char* text, uint32 language, Unit const* target = nullptr) const;
         void MonsterTextEmote(const char* text, Unit const* target, bool IsBossEmote = false) const;
         void MonsterWhisper(const char* text, Unit const* target, bool IsBossWhisper = false) const;
-        void MonsterText(MangosStringLocale const* textData, Unit const* target) const;
+        void MonsterText(std::vector<std::string> content, uint32 type, Language lang, Unit const* target) const;
 
         void PlayDistanceSound(uint32 sound_id, PlayPacketParameters parameters = PlayPacketParameters(PLAY_SET)) const;
         void PlayDirectSound(uint32 sound_id, PlayPacketParameters parameters = PlayPacketParameters(PLAY_SET)) const;
@@ -1086,8 +1099,8 @@ class WorldObject : public Object
         static Creature* SummonCreature(TempSpawnSettings settings, Map* map);
         Creature* SummonCreature(uint32 id, float x, float y, float z, float ang, TempSpawnType spwtype, uint32 despwtime, bool asActiveObject = false, bool setRun = false, uint32 pathId = 0, uint32 faction = 0, uint32 modelId = 0, bool spawnCounting = false, bool forcedOnTop = false);
 
-        static GameObject* SpawnGameObject(uint32 dbGuid, Map* map);
-        static Creature* SpawnCreature(uint32 dbGuid, Map* map);
+        static GameObject* SpawnGameObject(uint32 dbGuid, Map* map, uint32 forcedEntry = 0);
+        static Creature* SpawnCreature(uint32 dbGuid, Map* map, uint32 forcedEntry = 0);
 
         bool isActiveObject() const { return m_isActiveObject || m_viewPoint.hasViewers(); }
         void SetActiveObjectState(bool active);
@@ -1196,6 +1209,7 @@ class WorldObject : public Object
 
         VisibilityData m_visibilityData;
 
+        ShortTimeTracker m_heartBeatTimer;
     private:
         Map* m_currMap;                                     // current object's Map location
 

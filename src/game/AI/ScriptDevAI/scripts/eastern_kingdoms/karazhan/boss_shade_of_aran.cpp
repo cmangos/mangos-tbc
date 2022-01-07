@@ -122,16 +122,16 @@ enum AranActions // order based on priority
     ARAN_DRINKING_STAGES,
 };
 
-struct boss_aranAI : public RangedCombatAI
+struct boss_aranAI : public CombatAI
 {
-    boss_aranAI(Creature* creature) : RangedCombatAI(creature, ARAN_ACTION_MAX), m_instance(static_cast<instance_karazhan*>(creature->GetInstanceData())), m_atiesh(false)
+    boss_aranAI(Creature* creature) : CombatAI(creature, ARAN_ACTION_MAX), m_instance(static_cast<instance_karazhan*>(creature->GetInstanceData())), m_atiesh(false)
     {
         AddTimerlessCombatAction(ARAN_ACTION_DRINK, true);
         AddTimerlessCombatAction(ARAN_ACTION_POTION, true);
         AddTimerlessCombatAction(ARAN_ACTION_ELEMENTALS, true);
         AddCombatAction(ARAN_ACTION_BERSERK, uint32(12 * MINUTE * IN_MILLISECONDS));
         AddCombatAction(ARAN_ACTION_DRAGONS_BREATH, true);
-        AddCombatAction(ARAN_ACTION_SUPERSPELL, 35000u);
+        AddCombatAction(ARAN_ACTION_SUPERSPELL, 5000, 10000);
         AddCombatAction(ARAN_ACTION_SECONDARY_SPELL, 5000u);
         AddCombatAction(ARAN_ACTION_PRIMARY_SPELL, 0u);
         AddCustomAction(ARAN_DRINKING_STAGES, true, [&]() {HandleDrinking(); });
@@ -199,7 +199,7 @@ struct boss_aranAI : public RangedCombatAI
 
     void MoveInLineOfSight(Unit* who) override
     {
-        RangedCombatAI::MoveInLineOfSight(who);
+        CombatAI::MoveInLineOfSight(who);
         if (!m_atiesh && who->IsPlayer())
         {
             Player* player = static_cast<Player*>(who);

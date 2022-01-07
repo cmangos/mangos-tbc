@@ -302,51 +302,58 @@ struct EnchantDuration
 typedef std::list<EnchantDuration> EnchantDurationList;
 typedef std::list<Item*> ItemDurationList;
 
-struct LookingForGroupSlot
-{
-    LookingForGroupSlot() : entry(0), type(LFG_TYPE_DUNGEON) {}
-    bool Empty() const { return (!type || !entry); }
-    void Clear() { entry = 0; }
-    void Set(uint32 _entry, uint32 _type) { entry = _entry; type = _type; }
-    bool Is(uint32 _entry, uint32 _type) const { return entry == _entry && type == _type; }
-    bool canAutoJoin() const { return entry && (type == LFG_TYPE_DUNGEON || type == LFG_TYPE_HEROIC_DUNGEON); }
-
-    uint32 entry;
-    uint32 type;
-};
-
 #define MAX_LOOKING_FOR_GROUP_SLOT 3
 
-struct LookingForGroup
+struct LookingForGroupInfo
 {
-    LookingForGroup() {}
-    bool HaveInSlot(LookingForGroupSlot const& slot) const { return HaveInSlot(slot.entry, slot.type); }
-    bool HaveInSlot(uint32 _entry, uint32 _type) const
+    struct Slot
     {
-        for (int i = 0; i < MAX_LOOKING_FOR_GROUP_SLOT; ++i)
-            if (slots[i].Is(_entry, _type))
+        bool empty() const { return (!type || !entry); }
+        void clear() { entry = 0; }
+        bool set(uint16 _entry, uint16 _type) { entry = _entry; type = _type; return !empty(); }
+        bool is(uint16 _entry, uint16 _type) const { return entry == _entry && type == _type; }
+        bool isAuto() const { return entry && (type == LFG_TYPE_DUNGEON || type == LFG_TYPE_HEROIC_DUNGEON); }
+
+        uint16 entry = 0;
+        uint16 type = LFG_TYPE_DUNGEON;
+    };
+
+    inline void clear()
+    {
+        more.clear();
+        for (auto& slot : group)
+            slot.clear();
+    }
+    inline bool isAutoFill() const { return more.isAuto(); }
+    inline bool isAutoJoin() const
+    {
+        for (auto& slot : group)
+            if (slot.isAuto())
                 return true;
         return false;
     }
-
-    bool canAutoJoin() const
+    inline bool isEmpty() const { return (!isLFM() && !isLFG()); }
+    inline bool isLFG() const
     {
-        for (int i = 0; i < MAX_LOOKING_FOR_GROUP_SLOT; ++i)
-            if (slots[i].canAutoJoin())
+        for (auto& slot : group)
+            if (!slot.empty())
                 return true;
         return false;
     }
-
-    bool Empty() const
+    inline bool isLFG(uint32 entry, uint32 type, bool autoOnly) const
     {
-        for (int i = 0; i < MAX_LOOKING_FOR_GROUP_SLOT; ++i)
-            if (!slots[i].Empty())
-                return false;
-        return more.Empty();
+        for (auto& slot : group)
+            if (slot.is(uint16(entry), uint16(type)) && (!autoOnly || slot.isAuto()))
+                return true;
+        return false;
     }
+    inline bool isLFG(LookingForGroupInfo const& info, bool autoOnly) const { return isLFG(uint16(info.more.entry), uint16(info.more.type), autoOnly); }
+    inline bool isLFM() const { return !more.empty(); }
+    inline bool isLFM(uint32 entry, uint32 type) const { return more.is(uint16(entry), uint16(type)); }
 
-    LookingForGroupSlot slots[MAX_LOOKING_FOR_GROUP_SLOT];
-    LookingForGroupSlot more;
+    // bool queued = false;
+    Slot group[MAX_LOOKING_FOR_GROUP_SLOT];
+    Slot more;
     std::string comment;
 };
 
@@ -941,9 +948,6 @@ class Player : public Unit
 
         void CleanupsBeforeDelete() override;
 
-        static UpdateMask updateVisualBits;
-        static void InitVisibleBits();
-
         void AddToWorld() override;
         void RemoveFromWorld() override;
 
@@ -970,6 +974,7 @@ class Player : public Unit
         bool Create(uint32 guidlow, const std::string& name, uint8 race, uint8 class_, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair, uint8 outfitId);
 
         void Update(const uint32 diff) override;
+        void Heartbeat() override;
 
         static bool BuildEnumData(QueryResult* result,  WorldPacket& p_data);
 
@@ -979,6 +984,7 @@ class Player : public Unit
 
         Creature* GetNPCIfCanInteractWith(ObjectGuid guid, uint32 npcflagmask);
         GameObject* GetGameObjectIfCanInteractWith(ObjectGuid guid, uint32 gameobject_type = MAX_GAMEOBJECT_TYPE);
+        bool CanSeeSpecialInfoOf(Unit const* target) const;
 
         ReputationRank GetReactionTo(Corpse const* corpse) const override;
         bool IsInGroup(Unit const* other, bool party = false, bool ignoreCharms = false) const override;
@@ -1189,7 +1195,7 @@ class Player : public Unit
         void ApplyEquipCooldown(Item* pItem);
         void SetAmmo(uint32 item);
         void RemoveAmmo();
-        float GetAmmoDPS() const { return m_ammoDPS; }
+        std::pair<float, float> GetAmmoDPS() const { return { m_ammoDPSMin, m_ammoDPSMax}; }
         bool CheckAmmoCompatibility(const ItemPrototype* ammo_proto) const;
         void QuickEquipItem(uint16 pos, Item* pItem);
         void VisualizeItem(uint8 slot, Item* pItem);
@@ -1261,7 +1267,7 @@ class Player : public Unit
         /***                    GOSSIP SYSTEM                  ***/
         /*********************************************************/
 
-        void PrepareGossipMenu(WorldObject* pSource, uint32 menuId = 0);
+        void PrepareGossipMenu(WorldObject* pSource, uint32 menuId = 0, bool forceQuests = false);
         void SendPreparedGossip(WorldObject* pSource);
         void OnGossipSelect(WorldObject* pSource, uint32 gossipListId, uint32 menuId);
 
@@ -1750,6 +1756,7 @@ class Player : public Unit
         void SendMessageToSetInRange(WorldPacket const& data, float dist, bool self) const override;
         // overwrite Object::SendMessageToSetInRange
         void SendMessageToSetInRange(WorldPacket const& data, float dist, bool self, bool own_team_only) const;
+        void SendMessageToAllWhoSeeMe(WorldPacket const& data, bool self) const override;
 
         Corpse* GetCorpse() const;
         void SpawnCorpseBones();
@@ -2157,7 +2164,7 @@ class Player : public Unit
         void RemoveAtLoginFlag(AtLoginFlags f, bool in_db_also = false);
         static bool ValidateAppearance(uint8 race, uint8 class_, uint8 gender, uint8 hairID, uint8 hairColor, uint8 faceID, uint8 facialHair, uint8 skinColor, bool create = false);
 
-        LookingForGroup m_lookingForGroup;
+        LookingForGroupInfo m_lookingForGroup;
 
         // Temporarily removed pet cache
         uint32 GetTemporaryUnsummonedPetNumber() const { return m_temporaryUnsummonedPetNumber; }
@@ -2367,9 +2374,6 @@ class Player : public Unit
         void _SaveBGData();
         void _SaveStats();
 
-        void _SetCreateBits(UpdateMask* updateMask, Player* target) const override;
-        void _SetUpdateBits(UpdateMask* updateMask, Player* target) const override;
-
         /*********************************************************/
         /***              ENVIRONMENTAL SYSTEM                 ***/
         /*********************************************************/
@@ -2474,7 +2478,8 @@ class Player : public Unit
         uint32 m_WeaponProficiency;
         uint32 m_ArmorProficiency;
         uint8 m_swingErrorMsg;
-        float m_ammoDPS;
+        float m_ammoDPSMin;
+        float m_ammoDPSMax;
 
         //////////////////// Rest System/////////////////////
         time_t time_inn_enter;

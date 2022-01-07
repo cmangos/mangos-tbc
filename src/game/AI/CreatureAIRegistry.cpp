@@ -28,7 +28,6 @@
 #include "MotionGenerators/WaypointMovementGenerator.h"
 #include "BaseAI/GuardianAI.h"
 #include "BaseAI/PossessedAI.h"
-#include "BaseAI/CritterAI.h"
 #include "MotionGenerators/PathMovementGenerator.h"
 
 namespace AIRegistry
@@ -42,10 +41,10 @@ namespace AIRegistry
         (new CreatureAIFactory<CreatureEventAI>("EventAI"))->RegisterSelf();
         (new CreatureAIFactory<GuardianAI>("GuardianAI"))->RegisterSelf();
         (new CreatureAIFactory<PossessedAI>("PossessedAI"))->RegisterSelf();
-        (new CreatureAIFactory<CritterAI>("CritterAI"))->RegisterSelf();
 
         (new MovementGeneratorFactory<WanderMovementGenerator>(RANDOM_MOTION_TYPE))->RegisterSelf();
         (new MovementGeneratorFactory<WaypointMovementGenerator<Creature> >(WAYPOINT_MOTION_TYPE))->RegisterSelf();
         (new MovementGeneratorFactory<FixedPathMovementGenerator>(PATH_MOTION_TYPE))->RegisterSelf();
+        (new MovementGeneratorFactory<LinearWPMovementGenerator<Creature>>(LINEAR_WP_MOTION_TYPE))->RegisterSelf();
     }
 }

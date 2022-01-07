@@ -658,6 +658,7 @@ class GameObjectModel;
 struct GameObjectDisplayInfoEntry;
 struct TransportAnimation;
 class Item;
+class GameObjectGroup;
 
 struct QuaternionData
 {
@@ -690,6 +691,7 @@ class GameObject : public WorldObject
         virtual bool Create(uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang,
                     float rotation0 = 0.0f, float rotation1 = 0.0f, float rotation2 = 0.0f, float rotation3 = 0.0f, uint32 animprogress = GO_ANIMPROGRESS_DEFAULT, GOState go_state = GO_STATE_READY);
         void Update(const uint32 diff) override;
+        void Heartbeat() override;
         GameObjectInfo const* GetGOInfo() const;
 
         bool IsTransport() const;
@@ -706,7 +708,7 @@ class GameObject : public WorldObject
 
         void SaveToDB() const;
         void SaveToDB(uint32 mapid, uint8 spawnMask) const;
-        bool LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid);
+        bool LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forcedEntry);
         void DeleteFromDB() const;
 
         ObjectGuid const& GetOwnerGuid() const override { return GetGuidValue(OBJECT_FIELD_CREATED_BY); }
@@ -723,6 +725,8 @@ class GameObject : public WorldObject
             m_spellId = id;
         }
         uint32 GetSpellId() const { return m_spellId;}
+
+        void ForcedDespawn(uint32 timeMSToDespawn = 0);
 
         time_t GetRespawnTime() const { return m_respawnTime; }
         time_t GetRespawnTimeEx() const
@@ -814,6 +818,7 @@ class GameObject : public WorldObject
         void UseDoorOrButton(uint32 time_to_restore = 0, bool alternative = false);
         // 0 = use `gameobject`.`spawntimesecs`
         void ResetDoorOrButton();
+        void UseOpenableObject(bool open, uint32 withRestoreTime = 0, bool useAlternativeState = false);
 
         ReputationRank GetReactionTo(Unit const* unit) const override;
 
@@ -880,6 +885,10 @@ class GameObject : public WorldObject
 
         void SetCooldown(uint32 cooldown); // seconds
 
+        void SetGameObjectGroup(GameObjectGroup* group);
+        void ClearGameObjectGroup();
+        GameObjectGroup* GetGameObjectGroup() const { return m_goGroup; }
+
     protected:
         uint32      m_spellId;
         time_t      m_respawnTime;                          // (secs) time of next respawn (or despawn if GO have owner()),
@@ -936,6 +945,8 @@ class GameObject : public WorldObject
 
         ObjectGuid m_spawnerGuid;
 
+        GameObjectGroup* m_goGroup;
+
     private:
         void SwitchDoorOrButton(bool activate, bool alternative = false);
         void TickCapturePoint();
@@ -944,5 +955,17 @@ class GameObject : public WorldObject
 
         GridReference<GameObject> m_gridRef;
 };
+
+class ForcedDespawnDelayGameObjectEvent : public BasicEvent
+{
+    public:
+        ForcedDespawnDelayGameObjectEvent(GameObject& owner) : BasicEvent(), m_owner(owner) { }
+        bool Execute(uint64 e_time, uint32 p_time) override;
+
+    private:
+        GameObject& m_owner;
+        bool m_onlyAlive;
+};
+
 
 #endif

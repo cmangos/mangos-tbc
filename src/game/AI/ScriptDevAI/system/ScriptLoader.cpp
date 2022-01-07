@@ -29,10 +29,13 @@ extern void AddSC_spell_scripts();
 extern void AddSC_world_map_scripts();
 extern void AddSC_boss_highlord_kruul();
 extern void AddSC_war_effort();
+extern void AddSC_scourge_invasion();
 extern void AddSC_suns_reach_reclamation();
 extern void AddSC_shade_of_the_horseman();
 extern void AddSC_childrens_week_tbc();
 extern void AddSC_midsummer_festival();
+extern void AddSC_hallows_end();
+extern void AddSC_brewfest();
 
 // eastern kingdoms
 extern void AddSC_blackrock_depths();                       // blackrock_depths
@@ -390,10 +393,13 @@ void AddScripts()
     AddSC_world_map_scripts();
     AddSC_boss_highlord_kruul();
     AddSC_war_effort();
+    AddSC_scourge_invasion();
     AddSC_suns_reach_reclamation();
     AddSC_shade_of_the_horseman();
     AddSC_childrens_week_tbc();
     AddSC_midsummer_festival();
+    AddSC_hallows_end();
+    AddSC_brewfest();
 
     // eastern kingdoms
     AddSC_blackrock_depths();                               // blackrock_depths

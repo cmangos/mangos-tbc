@@ -151,7 +151,8 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
       m_VisibleDistance(DEFAULT_VISIBILITY_DISTANCE), m_persistentState(nullptr),
       m_activeNonPlayersIter(m_activeNonPlayers.end()), m_onEventNotifiedIter(m_onEventNotifiedObjects.end()),
       i_gridExpiry(expiry), m_TerrainData(sTerrainMgr.LoadTerrain(id)),
-      i_data(nullptr), i_script_id(0), m_transportsIterator(m_transports.begin()), m_spawnManager(*this)
+      i_data(nullptr), i_script_id(0), m_transportsIterator(m_transports.begin()), m_spawnManager(*this),
+      m_variableManager(this)
 {
     m_weatherSystem = new WeatherSystem(this);
 }
@@ -188,6 +189,10 @@ void Map::Initialize(bool loadInstanceData /*= true*/)
     m_graveyardManager.Init(this);
 
     LoadTransports();
+
+    m_variableManager.Initialize();
+
+    m_spawnManager.Initialize();
 }
 
 void Map::InitVisibilityDistance()
@@ -1001,12 +1006,10 @@ void Map::GameObjectRelocation(GameObject* go, float x, float y, float z, float 
         AddToGrid(go, newGrid, new_cell);
         go->GetViewPoint().Event_GridChanged(&(*newGrid)(new_cell.CellX(), new_cell.CellY()));
     }
-    else
-    {
-        go->Relocate(x, y, z, orientation);
-        go->UpdateModelPosition();
-        go->UpdateObjectVisibility();
-    }
+
+    go->Relocate(x, y, z, orientation);
+    go->UpdateModelPosition();
+    go->UpdateObjectVisibility();
 }
 
 bool Map::CreatureCellRelocation(Creature* c, const Cell& new_cell)
@@ -1841,8 +1844,8 @@ DungeonPersistentState* DungeonMap::GetPersistanceState() const
 
 /* ******* Battleground Instance Maps ******* */
 
-BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId)
-    : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY)
+BattleGroundMap::BattleGroundMap(uint32 id, time_t expiry, uint32 InstanceId, uint8 spawnMode)
+    : Map(id, expiry, InstanceId, spawnMode)
 {
 }
 

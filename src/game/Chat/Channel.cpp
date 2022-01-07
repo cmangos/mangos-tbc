@@ -93,7 +93,7 @@ void Channel::Join(Player* player, const char* password)
 
     if (HasFlag(CHANNEL_FLAG_LFG) && sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG))
     {
-        if (player->GetSession()->GetSecurity() == SEC_PLAYER && player->m_lookingForGroup.Empty())
+        if (player->GetSession()->GetSecurity() == SEC_PLAYER && player->m_lookingForGroup.isEmpty())
         {
             MakeNotInLFG(data, m_name);
             SendToOne(data, guid);

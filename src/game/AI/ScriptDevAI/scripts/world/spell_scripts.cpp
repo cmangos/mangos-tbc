@@ -708,6 +708,113 @@ struct ArcaneCloaking : public SpellScript
     }
 };
 
+enum SpellVisualKitFoodOrDrink
+{
+    SPELL_VISUAL_KIT_FOOD = 406,
+    SPELL_VISUAL_KIT_DRINK = 438
+};
+
+struct FoodAnimation : public AuraScript
+{
+    void OnHeartbeat(Aura* aura) const override
+    {
+        aura->GetTarget()->PlaySpellVisual(SPELL_VISUAL_KIT_FOOD);
+    }
+};
+
+struct DrinkAnimation : public AuraScript
+{
+    void OnHeartbeat(Aura* aura) const override
+    {
+        aura->GetTarget()->PlaySpellVisual(SPELL_VISUAL_KIT_DRINK);
+    }
+};
+
+struct Drink : public DrinkAnimation
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply || aura->GetEffIndex() != EFFECT_INDEX_0)
+            return;
+
+        if (!aura->GetTarget()->IsPlayer())
+            return;
+
+        if (aura->GetTarget()->GetMap()->IsBattleArena())
+            return;
+
+        if (Aura* periodicAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() + 1)))
+            aura->GetModifier()->m_amount = periodicAura->GetModifier()->m_amount;
+    }
+
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        if (aura->GetEffIndex() != EFFECT_INDEX_1)
+            return;
+
+        if (!aura->GetTarget()->IsPlayer())
+            return;
+
+        if (!aura->GetTarget()->GetMap()->IsBattleArena())
+            return;
+
+        //if (aura->GetAuraTicks() != 2) // todo: wait for 2nd tick to update regen in Arena only? (needs confirmation)
+        //    return;
+
+        aura->ForcePeriodicity(0);
+
+        if (Aura* regenAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() - 1)))
+        {
+            regenAura->GetModifier()->m_amount = aura->GetModifier()->m_amount;
+            ((Player*)aura->GetTarget())->UpdateManaRegen();
+        }
+    }
+};
+
+struct spell_effect_summon_no_follow_movement : public SpellScript
+{
+    void OnSummon(Spell* spell, Creature* summon) const override
+    {
+        summon->AI()->SetFollowMovement(false);
+    }
+};
+
+struct SpellHasteHealerTrinket : public AuraScript
+{
+    bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
+    {
+        // should only proc off of direct heals or HoT applications
+        if (data.spell && (data.isHeal || IsSpellHaveAura(data.spellInfo, SPELL_AURA_PERIODIC_HEAL)))
+            return true;
+
+        return false;
+    }
+};
+
+struct IncreasedHealingDoneDummy : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const
+    {
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_HEALING_DONE, apply);
+    }
+
+    void OnDamageCalculate(Aura* aura, int32& advertisedBenefit, float& /*totalMod*/) const override
+    {
+        advertisedBenefit += aura->GetModifier()->m_amount;
+    }
+};
+
+struct spell_scourge_strike : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (target->IsPlayer() || (target->IsPlayerControlled()))
+            return false;
+
+        return true;
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -736,4 +843,11 @@ void AddSC_spell_scripts()
     RegisterAuraScript<spell_seed_of_corruption_npc>("spell_seed_of_corruption_npc");
     RegisterSpellScript<WondervoltTrap>("spell_wondervolt_trap");
     RegisterSpellScript<ArcaneCloaking>("spell_arcane_cloaking");
+    RegisterAuraScript<FoodAnimation>("spell_food_animation");
+    RegisterAuraScript<DrinkAnimation>("spell_drink_animation");
+    RegisterAuraScript<Drink>("spell_drink");
+    RegisterSpellScript<spell_effect_summon_no_follow_movement>("spell_effect_summon_no_follow_movement");
+    RegisterAuraScript<SpellHasteHealerTrinket>("spell_spell_haste_healer_trinket");
+    RegisterAuraScript<IncreasedHealingDoneDummy>("spell_increased_healing_done_dummy");
+    RegisterSpellScript<spell_scourge_strike>("spell_scourge_strike");
 }

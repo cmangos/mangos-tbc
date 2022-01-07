@@ -102,7 +102,12 @@ void PlayerAI::ExecuteSpells()
 
 void PlayerAI::JustGotCharmed(Unit* charmer)
 {
-    m_player->GetMotionMaster()->MoveFollow(charmer, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE, true);
+    if (charmer->GetFormationSlot())
+    {
+        charmer->GetFormationSlot()->GetFormationData()->Add(m_player);
+    }
+    else
+        m_player->GetMotionMaster()->MoveFollow(charmer, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE, true);
     AttackClosestEnemy();
 }
 
@@ -110,7 +115,14 @@ void PlayerAI::EnterEvadeMode()
 {
     m_player->CombatStopWithPets(true);
     if (Unit* charmer = m_player->GetCharmer())
-        m_player->GetMotionMaster()->MoveFollow(charmer, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE, true);
+    {
+        if (charmer->GetFormationSlot())
+        {
+            charmer->GetFormationSlot()->GetFormationData()->Add(m_player);
+        }
+        else
+            m_player->GetMotionMaster()->MoveFollow(charmer, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE, true);
+    }
 }
 
 void PlayerAI::AttackClosestEnemy()
@@ -125,17 +137,4 @@ void PlayerAI::AttackClosestEnemy()
             distance = curDistance;
         }
     });
-}
-
-void PlayerAI::UpdateAI(const uint32 diff)
-{
-    UpdateTimers(diff);
-
-    // Check if we have a current target
-    if (!m_player->SelectHostileTarget() || !m_player->GetVictim())
-        return;
-
-    ExecuteSpells();
-
-    DoMeleeAttackIfReady();
 }

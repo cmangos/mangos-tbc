@@ -259,13 +259,11 @@ bool ChatHandler::HandleReloadAllScriptsCommand(char* /*args*/)
     HandleReloadDBScriptsOnSpellCommand((char*)"a");
     HandleReloadDBScriptsOnRelayCommand((char*)"a");
     SendGlobalSysMessage("DB tables `*_scripts` reloaded.");
-    HandleReloadDbScriptStringCommand((char*)"a");
     return true;
 }
 
 bool ChatHandler::HandleReloadAllEventAICommand(char* /*args*/)
 {
-    HandleReloadEventAITextsCommand((char*)"a");
     HandleReloadEventAISummonsCommand((char*)"a");
     HandleReloadEventAIScriptsCommand((char*)"a");
     return true;
@@ -801,14 +799,6 @@ bool ChatHandler::HandleReloadBattleEventCommand(char* /*args*/)
     return true;
 }
 
-bool ChatHandler::HandleReloadEventAITextsCommand(char* /*args*/)
-{
-    sLog.outString("Re-Loading Texts from `creature_ai_texts`...");
-    sEventAIMgr.LoadCreatureEventAI_Texts(true);
-    SendGlobalSysMessage("DB table `creature_ai_texts` reloaded.");
-    return true;
-}
-
 bool ChatHandler::HandleReloadEventAISummonsCommand(char* /*args*/)
 {
     sLog.outString("Re-Loading Summons from `creature_ai_summons`...");
@@ -822,14 +812,6 @@ bool ChatHandler::HandleReloadEventAIScriptsCommand(char* /*args*/)
     sLog.outString("Re-Loading Scripts from `creature_ai_scripts`...");
     sEventAIMgr.LoadCreatureEventAI_Scripts();
     SendGlobalSysMessage("DB table `creature_ai_scripts` reloaded.");
-    return true;
-}
-
-bool ChatHandler::HandleReloadDbScriptStringCommand(char* /*args*/)
-{
-    sLog.outString("Re-Loading Script strings from `dbscript_string`...");
-    sScriptMgr.LoadDbScriptStrings();
-    SendGlobalSysMessage("DB table `dbscript_string` reloaded.");
     return true;
 }
 
@@ -1101,6 +1083,32 @@ bool ChatHandler::HandleReloadCreatureCooldownsCommand(char* /*args*/)
     sLog.outString("Reloading creature cooldowns...");
     sObjectMgr.LoadCreatureCooldowns();
     SendGlobalSysMessage("Reloaded creature cooldowns.");
+    return true;
+}
+
+bool ChatHandler::HandleReloadCreatureSpellLists(char* /*args*/)
+{
+    sLog.outString("Reloading creature spell lists...");
+    auto result = sObjectMgr.LoadCreatureSpellLists();
+    SendGlobalSysMessage("Reloaded creature spell lists.");
+    if (result)
+    {
+        sMapMgr.DoForAllMaps([result](Map* map)
+        {
+            map->GetMessager().AddMessage([result](Map* map)
+            {
+                map->GetMapDataContainer().SetCreatureSpellListContainer(result);
+            });
+        });
+    }
+    return true;
+}
+
+bool ChatHandler::HandleReloadSpawnGroupsCommand(char* /*args*/)
+{
+    sLog.outString("Reloading spawn groups...");
+    sObjectMgr.LoadSpawnGroups();
+    SendGlobalSysMessage("Reloaded spawn groups.");
     return true;
 }
 
@@ -3414,9 +3422,10 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     else
         PSendSysMessage(LANG_NPCINFO_CHAR, target->GetGuidStr().c_str(), faction, npcflags, Entry, displayid, nativeid);
 
+    PSendSysMessage("DbGuid: %u", target->GetDbGuid());
     PSendSysMessage(LANG_NPCINFO_LEVEL, target->GetLevel());
     PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
-    PSendSysMessage(LANG_NPCINFO_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS), target->GetUInt32Value(UNIT_DYNAMIC_FLAGS), target->GetFaction());
+    PSendSysMessage(LANG_NPCINFO_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS), target->GetUInt32Value(UNIT_DYNAMIC_FLAGS), target->GetCreatureInfo()->ExtraFlags);
     PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());
     PSendSysMessage("Corpse decay remaining time: %s", curCorpseDecayStr.c_str());
     PSendSysMessage(LANG_NPCINFO_LOOT,  cInfo->LootId, cInfo->PickpocketLootId, cInfo->SkinningLootId);
@@ -3424,6 +3433,18 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     PSendSysMessage(LANG_NPCINFO_POSITION, float(target->GetPositionX()), float(target->GetPositionY()), float(target->GetPositionZ()));
     PSendSysMessage("Combat timer: %u", target->GetCombatManager().GetCombatTimer());
     PSendSysMessage("Is in evade mode: %s", target->GetCombatManager().IsInEvadeMode() ? "true" : "false");
+
+    PSendSysMessage("UNIT_FIELD_BYTES_0: %d : %d : %d : %d", target->GetByteValue(UNIT_FIELD_BYTES_0, 0), target->GetByteValue(UNIT_FIELD_BYTES_0, 1),
+        target->GetByteValue(UNIT_FIELD_BYTES_0, 2), target->GetByteValue(UNIT_FIELD_BYTES_0, 3));
+
+    PSendSysMessage("UNIT_FIELD_BYTES_1: %d : %d : %d : %d", target->GetByteValue(UNIT_FIELD_BYTES_1, 0), target->GetByteValue(UNIT_FIELD_BYTES_1, 1),
+        target->GetByteValue(UNIT_FIELD_BYTES_1, 2), target->GetByteValue(UNIT_FIELD_BYTES_1, 3));
+
+    PSendSysMessage("UNIT_FIELD_BYTES_2: %d : %d : %d : %d", target->GetByteValue(UNIT_FIELD_BYTES_2, 0), target->GetByteValue(UNIT_FIELD_BYTES_2, 1),
+        target->GetByteValue(UNIT_FIELD_BYTES_2, 2), target->GetByteValue(UNIT_FIELD_BYTES_2, 3));
+
+    auto& spellList = target->GetSpellList();
+    PSendSysMessage("Spell Lists %s ID %u", spellList.Disabled ? "disabled" : "enabled", spellList.Id);
 
     PSendSysMessage("Combat Timer: %u Leashing disabled: %s", target->GetCombatManager().GetCombatTimer(), target->GetCombatManager().IsLeashingDisabled() ? "true" : "false");
 
@@ -4211,13 +4232,13 @@ static bool HandleResetStatsOrLevelHelper(Player* player)
 
     player->setFactionForRace(player->getRace());
 
-    player->SetByteValue(UNIT_FIELD_BYTES_0, 3, powertype);
+    player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_POWER_TYPE, powertype);
 
     // reset only if player not in some form;
     if (player->GetShapeshiftForm() == FORM_NONE)
         player->InitDisplayIds();
 
-    player->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+    player->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
 
     player->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
 
@@ -5197,7 +5218,18 @@ bool ChatHandler::HandleRespawnCommand(char* /*args*/)
         }
 
         if (target->IsDead())
-            ((Creature*)target)->Respawn();
+        {
+            Creature* creature = static_cast<Creature*>(target);
+            if (target->IsUsingNewSpawningSystem())
+            {
+                if (creature->GetMap()->GetMapDataContainer().GetSpawnGroupByGuid(creature->GetDbGuid(), TYPEID_UNIT))
+                    target->GetMap()->GetPersistentState()->SaveCreatureRespawnTime(target->GetDbGuid(), time(nullptr));
+                else
+                    target->GetMap()->GetSpawnManager().RespawnCreature(target->GetDbGuid(), 0);
+            }
+            else
+                creature->Respawn();
+        }
         return true;
     }
 
@@ -6440,7 +6472,7 @@ bool ChatHandler::HandleModifyGenderCommand(char* args)
     }
 
     // Set gender
-    player->SetByteValue(UNIT_FIELD_BYTES_0, 2, gender);
+    player->SetByteValue(UNIT_FIELD_BYTES_0, UNIT_BYTES_0_OFFSET_GENDER, gender);
     player->SetUInt16Value(PLAYER_BYTES_3, 0, uint16(gender) | (player->GetDrunkValue() & 0xFFFE));
 
     // Change display ID
@@ -6785,6 +6817,14 @@ bool ChatHandler::HandleLinkCheckCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleVariablePrint(char* args)
+{
+    Player* player = GetSession()->GetPlayer();
+
+    PSendSysMessage("%s", player->GetMap()->GetVariableManager().GetVariableList().data());
+    return true;
+}
+
 bool ChatHandler::HandleWarEffortCommand(char* args)
 {
     PSendSysMessage("%s", sWorldState.GetAQPrintout().data());
@@ -6820,6 +6860,50 @@ bool ChatHandler::HandleWarEffortCounterCommand(char* args)
     }
 
     sWorldState.AddWarEffortProgress(AQResources(index), value);
+    return true;
+}
+
+bool ChatHandler::HandleScourgeInvasionCommand(char* args)
+{
+    return true;
+}
+
+bool ChatHandler::HandleScourgeInvasionStateCommand(char* args)
+{
+    uint32 value;
+    if (!ExtractUInt32(&args, value) || value >= SI_STATE_MAX)
+    {
+        PSendSysMessage("Enter valid value for state.");
+        return true;
+    }
+
+    sWorldState.SetScourgeInvasionState(SIState(value));
+    return true;
+}
+
+bool ChatHandler::HandleScourgeInvasionBattlesWonCommand(char* args)
+{
+    int32 value;
+    if (!ExtractInt32(&args, value))
+    {
+        PSendSysMessage("Enter valid count for battles won.");
+        return true;
+    }
+
+    sWorldState.AddBattlesWon(value);
+    return true;
+}
+
+bool ChatHandler::HandleScourgeInvasionStartZone(char* args)
+{
+    int32 value;
+    if (!ExtractInt32(&args, value))
+    {
+        PSendSysMessage("Enter valid SIZoneId (0-7).");
+        return true;
+    }
+
+    sWorldState.StartZoneEvent(SIZoneIds(value));
     return true;
 }
 

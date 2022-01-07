@@ -100,7 +100,7 @@ void PetAI::AttackStart(Unit* who)
         // thus with the following clear the original TMG gets invalidated and crash, doh
         // hope it doesn't start to leak memory without this :-/
         // i_pet->Clear();
-        HandleMovementOnAttackStart(who);
+        HandleMovementOnAttackStart(who, false);
 
         inCombat = true;
     }
@@ -123,8 +123,8 @@ void PetAI::EnterEvadeMode()
 
 void PetAI::UpdateAI(const uint32 diff)
 {
-    if (!m_unit->IsAlive())
-        return;
+    UpdateTimers(diff, m_creature->IsInCombat());
+
     Creature* creature = (m_unit->GetTypeId() == TYPEID_UNIT) ? static_cast<Creature*>(m_unit) : nullptr;
     Pet* pet = (creature && creature->IsPet()) ? static_cast<Pet*>(m_unit) : nullptr;
 
@@ -400,7 +400,7 @@ void PetAI::UpdateAllies()
     if (m_AllySet.size() == 2 && !group)
         return;
     // owner is in group; group members filled in already (no raid -> subgroupcount = whole count)
-    if (group && !group->isRaidGroup() && m_AllySet.size() == (group->GetMembersCount() + 2))
+    if (group && !group->IsRaidGroup() && m_AllySet.size() == (group->GetMembersCount() + 2))
         return;
 
     m_AllySet.clear();

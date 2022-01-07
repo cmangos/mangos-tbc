@@ -364,7 +364,7 @@ struct boss_felmystAI : public CombatAI
         m_creature->HandleEmote(EMOTE_ONESHOT_LAND);
         m_creature->SetLevitate(false);
         m_creature->SetHover(false);
-        m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+        m_creature->RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
         ResetTimer(FELMYST_TRANSITION_DELAY, 2500);
     }
 
@@ -398,7 +398,7 @@ struct boss_felmystAI : public CombatAI
         }
         else
         {
-            if (m_creature->isHover())
+            if (m_creature->HasHoverAura())
             {
                 m_creature->SetImmobilizedState(true);
                 m_creature->SetHover(false);
@@ -481,7 +481,7 @@ struct boss_felmystAI : public CombatAI
                 DoScriptText(SAY_TAKEOFF, m_creature);
                 SetMeleeEnabled(false);
                 m_creature->SetTarget(nullptr);
-                m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
                 m_creature->SendForcedObjectUpdate();
                 ResetTimer(FELMYST_LIFTOFF_DELAY, 5000);
                 SetDeathPrevention(true);
@@ -508,7 +508,7 @@ struct boss_felmystAI : public CombatAI
                     ResetCombatAction(action, urand(15000, 29000));
                 break;
             case FELMYST_GAS_NOVA:
-                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_GAS_NOVA) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_GAS_NOVA) == CAST_OK)
                     ResetCombatAction(action, urand(22000, 27000));
                 break;
         }

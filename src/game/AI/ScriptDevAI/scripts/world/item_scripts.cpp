@@ -230,52 +230,40 @@ struct OgrilaFlasks : public AuraScript
     }
 };
 
-struct Drink : public AuraScript
-{
-    void OnApply(Aura* aura, bool apply) const override
-    {
-        if (!apply || aura->GetEffIndex() != EFFECT_INDEX_0)
-            return;
-
-        if (!aura->GetTarget()->IsPlayer())
-            return;
-
-        if (aura->GetTarget()->GetMap()->IsBattleArena())
-            return;
-
-        if (Aura* periodicAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() + 1)))
-            aura->GetModifier()->m_amount = periodicAura->GetModifier()->m_amount;
-    }
-
-    void OnPeriodicDummy(Aura* aura) const override
-    {
-        if (aura->GetEffIndex() != EFFECT_INDEX_1)
-            return;
-        
-        if (!aura->GetTarget()->IsPlayer())
-            return;
-
-        if (!aura->GetTarget()->GetMap()->IsBattleArena())
-            return;
-
-        //if (aura->GetAuraTicks() != 2) // todo: wait for 2nd tick to update regen in Arena only? (needs confirmation)
-        //    return;
-
-        aura->ForcePeriodicity(0);
-
-        if (Aura* regenAura = aura->GetHolder()->GetAuraByEffectIndex((SpellEffectIndex)(aura->GetEffIndex() - 1)))
-        {
-            regenAura->GetModifier()->m_amount = aura->GetModifier()->m_amount;
-            ((Player*)aura->GetTarget())->UpdateManaRegen();
-        }
-    }
-};
-
 struct ReducedProcChancePast60 : public AuraScript
 {
     void OnHolderInit(SpellAuraHolder* holder, WorldObject* /*caster*/) const override
     {
         holder->SetReducedProcChancePast60();
+    }
+};
+
+struct BanishExile : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        uint32 entry = 0;
+        switch (spell->m_spellInfo->Id)
+        {
+            case 4130: entry = 2760; break; // Burning Exile
+            case 4131: entry = 2761; break; // Cresting Exile
+            case 4132: entry = 2762; break; // Thundering Exile
+        }
+        if (ObjectGuid target = spell->m_targets.getUnitTargetGuid()) // can be cast only on this target
+            if (target.GetEntry() != entry)
+                return SPELL_FAILED_BAD_TARGETS;
+
+        return SPELL_CAST_OK;
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (!target)
+            return;
+
+        DoScriptText(-1010004, target, spell->GetCaster());
+        target->CastSpell(nullptr, 3617, TRIGGERED_OLD_TRIGGERED);
     }
 };
 
@@ -308,6 +296,6 @@ void AddSC_item_scripts()
     RegisterSpellScript<GDRChannel>("spell_gdr_channel");
     RegisterAuraScript<GDRPeriodicDamage>("spell_gdr_periodic");
     RegisterAuraScript<OgrilaFlasks>("spell_ogrila_flasks");
-    RegisterAuraScript<Drink>("spell_drink");
     RegisterAuraScript<ReducedProcChancePast60>("spell_reduced_proc_chance_past60");
+    RegisterSpellScript<BanishExile>("spell_banish_exile");
 }

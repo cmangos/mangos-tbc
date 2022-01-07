@@ -107,7 +107,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
 
     void MoveInLineOfSight(Unit* pWho) override
     {
-        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE))
+        if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING))
             return;
 
         ScriptedAI::MoveInLineOfSight(pWho);
@@ -131,7 +131,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
             if (m_creature->GetEntry() == NPC_NIHIL)
             {
                 DoScriptText(SAY_NIHIL_INTERRUPT, m_creature);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
                 m_bIsNihil = false;
             }
 
@@ -149,7 +149,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
                 if (aNetherDrakeEntries[uiIndex] == NPC_NIHIL)
                 {
                     EnterEvadeMode();
-                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
                     m_bIsNihil = true;
                 }
                 else
@@ -182,7 +182,7 @@ struct mobs_nether_drakeAI : public ScriptedAI
                         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
                         // take off to location above
                         m_creature->SetLevitate(true);
-                        m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_FLY_ANIM);
+                        m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_FLY_ANIM);
                         m_creature->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX() + 50.0f, m_creature->GetPositionY(), m_creature->GetPositionZ() + 50.0f);
                         break;
                 }
@@ -3053,9 +3053,9 @@ enum FlayerActions
     FLAYER_ACTION_MAX,
 };
 
-struct npc_apexis_flayerAI : public ScriptedAI, public CombatActions
+struct npc_apexis_flayerAI : public ScriptedAI
 {
-    npc_apexis_flayerAI(Creature* creature) : ScriptedAI(creature), CombatActions(FLAYER_ACTION_MAX)
+    npc_apexis_flayerAI(Creature* creature) : ScriptedAI(creature, FLAYER_ACTION_MAX)
     {
         AddCombatAction(FLAYER_ACTION_REND, 0u);
         AddCombatAction(FLAYER_ACTION_SHRED_ARMOR, 0u);

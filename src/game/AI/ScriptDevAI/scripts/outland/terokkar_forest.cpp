@@ -826,19 +826,25 @@ struct npc_skywingAI : public npc_escortAI
             case 60:
                 DoScriptText(SAY_SKYWING_JUMP, m_creature);
                 m_creature->SetLevitate(true);
+                m_creature->SetCanFly(true);
+                m_creature->SetIgnoreMMAP(true);
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
                 break;
-            case 61:
+            case 63:
+                m_creature->SetIgnoreMMAP(false);
                 m_creature->SetLevitate(false);
+                m_creature->SetCanFly(false);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
                 break;
-            case 80:
+            case 82:
                 DoScriptText(SAY_SKYWING_SUMMON, m_creature);
                 m_creature->SummonCreature(NPC_LUANGA_THE_IMPRISONER, aLuangaSpawnCoords[0], aLuangaSpawnCoords[1], aLuangaSpawnCoords[2], 0, TEMPSPAWN_TIMED_OOC_DESPAWN, 30000);
                 break;
-            case 81:
+            case 83:
                 // Start transformation
                 m_uiCycloneTimer = 100;
                 break;
-            case 82:
+            case 84:
                 DoScriptText(SAY_SKYWING_END, m_creature);
 
                 if (Player* pPlayer = GetPlayerForEscort())

@@ -164,10 +164,6 @@ SD2ErrorLogFile = "SD2Errors.log"
 #        Default: 1 (enable)
 #                 0 (disable)
 #
-#    vmap.ignoreSpellIds
-#        These spells are ignored for LoS calculation
-#        List of ids with delimiter ','
-#
 #    vmap.enableIndoorCheck
 #        Enable/Disable VMap based indoor check to remove outdoor-only auras (mounts etc.).
 #        Requires VMaps enabled to work.
@@ -251,7 +247,6 @@ PlayerSave.Stats.MinLevel = 0
 PlayerSave.Stats.SaveOnlyOnLogout = 1
 vmap.enableLOS = 1
 vmap.enableHeight = 1
-vmap.ignoreSpellIds = "7720"
 vmap.enableIndoorCheck = 1
 DetectPosCollision = 1
 mmap.enabled = 1
@@ -1026,11 +1021,11 @@ TalentsInspecting = 1
 #
 #    ListenRange.Say
 #        Distance from player to listen text that creature (or other world object) say
-#        Default: 40
+#        Default: 25
 #
 #    ListenRange.TextEmote
 #        Distance from player to listen textemote that creature (or other world object) say
-#        Default: 40
+#        Default: 25
 #
 #    ListenRange.Yell
 #        Distance from player to listen text that creature (or other world object) yell
@@ -1082,8 +1077,8 @@ Rate.Creature.Elite.Elite.HP = 1
 Rate.Creature.Elite.RAREELITE.HP = 1
 Rate.Creature.Elite.WORLDBOSS.HP = 1
 Rate.Creature.Elite.RARE.HP = 1
-ListenRange.Say = 40
-ListenRange.TextEmote = 40
+ListenRange.Say = 25
+ListenRange.TextEmote = 25
 ListenRange.Yell = 300
 GuidReserveSize.Creature = 100
 GuidReserveSize.GameObject = 100

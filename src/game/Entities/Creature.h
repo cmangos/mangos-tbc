@@ -24,6 +24,7 @@
 #include "Globals/SharedDefines.h"
 #include "Server/DBCEnums.h"
 #include "Util.h"
+#include "Entities/CreatureSpellList.h"
 
 #include <list>
 #include <memory>
@@ -35,6 +36,7 @@ class Group;
 class Quest;
 class Player;
 class WorldSession;
+class CreatureGroup;
 
 struct GameEventCreatureData;
 enum class VisibilityDistanceType : uint32;
@@ -158,6 +160,7 @@ struct CreatureInfo
     uint32  GossipMenuId;
     VisibilityDistanceType visibilityDistanceType;
     uint32  CorpseDelay;
+    uint32  SpellList;
     char const* AIName;
     uint32  ScriptID;
 
@@ -183,13 +186,6 @@ struct CreatureInfo
     {
         return CreatureType == CREATURE_TYPE_BEAST && Family != 0 && (CreatureTypeFlags & CREATURE_TYPEFLAGS_TAMEABLE);
     }
-};
-
-struct CreatureTemplateSpells
-{
-    uint32 entry;
-    uint32 setId;
-    uint32 spells[CREATURE_MAX_SPELLS];
 };
 
 struct CreatureCooldowns
@@ -231,6 +227,7 @@ struct CreatureSpawnTemplate
     uint32 curHealth;
     uint32 curMana;
     uint32 spawnFlags;
+    uint32 relayId;
 
     bool IsRunning() const { return (spawnFlags & SPAWN_FLAG_RUN_ON_SPAWN) != 0; }
     bool IsHovering() const { return (spawnFlags & SPAWN_FLAG_HOVER) != 0; }
@@ -376,6 +373,7 @@ enum ChatType
     CHAT_TYPE_BOSS_WHISPER      = 5,
     CHAT_TYPE_ZONE_YELL         = 6,
     CHAT_TYPE_ZONE_EMOTE        = 7,
+    CHAT_TYPE_PARTY             = 8,
     CHAT_TYPE_MAX
 };
 
@@ -511,7 +509,7 @@ struct CreatureCreatePos
               m_closeObject(closeObject), m_angle(angle), m_dist(dist) { m_pos.o = ori; }
     public:
         Map* GetMap() const { return m_map; }
-        void SelectFinalPoint(Creature* cr);
+        void SelectFinalPoint(Creature* cr, bool staticSpawn);
         bool Relocate(Creature* cr) const;
 
         // read only after SelectFinalPoint
@@ -537,7 +535,7 @@ enum TemporaryFactionFlags                                  // Used at real fact
     TEMPFACTION_RESTORE_RESPAWN         = 0x01,             // Default faction will be restored at respawn
     TEMPFACTION_RESTORE_COMBAT_STOP     = 0x02,             // ... at CombatStop() (happens at creature death, at evade or custom scripte among others)
     TEMPFACTION_RESTORE_REACH_HOME      = 0x04,             // ... at reaching home in home movement (evade), if not already done at CombatStop()
-    TEMPFACTION_TOGGLE_NON_ATTACKABLE   = 0x08,             // Remove UNIT_FLAG_NON_ATTACKABLE(0x02) when faction is changed (reapply when temp-faction is removed)
+    TEMPFACTION_TOGGLE_NON_ATTACKABLE   = 0x08,             // Remove UNIT_FLAG_SPAWNING(0x02) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER = 0x10,             // Remove UNIT_FLAG_IMMUNE_TO_PLAYER(0x100) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_TOGGLE_IMMUNE_TO_NPC    = 0x20,             // Remove UNIT_FLAG_IMMUNE_TO_NPC(0x200) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_TOGGLE_PACIFIED         = 0x40,             // Remove UNIT_FLAG_PACIFIED(0x20000) when faction is changed (reapply when temp-faction is removed)
@@ -649,8 +647,8 @@ class Creature : public Unit
         uint32 GetShieldBlockValue() const override { return (GetLevel() / 2 + uint32(GetStat(STAT_STRENGTH) / 20)); }
 
         bool HasSpell(uint32 spellID) const override;
-        void UpdateSpell(int32 index, int32 newSpellId) { m_spells[index] = newSpellId; }
-        void UpdateSpellSet(uint32 spellSet);
+        void UpdateSpell(int32 index, int32 newSpellId);
+        void SetSpellList(uint32 spellSet);
         void UpdateImmunitiesSet(uint32 immunitySet);
 
         bool UpdateEntry(uint32 Entry, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr, bool preserveHPAndPower = true);
@@ -693,7 +691,7 @@ class Creature : public Unit
 
         void SetDeathState(DeathState s) override;          // overwrite virtual Unit::SetDeathState
 
-        bool LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, GenericTransport* transport = nullptr);
+        bool LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forcedEntry, GenericTransport* transport = nullptr);
         virtual void SaveToDB();
         // overwrited in Pet
         virtual void SaveToDB(uint32 mapid, uint8 spawnMask);
@@ -719,8 +717,6 @@ class Creature : public Unit
 
         SpellEntry const* ReachWithSpellAttack(Unit* pVictim);
         SpellEntry const* ReachWithSpellCure(Unit* pVictim);
-
-        uint32 m_spells[CREATURE_MAX_SPELLS];
 
         void CallForHelp(float radius);
         void CallAssistance();
@@ -817,7 +813,7 @@ class Creature : public Unit
         void SetDetectionRange(uint32 range) { m_detectionRange = range; }
 
         void SetBaseWalkSpeed(float speed) override;
-        void SetBaseRunSpeed(float speed) override;
+        void SetBaseRunSpeed(float speed, bool force = true) override;
 
         void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration) override;
 
@@ -847,6 +843,15 @@ class Creature : public Unit
 
         uint32 GetDbGuid() const override { return m_dbGuid; }
         HighGuid GetParentHigh() const override { return HIGHGUID_UNIT; }
+
+        // Spell Lists
+        CreatureSpellList const& GetSpellList() const { return m_spellList; }
+        std::vector<uint32> GetCharmSpells() const;
+        bool GetSpellCooldown(uint32 spellId, uint32& cooldown) const;
+
+        void SetCreatureGroup(CreatureGroup* group);
+        void ClearCreatureGroup();
+        CreatureGroup* GetCreatureGroup() const { return m_creatureGroup; }
 
     protected:
         bool CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
@@ -916,6 +921,11 @@ class Creature : public Unit
 
         // spell scripting persistency
         std::set<uint32> m_hitBySpells;
+
+        // Spell Lists
+        CreatureSpellList m_spellList;
+
+        CreatureGroup* m_creatureGroup;
 
     private:
         GridReference<Creature> m_gridRef;

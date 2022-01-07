@@ -112,6 +112,7 @@ UPDATE gameobject_template SET ScriptName='go_dragon_head' WHERE entry IN(179556
 UPDATE gameobject_template SET ScriptName='go_unadorned_spike' WHERE entry IN(175787);
 UPDATE gameobject_template SET ScriptName='go_containment_coffer' WHERE entry=122088;
 UPDATE gameobject_template SET ScriptName='go_large_jack_o_lantern' WHERE entry=186887;
+UPDATE gameobject_template SET ScriptName='go_imp_in_a_ball' WHERE entry=185898;
 
 /* GUARD */
 UPDATE creature_template SET ScriptName='guard_azuremyst' WHERE entry=18038;
@@ -171,6 +172,9 @@ UPDATE creature_template SET ScriptName='npc_orphan' WHERE entry IN (23712,23971
 UPDATE creature_template SET ScriptName='npc_shade_of_the_horseman' WHERE entry=23543;
 UPDATE creature_template SET ScriptName='npc_headless_horseman_fire' WHERE entry=23537;
 UPDATE creature_template SET ScriptName='npc_child_tbc' WHERE entry IN(22817,22818);
+UPDATE creature_template SET ScriptName='npc_imp_in_a_ball' WHERE entry IN (23224,23229);
+UPDATE creature_template SET ScriptName='npc_advanced_target_dummy' WHERE entry IN (2674); -- Advanced Target Dummy
+UPDATE creature_template SET ScriptName='npc_gossip_npc' WHERE entry IN (18927,19148,19171,19172,19173,19169,19175,19176,19177,19178,20102);
 
 /*Quest (quest scripts which are not in one zone)*/
 UPDATE creature_template SET ScriptName='npc_quest_attunement' WHERE entry IN(22421,18528,19935);
@@ -219,6 +223,51 @@ entry IN(15383,15431,15432,15434,15437,15445,15446,15448,15450,15451,15452,15453
 /*Midsummer*/
 UPDATE gameobject_template SET ScriptName='go_midsummer_bonfire' WHERE entry IN(187946,187945,187944,187943,187942,187941,187940,187939,187938,187937,187936,187935,187934,187933,187932,187931,187930,187929,187928,187927,187926,187925,187924,187923,187922,187921,187920,187919,187917,187916,187914,187564,187971,187973,187952,187963,187950,187961,187959,187957,187968,187948,187953,187970,187966,187975,187969,187951,187956,187954,187947,187972,187964,187559,187965,187949,187955,187967,187958,187974,187960,187962,181332,181333,181334,181335,181336,181337,188128,188129);
 UPDATE creature_template SET ScriptName='npc_torch_tossing_bunny_controller' WHERE entry IN(25536);
+
+/* Brewfest */
+UPDATE creature_template SET ScriptName='npc_brewfest_barker' WHERE entry IN (23683,23684,23685,23710,24492,24493,24495,24710,24711); -- Maeve Barleybrew, Ita Thunderbrew, Gordok Brew Barker, Belbi Quikswitch, Drohn's Distillery Barker, T'chali's Voodoo Brewery Barker, Blix Fixwidget, Ipfelkofer Ironkeg, Tapper Swindlekeg
+INSERT INTO scripted_areatrigger VALUES
+(4712,'at_brewfest_barker'), -- Ita Thunderbrew
+(4715,'at_brewfest_barker'), -- Maeve Barleybrew
+(4716,'at_brewfest_barker'), -- Gordok Brew Barker (Alliance)
+(4718,'at_brewfest_barker'), -- Belbi Quikswitch
+(4797,'at_brewfest_barker'), -- Gordok Brew Barker (Horde)
+(4798,'at_brewfest_barker'), -- Drohn's Distillery Barker
+(4799,'at_brewfest_barker'), -- T'chali's Voodoo Brewery Barker
+(4800,'at_brewfest_barker'), -- Blix Fixwidget
+(4820,'at_brewfest_barker'), -- Ipfelkofer Ironkeg
+(4829,'at_brewfest_barker'); -- Tapper Swindlekeg
+INSERT INTO scripted_areatrigger VALUES
+(4769,'at_brewfest_quest_barking'),
+(4770,'at_brewfest_quest_barking'),
+(4772,'at_brewfest_quest_barking'),
+(4774,'at_brewfest_quest_barking'),
+(4801,'at_brewfest_quest_barking'),
+(4802,'at_brewfest_quest_barking'),
+(4803,'at_brewfest_quest_barking'),
+(4804,'at_brewfest_quest_barking');
+-- Horde
+INSERT INTO scripted_areatrigger VALUES
+(4807,'at_brewfest_receive_keg'),
+(4808,'at_brewfest_send_keg');
+-- Alliance
+INSERT INTO scripted_areatrigger VALUES
+(4786,'at_brewfest_receive_keg'),
+(4787,'at_brewfest_send_keg');
+
+/* Scourge Invasion */
+UPDATE creature_template SET ScriptName='scourge_invasion_necrotic_shard' WHERE entry IN (16136,16172);
+UPDATE creature_template SET ScriptName='scourge_invasion_necropolis' WHERE entry=16401;
+UPDATE creature_template SET ScriptName='scourge_invasion_mouth' WHERE entry=16995;
+UPDATE creature_template SET ScriptName='scourge_invasion_necropolis_health' WHERE entry=16421;
+UPDATE creature_template SET ScriptName='scourge_invasion_necropolis_relay' WHERE entry=16386;
+UPDATE creature_template SET ScriptName='scourge_invasion_necropolis_proxy' WHERE entry=16398;
+UPDATE creature_template SET ScriptName='scourge_invasion_minion_spawner' WHERE entry IN (16306,16336,16338);
+UPDATE creature_template SET ScriptName='scourge_invasion_cultist_engineer' WHERE entry=16230;
+UPDATE creature_template SET ScriptName='scourge_invasion_minion' WHERE entry IN (16143,16383);
+UPDATE creature_template SET ScriptName='npc_pallid_horror' WHERE entry IN (16394,16382);
+UPDATE gameobject_template SET ScriptName='scourge_invasion_go_circle' WHERE entry=181136;
+UPDATE gameobject_template SET ScriptName='scourge_invasion_go_necropolis' WHERE entry IN (181154,181215,181223,181374,181373);
 
 /*  */
 /* ZONE */
@@ -509,8 +558,14 @@ UPDATE instance_template SET ScriptName='instance_old_hillsbrad' WHERE map=560;
 UPDATE creature_template SET ScriptName='npc_erozion' WHERE entry=18723;
 UPDATE creature_template SET ScriptName='npc_taretha' WHERE entry=18887;
 UPDATE creature_template SET ScriptName='npc_thrall_old_hillsbrad' WHERE entry=17876;
+UPDATE creature_template SET ScriptName='npc_bartolo_ginsetti' WHERE entry=20365;
 INSERT INTO scripted_event_id VALUES
 (11111,'event_go_barrel_old_hillsbrad');
+INSERT INTO scripted_areatrigger VALUES
+(4501,'at_bartolo_ginsetti'),
+(4502,'at_beggar'),
+(4503,'at_beggar'),
+(4504,'at_beggar');
 
 /* THE DARK PORTAL */
 UPDATE creature_template SET ScriptName='boss_chrono_lord_deja' WHERE entry=17879;
@@ -954,9 +1009,6 @@ UPDATE creature_template SET ScriptName='npc_commander_arcus' WHERE entry IN(234
 /* ONYXIA'S LAIR */
 UPDATE instance_template SET ScriptName='instance_onyxias_lair' WHERE map=249;
 UPDATE creature_template SET ScriptName='boss_onyxia' WHERE entry=10184;
-
-/* ORGRIMMAR */
-UPDATE creature_template SET ScriptName='npc_shenthul' WHERE entry=3401;
 
 /* RAGEFIRE CHASM */
 
@@ -2565,6 +2617,12 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1001310','I weep for you, $n. You really have no idea what you''ve gotten yourself into...','0','0','0','1','21432','Captain Skyshatter - SAY_MID_SKYSHATTER'),
 ('-1001311','I... I am undone... The new top orc is $n!','0','1','0','1','21431','Captain Skyshatter - SAY_END_SKYSHATTER'),
 
+('-1001319','It is a beacon. A remnant of a forgotten era.','0','4','0','0','16011','Vision of the Forgotten WHISPER_VISIT_WITH_ANCESTORS_1'),
+('-1001320','They lack control... Oshu\'gun calls to them...','0','4','0','0','16010','Vision of the Forgotten WHISPER_VISIT_WITH_ANCESTORS_2'),
+('-1001321','Turn back, mortal... This is not your battle.','0','4','0','0','16007','Vision of the Forgotten WHISPER_VISIT_WITH_ANCESTORS_3'),
+('-1001322','We are infinite... eternal.','0','4','0','0','16009','Vision of the Forgotten WHISPER_VISIT_WITH_ANCESTORS_4'),
+('-1001323','You cannot stop them.','0','4','0','0','16008','Vision of the Forgotten WHISPER_VISIT_WITH_ANCESTORS_5'),
+
 -- -1 010 000 Classic texts
 ('-1010000','The beast returns from whence it came. The wrath of Neptulon has subsided.','0','3','0','0','11160','Maws EMOTE_MAWS_KILL'),
 
@@ -3541,10 +3599,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1532040','It will all be over soon!','9307','1','0','25','15332','crone SAY_CRONE_INTRO2'),
 ('-1532041','How could you? What a cruel, cruel world...','9178','1','0','0','15052','crone SAY_CRONE_DEATH'),
 ('-1532042','Fixed you, didn''t I?','9180','1','0','0','15051','crone SAY_CRONE_SLAY'),
-
-('-1532043','The better to own you with!','9276','1','0','0','14212','wolf SAY_WOLF_AGGRO'),
-('-1532044','Mmmm... delicious.','9277','1','0','0','15153','wolf SAY_WOLF_SLAY'),
-('-1532045','Run away little girl, run away!','9278','1','0','0','14213','wolf SAY_WOLF_HOOD'),
 
 ('-1532046','What devil art thou, that dost torment me thus?','9196','1','0','0','15070','julianne SAY_JULIANNE_AGGRO'),
 ('-1532047','Where is my lord? Where is my Romulo?','9199','1','0','0','0','julianne SAY_JULIANNE_ENTER'),

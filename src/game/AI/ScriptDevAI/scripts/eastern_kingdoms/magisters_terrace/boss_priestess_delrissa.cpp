@@ -66,9 +66,9 @@ enum CommonActions
     COMMON_ACTION_MAX,
 };
 
-struct priestess_commonAI : public RangedCombatAI
+struct priestess_commonAI : public CombatAI
 {
-    priestess_commonAI(Creature* creature, uint32 actions) : RangedCombatAI(creature, actions),
+    priestess_commonAI(Creature* creature, uint32 actions) : CombatAI(creature, actions),
         m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_isRegularMode(creature->GetMap()->IsRegularDifficulty())
     {
         AddCombatAction(COMMON_RETARGET, 5000u);
@@ -1093,7 +1093,7 @@ struct npc_zelfanAI : public priestess_companion_commonAI
                 break;
             case ZELFAN_RECOMBOBULATE:
             {
-                std::list<Creature*> ccedFriends = DoFindFriendlyCC(30.0f);
+                std::list<Creature*> ccedFriends = DoFindFriendlyEligibleDispel(30.0f);
                 for (Creature* creature : ccedFriends)
                 {
                     if (creature->IsPolymorphed())

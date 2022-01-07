@@ -39,6 +39,7 @@ class Aura;
 struct SpellTargetEntry;
 struct SpellScript;
 struct AuraScript;
+struct SpellTargetingData;
 
 enum SpellCastFlags
 {
@@ -524,6 +525,7 @@ class Spell
         bool m_ignoreConcurrentCasts;
         bool m_hideInCombatLog;
         bool m_resetLeash;
+        bool m_channelOnly;
         // Not a trigger flag but same type of information
         bool m_clientCast;
 
@@ -608,6 +610,8 @@ class Spell
         void SetScriptValue(uint64 value) { m_scriptValue = value; }
         void RegisterAuraProc(Aura* aura);
         bool IsAuraProcced(Aura* aura);
+        // setting 0 disables the trigger
+        void SetTriggerChance(int32 triggerChance, SpellEffectIndex effIdx) { m_triggerSpellChance[effIdx] = triggerChance; }
 
         // Spell Target Subsystem - public part
         // Targets store structures and data
@@ -628,6 +632,7 @@ class Spell
             bool   magnet : 1;
             bool   procReflect : 1; // Used to tell hit to proc reflect only and return reflect back
             bool   isCrit : 1;
+            bool   executionless : 1;
             uint32 heartbeatResistChance;
             uint32 diminishDuration; // Store duration after diminishing returns are applied
             DiminishingLevels diminishLevel;
@@ -708,6 +713,7 @@ class Spell
         GameObject* GetGOTarget() { return gameObjTarget; }
         uint32 GetDamage() { return damage; }
         void SetDamage(uint32 newDamage) { damage = newDamage; }
+        SpellSchoolMask GetSchoolMask() { return m_spellSchoolMask; }
         // OnHit use only
         uint32 GetTotalTargetDamage() { return m_damage; }
         // script initialization hook only setters - use only if dynamic - else use appropriate helper
@@ -805,6 +811,7 @@ class Spell
         //*****************************************
         void FillTargetMap();
         void SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targetB, TempTargetingData& targetingData);
+        bool FillUnitTargets(TempTargetingData& targetingData, SpellTargetingData& data, uint32 i);
         bool CheckAndAddMagnetTarget(Unit* unitTarget, SpellEffectIndex effIndex, bool targetB, TempTargetingData& data);
         static void CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTargetEntry>& bounds, UnitList& tempTargetUnitMap, UnitList& targetUnitMap, SpellEffectIndex effIndex);
         void FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme scheme, uint32 chainTargetCount);
@@ -862,6 +869,7 @@ class Spell
         uint64 m_scriptValue; // persistent value for spell script state
         SpellScript* m_spellScript;
         AuraScript* m_auraScript; // needed for some checks for value calculation
+        int32 m_triggerSpellChance[MAX_EFFECT_INDEX]; // used by trigger spell effects to roll
 
         uint32 m_spellState;
         uint32 m_timer;
@@ -1022,7 +1030,15 @@ namespace MaNGOS
                 // there are still more spells which can be casted on dead, but
                 // they are no AOE and don't have such a nice SPELL_ATTR flag
                 // mostly phase check
-                if (!itr->getSource()->IsInMap(i_originalCaster) || itr->getSource()->IsTaxiFlying())
+                if (i_spell.m_spellInfo->HasAttribute(SPELL_ATTR_EX6_IGNORE_PHASE_SHIFT))
+                {
+                    if (!itr->getSource()->IsInMapIgnorePhase(i_originalCaster))
+                        continue;
+                }
+                else if (!itr->getSource()->IsInMap(i_originalCaster))
+                    continue;
+
+                if (itr->getSource()->IsTaxiFlying())
                     continue;
 
                 switch (i_TargetType)
@@ -1057,7 +1073,9 @@ namespace MaNGOS
                         float maxHeight = i_radius / 2;
                         float distance = std::min(sqrtf(itr->getSource()->GetDistance2d(i_centerX, i_centerY, DIST_CALC_NONE)), i_radius);
                         float ratio = distance / i_radius;
-                        float conalMaxHeight = maxHeight * ratio;
+                        float conalMaxHeight = maxHeight * ratio; // pvp combat uses true cone from roughly model
+                        if (!i_originalCaster->IsControlledByPlayer() && itr->getSource()->IsControlledByPlayer())
+                            conalMaxHeight = maxHeight; // npcs just do a conal max Z aoe
                         if (i_cone >= 0.f)
                         {
                             if (i_castingObject->isInFront(itr->getSource(), i_radius, i_cone) &&

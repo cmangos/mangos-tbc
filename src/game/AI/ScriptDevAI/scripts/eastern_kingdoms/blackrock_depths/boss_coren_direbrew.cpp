@@ -22,6 +22,7 @@ SDCategory: Blackrock Depths
 EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 
 enum
 {
@@ -32,6 +33,7 @@ enum
     SPELL_SUMMON_DIREBREW_MINION    = 47375,
     SPELL_DIREBREW_CHARGE           = 47718,
     SPELL_SUMMON_MOLE_MACHINE       = 47691,            // triggers 47690
+    SPELL_SUMMON_MOLE_MACHINE_MINION_SUMMONER = 47690,
 
     // summoned auras
     SPELL_PORT_TO_COREN             = 52850,
@@ -41,13 +43,17 @@ enum
     // SPELL_BARRELED_AURA           = 50278,            // used by Ursula
     // SPELL_HAS_BREW                = 47331,            // triggers 47344 - aura which asks for the second brew on item expire
     // SPELL_SEND_FIRST_MUG          = 47333,            // triggers 47345
-    // SPELL_SEND_SECOND_MUG         = 47339,            // triggers 47340 - spell triggered by 47344
+    SPELL_SEND_SECOND_MUG           = 47339,             // triggers 47340 - spell triggered by 47344
     // SPELL_BREWMAIDEN_DESPAWN_AURA = 48186,            // purpose unk
+    SPELL_DIREBREW_MINION_KNOCKBACK = 50313,
+
+    SPELL_DIREBREWS_DISARM_PRECAST  = 47407,
+    SPELL_DIREBREWS_DISARM_GROW     = 47409,
 
     // npcs
-    NPC_DIREBREW_MINION             = 26776,
     NPC_ILSA_DIREBREW               = 26764,
     NPC_URSULA_DIREBREW             = 26822,
+    NPC_DARK_IRON_ANTAGONIST        = 23795,
 
     // other
     FACTION_HOSTILE                 = 736,
@@ -57,123 +63,219 @@ enum
     MAX_DIREBREW_MINIONS            = 3,
 };
 
-struct boss_coren_direbrewAI : public ScriptedAI
+enum CorenActions
 {
-    boss_coren_direbrewAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+    COREN_SPAWN_ILSA,
+    COREN_SPAWN_URSULA,
+    COREN_DISARM,
+    COREN_DIREBREW_MINION,
+    COREN_ACTION_MAX,
+    COREN_ATTACK_TIMER,
+};
 
-    uint32 m_uiDisarmTimer;
-    uint32 m_uiChargeTimer;
-    uint32 m_uiSummonTimer;
-    uint8 m_uiPhase;
-
-    void Reset() override
+struct boss_coren_direbrewAI : public CombatAI
+{
+    boss_coren_direbrewAI(Creature* creature) : CombatAI(creature, COREN_ACTION_MAX)
     {
-        m_uiDisarmTimer     = 10000;
-        m_uiChargeTimer     = 5000;
-        m_uiSummonTimer     = 15000;
-        m_uiPhase           = 0;
+        AddTimerlessCombatAction(COREN_SPAWN_ILSA, true);
+        AddTimerlessCombatAction(COREN_SPAWN_URSULA, true);
+        AddCombatAction(COREN_DISARM, 10000u);
+        AddCombatAction(COREN_DIREBREW_MINION, 15000u);
+        AddCustomAction(COREN_ATTACK_TIMER, true, [&]()
+        {
+            if (Player* player = m_creature->GetMap()->GetPlayer(m_targetPlayer))
+            {
+                m_creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_REACH_HOME | TEMPFACTION_RESTORE_RESPAWN);
+                m_creature->SetInCombatWithZone();
+                AttackStart(player);
+                CreatureList staticSpawns;
+                GetCreatureListWithEntryInGrid(staticSpawns, m_creature, NPC_DARK_IRON_ANTAGONIST, 50.f);
+                for (auto creature : staticSpawns)
+                {
+                    creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_REACH_HOME | TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER);
+                    creature->SetInCombatWithZone();
+                    creature->AI()->AttackClosestEnemy();
+                }
+            }
+        });
     }
 
-    void Aggro(Unit* /*pWho*/) override
-    {
-        // Spawn 3 minions on aggro
-        for (uint8 i = 0; i < MAX_DIREBREW_MINIONS; ++i)
-            DoCastSpellIfCan(m_creature, SPELL_SUMMON_DIREBREW_MINION, CAST_TRIGGERED);
-    }
+    ObjectGuid m_targetPlayer;
+    GuidVector m_guids;
 
-    void JustSummoned(Creature* pSummoned) override
+    void JustSummoned(Creature* summoned) override
     {
-        switch (pSummoned->GetEntry())
+        switch (summoned->GetEntry())
         {
             case NPC_ILSA_DIREBREW:
             case NPC_URSULA_DIREBREW:
-                pSummoned->CastSpell(m_creature, SPELL_PORT_TO_COREN, TRIGGERED_OLD_TRIGGERED);
+                summoned->CastSpell(m_creature, SPELL_PORT_TO_COREN, TRIGGERED_OLD_TRIGGERED);
+                summoned->AI()->AttackStart(m_creature->GetVictim());
+                summoned->SetCorpseDelay(5);
                 break;
         }
-
-        if (m_creature->GetVictim())
-            pSummoned->AI()->AttackStart(m_creature->GetVictim());
+        m_guids.push_back(summoned->GetObjectGuid());
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void SummonedCreatureDespawn(Creature* summoned) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+        if (!m_creature->IsAlive() || !m_creature->IsInCombat())
             return;
 
-        // Spawn Ilsa
-        if (m_creature->GetHealthPercent() < 66.0f && m_uiPhase == 0)
+        switch (summoned->GetEntry())
         {
-            float fX, fY, fZ;
-            m_creature->GetRandomPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 10, fX, fY, fZ);
-            m_creature->SummonCreature(NPC_ILSA_DIREBREW, fX, fY, fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
-            m_uiPhase = 1;
+            case NPC_ILSA_DIREBREW:
+                SetActionReadyStatus(COREN_SPAWN_ILSA, true);
+                break;
+            case NPC_URSULA_DIREBREW:
+                SetActionReadyStatus(COREN_SPAWN_ILSA, true);
+                break;
         }
-
-        // Spawn Ursula
-        if (m_creature->GetHealthPercent() < 33.0f && m_uiPhase == 1)
-        {
-            float fX, fY, fZ;
-            m_creature->GetRandomPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 10, fX, fY, fZ);
-            m_creature->SummonCreature(NPC_URSULA_DIREBREW, fX, fY, fZ, 0, TEMPSPAWN_DEAD_DESPAWN, 0);
-            m_uiPhase = 2;
-        }
-
-        if (m_uiDisarmTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_DIREBREW_DISARM) == CAST_OK)
-                m_uiDisarmTimer = 15000;
-        }
-        else
-            m_uiDisarmTimer -= uiDiff;
-
-        if (m_uiChargeTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DIREBREW_CHARGE, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER))
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_DIREBREW_CHARGE) == CAST_OK)
-                    m_uiChargeTimer = urand(5000, 10000);
-            }
-        }
-        else
-            m_uiChargeTimer -= uiDiff;
-
-        if (m_uiSummonTimer < uiDiff)
-        {
-            for (uint8 i = 0; i < MAX_DIREBREW_MINIONS; ++i)
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_DIREBREW_MINION, CAST_TRIGGERED);
-
-            m_uiSummonTimer = 15000;
-        }
-        else
-            m_uiSummonTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
+
+    void JustSummoned(GameObject* go) override
+    {
+        go->Use(m_creature);
+        go->ForcedDespawn(7000);
+    }
+
+    void JustDied(Unit* killer) override
+    {
+        DespawnGuids(m_guids);
+        CreatureList staticSpawns;
+        GetCreatureListWithEntryInGrid(staticSpawns, m_creature, NPC_DARK_IRON_ANTAGONIST, 50.f);
+        for (auto creature : staticSpawns)
+            creature->ForcedDespawn();
+    }
+
+    void EnterEvadeMode() override
+    {
+        CombatAI::EnterEvadeMode();
+        DespawnGuids(m_guids);
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        switch (action)
+        {
+            case COREN_SPAWN_ILSA:
+                // Spawn Ilsa
+                if (m_creature->GetHealthPercent() < 66.0f)
+                {
+                    m_creature->SummonCreature(NPC_ILSA_DIREBREW, 889.1403f, -130.9002f, -49.660107f, 5.427973747253417968f, TEMPSPAWN_DEAD_DESPAWN, 0);
+                    SetActionReadyStatus(action, false);
+                }
+                break;
+            case COREN_SPAWN_URSULA:
+                // Spawn Ursula
+                if (m_creature->GetHealthPercent() < 33.0f)
+                {
+                    m_creature->SummonCreature(NPC_URSULA_DIREBREW, 894.956f, -127.81718f, -49.659885f, 5.270894527435302734f, TEMPSPAWN_DEAD_DESPAWN, 0);
+                    SetActionReadyStatus(action, false);
+                }
+                break;
+            case COREN_DISARM:
+                if (DoCastSpellIfCan(nullptr, SPELL_DIREBREW_DISARM) == CAST_OK)
+                    ResetCombatAction(action, 15000);
+                break;
+            case COREN_DIREBREW_MINION:
+                if (DoCastSpellIfCan(nullptr, SPELL_SUMMON_MOLE_MACHINE) == CAST_OK)
+                    ResetCombatAction(action, 15000);
+                break;
+        }
+    }
+
+    // unconfirmed usage - at least during tbc
+    //if (m_uiChargeTimer < uiDiff)
+    //{
+    //    if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_DIREBREW_CHARGE, SELECT_FLAG_NOT_IN_MELEE_RANGE | SELECT_FLAG_PLAYER))
+    //    {
+    //        if (DoCastSpellIfCan(pTarget, SPELL_DIREBREW_CHARGE) == CAST_OK)
+    //            m_uiChargeTimer = urand(5000, 10000);
+    //    }
+    //}
+    //else
+    //    m_uiChargeTimer -= uiDiff;
 };
 
-UnitAI* GetAI_boss_coren_direbrew(Creature* pCreature)
+bool QuestRewarded_npc_coren_direbrew(Player* player, Creature* creature, Quest const* quest)
 {
-    return new boss_coren_direbrewAI(pCreature);
-}
-
-bool QuestRewarded_npc_coren_direbrew(Player* pPlayer, Creature* pCreature, Quest const* pQuest)
-{
-    if (pQuest->GetQuestId() == QUEST_INSULT_COREN)
+    if (quest->GetQuestId() == QUEST_INSULT_COREN)
     {
-        DoScriptText(SAY_AGGRO, pCreature, pPlayer);
+        DoScriptText(SAY_AGGRO, creature, player);
 
-        pCreature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_REACH_HOME | TEMPFACTION_RESTORE_RESPAWN);
-        pCreature->AI()->AttackStart(pPlayer);
+        if (boss_coren_direbrewAI* ai = dynamic_cast<boss_coren_direbrewAI*>(creature->AI()))
+        {
+            ai->m_targetPlayer = player->GetObjectGuid();
+            ai->ResetTimer(COREN_ATTACK_TIMER, 2000);
+        }
     }
 
     return true;
 }
 
+struct RequestSecondMug : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        spell->GetUnitTarget()->CastSpell(spell->GetCaster(), SPELL_SEND_SECOND_MUG, TRIGGERED_NONE);
+    }
+};
+
+struct DirebrewDisarm : public SpellScript
+{
+    void OnCast(Spell* spell) const override
+    {
+        spell->GetCaster()->CastSpell(nullptr, SPELL_DIREBREWS_DISARM_PRECAST, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+struct DirebrewDisarmPrecast : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            aura->GetTarget()->RemoveAurasDueToSpell(SPELL_DIREBREWS_DISARM_GROW);
+    }
+
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        aura->GetTarget()->CastSpell(nullptr, SPELL_DIREBREWS_DISARM_GROW, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+struct SummonMoleMachineTargetPicker : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        spell->GetCaster()->CastSpell(spell->GetUnitTarget(), SPELL_SUMMON_MOLE_MACHINE_MINION_SUMMONER, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+struct SummonDirebrewMinion : public SpellScript
+{
+    void OnSummon(Spell* /*spell*/, Creature* summon) const override
+    {
+        summon->CastSpell(nullptr, SPELL_DIREBREW_MINION_KNOCKBACK, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void AddSC_boss_coren_direbrew()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_coren_direbrew";
-    pNewScript->GetAI = &GetAI_boss_coren_direbrew;
+    pNewScript->GetAI = &GetNewAIInstance<boss_coren_direbrewAI>;
     pNewScript->pQuestRewardedNPC = &QuestRewarded_npc_coren_direbrew;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<RequestSecondMug>("spell_request_second_mug");
+    RegisterSpellScript<DirebrewDisarm>("spell_direbrew_disarm");
+    RegisterAuraScript<DirebrewDisarmPrecast>("spell_direbrew_disarm_precast");
+    RegisterSpellScript<SummonMoleMachineTargetPicker>("spell_summon_mole_machine_target_picker");
+    RegisterSpellScript<SummonDirebrewMinion>("spell_summon_direbrew_minion");
 }

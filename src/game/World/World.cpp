@@ -437,9 +437,9 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_DURABILITY_LOSS_PARRY,  "DurabilityLossChance.Parry",  0.05f);
     setConfigPos(CONFIG_FLOAT_RATE_DURABILITY_LOSS_BLOCK,  "DurabilityLossChance.Block",  0.05f);
 
-    setConfigPos(CONFIG_FLOAT_LISTEN_RANGE_SAY,       "ListenRange.Say",       40.0f);
+    setConfigPos(CONFIG_FLOAT_LISTEN_RANGE_SAY,       "ListenRange.Say",       25.0f);
     setConfigPos(CONFIG_FLOAT_LISTEN_RANGE_YELL,      "ListenRange.Yell",     300.0f);
-    setConfigPos(CONFIG_FLOAT_LISTEN_RANGE_TEXTEMOTE, "ListenRange.TextEmote", 40.0f);
+    setConfigPos(CONFIG_FLOAT_LISTEN_RANGE_TEXTEMOTE, "ListenRange.TextEmote", 25.0f);
 
     setConfigPos(CONFIG_FLOAT_GROUP_XP_DISTANCE, "MaxGroupXPDistance", 74.0f);
     setConfigPos(CONFIG_FLOAT_SIGHT_GUARDER,     "GuarderSight",       50.0f);
@@ -808,14 +808,12 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK, "vmap.enableIndoorCheck", true);
     bool enableLOS = sConfig.GetBoolDefault("vmap.enableLOS", false);
     bool enableHeight = sConfig.GetBoolDefault("vmap.enableHeight", false);
-    std::string ignoreSpellIds = sConfig.GetStringDefault("vmap.ignoreSpellIds");
 
     if (!enableHeight)
         sLog.outError("VMAP height use disabled! Creatures movements and other things will be in broken state.");
 
     VMAP::VMapFactory::createOrGetVMapManager()->setEnableLineOfSightCalc(enableLOS);
     VMAP::VMapFactory::createOrGetVMapManager()->setEnableHeightCalc(enableHeight);
-    VMAP::VMapFactory::preventSpellsFromBeingTestedForLoS(ignoreSpellIds.c_str());
     sLog.outString("WORLD: VMap support included. LineOfSight:%i, getHeight:%i, indoorCheck:%i",
                    enableLOS, enableHeight, getConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK) ? 1 : 0);
     sLog.outString("WORLD: VMap data directory is: %svmaps", m_dataPath.c_str());
@@ -897,7 +895,7 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading faction_store...");
     sObjectMgr.LoadFactions();
 
-    // Load before npc_text, gossip_menu_option, script_texts, creature_ai_texts, dbscript_string
+    // Load before npc_text, gossip_menu_option, script_texts
     sLog.outString("Loading broadcast_text...");
     sObjectMgr.LoadBroadcastText();
 
@@ -1008,14 +1006,17 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading Creature templates...");
     sObjectMgr.LoadCreatureTemplates();
 
-    sLog.outString("Loading Creature template spells...");
-    sObjectMgr.LoadCreatureTemplateSpells();
+    sLog.outString("Loading Creature immunities...");
+    sObjectMgr.LoadCreatureImmunities();
+
+    sLog.outString("Loading Creature spell lists...");
+    sObjectMgr.LoadCreatureSpellLists();
 
     sLog.outString("Loading Creature cooldowns...");
     sObjectMgr.LoadCreatureCooldowns();
 
-    sLog.outString("Loading Creature immunities...");
-    sObjectMgr.LoadCreatureImmunities();
+    sLog.outString("Loading Creature template spells...");
+    sObjectMgr.LoadCreatureTemplateSpells();
 
     sLog.outString("Loading Creature Model for race...");   // must be after creature templates
     sObjectMgr.LoadCreatureModelRace();
@@ -1058,6 +1059,9 @@ void World::SetInitialWorldSettings()
 
     sLog.outString("Loading SpellsScriptTarget...");
     sSpellMgr.LoadSpellScriptTarget();                      // must be after LoadCreatureTemplates, LoadCreatures and LoadGameobjectInfo
+
+    sLog.outString("Loading Spawn Groups");                 // must be after creature and GO load
+    sObjectMgr.LoadSpawnGroups();
 
     sLog.outString("Generating SpellTargetMgr data...\n");
     SpellTargetMgr::Initialize(); // must be after LoadSpellScriptTarget
@@ -1339,7 +1343,6 @@ void World::SetInitialWorldSettings()
 
     ///- Initialize static helper structures
     AIRegistry::Initialize();
-    Player::InitVisibleBits();
 
     ///- Initialize Outdoor PvP
     sLog.outString("Starting Outdoor PvP System");          // should be before loading maps
@@ -2671,6 +2674,23 @@ void World::GeneratePacketMetrics()
     meas_players.add_field("mage", std::to_string(GetOnlineClassPlayers(CLASS_MAGE)));
     meas_players.add_field("warlock", std::to_string(GetOnlineClassPlayers(CLASS_WARLOCK)));
     meas_players.add_field("druid", std::to_string(GetOnlineClassPlayers(CLASS_DRUID)));
+
+    metric::measurement meas_latency("world.metrics.latency");
+    meas_latency.add_field("online", std::to_string(GetAverageLatency()));
+}
+
+uint32 World::GetAverageLatency() const
+{
+    if (m_sessions.size() == 0)
+        return 0;
+
+    uint32 result = 0;
+    const_cast<World*>(this)->ExecuteForAllSessions([&](WorldSession const& session)
+    {
+        result += session.GetLatency();
+    });
+    result /= m_sessions.size();
+    return result;
 }
 #endif
 

@@ -412,9 +412,9 @@ enum ShartuulActions
     SHARTUUL_HANDLE_FIGHT_START,
 };
 
-struct npc_shartuulAI : public RangedCombatAI
+struct npc_shartuulAI : public CombatAI
 {
-    npc_shartuulAI(Creature* creature) : RangedCombatAI(creature, SHARTUUL_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_fightSequenceStage(0)
+    npc_shartuulAI(Creature* creature) : CombatAI(creature, SHARTUUL_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_fightSequenceStage(0)
     {
         m_creature->GetCombatManager().SetLeashingDisable(true);
         // AddCombatAction(SHARTUUL_TELEPORT, 60000u);
@@ -852,7 +852,7 @@ struct ShivanShapeshiftForm : public AuraScript
                 case SPELL_ASPECT_OF_THE_ICE:       spellSet = 2; break;
                 case SPELL_ASPECT_OF_THE_SHADOW:    spellSet = 0; break;
             }
-            demon->UpdateSpellSet(spellSet);
+            demon->SetSpellList(spellSet);
             charmInfo->InitPossessCreateSpells();
             if (Player* player = dynamic_cast<Player*>(demon->GetCharmer()))
                 player->PossessSpellInitialize();

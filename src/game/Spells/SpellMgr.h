@@ -579,6 +579,8 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 8599:          // Enrage
         case 8601:          // Slowing Poison
         case 8876:          // Thrash
+        case 8909:          // Unholy Shield
+        case 8990:          // Retribution Aura (Rank 1)
         case 9205:          // Hate to Zero (Hate to Zero)
         case 9347:          // Mortal Strike
         case 9460:          // Corrosive Ooze
@@ -596,6 +598,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 11966:         // Fire Shield
         case 11984:         // Immolate
         case 12099:         // Shield Spike
+        case 12187:         // Disease Cloud
         case 12246:         // Infected Spine
         case 12529:         // Chilling Touch
         case 12539:         // Ghoul Rot
@@ -618,6 +621,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 15506:         // Immolate
         case 15876:         // Ice Blast
         case 16140:         // Exploding Cadaver (Exploding Cadaver)
+        case 16345:         // Disease Cloud
         case 16563:         // Drowning Death
         case 16577:         // Disease Cloud
         case 16592:         // Shadowform
@@ -651,11 +655,16 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 22856:         // Ice Lock (Guard Slip'kik ice trap in Dire Maul)
         case 23255:         // Deep Wounds
         case 24313:         // Shade Visual
+        case 25039:         // Green Ghost Visual
         case 25592:         // Hate to Zero (Hate to Zero)
         case 26341:         // Saurfang's Rage
         case 27578:         // Battle Shout
+        case 27793:         // Disease Cloud
         case 27987:         // Unholy Aura
         case 28126:         // Spirit Particles (purple)
+        case 28156:         // Disease Cloud
+        case 28362:         // Disease Cloud
+        case 28370:         // Toxic Gas
         case 28902:         // Bloodlust
         case 29406:         // Shadowform
         case 29526:         // Hate to Zero (Hate to Zero)
@@ -663,6 +672,8 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 30205:         // Shadow Cage - Magtheridon
         case 30982:         // Crippling Poison
         case 31332:         // Dire Wolf Visual
+        case 31387:         // Time Rift Channel
+        case 31607:         // Disease Cloud
         case 31690:         // Putrid Mushroom
         case 31722:         // Immolation
         case 31757:         // Pulverize
@@ -698,6 +709,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 36784:         // Entropic Aura
         case 36788:         // Diminish Soul
         case 37119:         // Spirit Particles (Spawn)
+        case 37256:         // Disease Cloud
         case 37266:         // Disease Cloud
         case 37411:         // Skettis Corrupted Ghosts
         case 37497:         // Shadowmoon Ghost Invisibility (Ghostrider of Karabor in SMV) 
@@ -715,6 +727,7 @@ inline bool IsSpellRemovedOnEvade(SpellEntry const* spellInfo)
         case 40453:         // Aura of Fear
         case 40816:         // Saber Lash - Mother Shahraz
         case 40899:         // Felfire Proc
+        case 41290:         // Disease Cloud
         case 41634:         // Invisibility and Stealth Detection
         case 42459:         // Dual Wield (Passive)
         case 44118:         // Fists of Arcane Fury
@@ -1679,96 +1692,6 @@ inline bool IsSpellRequiresRangedAP(SpellEntry const* spellInfo)
     return (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER && spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MELEE);
 }
 
-inline uint32 GetAffectedTargets(SpellEntry const* spellInfo, WorldObject* caster)
-{
-    // custom target amount cases
-    switch (spellInfo->SpellFamilyName)
-    {
-        case SPELLFAMILY_GENERIC:
-        {
-            switch (spellInfo->Id)
-            {
-                case 802:                                   // Mutate Bug (AQ40, Emperor Vek'nilash)
-                case 804:                                   // Explode Bug (AQ40, Emperor Vek'lor)
-                case 23138:                                 // Gate of Shazzrah (MC, Shazzrah)
-                case 23173:                                 // Brood Affliction (BWL, Chromaggus) - TODO: Remove along with rework
-                case 24019:                                 // Axe Flurry (ZG - Gurubashi Axe Thrower)
-                case 24150:                                 // Stinger Charge Primer (AQ20, Hive'Zara Stinger)
-                case 24781:                                 // Dream Fog (Emerald Dragons)
-                case 26080:                                 // Stinger Charge Primer (AQ40, Vekniss Stinger)
-                case 26524:                                 // Sand Trap (AQ20 - Kurinnaxx)
-                case 28415:                                 // Summon Type A Trigger (Naxxramas, Kel'Thuzad)
-                case 28416:                                 // Summon Type B Trigger (Naxxramas, Kel'Thuzad)
-                case 28417:                                 // Summon Type C Trigger (Naxxramas, Kel'Thuzad)
-                case 28455:                                 // Summon Type D Trigger (Naxxramas, Kel'Thuzad)
-                case 28560:                                 // Summon Blizzard (Naxx, Sapphiron)
-                case 30541:                                 // Blaze (Magtheridon)
-                case 30769:                                 // Pick Red Riding Hood (Karazhan, Big Bad Wolf)
-                case 30835:                                 // Infernal Relay (Karazhan, Prince Malchezaar)
-                case 32312:                                 // Move 1 (Karazhan, Chess Event)
-                case 33711:                                 // Murmur's Touch (Shadow Labyrinth, Murmur)
-                case 37388:                                 // Move 2 (Karazhan, Chess Event)
-                case 38794:                                 // Murmur's Touch (h) (Shadow Labyrinth, Murmur)
-                case 39338:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Horde
-                case 39342:                                 // Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Alliance
-                case 40834:                                 // Agonizing Flames (BT, Illidan Stormrage)
-                case 41537:                                 // Summon Enslaved Soul (BT, Reliquary of Souls)
-                case 45391:                                 // Summon Demonic Vapor (SWP, Felmyst)
-                case 45976:                                 // Open Portal (SWP, M'uru)
-                case 46372:                                 // Ice Spear Target Picker (Slave Pens, Ahune)
-                    return 1;
-                case 10258:                                 // Awaken Vault Warder (Uldaman)
-                case 28542:                                 // Life Drain (Naxx, Sapphiron)
-                    return 2;
-                case 30004:                                 // Flame Wreath (Karazhan, Shade of Aran)
-                case 39341:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Horde
-                case 39344:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Alliance
-                case 39992:                                 // Needle Spine Targeting (BT, Warlord Najentus)
-                case 40869:                                 // Fatal Attraction (BT, Mother Shahraz)
-                case 41303:                                 // Soul Drain (BT, Reliquary of Souls)
-                case 41376:                                 // Spite (BT, Reliquary of Souls)
-                    return 3;
-                case 29232:                                 // Fungal Bloom (Loatheb)
-                case 40243:                                 // Crushing Shadows (BT, Teron Gorefiend)
-                case 42005:                                 // Bloodboil (BT, Gurtogg Bloodboil)
-                    return 5;
-                case 25676:                                 // Drain Mana (correct number has to be researched)
-                case 25754:
-                    return 6;
-                case 28796:                                 // Poison Bolt Volley (Naxx, Faerlina)
-                case 29213:                                 // Curse of the Plaguebringer (Naxx, Noth the Plaguebringer)
-                    return 10;
-                case 26457:                                 // Drain Mana (correct number has to be researched)
-                case 26559:
-                    return 12;
-                case 42471:                                 // Hatch Eggs
-                    if (UnitAI* ai = static_cast<Unit*>(caster)->AI())
-                        return ai->GetScriptData();
-                    else
-                        return 1; // for testing purposes
-                default: break;
-            }
-            break;
-        }
-        case SPELLFAMILY_MAGE:
-        {
-            switch (spellInfo->Id)
-            {
-                case 23603:                                 // Wild Polymorph (BWL, Nefarian)
-                case 38194:                                 // Blink
-                    return 1;
-                default:
-                    break;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
-    return spellInfo->MaxAffectedTargets;
-}
-
 SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 form);
 
 inline bool IsChanneledSpell(SpellEntry const* spellInfo)
@@ -2188,6 +2111,10 @@ inline bool IsStackableAuraEffect(SpellEntry const* entry, SpellEntry const* ent
         // By default base stats cannot stack if they're similar
         case SPELL_AURA_MOD_STAT:
         {
+            if (entry->Id == 5320 || entry2->Id == 5320) // Echeyakee's Grace - stacks with everything
+                return true;
+            if (entry->Id == 15366 || entry2->Id == 15366) // Songflower Serenade - stacks with everything
+                return true;
             if (entry->EffectMiscValue[i] != entry2->EffectMiscValue[similar])
                 break;
             if (positive)
@@ -2393,7 +2320,7 @@ enum ProcFlags : uint32
 {
     PROC_FLAG_NONE                          = 0x00000000,
 
-    PROC_FLAG_HEARTBEAT                     = 0x00000001,   // 00 Killed by aggressor - TODO: change meaning
+    PROC_FLAG_HEARTBEAT                     = 0x00000001,   // 00 Heartbeat
     PROC_FLAG_KILL                          = 0x00000002,   // 01 Kill target (in most cases need XP/Honor reward, see Unit::IsTriggeredAtSpellProcEvent for additinoal check)
 
     PROC_FLAG_DEAL_MELEE_SWING              = 0x00000004,   // 02 Successful melee auto attack

@@ -16,23 +16,29 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MANGOS_CRITTERAI_H
-#define MANGOS_CRITTERAI_H
+#ifndef MAP_DATA_CONTAINER_H
+#define MAP_DATA_CONTAINER_H
 
-#include "CreatureAI.h"
-#include "Entities/ObjectGuid.h"
+#include "Platform/Define.h"
+#include <memory>
 
-class CritterAI : public CreatureAI
+struct CreatureSpellListContainer;
+struct CreatureSpellList;
+struct SpawnGroupEntry;
+struct SpawnGroupEntryContainer;
+
+class MapDataContainer
 {
     public:
-
-        explicit CritterAI(Creature* creature) : CreatureAI(creature) {}
-
-        void EnterCombat(Unit* /*enemy*/) override;
-        void UpdateAI(const uint32 /*diff*/) override;
-
-        static int Permissible(const Creature* creature);
-    protected:
-        std::string GetAIName() override { return "CritterAI"; }
+        MapDataContainer();
+        void SetCreatureSpellListContainer(std::shared_ptr<CreatureSpellListContainer> container);
+        CreatureSpellList* GetCreatureSpellList(uint32 Id) const;
+        SpawnGroupEntry* GetSpawnGroup(uint32 Id) const;
+        SpawnGroupEntry* GetSpawnGroupByGuid(uint32 dbGuid, uint32 high) const;
+        std::shared_ptr<SpawnGroupEntryContainer> GetSpawnGroups() const;
+    private:
+        std::shared_ptr<CreatureSpellListContainer> m_spellListContainer;
+        std::shared_ptr<SpawnGroupEntryContainer> m_spawnGroupContainer;
 };
+
 #endif

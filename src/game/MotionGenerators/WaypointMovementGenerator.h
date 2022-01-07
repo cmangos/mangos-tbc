@@ -81,7 +81,7 @@ class WaypointMovementGenerator<Creature>
         void Finalize(Creature&);
         void Reset(Creature& creature);
         bool Update(Creature& creature, const uint32& diff);
-        void InitializeWaypointPath(Creature& u, int32 pathId, WaypointPathOrigin wpSource, uint32 initialDelay, uint32 overwriteEntry);
+        void InitializeWaypointPath(Creature& u, int32 pathId, WaypointPathOrigin wpSource, uint32 initialDelay, uint32 overwriteEntry = 0);
 
         MovementGeneratorType GetMovementGeneratorType() const { return WAYPOINT_MOTION_TYPE; }
 
@@ -93,8 +93,13 @@ class WaypointMovementGenerator<Creature>
         void AddToWaypointPauseTime(int32 waitTimeDiff, bool force = false);
         bool SetNextWaypoint(uint32 pointId);
         void SetForcedMovement(ForcedMovement forcedMovement) { m_forcedMovement = forcedMovement; }
+        void SetGuid(ObjectGuid guid) { m_guid = guid; }
 
         void UnitSpeedChanged() override { m_speedChanged = true; }
+
+    protected:
+        virtual void SwitchToNextNode(Creature& creature, WaypointPath::const_iterator& nodeItr);
+        virtual bool GetNodeAfter(WaypointPath::const_iterator& nodeItr);
 
     private:
         void LoadPath(Creature& creature, int32 pathId, WaypointPathOrigin wpOrigin, uint32 overwriteEntry);
@@ -121,6 +126,33 @@ class WaypointMovementGenerator<Creature>
 
         bool m_speedChanged;
         ForcedMovement m_forcedMovement;
+
+        ObjectGuid m_guid;
+};
+
+/** LinearWPMovementGenerator loads a series of way points
+ * from the DB and apply it to the creature's movement generator.
+ * Creature will move in sequence from point A -> B -> C -> D -> C -> B -> A -> B .....
+ * Or if you prefer it will go back and forth all along provided nodes.
+ */
+template<class T>
+class LinearWPMovementGenerator;
+
+template<>
+class LinearWPMovementGenerator<Creature> : public WaypointMovementGenerator<Creature>
+{
+    public:
+    LinearWPMovementGenerator(Creature& creature) : WaypointMovementGenerator(creature), m_driveWayBack(false)
+    {}
+
+    // return WAYPOINT_MOTION_TYPE on purpose so it act like normal waypoint for large majority of the core
+    //MovementGeneratorType GetMovementGeneratorType() const override { return LINEAR_WP_MOTION_TYPE; }
+
+    private:
+    void SwitchToNextNode(Creature& creature, WaypointPath::const_iterator& nodeItr) override;
+    bool GetNodeAfter(WaypointPath::const_iterator& nodeItr) override;
+
+    bool m_driveWayBack;
 };
 
 #endif

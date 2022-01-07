@@ -529,9 +529,9 @@ enum KiljaedenActions
     KILJAEDEN_KALEC_YELL_DELAY,
 };
 
-struct boss_kiljaedenAI : public RangedCombatAI, private DialogueHelper
+struct boss_kiljaedenAI : public CombatAI, private DialogueHelper
 {
-    boss_kiljaedenAI(Creature* creature) : RangedCombatAI(creature, KILJAEDEN_ACTION_MAX),
+    boss_kiljaedenAI(Creature* creature) : CombatAI(creature, KILJAEDEN_ACTION_MAX),
         DialogueHelper(aPhaseDialogue), m_instance(static_cast<instance_sunwell_plateau*>(creature->GetInstanceData())), m_uiMaxShieldOrbs(3), m_freeShieldOrbs(5)
     {
         InitializeDialogueHelper(m_instance);
@@ -1188,7 +1188,7 @@ struct DarknessOfSouls : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
     {
-        if (aura->GetEffIndex() == EFFECT_INDEX_0 && !apply)
+        if (aura->GetEffIndex() == EFFECT_INDEX_0 && !apply && aura->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
         {
             Unit* target = aura->GetTarget();
             uint32 spellId = aura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_2);

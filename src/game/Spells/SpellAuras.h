@@ -187,6 +187,7 @@ class SpellAuraHolder
 
         bool HasMechanic(uint32 mechanic) const;
         bool HasMechanicMask(uint32 mechanicMask) const;
+        bool IsDispellableByMask(uint32 dispelMask, Unit const* caster, SpellEntry const* spellInfo) const;
 
         void UpdateAuraDuration();
         void SendAuraDurationForTarget(uint32 slot = MAX_AURAS);
@@ -495,6 +496,7 @@ class Aura
         void TriggerSpellWithValue();
 
         // more limited that used in future versions (spell_affect table based only), so need be careful with backporting uses
+        ClassFamilyMask GetAuraSpellClassMask() const;
         bool isAffectedOnSpell(SpellEntry const* spell) const;
         bool CanProcFrom(SpellEntry const* spell, uint32 EventProcEx, uint32 procEx, bool active, bool useClassMask) const;
 
@@ -529,6 +531,7 @@ class Aura
         void OnPeriodicDummy();
         void OnPeriodicTickEnd();
         void OnPeriodicCalculateAmount(uint32& amount);
+        void OnHeartbeat();
         // Hook Requirements
         void ForcePeriodicity(uint32 periodicTime);
         void SetScriptValue(uint64 value) { m_scriptValue = value; }

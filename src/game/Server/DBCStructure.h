@@ -22,7 +22,7 @@
 #include "Server/DBCEnums.h"
 #include "MotionGenerators/Path.h"
 #include "Platform/Define.h"
-#include "Globals/SharedDefines.h"
+#include "Spells/SpellDefines.h"
 
 #include <map>
 #include <set>
@@ -472,7 +472,7 @@ struct FactionTemplateEntry
                 return false;
         return enemyGroupMask == 0 && friendGroupMask == 0;
     }
-    bool IsContestedGuardFaction() const { return (factionFlags & FACTION_TEMPLATE_FLAG_CONTESTED_GUARD) != 0; }
+    bool IsContestedGuardFaction() const { return (factionFlags & FACTION_TEMPLATE_FLAG_ATTACK_PVP_ACTIVE_PLAYERS) != 0; }
 };
 
 struct GameObjectDisplayInfoEntry

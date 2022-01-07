@@ -594,15 +594,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
-                case 4131:                                  // Banish Cresting Exile
-                {
-                    if (!unitTarget)
-                        return;
-
-                    DoScriptText(-1010004, unitTarget, m_caster);
-                    unitTarget->CastSpell(nullptr, 3617, TRIGGERED_OLD_TRIGGERED);
-                    return;
-                }
                 case 7671:                                  // Transformation (human<->worgen)
                 {
                     if (unitTarget) // Transform Visual
@@ -2521,37 +2512,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     unitTarget->SetHealth(m_caster->GetHealth());
                     return;
                 }
-                case 49357:                                 // Brewfest Mount Transformation
-                {
-                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-                        return;
-
-                    if (!m_caster->HasAuraType(SPELL_AURA_MOUNTED))
-                        return;
-
-                    m_caster->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
-
-                    // Ram for Alliance, Kodo for Horde
-                    if (((Player*)m_caster)->GetTeam() == ALLIANCE)
-                    {
-                        if (m_caster->GetSpeedRate(MOVE_RUN) >= 2.0f)
-                            // 100% Ram
-                            m_caster->CastSpell(m_caster, 43900, TRIGGERED_OLD_TRIGGERED);
-                        else
-                            // 60% Ram
-                            m_caster->CastSpell(m_caster, 43899, TRIGGERED_OLD_TRIGGERED);
-                    }
-                    else
-                    {
-                        if (((Player*)m_caster)->GetSpeedRate(MOVE_RUN) >= 2.0f)
-                            // 100% Kodo
-                            m_caster->CastSpell(m_caster, 49379, TRIGGERED_OLD_TRIGGERED);
-                        else
-                            // 60% Kodo
-                            m_caster->CastSpell(m_caster, 49378, TRIGGERED_OLD_TRIGGERED);
-                    }
-                    return;
-                }
                 case 50243:                                 // Teach Language
                 {
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
@@ -2583,37 +2543,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         bg->HandlePlayerDroppedFlag((Player*)m_caster);
 
                     m_caster->CastSpell(m_caster, 30452, TRIGGERED_OLD_TRIGGERED, nullptr);
-                    return;
-                }
-                case 52845:                                 // Brewfest Mount Transformation (Faction Swap)
-                {
-                    if (m_caster->GetTypeId() != TYPEID_PLAYER)
-                        return;
-
-                    if (!m_caster->HasAuraType(SPELL_AURA_MOUNTED))
-                        return;
-
-                    m_caster->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
-
-                    // Ram for Horde, Kodo for Alliance
-                    if (((Player*)m_caster)->GetTeam() == HORDE)
-                    {
-                        if (m_caster->GetSpeedRate(MOVE_RUN) >= 2.0f)
-                            // Swift Brewfest Ram, 100% Ram
-                            m_caster->CastSpell(m_caster, 43900, TRIGGERED_OLD_TRIGGERED);
-                        else
-                            // Brewfest Ram, 60% Ram
-                            m_caster->CastSpell(m_caster, 43899, TRIGGERED_OLD_TRIGGERED);
-                    }
-                    else
-                    {
-                        if (((Player*)m_caster)->GetSpeedRate(MOVE_RUN) >= 2.0f)
-                            // Great Brewfest Kodo, 100% Kodo
-                            m_caster->CastSpell(m_caster, 49379, TRIGGERED_OLD_TRIGGERED);
-                        else
-                            // Brewfest Riding Kodo, 60% Kodo
-                            m_caster->CastSpell(m_caster, 49378, TRIGGERED_OLD_TRIGGERED);
-                    }
                     return;
                 }
             }
@@ -2669,7 +2598,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 {
                     // Blink
                     if (unitTarget)
-                        m_caster->CastSpell(unitTarget, 38203, TRIGGERED_OLD_TRIGGERED);
+                        unitTarget->CastSpell(m_caster, 38203, TRIGGERED_OLD_TRIGGERED);
 
                     return;
                 }
@@ -3231,6 +3160,12 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
             break;
         case 41967: // Priest Shadowfiend (34433) - handled in spell script
         case 47531: // Dismiss pet - suppress error
+            return;
+    }
+
+    if (m_triggerSpellChance[effIndex] != -1)
+    {
+        if (m_triggerSpellChance[effIndex] == 0 || irand(1, 100) > m_triggerSpellChance[effIndex])
             return;
     }
 
@@ -4649,10 +4584,10 @@ bool Spell::DoSummonPet(SpellEffectIndex eff_idx)
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         spawnCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+        spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     if (spawnCreature->getPetType() == GUARDIAN_PET)
         m_caster->AddGuardian(spawnCreature);
@@ -4722,24 +4657,13 @@ void Spell::EffectDispel(SpellEffectIndex eff_idx)
     std::list <std::pair<SpellAuraHolder*, uint32> > dispelList;
 
     // Create dispel mask by dispel type
-    uint32 dispelMask  = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[eff_idx]));
+    uint32 dispelMask = GetDispellMask(DispelType(m_spellInfo->EffectMiscValue[eff_idx]));
     Unit::SpellAuraHolderMap const& auras = unitTarget->GetSpellAuraHolderMap();
     for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
     {
         SpellAuraHolder* holder = itr->second;
-        if ((1 << holder->GetSpellProto()->Dispel) & dispelMask)
-        {
-            if (holder->GetSpellProto()->Dispel == DISPEL_MAGIC)
-            {
-                // do not remove positive auras if friendly target
-                //               negative auras if non-friendly target
-                bool positive = holder->IsPositive();
-                if (positive == m_caster->CanAssistSpell(unitTarget, m_spellInfo))
-                    if (positive || !holder->IsCharm())
-                        continue;
-            }
+        if (holder->IsDispellableByMask(dispelMask, m_caster, m_spellInfo))
             dispelList.push_back(std::pair<SpellAuraHolder*, uint32>(holder, holder->GetStackAmount()));
-        }
     }
     std::list<std::pair<SpellAuraHolder*, uint32> > successList;
     std::list <uint32> failList;
@@ -4759,11 +4683,8 @@ void Spell::EffectDispelMechanic(SpellEffectIndex eff_idx)
 
     Unit::SpellAuraHolderMap& Auras = unitTarget->GetSpellAuraHolderMap();
     for (Unit::SpellAuraHolderMap::iterator iter = Auras.begin(); iter != Auras.end(); ++iter)
-    {
-        SpellEntry const* spell = iter->second->GetSpellProto();
         if (iter->second->HasMechanic(mechanic))
             dispelList.push_back(std::pair<SpellAuraHolder*, uint32>(iter->second, iter->second->GetStackAmount()));
-    }
     std::list<std::pair<SpellAuraHolder*, uint32> > successList;
     std::list <uint32> failList;
     ProcessDispelList(dispelList, successList, failList);
@@ -5119,10 +5040,10 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
         if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         {
             spawnCreature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
         }
         else
-            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+            spawnCreature->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
         if (m_caster->IsImmuneToNPC())
             spawnCreature->SetImmuneToNPC(true);
@@ -5192,14 +5113,8 @@ void Spell::EffectAddHonor(SpellEffectIndex /*eff_idx*/)
 
 void Spell::EffectSpawn(SpellEffectIndex /*eff_idx*/)
 {
-    switch (m_spellInfo->Id)
-    {
-        case 15750: // Rookery Whelp Spawn-in Spell
-        case 26262: // Birth
-        case 34115:
-            m_caster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
-            break;
-    }
+    // Previously used by 15750 26262 34115 - noting for posterity
+    m_caster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
 }
 
 void Spell::EffectTradeSkill(SpellEffectIndex /*eff_idx*/)
@@ -5410,10 +5325,10 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     if (plr->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         pet->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        pet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+        pet->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        pet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+        pet->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     if (plr->IsImmuneToNPC())
         pet->SetImmuneToNPC(true);
@@ -5448,8 +5363,8 @@ void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)
     pet->SetUInt32Value(UNIT_FIELD_LEVEL, level);
 
     // enable rename and abandon prompt
-    pet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED);
-    pet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_ABANDONED);
+    pet->SetByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PET_FLAGS, UNIT_CAN_BE_RENAMED);
+    pet->SetByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PET_FLAGS, UNIT_CAN_BE_ABANDONED);
 
     // this enables pet details window (Shift+P)
     pet->InitPetCreateSpells();
@@ -5565,12 +5480,12 @@ void Spell::EffectSummonPet(SpellEffectIndex eff_idx)
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         NewSummon->SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
         NewSummon->SetUInt32Value(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_NONE);
     }
     else
     {
-        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+        NewSummon->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
         NewSummon->SetFlag(UNIT_FIELD_FLAGS, cInfo->UnitFlags);
         NewSummon->SetUInt32Value(UNIT_NPC_FLAGS, cInfo->NpcFlags);
     }
@@ -6667,12 +6582,17 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 30769:                                 // Pick Red Riding Hood
                 {
-                    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+                    if (m_caster->GetTypeId() != TYPEID_UNIT)
+                        return;
+
+                    Unit* target = m_caster->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER);
+
+                    if (!target || target->GetTypeId() != TYPEID_PLAYER)
                         return;
 
                     // cast Little Red Riding Hood
-                    m_caster->CastSpell(unitTarget, 30768, TRIGGERED_OLD_TRIGGERED);
-                    return;
+                    m_caster->CastSpell(target, 30768, TRIGGERED_OLD_TRIGGERED);
+                    break;
                 }
                 case 30834:                                 // Infernal Relay
                 {
@@ -7220,6 +7140,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         case 340: guardEntry = 8155;    break;      // Kargath
                         case 362: guardEntry = 5953;    break;      // Razor Hill
                         case 363: guardEntry = 5952;    break;      // Valley of Trials
+                        case 367: guardEntry = 8017;    break;      // Sen'jin Village
                         case 380: guardEntry = 3501;    break;      // Crossroads
                         case 415: guardEntry = 6087;    break;      // Astranaar
                         case 431: guardEntry = 12903;   break;      // Splintertree Post
@@ -8541,7 +8462,7 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     critter->SetUInt32Value(UNIT_CREATED_BY_SPELL, m_spellInfo->Id);
     critter->SelectLevel();                                 // some summoned critters have different from 1 DB data for level/hp
     const CreatureInfo* info = critter->GetCreatureInfo();
-    // Some companions have additional UNIT_FLAG_NON_ATTACKABLE (0x2), perphaps coming from template, so add template flags
+
     critter->SetUInt32Value(UNIT_FIELD_FLAGS, info->UnitFlags);
     critter->SetUInt32Value(UNIT_NPC_FLAGS, info->NpcFlags);// some companions may have quests, so they need npc flags
     critter->InitPetCreateSpells();                         // some companions may have spells (e.g. disgusting oozeling)
@@ -8553,10 +8474,10 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         critter->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+        critter->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        critter->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+        critter->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     // NOTE: All companions should have these (creatureinfo needs to be tuned accordingly before we can remove these two lines):
     critter->SetImmuneToNPC(true);
@@ -9235,16 +9156,16 @@ void Spell::EffectCreateTamedPet(SpellEffectIndex eff_idx)
     newTamedPet->InitStatsForLevel(unitTarget->GetLevel());
     newTamedPet->InitPetCreateSpells();
 
-    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_RENAMED);
-    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, 2, UNIT_CAN_BE_ABANDONED);
+    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PET_FLAGS, UNIT_CAN_BE_RENAMED);
+    newTamedPet->SetByteFlag(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_PET_FLAGS, UNIT_CAN_BE_ABANDONED);
 
     if (m_caster->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
     {
         newTamedPet->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
+        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_PLAYER_CONTROLLED_DEBUFF_LIMIT);
     }
     else
-        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
+        newTamedPet->SetByteValue(UNIT_FIELD_BYTES_2, UNIT_BYTES_2_OFFSET_DEBUFF_LIMIT, UNIT_BYTE2_CREATURE_DEBUFF_LIMIT);
 
     newTamedPet->AIM_Initialize();
 

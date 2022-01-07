@@ -28,6 +28,8 @@ EndScriptData
 #include "GameEvents/GameEventMgr.h"
 #include "Entities/TemporarySpawn.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
+#include "World/WorldState.h"
+#include "AI/ScriptDevAI/base/TimerAI.h"
 
 /* ContentData
 npc_air_force_bots       80%    support for misc (invisible) guard bots in areas where player allowed to fly. Summon guards after a preset time if tagged by spell
@@ -42,6 +44,7 @@ npc_redemption_target   100%    Used for the paladin quests: 1779,1781,9600,9685
 npc_burster_worm        100%    Used for the crust burster worms in Outland. Npc entries: 16844, 16857, 16968, 17075, 18678, 21380, 21849, 22038, 22466, 22482, 23285
 npc_aoe_damage_trigger 75% Used for passive aoe damage triggers in various encounters with overlapping usage of entries: 16697, 17471, 20570, 18370, 20598
 npc_mojo
+npc_advanced_target_dummy
 EndContentData */
 
 /*########
@@ -1039,15 +1042,19 @@ UnitAI* GetAI_npc_garments_of_quests(Creature* pCreature)
 ## npc_guardian
 ######*/
 
-#define SPELL_DEATHTOUCH                5
+enum GuardianOfB
+{
+    SPELL_DEATHTOUCH            = 5,
+    SAY_AGGRO                   = 2077
+};
 
 struct npc_guardianAI : public ScriptedAI
 {
     npc_guardianAI(Creature* pCreature) : ScriptedAI(pCreature) {Reset();}
 
-    void Reset() override
+    void Aggro(Unit* who) override
     {
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE);
+        DoBroadcastText(SAY_AGGRO, m_creature, who);
     }
 
     void UpdateAI(const uint32 /*diff*/) override
@@ -1136,11 +1143,15 @@ bool GossipSelect_npc_innkeeper(Player* pPlayer, Creature* pCreature, uint32 /*u
 enum
 {
     SAY_HEAL                    = -1000187,
+    SAY_HEAL_HENZE_NARM_FAULK   = 2283,
 
     SPELL_SYMBOL_OF_LIFE        = 8593,
+    SPELL_QUEST_SELF_HEALING    = 25155,        // unused
     SPELL_SHIMMERING_VESSEL     = 31225,
     SPELL_REVIVE_SELF           = 32343,
 
+    NPC_HENZE_FAULK             = 6172,
+    NPC_NARM_FAULK              = 6177,
     NPC_FURBOLG_SHAMAN          = 17542,        // draenei side
     NPC_BLOOD_KNIGHT            = 17768,        // blood elf side
 };
@@ -1150,15 +1161,21 @@ struct npc_redemption_targetAI : public ScriptedAI
     npc_redemption_targetAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
 
     uint32 m_uiEvadeTimer;
-    uint32 m_uiHealTimer;
+    uint32 m_OrientationTimer;
+    uint32 m_TextTimer;
+    uint32 m_EmoteTimer;
 
     ObjectGuid m_playerGuid;
 
     void Reset() override
     {
         m_uiEvadeTimer = 0;
-        m_uiHealTimer  = 0;
+        m_OrientationTimer = 0;
+        m_TextTimer = 0;
+        m_EmoteTimer = 0;
 
+        // Reset Orientation?
+        m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
         m_creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
     }
@@ -1170,33 +1187,69 @@ struct npc_redemption_targetAI : public ScriptedAI
             return;
 
         DoCastSpellIfCan(m_creature, SPELL_REVIVE_SELF);
-        m_creature->SetDeathState(JUST_ALIVED);
+        m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
+        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+        m_uiEvadeTimer = 2 * MINUTE * IN_MILLISECONDS;
         m_playerGuid = m_guid;
-        m_uiHealTimer = 2000;
+        m_OrientationTimer = 3000;
+        m_TextTimer = 4000;
+        m_EmoteTimer = 7000;
     }
 
     void UpdateAI(const uint32 uiDiff) override
     {
-        if (m_uiHealTimer)
+        if (m_OrientationTimer)
         {
-            if (m_uiHealTimer <= uiDiff)
+            if (m_OrientationTimer <= uiDiff)
             {
-                if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
+                if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
                 {
-                    DoScriptText(SAY_HEAL, m_creature, pPlayer);
-
-                    // Quests 9600 and 9685 requires kill credit
-                    if (m_creature->GetEntry() == NPC_FURBOLG_SHAMAN || m_creature->GetEntry() == NPC_BLOOD_KNIGHT)
-                        pPlayer->KilledMonsterCredit(m_creature->GetEntry(), m_creature->GetObjectGuid());
+                    m_creature->SetFacingToObject(player);
+                    m_OrientationTimer = 0;
                 }
-
-                m_creature->RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
-                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                m_uiHealTimer = 0;
-                m_uiEvadeTimer = 2 * MINUTE * IN_MILLISECONDS;
             }
             else
-                m_uiHealTimer -= uiDiff;
+                m_OrientationTimer -= uiDiff;
+        }
+
+        if (m_TextTimer)
+        {
+            if (m_TextTimer <= uiDiff)
+            {
+                if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
+                {
+                    // Quests 1783 and 1786 require NpcFlags i.6866
+                    if (m_creature->GetEntry() == NPC_HENZE_FAULK || m_creature->GetEntry() == NPC_NARM_FAULK)
+                    {
+                        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                        DoBroadcastText(SAY_HEAL_HENZE_NARM_FAULK, m_creature, player);
+                    }
+                    // Quests 9600 and 9685 requires kill credit i.6866/24184
+                    if (m_creature->GetEntry() == NPC_FURBOLG_SHAMAN || m_creature->GetEntry() == NPC_BLOOD_KNIGHT)
+                    {
+                        DoScriptText(SAY_HEAL, m_creature, player);
+                        player->KilledMonsterCredit(m_creature->GetEntry(), m_creature->GetObjectGuid());
+                    }
+
+                    m_TextTimer = 0;
+                }
+            }
+            else
+                m_TextTimer -= uiDiff;
+        }
+
+        if (m_EmoteTimer)
+        {
+            if (m_EmoteTimer <= uiDiff)
+            {
+                if (m_creature->GetEntry() == NPC_HENZE_FAULK || m_creature->GetEntry() == NPC_NARM_FAULK)
+                {
+                    m_creature->HandleEmote(EMOTE_ONESHOT_KNEEL);
+                    m_EmoteTimer = 0;
+                }
+            }
+            else
+                m_EmoteTimer -= uiDiff;
         }
 
         if (m_uiEvadeTimer)
@@ -1546,11 +1599,11 @@ enum npc_aoe_damage_trigger
     SPELL_CONSUMPTION_NPC_20570 = 35952,
 };
 
-struct npc_aoe_damage_triggerAI : public ScriptedAI, public TimerManager
+struct npc_aoe_damage_triggerAI : public ScriptedAI
 {
-    npc_aoe_damage_triggerAI(Creature* pCreature) : ScriptedAI(pCreature), m_uiAuraPassive(SetAuraPassive())
+    npc_aoe_damage_triggerAI(Creature* pCreature) : ScriptedAI(pCreature, 0), m_uiAuraPassive(SetAuraPassive())
     {
-        AddCustomAction(1, GetTimer(), [&]() {CastConsumption(); });
+        AddCustomAction(1, GetTimer(), [&]() { CastConsumption(); });
         SetReactState(REACT_PASSIVE);
     }
 
@@ -1582,17 +1635,7 @@ struct npc_aoe_damage_triggerAI : public ScriptedAI, public TimerManager
     }
 
     void Reset() override {}
-
-    void UpdateAI(const uint32 diff) override
-    {
-        UpdateTimers(diff);
-    }
 };
-
-UnitAI* GetAI_npc_aoe_damage_trigger(Creature* pCreature)
-{
-    return new npc_aoe_damage_triggerAI(pCreature);
-}
 
 /*######
 ## npc_the_cleaner
@@ -1984,7 +2027,7 @@ enum
     SPELL_FIRE_NOVA_3       = 46551,
 };
 
-struct npc_fire_nova_totemAI : public ScriptedAI, public TimerManager
+struct npc_fire_nova_totemAI : public ScriptedAI
 {
     npc_fire_nova_totemAI(Creature* creature) : ScriptedAI(creature), m_fireNovaSpell(0), m_fireNovaTimer(0)
     {
@@ -1995,15 +2038,11 @@ struct npc_fire_nova_totemAI : public ScriptedAI, public TimerManager
         });
         SetCombatMovement(false);
         SetMeleeEnabled(false);
+        SetReactState(REACT_PASSIVE);
     }
 
     uint32 m_fireNovaSpell;
     uint32 m_fireNovaTimer;
-
-    void Reset() override
-    {
-
-    }
 
     void JustRespawned() override
     {
@@ -2016,17 +2055,7 @@ struct npc_fire_nova_totemAI : public ScriptedAI, public TimerManager
         }
         ResetTimer(1, m_fireNovaTimer);
     }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        UpdateTimers(diff);
-    }
 };
-
-UnitAI* GetAI_npc_fire_nova_totem(Creature* pCreature)
-{
-    return new npc_fire_nova_totemAI(pCreature);
-}
 
 /*######
 ## mob_phoenix
@@ -2212,6 +2241,559 @@ struct mob_phoenix_tkAI : public CombatAI
     }
 };
 
+enum
+{
+    SPELL_IMP_IN_A_BOTTLE_SAY                       = 40526,
+    SPELL_IMP_IN_A_BOTTLE_OBJECT                    = 40527,
+    SPELL_IMP_IN_A_BOTTLE_CREATURE                  = 40528,
+    SPELL_IMP_IN_A_BOTTLE_SPECIAL_CASE_NOT          = 40533, // purpose unk
+    SPELL_IMP_IN_A_BOTTLE_SPECIAL_CASE_ROGUE        = 40537, // purpose unk
+    SPELL_IMP_IN_A_BOTTLE_SPECIAL_CASE_ROGUE_SOUND  = 40539, // purpose unk - summons npc 23229
+    SPELL_CREATE_IMP_IN_A_BALL                      = 40552, // unused
+
+    SOUND_ID_IMP_1                                  = 766,
+    SOUND_ID_IMP_2                                  = 770,
+};
+
+// broadcast texts (used in either whisper or party chat)
+// 21197 may have something to do with SPELL_IMP_IN_A_BOTTLE_SPECIAL_CASE_ROGUE?
+// 21244 is possibly associated with 21243
+std::vector<uint32> impInABallTexts = { 21157,21158,21159,21160,21161,21162,21163,21164,21165,21169,21170,21171,21172,21173,21174,21175,21176,21177,21178,21179,21180,21181,21182,21183,21184,21185,21186,21187,21188,21189,21190,21191,21192,21193,21194,21195,21196,21197,21198,21200,21205,21208,21209,21210,21211,21212,21213,21214,21215,21216,21217,21218,21219,21220,21221,21222,21223,21224,21225,21226,21227,21228,21229,21230,21231,21232,21233,21234,21235,21236,21237,21238,21239,21240,21241,21242,21243,21244,21245,21246,21247 };
+
+struct go_imp_in_a_ball : public GameObjectAI
+{
+    go_imp_in_a_ball(GameObject* go) : GameObjectAI(go), m_animTimer(2000) {}
+
+    uint32 m_animTimer;
+
+    void JustSpawned() override
+    {
+        if (ObjectGuid spawnerGuid = m_go->GetSpawnerGuid())
+            if (Player* player = m_go->GetMap()->GetPlayer(spawnerGuid))
+                player->CastSpell(player, SPELL_IMP_IN_A_BOTTLE_CREATURE, TRIGGERED_OLD_TRIGGERED);
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (m_animTimer)
+        {
+            if (m_animTimer < diff)
+            {
+                m_go->SendGameObjectCustomAnim(m_go->GetObjectGuid());
+                m_animTimer = 0;
+            }
+            else
+                m_animTimer -= diff;
+        }
+    }
+};
+
+struct npc_imp_in_a_ball : public ScriptedAI
+{
+    npc_imp_in_a_ball(Creature* pCreature) : ScriptedAI(pCreature), m_toldFortune(false), m_startTimer(2000) { Reset(); }
+
+    bool m_toldFortune;
+    uint32 m_startTimer;
+
+    void Reset() override {}
+
+    void JustRespawned() override
+    {
+        m_creature->PlayDistanceSound(SOUND_ID_IMP_1);
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (!m_toldFortune)
+        {
+            if (m_startTimer < diff)
+            {
+                m_creature->PlayDistanceSound(SOUND_ID_IMP_2);
+                m_creature->CastSpell(m_creature, SPELL_IMP_IN_A_BOTTLE_SAY, TRIGGERED_OLD_TRIGGERED);
+                m_toldFortune = true;
+                m_startTimer = 0;
+            }
+            else
+                m_startTimer -= diff;
+        }
+    }
+};
+
+struct ImpInABottleSay : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (Unit* caster = spell->GetCaster())
+            if (Unit* spawner = caster->GetSpawner())
+                if (spawner->IsPlayer())
+                    if (Player* player = (Player*)spawner)
+                        DoBroadcastText(impInABallTexts[urand(0, impInABallTexts.size() - 1)], caster, player, player->GetGroup() != nullptr ? CHAT_TYPE_PARTY : CHAT_TYPE_WHISPER);
+    }
+};
+
+/*######
+## npc_advanced_target_dummy
+######*/
+
+enum
+{
+    SUICIDE                     = 7,
+    TARGET_DUMMY_SPAWN_EFFECT   = 4507
+};
+
+struct npc_advanced_target_dummyAI : public ScriptedAI
+{
+    npc_advanced_target_dummyAI(Creature* creature) : ScriptedAI(creature), m_dieTimer(15000)
+    {
+        DoCastSpellIfCan(nullptr, TARGET_DUMMY_SPAWN_EFFECT);
+        SetReactState(REACT_PASSIVE);
+        Reset();
+    }
+
+    void Reset() override {}
+
+    uint32 m_dieTimer;
+
+    void JustRespawned() override
+    {
+        if (!m_creature->GetSpawner())
+            return;
+
+        m_creature->SetLootRecipient(m_creature->GetSpawner());
+    }
+
+    void UpdateAI(const uint32 diff) override
+    {
+        if (m_dieTimer)
+        {
+            if (m_dieTimer <= diff)
+            {
+                DoCastSpellIfCan(m_creature, SUICIDE);
+            }
+            else
+                m_dieTimer -= diff;
+        }
+    }
+};
+
+enum GossipNPCSpells
+{
+    SPELL_GOSSIP_NPC_PERIODIC_DESPAWN   = 33209,
+    SPELL_GOSSIP_NPC_PERIODIC_FIDGET    = 33207,
+    SPELL_GOSSIP_NPC_PERIODIC_TALK      = 33208,
+    SPELL_GOSSIP_NPC_TRIGGER_TALK       = 33227,
+
+    NPC_HUMAN_COMMONER      = 18927,
+    NPC_DWARF_COMMONER      = 19148,
+    NPC_BLOOD_ELF_COMMONER  = 19169,
+    NPC_DRAENEI_COMMONER    = 19171,
+    NPC_GNOME_COMMONER      = 19172,
+    NPC_NIGHT_ELF_COMMONER  = 19173,
+    NPC_ORC_COMMONER        = 19175,
+    NPC_TAUREN_COMMONER     = 19176,
+    NPC_TROLL_COMMONER      = 19177,
+    NPC_FORSAKEN_COMMONER   = 19178,
+    NPC_GOBLIN_COMMONER     = 20102,
+};
+
+enum GossipNPCEvents : uint32
+{
+    GOSSIP_EVENT_WINTER_VEIL,
+    GOSSIP_EVENT_LUNAR_FESTIVAL,
+    GOSSIP_EVENT_HALLOWS_END,
+    GOSSIP_EVENT_BREWFEST,
+    GOSSIP_EVENT_MIDSUMMER,
+    GOSSIP_EVENT_SPIRIT_OF_COMPETITION,
+    GOSSIP_EVENT_PIRATES_DAY,
+    GOSSIP_EVENT_DARK_PORTAL,
+};
+
+struct GossipNPCAI : public ScriptedAI
+{
+    GossipNPCAI(Creature* creature) : ScriptedAI(creature), m_chosenEvent(GOSSIP_EVENT_DARK_PORTAL), m_team(TEAM_NONE) {}
+
+    GossipNPCEvents m_chosenEvent;
+    Team m_team;
+
+    void Reset() override {}
+
+    void ChooseEvent()
+    {
+        std::vector<GossipNPCEvents> activeEvents;
+        if (sGameEventMgr.IsActiveHoliday(HOLIDAY_FEAST_OF_WINTER_VEIL))
+            activeEvents.push_back(GOSSIP_EVENT_WINTER_VEIL);
+        if (sGameEventMgr.IsActiveHoliday(HOLIDAY_LUNAR_FESTIVAL))
+            activeEvents.push_back(GOSSIP_EVENT_LUNAR_FESTIVAL);
+        if (sGameEventMgr.IsActiveHoliday(HOLIDAY_HALLOWS_END))
+            activeEvents.push_back(GOSSIP_EVENT_HALLOWS_END);
+        if (sGameEventMgr.IsActiveHoliday(HOLIDAY_BREWFEST))
+            activeEvents.push_back(GOSSIP_EVENT_BREWFEST);
+        if (sGameEventMgr.IsActiveHoliday(HOLIDAY_PIRATES_DAY))
+            activeEvents.push_back(GOSSIP_EVENT_PIRATES_DAY);
+        if (sGameEventMgr.IsActiveHoliday(HOLIDAY_FIRE_FESTIVAL))
+            activeEvents.push_back(GOSSIP_EVENT_MIDSUMMER);
+        if (sGameEventMgr.IsActiveEvent(GAME_EVENT_BEFORE_THE_STORM))
+            activeEvents.push_back(GOSSIP_EVENT_DARK_PORTAL);
+        if (sGameEventMgr.IsActiveEvent(GAME_EVENT_SPIRIT_OF_COMPETITION))
+            activeEvents.push_back(GOSSIP_EVENT_SPIRIT_OF_COMPETITION);
+        if (activeEvents.size() > 0)
+            m_chosenEvent = activeEvents[urand(0, activeEvents.size() - 1)];
+
+        switch (m_creature->GetEntry())
+        {
+            case NPC_HUMAN_COMMONER:
+            case NPC_DWARF_COMMONER:
+            case NPC_GNOME_COMMONER:
+            case NPC_NIGHT_ELF_COMMONER:
+            case NPC_DRAENEI_COMMONER: m_team = ALLIANCE; break;
+            case NPC_BLOOD_ELF_COMMONER:
+            case NPC_ORC_COMMONER:
+            case NPC_TAUREN_COMMONER:
+            case NPC_TROLL_COMMONER:
+            case NPC_FORSAKEN_COMMONER:
+            case NPC_GOBLIN_COMMONER: m_team = HORDE; break;
+        }
+    }
+
+    uint32 GetGossipNPCVisualId()
+    {
+        if (m_chosenEvent == GOSSIP_EVENT_WINTER_VEIL)
+        {
+            switch (m_creature->GetEntry())
+            {
+                case NPC_HUMAN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33403 : 33402;
+                case NPC_DWARF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33436 : 33433;
+                case NPC_BLOOD_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33415 : 33412;
+                case NPC_DRAENEI_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33430 : 33427;
+                case NPC_GNOME_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33448 : 33445;
+                case NPC_NIGHT_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33442 : 33439;
+                case NPC_ORC_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33455 : 33451;
+                case NPC_TAUREN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33465 : 33458;
+                case NPC_TROLL_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33471 : 33468;
+                case NPC_FORSAKEN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33477 : 33474;
+                case NPC_GOBLIN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 34849 : 34845;
+            }
+        }
+
+        if (m_chosenEvent == GOSSIP_EVENT_LUNAR_FESTIVAL)
+        {
+            switch (m_creature->GetEntry())
+            {
+                case NPC_HUMAN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33398 : 33397;
+                case NPC_DWARF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33437 : 33434;
+                case NPC_BLOOD_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33416 : 33413;
+                case NPC_DRAENEI_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33431 : 33428;
+                case NPC_GNOME_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33449 : 33446;
+                case NPC_NIGHT_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33443 : 33440;
+                case NPC_ORC_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33456 : 33453;
+                case NPC_TAUREN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33466 : 33459;
+                case NPC_TROLL_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33472 : 33469;
+                case NPC_FORSAKEN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33478 : 33475;
+                case NPC_GOBLIN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 34851 : 34848;
+            }
+        }
+
+        if (m_chosenEvent == GOSSIP_EVENT_HALLOWS_END)
+        {
+            switch (m_creature->GetEntry())
+            {
+                case NPC_HUMAN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43633 : 43632;
+                case NPC_DWARF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43627 : 43626;
+                case NPC_BLOOD_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43406 : 43405;
+                case NPC_DRAENEI_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43625 : 43623;
+                case NPC_GNOME_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43629 : 43628;
+                case NPC_NIGHT_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43635 : 43634;
+                case NPC_ORC_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43637 : 43636;
+                case NPC_TAUREN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43639 : 43638;
+                case NPC_TROLL_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43641 : 43640;
+                case NPC_FORSAKEN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43643 : 43642;
+                case NPC_GOBLIN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 43631 : 43630;
+            }
+        }
+
+        if (m_chosenEvent == GOSSIP_EVENT_MIDSUMMER)
+        {
+            switch (m_creature->GetEntry())
+            {
+                case NPC_HUMAN_COMMONER: return 46254;
+                case NPC_DWARF_COMMONER: return 46250;
+                case NPC_BLOOD_ELF_COMMONER: return 46248;
+                case NPC_DRAENEI_COMMONER: return 46249;
+                case NPC_GNOME_COMMONER: return 46252;
+                case NPC_NIGHT_ELF_COMMONER: return 46255;
+                case NPC_ORC_COMMONER: return 46256;
+                case NPC_TAUREN_COMMONER: return 46257;
+                case NPC_TROLL_COMMONER: return 46258;
+                case NPC_FORSAKEN_COMMONER: return 46259;
+                case NPC_GOBLIN_COMMONER: return 46253;
+            }
+        }
+
+        if (m_chosenEvent == GOSSIP_EVENT_BREWFEST)
+            return 44186;
+
+        // Spirit of competition
+        if (m_chosenEvent == GOSSIP_EVENT_SPIRIT_OF_COMPETITION)
+            return 48305;
+
+        if (m_chosenEvent == GOSSIP_EVENT_PIRATES_DAY)
+            return 50531;
+
+        // fallback - dark portal
+        switch (m_creature->GetEntry())
+        {
+            default:
+            case NPC_HUMAN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33235 : 33234;
+            case NPC_DWARF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33435 : 33432;
+            case NPC_BLOOD_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33414 : 33411;
+            case NPC_DRAENEI_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33429 : 33426;
+            case NPC_GNOME_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33447 : 33444;
+            case NPC_NIGHT_ELF_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33441 : 33438;
+            case NPC_ORC_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33454 : 33450;
+            case NPC_TAUREN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33464 : 33457;
+            case NPC_TROLL_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33470 : 33467;
+            case NPC_FORSAKEN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 33476 : 33473;
+            case NPC_GOBLIN_COMMONER: return m_creature->getGender() == GENDER_MALE ? 34850 : 34847;
+        }
+    }
+
+    void JustRespawned() override
+    {
+        ScriptedAI::JustRespawned();
+        ChooseEvent();
+        DoCastSpellIfCan(nullptr, GetGossipNPCVisualId(), CAST_AURA_NOT_PRESENT | CAST_TRIGGERED);
+        DoCastSpellIfCan(nullptr, SPELL_GOSSIP_NPC_PERIODIC_DESPAWN, CAST_AURA_NOT_PRESENT | CAST_TRIGGERED);
+        DoCastSpellIfCan(nullptr, SPELL_GOSSIP_NPC_PERIODIC_FIDGET, CAST_AURA_NOT_PRESENT | CAST_TRIGGERED);
+        DoCastSpellIfCan(nullptr, SPELL_GOSSIP_NPC_PERIODIC_TALK, CAST_AURA_NOT_PRESENT | CAST_TRIGGERED);
+    }
+};
+
+struct GossipNPCPeriodicTriggerFidget : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        spell->GetCaster()->HandleEmote(EMOTE_ONESHOT_TALK);
+    }
+};
+
+struct GossipNPCPeriodicTalk : public AuraScript
+{
+    void OnPeriodicDummy(Aura* aura) const override
+    {
+        Unit* target = aura->GetTarget();
+        Creature* closest = GetClosestCreatureWithEntry(target, target->GetEntry(), 10.f, true, false, true);
+        if (closest)
+            target->CastSpell(closest, SPELL_GOSSIP_NPC_TRIGGER_TALK, TRIGGERED_NONE);
+    }
+};
+
+const std::vector<uint32> winterTextsAlliance = { 16422, 24341, 16032, 24342 };
+const std::vector<uint32> winterTextsHorde = { 16464, 24324, 24325 };
+
+const std::vector<uint32> brewfestTextsAlliance = { 23629, 23630 };
+const std::vector<uint32> brewfestTextsHorde = { 23627, 23628 };
+
+uint32 GetRandomText(const std::vector<uint32> texts)
+{
+    return texts[urand(0, texts.size() - 1)];
+}
+
+struct GossipNPCPeriodicTriggerTalk : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        GossipNPCAI* ai = dynamic_cast<GossipNPCAI*>(spell->GetCaster()->AI());
+        if (!ai)
+            return;
+
+        int32 textId = 0;
+        GossipNPCEvents events = ai->m_chosenEvent;
+        if (events == GOSSIP_EVENT_WINTER_VEIL)
+        {
+            switch (spell->GetCaster()->GetEntry())
+            {
+                default:
+                case NPC_HUMAN_COMMONER:
+                case NPC_DWARF_COMMONER:
+                case NPC_GNOME_COMMONER:
+                case NPC_NIGHT_ELF_COMMONER:
+                case NPC_DRAENEI_COMMONER: textId = GetRandomText(winterTextsAlliance); break;
+                case NPC_BLOOD_ELF_COMMONER:
+                case NPC_ORC_COMMONER:
+                case NPC_TAUREN_COMMONER:
+                case NPC_TROLL_COMMONER:
+                case NPC_FORSAKEN_COMMONER:
+                case NPC_GOBLIN_COMMONER: textId = GetRandomText(winterTextsHorde); break;
+            }
+        }
+
+        if (events == GOSSIP_EVENT_HALLOWS_END)
+        {
+
+        }
+
+        if (events == GOSSIP_EVENT_LUNAR_FESTIVAL)
+        {
+
+        }
+
+        if (events == GOSSIP_EVENT_BREWFEST)
+        {
+            switch (spell->GetCaster()->GetEntry())
+            {
+                default:
+                case NPC_HUMAN_COMMONER:
+                case NPC_DWARF_COMMONER:
+                case NPC_GNOME_COMMONER:
+                case NPC_NIGHT_ELF_COMMONER:
+                case NPC_DRAENEI_COMMONER: textId = GetRandomText(brewfestTextsAlliance); break;
+                case NPC_BLOOD_ELF_COMMONER:
+                case NPC_ORC_COMMONER:
+                case NPC_TAUREN_COMMONER:
+                case NPC_TROLL_COMMONER:
+                case NPC_FORSAKEN_COMMONER:
+                case NPC_GOBLIN_COMMONER: textId = GetRandomText(brewfestTextsHorde); break;
+            }
+        }
+
+        if (events == GOSSIP_EVENT_SPIRIT_OF_COMPETITION)
+        {
+
+        }
+
+        if (events == GOSSIP_EVENT_PIRATES_DAY)
+        {
+
+        }
+
+        if (events == GOSSIP_EVENT_SPIRIT_OF_COMPETITION)
+        {
+
+        }
+
+        if (textId == 0) // dark portal fallback
+        {
+
+        }
+
+        if (textId)
+            DoBroadcastText(textId, spell->GetCaster(), spell->GetUnitTarget());
+    }
+};
+
+struct GossipNPCAppearanceAllBrewfest : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        uint32 entry = 0;
+        switch (aura->GetTarget()->GetEntry())
+        {
+            default:
+            case NPC_HUMAN_COMMONER: entry = 23480; break;
+            case NPC_DWARF_COMMONER: entry = 23479; break;
+            case NPC_GNOME_COMMONER: entry = 23614; break;
+            case NPC_NIGHT_ELF_COMMONER: entry = 23615; break;
+            case NPC_DRAENEI_COMMONER: entry = 23613; break;
+            case NPC_BLOOD_ELF_COMMONER: entry = 23610; break;
+            case NPC_ORC_COMMONER: entry = 23607; break;
+            case NPC_TAUREN_COMMONER: entry = 23608; break;
+            case NPC_TROLL_COMMONER: entry = 23609; break;
+            case NPC_FORSAKEN_COMMONER: entry = 23611; break;
+            case NPC_GOBLIN_COMMONER: entry = 23540; break;
+        }
+        aura->GetModifier()->m_miscvalue = entry;
+    }
+};
+
+struct GossipNPCAppearanceAllSpiritOfCompetition : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        uint32 displayId = 0;
+        switch (aura->GetTarget()->GetEntry()) // TODO
+        {
+            default:
+            case NPC_HUMAN_COMMONER: displayId = urand(0, 1) ? 24513 : 24524; break;
+            case NPC_DWARF_COMMONER: displayId = urand(0, 1) ? 24510 : 24521; break;
+            case NPC_GNOME_COMMONER: displayId = urand(0, 1) ? 24511: 24522; break;
+            case NPC_NIGHT_ELF_COMMONER: displayId = urand(0, 1) ? 24514 : 24525; break;
+            case NPC_DRAENEI_COMMONER: displayId = urand(0, 1) ? 24509 : 24520; break;
+            case NPC_BLOOD_ELF_COMMONER: displayId = urand(0, 1) ? 24508 : 24519; break;
+            case NPC_ORC_COMMONER: displayId = urand(0, 1) ? 24515 : 24526; break;
+            case NPC_TAUREN_COMMONER: displayId = urand(0, 1) ? 24516 : 24527; break;
+            case NPC_TROLL_COMMONER: displayId = urand(0, 1) ? 24517 : 24528; break;
+            case NPC_FORSAKEN_COMMONER: displayId = urand(0, 1) ? 24518 : 24529; break;
+            case NPC_GOBLIN_COMMONER: displayId = urand(0, 1) ? 24512 : 24523; break;
+        }
+        aura->GetModifier()->m_amount = displayId;
+    }
+};
+
+struct GossipNPCAppearanceAllPirateDay : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        uint32 displayId = 0;
+        switch (aura->GetTarget()->GetEntry()) // TODO
+        {
+            default:
+            case NPC_HUMAN_COMMONER: displayId = urand(0, 1) ? 25037 : 25048; break;
+            case NPC_DWARF_COMMONER: displayId = urand(0, 1) ? 25034 : 25045; break;
+            case NPC_GNOME_COMMONER: displayId = urand(0, 1) ? 25035 : 25046; break;
+            case NPC_NIGHT_ELF_COMMONER: displayId = urand(0, 1) ? 25038 : 25049; break;
+            case NPC_DRAENEI_COMMONER: displayId = urand(0, 1) ? 25033 : 25044; break;
+            case NPC_BLOOD_ELF_COMMONER: displayId = urand(0, 1) ? 25032 : 25043; break;
+            case NPC_ORC_COMMONER: displayId = urand(0, 1) ? 25039 : 25050; break;
+            case NPC_TAUREN_COMMONER: displayId = urand(0, 1) ? 25040 : 25051; break;
+            case NPC_TROLL_COMMONER: displayId = urand(0, 1) ? 25041 : 25052; break;
+            case NPC_FORSAKEN_COMMONER: displayId = urand(0, 1) ? 25042 : 25053; break;
+            case NPC_GOBLIN_COMMONER: displayId = urand(0, 1) ? 25036 : 25047; break;
+        }
+        aura->GetModifier()->m_amount = displayId;
+    }
+};
+
+enum GossipNpcGossips
+{
+    GOSSIP_WINTER_VEIL_A            = 10513,
+    GOSSIP_WINTER_VEIL_H            = 0,
+    GOSSIP_LUNAR_FESTIVAL           = 0,
+    GOSSIP_HALLOWS_END              = 8939,
+    GOSSIP_BREWFEST                 = 8988,
+    GOSSIP_MIDSUMMER                = 9148,
+    GOSSIP_SPIRIT_OF_COMPETITION    = 9522,
+    GOSSIP_PIRATES_DAY              = 0,
+    GOSSIP_DARK_PORTAL              = 0,
+};
+
+bool GossipHello_npc_gossip_npc(Player* player, Creature* creature)
+{
+    uint32 gossipId = GOSSIP_DARK_PORTAL;
+
+    GossipNPCAI* ai = dynamic_cast<GossipNPCAI*>(creature->AI());
+    if (ai)
+    {
+        GossipNPCEvents gossipEvent = ai->m_chosenEvent;
+        Team team = ai->m_team;
+        switch (gossipEvent)
+        {
+            case GOSSIP_EVENT_WINTER_VEIL: gossipId = team == ALLIANCE ? GOSSIP_WINTER_VEIL_A : GOSSIP_WINTER_VEIL_H; break;
+            case GOSSIP_EVENT_LUNAR_FESTIVAL: gossipId = GOSSIP_LUNAR_FESTIVAL; break;
+            case GOSSIP_EVENT_HALLOWS_END: gossipId = GOSSIP_HALLOWS_END; break;
+            case GOSSIP_EVENT_BREWFEST: gossipId = GOSSIP_BREWFEST; break;
+            case GOSSIP_EVENT_MIDSUMMER: gossipId = GOSSIP_MIDSUMMER; break;
+            case GOSSIP_EVENT_SPIRIT_OF_COMPETITION: gossipId = GOSSIP_SPIRIT_OF_COMPETITION; break;
+            case GOSSIP_EVENT_PIRATES_DAY: gossipId = GOSSIP_PIRATES_DAY; break;
+            default:
+            case GOSSIP_EVENT_DARK_PORTAL: gossipId = GOSSIP_DARK_PORTAL; break;
+        }
+    }
+
+    player->PrepareGossipMenu(creature, gossipId, true);
+    player->SendPreparedGossip(creature);
+    return true;
+}
+
 void AddSC_npcs_special()
 {
     Script* pNewScript = new Script;
@@ -2294,7 +2876,7 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_aoe_damage_trigger";
-    pNewScript->GetAI = &GetAI_npc_aoe_damage_trigger;
+    pNewScript->GetAI = &GetNewAIInstance<npc_aoe_damage_triggerAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
@@ -2304,11 +2886,40 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_fire_nova_totem";
-    pNewScript->GetAI = &GetAI_npc_fire_nova_totem;
+    pNewScript->GetAI = &GetNewAIInstance<npc_fire_nova_totemAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_phoenix";
     pNewScript->GetAI = &GetNewAIInstance<mob_phoenix_tkAI>;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_advanced_target_dummy";
+    pNewScript->GetAI = &GetNewAIInstance<npc_advanced_target_dummyAI>;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "go_imp_in_a_ball";
+    pNewScript->GetGameObjectAI = &GetNewAIInstance<go_imp_in_a_ball>;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_imp_in_a_ball";
+    pNewScript->GetAI = &GetNewAIInstance<npc_imp_in_a_ball>;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_gossip_npc";
+    pNewScript->GetAI = &GetNewAIInstance<GossipNPCAI>;
+    pNewScript->pGossipHello = &GossipHello_npc_gossip_npc;
+    pNewScript->RegisterSelf();
+
+    RegisterSpellScript<ImpInABottleSay>("spell_imp_in_a_bottle_say");
+    RegisterSpellScript<GossipNPCPeriodicTriggerFidget>("spell_gossip_npc_periodic_trigger_fidget");
+    RegisterAuraScript<GossipNPCPeriodicTalk>("spell_gossip_npc_periodic_talk");
+    RegisterSpellScript<GossipNPCPeriodicTriggerTalk>("spell_gossip_npc_periodic_trigger_talk");
+    RegisterAuraScript<GossipNPCAppearanceAllBrewfest>("spell_gossip_npc_appearance_all_brewfest");
+    RegisterAuraScript<GossipNPCAppearanceAllSpiritOfCompetition>("spell_gossip_npc_appearance_all_spirit_of_competition");
+    RegisterAuraScript<GossipNPCAppearanceAllPirateDay>("spell_gossip_npc_appearance_all_pirate_day");
 }

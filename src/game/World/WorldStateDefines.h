@@ -134,8 +134,16 @@ enum WorldStateID : int32
     WORLD_STATE_AQ_SINGED_CORESTONE_TOTAL = 2110,
     WORLD_STATE_AQ_SINGED_CORESTONE_HORDE_NOW = 2109,
 
-    // Scourge Invasion - TODO
+    // Scourge Invasion
     WORLD_STATE_SCOURGE_BATTLES_WON                     = 2219,
+    // Zone icons    
+    WORLD_STATE_SCOURGE_WINTERSPRING                    = 2259,
+    WORLD_STATE_SCOURGE_AZSHARA                         = 2260,
+    WORLD_STATE_SCOURGE_BLASTED_LANDS                   = 2261,
+    WORLD_STATE_SCOURGE_BURNING_STEPPES                 = 2262,
+    WORLD_STATE_SCOURGE_TANARIS                         = 2263,
+    WORLD_STATE_SCOURGE_EASTERN_PLAGUELANDS             = 2264,
+    // Remaining
     WORLD_STATE_SCOURGE_NECROPOLIS_AZSHARA              = 2279,
     WORLD_STATE_SCOURGE_NECROPOLIS_BLASTED_LANDS        = 2280,
     WORLD_STATE_SCOURGE_NECROPOLIS_BURNING_STEPPES      = 2281,
@@ -314,6 +322,9 @@ enum WorldStateID : int32
 
     // Shade of the Horseman
     WORLD_STATE_SHADE_OF_THE_HORSEMAN_TIMER = -4676,
+
+    // Custom Worldstates
+    WORLD_STATE_CUSTOM_SPAWN_MALACRASS = 10000,
 };
 
 #endif

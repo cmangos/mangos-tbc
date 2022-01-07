@@ -34,6 +34,7 @@
 #include "Globals/ObjectAccessor.h"
 #include "Entities/ObjectGuid.h"
 #include "Globals/Conditions.h"
+#include "Maps/SpawnGroupDefines.h"
 
 #include <map>
 #include <climits>
@@ -94,11 +95,12 @@ struct BroadcastText
     uint32 Id;
     std::vector<std::string> maleText;
     std::vector<std::string> femaleText;
+    ChatType chatTypeId; // not contained in SMSG_DB_REPLY, but added here for ease of use
     Language languageId;
     // uint32 conditionId;
     // uint32 emotesId;
     // uint32 flags;
-    // uint32 soundId1;
+    uint32 soundId1;
     // uint32 soundId2;
     uint32 emoteIds[3];
     uint32 emoteDelays[3];
@@ -139,13 +141,6 @@ typedef std::unordered_map<uint32/*(mapid,spawnMode) pair*/, CellObjectGuidsMap>
 // mangos string ranges
 #define MIN_MANGOS_STRING_ID           1                    // 'mangos_string'
 #define MAX_MANGOS_STRING_ID           2000000000
-#define MIN_DB_SCRIPT_STRING_ID        MAX_MANGOS_STRING_ID // 'dbscript_string'
-#define MAX_DB_SCRIPT_STRING_ID        2001000000
-#define MIN_CREATURE_AI_TEXT_STRING_ID (-1)                 // 'creature_ai_texts'
-#define MAX_CREATURE_AI_TEXT_STRING_ID (-1000000)
-// Anything below MAX_CREATURE_AI_TEXT_STRING_ID is handled by the external script lib
-
-static_assert(MAX_DB_SCRIPT_STRING_ID < INT_MAX, "Must scope with int32 range");
 
 struct MangosStringLocale
 {
@@ -631,8 +626,6 @@ class ObjectMgr
             return nullptr;
         }
 
-        CreatureTemplateSpells const* GetCreatureTemplateSpellSet(uint32 entry, uint32 setId) const;
-
         // Static wrappers for various accessors
         static GameObjectInfo const* GetGameObjectInfo(uint32 id);                  ///< Wrapper for sGOStorage.LookupEntry
         static Player* GetPlayer(const char* name);         ///< Wrapper for ObjectAccessor::FindPlayerByName
@@ -729,6 +722,9 @@ class ObjectMgr
         void LoadCreatureTemplateSpells();
         void LoadCreatureCooldowns();
         void LoadCreatureImmunities();
+        std::shared_ptr<CreatureSpellListContainer> LoadCreatureSpellLists();
+
+        void LoadSpawnGroups();
 
         void LoadGameTele();
 
@@ -1098,6 +1094,11 @@ class ObjectMgr
             return m_DungeonEncounters.equal_range(creditEntry);
         }
 
+        DungeonEncounterMapBounds GetDungeonEncounterBoundsByMap(uint32 mapId) const
+        {
+            return m_DungeonEncountersByMap.equal_range(mapId);
+        }
+
         // check if an entry on some map have is an encounter
         bool IsEncounter(uint32 creditEntry, uint32 mapId) const;
 
@@ -1138,16 +1139,31 @@ class ObjectMgr
 
         QuestRelationsMap& GetCreatureQuestRelationsMap() { return m_CreatureQuestRelations; }
 
-        uint32 GetCreatureCooldown(uint32 entry, uint32 spellId)
+        std::pair<uint32, uint32> GetCreatureCooldownRange(uint32 entry, uint32 spellId) const
         {
             auto itrEntry = m_creatureCooldownMap.find(entry);
             if (itrEntry == m_creatureCooldownMap.end())
-                return 0;
+                return {0, 0};
+
             auto& map = itrEntry->second;
             auto itrSpell = map.find(spellId);
             if (itrSpell == map.end())
-                return 0;
-            return urand(itrSpell->second.first, itrSpell->second.second);
+                return { 0, 0 };
+
+            return { itrSpell->second.first, itrSpell->second.second };
+        }
+
+        bool GetCreatureCooldown(uint32 entry, uint32 spellId, uint32 cooldown) const
+        {
+            auto itrEntry = m_creatureCooldownMap.find(entry);
+            if (itrEntry == m_creatureCooldownMap.end())
+                return false;
+            auto& map = itrEntry->second;
+            auto itrSpell = map.find(spellId);
+            if (itrSpell == map.end())
+                return false;
+            cooldown = urand(itrSpell->second.first, itrSpell->second.second);
+            return true;
         }
         void AddCreatureCooldown(uint32 entry, uint32 spellId, uint32 min, uint32 max);
 
@@ -1169,6 +1185,10 @@ class ObjectMgr
         bool IsEnchantNonRemoveInArena(uint32 enchantId) const { return m_roguePoisonEnchantIds.find(enchantId) != m_roguePoisonEnchantIds.end(); }
 
         CreatureImmunityVector const* GetCreatureImmunitySet(uint32 entry, uint32 setId) const;
+
+        CreatureSpellList* GetCreatureSpellList(uint32 Id) const; // only for starttime checks - else use Map
+        std::shared_ptr<CreatureSpellListContainer> GetCreatureSpellListContainer() { return m_spellListContainer; }
+        std::shared_ptr<SpawnGroupEntryContainer> GetSpawnGroupContainer() { return m_spawnGroupEntries; }
     protected:
 
         // current locale settings
@@ -1310,9 +1330,8 @@ class ObjectMgr
         PointOfInterestLocaleMap mPointOfInterestLocaleMap;
         AreaTriggerLocaleMap m_areaTriggerLocaleMap;
 
-        std::unordered_map<uint32, std::unordered_map<uint32, CreatureTemplateSpells>> m_creatureTemplateSpells;
-
         DungeonEncounterMap m_DungeonEncounters;
+        DungeonEncounterMap m_DungeonEncountersByMap;
 
         QuestgiverGreetingMap m_questgiverGreetingMap[QUESTGIVER_TYPE_MAX];
         QuestgiverGreetingLocaleMap m_questgiverGreetingLocaleMap[QUESTGIVER_TYPE_MAX];
@@ -1332,15 +1351,19 @@ class ObjectMgr
         std::map<uint32, bool> m_roguePoisonEnchantIds;
 
         CreatureImmunityContainer m_creatureImmunities;
+
+        std::shared_ptr<CreatureSpellListContainer> m_spellListContainer;
+
+        std::shared_ptr<SpawnGroupEntryContainer> m_spawnGroupEntries;
 };
 
 #define sObjectMgr MaNGOS::Singleton<ObjectMgr>::Instance()
 
 /// generic text function
-bool DoDisplayText(WorldObject* source, int32 entry, Unit const* target = nullptr);
+bool DoDisplayText(WorldObject* source, int32 entry, Unit const* target = nullptr, uint32 chatTypeOverride = 0);
 
 // scripting access functions
-bool LoadMangosStrings(DatabaseType& db, char const* table, int32 start_value = MAX_CREATURE_AI_TEXT_STRING_ID, int32 end_value = std::numeric_limits<int32>::min(), bool extra_content = false);
+bool LoadMangosStrings(DatabaseType& db, char const* table, int32 start_value = -1000000, int32 end_value = std::numeric_limits<int32>::min(), bool extra_content = false);
 CreatureInfo const* GetCreatureTemplateStore(uint32 entry);
 Quest const* GetQuestTemplateStore(uint32 entry);
 MangosStringLocale const* GetMangosStringData(int32 entry);

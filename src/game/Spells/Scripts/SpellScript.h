@@ -61,9 +61,9 @@ struct SpellScript
     // called on target hit after damage deal and proc
     virtual void OnAfterHit(Spell* /*spell*/) const {}
     // called after summoning a creature
-    virtual void OnSummon(Spell* spell, Creature* summon) const {}
+    virtual void OnSummon(Spell* /*spell*/, Creature* /*summon*/) const {}
     // called after summoning a gameobject
-    virtual void OnSummon(Spell* spell, GameObject* summon) const {}
+    virtual void OnSummon(Spell* /*spell*/, GameObject* /*summon*/) const {}
 };
 
 struct AuraCalcData
@@ -112,7 +112,9 @@ struct AuraScript
     // called on periodic tick end
     virtual void OnPeriodicTickEnd(Aura* /*aura*/) const {}
     // called on persistent area aura dyngo lifetime end
-    virtual void OnPersistentAreaAuraEnd(DynamicObject* dynGo) const {}
+    virtual void OnPersistentAreaAuraEnd(DynamicObject* /*dynGo*/) const {}
+    // called on unit heartbeat
+    virtual void OnHeartbeat(Aura* /*aura*/) const {}
 };
 
 class SpellScriptMgr

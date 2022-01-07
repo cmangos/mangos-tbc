@@ -1148,7 +1148,7 @@ void Player::SetEnvironmentFlags(EnvironmentFlags flags, bool apply)
 
     // Remove auras that need land or water
     if (flags & ENVIRONMENT_FLAG_HIGH_LIQUID)
-        RemoveAurasWithInterruptFlags(apply ?  AURA_INTERRUPT_FLAG_NOT_ABOVEWATER : AURA_INTERRUPT_FLAG_NOT_UNDERWATER);
+        RemoveAurasWithInterruptFlags(apply ?  AURA_INTERRUPT_FLAG_UNDERWATER_CANCELS : AURA_INTERRUPT_FLAG_ABOVEWATER_CANCELS);
 
     // On moving in/out high sea area: affect fatigue timer
     if (flags & ENVIRONMENT_FLAG_HIGH_SEA)
@@ -1472,7 +1472,7 @@ void Player::Update(const uint32 diff)
             if (vOwner && vOwner->IsPvP() && !IsInDuelWith(vOwner))
             {
                 UpdatePvP(true);
-                RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_PVP_COMBAT);
+                RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_PVP_ACTIVE_CANCELS);
             }
         }
     }
@@ -2020,7 +2020,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             CombatStop();
 
         if (!IsWithinDist3d(x, y, z, GetMap()->GetVisibilityDistance()))
-            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TELEPORTED);
+            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_WORLD);
 
         GenericTransport* currentTransport = transport;
         if (!transport && m_teleportTransport)
@@ -2079,8 +2079,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
 
             CombatStop();
 
-            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TELEPORTED);
-
             UpdatePvPContested(false, true);
 
             // remove player from battleground on far teleport (when changing maps)
@@ -2103,7 +2101,7 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
                     InterruptNonMeleeSpells(true);
 
             // remove auras before removing from map...
-            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_CHANGE_MAP | AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING);
+            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_LEAVE_WORLD | AURA_INTERRUPT_FLAG_MOVING | AURA_INTERRUPT_FLAG_TURNING);
 
             GenericTransport* targetTransport = transport ? transport : GetTransport();
             if (!GetSession()->PlayerLogout())
@@ -2414,7 +2412,7 @@ Creature* Player::GetNPCIfCanInteractWith(ObjectGuid guid, uint32 npcflagmask)
         return nullptr;
 
     // set player as interacting
-    DoInteraction(guid);
+    DoInteraction();
 
     // not in interactive state
     if (hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
@@ -2455,7 +2453,7 @@ GameObject* Player::GetGameObjectIfCanInteractWith(ObjectGuid guid, uint32 gameo
         return nullptr;
 
     // set player as interacting
-    DoInteraction(guid);
+    DoInteraction();
 
     // not in interactive state
     if (hasUnitState(UNIT_STAT_CAN_NOT_REACT_OR_LOST_CONTROL))
@@ -6182,7 +6180,7 @@ bool Player::SetPosition(float x, float y, float z, float orientation, bool tele
     if (teleport || old_x != x || old_y != y || old_z != z || old_r != orientation)
     {
         if (teleport || old_x != x || old_y != y || old_z != z)
-            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_MOVE | AURA_INTERRUPT_FLAG_TURNING);
+            RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_MOVING | AURA_INTERRUPT_FLAG_TURNING);
         else
             RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TURNING);
 
@@ -21573,18 +21571,17 @@ float Player::ComputeRest(time_t timePassed, bool offline /*= false*/, bool inRe
 }
 
 // player is interacting so we have to remove non authorized aura
-void Player::DoInteraction(ObjectGuid const& interactObjGuid)
+void Player::DoInteraction()
 {
-    if (interactObjGuid.IsUnit())
-    {
-        // remove some aura like stealth aura
-        RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TALK);
-    }
-    else if (interactObjGuid.IsGameObject())
-    {
-        // remove some aura like stealth aura
-        RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_USE);
-    }
+    // remove some aura like stealth aura
+    RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_INTERACTING);
+    SendForcedObjectUpdate();
+}
+
+void Player::DoLoot()
+{
+    // remove some aura like stealth aura
+    RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_LOOTING);
     SendForcedObjectUpdate();
 }
 

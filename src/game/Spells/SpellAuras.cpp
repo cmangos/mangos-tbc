@@ -3499,6 +3499,8 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
             for (unsigned int i : ssEntry->spellId)
                 if (i)
                     ((Player*)target)->addSpell(i, true, false, false, false);
+
+        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_SHAPESHIFTING);
     }
     else
     {
@@ -4351,7 +4353,7 @@ void Aura::HandleModStealth(bool apply, bool Real)
     if (apply)
     {
         // drop flag at stealth in bg
-        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
+        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_STEALTH_INVIS_CANCELS);
 
         // only at real aura add
         if (Real)
@@ -4444,7 +4446,7 @@ void Aura::HandleInvisibility(bool apply, bool Real)
     target->GetVisibilityData().SetInvisibilityMask(m_modifier.m_miscvalue, trueApply);
     if (trueApply)
     {
-        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
+        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_STEALTH_INVIS_CANCELS);
 
         if (Real && target->GetTypeId() == TYPEID_PLAYER && GetId() != 32727) // avoid changing this for Arena Preparation spell - it seems this should not cause the glow vision
         {
@@ -4846,7 +4848,7 @@ void Aura::HandleAuraModEffectImmunity(bool apply, bool /*Real*/)
     Unit* target = GetTarget();
 
     // when removing flag aura, handle flag drop
-    if (target->GetTypeId() == TYPEID_PLAYER && (GetSpellProto()->AuraInterruptFlags & AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION))
+    if (target->GetTypeId() == TYPEID_PLAYER && (GetSpellProto()->AuraInterruptFlags & AURA_INTERRUPT_FLAG_INVULNERABILITY_BUFF_CANCELS))
     {
         Player* player = static_cast<Player*>(target);
 
@@ -4864,6 +4866,9 @@ void Aura::HandleAuraModEffectImmunity(bool apply, bool /*Real*/)
     }
 
     target->ApplySpellImmune(this, IMMUNITY_EFFECT, m_modifier.m_miscvalue, apply);
+
+    if (apply && IsPositive())
+        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_INVULNERABILITY_BUFF_CANCELS);
 
     switch (GetSpellProto()->Id)
     {
@@ -4904,7 +4909,7 @@ void Aura::HandleAuraModSchoolImmunity(bool apply, bool Real)
 
     // remove all flag auras (they are positive, but they must be removed when you are immune)
     if (GetSpellProto()->HasAttribute(SPELL_ATTR_EX_DISPEL_AURAS_ON_IMMUNITY) && GetSpellProto()->HasAttribute(SPELL_ATTR_EX2_DAMAGE_REDUCED_SHIELD))
-        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
+        target->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_INVULNERABILITY_BUFF_CANCELS);
 
     // TODO: optimalize this cycle - use RemoveAurasWithInterruptFlags call or something else
     if (Real && apply
@@ -6781,10 +6786,8 @@ void Aura::HandleAuraRetainComboPoints(bool apply, bool Real)
 void Aura::HandleModUnattackable(bool Apply, bool Real)
 {
     if (Real && Apply)
-    {
         GetTarget()->CombatStop();
-        GetTarget()->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_IMMUNE_OR_LOST_SELECTION);
-    }
+
     GetTarget()->ApplyModFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE_2, Apply);
 }
 
@@ -7474,7 +7477,7 @@ void Aura::PeriodicTick()
             if (int32(powerType) != m_modifier.m_miscvalue)
                 break;
 
-            if (spellProto->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED)
+            if (spellProto->AuraInterruptFlags & AURA_INTERRUPT_FLAG_STANDING_CANCELS)
             {
                 // eating anim
                 target->HandleEmoteCommand(EMOTE_ONESHOT_EAT);
@@ -8113,7 +8116,7 @@ void SpellAuraHolder::_AddSpellAuraHolder()
     // TODO: Make it easer
     //*****************************************************
     // Sitdown on apply aura req seated
-    if (m_spellProto->AuraInterruptFlags & AURA_INTERRUPT_FLAG_NOT_SEATED && !m_target->IsSitState())
+    if (m_spellProto->AuraInterruptFlags & AURA_INTERRUPT_FLAG_STANDING_CANCELS && !m_target->IsSitState())
         m_target->SetStandState(UNIT_STAND_STATE_SIT);
 
     if (m_spellProto->HasAttribute(SPELL_ATTR_EX_PREVENTS_ANIM))

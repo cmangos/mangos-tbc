@@ -4462,9 +4462,6 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 
         if (summon_prop->FactionId)
             itr->creature->setFaction(summon_prop->FactionId);
-        // Else set faction to summoner's faction for pet-like summoned
-        else if ((summon_prop->Flags & SUMMON_PROP_FLAG_USE_SUMMONER_FACTION) || !creature->IsTemporarySummon())
-            creature->setFaction(petInvoker->GetFaction());
 
         if (!creature->IsTemporarySummon())
         {

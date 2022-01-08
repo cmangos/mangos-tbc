@@ -4469,7 +4469,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 
 bool Spell::DoSummonPet(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx)
 {
-	MANGOS_ASSERT(!list.empty() && prop);
+    MANGOS_ASSERT(!list.empty() && prop);
 
     if (m_caster->GetPetGuid())
         return false;

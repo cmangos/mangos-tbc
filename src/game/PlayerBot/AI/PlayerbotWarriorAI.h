@@ -60,6 +60,7 @@ enum WarriorSpells
     OVERPOWER_1                     = 7384,
     PIERCING_HOWL_1                 = 12323,
     PUMMEL_1                        = 6552,
+    RAMPAGE_1                       = 29801,
     RECKLESSNESS_1                  = 1719,
     REND_1                          = 772,
     RETALIATION_1                   = 20230,
@@ -71,6 +72,7 @@ enum WarriorSpells
     SHOCKWAVE_1                     = 46968,
     SLAM_1                          = 1464,
     SPELL_REFLECTION_1              = 23920,
+    STANCE_MASTERY                  = 12678,
     SUNDER_ARMOR_1                  = 7386,
     SWEEPING_STRIKES_1              = 12328,
     TAUNT_1                         = 355,
@@ -79,6 +81,32 @@ enum WarriorSpells
     WHIRLWIND_1                     = 1680,
 
     //Procs
+};
+
+enum WarriorTalents
+{
+    IMPROVED_DEMORALIZING_SHOUT_1 = 12324,
+    IMPROVED_DEMORALIZING_SHOUT_2 = 12876,
+    IMPROVED_DEMORALIZING_SHOUT_3 = 12877,
+    IMPROVED_DEMORALIZING_SHOUT_4 = 12878,
+    IMPROVED_DEMORALIZING_SHOUT_5 = 12879,
+    IMPROVED_SLAM_1               = 12330,
+    IMPROVED_SLAM_2               = 12862
+};
+
+static const uint32 uiImprovedDemoralizingShout[5] =
+{
+    IMPROVED_DEMORALIZING_SHOUT_1,
+    IMPROVED_DEMORALIZING_SHOUT_2,
+    IMPROVED_DEMORALIZING_SHOUT_3,
+    IMPROVED_DEMORALIZING_SHOUT_4,
+    IMPROVED_DEMORALIZING_SHOUT_5
+};
+
+static const uint32 uiImprovedSlam[2] =
+{
+    IMPROVED_SLAM_1,
+    IMPROVED_SLAM_2
 };
 
 //class Player;
@@ -136,6 +164,7 @@ class PlayerbotWarriorAI : PlayerbotClassAI
                SHOCKWAVE,
                CONCUSSION_BLOW,
                SPELL_REFLECTION,
+               STANCE_MASTERY,
                LAST_STAND;
 
         // FURY
@@ -158,6 +187,10 @@ class PlayerbotWarriorAI : PlayerbotClassAI
                RAMPAGE,
                COMMANDING_SHOUT,
                PIERCING_HOWL;
+
+        // Talents
+        uint32 IMPROVED_DEMORALIZING_SHOUT,
+               IMPROVED_SLAM;
 
         // racial
         uint32 ARCANE_TORRENT,

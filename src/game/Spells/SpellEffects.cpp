@@ -4452,8 +4452,9 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 
     for (itr = summonPositions.begin(); itr != summonPositions.end(); ++itr)
     {
-        MANGOS_ASSERT(itr->creature || itr != summonPositions.begin());
-        if (!itr->creature)
+        Creature* creature = itr->creature;
+        MANGOS_ASSERT(creature || itr != summonPositions.begin());
+        if (!creature)
         {
             sLog.outError("EffectSummonType: Expected to have %u NPCs summoned, but some failed (Spell id %u)", amount, m_spellInfo->Id);
             continue;
@@ -4462,28 +4463,36 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         if (summon_prop->FactionId)
             itr->creature->setFaction(summon_prop->FactionId);
         // Else set faction to summoner's faction for pet-like summoned
-        else if ((summon_prop->Flags & SUMMON_PROP_FLAG_INHERIT_FACTION) || !itr->creature->IsTemporarySummon())
-            itr->creature->setFaction(petInvoker->GetFaction());
+        else if ((summon_prop->Flags & SUMMON_PROP_FLAG_USE_SUMMONER_FACTION) || !creature->IsTemporarySummon())
+            creature->setFaction(petInvoker->GetFaction());
 
-        if (!itr->creature->IsTemporarySummon())
+        if (!creature->IsTemporarySummon())
         {
-            m_caster->GetMap()->Add(itr->creature);
+            m_trueCaster->GetMap()->Add(creature);
 
-            itr->creature->AIM_Initialize();
+            creature->AIM_Initialize();
 
             // Notify original caster if not done already
             if (caster && caster->AI())
-                caster->AI()->JustSummoned(itr->creature);
+                caster->AI()->JustSummoned(creature);
         }
         else if (m_originalCaster && m_originalCaster != m_trueCaster && m_originalCaster->AI())
         {
             // original caster is provided by script so we have to notify it as its not done in Object::SummonCreature
-            m_originalCaster->AI()->JustSummoned(itr->creature);
+            m_originalCaster->AI()->JustSummoned(creature);
         }
 
-        OnSummon(itr->creature);
+        OnSummon(creature);
 
-        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), itr->creature->GetPackGUID());
+        if (summon_prop->Flags & SUMMON_PROP_FLAG_ATTACK_SUMMONER && m_caster)
+            if (m_caster->CanEnterCombat() && creature->CanEnterCombat() && creature->CanAttack(m_caster))
+                creature->AI()->AttackStart(m_caster);
+
+        if (summon_prop->Flags & SUMMON_PROP_FLAG_HELP_WHEN_SUMMONED_IN_COMBAT && m_caster)
+            if (m_caster->CanEnterCombat() && creature->CanEnterCombat() && creature->CanAssist(m_caster) && m_caster->GetVictim())
+                creature->AI()->AttackStart(m_caster->GetVictim()); // maybe needs to help with everything around not just main target
+
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), creature->GetPackGUID());
     }
 }
 

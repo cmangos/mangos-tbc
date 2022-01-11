@@ -3714,7 +3714,7 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
                 m_modifier.m_amount = 16358;                           // pig pink ^_^
                 sLog.outError("Auras: unknown creature id = %d (only need its modelid) Form Spell Aura Transform in Spell ID = %d", m_modifier.m_amount, GetId());
             }
-            else
+            else if (!m_modifier.m_amount) // can be overriden by script
                 m_modifier.m_amount = Creature::ChooseDisplayId(cInfo);   // Will use the default model here
 
             // creature case, need to update equipment if additional provided

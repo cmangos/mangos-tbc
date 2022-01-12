@@ -221,6 +221,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (36921,'spell_vazruden_liquid_fire_script'),
 (30700,'spell_face_highest_threat'),
 (30753,'spell_red_riding_hood_fixate'),
+(34877,'spell_prevent_spell_if_same_aura_on_caster'),
+(35679,'spell_prevent_spell_if_same_aura_on_caster'),
 (36153,'spell_soulbind'),
 (35181,'spell_dive_bomb'),
 (36460,'spell_ultra_deconsolodation_zapper'),

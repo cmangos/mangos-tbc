@@ -815,6 +815,16 @@ struct spell_scourge_strike : public SpellScript
     }
 };
 
+struct PreventSpellIfSameAuraOnCaster : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        if (spell->GetCaster()->HasAura(spell->m_spellInfo->Id))
+
+            return SPELL_CAST_OK;
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -850,4 +860,5 @@ void AddSC_spell_scripts()
     RegisterAuraScript<SpellHasteHealerTrinket>("spell_spell_haste_healer_trinket");
     RegisterAuraScript<IncreasedHealingDoneDummy>("spell_increased_healing_done_dummy");
     RegisterSpellScript<spell_scourge_strike>("spell_scourge_strike");
+    RegisterSpellScript<PreventSpellIfSameAuraOnCaster>("spell_prevent_spell_if_same_aura_on_caster");
 }

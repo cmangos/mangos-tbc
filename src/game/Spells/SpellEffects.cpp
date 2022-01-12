@@ -4217,8 +4217,6 @@ void Spell::EffectApplyAreaAura(SpellEffectIndex eff_idx)
 
 void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 {
-    // TODO add script for 35679 and 34877
-
     uint32 prop_id = m_spellInfo->EffectMiscValueB[eff_idx];
     SummonPropertiesEntry const* summon_prop = sSummonPropertiesStore.LookupEntry(prop_id);
     if (!summon_prop)
@@ -4481,6 +4479,8 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
 
         OnSummon(creature);
 
+        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), creature->GetPackGUID());
+
         if (summon_prop->Flags & SUMMON_PROP_FLAG_ATTACK_SUMMONER && m_caster)
             if (m_caster->CanEnterCombat() && creature->CanEnterCombat() && creature->CanAttack(m_caster))
                 creature->AI()->AttackStart(m_caster);
@@ -4488,8 +4488,6 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         if (summon_prop->Flags & SUMMON_PROP_FLAG_HELP_WHEN_SUMMONED_IN_COMBAT && m_caster)
             if (m_caster->CanEnterCombat() && creature->CanEnterCombat() && creature->CanAssist(m_caster) && m_caster->GetVictim())
                 creature->AI()->AttackStart(m_caster->GetVictim()); // maybe needs to help with everything around not just main target
-
-        m_spellLog.AddLog(uint32(SPELL_EFFECT_SUMMON), creature->GetPackGUID());
     }
 }
 

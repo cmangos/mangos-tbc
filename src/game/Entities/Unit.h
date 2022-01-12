@@ -2543,6 +2543,9 @@ class Unit : public WorldObject
         FormationSlotDataSPtr GetFormationSlot() { return m_formationSlot; }
         void SetFormationSlot(FormationSlotDataSPtr fSlot) { m_formationSlot = fSlot; }
 
+        void AddSummonForOnDeathDespawn(ObjectGuid guid);
+        void DespawnSummonsOnDeath();
+
         virtual bool IsNoWeaponSkillGain() const { return false; }
         virtual bool IsPreventingDeath() const { return false; }
         virtual bool IsIgnoringMisdirection() const { return false; }
@@ -2734,6 +2737,8 @@ class Unit : public WorldObject
         GuidSet::iterator m_guardianPetsIterator;
 
         GuidSet m_charmedUnitsPrivate;                      // stores non-advertised active charmed unit guids (e.g. aoe charms)
+
+        GuidSet m_summonsForOnDeathDespawn;                 // SUMMON_PROP_FLAG_DESPAWN_ON_SUMMONER_DEATH
 
         ObjectGuid m_TotemSlot[MAX_TOTEM_SLOT];
 

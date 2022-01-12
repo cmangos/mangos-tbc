@@ -456,16 +456,17 @@ class Spell
         {
             CreaturePosition() :
                 x(0.0f), y(0.0f), z(0.0f),
-                creature(nullptr)
+                creature(nullptr), processed(false)
             {}
 
             float x, y, z;
             Creature* creature;
+            bool processed;
         };
         typedef std::vector<CreaturePosition> CreatureSummonPositions;
 
         bool DoCreateItem(SpellEffectIndex eff_idx, uint32 itemtype, bool reportError = true);
-        bool DoSummonPet(SpellEffectIndex eff_idx);
+        bool DoSummonPet(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx);
         bool DoSummonTotem(CreatureSummonPositions& list, SpellEffectIndex eff_idx, uint8 slot_dbc = 0);
         bool DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);
         bool DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntry const* prop, SpellEffectIndex effIdx, uint32 level);

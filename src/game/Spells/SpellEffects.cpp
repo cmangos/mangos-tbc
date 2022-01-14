@@ -4597,6 +4597,10 @@ bool Spell::DoSummonPet(CreatureSummonPositions& list, SummonPropertiesEntry con
     }
     spawnCreature->SetLoading(false);
 
+    // Notify original caster if not done already
+    if (m_caster->AI())
+        m_caster->AI()->JustSummoned(spawnCreature);
+
     list[0].creature = spawnCreature;
     list[0].processed = true;
     return true;

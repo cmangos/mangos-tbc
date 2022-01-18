@@ -30,6 +30,7 @@ EndScriptData
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "World/WorldState.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
+#include "AI/BaseAI/TotemAI.h"
 
 /* ContentData
 npc_air_force_bots       80%    support for misc (invisible) guard bots in areas where player allowed to fly. Summon guards after a preset time if tagged by spell
@@ -2025,6 +2026,7 @@ enum
     SPELL_FIRE_NOVA_2       = 43464,
     SPELL_FIRE_NOVA_TOTEM_3 = 44257,
     SPELL_FIRE_NOVA_3       = 46551,
+    SPELL_FIRE_NOVA_TOTEM_4 = 25547,
 };
 
 struct npc_fire_nova_totemAI : public ScriptedAI
@@ -2056,6 +2058,15 @@ struct npc_fire_nova_totemAI : public ScriptedAI
         ResetTimer(1, m_fireNovaTimer);
     }
 };
+
+UnitAI* GetAI_npc_fire_nova_totem(Creature* creature)
+{
+    // summoned creature 15483 is shared between player spell Fire Nova Totem (Rank 7) 25547 and Fire Nova Totem 44257
+    // TotemAI will handle the player spell
+    if (creature->IsPlayerControlled() && creature->GetUInt32Value(UNIT_CREATED_BY_SPELL) == SPELL_FIRE_NOVA_TOTEM_4)
+        return new TotemAI(creature);
+    return new npc_fire_nova_totemAI(creature);
+}
 
 /*######
 ## mob_phoenix
@@ -2886,7 +2897,7 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_fire_nova_totem";
-    pNewScript->GetAI = &GetNewAIInstance<npc_fire_nova_totemAI>;
+    pNewScript->GetAI = &GetAI_npc_fire_nova_totem;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

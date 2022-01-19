@@ -338,6 +338,12 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)
 
     m_anticheat->Teleport({ dest.coord_x, dest.coord_y, dest.coord_z, dest.orientation });
 
+    // notify nearby players
+    WorldPacket data(MSG_MOVE_TELEPORT, 64);
+    data << plMover->GetPackGUID();
+    data << plMover->m_movementInfo;
+    plMover->SendMessageToSetExcept(data, plMover);
+
     // resummon pet
     GetPlayer()->ResummonPetTemporaryUnSummonedIfAny();
 

@@ -699,6 +699,17 @@ struct LightEntry
     //uint32 deathParams;                                   // 11
 };
 
+struct LFGDungeonEntry
+{
+    uint32  ID;                                             // 0     m_ID
+    char*   name[16];                                       // 1-17  m_name_lang
+    //uint32 mask                                           // 18    m_name_lang_mask
+    uint32  minlevel;                                       // 19    m_minLevel
+    uint32  maxlevel;                                       // 20    m_maxLevel
+    uint32  type;                                           // 21    m_typeId
+    uint32  faction;                                        // 22    m_faction
+};
+
 struct LiquidTypeEntry
 {
     uint32 Id;                                              // 0

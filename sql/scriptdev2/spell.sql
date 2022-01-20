@@ -219,6 +219,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (33794,'spell_vazruden_liquid_fire_script'),
 (30926,'spell_vazruden_liquid_fire_script'),
 (36921,'spell_vazruden_liquid_fire_script'),
+(31606,'spell_stormcrow_amulet'),
 (30700,'spell_face_highest_threat'),
 (30753,'spell_red_riding_hood_fixate'),
 (34877,'spell_prevent_spell_if_same_aura_on_caster'),

@@ -179,7 +179,7 @@ bool handleArgs(int argc, char** argv,
 
             configInputPath = param;
         }
-        else if (strcmp(argv[i], "--threads") == 0 && i + 1 < argc))
+        else if (strcmp(argv[i], "--threads") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)
@@ -198,7 +198,7 @@ bool handleArgs(int argc, char** argv,
                 return false;
             }
         }
-        else if (strcmp(argv[i], "--workdir") == 0 && i + 1 < argc))
+        else if (strcmp(argv[i], "--workdir") == 0 && i + 1 < argc)
         {
             param = argv[++i];
             if (!param)

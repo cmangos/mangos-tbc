@@ -96,7 +96,7 @@ fi
 case "$1" in
  "maps" )
     createHeader
-    ./MoveMapGen $PARAMS $OFFMESH --buildGameObjects | tee -a $DETAIL_LOG_FILE
+    $PREFIX/MoveMapGen $PARAMS $OFFMESH $MMG_RES --buildGameObjects | tee -a $DETAIL_LOG_FILE
    ;;
  "offmesh" )
    echo "`date`: Recreate offmeshes from file $OFFMESH_FILE" | tee -a $LOG_FILE

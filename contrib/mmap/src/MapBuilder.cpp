@@ -226,10 +226,13 @@ namespace MMAP
     /**************************************************************************/
     void MapBuilder::buildGameObject(std::string modelName, uint32 displayId)
     {
+        std::string fullName(m_workdir);
+        fullName += "/vmaps/" + modelName;
+
         printf("Building GameObject model %s\n", modelName.c_str());
         WorldModel m;
         MeshData meshData;
-        if (!m.readFile("vmaps/" + modelName))
+        if (!m.readFile(fullName))
         {
             printf("* Unable to open file\n");
             return;
@@ -412,7 +415,7 @@ namespace MMAP
         //fclose(file);
 
         char fileName[255];
-        sprintf(fileName, "mmaps/go%04u.mmtile", displayId);
+        sprintf(fileName, "%s/mmaps/go%04u.mmtile", m_workdir, displayId);
         FILE* file = fopen(fileName, "wb");
         if (!file)
         {
@@ -437,7 +440,8 @@ namespace MMAP
         {
             iv.generateObjFile(modelName, meshData);
             // Write navmesh data
-            std::string fname = "meshes/" + modelName + ".nav";
+            std::string fname = "/meshes/" + modelName + ".nav";
+            fname = m_workdir + fname;
             FILE* file = fopen(fname.c_str(), "wb");
             if (file)
             {

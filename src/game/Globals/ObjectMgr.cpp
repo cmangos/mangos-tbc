@@ -1193,6 +1193,8 @@ void ObjectMgr::LoadSpawnGroups()
             guid.Id = fields[0].GetUInt32();
             guid.DbGuid = fields[1].GetUInt32();
             guid.SlotId = fields[2].GetInt32();
+            guid.OwnEntry = 0;
+            guid.RandomEntry = false;
 
             if (newContainer->spawnGroupMap.find(guid.Id) == newContainer->spawnGroupMap.end())
             {
@@ -1370,6 +1372,10 @@ void ObjectMgr::LoadSpawnGroups()
                 }
                 if (data->spawnMask == 0)
                     entry.EnabledByDefault = false;
+                if (data->id)
+                    guidData.OwnEntry = data->id;
+                if (GetAllRandomCreatureEntries(guidData.DbGuid))
+                    guidData.RandomEntry = true;
             }
             else
             {
@@ -1392,6 +1398,10 @@ void ObjectMgr::LoadSpawnGroups()
                 }
                 if (data->spawnMask == 0)
                     entry.EnabledByDefault = false;
+                if (data->id)
+                    guidData.OwnEntry = data->id;
+                if (GetAllRandomGameObjectEntries(guidData.DbGuid))
+                    guidData.RandomEntry = true;
             }
         }
     }

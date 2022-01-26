@@ -2583,6 +2583,7 @@ class Unit : public WorldObject
         // Need to safeguard aura proccing in Unit::ProcDamageAndSpell
         bool m_spellProcsHappening;
         std::vector<SpellAuraHolder*> m_delayedSpellAuraHolders;
+        uint32 m_hasHeartbeatProcCounter;
 
         bool m_alwaysHit;
         bool m_noThreat;

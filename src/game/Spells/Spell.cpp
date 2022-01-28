@@ -3872,7 +3872,6 @@ void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, ui
         case SPELL_FAILED_EQUIPPED_ITEM_CLASS_OFFHAND:
             data << uint32(spellInfo->EquippedItemClass);
             data << uint32(spellInfo->EquippedItemSubClassMask);
-            data << uint32(spellInfo->EquippedItemInventoryTypeMask);
             break;
         case SPELL_FAILED_PROSPECT_NEED_MORE:
             data << param1;
@@ -3880,6 +3879,12 @@ void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, ui
             break;
         case SPELL_FAILED_PREVENTED_BY_MECHANIC:
             data << param1;
+            break;
+        case SPELL_FAILED_REAGENTS:
+            data << param1;                                 // item id
+            break;
+        case SPELL_FAILED_MIN_SKILL:
+            data << uint32(0);                              // SkillLine.dbc id
             break;
         default:
             break;
@@ -6635,7 +6640,10 @@ SpellCastResult Spell::CheckItems()
                 }
 
                 if (!p_caster->HasItemCount(itemid, itemcount))
+                {
+                    m_param1 = itemid;
                     return SPELL_FAILED_REAGENTS;
+                }
             }
         }
 

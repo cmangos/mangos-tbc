@@ -1735,6 +1735,10 @@ BattleGround* BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId
             return nullptr;
     }
 
+    bg->SetBracketId(bracketId);
+    bg->SetArenaType(arenaType);
+    bg->SetRated(isRated);
+
     // will also set m_bgMap, instanceid
     sMapMgr.CreateBgMap(bg->GetMapId(), bg);
 
@@ -1745,9 +1749,6 @@ BattleGround* BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId
 
     // start the joining of the bg
     bg->SetStatus(STATUS_WAIT_JOIN);
-    bg->SetBracketId(bracketId);
-    bg->SetArenaType(arenaType);
-    bg->SetRated(isRated);
 
     return bg;
 }

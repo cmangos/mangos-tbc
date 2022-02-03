@@ -2415,6 +2415,8 @@ class Unit : public WorldObject
         FormationSlotDataSPtr GetFormationSlot() { return m_formationSlot; }
         void SetFormationSlot(FormationSlotDataSPtr fSlot) { m_formationSlot = fSlot; }
 
+        virtual bool IsNoWeaponSkillGain() const { return false; }
+
     protected:
         bool MeetsSelectAttackingRequirement(Unit* target, SpellEntry const* spellInfo, uint32 selectFlags, SelectAttackingTargetParams params) const;
 

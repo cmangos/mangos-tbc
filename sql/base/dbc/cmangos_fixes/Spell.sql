@@ -2604,7 +2604,15 @@ UPDATE spell_template SET EffectRadiusIndex1=15 WHERE Id IN(46875);
 -- experimental KJ Legion Lightning GCD for fixing his animations
 UPDATE spell_template SET StartRecoveryTime=2500 WHERE Id IN(45664);
 
-UPDATE spell_template SET `AttributesServerside`=AttributesServerside|0x00000004 WHERE `id` IN(43119,43120,43457);
+-- ====================================================
+-- SPELL_ATTR_SS_IGNORE_EVADE - IsSpellRemovedOnEvade()
+-- ====================================================
+UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
+37248, -- Power Converters: Electromental Visual
+43119, -- Cyclone Visual
+43120, -- Cyclone
+43457 -- Ball of Energy
+);
 
 -- childrens week full serversides - mechano lord capacitus spells used as base - known names and ids
 INSERT INTO `spell_template` (`Id`,`SchoolMask`,`Attributes`,`AttributesEx`,`AttributesEx3`,`AttributesEx4`,`DurationIndex`,`rangeIndex`,`Effect1`,`EffectDieSides1`,`EffectBaseDice1`,`EffectImplicitTargetA1`,`EffectRadiusIndex1`,`EffectMiscValue1`,`EffectMiscValueB1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`DmgMultiplier2`,`IsServerSide`) VALUES

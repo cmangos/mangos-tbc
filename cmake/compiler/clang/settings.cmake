@@ -1,6 +1,12 @@
 # Set build-directive (used in core to tell which buildtype we used)
 add_definitions(-D_BUILD_DIRECTIVE='"$(CONFIGURATION)"')
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^arm")
+  set(ARM_FLAGS "-latomic")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${ARM_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${ARM_FLAGS}")
+endif()
+
 # Additional compaitibility checks and flags for commonly found LTS Clang versions
 if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7.0)
   # Set minimum C++17 compliant Clang version target to 7.0

@@ -51,6 +51,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (19873,'spell_destroy_egg'),
 (20038,'spell_explosion_razorgore'),
 (21651,'spell_opening_capping'),
+(22858,'spell_retaliation_creature'),
 (23226,'spell_ritual_candle_aura'),
 (24228,'spell_arlokk_vanish'),
 (24314,'spell_threatening_gaze'),
@@ -675,6 +676,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (20243,'spell_devastate'),
 (30016,'spell_devastate'),
 (30022,'spell_devastate'),
+(20230,'spell_retaliation_warrior'),
 (20647,'spell_warrior_execute_damage'),
 (34428,'spell_warrior_victory_rush');
 

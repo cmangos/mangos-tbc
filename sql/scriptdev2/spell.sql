@@ -673,6 +673,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (20662,'spell_warrior_execute'),
 (25234,'spell_warrior_execute'),
 (25236,'spell_warrior_execute'),
+(29707,'spell_heroic_strike'),
+(30324,'spell_heroic_strike'),
 (20243,'spell_devastate'),
 (30016,'spell_devastate'),
 (30022,'spell_devastate'),

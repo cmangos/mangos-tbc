@@ -1721,6 +1721,15 @@ bool ChatHandler::HandleGoHelper(Player* player, uint32 mapid, float x, float y,
             SetSentErrorMessage(true);
             return false;
         }
+
+        if (mapid == player->GetMap()->GetId())
+            player->UpdateAllowedPositionZ(x, y, z);
+        else
+        {
+            TerrainInfo const* map = sTerrainMgr.LoadTerrain(mapid);
+            float groundZ = map->GetHeightStatic(x, y, z);
+            z = map->GetWaterOrGroundLevel(x, y, MAX_HEIGHT, groundZ);
+        }
     }
     else
     {
@@ -1741,8 +1750,6 @@ bool ChatHandler::HandleGoHelper(Player* player, uint32 mapid, float x, float y,
     if (!player->TaxiFlightInterrupt())
         player->SaveRecallPosition();
 
-    player->UpdateAllowedPositionZ(x, y, z);
-    z += 1;
     player->TeleportTo(mapid, x, y, z, ort);
 
     return true;

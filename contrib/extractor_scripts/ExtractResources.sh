@@ -16,9 +16,9 @@
 PREFIX="$(dirname $0)"
 
 ## Normal log file (if not overwritten by second param)
-LOG_FILE="MaNGOSExtractor.log"
+LOG_FILE="${LOG_FILE:-MaNGOSExtractor.log}"
 ## Detailed log file
-DETAIL_LOG_FILE="MaNGOSExtractor_detailed.log"
+DETAIL_LOG_FILE="${DETAIL_LOG_FILE:-MaNGOSExtractor_detailed.log}"
 
 ## ! Use below only for finetuning or if you know what you are doing !
 

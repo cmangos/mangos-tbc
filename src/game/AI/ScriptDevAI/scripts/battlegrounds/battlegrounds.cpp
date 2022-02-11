@@ -201,7 +201,7 @@ void AddSC_battleground()
 
     RegisterSpellScript<OpeningCapping>("spell_opening_capping");
     RegisterSpellScript<InactiveBattleground>("spell_inactive");
-    RegisterAuraScript<ArenaPreparation>("spell_arena_preparation");
+    RegisterSpellScript<ArenaPreparation>("spell_arena_preparation");
     RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");
     RegisterSpellScript<spell_outdoor_pvp_banner_trigger>("spell_outdoor_pvp_banner_trigger");
 }

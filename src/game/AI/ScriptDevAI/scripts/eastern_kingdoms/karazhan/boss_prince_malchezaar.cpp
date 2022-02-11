@@ -355,6 +355,6 @@ void AddSC_boss_prince_malchezaar()
     pNewScript->GetAI = &GetNewAIInstance<boss_malchezaarAI>;
     pNewScript->RegisterSelf();
 
-    RegisterScript<Enfeeble>("spell_enfeeble");
+    RegisterSpellScript<Enfeeble>("spell_enfeeble");
     RegisterSpellScript<EnfeebleRemoval>("spell_enfeeble_removal");
 }

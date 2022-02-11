@@ -126,6 +126,6 @@ void LoadWarriorScripts()
     RegisterSpellScript<WarriorExecuteDamage>("spell_warrior_execute_damage");
     RegisterSpellScript<VictoryRush>("spell_warrior_victory_rush");
     RegisterSpellScript<Devastate>("spell_devastate");
-    RegisterAuraScript<RetaliationWarrior>("spell_retaliation_warrior");
+    RegisterSpellScript<RetaliationWarrior>("spell_retaliation_warrior");
     RegisterSpellScript<HeroicStrike>("spell_heroic_strike");
 }

@@ -312,5 +312,5 @@ void AddSC_boss_gurtogg_bloodboil()
     pNewScript->GetAI = &GetNewAIInstance<boss_gurtogg_bloodboilAI>;
     pNewScript->RegisterSelf();
 
-    RegisterAuraScript<FelRage3>("spell_fel_rage_3");
+    RegisterSpellScript<FelRage3>("spell_fel_rage_3");
 }

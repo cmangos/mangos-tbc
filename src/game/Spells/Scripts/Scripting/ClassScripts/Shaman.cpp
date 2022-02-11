@@ -35,5 +35,5 @@ struct EarthShield : public AuraScript
 
 void LoadShamanScripts()
 {
-    RegisterAuraScript<EarthShield>("spell_earth_shield");
+    RegisterSpellScript<EarthShield>("spell_earth_shield");
 }

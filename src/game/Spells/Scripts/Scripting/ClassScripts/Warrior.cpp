@@ -69,7 +69,7 @@ struct Devastate : public SpellScript
         {
             uint32 sunderId = static_cast<Player*>(caster)->LookupHighestLearnedRank(7386);
             if (sunderId)
-                caster->CastSpell(unitTarget, sunderId, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
+                caster->CastSpell(unitTarget, sunderId, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
         }
 
         // Devastate bonus and sunder armor refresh, additional threat
@@ -94,7 +94,7 @@ struct RetaliationWarrior : public AuraScript
         if (procData.victim->IsFacingTargetsBack(procData.attacker))
             return SPELL_AURA_PROC_FAILED;
 
-        procData.victim->CastSpell(procData.attacker, 20240, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
+        procData.victim->CastSpell(procData.attacker, 20240, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
         return SPELL_AURA_PROC_OK;
     }
 };

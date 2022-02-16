@@ -311,18 +311,18 @@ struct SeedOfCorruptionDamage : public SpellScript
 
 void LoadWarlockScripts()
 {
-    RegisterAuraScript<UnstableAffliction>("spell_unstable_affliction");
-    RegisterAuraScript<CurseOfAgony>("spell_curse_of_agony");
+    RegisterSpellScript<UnstableAffliction>("spell_unstable_affliction");
+    RegisterSpellScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<LifeTap>("spell_life_tap");
-    RegisterAuraScript<DemonicKnowledge>("spell_demonic_knowledge");
-    RegisterAuraScript<SoulLink>("spell_soul_link");
-    RegisterAuraScript<SeedOfCorruption>("spell_seed_of_corruption");
-    RegisterAuraScript<Corruption>("spell_corruption");
-    RegisterAuraScript<SiphonLife>("spell_siphon_life");
-    RegisterAuraScript<CurseOfAgony>("spell_curse_of_agony");
+    RegisterSpellScript<DemonicKnowledge>("spell_demonic_knowledge");
+    RegisterSpellScript<SoulLink>("spell_soul_link");
+    RegisterSpellScript<SeedOfCorruption>("spell_seed_of_corruption");
+    RegisterSpellScript<Corruption>("spell_corruption");
+    RegisterSpellScript<SiphonLife>("spell_siphon_life");
+    RegisterSpellScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<EyeOfKilrogg>("spell_eye_of_kilrogg");
     RegisterSpellScript<DevourMagic>("spell_devour_magic");
     RegisterSpellScript<SeedOfCorruptionDamage>("spell_seed_of_corruption_damage");
-    RegisterScript<CurseOfDoom>("spell_curse_of_doom");
+    RegisterSpellScript<CurseOfDoom>("spell_curse_of_doom");
     RegisterSpellScript<CurseOfDoomEffect>("spell_curse_of_doom_effect");
 }

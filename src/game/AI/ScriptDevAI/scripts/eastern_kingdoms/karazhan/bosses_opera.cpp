@@ -1372,7 +1372,7 @@ void AddSC_bosses_opera()
     pNewScript->GetAI = &GetNewAIInstance<boss_bigbadwolfAI>;
     pNewScript->RegisterSelf();
 
-    RegisterAuraScript<spell_red_riding_hood_fixate>("spell_red_riding_hood_fixate");
+    RegisterSpellScript<spell_red_riding_hood_fixate>("spell_red_riding_hood_fixate");
 
     // Romeo And Juliet
     pNewScript = new Script;

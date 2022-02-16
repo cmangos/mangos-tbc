@@ -31,6 +31,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (8655,'spell_tribal_death'),
 (8894,'spell_tribal_death'),
 (9144,'spell_tribal_death'),
+(10255,'spell_stoned'),
 (12639,'spell_summon_hakkar'),
 (12948,'spell_hakkar_summoned'),
 (13278,'spell_gdr_channel'),
@@ -51,6 +52,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (19873,'spell_destroy_egg'),
 (20038,'spell_explosion_razorgore'),
 (21651,'spell_opening_capping'),
+(22858,'spell_retaliation_creature'),
 (23226,'spell_ritual_candle_aura'),
 (24228,'spell_arlokk_vanish'),
 (24314,'spell_threatening_gaze'),
@@ -672,9 +674,12 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (20662,'spell_warrior_execute'),
 (25234,'spell_warrior_execute'),
 (25236,'spell_warrior_execute'),
+(29707,'spell_heroic_strike'),
+(30324,'spell_heroic_strike'),
 (20243,'spell_devastate'),
 (30016,'spell_devastate'),
 (30022,'spell_devastate'),
+(20230,'spell_retaliation_warrior'),
 (20647,'spell_warrior_execute_damage'),
 (34428,'spell_warrior_victory_rush');
 

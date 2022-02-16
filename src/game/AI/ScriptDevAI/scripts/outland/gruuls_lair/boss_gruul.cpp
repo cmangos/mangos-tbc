@@ -193,6 +193,13 @@ struct GronnLordsGrasp : public AuraScript
 
 struct HurtfulStrikePrimer : public SpellScript
 {
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (target->GetTypeId() != TYPEID_PLAYER || !spell->GetCaster()->CanReachWithMeleeAttack(target))
+            return false;
+        return true;
+    }
+
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
         Unit* target = spell->GetUnitTarget();
@@ -221,6 +228,6 @@ void AddSC_boss_gruul()
     pNewScript->GetAI = &GetNewAIInstance<boss_gruulAI>;
     pNewScript->RegisterSelf();
 
-    RegisterAuraScript<GronnLordsGrasp>("spell_gronn_lords_grasp");
+    RegisterSpellScript<GronnLordsGrasp>("spell_gronn_lords_grasp");
     RegisterSpellScript<HurtfulStrikePrimer>("spell_hurtful_strike_primer");
 }

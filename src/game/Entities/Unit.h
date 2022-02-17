@@ -1806,7 +1806,7 @@ class Unit : public WorldObject
         Unit* GetCharmer(WorldObject const* pov = nullptr) const;
         Unit* GetCreator(WorldObject const* pov = nullptr) const;
         Unit* GetTarget(WorldObject const* pov = nullptr) const;
-        Unit* GetChannelObject(WorldObject const* pov = nullptr) const;
+        WorldObject* GetChannelObject(WorldObject const* pov = nullptr) const;
 
         void SetCharm(Unit* charmed) { SetCharmGuid(charmed ? charmed->GetObjectGuid() : ObjectGuid()); }
         void SetCharmer(Unit* charmer) { SetCharmerGuid(charmer ? charmer->GetObjectGuid() : ObjectGuid()); }

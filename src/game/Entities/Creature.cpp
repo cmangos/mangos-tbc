@@ -134,7 +134,7 @@ bool CreatureCreatePos::Relocate(Creature* cr) const
 }
 
 Creature::Creature(CreatureSubtype subtype) : Unit(),
-    m_lootMoney(0), m_lootGroupRecipientId(0),
+    m_gossipMenuId(0), m_lootMoney(0), m_lootGroupRecipientId(0),
     m_lootStatus(CREATURE_LOOT_STATUS_NONE),
     m_corpseAccelerationDecayDelay(MINIMUM_LOOTING_TIME),
     m_respawnTime(0), m_respawnDelay(25), m_respawnOverriden(false), m_respawnOverrideOnce(false), m_corpseDelay(60), m_canAggro(false),
@@ -542,6 +542,7 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
         faction = data->spawnTemplate->faction;
     setFaction(faction);
 
+    SetDefaultGossipMenuId(GetCreatureInfo()->GossipMenuId);
     SetUInt32Value(UNIT_NPC_FLAGS, GetCreatureInfo()->NpcFlags);
 
     uint32 attackTimer = GetCreatureInfo()->MeleeBaseAttackTime;
@@ -1427,7 +1428,7 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
             case POWER_MANA:        maxValue = mana; break;
             case POWER_RAGE:        maxValue = 0; break;
             case POWER_FOCUS:       maxValue = POWER_FOCUS_DEFAULT; break;
-            case POWER_ENERGY:      maxValue = POWER_ENERGY_DEFAULT * cinfo->PowerMultiplier; break;
+            case POWER_ENERGY:      maxValue = 0; break;
             case POWER_HAPPINESS:   maxValue = POWER_HAPPINESS_DEFAULT; break;
         }
 
@@ -2091,6 +2092,8 @@ void Creature::CallAssistance(Unit* enemy)
     Unit* target = enemy ? enemy : GetVictim();
     if (!m_AlreadyCallAssistance && target && !HasCharmer())
     {
+        MANGOS_ASSERT(AI());
+
         SetNoCallAssistance(true);
 
         if (!CanCallForAssistance())
@@ -2269,6 +2272,12 @@ void Creature::SetInCombatWithZone(bool checkAttackability)
     if (!CanHaveThreatList())
     {
         sLog.outError("Creature entry %u call SetInCombatWithZone but creature cannot have threat list.", GetEntry());
+        return;
+    }
+
+    if (!AI())
+    {
+        sLog.outError("Creature entry %u call SetInCombatWithZone but creature does not have AI. Possible call during create.", GetEntry());
         return;
     }
 

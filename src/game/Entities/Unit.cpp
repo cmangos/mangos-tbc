@@ -2512,19 +2512,22 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
             currentAbsorb = RemainingDamage;
 
         bool preventedDeath = false;
-        (*i)->OnAbsorb(currentAbsorb, reflectSpell, reflectDamage, preventedDeath);
+        (*i)->OnAbsorb(currentAbsorb, RemainingDamage, reflectSpell, reflectDamage, preventedDeath);
         if (preventedDeath)
             preventDeathAura = (*i);
 
         RemainingDamage -= currentAbsorb;
 
-        // Reduce shield amount
-        mod->m_amount -= currentAbsorb;
-        if ((*i)->GetHolder()->DropAuraCharge())
-            mod->m_amount = 0;
-        // Need remove it later
-        if (mod->m_amount <= 0)
-            existExpired = true;
+        if (!IsPassiveSpell(spellProto))
+        {
+            // Reduce shield amount
+            mod->m_amount -= currentAbsorb;
+            if ((*i)->GetHolder()->DropAuraCharge())
+                mod->m_amount = 0;
+            // Need remove it later
+            if (mod->m_amount <= 0)
+                existExpired = true;
+        }
     }
 
     // Remove all expired absorb auras
@@ -8845,7 +8848,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
             break;
         case MOVE_RUN:
         {
-            if (IsMounted() && !IsTaxiFlying()) // Use on mount auras
+            if (IsMounted()) // Use on mount auras
             {
                 main_speed_mod  = GetMaxPositiveAuraModifier(SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED);
                 stack_bonus     = GetTotalAuraMultiplier(SPELL_AURA_MOD_MOUNTED_SPEED_ALWAYS);
@@ -8870,7 +8873,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
             return;
         case MOVE_FLIGHT:
         {
-            if (IsMounted() && !IsTaxiFlying()) // Use on mount auras
+            if (IsMounted()) // Use on mount auras
             {
                 main_speed_mod  = GetMaxPositiveAuraModifier(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED);
                 stack_bonus     = GetTotalAuraMultiplier(SPELL_AURA_MOD_FLIGHT_SPEED_MOUNTED_STACKING);
@@ -9917,9 +9920,9 @@ uint32 Unit::GetCreatePowers(Powers power) const
     {
         case POWER_HEALTH:      return 0;                   // is it really should be here?
         case POWER_MANA:        return GetCreateMana();
-        case POWER_RAGE:        return POWER_RAGE_DEFAULT;
+        case POWER_RAGE:        return IsPlayer() ? POWER_RAGE_DEFAULT : 0;
         case POWER_FOCUS:       return (GetTypeId() == TYPEID_PLAYER || !((Creature const*)this)->IsPet() || ((Pet const*)this)->getPetType() != HUNTER_PET ? 0 : POWER_FOCUS_DEFAULT);
-        case POWER_ENERGY:      return POWER_ENERGY_DEFAULT;
+        case POWER_ENERGY:      return IsPlayer() ? POWER_ENERGY_DEFAULT : 0;
         case POWER_HAPPINESS:   return (GetTypeId() == TYPEID_PLAYER || !((Creature const*)this)->IsPet() || ((Pet const*)this)->getPetType() != HUNTER_PET ? 0 : POWER_HAPPINESS_DEFAULT);
     }
 
@@ -12456,7 +12459,7 @@ float Unit::GetCollisionHeight() const
 {
     float scaleMod = GetObjectScale(); // 99% sure about this
 
-    if (IsMounted())
+    if (GetMountID())
     {
         if (CreatureDisplayInfoEntry const* mountDisplayInfo = sCreatureDisplayInfoStore.LookupEntry(GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID)))
         {
@@ -12486,7 +12489,7 @@ float Unit::GetCollisionWidth() const
 {
     float scaleMod = GetObjectScale(); // 99% sure about this
 
-    if (IsMounted())
+    if (GetMountID())
     {
         if (CreatureDisplayInfoEntry const* mountDisplayInfo = sCreatureDisplayInfoStore.LookupEntry(GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID)))
         {

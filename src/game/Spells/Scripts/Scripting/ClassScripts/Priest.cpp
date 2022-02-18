@@ -191,9 +191,9 @@ void LoadPriestScripts()
     RegisterSpellScript<PowerInfusion>("spell_power_infusion");
     RegisterSpellScript<ShadowWordDeath>("spell_shadow_word_death");
     RegisterSpellScript<SpiritOfRedemptionHeal>("spell_spirit_of_redemption_heal");
-    RegisterAuraScript<Blackout>("spell_blackout");
+    RegisterSpellScript<Blackout>("spell_blackout");
     RegisterSpellScript<Shadowguard>("spell_shadowguard");
     RegisterSpellScript<PrayerOfMending>("spell_prayer_of_mending");
-    RegisterAuraScript<PainSuppression>("spell_pain_suppression");
+    RegisterSpellScript<PainSuppression>("spell_pain_suppression");
     RegisterSpellScript<Shadowfiend>("spell_shadowfiend");
 }

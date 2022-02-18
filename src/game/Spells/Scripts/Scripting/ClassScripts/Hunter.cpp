@@ -132,8 +132,8 @@ struct ExposeWeakness : public AuraScript
 
 void LoadHunterScripts()
 {
-    RegisterAuraScript<HuntersMark>("spell_hunters_mark");
+    RegisterSpellScript<HuntersMark>("spell_hunters_mark");
     RegisterSpellScript<KillCommand>("spell_kill_command");
     RegisterSpellScript<Misdirection>("spell_misdirection");
-    RegisterAuraScript<ExposeWeakness>("spell_expose_weakness");
+    RegisterSpellScript<ExposeWeakness>("spell_expose_weakness");
 }

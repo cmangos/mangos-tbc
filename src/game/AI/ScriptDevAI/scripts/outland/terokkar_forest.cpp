@@ -1607,5 +1607,5 @@ void AddSC_terokkar_forest()
     pNewScript->GetGameObjectAI = &GetAI_go_monstrous_kaliri_egg;
     pNewScript->RegisterSelf();
 
-    RegisterAuraScript<ShadowyDisguise>("spell_shadowy_disguise");
+    RegisterSpellScript<ShadowyDisguise>("spell_shadowy_disguise");
 }

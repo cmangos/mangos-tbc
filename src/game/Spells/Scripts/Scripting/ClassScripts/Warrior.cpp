@@ -18,6 +18,7 @@
 
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellAuras.h"
+#include "Spells/SpellMgr.h"
 
 struct WarriorExecute : public SpellScript
 {
@@ -69,7 +70,7 @@ struct Devastate : public SpellScript
         {
             uint32 sunderId = static_cast<Player*>(caster)->LookupHighestLearnedRank(7386);
             if (sunderId)
-                caster->CastSpell(unitTarget, sunderId, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
+                caster->CastSpell(unitTarget, sunderId, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
         }
 
         // Devastate bonus and sunder armor refresh, additional threat
@@ -86,10 +87,46 @@ struct Devastate : public SpellScript
     }
 };
 
+struct RetaliationWarrior : public AuraScript
+{
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    {
+        // check attack comes not from behind
+        if (procData.victim->IsFacingTargetsBack(procData.attacker))
+            return SPELL_AURA_PROC_FAILED;
+
+        procData.victim->CastSpell(procData.attacker, 20240, TRIGGERED_IGNORE_HIT_CALCULATION | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_COSTS);
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
+struct HeroicStrike : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        Unit* target = spell->GetUnitTarget();
+        Unit::AuraList const& decSpeedList = target->GetAurasByType(SPELL_AURA_MOD_DECREASE_SPEED);
+        for (Unit::AuraList::const_iterator iter = decSpeedList.begin(); iter != decSpeedList.end(); ++iter)
+        {
+            if ((*iter)->GetSpellProto()->SpellIconID == 15 && (*iter)->GetSpellProto()->Dispel == 0)
+            {
+                // formula based on tooltip
+                spell->SetDamage(spell->GetDamage() + spell->m_spellInfo->EffectBasePoints[EFFECT_INDEX_0]);
+                break;
+            }
+        }
+    }
+};
+
 void LoadWarriorScripts()
 {
     RegisterSpellScript<WarriorExecute>("spell_warrior_execute");
     RegisterSpellScript<WarriorExecuteDamage>("spell_warrior_execute_damage");
     RegisterSpellScript<VictoryRush>("spell_warrior_victory_rush");
     RegisterSpellScript<Devastate>("spell_devastate");
+    RegisterSpellScript<RetaliationWarrior>("spell_retaliation_warrior");
+    RegisterSpellScript<HeroicStrike>("spell_heroic_strike");
 }

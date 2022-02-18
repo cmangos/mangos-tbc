@@ -374,7 +374,7 @@ bool AreaTrigger_at_teron_gorefiend(Player* player, AreaTriggerEntry const* /*at
 
 struct ShadowOfDeath : public AuraScript
 {
-    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& preventedDeath) const override
+    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, int32& /*remainingDamage*/, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& preventedDeath) const override
     {
         preventedDeath = true;
         currentAbsorb = 0;
@@ -447,7 +447,7 @@ void AddSC_boss_teron_gorefiend()
     pNewScript->pAreaTrigger = &AreaTrigger_at_teron_gorefiend;
     pNewScript->RegisterSelf();
 
-    RegisterAuraScript<ShadowOfDeath>("spell_shadow_of_death");
-    RegisterAuraScript<ShadowOfDeathRemove>("spell_shadow_of_death_remove");
+    RegisterSpellScript<ShadowOfDeath>("spell_shadow_of_death");
+    RegisterSpellScript<ShadowOfDeathRemove>("spell_shadow_of_death_remove");
     RegisterSpellScript<SummonBlossomMoveTarget>("spell_summon_blossom_move_target");
 }

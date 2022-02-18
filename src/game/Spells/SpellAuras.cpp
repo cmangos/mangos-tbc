@@ -396,10 +396,12 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* curr
                 if (castItem)
                     damage += (damage * castItem->GetEnchantmentModifier() / 100);
                 break;
-            default:
-                damage = OnAuraValueCalculate(caster, damage);
-                break;
+            default: break;
         }
+
+        damage = CalculateAuraEffectValue(caster, target, spellproto, eff, damage);
+
+        damage = OnAuraValueCalculate(caster, damage);
     }
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Aura: construct Spellid : %u, Aura : %u Target : %d Damage : %d", spellproto->Id, spellproto->EffectApplyAuraName[eff], spellproto->EffectImplicitTargetA[eff], damage);
@@ -6725,36 +6727,7 @@ void Aura::HandleSchoolAbsorb(bool apply, bool Real)
 
     Unit* target = GetTarget();
     SpellEntry const* spellProto = GetSpellProto();
-    if (apply)
-    {
-        // prevent double apply bonuses
-        if (target->GetTypeId() != TYPEID_PLAYER || !((Player*)target)->GetSession()->PlayerLoading())
-        {
-            float DoneActualBenefit = 0.0f;
-            if (SpellBonusEntry const* bonus = sSpellMgr.GetSpellBonusData(spellProto->Id))
-            {
-                switch (spellProto->SpellFamilyName)
-                {
-                    case SPELLFAMILY_PRIEST:
-                        // Power Word: Shield
-                        if (spellProto->SpellFamilyFlags & uint64(0x0000000000000001))
-                        {
-                            DoneActualBenefit = caster->SpellBaseHealingBonusDone(GetSpellSchoolMask(spellProto)) * bonus->direct_damage;
-                            break;
-                        }
-                        break;
-                    default:
-                        DoneActualBenefit = caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(spellProto)) * bonus->direct_damage;
-                        break;
-                }
-            }
-
-            DoneActualBenefit *= caster->CalculateLevelPenalty(spellProto);
-
-            m_modifier.m_amount += (int32)DoneActualBenefit;
-        }
-    }
-    else
+    if (!apply)
     {
         switch (spellProto->Id)
         {

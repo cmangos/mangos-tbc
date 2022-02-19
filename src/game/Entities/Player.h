@@ -1448,10 +1448,9 @@ class Player : public Unit
         void SendTalentWipeConfirm(ObjectGuid guid) const;
         void RewardRage(uint32 damage, uint32 weaponSpeedHitFactor, bool attacker);
         void SendPetSkillWipeConfirm() const;
-        void RegenerateAll();
+        void RegenerateAll(uint32 diff = REGEN_TIME_FULL);
         void Regenerate(Powers power, uint32 diff);
         void RegenerateHealth(uint32 diff);
-        void setRegenTimer(uint32 time) {m_regenTimer = time;}
 
         uint32 GetMoney() const { return GetUInt32Value(PLAYER_FIELD_COINAGE); }
         void ModifyMoney(int32 d)

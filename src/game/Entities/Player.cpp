@@ -503,8 +503,6 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
 
     m_usedTalentCount = 0;
 
-    m_regenTimer = 0;
-
     m_zoneUpdateId = 0;
     m_zoneUpdateTimer = 0;
     m_positionStatusUpdateTimer = 0;
@@ -1489,14 +1487,6 @@ void Player::Update(const uint32 diff)
         }
     }
 
-    if (m_regenTimer)
-    {
-        if (diff >= m_regenTimer)
-            m_regenTimer = 0;
-        else
-            m_regenTimer -= diff;
-    }
-
     if (m_positionStatusUpdateTimer)
     {
         if (diff >= m_positionStatusUpdateTimer)
@@ -1529,8 +1519,11 @@ void Player::Update(const uint32 diff)
     }
 
     if (IsAlive())
-        if (m_regenTimer == 0)
-            RegenerateAll();
+    {
+        m_regenTimer += diff;
+        if (m_regenTimer >= REGEN_TIME_FULL)
+            RegenerateAll(m_regenTimer / 100 * 100);
+    }
 
     if (m_deathState == JUST_DIED)
         KillPlayer();
@@ -2281,23 +2274,22 @@ void Player::RewardRage(uint32 damage, uint32 weaponSpeedHitFactor, bool attacke
     ModifyPower(POWER_RAGE, uint32(addRage * 10));
 }
 
-void Player::RegenerateAll()
+void Player::RegenerateAll(uint32 diff)
 {
-    uint32 regenDiff = REGEN_TIME_FULL - m_regenTimer;
     // Not in combat or they have regeneration
     if (!IsInCombat() || HasAuraType(SPELL_AURA_MOD_REGEN_DURING_COMBAT) ||
             HasAuraType(SPELL_AURA_MOD_HEALTH_REGEN_IN_COMBAT))
     {
-        RegenerateHealth(regenDiff);
+        RegenerateHealth(diff);
         if (!IsInCombat() && !HasAuraType(SPELL_AURA_INTERRUPT_REGEN))
-            Regenerate(POWER_RAGE, regenDiff);
+            Regenerate(POWER_RAGE, diff);
     }
 
-    Regenerate(POWER_ENERGY, regenDiff);
+    Regenerate(POWER_ENERGY, diff);
 
-    Regenerate(POWER_MANA, regenDiff);
+    Regenerate(POWER_MANA, diff);
 
-    m_regenTimer = REGEN_TIME_FULL;
+    m_regenTimer -= diff;
 }
 
 void Player::Regenerate(Powers power, uint32 diff)
@@ -2327,7 +2319,12 @@ void Player::Regenerate(Powers power, uint32 diff)
         case POWER_RAGE:                                    // Regenerate rage
         {
             float RageDecreaseRate = sWorld.getConfig(CONFIG_FLOAT_RATE_POWER_RAGE_LOSS);
-            addvalue = uint32(float(diff) / 100) * RageDecreaseRate; // 2 rage by tick (= 2 seconds => 1 rage/sec)
+            addvalue = uint32(float(diff) / 200) * 2.5 * RageDecreaseRate; // decay 2.5 rage per 2 seconds
+
+            AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
+            for (auto ModPowerRegenPCTAura : ModPowerRegenPCTAuras)
+                if (ModPowerRegenPCTAura->GetModifier()->m_miscvalue == int32(power))
+                    addvalue *= (ModPowerRegenPCTAura->GetModifier()->m_amount + 100) / 100.0f;
         }   break;
         case POWER_ENERGY:                                  // Regenerate energy
         {
@@ -2339,16 +2336,6 @@ void Player::Regenerate(Powers power, uint32 diff)
         case POWER_HAPPINESS:
         case POWER_HEALTH:
             return;
-    }
-
-    // Mana regen calculated in Player::UpdateManaRegen()
-    // Exist only for POWER_MANA, POWER_ENERGY, POWER_FOCUS auras
-    if (power == POWER_RAGE)
-    {
-        AuraList const& ModPowerRegenPCTAuras = GetAurasByType(SPELL_AURA_MOD_POWER_REGEN_PERCENT);
-        for (auto ModPowerRegenPCTAura : ModPowerRegenPCTAuras)
-            if (ModPowerRegenPCTAura->GetModifier()->m_miscvalue == int32(power))
-                addvalue *= (ModPowerRegenPCTAura->GetModifier()->m_amount + 100) / 100.0f;
     }
 
     if (power != POWER_RAGE)

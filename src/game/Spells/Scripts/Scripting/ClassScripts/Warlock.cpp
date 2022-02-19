@@ -220,7 +220,7 @@ struct CurseOfDoom : public SpellScript, public AuraScript
     {
         if (!apply && aura->GetRemoveMode() == AURA_REMOVE_BY_DEATH && urand(0, 100) > 95)
             if (Unit* caster = aura->GetCaster())
-                caster->CastSpell(nullptr, 18662, TRIGGERED_OLD_TRIGGERED);
+                caster->CastSpell(aura->GetTarget(), 18662, TRIGGERED_OLD_TRIGGERED);
     }
 };
 

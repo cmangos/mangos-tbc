@@ -704,6 +704,17 @@ bool QuestRewarded_npc_adal(Player* player, Creature* creature, Quest const* que
     return false; // unhandled
 }
 
+enum recruitEventIds
+{
+    NPC_GRAND_ANCHORITE_ALMONEN = 19216,
+    NPC_COMMANDER_STEELE = 25141,
+    NPC_F_DRAENEI_TRAINEE = 25137,
+    NPC_M_DRAENEI_TRAINEE = 25136,
+    NPC_F_BLOODELF_TRAINEE = 25135,
+    NPC_M_BLOODELF_TRAINEE = 25134,
+    NPC_BLOODELF_VETERAN = 25143,
+};
+
 struct npc_shattered_sun_traineeAI : public ScriptedAI
 {
     npc_shattered_sun_traineeAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
@@ -713,9 +724,9 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
 
     void ReceiveAIEvent(AIEventType type, Unit* sender, Unit* invoker, uint32 miscValue) override
     {
-        if (!sender || (sender->GetEntry() != 25141 && sender->GetEntry() != 19216))
+        if (!sender || (sender->GetEntry() != NPC_COMMANDER_STEELE && sender->GetEntry() != NPC_GRAND_ANCHORITE_ALMONEN))
             return;
-        //sLog.outError("type: %d, miscV: %d", type, miscValue);
+
         switch (type)
         {
             case AI_EVENT_CUSTOM_EVENTAI_A:
@@ -723,12 +734,15 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
                     m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                 else if (miscValue == 68)
                     m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                else if (miscValue == 253)
+                    m_creature->HandleEmote(urand(0,2) ? 253 : 4);
                 else
                     m_creature->HandleEmote(miscValue);
 
             break;
             case AI_EVENT_CUSTOM_EVENTAI_B:
             {
+                SetRootSelf(true);
                 switch (miscValue)
                 {
                     case 0:
@@ -748,10 +762,7 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
             }
                 break;
             case AI_EVENT_CUSTOM_EVENTAI_C:
-                //0: Trainees Outside
-                //10: Summon Soldiers Inside
-                //11: Dismiss Soldiers inside
-                //Placeholder: Send trainee away
+                // Unused
                 break;
             default:
                 break;
@@ -759,72 +770,115 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
     }
 };
 
-static const ObjectGuid recruitMatrix[4][4];
-static const ObjectGuid veteran;
-
 static const Position recruitEntryPositions[4][4] =
 {
     {
-        {-1792.35,5337.14,-12.42,5.5},
-        {-1790.15,5335.14,-12.42,5.5},
-        {-1787.79,5333.10,-12.42,5.5},
-        {-1785.90,5331.25,-12.42,5.5},
+        {-1810.735, 5292.215, -12.3448, 5.5},
+        {-1797.464, 5308.929, -14.69543, 5.5},
+        {-1764.172974, 5386.48584, -5.273263, 5.5},
+        {-1816.387, 5357.304, -12.43532, 5.5},
     },
     {
-        {-1789.79,5339.68,-12.42,5.5},
-        {-1787.73,5337.60,-12.42,5.5},
-        {-1785.66,5335.26,-12.42,5.5},
-        {-1783.63,5333.44,-12.42,5.5},
+        {-1823.218, 5329.122, -12.3977, 5.5},
+        {-1841.915, 5347.13, -12.34478, 5.5},
+        {-1824.706, 5307.167, -12.3448, 5.5},
+        {-1790.77, 5300.418, -20.52535, 5.5},
     },
     {
-        {-1787.64,5341.81,-12.42,5.5},
-        {-1785.46,5339.81,-12.42,5.5},
-        {-1783.16,5337.67,-12.42,5.5},
-        {-1781.29,5335.79,-12.42,5.5},
+        {-1795.66, 5306.961, -16.11753, 5.5},
+        {-1835.797, 5375.394, -12.3448, 5.5},
+        {-1823.988, 5360.059, -12.43532, 5.5},
+        {-1809.875, 5325.414, -12.40578, 5.5},
     },
     {
-        {-1785.31,5344.09,-12.42,5.5},
-        {-1782.86,5342.13,-12.42,5.5},
-        {-1780.88,5339.83,-12.42,5.5},
-        {-1779.02,5337.96,-12.42,5.5},
+        {-1811.616, 5333.609, -12.43531, 5.5},
+        {-1818.436, 5351.488, -12.43532, 5.5},
+        {-1828.191, 5364.457, -12.34482, 5.5},
+        {-1818.281, 5301.583, -12.3448, 5.5},
+    },
+};
+
+static const Position recruitEventPositions[4][4] =
+{
+    {
+        {-1783.63, 5333.444, -12.43531, 5.497787},
+        {-1779.016, 5337.96, -12.43531, 5.497787},
+        {-1783.164, 5337.674, -12.43531, 5.497787},
+        {-1787.639, 5341.807, -12.43532, 5.497787},
+    },
+    {
+        {-1787.731, 5337.603, -12.43532, 5.497787},
+        {-1792.356, 5337.139, -12.43532, 5.497787},
+        {-1785.664, 5335.256, -12.43532, 5.497787},
+        {-1780.876, 5339.828, -12.43531, 5.497787},
+    },
+    {
+        {-1781.292, 5335.792, -12.43531, 5.497787},
+        {-1782.86, 5342.133, -12.43531, 5.497787},
+        {-1789.791, 5339.68, -12.43532, 5.497787},
+        {-1785.902, 5331.252, -12.43613, 5.497787},
+    },
+    {
+        {-1787.792, 5333.102, -12.43613, 5.497787},
+        {-1785.457, 5339.807, -12.43532, 5.497787},
+        {-1785.311, 5344.088, -12.43532, 5.497787},
+        {-1790.151, 5335.142, -12.43532, 5.497787},
     },
 };
 
 static const Position recruitExitPositions[4][4] =
 {
     {
-        {-1792.35,5337.14,-12.42,5.5},
-        {-1790.15,5335.14,-12.42,5.5},
-        {-1787.79,5333.10,-12.42,5.5},
-        {-1785.90,5331.25,-12.42,5.5},
+        {-1796.377, 5299.302, -19.65246, 100},
+        {-1744.358, 5380.27, -12.43531, 100},
+        {-1796.183, 5304.772, -17.0572, 100},
+        {-1798.558, 5309.034, -14.36996, 100},
     },
     {
-        {-1789.79,5339.68,-12.42,5.5},
-        {-1787.73,5337.60,-12.42,5.5},
-        {-1785.66,5335.26,-12.42,5.5},
-        {-1783.63,5333.44,-12.42,5.5},
+        {-1796.379, 5299.602, -19.50641, 100},
+        {-1796.706, 5308.721, -15.00909, 100},
+        {-1799.474, 5307.094, -15.06679, 100},
+        {-1730.106, 5363.373, -9.859305, 100},
     },
     {
-        {-1787.64,5341.81,-12.42,5.5},
-        {-1785.46,5339.81,-12.42,5.5},
-        {-1783.16,5337.67,-12.42,5.5},
-        {-1781.29,5335.79,-12.42,5.5},
+        {-1728.108, 5366.323, -9.279177, 100},
+        {-1764.693, 5385.993, -5.32568, 100},
+        {-1798.901, 5305.465, -16.00611, 100},
+        {-1794.535, 5303.782, -17.97032, 100},
     },
     {
-        {-1785.31,5344.09,-12.42,5.5},
-        {-1782.86,5342.13,-12.42,5.5},
-        {-1780.88,5339.83,-12.42,5.5},
-        {-1779.02,5337.96,-12.42,5.5},
+        {-1794.568, 5309.374, -15.2566, 100},
+        {-1763.738, 5383.413, -7.619812, 100},
+        {-1741.796, 5385.382, -12.43531, 100},
+        {-1792.979, 5307.494, -16.58447, 100},
     },
 };
 
-static const Position veteranEntryPosition = {-1799.42,5319.73,-12.42,1.62};
-static const Position veteranEventPosition = {-1780.71,5332.77,-12.42,2.129};
-static const Position veteranExitPosition = {-1799.42,5319.73,-12.42,1.62};
+static const Position veteranEntryPosition = {-1803.735, 5294.502, -12.38359, 1.62};
+static const Position veteranEventPosition = {-1780.713, 5332.765, -12.43613, 5.497787};
+static const Position veteranExitPosition = {-1798.737, 5308.549, -14.55699, 1.62};
 
 struct npc_commander_steeleAI: public ScriptedAI
 {
     npc_commander_steeleAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    ObjectGuid recruitMatrix[4][4];
+    ObjectGuid veteran;
+
+    void ReceiveAIEvent(AIEventType type, Unit* sender, Unit* invoker, uint32 miscValue) override
+    {
+        if (type == AI_EVENT_CUSTOM_EVENTAI_D)
+        {
+            if (miscValue == 0)
+            {
+                HandleRecruitSpawn(true);
+            }
+            else if (miscValue == 1)
+            {
+                HandleRecruitSpawn(false);
+            }
+        }
+    }
 
     void HandleRecruitSpawn(bool despawn)
     {
@@ -836,41 +890,40 @@ struct npc_commander_steeleAI: public ScriptedAI
                 {
                     if (recruitMatrix[x][y]){
                         Unit* crRecruit = m_creature->GetMap()->GetUnit(recruitMatrix[x][y]);
-                        if (crRecruit && crRecruit->IsAlive())
+                        if (crRecruit && crRecruit->IsAlive() && crRecruit->AI())
                         {
-                            crRecruit->GetMotionMaster()->MovePoint(3, recruitExitPositions[x][y]);
+                            crRecruit->AI()->SetRootSelf(false);
+                            crRecruit->GetMotionMaster()->MovePoint(3, recruitExitPositions[x][y], FORCED_MOVEMENT_RUN);
                         }
                     }
                 }
             }
             Unit* crVeteran = m_creature->GetMap()->GetUnit(veteran);
-            if (crVeteran && crVeteran->IsAlive())
-                crVeteran->GetMotionMaster()->MovePoint(3, veteranExitPosition);
-                //crVeteran->GetMotionMaster()->UnpauseWaypoints();
+            if (crVeteran && crVeteran->IsAlive() && crVeteran->AI())
+            {
+                crVeteran->AI()->SetRootSelf(false);
+                crVeteran->GetMotionMaster()->MovePoint(3, veteranExitPosition, FORCED_MOVEMENT_RUN);
+            }
         }
         else
         {
-            uint32 pathIdCounter = 0;
             for (int x=0; x<4; x++)
             {
                 for (int y=0; y<4; y++)
                 {
-                    std::vector<uint32> entries = {NPC_F_BLOODELF_TRAINEE, NPC_F_DRAENEI_TRAINEE, NPC_M_BLOODELF_TRAINEE, NPC_M_DRAENEI_TRAINEE};
+                    static const std::vector<uint32> entries = {NPC_F_BLOODELF_TRAINEE, NPC_F_DRAENEI_TRAINEE, NPC_M_BLOODELF_TRAINEE, NPC_M_DRAENEI_TRAINEE};
                     TempSpawnSettings spawnSettings;
                     spawnSettings.x = recruitEntryPositions[x][y].x;
                     spawnSettings.y = recruitEntryPositions[x][y].y;
                     spawnSettings.z = recruitEntryPositions[x][y].z;
                     spawnSettings.ori = recruitEntryPositions[x][y].o;
-                    spawnSettings.spawnType = TEMPSPAWN_MANUAL_DESPAWN;
-                    spawnSettings.setRun = true;
+                    spawnSettings.spawnType = TEMPSPAWN_CORPSE_DESPAWN;
                     spawnSettings.entry = entries[urand(0,3)];
                     spawnSettings.activeObject = true;
                     spawnSettings.spawner = m_creature;
-                    //spawnSettings.ownerGuid = m_creature->GetObjectGuid();
-                    //spawnSettings.pathId = pathIdCounter;
                     Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap());
                     recruitMatrix[x][y] = summoned->GetObjectGuid();
-                    //summoned->GetMotionMaster()->MovePath(pathIdCounter++, PATH_FROM_ENTRY, FORCED_MOVEMENT_RUN);
+                    summoned->GetMotionMaster()->MovePoint(2, recruitEventPositions[x][y], FORCED_MOVEMENT_RUN);
                 }
             }
             TempSpawnSettings spawnSettings;
@@ -878,32 +931,26 @@ struct npc_commander_steeleAI: public ScriptedAI
             spawnSettings.y = veteranEntryPosition.y;
             spawnSettings.z = veteranEntryPosition.z;
             spawnSettings.ori = veteranEntryPosition.o;
-            spawnSettings.spawnType = TEMPSPAWN_MANUAL_DESPAWN;
-            spawnSettings.setRun = true;
+            spawnSettings.spawnType = TEMPSPAWN_CORPSE_DESPAWN;
             spawnSettings.entry = NPC_BLOODELF_VETERAN;
             spawnSettings.activeObject = true;
             spawnSettings.spawner = m_creature;
-            //spawnSettings.ownerGuid = m_creature->GetObjectGuid();
             Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap());
             veteran = summoned->GetObjectGuid();
-            //Testing
-            //summoned->GetMotionMaster()->MovePath(0, PATH_FROM_ENTRY, FORCED_MOVEMENT_RUN);
-            summoned->GetMotionMaster()->MovePoint(2, veteranEventPosition);
-            //Testing
-            //Spawn recruits, make them run to their positions, start the emote event. synchronize first shout to the saluting
+            summoned->GetMotionMaster()->MovePoint(2, veteranEventPosition, FORCED_MOVEMENT_RUN);
         }
     }
 
     void SummonedMovementInform(Creature* summoned, uint32 motionType, uint32 uiPointId) override
     {
-        sLog.outError("SummonedMovementInform called");
-        if (summoned->GetEntry() == NPC_BLOODELF_VETERAN)
+        static const std::unordered_set<uint32> entries = {NPC_F_BLOODELF_TRAINEE, NPC_F_DRAENEI_TRAINEE, NPC_M_BLOODELF_TRAINEE, NPC_M_DRAENEI_TRAINEE, NPC_BLOODELF_VETERAN};
+        static const float forward = 5.497790;
+        if (entries.find(summoned->GetEntry()) != entries.end())
         {
-            sLog.outError("Veteran Point ID: %u", uiPointId);
-        }
-        switch (uiPointId) {
-            case 2: summoned->GetMotionMaster()->Clear(); summoned->GetMotionMaster()->MoveIdle(); summoned->SetFacingTo(5.5); break;//summoned->SendHeartBeat(); break; //Get real Facing value
-            case 3: summoned->ForcedDespawn(); break;// dynamic_cast<TemporarySpawn*>(summoned)->UnSummon();
+            switch (uiPointId) {
+                case 2: summoned->GetMotionMaster()->Clear(); summoned->GetMotionMaster()->MoveIdle(); summoned->SetFacingTo(forward); break;
+                case 3: summoned->ForcedDespawn();
+            }
         }
     }
 };
@@ -961,6 +1008,10 @@ void AddSC_shattrath_city()
     pNewScript->GetAI = &GetNewAIInstance<npc_shattered_sun_traineeAI>;
     pNewScript->RegisterSelf();
 
+    pNewScript = new Script;
+    pNewScript->Name = "npc_commander_steele";
+    pNewScript->GetAI = &GetNewAIInstance<npc_commander_steeleAI>;
+    pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_adal";

@@ -28,8 +28,11 @@ npc_khadgars_servant
 npc_salsalabim
 EndContentData */
 
+#include "AI/BaseAI/AIDefines.h"
+#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "Entities/Unit.h"
 #include "World/WorldState.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
 #include "Spells/Scripts/SpellScript.h"
@@ -699,6 +702,61 @@ bool QuestRewarded_npc_adal(Player* player, Creature* creature, Quest const* que
     return false; // unhandled
 }
 
+struct npc_shattered_sun_traineeAI : public ScriptedAI
+{
+    npc_shattered_sun_traineeAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    const float radian = M_PI_F/2;
+    const float forward = 5.497790;
+
+    void ReceiveAIEvent(AIEventType type, Unit* sender, Unit* invoker, uint32 miscValue) override
+    {
+        if (!sender || (sender->GetEntry() != 25141 && sender->GetEntry() != 19216))
+            return;
+        //sLog.outError("type: %d, miscV: %d", type, miscValue);
+        switch (type)
+        {
+            case AI_EVENT_CUSTOM_EVENTAI_A:
+                if (miscValue == 26)
+                    m_creature->SetStandState(UNIT_STAND_STATE_STAND);
+                else if (miscValue == 68)
+                    m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
+                else
+                    m_creature->HandleEmote(miscValue);
+
+            break;
+            case AI_EVENT_CUSTOM_EVENTAI_B:
+            {
+                switch (miscValue)
+                {
+                    case 0:
+                        m_creature->SetOrientation(forward);
+                        break;
+                    case 1:
+                        m_creature->SetOrientation(forward - radian);
+                        break;
+                    case 2:
+                        m_creature->SetOrientation(forward - 2 * radian);
+                        break;
+                    case 3: 
+                        m_creature->SetOrientation(forward + radian);
+                        break;
+                }
+                m_creature->SendHeartBeat();
+            }
+                break;
+            case AI_EVENT_CUSTOM_EVENTAI_C:
+                //0: Trainees Outside
+                //10: Summon Soldiers Inside
+                //11: Dismiss Soldiers inside
+                //Placeholder: Send trainee away
+                break;
+            default:
+                break;
+        }
+    }
+};
+
 enum
 {
     SPELL_DEMON_BROILED_SURPRISE    = 43753,
@@ -746,6 +804,12 @@ void AddSC_shattrath_city()
     pNewScript->GetAI = &GetAI_npc_salsalabim;
     pNewScript->pGossipSelect = &GossipSelect_npc_salsalabim;
     pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_shattered_sun_trainee";
+    pNewScript->GetAI = &GetNewAIInstance<npc_shattered_sun_traineeAI>;
+    pNewScript->RegisterSelf();
+
 
     pNewScript = new Script;
     pNewScript->Name = "npc_adal";

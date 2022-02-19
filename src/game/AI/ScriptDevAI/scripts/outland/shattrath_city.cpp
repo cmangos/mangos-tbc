@@ -870,13 +870,9 @@ struct npc_commander_steeleAI: public ScriptedAI
         if (type == AI_EVENT_CUSTOM_EVENTAI_D)
         {
             if (miscValue == 0)
-            {
                 HandleRecruitSpawn(true);
-            }
             else if (miscValue == 1)
-            {
                 HandleRecruitSpawn(false);
-            }
         }
     }
 
@@ -947,7 +943,8 @@ struct npc_commander_steeleAI: public ScriptedAI
         static const float forward = 5.497790;
         if (entries.find(summoned->GetEntry()) != entries.end())
         {
-            switch (uiPointId) {
+            switch (uiPointId)
+            {
                 case 2: summoned->GetMotionMaster()->Clear(); summoned->GetMotionMaster()->MoveIdle(); summoned->SetFacingTo(forward); break;
                 case 3: summoned->ForcedDespawn();
             }

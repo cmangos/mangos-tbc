@@ -32,6 +32,8 @@ EndContentData */
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "AI/ScriptDevAI/include/sc_creature.h"
+#include "Entities/Creature.h"
 #include "Entities/Unit.h"
 #include "World/WorldState.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
@@ -756,6 +758,92 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
         }
     }
 };
+
+struct npc_commander_steeleAI: public ScriptedAI
+{
+    npc_commander_steeleAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+
+    void HandleRecruitSpawn(bool despawn)
+    {
+        if (despawn)
+        {
+            for (int x=0; x<4; x++)
+            {
+                for (int y=0; y<4; y++)
+                {
+                    if (recruitMatrix[x][y]){
+                        Unit* crRecruit = m_creature->GetMap()->GetUnit(recruitMatrix[x][y]);
+                        if (crRecruit && crRecruit->IsAlive())
+                        {
+                            crRecruit->GetMotionMaster()->MovePoint(3, recruitExitPositions[x][y]);
+                        }
+                    }
+                }
+            }
+            Unit* crVeteran = m_creature->GetMap()->GetUnit(veteran);
+            if (crVeteran && crVeteran->IsAlive())
+                crVeteran->GetMotionMaster()->MovePoint(3, veteranExitPosition);
+                //crVeteran->GetMotionMaster()->UnpauseWaypoints();
+        }
+        else
+        {
+            uint32 pathIdCounter = 0;
+            for (int x=0; x<4; x++)
+            {
+                for (int y=0; y<4; y++)
+                {
+                    std::vector<uint32> entries = {NPC_F_BLOODELF_TRAINEE, NPC_F_DRAENEI_TRAINEE, NPC_M_BLOODELF_TRAINEE, NPC_M_DRAENEI_TRAINEE};
+                    TempSpawnSettings spawnSettings;
+                    spawnSettings.x = recruitEntryPositions[x][y].x;
+                    spawnSettings.y = recruitEntryPositions[x][y].y;
+                    spawnSettings.z = recruitEntryPositions[x][y].z;
+                    spawnSettings.ori = recruitEntryPositions[x][y].o;
+                    spawnSettings.spawnType = TEMPSPAWN_MANUAL_DESPAWN;
+                    spawnSettings.setRun = true;
+                    spawnSettings.entry = entries[urand(0,3)];
+                    spawnSettings.activeObject = true;
+                    spawnSettings.spawner = m_creature;
+                    //spawnSettings.ownerGuid = m_creature->GetObjectGuid();
+                    //spawnSettings.pathId = pathIdCounter;
+                    Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap());
+                    recruitMatrix[x][y] = summoned->GetObjectGuid();
+                    //summoned->GetMotionMaster()->MovePath(pathIdCounter++, PATH_FROM_ENTRY, FORCED_MOVEMENT_RUN);
+                }
+            }
+            TempSpawnSettings spawnSettings;
+            spawnSettings.x = veteranEntryPosition.x;
+            spawnSettings.y = veteranEntryPosition.y;
+            spawnSettings.z = veteranEntryPosition.z;
+            spawnSettings.ori = veteranEntryPosition.o;
+            spawnSettings.spawnType = TEMPSPAWN_MANUAL_DESPAWN;
+            spawnSettings.setRun = true;
+            spawnSettings.entry = NPC_BLOODELF_VETERAN;
+            spawnSettings.activeObject = true;
+            spawnSettings.spawner = m_creature;
+            //spawnSettings.ownerGuid = m_creature->GetObjectGuid();
+            Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap());
+            veteran = summoned->GetObjectGuid();
+            //Testing
+            //summoned->GetMotionMaster()->MovePath(0, PATH_FROM_ENTRY, FORCED_MOVEMENT_RUN);
+            summoned->GetMotionMaster()->MovePoint(2, veteranEventPosition);
+            //Testing
+            //Spawn recruits, make them run to their positions, start the emote event. synchronize first shout to the saluting
+        }
+    }
+
+    void SummonedMovementInform(Creature* summoned, uint32 motionType, uint32 uiPointId) override
+    {
+        sLog.outError("SummonedMovementInform called");
+        if (summoned->GetEntry() == NPC_BLOODELF_VETERAN)
+        {
+            sLog.outError("Veteran Point ID: %u", uiPointId);
+        }
+        switch (uiPointId) {
+            case 2: summoned->GetMotionMaster()->Clear(); summoned->GetMotionMaster()->MoveIdle(); summoned->SetFacingTo(5.5); break;//summoned->SendHeartBeat(); break; //Get real Facing value
+            case 3: summoned->ForcedDespawn(); break;// dynamic_cast<TemporarySpawn*>(summoned)->UnSummon();
+        }
+    }
+}
 
 enum
 {

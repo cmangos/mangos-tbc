@@ -309,6 +309,18 @@ struct SeedOfCorruptionDamage : public SpellScript
     }
 };
 
+// 30293 - Soul Leech
+struct SoulLeech : public AuraScript
+{
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    {
+        int32 damage = int32(procData.damage * aura->GetAmount() / 100);
+        Unit* target = aura->GetTarget();
+        target->CastSpell(nullptr, 30294, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterSpellScript<UnstableAffliction>("spell_unstable_affliction");
@@ -320,6 +332,7 @@ void LoadWarlockScripts()
     RegisterSpellScript<Corruption>("spell_corruption");
     RegisterSpellScript<SiphonLife>("spell_siphon_life");
     RegisterSpellScript<CurseOfAgony>("spell_curse_of_agony");
+    RegisterSpellScript<SoulLeech>("spell_soul_leech");
     RegisterSpellScript<EyeOfKilrogg>("spell_eye_of_kilrogg");
     RegisterSpellScript<DevourMagic>("spell_devour_magic");
     RegisterSpellScript<SeedOfCorruptionDamage>("spell_seed_of_corruption_damage");

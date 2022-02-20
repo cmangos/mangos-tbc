@@ -869,10 +869,8 @@ struct npc_commander_steeleAI: public ScriptedAI
     {
         if (type == AI_EVENT_CUSTOM_EVENTAI_D)
         {
-            if (miscValue == 0)
-                HandleRecruitSpawn(true);
-            else if (miscValue == 1)
-                HandleRecruitSpawn(false);
+            HandleRecruitSpawn(!miscValue);
+            m_creature->SetActiveObjectState(miscValue);
         }
     }
 
@@ -884,7 +882,8 @@ struct npc_commander_steeleAI: public ScriptedAI
             {
                 for (int y=0; y<4; y++)
                 {
-                    if (recruitMatrix[x][y]){
+                    if (recruitMatrix[x][y])
+                    {
                         Unit* crRecruit = m_creature->GetMap()->GetUnit(recruitMatrix[x][y]);
                         if (crRecruit && crRecruit->IsAlive() && crRecruit->AI())
                         {

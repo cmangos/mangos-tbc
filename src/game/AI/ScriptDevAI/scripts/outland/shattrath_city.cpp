@@ -768,6 +768,16 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
                 break;
         }
     }
+
+    void MovementInform(uint32 motionType, uint32 uiPointId) override
+    {
+        static const float forward = 5.497790;
+        switch (uiPointId)
+        {
+            case 2: m_creature->GetMotionMaster()->Clear(); m_creature->GetMotionMaster()->MoveIdle(); m_creature->SetFacingTo(forward); break;
+            case 3: m_creature->ForcedDespawn();
+        }
+    }
 };
 
 static const Position recruitEntryPositions[4][4] =
@@ -933,20 +943,6 @@ struct npc_commander_steeleAI: public ScriptedAI
             Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap());
             veteran = summoned->GetObjectGuid();
             summoned->GetMotionMaster()->MovePoint(2, veteranEventPosition, FORCED_MOVEMENT_RUN);
-        }
-    }
-
-    void SummonedMovementInform(Creature* summoned, uint32 motionType, uint32 uiPointId) override
-    {
-        static const std::unordered_set<uint32> entries = {NPC_F_BLOODELF_TRAINEE, NPC_F_DRAENEI_TRAINEE, NPC_M_BLOODELF_TRAINEE, NPC_M_DRAENEI_TRAINEE, NPC_BLOODELF_VETERAN};
-        static const float forward = 5.497790;
-        if (entries.find(summoned->GetEntry()) != entries.end())
-        {
-            switch (uiPointId)
-            {
-                case 2: summoned->GetMotionMaster()->Clear(); summoned->GetMotionMaster()->MoveIdle(); summoned->SetFacingTo(forward); break;
-                case 3: summoned->ForcedDespawn();
-            }
         }
     }
 };

@@ -923,9 +923,11 @@ struct npc_commander_steeleAI: public ScriptedAI
                     spawnSettings.entry = entries[urand(0,3)];
                     spawnSettings.activeObject = true;
                     spawnSettings.spawner = m_creature;
-                    Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap());
-                    recruitMatrix[x][y] = summoned->GetObjectGuid();
-                    summoned->GetMotionMaster()->MovePoint(2, recruitEventPositions[x][y], FORCED_MOVEMENT_RUN);
+                    if (Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap()))
+                    {
+                        recruitMatrix[x][y] = summoned->GetObjectGuid();
+                        summoned->GetMotionMaster()->MovePoint(2, recruitEventPositions[x][y], FORCED_MOVEMENT_RUN);
+                    }
                 }
             }
             spawnSettings.x = veteranEntryPosition.x;
@@ -936,9 +938,11 @@ struct npc_commander_steeleAI: public ScriptedAI
             spawnSettings.entry = NPC_BLOODELF_VETERAN;
             spawnSettings.activeObject = true;
             spawnSettings.spawner = m_creature;
-            Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap());
-            veteran = summoned->GetObjectGuid();
-            summoned->GetMotionMaster()->MovePoint(2, veteranEventPosition, FORCED_MOVEMENT_RUN);
+            if (Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap()))
+            {
+                veteran = summoned->GetObjectGuid();
+                summoned->GetMotionMaster()->MovePoint(2, veteranEventPosition, FORCED_MOVEMENT_RUN);
+            }
         }
     }
 };

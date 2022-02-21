@@ -717,7 +717,14 @@ enum recruitEventIds
 
 struct npc_shattered_sun_traineeAI : public ScriptedAI
 {
-    npc_shattered_sun_traineeAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+    npc_shattered_sun_traineeAI(Creature* pCreature) : ScriptedAI(pCreature) {
+        AddCustomAction(0, true, [&]()
+        {
+            m_creature->HandleEmote(urand(0,4) ? 21 : 4);
+            ResetTimer(0, 1500u);
+        });
+        Reset();
+    }
 
     const float radian = M_PI_F/2;
     const float forward = 5.497790;
@@ -735,7 +742,7 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
                 else if (miscValue == 68)
                     m_creature->SetStandState(UNIT_STAND_STATE_KNEEL);
                 else if (miscValue == 253)
-                    m_creature->HandleEmote(urand(0,2) ? 253 : 4);
+                    ResetTimer(0, 2000u);
                 else
                     m_creature->HandleEmote(miscValue);
 
@@ -762,7 +769,7 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
             }
                 break;
             case AI_EVENT_CUSTOM_EVENTAI_C:
-                // Unused
+                DisableTimer(0);
                 break;
             default:
                 break;
@@ -895,6 +902,7 @@ struct npc_commander_steeleAI: public ScriptedAI
                         if (crRecruit && crRecruit->IsAlive() && crRecruit->AI())
                         {
                             crRecruit->AI()->SetRootSelf(false);
+                            crRecruit->AI()->ReceiveAIEvent(AI_EVENT_CUSTOM_EVENTAI_C, m_creature, m_creature, 0);
                             crRecruit->GetMotionMaster()->MovePoint(3, recruitExitPositions[x][y], FORCED_MOVEMENT_RUN);
                         }
                     }

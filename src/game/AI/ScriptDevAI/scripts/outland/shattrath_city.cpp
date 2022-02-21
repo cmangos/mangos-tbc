@@ -34,6 +34,7 @@ EndContentData */
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/include/sc_creature.h"
 #include "Entities/Creature.h"
+#include "Entities/Object.h"
 #include "Entities/Unit.h"
 #include "World/WorldState.h"
 #include "AI/ScriptDevAI/base/TimerAI.h"
@@ -800,7 +801,7 @@ struct npc_commander_steeleAI: public ScriptedAI
         {
             {-1810.735, 5292.215, -12.3448, 5.5},
             {-1797.464, 5308.929, -14.69543, 5.5},
-            {-1764.172974, 5386.48584, -5.273263, 5.5},
+            {-1801.254, 5313.176, -12.43915, 5.5},
             {-1816.387, 5357.304, -12.43532, 5.5},
         },
         {
@@ -879,7 +880,7 @@ struct npc_commander_steeleAI: public ScriptedAI
         },
     };
 
-    void ReceiveAIEvent(AIEventType type, Unit* sender, Unit* invoker, uint32 miscValue) override
+    void ReceiveAIEvent(AIEventType type, Unit*, Unit*, uint32 miscValue) override
     {
         if (type == AI_EVENT_CUSTOM_EVENTAI_D)
         {

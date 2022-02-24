@@ -898,8 +898,8 @@ bool Creature::AIM_Initialize()
     m_ai.reset(FactorySelector::selectAI(this));
 
     // Handle Spawned Events, also calls Reset()
-    m_ai->JustRespawned();
     m_ai->SpellListChanged();
+    m_ai->JustRespawned();
 
     if (InstanceData* mapInstance = GetInstanceData())
         mapInstance->OnCreatureRespawn(this);
@@ -2092,6 +2092,8 @@ void Creature::CallAssistance(Unit* enemy)
     Unit* target = enemy ? enemy : GetVictim();
     if (!m_AlreadyCallAssistance && target && !HasCharmer())
     {
+        MANGOS_ASSERT(AI());
+
         SetNoCallAssistance(true);
 
         if (!CanCallForAssistance())
@@ -2270,6 +2272,12 @@ void Creature::SetInCombatWithZone(bool checkAttackability)
     if (!CanHaveThreatList())
     {
         sLog.outError("Creature entry %u call SetInCombatWithZone but creature cannot have threat list.", GetEntry());
+        return;
+    }
+
+    if (!AI())
+    {
+        sLog.outError("Creature entry %u call SetInCombatWithZone but creature does not have AI. Possible call during create.", GetEntry());
         return;
     }
 

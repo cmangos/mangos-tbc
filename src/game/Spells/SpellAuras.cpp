@@ -4591,6 +4591,9 @@ void Aura::HandleModTaunt(bool /*apply*/, bool Real)
         return;
 
     target->TauntUpdate();
+
+    if (target->AI())
+        target->AI()->OnTaunt();
 }
 
 /*********************************************************/

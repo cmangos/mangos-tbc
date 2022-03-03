@@ -383,6 +383,7 @@ class ChatHandler
         bool HandleLearnAllMySpellsCommand(char* args);
         bool HandleLearnAllMyTalentsCommand(char* args);
 
+        bool HandleListAreaTriggerCommand(char* args);
         bool HandleListAurasCommand(char* args);
         bool HandleListCreatureCommand(char* args);
         bool HandleListItemCommand(char* args);

@@ -2831,6 +2831,9 @@ INSERT INTO `spell_template` (`Id`, `SchoolMask`, `Category`, `Dispel`, `Mechani
 -- Remove Control Robot triggered spell channeling attribute
 UPDATE spell_template SET AttributesEx=AttributesEx&~0x00000004 WHERE Id IN(29989);
 
+-- Chaotic Retribution confirmed to only burn mana and not deal damage
+UPDATE spell_template SET DmgMultiplier1=0 WHERE Id IN(41039);
+
 -- ============================================================
 -- WOTLK section
 -- ============================================================

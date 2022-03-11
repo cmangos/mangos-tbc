@@ -43,9 +43,10 @@ enum
     SPELL_PARASITIC_SERPENT = 23867,
 
     // common spells
-    SPELL_SNAKE_FORM        = 23849,
-    SPELL_FRENZY            = 23537,
-    SPELL_TRASH             = 3391,
+    SPELL_SNAKE_FORM            = 23849,
+    SPELL_FRENZY                = 23537,
+    SPELL_VIRULENT_POISON_PROC  = 22413, // TBC+?
+    SPELL_TRASH                 = 3391,
 
     SPELL_LIST_PHASE_1 = 1450701,
     SPELL_LIST_PHASE_2 = 1450702,
@@ -92,28 +93,28 @@ struct boss_venoxisAI : public CombatAI
         switch (action)
         {
             case VENOXIS_PHASE_2:
-                if (m_creature->GetHealthPercent() > 50.f)
-                    break;
-
-                if (DoCastSpellIfCan(nullptr, SPELL_SNAKE_FORM) == CAST_OK)
+                if (m_creature->GetHealthPercent() < 50.f)
+                    if (DoCastSpellIfCan(nullptr, SPELL_SNAKE_FORM) == CAST_OK)
+                    {
+                        DoScriptText(SAY_TRANSFORM, m_creature);
+                        DoCastSpellIfCan(nullptr, SPELL_POISON_CLOUD); // an instant cloud on change
+                        DoCastSpellIfCan(nullptr, SPELL_VIRULENT_POISON_PROC, TRIGGERED_OLD_TRIGGERED);
+                        DoResetThreat();
+                        m_creature->SetSpellList(SPELL_LIST_PHASE_2);
+                        DisableCombatAction(action);
+                    }
+                break;
+            case VENOXIS_PHASE_3:
+                if (m_creature->GetHealthPercent() < 25.f)
                 {
-                    DoScriptText(SAY_TRANSFORM, m_creature);
-                    DoCastSpellIfCan(nullptr, SPELL_POISON_CLOUD); // an instant cloud on change
-                    DoResetThreat();
-                    m_creature->SetSpellList(SPELL_LIST_PHASE_2);
+                    m_creature->SetSpellList(SPELL_LIST_PHASE_3);
                     DisableCombatAction(action);
                 }
                 break;
-            case VENOXIS_PHASE_3:
-                if (m_creature->GetHealthPercent() > 25.f)
-                    break;
-                m_creature->SetSpellList(SPELL_LIST_PHASE_3);
-                break;
             case VENOXIS_FRENZY:
-                if (m_creature->GetHealthPercent() > 10.f)
-                    break;
-                if (DoCastSpellIfCan(nullptr, SPELL_FRENZY) == CAST_OK)
-                    DisableCombatAction(action);
+                if (m_creature->GetHealthPercent() < 20.f) // maybe even 25
+                    if (DoCastSpellIfCan(nullptr, SPELL_FRENZY) == CAST_OK)
+                        DisableCombatAction(action);
                 break;
         }
     }

@@ -2235,12 +2235,6 @@ void Guild::MoveFromCharToBank(Player* pl, uint8 PlayerBag, uint8 PlayerSlot, ui
     if (!pItemChar)                                         // Problem to get item from player
         return;
 
-    if (pItemChar->IsConjuredConsumable()) // do not allow conjured items be put in guild bank - cant tick timer - error was added in later expansion
-    {
-        pl->SendEquipError(EQUIP_ERR_ITEM_DOESNT_GO_INTO_BAG2, pItemChar, nullptr);
-        return;
-    }
-
     if (!pItemChar->CanBeTraded())
     {
         pl->SendEquipError(EQUIP_ERR_ITEMS_CANT_BE_SWAPPED, pItemChar, nullptr);

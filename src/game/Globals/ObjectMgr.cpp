@@ -4349,37 +4349,37 @@ void ObjectMgr::LoadQuests()
 
     //                                                0      1       2           3         4           5     6                7              8              9
     QueryResult* result = WorldDatabase.Query("SELECT entry, Method, ZoneOrSort, MinLevel, QuestLevel, Type, RequiredClasses, RequiredRaces, RequiredSkill, RequiredSkillValue,"
-                          //   10                   11                 12                     13                   14                     15                   16                17
+                          // 10                 11                 12                     13                   14                     15                   16                17
                           "RepObjectiveFaction, RepObjectiveValue, RequiredMinRepFaction, RequiredMinRepValue, RequiredMaxRepFaction, RequiredMaxRepValue, SuggestedPlayers, LimitTime,"
-                          //   18          19            20           21           22           23              24                25         26            27
-                          "QuestFlags, SpecialFlags, CharTitleId, PrevQuestId, NextQuestId, ExclusiveGroup, NextQuestInChain, SrcItemId, SrcItemCount, SrcSpell,"
-                          //   28     29       30          31               32                33       34              35              36              37
+                          // 18        19            20           21           22           23              24                    25                26         27            28
+                          "QuestFlags, SpecialFlags, CharTitleId, PrevQuestId, NextQuestId, ExclusiveGroup, BreadcrumbForQuestId, NextQuestInChain, SrcItemId, SrcItemCount, SrcSpell,"
+                          // 29   30       31          32               33                34       35              36              37              38
                           "Title, Details, Objectives, OfferRewardText, RequestItemsText, EndText, ObjectiveText1, ObjectiveText2, ObjectiveText3, ObjectiveText4,"
-                          //   38          39          40          41          42             43             44             45
+                          // 39        40          41          42          43             44             45             46
                           "ReqItemId1, ReqItemId2, ReqItemId3, ReqItemId4, ReqItemCount1, ReqItemCount2, ReqItemCount3, ReqItemCount4,"
-                          //   46            47            48            49            50               51               52               53
+                          // 47          48            49            50            51               52               53               54
                           "ReqSourceId1, ReqSourceId2, ReqSourceId3, ReqSourceId4, ReqSourceCount1, ReqSourceCount2, ReqSourceCount3, ReqSourceCount4,"
-                          //   54                  55                  56                  57                  58                     59                     60                     61
+                          // 55                56                  57                  58                  59                     60                     61                     62
                           "ReqCreatureOrGOId1, ReqCreatureOrGOId2, ReqCreatureOrGOId3, ReqCreatureOrGOId4, ReqCreatureOrGOCount1, ReqCreatureOrGOCount2, ReqCreatureOrGOCount3, ReqCreatureOrGOCount4,"
-                          //   62             63             64             65
+                          // 63           64             65             66
                           "ReqSpellCast1, ReqSpellCast2, ReqSpellCast3, ReqSpellCast4,"
-                          //   66                67                68                69                70                71
+                          // 67              68                69                70                71                72
                           "RewChoiceItemId1, RewChoiceItemId2, RewChoiceItemId3, RewChoiceItemId4, RewChoiceItemId5, RewChoiceItemId6,"
-                          //   72                   73                   74                   75                   76                   77
+                          // 73                 74                   75                   76                   77                   78
                           "RewChoiceItemCount1, RewChoiceItemCount2, RewChoiceItemCount3, RewChoiceItemCount4, RewChoiceItemCount5, RewChoiceItemCount6,"
-                          //   78          79          80          81          82             83             84             85
+                          // 79        80          81          82          83             84             85             86
                           "RewItemId1, RewItemId2, RewItemId3, RewItemId4, RewItemCount1, RewItemCount2, RewItemCount3, RewItemCount4,"
-                          //   86              87              88              89              90              91            92            93            94            95
+                          // 87            88              89              90              91              92            93            94            95            96
                           "RewRepFaction1, RewRepFaction2, RewRepFaction3, RewRepFaction4, RewRepFaction5, RewRepValue1, RewRepValue2, RewRepValue3, RewRepValue4, RewRepValue5,"
-                          //   96                 97             98                99        100           101                102               103         104     105     106
+                          // 97               98             99                100       101           102                103               104         105     106     107
                           "RewHonorableKills, RewOrReqMoney, RewMoneyMaxLevel, RewSpell, RewSpellCast, RewMailTemplateId, RewMailDelaySecs, PointMapId, PointX, PointY, PointOpt,"
-                          //   107            108            109            110            111                 112                 113                 114
+                          // 108          109            110            111            112                 113                 114                 115
                           "DetailsEmote1, DetailsEmote2, DetailsEmote3, DetailsEmote4, DetailsEmoteDelay1, DetailsEmoteDelay2, DetailsEmoteDelay3, DetailsEmoteDelay4,"
-                          //   115          116                   117                118                119                120             121                 122          
+                          // 116            117                   118            119                 120                121                122                123          
                           "IncompleteEmote, IncompleteEmoteDelay, CompleteEmote, CompleteEmoteDelay, OfferRewardEmote1, OfferRewardEmote2, OfferRewardEmote3, OfferRewardEmote4,"
-                          //   123                     124                     125                     126
+                          // 124                   125                     126                     127
                           "OfferRewardEmoteDelay1, OfferRewardEmoteDelay2, OfferRewardEmoteDelay3, OfferRewardEmoteDelay4,"
-                          //   127          128            129              130             131               132             133               134
+                          // 128        129             130              131              132              133              134              135
                           "StartScript, CompleteScript, RewMaxRepValue1, RewMaxRepValue2, RewMaxRepValue3, RewMaxRepValue4, RewMaxRepValue5, RequiredCondition"
 
                           " FROM quest_template");
@@ -4947,14 +4947,13 @@ void ObjectMgr::LoadQuests()
         // fill additional data stores
         if (qinfo->PrevQuestId)
         {
-            if (mQuestTemplates.find(abs(qinfo->GetPrevQuestId())) == mQuestTemplates.end())
-            {
+            QuestMap::iterator qPrevItr = mQuestTemplates.find(abs(qinfo->GetPrevQuestId()));
+            if (qPrevItr == mQuestTemplates.end())
                 sLog.outErrorDb("Quest %d has PrevQuestId %i, but no such quest", qinfo->GetQuestId(), qinfo->GetPrevQuestId());
-            }
+            else if (qPrevItr->second->BreadcrumbForQuestId)
+                sLog.outErrorDb("Quest %d should not be unlocked by breadcrumb quest %u", qinfo->GetQuestId(), qinfo->GetPrevQuestId());
             else
-            {
                 qinfo->prevQuests.push_back(qinfo->PrevQuestId);
-            }
         }
 
         if (qinfo->NextQuestId)
@@ -4976,6 +4975,50 @@ void ObjectMgr::LoadQuests()
 
         if (qinfo->LimitTime)
             qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_TIMED);
+
+        if (uint32 breadcrumbQuestId = qinfo->BreadcrumbForQuestId)
+        {
+            QuestMap::iterator qBreadcrumbQuestItr = mQuestTemplates.find(breadcrumbQuestId);
+            if (qBreadcrumbQuestItr == mQuestTemplates.end())
+            {
+                sLog.outErrorDb("Quest %u has BreadcrumbForQuestId %u, but there is no such quest", qinfo->GetQuestId(), breadcrumbQuestId);
+                qinfo->BreadcrumbForQuestId = 0;
+            }
+            else
+            {
+                if (qinfo->NextQuestId)
+                    sLog.outErrorDb("Quest %u is a breadcrumb, it should not unlock quest %d", qinfo->GetQuestId(), qinfo->NextQuestId);
+                if (qinfo->ExclusiveGroup)
+                    sLog.outErrorDb("Quest %u is a breadcrumb, it should not be in exclusive group %d", qinfo->GetQuestId(), qinfo->ExclusiveGroup);
+            }
+        }
+    }
+
+    // Prevent any breadcrumb loops, and inform target quests of their breadcrumbs
+    for (auto& mQuestTemplate : mQuestTemplates)
+    {
+        Quest* qinfo = mQuestTemplate.second;
+        uint32   qid = qinfo->GetQuestId();
+        uint32 breadcrumbForQuestId = qinfo->BreadcrumbForQuestId;
+        std::set<uint32> questSet;
+
+        while (breadcrumbForQuestId)
+        {
+            // If the insertion fails, then we already processed this breadcrumb quest in this iteration. This means that two breadcrumb quests have each other set as targets
+            if (!questSet.insert(qinfo->QuestId).second)
+            {
+                sLog.outErrorDb("Breadcrumb quests %u and %u are in a loop!", qid, breadcrumbForQuestId);
+                qinfo->BreadcrumbForQuestId = 0;
+                break;
+            }
+
+            qinfo = const_cast<Quest*>(sObjectMgr.GetQuestTemplate(breadcrumbForQuestId));
+
+            // Every quest has a list of breadcrumb quests that point toward it
+            qinfo->DependentBreadcrumbQuests.push_back(qid);
+
+            breadcrumbForQuestId = qinfo->GetBreadcrumbForQuestId();
+        }
     }
 
     sLog.outString(">> Loaded " SIZEFMTD " quests definitions", mQuestTemplates.size());

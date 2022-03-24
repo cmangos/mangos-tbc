@@ -3612,13 +3612,16 @@ void Aura::HandleAuraTransform(bool apply, bool Real)
         }
         else                                                // m_modifier.m_amount != 0
         {
+            uint32 overrideDisplayId = GetAuraScriptCustomizationValue(); // from script
             CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(m_modifier.m_miscvalue);
             if (!cInfo)
             {
                 m_modifier.m_amount = 16358;                           // pig pink ^_^
                 sLog.outError("Auras: unknown creature id = %d (only need its modelid) Form Spell Aura Transform in Spell ID = %d", m_modifier.m_amount, GetId());
             }
-            else if (!m_modifier.m_amount) // can be overriden by script
+            else if (overrideDisplayId)
+                m_modifier.m_amount = overrideDisplayId;
+            else
                 m_modifier.m_amount = Creature::ChooseDisplayId(cInfo);   // Will use the default model here
 
             // creature case, need to update equipment if additional provided
@@ -8998,6 +9001,13 @@ void Aura::OnHeartbeat()
     // TODO: move HB resist here
     if (AuraScript* script = GetAuraScript())
         script->OnHeartbeat(this);
+}
+
+uint32 Aura::GetAuraScriptCustomizationValue()
+{
+    if (AuraScript* script = GetAuraScript())
+       return script->GetAuraScriptCustomizationValue(this);
+    return 0;
 }
 
 void Aura::ForcePeriodicity(uint32 periodicTime)

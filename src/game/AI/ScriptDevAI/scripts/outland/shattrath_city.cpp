@@ -787,15 +787,15 @@ struct npc_shattered_sun_traineeAI : public ScriptedAI
     }
 };
 
-struct npc_commander_steeleAI: public ScriptedAI
+struct npc_commander_steeleAI : public ScriptedAI
 {
     npc_commander_steeleAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
 
     ObjectGuid recruitMatrix[4][4];
     ObjectGuid veteran;
-    const Position veteranEntryPosition = {-1803.735, 5294.502, -12.38359, 1.62};
-    const Position veteranEventPosition = {-1780.713, 5332.765, -12.43613, 5.497787};
-    const Position veteranExitPosition = {-1798.737, 5308.549, -14.55699, 1.62};
+    const Position veteranEntryPosition        = {-1803.735, 5294.502, -12.38359, 1.62};
+    const Position veteranEventPosition        = {-1780.713, 5332.765, -12.43613, 5.497787};
+    const Position veteranExitPosition         = {-1798.737, 5308.549, -14.55699, 1.62};
     const Position recruitEntryPositions[4][4] =
     {
         {
@@ -893,9 +893,9 @@ struct npc_commander_steeleAI: public ScriptedAI
     {
         if (despawn)
         {
-            for (int x=0; x<4; x++)
+            for (int x = 0; x < 4; ++x)
             {
-                for (int y=0; y<4; y++)
+                for (int y = 0; y < 4; ++y)
                 {
                     if (recruitMatrix[x][y])
                     {
@@ -919,39 +919,29 @@ struct npc_commander_steeleAI: public ScriptedAI
         else
         {
             static const std::vector<uint32> entries = {NPC_F_BLOODELF_TRAINEE, NPC_F_DRAENEI_TRAINEE, NPC_M_BLOODELF_TRAINEE, NPC_M_DRAENEI_TRAINEE};
-            TempSpawnSettings spawnSettings;
-            for (int x=0; x<4; x++)
-            {
-                for (int y=0; y<4; y++)
-                {
-                    spawnSettings.x = recruitEntryPositions[x][y].x;
-                    spawnSettings.y = recruitEntryPositions[x][y].y;
-                    spawnSettings.z = recruitEntryPositions[x][y].z;
-                    spawnSettings.ori = recruitEntryPositions[x][y].o;
-                    spawnSettings.spawnType = TEMPSPAWN_CORPSE_DESPAWN;
-                    spawnSettings.entry = entries[urand(0,3)];
-                    spawnSettings.activeObject = true;
-                    spawnSettings.spawner = m_creature;
-                    if (Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap()))
-                    {
-                        recruitMatrix[x][y] = summoned->GetObjectGuid();
-                        summoned->GetMotionMaster()->MovePoint(2, recruitEventPositions[x][y], FORCED_MOVEMENT_RUN);
-                    }
-                }
-            }
-            spawnSettings.x = veteranEntryPosition.x;
-            spawnSettings.y = veteranEntryPosition.y;
-            spawnSettings.z = veteranEntryPosition.z;
-            spawnSettings.ori = veteranEntryPosition.o;
-            spawnSettings.spawnType = TEMPSPAWN_CORPSE_DESPAWN;
-            spawnSettings.entry = NPC_BLOODELF_VETERAN;
-            spawnSettings.activeObject = true;
-            spawnSettings.spawner = m_creature;
-            if (Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap()))
-            {
-                veteran = summoned->GetObjectGuid();
-                summoned->GetMotionMaster()->MovePoint(2, veteranEventPosition, FORCED_MOVEMENT_RUN);
-            }
+            for (int x = 0; x < 4; ++x)
+                for (int y = 0; y < 4; ++y)
+                    summonTrainee(recruitEntryPositions[x][y].x, recruitEntryPositions[x][y].y, recruitEntryPositions[x][y].z, recruitEntryPositions[x][y].o, entries[urand(0, 3)],
+                                  recruitMatrix[x][y], recruitExitPositions[x][y]);
+            summonTrainee(veteranEntryPosition.x, veteranEntryPosition.y, veteranEntryPosition.z, veteranEntryPosition.o, NPC_BLOODELF_VETERAN, veteran, veteranEntryPosition);
+        }
+    }
+
+    void summonTrainee(float x, float y, float z, float o, uint32 entry, ObjectGuid& positioning, Position gridPos)
+    {
+        TempSpawnSettings spawnSettings;
+        spawnSettings.x            = x;
+        spawnSettings.y            = y;
+        spawnSettings.z            = z;
+        spawnSettings.ori          = o;
+        spawnSettings.spawnType    = TEMPSPAWN_CORPSE_DESPAWN;
+        spawnSettings.entry        = entry;
+        spawnSettings.activeObject = true;
+        spawnSettings.spawner      = m_creature;
+        if (Creature* summoned = m_creature->SummonCreature(spawnSettings, m_creature->GetMap()))
+        {
+            positioning = summoned->GetObjectGuid();
+            summoned->GetMotionMaster()->MovePoint(2, gridPos, FORCED_MOVEMENT_RUN);
         }
     }
 };

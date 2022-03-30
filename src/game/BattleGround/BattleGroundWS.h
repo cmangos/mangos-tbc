@@ -214,6 +214,8 @@ class BattleGroundWS : public BattleGround
         // Flag handler
         ObjectGuid const& GetFlagCarrierGuid(uint8 teamIdx) const { return m_flagCarrier[teamIdx]; }
 
+        bool IsFlagHeldFor45Seconds(Team flagHolderTeam);
+
     private:
 
         // Flag Carrier functions
@@ -245,6 +247,7 @@ class BattleGroundWS : public BattleGround
         ObjectGuid m_flagCarrier[PVP_TEAM_COUNT];
 
         uint8 m_flagState[PVP_TEAM_COUNT];
+        TimePoint m_flagPickupFromBaseTime[PVP_TEAM_COUNT];
         uint32 m_flagsTimer[PVP_TEAM_COUNT];
         uint32 m_flagsDropTimer[PVP_TEAM_COUNT];
         uint32 m_flagCarrierDebuffTimer;

@@ -1600,6 +1600,8 @@ struct npc_theramore_spar_controller : public CombatAI
         AddCustomAction(COMBATANT_SEPARATE, true, [&](){ CombatantSeparate(); });
         AddCustomAction(COMBATANT_GET_ALL, 2000u, [&](){ GetCombatants(); });
         AddCustomAction(COMBATANT_MOTIVATION, true, [&](){ HandleMotivation(); });
+        teams.clear();
+        active.clear();
     }
 
     std::unordered_map<uint32, GuidList> teams;

@@ -32,21 +32,10 @@ at_nats_landing
 boss_tethyr
 EndContentData */
 
-#include "AI/BaseAI/UnitAI.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
-#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
-#include "Common.h"
-#include "Entities/Object.h"
-#include "Entities/ObjectGuid.h"
 #include "Entities/TemporarySpawn.h"
-#include "Entities/Unit.h"
-#include "Entities/UpdateFields.h"
-#include "Globals/ObjectMgr.h"
-#include "MotionGenerators/MotionMaster.h"
-#include "Platform/Define.h"
 #include "World/WorldStateDefines.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
 #include <unordered_map>
@@ -1515,7 +1504,8 @@ UnitAI* GetAI_npc_smolderwing(Creature* pCreature)
 ## npc_theramore_combatant
 ######*/
 
-enum {
+enum
+{
     NPC_GUARD_NARRISHA = 5093,
     NPC_GUARD_KAHIL = 5091,
     NPC_GUARD_EDWARD = 4922,
@@ -1588,8 +1578,8 @@ enum CombatantActions
 };
 
 static std::unordered_map<uint32, const Position> startingPositions ({
-    {BLUE_TEAM, {-3643.574707, -4505.717773, 9.462863, 3.855592}},
-    {RED_TEAM, {-3652.405273, -4514.126953, 9.462863, 0.717925}}
+    {BLUE_TEAM, {-3643.574707f, -4505.717773f, 9.462863f, 3.855592f}},
+    {RED_TEAM, {-3652.405273f, -4514.126953f, 9.462863f, 0.717925f}}
 });
 
 static const uint32 theramore_blue_team[] = {NPC_GUARD_EDWARD, NPC_GUARD_KAHIL, NPC_GUARD_NARRISHA};
@@ -1599,40 +1589,17 @@ struct npc_theramore_spar_controller : public CombatAI
 {
     npc_theramore_spar_controller(Creature* creature) : CombatAI(creature, COMBATANT_ACTION_MAX)
     {
-        AddCustomAction(COMBATANT_CHECK_HP, true, [&](){
-            CheckCombatantHP();
-        });
-        AddCustomAction(COMBATANT_BLUE_WIN, true, [&](){
-            HandleBlueWin();
-        });
-        AddCustomAction(COMBATANT_RED_WIN, true, [&](){
-            HandleRedWin();
-        });
-        AddCustomAction(COMBATANT_START_SPAR, true, [&](){
-            StartSparring();
-        });
-        AddCustomAction(COMBATANT_START_POSITION, true, [&](){
-            MoveIntoPosition();
-        });
-        AddCustomAction(COMBATANT_SALUTE, true, [&](){
-            CombatantSalute();
-        });
-        AddCustomAction(COMBATANT_INTRO, true, [&](){
-            CombatantIntro();
-        });
-        AddCustomAction(COMBATANT_SWITCH, true, [&](){
-            SwitchMembers();
-        });
-        AddCustomAction(COMBATANT_SEPARATE, true, [&](){
-            CombatantSeparate();
-        });
-        AddCustomAction(COMBATANT_GET_ALL, true, [&](){
-            GetCombatants();
-        });
-        AddCustomAction(COMBATANT_MOTIVATION, true, [&](){
-            HandleMotivation();
-        });
-        Reset();
+        AddCustomAction(COMBATANT_CHECK_HP, true, [&](){ CheckCombatantHP(); });
+        AddCustomAction(COMBATANT_BLUE_WIN, true, [&](){ HandleBlueWin(); });
+        AddCustomAction(COMBATANT_RED_WIN, true, [&](){ HandleRedWin(); });
+        AddCustomAction(COMBATANT_START_SPAR, true, [&](){ StartSparring(); });
+        AddCustomAction(COMBATANT_START_POSITION, 10000u, [&](){ MoveIntoPosition(); });
+        AddCustomAction(COMBATANT_SALUTE, true, [&](){ CombatantSalute(); });
+        AddCustomAction(COMBATANT_INTRO, true, [&](){ CombatantIntro(); });
+        AddCustomAction(COMBATANT_SWITCH, true, [&](){ SwitchMembers(); });
+        AddCustomAction(COMBATANT_SEPARATE, true, [&](){ CombatantSeparate(); });
+        AddCustomAction(COMBATANT_GET_ALL, 2000u, [&](){ GetCombatants(); });
+        AddCustomAction(COMBATANT_MOTIVATION, true, [&](){ HandleMotivation(); });
     }
 
     std::unordered_map<uint32, GuidList> teams;
@@ -1640,12 +1607,6 @@ struct npc_theramore_spar_controller : public CombatAI
     std::unordered_map<uint32, ObjectGuid> active;
 
     uint32 m_uiWinningTeam;
-
-    void Reset() override
-    {
-        ResetTimer(COMBATANT_GET_ALL, 2000u);
-        ResetTimer(COMBATANT_START_POSITION, 10000u);
-    }
 
     void GetCombatants()
     {
@@ -1729,7 +1690,8 @@ struct npc_theramore_spar_controller : public CombatAI
         }
         if (redCaptain && redCaptain->IsAlive())
         {
-            switch (active[RED_TEAM].GetEntry()) {
+            switch (active[RED_TEAM].GetEntry())
+            {
                 case NPC_GUARD_JARAD:
                     DoBroadcastText(SAY_JARAD_LOSS, redCaptain);
                     break;
@@ -1764,8 +1726,10 @@ struct npc_theramore_spar_controller : public CombatAI
                 combatant->HandleEmote(EMOTE_ONESHOT_CHEER);
             }
         }
-        if (blueCaptain && blueCaptain->IsAlive()) {
-            switch (active[BLUE_TEAM].GetEntry()) {
+        if (blueCaptain && blueCaptain->IsAlive())
+        {
+            switch (active[BLUE_TEAM].GetEntry())
+            {
                 case NPC_GUARD_EDWARD:
                     DoBroadcastText(SAY_EDWARD_LOSS, blueCaptain);
                     break;
@@ -1788,6 +1752,9 @@ struct npc_theramore_spar_controller : public CombatAI
         uint32 winningTeam = m_uiWinningTeam;
         Creature* redCaptain = GetClosestCreatureWithEntry(m_creature, NPC_RED_CAPTAIN, 50.f);
         Creature* blueCaptain = GetClosestCreatureWithEntry(m_creature, NPC_BLUE_CAPTAIN, 50.f);
+
+        if (!redCaptain || !blueCaptain)
+            return;
 
         switch (winningTeam)
         {
@@ -1963,8 +1930,6 @@ struct npc_theramore_spar_controller : public CombatAI
         }
         ResetTimer(COMBATANT_SALUTE, 5000u);
     }
-
-    void ExecuteAction(uint32 action) override { }
 };
 
 void AddSC_dustwallow_marsh()

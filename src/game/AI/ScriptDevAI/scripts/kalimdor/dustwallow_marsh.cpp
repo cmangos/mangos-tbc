@@ -1614,7 +1614,7 @@ struct npc_theramore_spar_controller : public CombatAI
         active.clear();
         for (uint32 red : theramore_red_team)
         {
-            Creature* redMember = GetClosestCreatureWithEntry(m_creature, red, 50.f);
+            Creature* redMember = GetClosestCreatureWithEntry(m_creature, red, 20.f);
             if (redMember && redMember->IsAlive())
             {
                 redMember->setFaction(FACTION_THERAMORE_FRIENDLY);
@@ -1624,7 +1624,7 @@ struct npc_theramore_spar_controller : public CombatAI
 
         for (uint32 blue : theramore_blue_team)
         {
-            Creature* blueMember = GetClosestCreatureWithEntry(m_creature, blue, 50.f);
+            Creature* blueMember = GetClosestCreatureWithEntry(m_creature, blue, 20.f);
             if (blueMember && blueMember->IsAlive())
             {
                 blueMember->setFaction(FACTION_THERAMORE_FRIENDLY);
@@ -1632,12 +1632,9 @@ struct npc_theramore_spar_controller : public CombatAI
             }
         }
 
-        Creature* redMedic = GetClosestCreatureWithEntry(m_creature, NPC_MEDIC_HELAINA, 50.f);
-        Creature* blueMedic = GetClosestCreatureWithEntry(m_creature, NPC_MEDIC_TAMBERLYN, 50.f);
-
-        if (redMedic)
+        if (Creature* redMedic = GetClosestCreatureWithEntry(m_creature, NPC_MEDIC_HELAINA, 20.f))
             medics[RED_TEAM] = redMedic->GetObjectGuid();
-        if (blueMedic)
+        if (Creature* blueMedic = GetClosestCreatureWithEntry(m_creature, NPC_MEDIC_TAMBERLYN, 20.f))
             medics[BLUE_TEAM] = blueMedic->GetObjectGuid();
     }
 
@@ -1662,9 +1659,9 @@ struct npc_theramore_spar_controller : public CombatAI
                 Unit* redMedic = m_creature->GetMap()->GetUnit(medics[RED_TEAM]);
                 Unit* blueMedic = m_creature->GetMap()->GetUnit(medics[BLUE_TEAM]);
 
-                if (redMedic && redCombatant->IsAlive())
+                if (redMedic && redMedic->IsAlive() && redCombatant->IsAlive())
                     redMedic->AI()->DoCastSpellIfCan(redCombatant, SPELL_FIRST_AID);
-                if (blueMedic && blueCombatant->IsAlive())
+                if (blueMedic && blueMedic->IsAlive() && blueCombatant->IsAlive())
                     blueMedic->AI()->DoCastSpellIfCan(blueCombatant, SPELL_FIRST_AID);
                 DisableTimer(COMBATANT_CHECK_HP);
                 return;
@@ -1675,8 +1672,8 @@ struct npc_theramore_spar_controller : public CombatAI
 
     void HandleBlueWin()
     {
-        Unit* szigeti = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_SZIGETI, 50.f);
-        Creature* redCaptain = GetClosestCreatureWithEntry(m_creature, NPC_RED_CAPTAIN, 50.f);
+        Unit* szigeti = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_SZIGETI, 15.f);
+        Creature* redCaptain = GetClosestCreatureWithEntry(m_creature, NPC_RED_CAPTAIN, 20.f);
         if (szigeti && szigeti->IsAlive())
         {
             szigeti->HandleEmote(EMOTE_ONESHOT_POINT);
@@ -1684,7 +1681,7 @@ struct npc_theramore_spar_controller : public CombatAI
         }
         for (uint32 member : theramore_blue_team)
         {
-            Unit* combatant = GetClosestCreatureWithEntry(m_creature, member, 50.f);
+            Unit* combatant = GetClosestCreatureWithEntry(m_creature, member, 20.f);
             if (combatant && combatant->GetEntry() != active[BLUE].GetEntry() && combatant->IsAlive())
             {
                 combatant->HandleEmote(EMOTE_ONESHOT_CHEER);
@@ -1713,8 +1710,8 @@ struct npc_theramore_spar_controller : public CombatAI
 
     void HandleRedWin()
     {
-        Unit* szigeti = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_SZIGETI, 50.f);
-        Creature* blueCaptain = GetClosestCreatureWithEntry(m_creature, NPC_BLUE_CAPTAIN, 50.f);
+        Unit* szigeti = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_SZIGETI, 15.f);
+        Creature* blueCaptain = GetClosestCreatureWithEntry(m_creature, NPC_BLUE_CAPTAIN, 20.f);
         if (szigeti && szigeti->IsAlive())
         {
             szigeti->HandleEmote(EMOTE_ONESHOT_POINT);
@@ -1722,7 +1719,7 @@ struct npc_theramore_spar_controller : public CombatAI
         }
         for (uint32 member : theramore_red_team)
         {
-            Unit* combatant = GetClosestCreatureWithEntry(m_creature, member, 50.f);
+            Unit* combatant = GetClosestCreatureWithEntry(m_creature, member, 20.f);
             if (combatant && combatant->GetEntry() != active[RED_TEAM].GetEntry() && combatant->IsAlive())
             {
                 combatant->HandleEmote(EMOTE_ONESHOT_CHEER);
@@ -1752,10 +1749,10 @@ struct npc_theramore_spar_controller : public CombatAI
     void HandleMotivation()
     {
         uint32 winningTeam = m_uiWinningTeam;
-        Creature* redCaptain = GetClosestCreatureWithEntry(m_creature, NPC_RED_CAPTAIN, 50.f);
-        Creature* blueCaptain = GetClosestCreatureWithEntry(m_creature, NPC_BLUE_CAPTAIN, 50.f);
+        Creature* redCaptain = GetClosestCreatureWithEntry(m_creature, NPC_RED_CAPTAIN, 20.f);
+        Creature* blueCaptain = GetClosestCreatureWithEntry(m_creature, NPC_BLUE_CAPTAIN, 20.f);
 
-        if (!redCaptain || !blueCaptain)
+        if (!redCaptain || !blueCaptain || !redCaptain->IsAlive() || !blueCaptain->IsAlive())
             return;
 
         switch (winningTeam)
@@ -1776,8 +1773,7 @@ struct npc_theramore_spar_controller : public CombatAI
 
     void HandleWin(uint32 winningTeam)
     {
-        Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 50.f);
-        Unit* szigeti = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_SZIGETI, 50.f);
+        Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 15.f);
         uint32 losingTeam = (winningTeam == BLUE_TEAM ? RED_TEAM : BLUE_TEAM);
 
         if (criton && criton->IsAlive())
@@ -1808,7 +1804,7 @@ struct npc_theramore_spar_controller : public CombatAI
 
     void CombatantIntro()
     {
-        Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 50.f);
+        Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 15.f);
         if (criton && criton->IsAlive())
         {
             DoBroadcastText(SAY_FIGHT_INTRO, criton);
@@ -1875,7 +1871,7 @@ struct npc_theramore_spar_controller : public CombatAI
         Creature* redMember = dynamic_cast<Creature*>(m_creature->GetMap()->GetUnit(active[RED_TEAM]));
         Creature* blueMember = dynamic_cast<Creature*>(m_creature->GetMap()->GetUnit(active[BLUE_TEAM]));
 
-        Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 50.f);
+        Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 15.f);
         if (criton && criton->IsAlive())
         {
             DoBroadcastText(SAY_FIGHT_START, criton);
@@ -1898,13 +1894,13 @@ struct npc_theramore_spar_controller : public CombatAI
     {
         if (active.empty() && !teams.empty())
         {
-            Creature* redCaptain = GetClosestCreatureWithEntry(m_creature, NPC_RED_CAPTAIN, 50.f);
-            Creature* blueCaptain = GetClosestCreatureWithEntry(m_creature, NPC_BLUE_CAPTAIN, 50.f);
+            Creature* redCaptain = GetClosestCreatureWithEntry(m_creature, NPC_RED_CAPTAIN, 20.f);
+            Creature* blueCaptain = GetClosestCreatureWithEntry(m_creature, NPC_BLUE_CAPTAIN, 20.f);
             active[RED_TEAM] = teams[RED_TEAM].front();
             teams[RED_TEAM].pop_front();
             active[BLUE_TEAM] = teams[BLUE_TEAM].front();
             teams[BLUE_TEAM].pop_front();
-            Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 50.f);
+            Unit* criton = GetClosestCreatureWithEntry(m_creature, NPC_MASTER_CRITON, 15.f);
             if (criton && criton->IsAlive())
             {
                 DoBroadcastText(SAY_FIRST_COMBATANTS, criton);

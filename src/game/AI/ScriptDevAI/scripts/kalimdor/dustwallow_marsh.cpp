@@ -1600,8 +1600,6 @@ struct npc_theramore_spar_controller : public CombatAI
         AddCustomAction(COMBATANT_SEPARATE, true, [&](){ CombatantSeparate(); });
         AddCustomAction(COMBATANT_GET_ALL, 2000u, [&](){ GetCombatants(); });
         AddCustomAction(COMBATANT_MOTIVATION, true, [&](){ HandleMotivation(); });
-        teams.clear();
-        active.clear();
     }
 
     std::unordered_map<uint32, GuidList> teams;
@@ -1612,6 +1610,8 @@ struct npc_theramore_spar_controller : public CombatAI
 
     void GetCombatants()
     {
+        teams.clear();
+        active.clear();
         for (uint32 red : theramore_red_team)
         {
             Creature* redMember = GetClosestCreatureWithEntry(m_creature, red, 50.f);
@@ -1848,8 +1848,6 @@ struct npc_theramore_spar_controller : public CombatAI
                 winner->GetMotionMaster()->Clear(true, true);
                 winner->GetMotionMaster()->MovePoint(0, respawnCoords, FORCED_MOVEMENT_RUN);
             }
-            teams.clear();
-            active.clear();
             GetCombatants();
             ResetTimer(COMBATANT_START_POSITION, 20000u);
         }

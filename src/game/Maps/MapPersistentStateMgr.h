@@ -115,6 +115,8 @@ class MapPersistentState
         void RemoveCreatureFromGrid(uint32 guid, CreatureData const* data);
         void AddGameobjectToGrid(uint32 guid, GameObjectData const* data);
         void RemoveGameobjectFromGrid(uint32 guid, GameObjectData const* data);
+
+        virtual uint32 GetCompletedEncountersMask() const { return 0; }
     protected:
         virtual bool CanBeUnload() const = 0;               // body provided for subclasses
 
@@ -211,7 +213,7 @@ class DungeonPersistentState : public MapPersistentState
         void UpdateEncounterState(EncounterCreditType type, uint32 creditEntry);
 
         // mask of completed encounters
-        uint32 GetCompletedEncountersMask() const { return m_completedEncountersMask; }
+        uint32 GetCompletedEncountersMask() const override { return m_completedEncountersMask; }
 
         /* Saved when the instance is generated for the first time */
         void SaveToDB();

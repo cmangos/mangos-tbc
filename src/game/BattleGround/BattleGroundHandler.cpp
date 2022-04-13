@@ -178,7 +178,7 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
     if (joinAsGroup)
     {
         DEBUG_LOG("Battleground: the following players are joining as group:");
-        GroupQueueInfo* queueInfo = bgQueue.AddGroup(_player, grp, bgTypeId, bgBracketId, ARENA_TYPE_NONE, false, isPremade, 0);
+        GroupQueueInfo* queueInfo = bgQueue.AddGroup(_player, grp, bgTypeId, bgBracketId, ARENA_TYPE_NONE, false, isPremade, instanceId, 0);
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(queueInfo, _player->GetBattleGroundBracketIdFromLevel(bgTypeId));
         for (GroupReference* itr = grp->GetFirstMember(); itr != nullptr; itr = itr->next())
         {
@@ -203,7 +203,7 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
     }
     else
     {
-        GroupQueueInfo* queueInfo = bgQueue.AddGroup(_player, nullptr, bgTypeId, bgBracketId, ARENA_TYPE_NONE, false, isPremade, 0);
+        GroupQueueInfo* queueInfo = bgQueue.AddGroup(_player, nullptr, bgTypeId, bgBracketId, ARENA_TYPE_NONE, false, isPremade, instanceId, 0);
         uint32 avgTime = bgQueue.GetAverageQueueWaitTime(queueInfo, _player->GetBattleGroundBracketIdFromLevel(bgTypeId));
         // already checked if queueSlot is valid, now just get it
         uint32 queueSlot = _player->AddBattleGroundQueueId(bgQueueTypeId);

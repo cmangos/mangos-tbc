@@ -1738,10 +1738,6 @@ BattleGround* BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId
             return nullptr;
     }
 
-    bg->SetBracketId(bracketId);
-    bg->SetArenaType(arenaType);
-    bg->SetRated(isRated);
-
     // will also set m_bgMap, instanceid
     sMapMgr.CreateBgMap(bg->GetMapId(), bg);
 
@@ -1749,6 +1745,11 @@ BattleGround* BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId
 
     // reset the new bg (set status to status_wait_queue from status_none)
     bg->Reset();
+
+    // set bg parameters (must occur after reset!)
+    bg->SetBracketId(bracketId);
+    bg->SetArenaType(arenaType);
+    bg->SetRated(isRated);
 
     // start the joining of the bg
     bg->SetStatus(STATUS_WAIT_JOIN);

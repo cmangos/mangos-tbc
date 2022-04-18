@@ -3856,7 +3856,7 @@ void Spell::SendCastResult(Player const* caster, SpellEntry const* spellInfo, ui
             break;
         case SPELL_FAILED_NOT_READY:
             if (spellInfo->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
-                data << uint32(spellInfo->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE));
+                data << uint32(caster->IsSpellOnPermanentCooldown(*spellInfo));
             break;
         case SPELL_FAILED_REQUIRES_AREA:
             // hardcode areas limitation case

@@ -22,7 +22,7 @@
 #include "Common.h"
 
 // Normal assert.
-#  define WPError(CONDITION) \
+#define WPError(CONDITION) \
 if (!(CONDITION)) \
 { \
     assert(STRINGIZE(CONDITION) && 0); \

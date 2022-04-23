@@ -21,27 +21,23 @@
 
 #include "Common.h"
 
-#ifndef NDEBUG
 // Normal assert.
 #  define WPError(CONDITION) \
 if (!(CONDITION)) \
 { \
-    printf("%s:%i: Error: Assertion in %s failed: %s\n", \
-        __FILE__, __LINE__, __FUNCTION__, STRINGIZE(CONDITION)); \
-    fflush(stdout); \
     assert(STRINGIZE(CONDITION) && 0); \
+    std::abort(); \
 }
-#else
-#  define WPError(CONDITION)
-#endif
 
+#if false // Disable unused warning
 // Just warn.
-/*#define WPWarning(CONDITION) \
+#define WPWarning(CONDITION) \
 if (!(CONDITION)) \
 { \
     printf("%s:%i: Warning: Assertion in %s failed: %s",\
         __FILE__, __LINE__, __FUNCTION__, STRINGIZE(CONDITION)); \
-}*/
+}
+#endif
 
 #ifdef MANGOS_DEBUG
 #  define MANGOS_ASSERT WPError

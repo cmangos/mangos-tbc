@@ -371,7 +371,7 @@ void AddScripts()
     AddSC_battleground();
 
     // custom
-
+MANGOS_ASSERT(false);
     // examples
     AddSC_example_creature();
     AddSC_example_escort();

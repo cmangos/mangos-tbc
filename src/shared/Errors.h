@@ -26,6 +26,9 @@
 if (!(CONDITION)) \
 { \
     assert(STRINGIZE(CONDITION) && 0); \
+    fprintf(stderr, "Critical Error: A condition which must never be false was found to be false. \
+Server was shut down to protect data integrity.\nIf this error is occurring frequently, please \
+recompile the software in debug mode to get more details.\n\n%s(): %s\n", __FUNCTION__, STRINGIZE(CONDITION)); \
     std::abort(); \
 }
 

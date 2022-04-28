@@ -134,6 +134,7 @@ enum ScriptCommand                                          // resSource, resTar
     SCRIPT_COMMAND_ZONE_PULSE               = 50,           //
     SCRIPT_COMMAND_SPAWN_GROUP              = 51,           // dalalong = command
     SCRIPT_COMMAND_SET_GOSSIP_MENU          = 52,           // datalong = gossip_menu_id
+    SCRIPT_COMMAND_SET_WORLDSTATE           = 53,           // dataint = worldstate id, dataint2 = new value, 
 };
 
 #define MAX_TEXT_ID 4                                       // used for SCRIPT_COMMAND_TALK, SCRIPT_COMMAND_EMOTE, SCRIPT_COMMAND_CAST_SPELL, SCRIPT_COMMAND_TERMINATE_SCRIPT
@@ -444,23 +445,19 @@ struct ScriptInfo
             uint32 param2;                                  // datalong2
         } setData64;
 
-        struct                                              // SCRIPT_COMMAND_SET_GOSSIP_MENU (52)
-        {
-            uint32 gossipMenuId;                            // datalong
-        } setGossipMenu;
-
-        struct                                              // SCRIPT_COMMAND_LOG_KILL (99)
-        {
-            uint32 empty1;                                  // datalong
-            uint32 empty2;                                  // datalong2
-        } logKill;
-
-        struct                                              // SCRIPT_COMMAND_SPAWN_GROUP (60)
+        struct                                              // SCRIPT_COMMAND_SPAWN_GROUP (51)
         {
             uint32 command;                                 // datalong
             uint32 data1;                                   // datalong2
             uint32 data2;                                   // datalong3
         } formationData;
+
+        struct                                              // SCRIPT_COMMAND_SET_GOSSIP_MENU (52)
+        {
+            uint32 gossipMenuId;                            // datalong
+        } setGossipMenu;
+
+        // unused                                           // SCRIPT_COMMAND_SET_WORLDSTATE (53)
 
         struct
         {

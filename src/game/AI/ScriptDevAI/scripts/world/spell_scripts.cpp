@@ -946,6 +946,26 @@ struct BirthNoVisualInstantSpawn : public SpellScript
     }
 };
 
+enum spell_call_of_the_falcon
+{
+    YELL_KILL_FALCONER          = 17624, // Kill $n!
+    NPC_BLOODWARDER_FALCONER    = 17994,
+    NPC_BLOODFALCON             = 18155,
+    SPELL_CALL_OF_THE_FALCON    = 34853,
+};
+
+struct CallOfTheFalcon : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+        {
+            DoBroadcastText(YELL_KILL_FALCONER, aura->GetCaster(), aura->GetTarget());
+            aura->GetTarget()->CastSpell(nullptr, SPELL_CALL_OF_THE_FALCON, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -988,4 +1008,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<HateToZero>("spell_hate_to_zero");
     RegisterSpellScript<Stoned>("spell_stoned");
     RegisterSpellScript<BirthNoVisualInstantSpawn>("spell_birth_no_visual_instant_spawn");
+    RegisterSpellScript<CallOfTheFalcon>("spell_call_of_the_falcon");
 }

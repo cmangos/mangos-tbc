@@ -986,6 +986,27 @@ struct CallOfTheFalcon : public AuraScript
     }
 };
 
+struct MaximizePetLoyalty : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        if (!unitTarget)
+            return;
+
+        Pet* pet = dynamic_cast<Pet*>(unitTarget);
+
+        if (!pet)
+            return;
+
+        if (pet->getPetType() != HUNTER_PET)
+            return;
+
+        pet->SetLoyaltyLevel(LoyaltyLevel(6));
+        pet->SetTP(300);
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -1031,4 +1052,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<BirthNoVisualInstantSpawn>("spell_birth_no_visual_instant_spawn");
     RegisterSpellScript<SleepVisualFlavor>("spell_sleep_visual_flavor");
     RegisterSpellScript<CallOfTheFalcon>("spell_call_of_the_falcon");
+    RegisterSpellScript<MaximizePetLoyalty>("spell_maximize_pet_loyalty_and_happiness");
 }

@@ -7182,23 +7182,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     ((Player*)unitTarget)->ModifyMoney(50000000);
                     break;
                 }
-                case 46649:                                 //Maximize Pet's Loyalty and Happiness
-                {
-                    if (!unitTarget)
-                        return;
-
-                    Pet* pet = dynamic_cast<Pet*>(unitTarget);
-
-                    if (!pet)
-                        return;
-
-                    if (pet->getPetType() != HUNTER_PET)
-                        return;
-
-                    pet->SetLoyaltyLevel(LoyaltyLevel(6));
-                    pet->SetTP(300);
-                    break;
-                }
                 case 47977:                                 // Use Broom
                 {
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)

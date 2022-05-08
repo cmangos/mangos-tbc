@@ -547,6 +547,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (47375,'spell_summon_direbrew_minion'),
 (49858,'spell_make_bunny_summon_mole_machine'),
 (47514,'spell_summon_mole_machine'),
+(46649,'spell_maximize_pet_loyalty_and_happiness'),
 (42919,'spell_tricky_treat');
 
 -- Wotlk

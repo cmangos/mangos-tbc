@@ -2867,7 +2867,7 @@ void LearnSkillRecipesHelper(Player* player, uint32 skill_id)
 
 bool GossipSelect_npc_paymaster(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
-    if (pPlayer->GetFreePrimaryProfessionPoints() == 0 && uiAction > GOSSIP_ACTION_INFO_DEF + 4)
+    if (uiAction > GOSSIP_ACTION_INFO_DEF + 4 && pPlayer->GetFreePrimaryProfessionPoints() == 0)
         return false;
 
     FactionEntry const* factionEntry;

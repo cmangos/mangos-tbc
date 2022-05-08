@@ -2820,13 +2820,6 @@ bool GossipHello_npc_gossip_npc(Player* player, Creature* creature)
     return true;
 }
 
-struct PTRPaymasterAI : public ScriptedAI
-{
-    PTRPaymasterAI(Creature* creature) : ScriptedAI(creature){}
-
-    void Reset() override {}
-};
-
 bool GossipHello_npc_paymaster(Player* pPlayer, Creature* pCreature)
 {
     pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "5,000 Gold", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
@@ -2874,13 +2867,17 @@ void LearnSkillRecipesHelper(Player* player, uint32 skill_id)
 
 bool GossipSelect_npc_paymaster(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
+    if (pPlayer->GetFreePrimaryProfessionPoints() == 0 && uiAction > GOSSIP_ACTION_INFO_DEF + 4)
+    {
+        return false;
+    }
+
     FactionEntry const* factionEntry;
     switch (uiAction)
     {
         case GOSSIP_ACTION_INFO_DEF:
             pPlayer->CastSpell(pPlayer, 46642, TRIGGERED_OLD_TRIGGERED);
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            break;
         case GOSSIP_ACTION_INFO_DEF + 1:
             pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Jewelcrafting", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 5);
             pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Alchemy", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 6);
@@ -2898,8 +2895,7 @@ bool GossipSelect_npc_paymaster(Player* pPlayer, Creature* pCreature, uint32 /*u
         case GOSSIP_ACTION_INFO_DEF + 2:
             factionEntry = sFactionStore.LookupEntry<FactionEntry>(932);
             pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            break;
         case GOSSIP_ACTION_INFO_DEF + 3:
             factionEntry = sFactionStore.LookupEntry<FactionEntry>(934);
             pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
@@ -2912,109 +2908,64 @@ bool GossipSelect_npc_paymaster(Player* pPlayer, Creature* pCreature, uint32 /*u
             pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
             factionEntry = sFactionStore.LookupEntry<FactionEntry>(1012);
             pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            break;
         case GOSSIP_ACTION_INFO_DEF + 5:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(28897);
-                pPlayer->SetSkill(755, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 755);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(28897);
+            pPlayer->SetSkill(755, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 755);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 6:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(28596);
-                pPlayer->SetSkill(171, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 171);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(28596);
+            pPlayer->SetSkill(171, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 171);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 7:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(29844);
-                pPlayer->SetSkill(164, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 164);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(29844);
+            pPlayer->SetSkill(164, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 164);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 8:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(28029);
-                pPlayer->SetSkill(333, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 333);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(28029);
+            pPlayer->SetSkill(333, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 333);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 9:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(30350);
-                pPlayer->SetSkill(202, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 202);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(30350);
+            pPlayer->SetSkill(202, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 202);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 10:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(28695);
-                pPlayer->SetSkill(182, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 182);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(28695);
+            pPlayer->SetSkill(182, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 182);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 11:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(32549);
-                pPlayer->SetSkill(165, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 165);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(32549);
+            pPlayer->SetSkill(165, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 165);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 12:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(29354);
-                pPlayer->SetSkill(186, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 186);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(29354);
+            pPlayer->SetSkill(186, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 186);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 13:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(32678);
-                pPlayer->SetSkill(393, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 393);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(32678);
+            pPlayer->SetSkill(393, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 393);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 14:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(26790);
-                pPlayer->SetSkill(197, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 197);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(26790);
+            pPlayer->SetSkill(197, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 197);
+            break;
         case GOSSIP_ACTION_INFO_DEF + 15:
-            if (pPlayer->GetFreePrimaryProfessionPoints() > 0)
-            {
-                pPlayer->learnSpellHighRank(27028);
-                pPlayer->SetSkill(129, 375, 375);
-                LearnSkillRecipesHelper(pPlayer, 129);
-            }
-            pPlayer->CLOSE_GOSSIP_MENU();
-            return true;
+            pPlayer->learnSpellHighRank(27028);
+            pPlayer->SetSkill(129, 375, 375);
+            LearnSkillRecipesHelper(pPlayer, 129);
+            break;
         default:
-        return false;
+            return false;
     }
     pPlayer->CLOSE_GOSSIP_MENU();
     return true;
@@ -3138,7 +3089,6 @@ void AddSC_npcs_special()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_paymaster";
-    pNewScript->GetAI = &GetNewAIInstance<PTRPaymasterAI>;
     pNewScript->pGossipHello = &GossipHello_npc_paymaster;
     pNewScript->pGossipSelect = &GossipSelect_npc_paymaster;
     pNewScript->RegisterSelf();

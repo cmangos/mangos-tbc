@@ -2733,7 +2733,7 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
             creature->AI()->AttackClosestEnemy();
             break;
         }
-        case SCRIPT_COMMAND_SPAWN_GROUP:                    // 60
+        case SCRIPT_COMMAND_SPAWN_GROUP:                    // 51
         {
             if (LogIfNotCreature(pTarget))
                 return false;

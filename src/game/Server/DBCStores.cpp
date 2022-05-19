@@ -118,6 +118,7 @@ DBCStorage <ItemRandomPropertiesEntry> sItemRandomPropertiesStore(ItemRandomProp
 DBCStorage <ItemRandomSuffixEntry> sItemRandomSuffixStore(ItemRandomSuffixfmt);
 DBCStorage <ItemSetEntry> sItemSetStore(ItemSetEntryfmt);
 DBCStorage <LiquidTypeEntry> sLiquidTypeStore(LiquidTypefmt);
+DBCStorage <LightEntry> sLightStore(LightEntryfmt);
 DBCStorage <LockEntry> sLockStore(LockEntryfmt);
 
 DBCStorage <MailTemplateEntry> sMailTemplateStore(MailTemplateEntryfmt);
@@ -949,6 +950,20 @@ uint32 GetCreatureModelRace(uint32 model_id)
         return 0;
     CreatureDisplayInfoExtraEntry const* extraEntry = sCreatureDisplayInfoExtraStore.LookupEntry(displayEntry->ExtendedDisplayInfoID);
     return extraEntry ? extraEntry->Race : 0;
+}
+
+uint32 GetDefaultMapLight(uint32 mapId)
+{
+    for (int32 i = sLightStore.GetNumRows(); i >= 0; --i)
+    {
+        LightEntry const* lightInfo = sLightStore.LookupEntry(uint32(i));
+        if (!lightInfo)
+            continue;
+
+        if (lightInfo->mapId == mapId && lightInfo->x == 0.0f && lightInfo->y == 0.0f && lightInfo->z == 0.0f)
+            return lightInfo->id;
+    }
+    return 0;
 }
 
 // script support functions

@@ -6930,6 +6930,8 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea, bool force)
             Weather* wth = GetMap()->GetWeatherSystem()->FindOrCreateWeather(newZone);
             wth->SendWeatherUpdateToPlayer(this);
         }
+
+        GetMap()->SendZoneDynamicInfo(this);
     }
 
     if (m_areaUpdateId != newArea || force)

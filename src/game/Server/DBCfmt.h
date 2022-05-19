@@ -75,6 +75,7 @@ const char ItemRandomPropertiesfmt[] = "nxiiixxssssssssssssssssx";
 const char ItemRandomSuffixfmt[] = "nssssssssssssssssxxiiiiii";
 const char ItemSetEntryfmt[] = "dssssssssssssssssxxxxxxxxxxxxxxxxxxiiiiiiiiiiiiiiiiii";
 const char LiquidTypefmt[] = "niii";
+const char LightEntryfmt[] = "nifffxxxxxxx";
 const char LockEntryfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiixxxxxxxx";
 const char MailTemplateEntryfmt[] = "nxxxxxxxxxxxxxxxxxssssssssssssssssx";
 const char MapEntryfmt[] = "nxixssssssssssssssssxxxxxxxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxiffiixxi";

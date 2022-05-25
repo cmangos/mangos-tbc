@@ -5267,6 +5267,7 @@ void Spell::EffectEnchantItemTmp(SpellEffectIndex eff_idx)
 
     // add new enchanting if equipped
     item_owner->ApplyEnchantment(itemTarget, TEMP_ENCHANTMENT_SLOT, true);
+    item_owner->UpdateClientAuras();
 }
 
 void Spell::EffectTameCreature(SpellEffectIndex /*eff_idx*/)

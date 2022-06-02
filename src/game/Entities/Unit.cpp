@@ -8030,32 +8030,6 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
             }
         }
 
-        // .. done (class scripts)
-        AuraList const& mOverrideClassScript = GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
-        for (auto i : mOverrideClassScript)
-        {
-            if (!(i->isAffectedOnSpell(spellProto)))
-                continue;
-            switch (i->GetMiscValue())
-            {
-                // Dirty Deeds
-                case 6427:
-                case 6428:
-                    if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
-                    {
-                        Aura* eff0 = i->GetHolder()->m_auras[EFFECT_INDEX_0];
-                        if (!eff0)
-                        {
-                            sLog.outError("Spell structure of DD (%u) changed.", i->GetId());
-                            continue;
-                        }
-
-                        // effect 0 have expected value but in negative state
-                        DoneTotalMod *= (-eff0->GetModifier()->m_amount + 100.0f) / 100.0f;
-                    }
-                    break;
-            }
-        }
         for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_MELEE_DAMAGE_DONE))
         {
             if (!i->isAffectedOnSpell(spellProto))

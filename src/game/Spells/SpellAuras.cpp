@@ -5621,7 +5621,7 @@ void Aura::HandleModTotalPercentStat(bool apply, bool /*Real*/)
     }
 
     // recalculate current HP/MP after applying aura modifications (only for spells with 0x10 flag)
-    if (m_modifier.m_miscvalue == STAT_STAMINA && maxHPValue > 0 && GetSpellProto()->HasAttribute(SPELL_ATTR_ABILITY) && target->GetHealth() > 0)
+    if (m_modifier.m_miscvalue == STAT_STAMINA && maxHPValue > 0 && GetSpellProto()->HasAttribute(SPELL_ATTR_IS_ABILITY) && target->GetHealth() > 0)
     {
         // newHP = (curHP / maxHP) * newMaxHP = (newMaxHP * curHP) / maxHP -> which is better because no int -> double -> int conversion is needed
         uint32 newHPValue = std::max(1u, (target->GetMaxHealth() * curHPValue) / maxHPValue);
@@ -7207,7 +7207,9 @@ void Aura::PeriodicTick()
             {
                 if (target->IsImmuneToSchool(spellProto, (1 << GetEffIndex())))
                 {
-                    Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
+                    // likely need to ignore all of them but the only case is periodic energize
+                    if (!spellProto->HasAttribute(SPELL_ATTR_DO_NOT_LOG_IMMUNE_MISSES))
+                        Unit::SendSpellOrDamageImmune(GetCasterGuid(), target, spellProto->Id);
                     break;
                 }
             }
@@ -8127,7 +8129,7 @@ void SpellAuraHolder::_RemoveSpellAuraHolder()
                 m_target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PREVENT_ANIM);
 
         // reset cooldown state for spells
-        if (caster && GetSpellProto()->HasAttribute(SPELL_ATTR_DISABLED_WHILE_ACTIVE))
+        if (caster && GetSpellProto()->HasAttribute(SPELL_ATTR_COOLDOWN_ON_EVENT))
         {
             // some spells need to start cooldown at aura fade (like stealth)
             caster->AddCooldown(*GetSpellProto());
@@ -8727,7 +8729,7 @@ void SpellAuraHolder::SetAuraFlag(uint32 slot, bool add)
             if (m_auras[i])
                 flags |= (1 << i); // AFLAG_EFFECT_0 is 1 and rest is bitshift
 
-        flags |= ((IsPositive() && !m_spellProto->HasAttribute(SPELL_ATTR_CANT_CANCEL)) ? AFLAG_CANCELABLE : AFLAG_NOT_CANCELABLE);
+        flags |= ((IsPositive() && !m_spellProto->HasAttribute(SPELL_ATTR_NO_AURA_CANCEL)) ? AFLAG_CANCELABLE : AFLAG_NOT_CANCELABLE);
 
         val |= (flags << byte);
     }

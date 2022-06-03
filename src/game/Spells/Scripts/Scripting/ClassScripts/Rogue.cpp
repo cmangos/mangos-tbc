@@ -17,6 +17,7 @@
 */
 
 #include "Spells/Scripts/SpellScript.h"
+#include "Spells/SpellAuras.h"
 
 // 14185 - Preparation
 struct Preparation : public SpellScript
@@ -100,6 +101,7 @@ struct SetupRogue : public AuraScript
     }
 };
 
+// 14082 - Dirty Deeds
 struct DirtyDeeds : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override

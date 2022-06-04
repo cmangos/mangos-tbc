@@ -11817,6 +11817,9 @@ void Player::ApplyEnchantment(Item* item, EnchantmentSlot slot, bool apply, bool
                         }
                         else
                             RemoveAurasDueToItemSpell(item, enchant_spell_id);
+
+                        if (SpellAuraHolder* holder = GetSpellAuraHolder(enchant_spell_id))
+                            holder->UpdateAuraDuration();
                     }
                     break;
                 }

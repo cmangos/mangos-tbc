@@ -7126,10 +7126,6 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
         {
             case SPELL_EFFECT_SUMMON_PLAYER:                    // from anywhere
                 break;
-            case SPELL_EFFECT_DISTRACT:
-                if (target->IsInCombat())
-                    return false;
-                break;
                 // fall through
             case SPELL_EFFECT_RESURRECT_NEW:
                 // player far away, maybe his corpse near?
@@ -7203,8 +7199,14 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
         }
     }
 
-    if (targetType != TARGET_UNIT_CASTER && targetType != TARGET_UNIT_CASTER_PET && target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE_2))
-        return false;
+    if (targetType != TARGET_UNIT_CASTER && targetType != TARGET_UNIT_CASTER_PET)
+    {
+        if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NON_ATTACKABLE_2))
+            return false;
+        
+        if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_NOT_IN_COMBAT_TARGET) && target->IsInCombat())
+            return false;
+    }    
 
     if (target->IsCreature() && target != m_targets.getUnitTarget() && info.enumerator == TARGET_ENUMERATOR_CHAIN && info.filter == TARGET_HARMFUL) // TODO: Mother Shahraz beams can target totems
         if (static_cast<Creature*>(target)->IsCritter())

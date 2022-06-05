@@ -194,7 +194,7 @@ const char* SpellCastResultNames[SPELL_FAILED_CLIENT_MAX]
 const char* GetSpellCastResultString(SpellCastResult result)
 {
     if (result >= SPELL_FAILED_CLIENT_MAX)
-        return "Serverside Error Only".
+        return "Serverside Error Only";
 
     return SpellCastResultNames[result];
 }

@@ -436,6 +436,8 @@ Unit::Unit() :
     m_baseSpeedRun = 1.f;
 
     m_comboPoints = 0;
+
+    m_aoeImmune = false;
 }
 
 Unit::~Unit()
@@ -1177,13 +1179,16 @@ void Unit::Kill(Unit* killer, Unit* victim, DamageEffectType damagetype, SpellEn
         // only if not player and not controlled by player pet. And not at BG
         if (durabilityLoss && !responsiblePlayer && !playerVictim->InBattleGround())
         {
-            DEBUG_LOG("DealDamage: Killed %s, looing 10 percents durability", victim->GetGuidStr().c_str());
-            playerVictim->DurabilityLossAll(0.10f, false);
+            if (!spellProto || !spellProto->HasAttribute(SPELL_ATTR_EX3_NO_DURABILITY_LOSS))
+            {
+                DEBUG_LOG("DealDamage: Killed %s, looing 10 percents durability", victim->GetGuidStr().c_str());
+                playerVictim->DurabilityLossAll(0.10f, false);
 
 
-            // durability lost message
-            WorldPacket data(SMSG_DURABILITY_DAMAGE_DEATH, 0);
-            playerVictim->GetSession()->SendPacket(data);
+                // durability lost message
+                WorldPacket data(SMSG_DURABILITY_DAMAGE_DEATH, 0);
+                playerVictim->GetSession()->SendPacket(data);
+            }
         }
 
         if (!spiritOfRedemtionTalentReady)              // Before informing Battleground
@@ -3067,7 +3072,7 @@ SpellMissInfo Unit::SpellHitResult(WorldObject* caster, Unit* pVictim, SpellEntr
     else if (caster->IsGameObject())
         hitCaster = static_cast<GameObject*>(caster)->GetOwner();
 
-    if (hitCaster)
+    if (hitCaster && !spell->HasAttribute(SPELL_ATTR_EX3_NO_AVOIDANCE))
     {
         switch (spell->DmgClass)
         {
@@ -3311,7 +3316,7 @@ bool Unit::CanBlockAbility(const Unit* attacker, const SpellEntry* ability, bool
     // Spells with an attribute must be rolled for block once on spell hit die
     // Spells without an attribute must be rolled for partial block only inside damage calculation
     // This function can query both scenarios via an argument flag
-    if (miss != ability->HasAttribute(SPELL_ATTR_EX3_BLOCKABLE_SPELL))
+    if (miss != ability->HasAttribute(SPELL_ATTR_EX3_COMPLETELY_BLOCKED))
         return false;
     // Check if attacker can be blocked at the moment
     if (!CanBlockInCombat(attacker))
@@ -4482,7 +4487,7 @@ void Unit::SetCurrentCastedSpell(Spell* newSpell)
             if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL])
             {
                 // break autorepeat if not Auto Shot
-                if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Category == 351) // TODO: figure out what channel interrupt flag corresponds to this
+                if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CASTING_CANCELS_AUTOREPEAT))
                     InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
             }
         } break;
@@ -4502,7 +4507,7 @@ void Unit::SetCurrentCastedSpell(Spell* newSpell)
 
                 // it also does break autorepeat if not Auto Shot
                 if (m_currentSpells[CURRENT_AUTOREPEAT_SPELL] &&
-                    m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->Category == 351)
+                    m_currentSpells[CURRENT_AUTOREPEAT_SPELL]->m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CASTING_CANCELS_AUTOREPEAT))
                     InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
             }
         } break;
@@ -4510,7 +4515,7 @@ void Unit::SetCurrentCastedSpell(Spell* newSpell)
         case CURRENT_AUTOREPEAT_SPELL:
         {
             // only Auto Shoot does not break anything
-            if (newSpell->m_spellInfo->Category == 351)
+            if (newSpell->m_spellInfo->HasAttribute(SPELL_ATTR_EX3_CASTING_CANCELS_AUTOREPEAT))
             {
                 // generic autorepeats break generic non-delayed and channeled non-delayed spells
                 InterruptSpell(CURRENT_GENERIC_SPELL, false);
@@ -4978,7 +4983,7 @@ bool Unit::AddSpellAuraHolder(SpellAuraHolder* holder)
             else
             {
                 //any stackable case with amount should mod existing stack amount
-                if (aurSpellInfo->StackAmount && !IsChanneledSpell(aurSpellInfo) && !aurSpellInfo->HasAttribute(SPELL_ATTR_EX3_STACK_FOR_DIFF_CASTERS))
+                if (aurSpellInfo->StackAmount && !IsChanneledSpell(aurSpellInfo) && !aurSpellInfo->HasAttribute(SPELL_ATTR_EX3_DOT_STACKING_RULE))
                 {
                     foundHolder->ModStackAmount(holder->GetStackAmount(), holder->GetCaster());
                     return false;
@@ -6270,7 +6275,7 @@ void Unit::CasterHitTargetWithSpell(Unit* realCaster, Unit* target, SpellEntry c
 
     if (realCaster->CanAttack(target))
     {
-        if (spellInfo->HasAttribute(SPELL_ATTR_EX2_NO_INITIAL_THREAT) && !spellInfo->HasAttribute(SPELL_ATTR_EX3_OUT_OF_COMBAT_ATTACK))
+        if (spellInfo->HasAttribute(SPELL_ATTR_EX2_NO_INITIAL_THREAT) && !spellInfo->HasAttribute(SPELL_ATTR_EX3_PVP_ENABLING))
             return;
 
         // we want to change the stand state of each character if possible/required
@@ -6302,7 +6307,7 @@ void Unit::CasterHitTargetWithSpell(Unit* realCaster, Unit* target, SpellEntry c
             realCaster->GetCombatManager().TriggerCombatTimer(target);
         }
 
-        if (attack && spellInfo->HasAttribute(SPELL_ATTR_EX3_OUT_OF_COMBAT_ATTACK))
+        if (attack && spellInfo->HasAttribute(SPELL_ATTR_EX3_PVP_ENABLING))
         {
             target->SetOutOfCombatWithAggressor(realCaster);
             realCaster->SetOutOfCombatWithVictim(target);
@@ -6317,7 +6322,7 @@ void Unit::CasterHitTargetWithSpell(Unit* realCaster, Unit* target, SpellEntry c
             target->getHostileRefManager().threatAssist(realCaster, 0.0f, spellInfo, false, triggered);
         }
 
-        if (spellInfo->HasAttribute(SPELL_ATTR_EX3_OUT_OF_COMBAT_ATTACK))
+        if (spellInfo->HasAttribute(SPELL_ATTR_EX3_PVP_ENABLING))
             realCaster->SetOutOfCombatWithAssisted(target);
     }
 }
@@ -12779,7 +12784,7 @@ bool Unit::MeetsSelectAttackingRequirement(Unit* target, SpellEntry const* spell
             if (target->IsImmuneToSpell(spellInfo, false, GetCheckCastEffectMask(spellInfo)))
                 return false;
 
-        if (spellInfo->HasAttribute(SPELL_ATTR_EX3_TARGET_ONLY_PLAYER) && target->GetTypeId() != TYPEID_PLAYER)
+        if (spellInfo->HasAttribute(SPELL_ATTR_EX3_ONLY_ON_PLAYER) && target->GetTypeId() != TYPEID_PLAYER)
             return false;
 
         switch (spellInfo->rangeIndex)

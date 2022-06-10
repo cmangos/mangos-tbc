@@ -1465,6 +1465,7 @@ class Unit : public WorldObject
 
         void SetVisFlags(uint8 flags) { SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAGS, flags); }
         void RemoveVisFlags(uint8 flags) { RemoveByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAGS, flags); }
+        bool HasVisFlags(uint8 flags) { return GetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAGS) & flags; }
 
         bool IsMounted() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT); } // not used with creature non-aura mounts
         uint32 GetMountID() const { return GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID); }
@@ -2052,6 +2053,8 @@ class Unit : public WorldObject
         TrackedAuraTargetMap&       GetTrackedAuraTargets(TrackedAuraType type)       { return m_trackedAuraTargets[type]; }
         TrackedAuraTargetMap const& GetTrackedAuraTargets(TrackedAuraType type) const { return m_trackedAuraTargets[type]; }
         SpellImmuneList m_spellImmune[MAX_SPELL_IMMUNITY];
+        bool IsAOEImmune() const { return m_aoeImmune; }
+        void SetAOEImmune(bool state) { m_aoeImmune = state; }
 
         // Threat related methods
         bool CanHaveThreatList(bool ignoreAliveState = false) const;
@@ -2614,6 +2617,8 @@ class Unit : public WorldObject
 
         bool m_isMountOverriden;
         uint32 m_overridenMountId;
+
+        bool m_aoeImmune;
 
     private:                                                // Error traps for some wrong args using
         // this will catch and prevent build for any cases when all optional args skipped and instead triggered used non boolean type

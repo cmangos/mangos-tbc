@@ -335,7 +335,7 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
     switch (spellInfo->DmgClass)
     {
         case SPELL_DAMAGE_CLASS_MELEE:
-            if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQ_OFFHAND))
+            if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQUIRES_OFFHAND_WEAPON))
                 return OFF_ATTACK;
             return BASE_ATTACK;
         case SPELL_DAMAGE_CLASS_RANGED:
@@ -345,7 +345,7 @@ WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo)
             // Wands
             if (spellInfo->HasAttribute(SPELL_ATTR_EX2_AUTO_REPEAT))
                 return RANGED_ATTACK;
-            if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQ_OFFHAND))
+            if (spellInfo->HasAttribute(SPELL_ATTR_EX3_REQUIRES_OFFHAND_WEAPON))
                 return OFF_ATTACK;
             return BASE_ATTACK;
         }
@@ -439,7 +439,7 @@ SpellSpecific GetSpellSpecific(uint32 spellId)
             if (spellInfo->IsFitToFamilyMask(uint64(0x0000000010000180)))
                 return SPELL_BLESSING;
 
-            if (spellInfo->IsFitToFamilyMask(uint64(0x00000820180400)) && spellInfo->HasAttribute(SPELL_ATTR_EX3_TRIGGERED_CAN_TRIGGER_SPECIAL)) // TODO: Remove this WTF condition
+            if (spellInfo->IsFitToFamilyMask(uint64(0x00000820180400)) && spellInfo->HasAttribute(SPELL_ATTR_EX3_NOT_A_PROC)) // TODO: Remove this WTF condition
                 return SPELL_JUDGEMENT;
 
             if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_APPLY_AREA_AURA_PARTY))
@@ -2603,7 +2603,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
             return SPELL_FAILED_NOT_IN_ARENA;
 
     // Spell casted only on battleground
-    if (spellInfo->HasAttribute(SPELL_ATTR_EX3_BATTLEGROUND))
+    if (spellInfo->HasAttribute(SPELL_ATTR_EX3_ONLY_BATTLEGROUNDS))
         if (!player || !player->InBattleGround())
             return SPELL_FAILED_ONLY_BATTLEGROUNDS;
 

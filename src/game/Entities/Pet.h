@@ -304,6 +304,8 @@ class Pet : public Creature
         void ForcedDespawn(uint32 timeMSToDespawn = 0, bool onlyAlive = false) override;
 
         void StartCooldown(Unit* owner);
+
+        bool IgnoresOwnersDeath() const;
     protected:
         uint32  m_happinessTimer;
         uint32  m_loyaltyTimer;

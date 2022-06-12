@@ -904,6 +904,7 @@ void Spell::AddUnitTarget(Unit* target, uint8 effectMask, CheckException excepti
     targetInfo.diminishLevel = DIMINISHING_LEVEL_1;
     targetInfo.diminishGroup = DIMINISHING_NONE;
     targetInfo.executionless = false;
+    targetInfo.timeDelay = 0;
 
     // Calculate hit result
     targetInfo.missCondition = m_ignoreHitResult ? SPELL_MISS_NONE : Unit::SpellHitResult(m_trueCaster, target, m_spellInfo, targetInfo.effectMask, m_reflectable, false, &targetInfo.heartbeatResistChance);
@@ -922,13 +923,30 @@ void Spell::AddUnitTarget(Unit* target, uint8 effectMask, CheckException excepti
     float speed = GetSpellSpeed();
     if (speed > 0.0f && affectiveObject && target != affectiveObject)
     {
+        WorldObject const* missileSource = affectiveObject;
+
+        if (m_spellInfo->HasAttribute(SPELL_ATTR_EX4_BOUNCY_CHAIN_MISSILES))
+        {
+            auto previousTargetItr = std::find_if(m_UniqueTargetInfo.rbegin(), m_UniqueTargetInfo.rend(), [effectMask](TargetInfo const& target)
+            {
+                return (target.effectMask & effectMask) != 0;
+            });
+            if (previousTargetItr != std::rend(m_UniqueTargetInfo))
+            {
+                if (WorldObject* previousTarget = m_caster->GetMap()->GetWorldObject(previousTargetItr->targetGUID))
+                    missileSource = previousTarget;
+
+                targetInfo.timeDelay += previousTargetItr->timeDelay;
+            }
+        }
+
         // calculate spell incoming interval
-        float dist = affectiveObject->GetDistance(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), DIST_CALC_NONE);
+        float dist = missileSource->GetDistance(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), DIST_CALC_NONE);
         dist = sqrt(dist); // default distance calculation is raw, apply sqrt before the next step
 
         if (dist < 5.0f)
             dist = 5.0f;
-        targetInfo.timeDelay = (uint64) floor(dist / speed * 1000.0f);
+        targetInfo.timeDelay += (uint64) floor(dist / speed * 1000.0f);
 
         // Calculate minimum incoming time
         if (m_delayMoment == 0 || m_delayMoment > targetInfo.timeDelay)
@@ -4976,7 +4994,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 return SPELL_FAILED_BAD_TARGETS;
 
             // Check if more powerful spell applied on target (if spell only contains non-aoe auras)
-            if (IsAuraApplyEffects(m_spellInfo, SpellEffectIndexMask(affectedMask)) && !IsAreaOfEffectSpell(m_spellInfo) && !HasAreaAuraEffect(m_spellInfo) && !selfTargeting)
+            if (IsAuraApplyEffects(m_spellInfo, SpellEffectIndexMask(affectedMask)) && !IsAreaOfEffectSpell(m_spellInfo) && !HasAreaAuraEffect(m_spellInfo) && !selfTargeting && !m_spellInfo->HasAttribute(SPELL_ATTR_EX4_AURA_NEVER_BOUNCES))
             {
                 bool computed = false; // optimization
                 int32 amounts[MAX_EFFECT_INDEX];
@@ -6510,7 +6528,7 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     // Flat mod from caster auras by spell school
     powerCost += caster->GetInt32Value(UNIT_FIELD_POWER_COST_MODIFIER + school);
     // Shiv - costs 20 + weaponSpeed*10 energy (apply only to non-triggered spell with energy cost)
-    if (spellInfo->HasAttribute(SPELL_ATTR_EX4_SPELL_VS_EXTEND_COST))
+    if (spellInfo->HasAttribute(SPELL_ATTR_EX4_WEAPON_SPEED_COST_SCALING))
         powerCost += caster->GetAttackTime(OFF_ATTACK) / 100;
     // Apply cost mod by spell
     if (spell)

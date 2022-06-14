@@ -19,6 +19,7 @@
 #include <stdarg.h>
 #include "Common.h"
 #include "Log.h"
+#include "Spells/SpellDefines.h"
 #include "WorldPacket.h"
 #include "Database/DatabaseEnv.h"
 #include "PlayerbotAI.h"
@@ -172,7 +173,7 @@ bool PlayerbotAI::CanReachWithSpellAttack(Unit* target)
             continue;
 
         // ignore non-ranged spells
-        if (!spellInfo->HasAttribute(SPELL_ATTR_RANGED))
+        if (!spellInfo->HasAttribute(SPELL_ATTR_USES_RANGED_SLOT))
             continue;
 
         float maxrange = itr->second;
@@ -4289,7 +4290,7 @@ bool PlayerbotAI::IsRegenerating()
         if (spell->Category == 59 || spell->Category == 11)
             return true;
         // Specific drinking / eating after patch 2.0.1, especially conjured goods
-        if(spell->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_SITTING))
+        if(spell->HasAttribute(SPELL_ATTR_ALLOW_WHILE_SITTING))
         {
             for (uint32 i = EFFECT_INDEX_0; i < MAX_EFFECT_INDEX; ++i)
             {

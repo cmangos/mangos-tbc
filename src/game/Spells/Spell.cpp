@@ -4440,7 +4440,7 @@ void Spell::TakeCastItem()
 
 void Spell::TakePower()
 {
-    if (m_CastItem || m_triggeredByAuraSpell || !m_caster)
+    if (m_CastItem || m_triggeredByAuraSpell || !m_caster || m_spellInfo->HasAttribute(SPELL_ATTR_EX6_DO_NOT_CONSUME_RESOURCES))
         return;
 
     // health as power used
@@ -4498,7 +4498,7 @@ void Spell::TakeAmmo() const
 
 void Spell::TakeReagents()
 {
-    if (!m_trueCaster->IsPlayer())
+    if (!m_trueCaster->IsPlayer() || m_spellInfo->HasAttribute(SPELL_ATTR_EX6_DO_NOT_CONSUME_RESOURCES))
         return;
 
     if (IgnoreItemRequirements())                           // reagents used in triggered spell removed by original spell or don't must be removed.
@@ -6156,7 +6156,7 @@ SpellCastResult Spell::CheckCasterAuras(uint32& param1) const
     if (!m_trueCaster->IsUnit())
         return SPELL_CAST_OK;
 
-    if (m_spellInfo->HasAttribute(SPELL_ATTR_EX6_IGNORE_CASTER_AURAS))
+    if (m_spellInfo->HasAttribute(SPELL_ATTR_EX6_NOT_AN_ATTACK))
         return SPELL_CAST_OK;
 
     // these attributes only show the spell as usable on the client when it has related aura applied
@@ -7277,7 +7277,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
             return false;
 
     // If spell have ingore CC attr & unit is CC
-    if (m_spellInfo->HasAttribute(SPELL_ATTR_EX6_IGNORE_CC_TARGETS) && target != m_targets.getUnitTarget() && target->IsCrowdControlled())
+    if (m_spellInfo->HasAttribute(SPELL_ATTR_EX6_DO_NOT_CHAIN_TO_CROWD_CONTROLLED_TARGETS) && target != m_targets.getUnitTarget() && target->IsCrowdControlled())
         return false;
 
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX5_NOT_ON_TRIVIAL) && target->IsTrivialForTarget(m_caster))

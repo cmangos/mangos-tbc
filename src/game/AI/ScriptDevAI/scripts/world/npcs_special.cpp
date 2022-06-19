@@ -437,7 +437,7 @@ struct npc_doctorAI : public ScriptedAI
 
         m_bIsEventInProgress = false;
 
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
     }
 
     void BeginEvent(Player* pPlayer);
@@ -470,7 +470,7 @@ struct npc_injured_patientAI : public ScriptedAI
         m_pCoord = nullptr;
 
         // no select
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
 
         // to make them lay with face down
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
@@ -498,7 +498,7 @@ struct npc_injured_patientAI : public ScriptedAI
         if (pCaster->GetTypeId() == TYPEID_PLAYER && m_creature->IsAlive() && pSpell->Id == 20804)
         {
             // make not selectable
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
 
             // stand up
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
@@ -544,7 +544,7 @@ struct npc_injured_patientAI : public ScriptedAI
     void UpdateAI(const uint32 uiDiff) override
     {
         // Don't reduce health if already healed
-        if (m_creature->hasUnitState(UNIT_FLAG_NOT_SELECTABLE) || isSaved)
+        if (m_creature->hasUnitState(UNIT_FLAG_UNINTERACTIBLE) || isSaved)
             return;
 
         // lower HP on every world tick makes it a useful counter, not officlone though
@@ -557,7 +557,7 @@ struct npc_injured_patientAI : public ScriptedAI
         if (m_creature->IsAlive() && m_creature->GetHealth() <= 1 + uiHPLose)
         {
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IN_COMBAT);
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
             m_creature->SetDeathState(JUST_DIED);
             m_creature->SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_DEAD);
 
@@ -606,7 +606,7 @@ void npc_doctorAI::BeginEvent(Player* pPlayer)
     }
 
     m_bIsEventInProgress = true;
-    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
 }
 
 void npc_doctorAI::PatientDied(Location* pPoint)
@@ -1326,7 +1326,7 @@ struct npc_burster_wormAI : public CombatAI
         // sequences
         AddCustomAction(BURSTER_BIRTH_DELAY, true, [&]()
         {
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
             SetMeleeEnabled(true);
             SetCombatScriptStatus(false);
         });
@@ -1405,7 +1405,7 @@ struct npc_burster_wormAI : public CombatAI
         m_creature->CastSpell(nullptr, SPELL_SUBMERGED, TRIGGERED_NONE);
         if (passive)
             DoCastSpellIfCan(nullptr, m_uiBorePassive, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
     }
 
     void SpellHitTarget(Unit* target, const SpellEntry* spellInfo) override
@@ -1455,7 +1455,7 @@ struct npc_burster_wormAI : public CombatAI
             case 1: // after teleport
             {
                 // come up
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                 m_creature->RemoveAurasDueToSpell(SPELL_SANDWORM_SUBMERGE_VISUAL);
                 DoCastSpellIfCan(nullptr, SPELL_STAND);
                 timer = 1000;
@@ -2113,7 +2113,7 @@ struct mob_phoenix_tkAI : public CombatAI
         m_creature->RemoveAllAurasOnDeath();
         m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
         m_creature->ClearAllReactives();
         m_creature->SetTarget(nullptr);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
@@ -2165,7 +2165,7 @@ struct mob_phoenix_tkAI : public CombatAI
             SetMeleeEnabled(true);
             DoStartMovement(m_creature->GetVictim());
             SetCombatScriptStatus(false);
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
 
             DoCastSpellIfCan(nullptr, m_burnSpellId, CAST_TRIGGERED);
         }

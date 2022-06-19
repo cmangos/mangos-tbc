@@ -122,7 +122,7 @@ struct boss_leotheras_the_blindAI : public CombatAI
 
         m_bDemonForm        = false;
 
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
         m_creature->SetStunned(false);
 
         SetCombatScriptStatus(false);
@@ -164,7 +164,7 @@ struct boss_leotheras_the_blindAI : public CombatAI
     {
         if (summoned->GetEntry() == NPC_SHADOW_LEO)
         {
-            summoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            summoned->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
             summoned->AI()->SetMoveChaseParams(35.f, 0.f, false);
             summoned->AI()->AttackStart(m_creature->GetVictim());
         }
@@ -235,7 +235,7 @@ struct boss_leotheras_the_blindAI : public CombatAI
                 SetReactState(REACT_AGGRESSIVE);
                 m_creature->CastSpell(m_creature, SPELL_SUMMON_SHADOW, TRIGGERED_OLD_TRIGGERED);
 
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                 m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                 m_creature->SetStunned(false);
 
@@ -282,7 +282,7 @@ struct boss_leotheras_the_blindAI : public CombatAI
                     SetCombatScriptStatus(true);
                     SetMeleeEnabled(false);
                     m_creature->SetTarget(nullptr);
-                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                     m_creature->SetStunned(true);
                     // BUT DO NOT DO THIS ANYWHERE ELSE, its a purely dynamic flag
 

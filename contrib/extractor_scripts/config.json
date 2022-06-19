@@ -39,6 +39,11 @@
 		"mergeRegionArea": 10,
 		"borderSize": 5
 	},
+		"553": {
+			"_Info": "The Botanica - Laj .go c id 17980",
+			"walkableClimb": 9.0,
+			"walkableHeight": 10.0
+	},
         "554": {
                 "walkableSlopeAngle":60,
                 "minRegionArea": 30,

@@ -486,7 +486,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
         m_creature->SetSheath(SHEATH_STATE_UNARMED);
         m_creature->HandleEmoteState(0);
         DoCastSpellIfCan(nullptr, SPELL_KNEEL_INTRO, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
@@ -550,7 +550,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
     {
         if (m_instance->GetData(TYPE_ILLIDAN) != FAIL) // akama died
         {
-            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
 
             if (m_instance)
                 m_instance->SetData(TYPE_ILLIDAN, DONE);
@@ -657,7 +657,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
             m_creature->InterruptNonMeleeSpells(true);
             m_creature->StopMoving();
             m_creature->RemoveAllAurasOnDeath();
-            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+            m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
             m_creature->ClearAllReactives();
             SetCombatScriptStatus(true);
             m_creature->SetTarget(nullptr);
@@ -737,7 +737,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                 break;
             case DUMMY_EMOTE_ID_5:
                 // Resume combat and attack Maiev
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                 SetCombatScriptStatus(false);
                 SetCombatMovement(true);
                 SetMeleeEnabled(true);
@@ -939,7 +939,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                         SetCombatMovement(false);
                         SetMeleeEnabled(false);
                         m_creature->SetTarget(nullptr);
-                        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                         nextTimer = 3500;
                         break;
                     }
@@ -1094,7 +1094,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                             m_creature->SetTarget(m_creature->GetVictim());
                             DoStartMovement(m_creature->GetVictim());
                         }
-                        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                         nextTimer = 0;
                         PreparePhaseTimers();
                         break;
@@ -1233,7 +1233,7 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                     m_creature->PlayMusic(SOUND_KIT_ILLIDAN_P5);
                     StartNextDialogueText(DUMMY_EMOTE_ID_4);
                     SetCombatScriptStatus(true);
-                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
 
                     SetCombatMovement(false);
                     m_creature->GetMotionMaster()->Clear();

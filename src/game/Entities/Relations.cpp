@@ -1422,7 +1422,7 @@ bool Unit::CanJoinInAttacking(Unit const* enemy) const
     if (IsFeigningDeathSuccessfully())
         return false;
 
-    if (HasAuraType(SPELL_AURA_MOD_UNATTACKABLE))
+    if (HasAuraType(SPELL_AURA_MOD_UNTARGETABLE))
         return false;
 
     if (!CanAttack(enemy))

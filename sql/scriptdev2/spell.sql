@@ -740,6 +740,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (1856,'spell_vanish'),
 (1857,'spell_vanish'),
 (26889,'spell_vanish'),
+(6770,'spell_sap'),
+(2070,'spell_sap'), -- check ranks before changing
+(11297,'spell_sap'),
 (14185,'spell_preparation'),
 (14082,'spell_dirty_deeds'),
 (14083,'spell_dirty_deeds'),

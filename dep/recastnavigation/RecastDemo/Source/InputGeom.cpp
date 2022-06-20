@@ -424,6 +424,9 @@ static bool isectSegAABB(const float* sp, const float* sq,
 
 bool InputGeom::raycastMesh(float* src, float* dst, float& tmin)
 {
+	float dir[3];
+	rcVsub(dir, dst, src);
+
 	// Prune hit ray.
 	float btmin, btmax;
 	if (!isectSegAABB(src, dst, m_meshBMin, m_meshBMax, btmin, btmax))

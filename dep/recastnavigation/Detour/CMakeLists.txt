@@ -1,32 +1,38 @@
-file(GLOB SOURCES Source/*.cpp)
-add_library(Detour ${SOURCES})
+#
+# This file is part of the CMaNGOS Project. See AUTHORS file for Copyright information
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
 
-add_library(RecastNavigation::Detour ALIAS Detour)
-set_target_properties(Detour PROPERTIES DEBUG_POSTFIX -d)
+# enumerate all library files
+FILE(GLOB_RECURSE SRCS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "Source/*.cpp")
+FILE(GLOB_RECURSE HEADERS RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}" "Include/*.h")
 
-set(Detour_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Include")
-
-target_include_directories(Detour PUBLIC
-    "$<BUILD_INTERFACE:${Detour_INCLUDE_DIR}>"
+# create the lib
+add_library(detour STATIC
+  ${SRCS}
+  ${HEADERS}
 )
 
-set_target_properties(Detour PROPERTIES
-        SOVERSION ${SOVERSION}
-        VERSION ${LIB_VERSION}
-        COMPILE_PDB_OUTPUT_DIRECTORY .
-        COMPILE_PDB_NAME "Detour-d"
-        )
+# add header include folder
+target_include_directories(detour
+    PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/Include"
+)
 
-install(TARGETS Detour
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        COMPONENT library
-        )
-
-file(GLOB INCLUDES Include/*.h)
-install(FILES ${INCLUDES} DESTINATION
-    ${CMAKE_INSTALL_INCLUDEDIR}/recastnavigation)
 if(MSVC)
-    install(FILES "$<TARGET_FILE_DIR:Detour>/Detour-d.pdb" CONFIGURATIONS "Debug" DESTINATION "lib")
+  # Put this lib in dependencies category
+  set_target_properties(detour PROPERTIES FOLDER "Dependencies")
 endif()
+

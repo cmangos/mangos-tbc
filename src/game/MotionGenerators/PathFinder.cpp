@@ -110,7 +110,7 @@ bool PathFinder::calculate(Vector3 const& start, Vector3 const& dest, bool force
 
     m_forceDestination = forceDest;
     m_straightLine = straightLine;
-
+     
     SetCurrentNavMesh();
 
     DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::calculate() for %u \n", m_sourceUnit->GetGUIDLow());

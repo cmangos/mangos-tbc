@@ -1,35 +1,53 @@
-#
-# This file is part of the CMaNGOS Project. See AUTHORS file for Copyright information
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
+cmake_minimum_required(VERSION 3.0)
 
-if (BUILD_GAME_SERVER OR BUILD_EXTRACTORS OR BUILD_RECASTDEMOMOD)
-  add_definitions(-DDT_POLYREF64)
-  add_subdirectory(Detour)
-  target_include_directories(detour
-    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}"
-  )
+project(RecastNavigation)
+
+# lib versions
+SET(SOVERSION 1)
+set(LIB_VERSION 1.5.1)
+string(REPLACE "." "," LIB_VERSION_NUM "${LIB_VERSION}.0")
+
+option(RECASTNAVIGATION_DEMO "Build demo" ON)
+option(RECASTNAVIGATION_TESTS "Build tests" ON)
+option(RECASTNAVIGATION_EXAMPLES "Build examples" ON)
+
+if(MSVC AND BUILD_SHARED_LIBS)
+    set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-if (BUILD_EXTRACTORS OR BUILD_RECASTDEMOMOD)
-  add_subdirectory(Recast)
-endif()
+include(GNUInstallDirs)
 
-if (BUILD_RECASTDEMOMOD)
-  add_subdirectory(DetourCrowd)
-  add_subdirectory(DetourTileCache)
-  add_subdirectory(DebugUtils)
-endif()
+configure_file(
+    "${RecastNavigation_SOURCE_DIR}/version.h.in"
+    "${RecastNavigation_BINARY_DIR}/version.h")
+install(FILES "${RecastNavigation_BINARY_DIR}/version.h" DESTINATION
+        ${CMAKE_INSTALL_INCLUDEDIR}/recastnavigation)
+
+# Needed for recastnavigation.pc.in
+set(prefix ${CMAKE_INSTALL_PREFIX})
+set(exec_prefix "\${prefix}")
+set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
+set(bindir "\${exec_prefix}/${CMAKE_INSTALL_BINDIR}")
+set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+set(PACKAGE_VERSION "${LIB_VERSION}")
+configure_file(
+        "${RecastNavigation_SOURCE_DIR}/recastnavigation.pc.in"
+        "${RecastNavigation_BINARY_DIR}/recastnavigation.pc"
+        @ONLY)
+install(FILES "${RecastNavigation_BINARY_DIR}/recastnavigation.pc"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+
+add_subdirectory(DebugUtils)
+add_subdirectory(Detour)
+add_subdirectory(DetourCrowd)
+add_subdirectory(DetourTileCache)
+add_subdirectory(Recast)
+
+if (RECASTNAVIGATION_DEMO)
+    add_subdirectory(RecastDemo)
+endif ()
+
+if (RECASTNAVIGATION_TESTS)
+    enable_testing()
+    add_subdirectory(Tests)
+endif ()

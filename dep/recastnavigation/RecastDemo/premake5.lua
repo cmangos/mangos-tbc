@@ -73,6 +73,12 @@ project "Detour"
 		"../Detour/Include/*.h", 
 		"../Detour/Source/*.cpp" 
 	}
+	-- linux library cflags and libs
+	configuration { "linux", "gmake" }
+		buildoptions { 
+			"-Wno-class-memaccess"
+		}
+
 
 project "DetourCrowd"
 	language "C++"
@@ -148,7 +154,10 @@ project "RecastDemo"
 		buildoptions { 
 			"`pkg-config --cflags sdl2`",
 			"`pkg-config --cflags gl`",
-			"`pkg-config --cflags glu`" 
+			"`pkg-config --cflags glu`",
+			"-Wno-ignored-qualifiers",
+			"-Wno-class-memaccess"
+
 		}
 		linkoptions { 
 			"`pkg-config --libs sdl2`",

@@ -139,6 +139,27 @@ struct FlagAuraBg : public AuraScript
             aura->GetTarget()->RemoveSpellAuraHolder(aura->GetHolder());
         return SPELL_AURA_PROC_OK;
     }
+
+    void OnApply(Aura* aura, bool apply) const
+    {
+        Unit* unitTarget = aura->GetTarget();
+        if (!unitTarget || !unitTarget->IsPlayer())
+            return;
+
+        Player *player = static_cast<Player*>(unitTarget);
+
+        if (apply)
+            player->pvpInfo.isPvPFlagCarrier = true;
+        else
+        {
+            player->pvpInfo.isPvPFlagCarrier = false;
+
+            if (BattleGround* bg = player->GetBattleGround())
+                bg->HandlePlayerDroppedFlag(player);
+            else if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player->GetCachedZoneId()))
+                outdoorPvP->HandleDropFlag(player, aura->GetSpellProto()->Id);
+        }
+    }
 };
 
 struct ArenaPreparation : public AuraScript

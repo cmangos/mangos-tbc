@@ -3542,6 +3542,13 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     if (itr == m_spells.end())
         return;
 
+    PlayerSpell& playerSpell = itr->second;
+    if (playerSpell.state == PLAYERSPELL_REMOVED)
+        return;
+
+    PlayerSpellState savedState = playerSpell.state;
+    playerSpell.state = PLAYERSPELL_REMOVED; // recursion protection
+
     // Always try to remove all dependent spells if present (needed to reset some talents properly)
     SpellLearnSpellMapBounds spell_bounds = sSpellMgr.GetSpellLearnSpellMapBounds(spell_id);
     for (SpellLearnSpellMap::const_iterator child_itr = spell_bounds.first; child_itr != spell_bounds.second; ++child_itr)
@@ -3552,7 +3559,7 @@ void Player::removeSpell(uint32 spell_id, bool disabled, bool learn_low_rank, bo
     if (itr == m_spells.end())
         return;
 
-    PlayerSpell& playerSpell = itr->second;
+    playerSpell.state = savedState;
     if (playerSpell.state == PLAYERSPELL_REMOVED || (disabled && playerSpell.disabled))
         return;
 

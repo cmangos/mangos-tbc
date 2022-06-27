@@ -8213,8 +8213,6 @@ void SpellAuraHolder::SetStackAmount(uint32 stackAmount, Unit* newCaster)
 
     if (refresh) // Stack increased refresh duration
         RefreshHolder();
-    else // Stack decreased only send update
-        SendAuraUpdate(false);
 }
 
 Unit* SpellAuraHolder::GetCaster() const

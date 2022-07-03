@@ -338,6 +338,8 @@ enum WorldStateID : int32
 
     // Custom Worldstates
     WORLD_STATE_CUSTOM_SPAWN_MALACRASS = 10000,
+
+    WORLD_STATE_CUSTOM_SPAWN_ANNORA    = 20000,
 };
 
 #endif

@@ -77,6 +77,20 @@ void instance_uldaman::OnCreatureCreate(Creature* pCreature)
     }
 }
 
+// Prototype, hardcoded
+void instance_uldaman::OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* pCreature)
+{
+    if (pGroup->GetGroupId() == 7000000)
+    {
+        // If all scorpids in her room are dead spawn Enchant Trainer 'Annora'
+        Creature* pAnnora = GetSingleCreatureFromStorage(11073, true);
+        if (!pAnnora)
+        {
+            pCreature->SummonCreature(11073, -159.803f, 196.172f, -49.5849f, 1.74533f, TEMPSPAWN_DEAD_DESPAWN, 0);
+        }
+    }
+}
+
 void instance_uldaman::SetData(uint32 uiType, uint32 uiData)
 {
     switch (uiType)

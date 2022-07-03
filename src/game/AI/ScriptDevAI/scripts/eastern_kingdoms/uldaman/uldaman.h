@@ -5,6 +5,8 @@
 #ifndef DEF_ULDAMAN_H
 #define DEF_ULDAMAN_H
 
+#include "World/WorldStateDefines.h"
+
 enum
 {
     MAX_ENCOUNTER               = 2,

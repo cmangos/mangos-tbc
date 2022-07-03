@@ -35,6 +35,7 @@ instance_uldaman::instance_uldaman(Map* pMap) : ScriptedInstance(pMap),
 void instance_uldaman::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
+    instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_ANNORA, 0);
 }
 
 void instance_uldaman::OnObjectCreate(GameObject* pGo)
@@ -80,15 +81,8 @@ void instance_uldaman::OnCreatureCreate(Creature* pCreature)
 // Prototype, hardcoded
 void instance_uldaman::OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* pCreature)
 {
-    if (pGroup->GetGroupId() == 7000000)
-    {
-        // If all scorpids in her room are dead spawn Enchant Trainer 'Annora'
-        Creature* pAnnora = GetSingleCreatureFromStorage(11073, true);
-        if (!pAnnora)
-        {
-            pCreature->SummonCreature(11073, -159.803f, 196.172f, -49.5849f, 1.74533f, TEMPSPAWN_DEAD_DESPAWN, 0);
-        }
-    }
+    if (pGroup->GetGroupId() == 7000000)    
+        instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_ANNORA, 1);
 }
 
 void instance_uldaman::SetData(uint32 uiType, uint32 uiData)

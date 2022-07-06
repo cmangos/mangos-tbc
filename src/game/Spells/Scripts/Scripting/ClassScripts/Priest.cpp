@@ -94,7 +94,7 @@ struct Blackout : public AuraScript
 {
     bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
     {
-        if (!data.damage || data.isHeal)
+        if (data.isHeal || (!data.damage && data.spellInfo && !IsSpellAppliesAura(data.spellInfo, SPELL_AURA_PERIODIC_DAMAGE)))
             return false;
         return true;
     }

@@ -1942,8 +1942,9 @@ class Player : public Unit
 
         PlayerMenu* GetPlayerMenu() const { return m_playerMenu.get(); }
 
-        ItemSetEffect* GetItemSetEffect(uint32 setId) const;
-        void SetItemSetEffect(uint32 setId, ItemSetEffect* itemSetEffect);
+        ItemSetEffect* GetItemSetEffect(uint32 setId);
+        ItemSetEffect* AddItemSetEffect(uint32 setId);
+        void RemoveItemSetEffect(uint32 setId);
 
         /*********************************************************/
         /***               BATTLEGROUND SYSTEM                 ***/
@@ -2633,7 +2634,7 @@ class Player : public Unit
 
         uint8 m_fishingSteps;
 
-        std::map<uint32, ItemSetEffect*> m_itemSetEffects;
+        std::map<uint32, ItemSetEffect> m_itemSetEffects;
 };
 
 void AddItemsSetItem(Player* player, Item* item);

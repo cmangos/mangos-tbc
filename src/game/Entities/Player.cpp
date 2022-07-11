@@ -21055,7 +21055,7 @@ void Player::_LoadSkills(QueryResult* result)
                 if (!(entry->classMask & classMask))
                     continue;
 
-                if (entry->flags & SKILL_FLAG_MAXIMIZED)
+                if (entry->flags & SKILL_FLAG_MAXIMIZED && skill != SKILL_RIDING)
                     value = max = GetSkillMaxForLevel();
 
                 if (SkillTiersEntry const* steps = sSkillTiersStore.LookupEntry(entry->skillTierId))

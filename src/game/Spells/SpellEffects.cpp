@@ -4272,6 +4272,9 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
             {
                 level = engineeringSkill / 5;
                 amount = 1;                                 // TODO HACK (needs a neat way of doing)
+                // in TBC max levels are clamped
+                if (CreatureInfo const* cInfo = ObjectMgr::GetCreatureTemplate(m_spellInfo->EffectMiscValue[eff_idx]))
+                    level = std::min(cInfo->MaxLevel, level);
             }
         }
         // other cases are covered above by using level from template

@@ -2831,40 +2831,6 @@ bool GossipHello_npc_paymaster(Player* pPlayer, Creature* pCreature)
     return true;
 }
 
-void LearnSkillRecipesHelper(Player* player, uint32 skill_id)
-{
-    uint32 classmask = player->getClassMask();
-
-    for (uint32 j = 0; j < sSkillLineAbilityStore.GetNumRows(); ++j)
-    {
-        SkillLineAbilityEntry const* skillLine = sSkillLineAbilityStore.LookupEntry(j);
-        if (!skillLine)
-            continue;
-
-        // wrong skill
-        if (skillLine->skillId != skill_id)
-            continue;
-
-        // not high rank
-        if (skillLine->forward_spellid)
-            continue;
-
-        // skip racial skills
-        if (skillLine->racemask != 0)
-            continue;
-
-        // skip wrong class skills
-        if (skillLine->classmask && (skillLine->classmask & classmask) == 0)
-            continue;
-
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(skillLine->spellId);
-        if (!spellInfo || !SpellMgr::IsSpellValid(spellInfo, player, false))
-            continue;
-
-        player->learnSpell(skillLine->spellId, false);
-    }
-}
-
 bool GossipSelect_npc_paymaster(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
 {
     if (uiAction > GOSSIP_ACTION_INFO_DEF + 4 && pPlayer->GetFreePrimaryProfessionPoints() == 0)
@@ -2910,57 +2876,46 @@ bool GossipSelect_npc_paymaster(Player* pPlayer, Creature* pCreature, uint32 /*u
         case GOSSIP_ACTION_INFO_DEF + 5:
             pPlayer->learnSpellHighRank(28897);
             pPlayer->SetSkill(755, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 755);
             break;
         case GOSSIP_ACTION_INFO_DEF + 6:
             pPlayer->learnSpellHighRank(28596);
             pPlayer->SetSkill(171, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 171);
             break;
         case GOSSIP_ACTION_INFO_DEF + 7:
             pPlayer->learnSpellHighRank(29844);
             pPlayer->SetSkill(164, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 164);
             break;
         case GOSSIP_ACTION_INFO_DEF + 8:
             pPlayer->learnSpellHighRank(28029);
             pPlayer->SetSkill(333, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 333);
             break;
         case GOSSIP_ACTION_INFO_DEF + 9:
             pPlayer->learnSpellHighRank(30350);
             pPlayer->SetSkill(202, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 202);
             break;
         case GOSSIP_ACTION_INFO_DEF + 10:
             pPlayer->learnSpellHighRank(28695);
             pPlayer->SetSkill(182, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 182);
             break;
         case GOSSIP_ACTION_INFO_DEF + 11:
             pPlayer->learnSpellHighRank(32549);
             pPlayer->SetSkill(165, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 165);
             break;
         case GOSSIP_ACTION_INFO_DEF + 12:
             pPlayer->learnSpellHighRank(29354);
             pPlayer->SetSkill(186, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 186);
             break;
         case GOSSIP_ACTION_INFO_DEF + 13:
             pPlayer->learnSpellHighRank(32678);
             pPlayer->SetSkill(393, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 393);
             break;
         case GOSSIP_ACTION_INFO_DEF + 14:
             pPlayer->learnSpellHighRank(26790);
             pPlayer->SetSkill(197, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 197);
             break;
         case GOSSIP_ACTION_INFO_DEF + 15:
             pPlayer->learnSpellHighRank(27028);
             pPlayer->SetSkill(129, 375, 375);
-            LearnSkillRecipesHelper(pPlayer, 129);
             break;
         default:
             return false;

@@ -1125,10 +1125,6 @@ UPDATE creature_template SET ScriptName='npc_dirty_larry' WHERE entry=19720;
 UPDATE creature_template SET ScriptName='npc_khadgars_servant' WHERE entry=19685;
 UPDATE creature_template SET ScriptName='npc_salsalabim' WHERE entry=18584;
 UPDATE creature_template SET ScriptName='npc_adal' WHERE entry IN(18481);
-DELETE FROM `npc_text_broadcast_text` WHERE `Id` IN (39288);
-INSERT INTO `npc_text_broadcast_text` (`Id`, `Prob0`, `BroadcastTextId0`) VALUES
-(39288, 1, 39288);
-UPDATE creature_template SET GossipMenuId=26751 WHERE entry=26075;
 UPDATE creature_template SET ScriptName="npc_paymaster" WHERE entry=26075;
 
 /* SILITHUS */

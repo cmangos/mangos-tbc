@@ -1360,10 +1360,12 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
     MANGOS_ASSERT(user || PrintEntryError("GameObject::Use (without user)"));
 
     // by default spell caster is user
-    Unit* spellCaster = user;
+    WorldObject* spellCaster = user;
     uint32 spellId = 0;
     uint32 triggeredFlags = 0;
     bool originalCaster = true;
+
+    std::function<void()> onSuccess;
 
     if (user->IsPlayer() && GetGoType() != GAMEOBJECT_TYPE_TRAP) // workaround for GO casting
         if (!spellInfo && !m_goInfo->IsUsableMounted())
@@ -1631,12 +1633,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
                 {
                     DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "Goober ScriptStart id %u for %s (Used by %s).", info->goober.eventId, GetGuidStr().c_str(), player->GetGuidStr().c_str());
 
-                    // for battleground events we need to allow the event id to be forwarded
-                    // Note: this exception is required in order not to change the legacy even handling in DB scripts
-                    if (GetMap()->IsBattleGround())
-                        StartEvents_Event(GetMap(), info->goober.eventId, this, player, true, player);
-                    else
-                        StartEvents_Event(GetMap(), info->goober.eventId, player, this);
+                    StartEvents_Event(GetMap(), info->goober.eventId, player, this);
                 }
 
                 // possible quest objective for active quests
@@ -1860,16 +1857,19 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
                     return;
             }
 
-            if (spellCaster->CastSpell(user, info->spellcaster.spellId, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid()) != SPELL_CAST_OK)
-                return;
+            spellId = info->spellcaster.spellId;
 
-            AddUse();
+            onSuccess = [&]()
+            {
+                AddUse();
 
-            // Previously we locked all spellcasters on use with no real indication why
-            // or timeout of the locking. Now only doing it on it being consumed to prevent further use.
-            // spellcaster GOs like city portals should never be locked
-            if (info->spellcaster.charges > 0 && !GetUseCount())
-                SetUInt32Value(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+                // Previously we locked all spellcasters on use with no real indication why
+                // or timeout of the locking. Now only doing it on it being consumed to prevent further use.
+                // spellcaster GOs like city portals should never be locked
+                if (info->spellcaster.charges > 0 && !GetUseCount())
+                    SetUInt32Value(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
+            };
+
             return;
         }
         case GAMEOBJECT_TYPE_MEETINGSTONE:                  // 23
@@ -1911,19 +1911,13 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 
             if (player->CanUseBattleGroundObject())
             {
-                // Note: object is used in battlegrounds;
-                // it's spawned by default in Warsong Gulch, Arathi Basin and Eye of the Storm
-                BattleGround* bg = player->GetBattleGround();
-                if (bg)
-                    bg->HandlePlayerClickedOnFlag(player, this);
-
                 // handle spell data if available; this usually marks the player as the flag carrier in a battleground
                 GameObjectInfo const* info = GetGOInfo();
                 if (info && info->flagstand.pickupSpell)
+                {
                     spellId = info->flagstand.pickupSpell;
-
-                // when clicked the flag despawns
-                SetLootState(GO_JUST_DEACTIVATED);
+                    spellCaster = this;
+                }
             }
             break;
         }
@@ -1955,13 +1949,10 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
                 GameObjectInfo const* info = GetGOInfo();
                 if (info && info->flagdrop.eventID)
                 {
-                    StartEvents_Event(GetMap(), info->flagdrop.eventID, this, player, true, player);
+                    StartEvents_Event(GetMap(), info->flagdrop.eventID, this, player, true);
 
                     // handle spell data if available; this usually marks the player as the flag carrier in a battleground
                     spellId = info->flagdrop.pickupSpell;
-
-                    // despawn the flag after click
-                    SetLootState(GO_JUST_DEACTIVATED);
                 }
             }
             break;
@@ -2434,7 +2425,7 @@ void GameObject::TickCapturePoint()
     }
 
     if (eventId)
-        StartEvents_Event(GetMap(), eventId, this, this, true, *capturingPlayers.begin());
+        StartEvents_Event(GetMap(), eventId, this, *capturingPlayers.begin(), true);
 }
 
 float GameObject::GetInteractionDistance() const

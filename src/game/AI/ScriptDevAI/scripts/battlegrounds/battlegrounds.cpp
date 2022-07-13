@@ -130,8 +130,14 @@ struct InactiveBattleground : public SpellScript
     }
 };
 
-struct FlagAuraBg : public AuraScript
+struct FlagAuraBg : public AuraScript, public SpellScript
 {
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx == EFFECT_INDEX_1)
+            spell->SetEventTarget(spell->GetAffectiveCasterObject());
+    }
+
     SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
     {
         // procs on taken spell - if acquired immune flag, remove it - maybe other conditions too
@@ -159,6 +165,23 @@ struct FlagAuraBg : public AuraScript
             else if (OutdoorPvP* outdoorPvP = sOutdoorPvPMgr.GetScript(player->GetCachedZoneId()))
                 outdoorPvP->HandleDropFlag(player, aura->GetSpellProto()->Id);
         }
+    }
+};
+
+struct FlagClickBg : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        uint32 spellId = 0;
+        switch (spell->m_spellInfo->Id)
+        {
+            case 23383: spellId = 23335; break; // Alliance Flag Pickup
+            case 23384: spellId = 23333; break; // Horde Flag Pickup
+        }
+
+        // misusing original caster to pass along original flag GO - if in future conflicts, substitute it for something else
+        target->CastSpell(target, spellId, TRIGGERED_IGNORE_GCD | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL, nullptr, nullptr, spell->GetTrueCaster()->GetObjectGuid());
     }
 };
 
@@ -253,6 +276,7 @@ void AddSC_battleground()
 
     RegisterSpellScript<OpeningCapping>("spell_opening_capping");
     RegisterSpellScript<FlagAuraBg>("spell_flag_aura_bg");
+    RegisterSpellScript<FlagClickBg>("spell_flag_click_bg");
     RegisterSpellScript<InactiveBattleground>("spell_inactive");
     RegisterSpellScript<ArenaPreparation>("spell_arena_preparation");
     RegisterSpellScript<spell_battleground_banner_trigger>("spell_battleground_banner_trigger");

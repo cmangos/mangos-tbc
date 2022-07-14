@@ -1258,6 +1258,9 @@ void FormationData::FixSlotsPositions()
         ++totalMembers;
     }
 
+    if (HaveOption(SPAWN_GROUP_FORMATION_OPTION_DONT_FOLLOW_LEADER))
+        return; 
+
     if (totalMembers <= 1)
         return;
 

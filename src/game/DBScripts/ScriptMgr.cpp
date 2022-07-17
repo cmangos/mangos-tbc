@@ -2082,7 +2082,15 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                     if (!m_script->movement.timerOrPassTarget & 0x1)
                         source->GetMotionMaster()->MoveWaypoint(m_script->movement.wanderORpathId);
                     else
+                    {
+                        if (!pTarget)
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u expecting target for passing to movement. Skipping.", m_table, m_script->id, m_script->command);
+                            break;
+                        }
+
                         source->GetMotionMaster()->MoveWaypoint(m_script->movement.wanderORpathId, 0, 0, 0, ForcedMovement(m_script->textId[0]), pTarget->GetObjectGuid());
+                    }
                     break;
                 }
                 case PATH_MOTION_TYPE:
@@ -2094,7 +2102,15 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                     if (!m_script->movement.timerOrPassTarget & 0x1)
                         source->GetMotionMaster()->MovePath(m_script->movement.wanderORpathId);
                     else
+                    {
+                        if (!pTarget)
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u expecting target for passing to movement. Skipping.", m_table, m_script->id, m_script->command);
+                            break;
+                        }
+
                         source->GetMotionMaster()->MovePath(m_script->movement.wanderORpathId, PATH_NO_PATH, ForcedMovement(m_script->textId[0]), false, 0.f, false, pTarget->GetObjectGuid());
+                    }
                     break;
                 }
                 case LINEAR_WP_MOTION_TYPE:
@@ -2107,7 +2123,14 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                     if (!m_script->movement.timerOrPassTarget & 0x1)
                         source->GetMotionMaster()->MoveLinearWP(m_script->movement.wanderORpathId);
                     else
+                    {
+                        if (!pTarget)
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u expecting target for passing to movement. Skipping.", m_table, m_script->id, m_script->command);
+                            break;
+                        }
                         source->GetMotionMaster()->MoveLinearWP(m_script->movement.wanderORpathId, 0, 0, 0, ForcedMovement(m_script->textId[0]), pTarget->GetObjectGuid());
+                    }
                     break;
                 }
             }

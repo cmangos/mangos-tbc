@@ -803,8 +803,8 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             {
                 switch (tmp.formationData.command)
                 {
-//                     case 2: // SetFormation
-//                         break;
+                     case 1: // SetFormation
+                         break;
 //                     case 3: // Add buddy to formation
 //                     {
 //                         if (!tmp.buddyEntry)
@@ -2776,66 +2776,75 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
         }
         case SCRIPT_COMMAND_SPAWN_GROUP:                    // 51
         {
-            if (LogIfNotCreature(pTarget))
-                return false;
-
-            Creature* leader = static_cast<Creature*>(pTarget);
-
-            CreatureGroup* leaderGroup = leader->GetCreatureGroup();
-            FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
-            FormationData* leaderFormation = nullptr;
-            if (leaderSlot)
-                leaderFormation = leaderSlot->GetFormationData();
-
             switch (m_script->formationData.command)
             {
-//                 case 2:                         // set formation
-//                 {
-//                     if (LogIfNotCreature(pSource))
-//                         return false;
-// 
-//                     CreatureGroup* targetGroup = nullptr;
-//                     if (!m_script->formationData.data1)
-//                     {
-//                         if (!leaderGroup)
-//                         {
-//                             sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(2) failed. Target group(%u) not found!",
-//                                 m_table, m_script->id, m_script->command, m_script->formationData.data1);
-//                             break;
-//                         }
-//                         leaderGroup->SetFormationData(nullptr);
-//                         break;
-//                     }
-//                     else
-//                     {
-//                         auto sgData = leader->GetMap()->GetSpawnManager().GetSpawnGroup(m_script->formationData.data1);
-//                         if (!sgData || !sgData->GetCreatureGroup())
-//                         {
-//                             sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(2) failed. Target group(%u) not found!",
-//                                 m_table, m_script->id, m_script->command, m_script->formationData.data1);
-//                             break;
-//                         }
-//                         targetGroup = sgData->GetCreatureGroup();
-//                     }
-// 
-//                     if (targetGroup->GetFormationData())
-//                     {
-//                         //
-//                         break;
-//                     }
-// 
-//                     FormationEntrySPtr fEntry = std::make_shared<FormationEntry>();
-//                     fEntry->GroupId = targetGroup->GetGroupId();
-//                     fEntry->Type = static_cast<SpawnGroupFormationType>(m_script->textId[0]);
-//                     fEntry->Spread = m_script->x;
-//                     fEntry->Options = m_script->textId[1];
-//                     fEntry->MovementType = m_script->textId[2]; // todo need to check that data!!!
-//                     fEntry->MovementID = m_script->textId[3];
-//                     fEntry->Comment = "Dynamically created formation!";
-// 
-//                     targetGroup->SetFormationData(fEntry);
-//                     break;
-//                 }
+                case 1:                         // set formation
+                {
+                    if (!pSource && !pTarget)
+                    {
+                        sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u call with no target, skipping.", m_table, m_script->id, m_script->command);
+                        return false;
+                    }
+
+                    WorldObject* target = nullptr;
+
+                    target = pSource ? pSource : pTarget;
+
+                    if (LogIfNotCreature(target))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(target);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
+                    FormationData* leaderFormation = nullptr;
+                    if (leaderSlot)
+                        leaderFormation = leaderSlot->GetFormationData();
+
+                    CreatureGroup* targetGroup = nullptr;
+                    if (!m_script->formationData.data1)
+                    {
+                        if (!leaderGroup)
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(1) failed. Target group(%u) not found!",
+                                m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                            break;
+                        }
+                        leaderGroup->SetFormationData(nullptr);
+                        break;
+                    }
+                    else
+                    {
+                        auto sgData = leader->GetMap()->GetSpawnManager().GetSpawnGroup(m_script->formationData.data1);
+                        if (!sgData || !sgData->GetCreatureGroup())
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(1) failed. Target group(%u) not found!",
+                                m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                            break;
+                        }
+                        targetGroup = sgData->GetCreatureGroup();
+                    }
+
+                    if (targetGroup->GetFormationData())
+                    {
+                        // better fail here, the user have to remove the previous formation first
+                        sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(1) failed. Target group(%u) have already a formation!",
+                            m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                        break;
+                    }
+
+                    FormationEntrySPtr fEntry = std::make_shared<FormationEntry>();
+                    fEntry->GroupId = targetGroup->GetGroupId();
+                    fEntry->Type = static_cast<SpawnGroupFormationType>(m_script->textId[0]);
+                    fEntry->Spread = m_script->x;
+                    fEntry->Options = m_script->textId[1];
+                    fEntry->MovementType = m_script->textId[2]; // todo need to check that data!!!
+                    fEntry->MovementID = m_script->textId[3];
+                    fEntry->Comment = "Dynamically created formation!";
+
+                    targetGroup->SetFormationData(fEntry);
+                    break;
+                }
 //                 case 3: // add creature to the formation
 //                 {
 //                     if (LogIfNotCreature(pSource))
@@ -2866,6 +2875,17 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
 //                 }
                 case 100: // switch formation shape
                 {
+                    if (LogIfNotCreature(pTarget))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(pTarget);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
+                    FormationData* leaderFormation = nullptr;
+                    if (leaderSlot)
+                        leaderFormation = leaderSlot->GetFormationData();
+
                     if (!leaderFormation)
                     {
                         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. %s is not in formation!",
@@ -2889,6 +2909,17 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 }
                 case 101:  // set formation spread
                 {
+                    if (LogIfNotCreature(pTarget))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(pTarget);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
+                    FormationData* leaderFormation = nullptr;
+                    if (leaderSlot)
+                        leaderFormation = leaderSlot->GetFormationData();
+
                     if (!leaderFormation)
                     {
                         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. %s is not in formation!",
@@ -2910,6 +2941,17 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 }
                 case 102:  // set formation options
                 {
+                    if (LogIfNotCreature(pTarget))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(pTarget);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
+                    FormationData* leaderFormation = nullptr;
+                    if (leaderSlot)
+                        leaderFormation = leaderSlot->GetFormationData();
+
                     if (!leaderFormation)
                     {
                         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. %s is not in formation!",

@@ -966,7 +966,8 @@ void BattleGround::EndBattleGround(Team winner)
         loser_arena_team->NotifyStatsChanged();
     }
 
-    if (winmsg_id)
+    // AV message is different - TODO: check if others are also wrong
+    if (winmsg_id && GetTypeId() != BATTLEGROUND_QUEUE_AV)
         SendMessageToAll(winmsg_id, CHAT_MSG_BG_SYSTEM_NEUTRAL);
 }
 

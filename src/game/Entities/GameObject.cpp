@@ -1856,6 +1856,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
             }
 
             spellId = info->spellcaster.spellId;
+            spellCaster = this;
 
             onSuccess = [&]()
             {
@@ -1867,8 +1868,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
                 if (info->spellcaster.charges > 0 && !GetUseCount())
                     SetUInt32Value(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
             };
-
-            return;
+            break;
         }
         case GAMEOBJECT_TYPE_MEETINGSTONE:                  // 23
         {

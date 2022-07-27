@@ -263,6 +263,7 @@ void NavMeshTesterTool::init(CMaNGOS_Map* sample)
 		m_filter.setAreaCost(SAMPLE_POLYAREA_DOOR, 1.0f);
 		m_filter.setAreaCost(SAMPLE_POLYAREA_GRASS, 2.0f);
 		m_filter.setAreaCost(SAMPLE_POLYAREA_JUMP, 1.5f);
+		m_filter.setAreaCost(SAMPLE_POLYAREA_SLOPE, 5.0f);
 	}
 
 	m_neighbourhoodRadius = sample->getAgentRadius() * 20.0f;
@@ -424,14 +425,9 @@ void NavMeshTesterTool::handleMenu()
 		m_filter.setIncludeFlags(m_filter.getIncludeFlags() ^ SAMPLE_POLYFLAGS_SWIM);
 		recalc();
 	}
-	if (imguiCheck("Door", (m_filter.getIncludeFlags() & SAMPLE_POLYFLAGS_DOOR) != 0))
+	if (imguiCheck("Slopes", (m_filter.getIncludeFlags() & SAMPLE_POLYFLAGS_SLOPES) != 0))
 	{
-		m_filter.setIncludeFlags(m_filter.getIncludeFlags() ^ SAMPLE_POLYFLAGS_DOOR);
-		recalc();
-	}
-	if (imguiCheck("Jump", (m_filter.getIncludeFlags() & SAMPLE_POLYFLAGS_JUMP) != 0))
-	{
-		m_filter.setIncludeFlags(m_filter.getIncludeFlags() ^ SAMPLE_POLYFLAGS_JUMP);
+		m_filter.setIncludeFlags(m_filter.getIncludeFlags() ^ SAMPLE_POLYFLAGS_SLOPES);
 		recalc();
 	}
 	imguiUnindent();
@@ -450,14 +446,9 @@ void NavMeshTesterTool::handleMenu()
 		m_filter.setExcludeFlags(m_filter.getExcludeFlags() ^ SAMPLE_POLYFLAGS_SWIM);
 		recalc();
 	}
-	if (imguiCheck("Door", (m_filter.getExcludeFlags() & SAMPLE_POLYFLAGS_DOOR) != 0))
+	if (imguiCheck("Slopes", (m_filter.getExcludeFlags() & SAMPLE_POLYFLAGS_SLOPES) != 0))
 	{
-		m_filter.setExcludeFlags(m_filter.getExcludeFlags() ^ SAMPLE_POLYFLAGS_DOOR);
-		recalc();
-	}
-	if (imguiCheck("Jump", (m_filter.getExcludeFlags() & SAMPLE_POLYFLAGS_JUMP) != 0))
-	{
-		m_filter.setExcludeFlags(m_filter.getExcludeFlags() ^ SAMPLE_POLYFLAGS_JUMP);
+		m_filter.setExcludeFlags(m_filter.getExcludeFlags() ^ SAMPLE_POLYFLAGS_SLOPES);
 		recalc();
 	}
 	imguiUnindent();

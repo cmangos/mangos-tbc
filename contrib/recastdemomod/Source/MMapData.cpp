@@ -494,22 +494,15 @@ void MMapData::BuildNavMeshOfTile(unsigned int tx, unsigned int ty, MeshObjects 
         // Update poly flags from areas.
         for (int i = 0; i < m_pmesh->npolys; ++i)
         {
-            if (m_pmesh->areas[i] == RC_WALKABLE_AREA)
-                m_pmesh->areas[i] = SAMPLE_POLYAREA_GROUND;
-
-            if (m_pmesh->areas[i] == SAMPLE_POLYAREA_GROUND ||
-                m_pmesh->areas[i] == SAMPLE_POLYAREA_GRASS ||
-                m_pmesh->areas[i] == SAMPLE_POLYAREA_ROAD)
-            {
+            if (m_pmesh->areas[i] == 11)
                 m_pmesh->flags[i] = SAMPLE_POLYFLAGS_WALK;
-            }
-            else if (m_pmesh->areas[i] == SAMPLE_POLYAREA_WATER)
+            else if (m_pmesh->areas[i] == 9 || m_pmesh->areas[i] == 8)
             {
                 m_pmesh->flags[i] = SAMPLE_POLYFLAGS_SWIM;
             }
-            else if (m_pmesh->areas[i] == SAMPLE_POLYAREA_DOOR)
+            else if (m_pmesh->areas[i] == 10)
             {
-                m_pmesh->flags[i] = SAMPLE_POLYFLAGS_WALK | SAMPLE_POLYFLAGS_DOOR;
+                m_pmesh->flags[i] = SAMPLE_POLYFLAGS_SLOPES;
             }
         }
 

@@ -67,6 +67,7 @@
 #include "Cinematics/CinematicMgr.h"
 #include "Maps/TransportMgr.h"
 #include "Anticheat/Anticheat.hpp"
+#include "AI/ScriptDevAI/scripts/custom/Transmogrification.h"
 
 #ifdef BUILD_AHBOT
  #include "AuctionHouseBot/AuctionHouseBot.h"
@@ -996,6 +997,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_FLOAT_HEROIC_SUNWELL5MANFIX_DIFF, "Solocraft.Sunwell5ManFixH", 5.0);
     //End Solocraft Config
 
+    sTransmogrification->LoadConfig(reload);
+
     sLog.outString();
 }
 
@@ -1593,6 +1596,13 @@ void World::SetInitialWorldSettings()
 #endif
 #ifdef ENABLE_PLAYERBOTS
     sPlayerbotAIConfig.Initialize();
+#endif
+    sTransmogrification->LoadConfig(false);
+    CharacterDatabase.Execute("DELETE FROM custom_transmogrification WHERE NOT EXISTS (SELECT 1 FROM item_instance WHERE item_instance.guid = custom_transmogrification.GUID)");
+#ifdef PRESETS
+    // Clean even if disabled
+    // Dont delete even if player has more presets than should
+    CharacterDatabase.Execute("DELETE FROM `custom_transmogrification_sets` WHERE NOT EXISTS(SELECT 1 FROM characters WHERE characters.guid = custom_transmogrification_sets.Owner)");
 #endif
     sLog.outString("---------------------------------------");
     sLog.outString("      CMANGOS: World initialized       ");

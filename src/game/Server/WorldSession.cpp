@@ -39,6 +39,7 @@
 #include "GMTickets/GMTicketMgr.h"
 #include "Loot/LootMgr.h"
 #include "Anticheat/Anticheat.hpp"
+#include "AI/ScriptDevAI/scripts/custom/Transmogrification.h"
 
 #include <mutex>
 #include <deque>
@@ -758,6 +759,16 @@ void WorldSession::LogoutPlayer()
 
         // GM ticket notification
         sTicketMgr.OnPlayerOnlineState(*_player, false);
+
+        ObjectGuid pGUID = _player->GetObjectGuid();
+        for (Transmogrification::transmog2Data::const_iterator it = sTransmogrification->entryMap[pGUID].begin(); it != sTransmogrification->entryMap[pGUID].end(); ++it)
+            sTransmogrification->dataMap.erase(it->first);
+        sTransmogrification->entryMap.erase(pGUID);
+
+#ifdef PRESETS
+        if (sTransmogrification->GetEnableSets())
+            sTransmogrification->UnloadPlayerSets(pGUID);
+#endif
 
 #ifdef BUILD_PLAYERBOT
         // Remember player GUID for update SQL below

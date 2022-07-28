@@ -417,70 +417,34 @@ bool QuestAccept_npc_melizza_brimbuzzle(Player* pPlayer, Creature* pCreature, co
 
 enum
 {
-    NPC_CORK_GIZELTON           = 11625,
-    NPC_RIGGER_GIZELTON         = 11626,
-    NPC_VENDOR_TRON             = 12245,
-    NPC_SUPER_SELLER            = 12246,
+    NPC_CORK_GIZELTON = 11625,
+    NPC_RIGGER_GIZELTON = 11626,
+    NPC_VENDOR_TRON = 12245,
+    NPC_SUPER_SELLER = 12246,
 
-    QUEST_BODYGUARD_TO_HIRE     = 5821,
-    QUEST_GIZELTON_CARAVAN      = 5943,
+    QUEST_BODYGUARD_TO_HIRE = 5821,
+    QUEST_GIZELTON_CARAVAN = 5943,
 
-    SPAWN_GROUP_PATH_ID         = 19010,
-    PATH_ID_CORK_GIZELTON       = 11625,
-    PATH_ID_RIGGER_GIZELTON     = 11626,
-    WAYPOINT_ID_AFTER_ESCORT_1  = 33,
-    WAYPOINT_ID_AFTER_ESCORT_2  = 100,
+    SPAWN_GROUP_PATH_ID = 19010,
+    PATH_ID_CORK_GIZELTON = 11625,
+    PATH_ID_RIGGER_GIZELTON = 11626,
+    WAYPOINT_ID_AFTER_ESCORT_1 = 33,
+    WAYPOINT_ID_AFTER_ESCORT_2 = 100,
+
+    GIZELTON_TIMER_AFTER_FAIL = 60 * IN_MILLISECONDS, // forced despawn when one of the member die even if still in combat
 };
 
 struct npc_cork_gizeltonAI : public npc_escortAI
 {
     npc_cork_gizeltonAI(Creature* pCreature) : npc_escortAI(pCreature) { Reset(); }
 
-    void Reset() override    {    }
+    int32 FailTimer = int32(GIZELTON_TIMER_AFTER_FAIL);
+    bool StatusFailed = false;
+    bool ScriptDone = false;
 
-    void WaypointReached(uint32 uiPointId) override
-    {
-        if (!HasEscortState(STATE_ESCORT_ESCORTING))
-            return;
+    void Reset() override {   }
 
-        Player* pPlayer = GetPlayerForEscort();
-        
-        switch (uiPointId)
-        {
-            case 19:
-                if (pPlayer->GetQuestStatus(QUEST_BODYGUARD_TO_HIRE) == QUEST_STATUS_INCOMPLETE)
-                {
-                    // Award quest credit
-                    if (pPlayer)
-                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_BODYGUARD_TO_HIRE, m_creature);
-                }
-                m_creature->GetMotionMaster()->Clear(false, true);
-                m_creature->GetMotionMaster()->MoveWaypoint(SPAWN_GROUP_PATH_ID, PATH_FROM_WAYPOINT_PATH);
-                m_creature->GetMotionMaster()->SetNextWaypoint(WAYPOINT_ID_AFTER_ESCORT_1);
-                m_creature->SetWalk(false);
-                break;         
-            // The second escort quest is also handled by NPC Cork though it is given by NPC Rigger
-            case 21:   
-                if (pPlayer->GetQuestStatus(QUEST_GIZELTON_CARAVAN) == QUEST_STATUS_INCOMPLETE)
-                {
-                    // Award quest credit
-                    if (pPlayer)
-                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_GIZELTON_CARAVAN, m_creature);
-                }
-                m_creature->GetMotionMaster()->Clear(false, true);
-                m_creature->GetMotionMaster()->MoveWaypoint(SPAWN_GROUP_PATH_ID, PATH_FROM_WAYPOINT_PATH);
-                m_creature->GetMotionMaster()->SetNextWaypoint(WAYPOINT_ID_AFTER_ESCORT_2);
-                m_creature->SetWalk(false);
-                break;
-        }        
-    }
-
-    void StartRiggerEscort(Player* pPlayer)
-    {
-            Start(false, pPlayer, nullptr, false, false, PATH_ID_RIGGER_GIZELTON);
-    }
-
-    void JustDied(Unit* /*pKiller*/) override
+    void MakeQuestFailAndClean()
     {
         Player* pPlayer = GetPlayerForEscort();
         if (!pPlayer)
@@ -507,6 +471,74 @@ struct npc_cork_gizeltonAI : public npc_escortAI
             if (pPlayer->GetQuestStatus(QUEST_GIZELTON_CARAVAN) == QUEST_STATUS_INCOMPLETE)
                 pPlayer->FailQuest(QUEST_GIZELTON_CARAVAN);
         }
+
+        m_creature->GetCreatureGroup()->Despawn();
+    }
+
+    void UpdateEscortAI(const uint32 diff) override
+    {
+        npc_escortAI::UpdateEscortAI(diff);
+
+        if (ScriptDone)
+            return;
+
+        if (!StatusFailed)
+            return;
+
+        FailTimer -= diff;
+        if (FailTimer > 0 && !m_creature->GetCreatureGroup()->IsOutOfCombat())
+            return;
+
+        MakeQuestFailAndClean();
+        ScriptDone = true;
+    }
+
+    void WaypointReached(uint32 uiPointId) override
+    {
+        if (!HasEscortState(STATE_ESCORT_ESCORTING))
+            return;
+
+        Player* pPlayer = GetPlayerForEscort();
+
+        switch (uiPointId)
+        {
+        case 19:
+            if (pPlayer->GetQuestStatus(QUEST_BODYGUARD_TO_HIRE) == QUEST_STATUS_INCOMPLETE)
+            {
+                // Award quest credit
+                if (pPlayer)
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_BODYGUARD_TO_HIRE, m_creature);
+            }
+            m_creature->GetMotionMaster()->Clear(false, true);
+            m_creature->GetMotionMaster()->MoveWaypoint(SPAWN_GROUP_PATH_ID, PATH_FROM_WAYPOINT_PATH);
+            m_creature->GetMotionMaster()->SetNextWaypoint(WAYPOINT_ID_AFTER_ESCORT_1);
+            m_creature->SetWalk(false);
+            break;
+            // The second escort quest is also handled by NPC Cork though it is given by NPC Rigger
+        case 21:
+            if (pPlayer->GetQuestStatus(QUEST_GIZELTON_CARAVAN) == QUEST_STATUS_INCOMPLETE)
+            {
+                // Award quest credit
+                if (pPlayer)
+                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_GIZELTON_CARAVAN, m_creature);
+            }
+            m_creature->GetMotionMaster()->Clear(false, true);
+            m_creature->GetMotionMaster()->MoveWaypoint(SPAWN_GROUP_PATH_ID, PATH_FROM_WAYPOINT_PATH);
+            m_creature->GetMotionMaster()->SetNextWaypoint(WAYPOINT_ID_AFTER_ESCORT_2);
+            m_creature->SetWalk(false);
+            break;
+        }
+    }
+
+    void StartRiggerEscort(Player* pPlayer)
+    {
+        Start(false, pPlayer, m_questForEscort, false, false, PATH_ID_RIGGER_GIZELTON);
+    }
+
+
+    void CreatureGroupMemberDied(Unit* killed)
+    {
+        StatusFailed = true;
     }
 };
 
@@ -519,15 +551,8 @@ bool QuestAccept_npc_cork_gizelton(Player* pPlayer, Creature* pCreature, const Q
 {
     if (pQuest->GetQuestId() == QUEST_BODYGUARD_TO_HIRE)
     {
-        // Faction for the other NPCs is set in dbscripts_on_quest_start
-        if (pPlayer->GetTeam() == ALLIANCE)
-            pCreature->SetFactionTemporary(FACTION_ESCORT_A_PASSIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
-
-        if (pPlayer->GetTeam() == HORDE)
-            pCreature->SetFactionTemporary(FACTION_ESCORT_H_PASSIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
-
         if (npc_cork_gizeltonAI* escortAI = dynamic_cast<npc_cork_gizeltonAI*>(pCreature->AI()))
-            escortAI->Start(false, pPlayer, nullptr, false, false, PATH_ID_CORK_GIZELTON);               // Note: Escort path use other coords then normal path
+            escortAI->Start(false, pPlayer, pQuest, false, false, PATH_ID_CORK_GIZELTON);               // Note: Escort path use other coords then normal path
     }
     return true;
 }
@@ -552,21 +577,12 @@ bool QuestAccept_npc_rigger_gizelton(Player* pPlayer, Creature* pCreature, const
 {
     if (pQuest->GetQuestId() == QUEST_GIZELTON_CARAVAN)
     {
-        // Faction for the other NPCs is set in dbscripts_on_quest_start
-        if (pPlayer->GetTeam() == ALLIANCE)
-            pCreature->SetFactionTemporary(FACTION_ESCORT_A_PASSIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
-
-        if (pPlayer->GetTeam() == HORDE)
-            pCreature->SetFactionTemporary(FACTION_ESCORT_H_PASSIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
-
         // Now the quest is accepted, tell NPC Cork what player took it so it can handle quest credit/failure
         // because NPC Cork will handle both escort quests
-        if (Creature* pCork = GetClosestCreatureWithEntry(pCreature, NPC_CORK_GIZELTON, 100.0f))        
+        if (Creature* pCork = GetClosestCreatureWithEntry(pCreature, NPC_CORK_GIZELTON, 100.0f))
             if (npc_cork_gizeltonAI* pCorkAI = dynamic_cast<npc_cork_gizeltonAI*>(pCork->AI()))
                 pCorkAI->StartRiggerEscort(pPlayer);               // Note: Escort path use other coords then normal path
-        
     }
-
     return true;
 }
 

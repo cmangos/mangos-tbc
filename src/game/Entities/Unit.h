@@ -2137,7 +2137,7 @@ class Unit : public WorldObject
         void AddCreature(uint32 spellId, Creature* creature);
         void RemoveCreature(uint32 spellId, bool del);
 
-        uint32 CalculateDamage(WeaponAttackType attType, bool normalized, uint8 index = 0);
+        float CalculateDamage(WeaponAttackType attType, bool normalized, uint8 index = 0);
         float GetAPMultiplier(WeaponAttackType attType, bool normalized);
         void ModifyAuraState(AuraState flag, bool apply);
         bool HasAuraState(AuraState flag) const { return HasFlag(UNIT_FIELD_AURASTATE, 1 << (flag - 1)); }

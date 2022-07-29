@@ -8785,8 +8785,11 @@ void SpellAuraHolder::SendAuraDurationForCaster(Player* caster)
     data << m_target->GetPackGUID();
     data << uint8(GetAuraSlot());
     data << uint32(GetId());
-    data << uint32(GetAuraMaxDuration());                   // full
-    data << uint32(GetAuraDuration());                      // remain
+    if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_DO_NOT_DISPLAY_DURATION))
+    {
+        data << uint32(GetAuraMaxDuration());                   // full
+        data << uint32(GetAuraDuration());                      // remain
+    }
     caster->GetSession()->SendPacket(data);
 }
 

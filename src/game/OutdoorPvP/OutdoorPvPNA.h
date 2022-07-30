@@ -102,6 +102,8 @@ enum
     EVENT_HALAA_BANNER_CONTEST_HORDE        = 11558,
     EVENT_HALAA_BANNER_PROGRESS_ALLIANCE    = 11821,
     EVENT_HALAA_BANNER_PROGRESS_HORDE       = 11822,
+
+    ZONE_HALAA                              = 3628,
 };
 
 struct HalaaSoldiersSpawns
@@ -131,7 +133,7 @@ class OutdoorPvPNA : public OutdoorPvP
         void FillInitialWorldStates(WorldPacket& data, uint32& count) override;
         void SendRemoveWorldStates(Player* player) override;
 
-        bool HandleEvent(uint32 eventId, GameObject* go, Unit* invoker) override;
+        bool HandleEvent(uint32 eventId, Object* source, Object* target) override;
         void HandleObjectiveComplete(uint32 eventId, const std::list<Player*>& players, Team team) override;
 
         void HandleCreatureCreate(Creature* creature) override;

@@ -600,7 +600,7 @@ struct boss_kiljaedenAI : public CombatAI, private DialogueHelper
     void HandleAttackDelay()
     {
         SetReactState(REACT_AGGRESSIVE);
-        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
         DoScriptText(SAY_EMERGE, m_creature);
         SetMeleeEnabled(true);
         AttackClosestEnemy();
@@ -987,7 +987,7 @@ enum SinisterReflectionSpells
     // generic
     SPELL_DUAL_WEILD_PASSIVE = 42459,
     // hunter
-    SPELL_WING_CLIP = 40652,
+    SPELL_WING_CLIP = 40652, // 47168 root used as prenerf
     // shaman
     SPELL_EARTH_SHOCK = 47071,
     // warrior
@@ -1032,9 +1032,7 @@ struct npc_sinister_reflectionAI : public CombatAI
     npc_sinister_reflectionAI(Creature* creature) : CombatAI(creature, SINISTER_ACTION_MAX)
     {
         AddCustomAction(SINISTER_ATTACK_DELAY, 7000u, [&]() { HandleAttackDelay(); });
-        SetReactState(REACT_PASSIVE);
-        SetCombatMovement(false);
-        SetMeleeEnabled(false);
+        SetReactState(REACT_DEFENSIVE);
     }
 
     uint8 m_class;
@@ -1087,8 +1085,6 @@ struct npc_sinister_reflectionAI : public CombatAI
     void HandleAttackDelay()
     {
         SetReactState(REACT_AGGRESSIVE);
-        SetCombatMovement(true);
-        SetMeleeEnabled(true);
         m_creature->SetInCombatWithZone();
         AttackStart(m_creature->GetSpawner());
     }

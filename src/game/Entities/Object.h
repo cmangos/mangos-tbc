@@ -27,6 +27,7 @@
 #include "Entities/ObjectGuid.h"
 #include "Entities/EntitiesMgr.h"
 #include "Globals/SharedDefines.h"
+#include "Globals/Locales.h"
 #include "Entities/Camera.h"
 #include "Server/DBCStructure.h"
 #include "PlayerDefines.h"
@@ -318,6 +319,7 @@ struct Position
 {
     Position() : x(0.0f), y(0.0f), z(0.0f), o(0.0f) {}
     Position(float _x, float _y, float _z, float _o) : x(_x), y(_y), z(_z), o(_o) {}
+    Position(float _x, float _y, float _z) : x(_x), y(_y), z(_z), o(0.f) {}
     float x, y, z, o;
     float GetPositionX() const { return x; }
     float GetPositionY() const { return y; }
@@ -395,7 +397,8 @@ class Object
         uint32 GetGUIDLow() const { return GetObjectGuid().GetCounter(); }
         uint32 GetGUIDHigh() const { return GetObjectGuid().GetHigh(); }
         PackedGuid const& GetPackGUID() const { return m_PackGUID; }
-        std::string GetGuidStr() const { return GetObjectGuid().GetString(); }
+        uint32 GetDbGuid() const { return m_dbGuid; }
+        std::string GetGuidStr() const { return { GetObjectGuid().GetString() + " DBGuid: " + std::to_string(m_dbGuid)}; }
 
         uint32 GetEntry() const { return GetUInt32Value(OBJECT_FIELD_ENTRY); }
         void SetEntry(uint32 entry) { SetUInt32Value(OBJECT_FIELD_ENTRY, entry); }
@@ -628,7 +631,7 @@ class Object
         Object();
 
         void _InitValues();
-        void _Create(uint32 guidlow, uint32 entry, HighGuid guidhigh);
+        void _Create(uint32 dbGuid, uint32 guidlow, uint32 entry, HighGuid guidhigh);
 
         uint16 GetUpdateFieldFlagsForTarget(Player const* target, uint16 const*& flags) const;
         void _SetUpdateBits(UpdateMask& updateMask, Player* target) const;
@@ -664,6 +667,8 @@ class Object
 
         Object(const Object&);                              // prevent generation copy constructor
         Object& operator=(Object const&);                   // prevent generation assigment operator
+
+        uint32 m_dbGuid;
 
     public:
         // for output helpfull error messages from ASSERTs
@@ -991,6 +996,7 @@ class WorldObject : public Object
 
         uint32 GetZoneId() const;
         uint32 GetAreaId() const;
+        char const* GetAreaName(LocaleConstant locale) const;
         void GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const;
 
         InstanceData* GetInstanceData() const;
@@ -1151,6 +1157,7 @@ class WorldObject : public Object
         virtual void RemoveAllCooldowns(bool /*sendOnly*/ = false) { m_GCDCatMap.clear(); m_cooldownMap.clear(); m_lockoutMap.clear(); }
         bool IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr) const;
         bool IsSpellReady(uint32 spellId, ItemPrototype const* itemProto = nullptr) const;
+        bool IsSpellOnPermanentCooldown(SpellEntry const& spellEntry) const;
         bool HasGCDOrCooldownWithinMargin(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr);
         virtual void LockOutSpells(SpellSchoolMask schoolMask, uint32 duration);
         void PrintCooldownList(ChatHandler& chat) const;
@@ -1181,7 +1188,6 @@ class WorldObject : public Object
         MovementInfo m_movementInfo;
         GenericTransport* m_transport;
 
-        virtual uint32 GetDbGuid() const { return 0; }
         virtual HighGuid GetParentHigh() const { return HighGuid(0); }
 
         bool IsUsingNewSpawningSystem() const;

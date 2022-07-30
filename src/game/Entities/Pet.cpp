@@ -54,10 +54,9 @@ Pet::Pet(PetType type) :
     m_removed(false), m_happinessTimer(7500), m_loyaltyTimer(12000), m_petType(type), m_duration(0),
     m_loyaltyPoints(0), m_loading(false),
     m_xpRequiredForNextLoyaltyLevel(0), m_declinedname(nullptr),
-    m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr), m_inStatsUpdate(false)
+    m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr), m_inStatsUpdate(false), m_imposedCooldown(false)
 {
     m_name = "Pet";
-    m_regenTimer = 4000;
 
     // pets always have a charminfo, even if they are not actually charmed
     InitCharmInfo(this);
@@ -661,6 +660,13 @@ void Pet::SetDeathState(DeathState s)                       // overwrite virtual
         }
 
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+
+        if (Unit* owner = GetOwner())
+        {
+            StartCooldown(owner);
+            if (getPetType() == GUARDIAN_PET)
+                owner->RemoveGuardian(this);
+        }
     }
     else if (GetDeathState() == ALIVE)
     {
@@ -731,39 +737,37 @@ void Pet::Update(const uint32 diff)
     Creature::Update(diff);
 }
 
-void Pet::RegenerateAll(uint32 update_diff)
+void Pet::RegenerateAll(uint32 diff)
 {
-    // regenerate focus
-    if (m_regenTimer <= update_diff)
+    // regenerate focus for hunter pets
+    m_regenTimer += diff;
+    if (m_regenTimer >= 4000)
     {
         if (!IsInCombat())
             RegenerateHealth();
 
         RegeneratePower(4.f);
-
-        m_regenTimer = 4000;
+        m_regenTimer -= 4000;
     }
-    else
-        m_regenTimer -= update_diff;
 
     if (getPetType() != HUNTER_PET)
         return;
 
-    if (m_happinessTimer <= update_diff)
+    if (m_happinessTimer <= diff)
     {
         LooseHappiness();
         m_happinessTimer = 7500;
     }
     else
-        m_happinessTimer -= update_diff;
+        m_happinessTimer -= diff;
 
-    if (m_loyaltyTimer <= update_diff)
+    if (m_loyaltyTimer <= diff)
     {
         TickLoyaltyChange();
         m_loyaltyTimer = 12000;
     }
     else
-        m_loyaltyTimer -= update_diff;
+        m_loyaltyTimer -= diff;
 }
 
 void Pet::LooseHappiness()
@@ -1093,6 +1097,9 @@ void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
             }
         }
 
+        if (p_owner)
+            StartCooldown(p_owner);
+
         // only if current pet in slot
         switch (getPetType())
         {
@@ -1266,7 +1273,10 @@ void Pet::InitStatsForLevel(uint32 petlevel)
     float mana = 0.f;
     float armor = 0.f;
 
-    switch (getPetType())
+    PetType petType = getPetType();
+    if (!GetOwnerGuid().IsPlayer())
+        petType = GUARDIAN_PET; // for purpose of pet scaling, NPC summoned SUMMON_PET scale as GUARDIAN_PET
+    switch (petType)
     {
         case HUNTER_PET:
         {
@@ -1314,7 +1324,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
             }
             else
             {
-                sLog.outErrorDb("HUNTER PET levelstats missing in DB! 'Weakifying' pet");
+                sLog.outErrorDb("HUNTER PET levelstats missing in DB! 'Weakifying' pet. Entry: 1 PetLevel: %u.", petlevel);
 
                 for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
                     SetCreateStat(Stats(i), 1.0f);
@@ -1374,7 +1384,7 @@ void Pet::InitStatsForLevel(uint32 petlevel)
             }
             else
             {
-                sLog.outErrorDb("SUMMON_PET levelstats missing in DB! 'Weakifying' pet and giving it mana to make it obvious");
+                sLog.outErrorDb("SUMMON_PET levelstats missing in DB! 'Weakifying' pet and giving it mana to make it obvious. Entry: %u Level: %u", cInfo->Entry, petlevel);
 
                 for (int i = STAT_STRENGTH; i < MAX_STATS; ++i)
                     SetCreateStat(Stats(i), 1.0f);
@@ -2207,7 +2217,7 @@ bool Pet::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* ci
 {
     SetMap(cPos.GetMap());
 
-    Object::_Create(guidlow, pet_number, HIGHGUID_PET);
+    Object::_Create(guidlow, guidlow, pet_number, HIGHGUID_PET);
 
     m_originalEntry = cinfo->Entry;
 
@@ -2404,10 +2414,40 @@ void Pet::ForcedDespawn(uint32 timeMSToDespawn, bool onlyAlive)
     if (IsDespawned())
         return;
 
+    Unit* owner = GetOwner();
+
     if (IsAlive())
         SetDeathState(JUST_DIED);
 
     RemoveCorpse(true);                                     // force corpse removal in the same grid
 
-    Unsummon(PET_SAVE_NOT_IN_SLOT);
+    Unsummon(PET_SAVE_NOT_IN_SLOT, owner);
+}
+
+void Pet::StartCooldown(Unit* owner)
+{
+    if (!m_imposedCooldown)
+    {
+        m_imposedCooldown = true;
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(GetUInt32Value(UNIT_CREATED_BY_SPELL));
+        // Remove infinity cooldown
+        if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_COOLDOWN_ON_EVENT))
+            owner->AddCooldown(*spellInfo);
+    }
+}
+
+bool Pet::IgnoresOwnersDeath() const
+{
+    if (IsGuardian())
+    {
+        if (uint32 spellId = GetUInt32Value(UNIT_CREATED_BY_SPELL))
+        {
+            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
+            // Remove infinity cooldown
+            if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX_IGNORE_OWNERS_DEATH))
+                return true;
+        }
+        return false;
+    }
+    return true;
 }

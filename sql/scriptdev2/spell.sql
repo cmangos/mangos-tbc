@@ -25,12 +25,18 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (4130,'spell_banish_exile'),
 (4131,'spell_banish_exile'),
 (4132,'spell_banish_exile'),
+(5166,'spell_harvest_silithid_egg'),
 (6467,'spell_unarmed_woodcutter'),
 (7054,'spell_forsaken_skill'),
+(8555,'spell_left_for_dead'),
 (8603,'spell_tribal_death'),
 (8655,'spell_tribal_death'),
 (8894,'spell_tribal_death'),
 (9144,'spell_tribal_death'),
+(9204,'spell_hate_to_zero'),
+(20538,'spell_hate_to_zero'),
+(26569,'spell_hate_to_zero'),
+(26637,'spell_hate_to_zero'),
 (10255,'spell_stoned'),
 (12639,'spell_summon_hakkar'),
 (12948,'spell_hakkar_summoned'),
@@ -47,6 +53,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (17016,'spell_placing_beacon_torch'),
 (17244,'spell_anastari_possess'),
 (16739,'spell_orb_of_deception'),
+(19707,'spell_hate_to_half'),
 (19832,'spell_possess_razorgore'),
 (19872,'spell_calm_dragonkin'),
 (19873,'spell_destroy_egg'),
@@ -99,6 +106,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (26686,'spell_aq_whirlwind'),
 (26767,'spell_cthun_tentacles_summon'),
 (26769,'spell_cthun_periodic_eye_trigger'),
+(27360,'spell_instill_lord_valthalaks_spirit'),
 (28006,'spell_arcane_cloaking'),
 (27808,'spell_kel_thuzad_frost_blast'),
 (27934,'spell_viscidus_shrinks'),
@@ -355,6 +363,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (46839,'spell_ogrila_flasks'),
 (40887,'spell_assist_bt'),
 (40892,'spell_fixate_bt'),
+(34852,'spell_call_of_the_falcon'),
 (39581,'spell_storm_blink'),
 (34630,'spell_scrap_reaver_spell'),
 (41476,'spell_veras_vanish'),
@@ -367,6 +376,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (38858,'spell_queldanas_shoot'),
 (34800,'spell_getting_sleepy_aura'),
 (43364,'spell_getting_sleepy_aura'),
+(34664,'spell_sleep_visual_flavor'),
 (37156,'spell_tk_dive'),
 (41951,'spell_supremus_random_target'),
 (41925,'spell_hateful_strike_primer'),
@@ -497,6 +507,10 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (46747,'spell_fling_torch'),
 (45671,'spell_juggle_torch_catch_quest'),
 (45693,'spell_torches_caught'),
+(45426,'spell_brazier_of_dancing_flames'),
+(45644,'spell_juggle_torch_catch'),
+(45819,'spell_throw_torch'),
+(46878,'spell_summon_ice_spear_knockback_delayer'),
 (40526,'spell_imp_in_a_bottle_say'),
 (49357,'spell_brewfest_mount_transformation'),
 (52845,'spell_brewfest_mount_transformation_faction_swap'),
@@ -614,6 +628,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (25228,'spell_soul_link'),
 (27243,'spell_seed_of_corruption'),
 (27285,'spell_seed_of_corruption_damage'),
+(30293,'spell_soul_leech'),
+(30295,'spell_soul_leech'),
+(30296,'spell_soul_leech'),
 (35696,'spell_demonic_knowledge'),
 (30108,'spell_unstable_affliction'),
 (30404,'spell_unstable_affliction'),
@@ -691,7 +708,14 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (12574,'spell_arcane_concentration'),
 (12575,'spell_arcane_concentration'),
 (12576,'spell_arcane_concentration'),
-(12577,'spell_arcane_concentration');
+(12577,'spell_arcane_concentration'),
+(42208,'spell_blizzard'),
+(42209,'spell_blizzard'),
+(42210,'spell_blizzard'),
+(42211,'spell_blizzard'),
+(42212,'spell_blizzard'),
+(42213,'spell_blizzard'),
+(42198,'spell_blizzard');
 
 -- Druid
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
@@ -724,7 +748,16 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (1856,'spell_vanish'),
 (1857,'spell_vanish'),
 (26889,'spell_vanish'),
-(14185,'spell_preparation');
+(6770,'spell_sap'),
+(2070,'spell_sap'), -- check ranks before changing
+(11297,'spell_sap'),
+(14185,'spell_preparation'),
+(14082,'spell_dirty_deeds'),
+(14083,'spell_dirty_deeds'),
+(13983,'spell_setup_rogue'),
+(14070,'spell_setup_rogue'),
+(14071,'spell_setup_rogue');
+
 
 -- Shaman
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
@@ -842,6 +875,13 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 
 -- Battleground and Outdoor PvP
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(23333,'spell_flag_aura_bg'),
+(23335,'spell_flag_aura_bg'),
+(29519,'spell_flag_aura_bg'),
+(34976,'spell_flag_aura_bg'),
+-- WSG
+(23383,'spell_flag_click_bg'),
+(23384,'spell_flag_click_bg'),
 -- Arathi basin
 (23936,'spell_battleground_banner_trigger'),
 (23932,'spell_battleground_banner_trigger'),

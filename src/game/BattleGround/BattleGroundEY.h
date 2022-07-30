@@ -118,8 +118,8 @@ enum EYEvents
     EVENT_DRAENEI_RUINS_NEUTRAL_HORDE           = 12959,
 
     // The following event ids are used for the flag handling
-    EVENT_NETHERSTORM_FLAG_PICKUP               = 13000,                    // called when player clicks on the flag drop
-    EVENT_NETHERSTORM_FLAG_SPELL                = 13042,                    // not used; called when player clicks on flag; triggered from spell
+    EVENT_NETHERSTORM_FLAG_PICKUP               = 13000,                    // not used; called when player clicks on the flag drop
+    EVENT_NETHERSTORM_FLAG_SPELL                = 13042,                    // called when player casts flag aura - source player, target flag go
 };
 
 enum EYSounds
@@ -276,11 +276,10 @@ class BattleGroundEY : public BattleGround
 
         // General functions
         void UpdatePlayerScore(Player* source, uint32 type, uint32 value) override;
-        void FillInitialWorldStates(WorldPacket& data, uint32& count) override;
         Team GetPrematureWinner() override;
 
         // Battleground event handlers
-        bool HandleEvent(uint32 eventId, GameObject* go, Unit* invoker) override;
+        bool HandleEvent(uint32 eventId, Object* source, Object* target) override;
         bool HandleAreaTrigger(Player* source, uint32 trigger) override;
         void HandleGameObjectCreate(GameObject* go) override;
         void HandleKillPlayer(Player* player, Player* killer) override;
@@ -307,19 +306,16 @@ class BattleGroundEY : public BattleGround
         bool AreAllNodesControlledByTeam(Team team);
 
         // Process score and resources
-        void UpdateTeamScore(Team team);
+        void CheckVictory(Team team);
         void UpdateResources();
         void AddPoints(Team team, uint32 points);
+        void SetFlagState(EYFlagState state);
+        void SetTowerOwner(EYNodes node, Team team);
 
         EYFlagState m_flagState;
         ObjectGuid m_flagCarrier;
         ObjectGuid m_droppedFlagGuid;
         uint32 m_mainFlagDbGuid;
-
-        uint8 m_towersAlliance;
-        uint8 m_towersHorde;
-
-        uint32 m_towerWorldState[EY_MAX_NODES];
 
         Team m_towerOwner[EY_MAX_NODES];
         ObjectGuid m_towers[EY_MAX_NODES];

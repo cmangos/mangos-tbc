@@ -340,7 +340,7 @@ bool ChatHandler::HandleGPSCommand(char* args)
     PSendSysMessage(LANG_MAP_POSITION,
                     obj->GetMapId(), (mapEntry ? mapEntry->name[GetSessionDbcLocale()] : "<unknown>"),
                     zone_id, (zoneEntry ? zoneEntry->area_name[GetSessionDbcLocale()] : "<unknown>"),
-                    area_id, (areaEntry ? areaEntry->area_name[GetSessionDbcLocale()] : "<unknown>"),
+                    area_id, obj->GetAreaName(GetSessionDbcLocale()),
                     obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ(), obj->GetOrientation(),
                     cell.GridX(), cell.GridY(), cell.CellX(), cell.CellY(), obj->GetInstanceId(),
                     zone_x, zone_y, ground_z, floor_z, have_map, have_vmap);
@@ -359,7 +359,7 @@ bool ChatHandler::HandleGPSCommand(char* args)
     DEBUG_LOG(GetMangosString(LANG_MAP_POSITION),
               obj->GetMapId(), (mapEntry ? mapEntry->name[sWorld.GetDefaultDbcLocale()] : "<unknown>"),
               zone_id, (zoneEntry ? zoneEntry->area_name[sWorld.GetDefaultDbcLocale()] : "<unknown>"),
-              area_id, (areaEntry ? areaEntry->area_name[sWorld.GetDefaultDbcLocale()] : "<unknown>"),
+              area_id, obj->GetAreaName(sWorld.GetDefaultDbcLocale()),
               obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ(), obj->GetOrientation(),
               cell.GridX(), cell.GridY(), cell.CellX(), cell.CellY(), obj->GetInstanceId(),
               zone_x, zone_y, ground_z, floor_z, have_map, have_vmap);
@@ -1721,15 +1721,6 @@ bool ChatHandler::HandleGoHelper(Player* player, uint32 mapid, float x, float y,
             SetSentErrorMessage(true);
             return false;
         }
-
-        if (mapid == player->GetMap()->GetId())
-            player->UpdateAllowedPositionZ(x, y, z);
-        else
-        {
-            TerrainInfo const* map = sTerrainMgr.LoadTerrain(mapid);
-            float groundZ = map->GetHeightStatic(x, y, z);
-            z = map->GetWaterOrGroundLevel(x, y, MAX_HEIGHT, groundZ);
-        }
     }
     else
     {
@@ -1947,6 +1938,62 @@ bool ChatHandler::HandleGoGridCommand(char* args)
     float y = (grid_y - CENTER_GRID_ID + 0.5f) * SIZE_OF_GRIDS;
 
     return HandleGoHelper(_player, mapid, x, y);
+}
+
+bool ChatHandler::HandleGoWarpCommand(char* args)
+{
+    if (!*args)
+        return false;
+
+    Player* player = m_session->GetPlayer();
+
+    char* arg1 = strtok((char*)args, " ");
+    char* arg2 = strtok(NULL, " ");
+
+    if (!arg1 || !arg2)
+        return false;
+
+    char dir = arg1[0];
+    int32 value = (int32)atoi(arg2);
+    float x = player->GetPositionX();
+    float y = player->GetPositionY();
+    float z = player->GetPositionZ();
+    float o = player->GetOrientation();
+
+    switch (dir)
+    {
+        case 'x':
+        {
+            x = x + cosf(o) * value;
+            y = y + sinf(o) * value;
+            break;
+        }
+        case 'y':
+        {
+            x = x + cos(o - (M_PI_F / 2)) * value;
+            y = y + sin(o - (M_PI_F / 2)) * value;
+            break;
+        }
+        case 'z':
+        {
+            z = z + value;
+            break;
+        }
+        case 'o':
+        {
+            o = o - (value * M_PI_F / 180.0f);
+            if (o < 0.0f)
+                o += value * M_PI_F;
+            else if (o > 2 * M_PI_F)
+                o -= value * M_PI_F;
+            break;
+        }
+        default:
+            return false;
+    }
+
+    player->NearTeleportTo(x, y, z, o);
+    return true;
 }
 
 bool ChatHandler::HandleModifyDrunkCommand(char* args)

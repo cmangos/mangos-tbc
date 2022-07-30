@@ -50,8 +50,11 @@ void CreatureAI::EnterCombat(Unit* enemy)
 {
     UnitAI::EnterCombat(enemy);
     // TODO: Monitor this condition to see if it conflicts with any pets
-    if (m_creature->IsCritter() && !m_creature->IsPet())
-        m_creature->SetInPanic(30000);
+    if (m_creature->IsCritter() && !m_creature->IsPet() && !m_creature->IsInPanic() && enemy && enemy->IsPlayerControlled())
+    {
+        DoFlee(30000);
+        SetAIOrder(ORDER_CRITTER_FLEE); // mark as critter flee for custom handling
+    }
     if (enemy && (m_creature->IsGuard() || m_creature->IsCivilian()))
     {
         // Send Zone Under Attack message to the LocalDefense and WorldDefense Channels
@@ -78,13 +81,12 @@ void CreatureAI::AttackStart(Unit* who)
     }
 }
 
-void CreatureAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType /*damageType*/, SpellEntry const* /*spellInfo*/)
+void CreatureAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType damageType, SpellEntry const* /*spellInfo*/)
 {
-    if (m_deathPrevention)
+    if (m_deathPrevention && damageType != INSTAKILL)
     {
-        if (m_creature->GetHealth() <= damage)
+        if (m_creature->GetHealth() <= damage) // the damage will be reduced in Unit::DealDamage
         {
-            damage = m_creature->GetHealth() - 1;
             if (!m_deathPrevented)
             {
                 m_deathPrevented = true;
@@ -109,7 +111,7 @@ void CreatureAI::DoFakeDeath(uint32 spellId)
     m_creature->RemoveAllAurasOnDeath();
     m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
     m_creature->ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);
-    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+    m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
     m_creature->ClearAllReactives();
     m_creature->SetTarget(nullptr);
     m_creature->GetMotionMaster()->Clear();
@@ -216,4 +218,10 @@ void CreatureAI::TimedFleeingEnded()
             if (factionTemplate->factionFlags & FACTION_TEMPLATE_FLEE_FROM_CALL_FOR_HELP)
                 EnterEvadeMode();
     }
+    if (GetAIOrder() == ORDER_CRITTER_FLEE && m_creature->IsAlive())
+    {
+        SetCombatScriptStatus(false);
+        EnterEvadeMode();
+    }
+    SetAIOrder(ORDER_NONE);
 }

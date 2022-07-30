@@ -94,6 +94,18 @@ enum LevelRequirementVsMode
     LEVELREQUIREMENT_HEROIC = 70
 };
 
+struct ZoneDynamicInfo
+{
+    ZoneDynamicInfo() : musicId(0), weatherId(0), weatherGrade(0.0f),
+        overrideLightId(0), lightFadeInTime(0) { }
+
+    uint32 musicId;
+    uint32 weatherId;
+    float  weatherGrade;
+    uint32 overrideLightId;
+    uint32 lightFadeInTime;
+};
+
 #if defined( __GNUC__ )
 #pragma pack()
 #else
@@ -101,6 +113,8 @@ enum LevelRequirementVsMode
 #endif
 
 #define MIN_UNLOAD_DELAY      1                             // immediate unload
+
+typedef std::unordered_map<uint32 /*zoneId*/, ZoneDynamicInfo> ZoneDynamicInfoMap;
 
 class Map : public GridRefManager<NGridType>
 {
@@ -348,6 +362,11 @@ class Map : public GridRefManager<NGridType>
         TimePoint GetCurrentClockTime() const;
         uint32 GetCurrentDiff() const;
 
+        void SetZoneMusic(uint32 zoneId, uint32 musicId);
+        void SetZoneWeather(uint32 zoneId, uint32 weatherId, float weatherGrade);
+        void SetZoneOverrideLight(uint32 zoneId, uint32 lightId, uint32 fadeInTime);
+        void SendZoneDynamicInfo(Player* player) const;
+
         void CreatePlayerOnClient(Player* player);
 
         uint32 GetLoadedGridsCount();
@@ -491,6 +510,9 @@ class Map : public GridRefManager<NGridType>
         std::shared_ptr<CreatureSpellListContainer> m_spellListContainer;
 
         WorldStateVariableManager m_variableManager;
+
+        ZoneDynamicInfoMap m_zoneDynamicInfo;
+        uint32 m_defaultLight;
 };
 
 class WorldMap : public Map

@@ -16,7 +16,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 # Minimum required cmake version to run the build
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.9)
+cmake_policy(SET CMP0069 NEW)
 
 # Will cache object files if ccache is available
 # Must be set at top of cmake outside of project header
@@ -284,12 +285,6 @@ if(UNIX AND (BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER OR BUILD_EXTRACTORS))
   endif()
 endif()
 
-find_package(ZLIB QUIET)
-if(NOT ZLIB_FOUND)
-  # use internal source code
-  set(ZLIB_LIBRARIES "zlib")
-  message(STATUS "Could not find ZLIB on your system. The provided sources will be used.")
-endif()
 if(BUILD_EXTRACTORS)
   find_package(BZip2 QUIET)
   if(NOT (BZip2_FOUND OR BZIP2_FOUND))

@@ -255,8 +255,8 @@ bool GOUse_go_harbinger_second_trial(Player* /*pPlayer*/, GameObject* pGO)
 ######*/
 enum
 {
-    SAY_ANVIL1            = -1000209,
-    SAY_ANVIL2            = -1000210,
+    SAY_ANVIL1            = 11734,
+    SAY_ANVIL2            = 11735,
 
     GOSSIP_ITEM_MOMENT    = -3000108,
     GOSSIP_ITEM_SHOW      = -3000110,
@@ -264,7 +264,7 @@ enum
     GOSSIP_TEXT_ID_MOMENT = 8239,
     GOSSIP_TEXT_ID_SHOW   = 8240,
 
-    FACTION_HOSTILE       = 24,
+    FACTION_HOSTILE       = 14,
 
     QUEST_THE_DWARVEN_SPY = 8483
 };
@@ -286,14 +286,11 @@ struct npc_prospector_anvilwardAI : public npc_escortAI
 
         switch (uiPointId)
         {
-            case 1:
-                DoScriptText(SAY_ANVIL1, m_creature, pPlayer);
-                break;
-            case 7:
-                DoScriptText(SAY_ANVIL2, m_creature, pPlayer);
+            case 11:
+                DoBroadcastText(SAY_ANVIL2, m_creature, pPlayer);
                 m_creature->GetMotionMaster()->Clear(false, true);
                 m_creature->GetMotionMaster()->MoveIdle();
-                m_creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_REACH_HOME | TEMPFACTION_RESTORE_RESPAWN);
+                m_creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_RESPAWN);
                 m_creature->AI()->SetReactState(REACT_DEFENSIVE);
                 m_creature->ForcedDespawn(60000);
                 break;
@@ -327,7 +324,10 @@ bool GossipSelect_npc_prospector_anvilward(Player* pPlayer, Creature* pCreature,
             pPlayer->CLOSE_GOSSIP_MENU();
 
             if (npc_prospector_anvilwardAI* pEscortAI = dynamic_cast<npc_prospector_anvilwardAI*>(pCreature->AI()))
+            {
+                DoBroadcastText(SAY_ANVIL1, pCreature, pPlayer);
                 pEscortAI->Start(false, pPlayer);
+            }
 
             break;
     }
@@ -394,8 +394,7 @@ struct npc_apprentice_mirvedaAI : public ScriptedAI
 
     void JustSummoned(Creature* pSummoned) override
     {
-        pSummoned->SetWalk(false);
-        pSummoned->GetMotionMaster()->MovePoint(0, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ());
+        pSummoned->AI()->AttackStart(m_creature);
         m_summons.push_back(pSummoned->GetObjectGuid());
     }
 
@@ -430,9 +429,9 @@ struct npc_apprentice_mirvedaAI : public ScriptedAI
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
         m_playerGuid = pPlayer->GetObjectGuid();
 
-        m_creature->SummonCreature(NPC_ANGERSHADE, 8756.952f, -7124.688f, 35.227f, 3.925692f, TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 60000, true);
-        m_creature->SummonCreature(NPC_GHARSUL,	   8756.182f, -7130.453f, 35.227f, 3.816502f, TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 60000, true);
-        m_creature->SummonCreature(NPC_ANGERSHADE, 8761.380f, -7132.638f, 35.696f, 3.664015f, TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, 60000, true);
+        m_creature->SummonCreature(NPC_ANGERSHADE, 8755.3798828125f, -7131.521484375f, 35.30957412719726562f, 3.664015054702758789f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000, true);
+        m_creature->SummonCreature(NPC_GHARSUL, 8751.291015625f, -7131.166015625f, 35.327850341796875f, 3.816501855850219726f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000, true);
+        m_creature->SummonCreature(NPC_ANGERSHADE, 8753.19921875f, -7125.97509765625f, 35.31986236572265625f, 3.925692081451416015f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000, true);
 
         m_creature->SetActiveObjectState(true);
     }

@@ -80,7 +80,7 @@ target_link_libraries(${LIBRARY_NAME}
   PRIVATE shared
   PRIVATE g3dlite
   PRIVATE detour
-  PRIVATE ${ZLIB_LIBRARIES}
+  PRIVATE zlib
 )
 
 # include additionals headers
@@ -115,7 +115,6 @@ endif()
 # Define BUILD_AHBOT if need
 if (BUILD_AHBOT)
   add_definitions(-DBUILD_AHBOT)
-  install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/AuctionHouseBot/ahbot.conf.dist.in DESTINATION ${CONF_DIR} RENAME ahbot.conf.dist)
 endif()
 
 # Define BUILD_METRICS if need
@@ -136,5 +135,3 @@ endif()
 if(PCH)
   target_precompile_headers(${LIBRARY_NAME} PRIVATE "${PCH_FILE_HEADER}")
 endif()
-
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/PlayerBot/playerbot.conf.dist.in DESTINATION ${CONF_DIR} RENAME playerbot.conf.dist)

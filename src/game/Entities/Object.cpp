@@ -45,7 +45,7 @@
 #include "Spells/SpellMgr.h"
 #include "MotionGenerators/PathFinder.h"
 
-Object::Object(): m_updateFlag(0), m_itsNewObject(false)
+Object::Object(): m_updateFlag(0), m_itsNewObject(false), m_dbGuid(0)
 {
     m_objectTypeId      = TYPEID_OBJECT;
     m_objectType        = TYPEMASK_OBJECT;
@@ -88,12 +88,14 @@ void Object::_InitValues()
     m_objectUpdated = false;
 }
 
-void Object::_Create(uint32 guidlow, uint32 entry, HighGuid guidhigh)
+void Object::_Create(uint32 dbGuid, uint32 guidlow, uint32 entry, HighGuid guidhigh)
 {
     if (!m_uint32Values)
         _InitValues();
 
     ObjectGuid guid = ObjectGuid(guidhigh, entry, guidlow);
+    m_dbGuid = dbGuid;
+
     SetGuidValue(OBJECT_FIELD_GUID, guid);
     SetUInt32Value(OBJECT_FIELD_TYPE, m_objectType);
     m_PackGUID.Set(guid);
@@ -539,11 +541,7 @@ void Object::BuildValuesUpdate(uint8 updatetype, ByteBuffer* data, UpdateMask* u
                     if (target->IsGameMaster())
                     {
                         // Gamemasters should be always able to select units - remove not selectable flag:
-                        value &= ~UNIT_FLAG_NOT_SELECTABLE;
-
-                        // Gamemasters have power to cliffwalk in GM mode:
-                        if (target == this)
-                            value |= UNIT_FLAG_UNK_0;
+                        value &= ~UNIT_FLAG_UNINTERACTIBLE;
                     }
 
                     // Client bug workaround: Fix for missing chat channels when resuming taxi flight on login
@@ -1215,7 +1213,7 @@ void WorldObject::Update(const uint32 diff)
 
 void WorldObject::_Create(uint32 guidlow, HighGuid guidhigh, uint32 phaseMask)
 {
-    Object::_Create(guidlow, 0, guidhigh);
+    Object::_Create(guidlow, guidlow, 0, guidhigh);
     m_phaseMask = phaseMask;
 }
 
@@ -1256,6 +1254,11 @@ uint32 WorldObject::GetZoneId() const
 uint32 WorldObject::GetAreaId() const
 {
     return GetTerrain()->GetAreaId(m_position.x, m_position.y, m_position.z);
+}
+
+char const* WorldObject::GetAreaName(LocaleConstant locale) const
+{
+    return GetTerrain()->GetAreaName(m_position.x, m_position.y, m_position.z, locale);
 }
 
 void WorldObject::GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const
@@ -2049,8 +2052,8 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
         float dist = settings.forcedOnTop ? 0.0f : CONTACT_DISTANCE;
         pos = CreatureCreatePos(settings.spawner, settings.spawner->GetOrientation(), dist, settings.ori);
     }
-
-    if (!creature->Create(map->GenerateLocalLowGuid(cinfo->GetHighGuid()), pos, cinfo))
+    uint32 lowGuid = map->GenerateLocalLowGuid(cinfo->GetHighGuid());
+    if (!creature->Create(lowGuid, lowGuid, pos, cinfo))
     {
         delete creature;
         return nullptr;
@@ -2098,6 +2101,8 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
     {
         if (CreatureSpawnTemplate const* templateData = sObjectMgr.GetCreatureSpawnTemplate(settings.spawnDataEntry))
         {
+            if (templateData->npcFlags != -1)
+                creature->SetUInt32Value(UNIT_NPC_FLAGS, uint32(templateData->npcFlags));
             if (templateData->unitFlags != -1)
                 creature->SetUInt32Value(UNIT_FIELD_FLAGS, uint32(templateData->unitFlags));
             if (templateData->faction > 0)
@@ -2737,6 +2742,21 @@ bool WorldObject::IsSpellReady(uint32 spellId, ItemPrototype const* itemProto /*
     return IsSpellReady(*spellEntry, itemProto);
 }
 
+bool WorldObject::IsSpellOnPermanentCooldown(SpellEntry const& spellEntry) const
+{
+    TimePoint now;
+    if (IsInWorld())
+        now = GetMap()->GetCurrentClockTime();
+    else
+        now = World::GetCurrentClockTime();
+
+    auto itr = m_cooldownMap.FindBySpellId(spellEntry.Id);
+    if (itr != m_cooldownMap.end() && !(*itr).second->IsSpellCDExpired(now))
+        return itr->second->IsPermanent();
+
+    return false;
+}
+
 bool WorldObject::HasGCDOrCooldownWithinMargin(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/)
 {
     uint64 diff = 0;
@@ -3016,7 +3036,7 @@ int32 WorldObject::CalculateSpellEffectValue(Unit const* target, SpellEntry cons
         }
     }
 
-    if (unitCaster && spellProto->HasAttribute(SPELL_ATTR_LEVEL_DAMAGE_CALCULATION) && spellProto->spellLevel)
+    if (unitCaster && spellProto->HasAttribute(SPELL_ATTR_SCALES_WITH_CREATURE_LEVEL) && spellProto->spellLevel)
     {
         // TODO: Drastically beter than before, but still needs some additional aura scaling research
         bool damage = false;

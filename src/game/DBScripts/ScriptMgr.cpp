@@ -106,8 +106,8 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
     scripts.first = tablename;
     scripts.second.clear();                                 // need for reload support
 
-    //                                                 0   1      2        3         4          5          6            7              8           9        10        11        12       13 14 15 16  17
-    QueryResult* result = WorldDatabase.PQuery("SELECT id, delay, command, datalong, datalong2, datalong3, buddy_entry, search_radius, data_flags, dataint, dataint2, dataint3, dataint4, x, y, z, o, condition_id FROM %s ORDER BY priority", tablename);
+    //                                                 0   1      2        3         4          5          6            7              8           9        10        11        12               13 14 15 16 17     18            19
+    QueryResult* result = WorldDatabase.PQuery("SELECT id, delay, command, datalong, datalong2, datalong3, buddy_entry, search_radius, data_flags, dataint, dataint2, dataint3, dataint4, datafloat, x, y, z, o, speed, condition_id FROM %s ORDER BY priority", tablename);
 
     uint32 count = 0;
 
@@ -142,11 +142,13 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
         tmp.textId[1]          = fields[10].GetInt32();
         tmp.textId[2]          = fields[11].GetInt32();
         tmp.textId[3]          = fields[12].GetInt32();
-        tmp.x                  = fields[13].GetFloat();
-        tmp.y                  = fields[14].GetFloat();
-        tmp.z                  = fields[15].GetFloat();
-        tmp.o                  = fields[16].GetFloat();
-        tmp.condition_id       = fields[17].GetUInt32();
+        tmp.rawFloat.data[0]   = fields[13].GetFloat();
+        tmp.x                  = fields[14].GetFloat();
+        tmp.y                  = fields[15].GetFloat();
+        tmp.z                  = fields[16].GetFloat();
+        tmp.o                  = fields[17].GetFloat();
+        tmp.speed              = fields[18].GetFloat();
+        tmp.condition_id       = fields[19].GetUInt32();
 
         if (tmp.condition_id && !sConditionStorage.LookupEntry<ConditionEntry>(tmp.condition_id))
         {
@@ -430,7 +432,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                     continue;
                 }
 
-                if (info->type != GAMEOBJECT_TYPE_DOOR)
+                if (info->type != GAMEOBJECT_TYPE_DOOR && info->type != GAMEOBJECT_TYPE_BUTTON)
                 {
                     sLog.outErrorDb("Table `%s` has gameobject type (%u) non supported by command %s for script id %u", tablename, info->id, (tmp.command == SCRIPT_COMMAND_OPEN_DOOR ? "SCRIPT_COMMAND_OPEN_DOOR" : "SCRIPT_COMMAND_CLOSE_DOOR"), tmp.id);
                     continue;
@@ -520,6 +522,13 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 {
                     sLog.outErrorDb("Table `%s` SCRIPT_COMMAND_MOVEMENT has invalid MovementType %u for script id %u",
                                     tablename, tmp.movement.movementType, tmp.id);
+                    continue;
+                }
+
+                if (tmp.textId[0] < 0 || tmp.textId[0] > ForcedMovement::FORCED_MOVEMENT_FLIGHT)
+                {
+                    sLog.outErrorDb("Table `%s` SCRIPT_COMMAND_MOVEMENT has invalid forced movement type %d for script id %u",
+                        tablename, tmp.textId[0], tmp.id);
                     continue;
                 }
 
@@ -715,7 +724,7 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 }
                 break;
             }
-            case SCRIPT_COMMAND_SET_HOVER:                    // 39
+            case SCRIPT_COMMAND_SET_HOVER:                  // 39
             case SCRIPT_COMMAND_DESPAWN_GO:                 // 40
             case SCRIPT_COMMAND_RESPAWN:                    // 41
                 break;
@@ -801,8 +810,25 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
             {
                 switch (tmp.formationData.command)
                 {
-//                     case 2: // SetFormation
-//                         break;
+                     case 150: // SetFormation
+                         if (tmp.textId[0] >= SpawnGroupFormationType::SPAWN_GROUP_FORMATION_TYPE_COUNT)
+                         {
+                             sLog.outErrorDb("Table `%s` uses invalid formation shape id(%u) for script id %u. Command[51], subcommand[%u]",
+                                 tablename, tmp.textId[0], tmp.id, tmp.formationData.command);
+                             continue;
+                         }
+                     case 151: // Remove formation
+                     {
+                         auto const& spgCont = sObjectMgr.GetSpawnGroupContainer()->spawnGroupMap;
+                         if (spgCont.find(tmp.formationData.data1) == spgCont.end())
+                         {
+                             sLog.outErrorDb("Table `%s` uses invalid spawngroup id(%u) for script id %u. Command[51], subcommand[%u]",
+                                 tablename, tmp.formationData.data1, tmp.id, tmp.formationData.command);
+                             continue;
+                         }
+
+                         break;
+                     }
 //                     case 3: // Add buddy to formation
 //                     {
 //                         if (!tmp.buddyEntry)
@@ -864,6 +890,24 @@ void ScriptMgr::LoadScripts(ScriptMapMapName& scripts, const char* tablename)
                 //        tablename, tmp.setGossipMenu.gossipMenuId, tmp.id);
                 //    continue;
                 //}
+                break;
+            }
+            case SCRIPT_COMMAND_SET_WORLDSTATE:             // 53
+            {
+                if (!sObjectMgr.HasWorldStateName(tmp.textId[0])) // must be named
+                {
+                    sLog.outErrorDb("Table `%s` has no worldstate name assigned for worldstate %d", tablename, tmp.textId[0]);
+                    continue;
+                }
+                break;
+            }
+            case SCRIPT_COMMAND_SET_SHEATHE:                // 54
+            {
+                if (tmp.setSheathe.sheatheState > SHEATH_STATE_RANGED)
+                {
+                    sLog.outErrorDb("Table `%s` has invalid sheathe state assigned %d", tablename, tmp.setSheathe.sheatheState);
+                    continue;
+                }
                 break;
             }
             default:
@@ -1197,7 +1241,7 @@ bool ScriptAction::GetScriptProcessTargets(WorldObject* originalSource, WorldObj
             if (m_script->IsCreatureBuddy())
             {
                 CreatureData const* cData = sObjectMgr.GetCreatureData(m_script->searchRadiusOrGuid);
-                buddy = m_map->GetCreature(cData->GetObjectGuid(m_script->searchRadiusOrGuid));
+                buddy = m_map->GetCreature(m_script->searchRadiusOrGuid);
 
                 if (buddy && ((Creature*)buddy)->IsAlive() == m_script->IsDeadOrDespawnedBuddy())
                 {
@@ -1873,7 +1917,7 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 break;
             }
 
-            if (door->GetGoType() != GAMEOBJECT_TYPE_DOOR)
+            if (door->GetGoType() != GAMEOBJECT_TYPE_DOOR && door->GetGoType() != GAMEOBJECT_TYPE_BUTTON)
             {
                 sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed for non-door(GoType: %u).", m_table, m_script->id, m_script->command, door->GetGoType());
                 break;
@@ -2034,12 +2078,40 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 break;
             }
 
+            uint32 movementType = m_script->movement.movementType;
+            uint32 wanderORpathId = m_script->movement.wanderORpathId;
+
+            WaypointPathOrigin wp_origin = PATH_NO_PATH;
+            if (m_script->movement.timerOrPassTarget & 0x2)
+                wp_origin = PATH_FROM_WAYPOINT_PATH;
+
+            ObjectGuid targetGuid;
+
+            ForcedMovement forcedMovement = ForcedMovement(m_script->textId[0]);
+
+            auto fSlot = source->GetFormationSlot();
+            if (fSlot)
+            {
+                if (!fSlot->IsFormationMaster())
+                {
+                    sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u call for creature in formation, skipping.", m_table, m_script->id, m_script->command);
+                    break;
+                }
+
+                fSlot->GetFormationData()->SetMovementInfo(MovementGeneratorType(m_script->movement.movementType), m_script->movement.wanderORpathId);
+            }
+
             if (m_script->movement.movementType == WAYPOINT_MOTION_TYPE || m_script->movement.movementType == PATH_MOTION_TYPE)
             {
-                if (m_script->movement.timerOrPassTarget && !pTarget)
+                if (pTarget)
+                    targetGuid = pTarget->GetObjectGuid();
+                else
                 {
-                    DETAIL_FILTER_LOG(LOG_FILTER_DB_SCRIPT, " DB-SCRIPTS: Process table `%s` id %u, SCRIPT_COMMAND_MOVEMENT called for movement change to %u with source guid %s, pass target true and target nullptr: skipping.", m_table, m_script->id, m_script->movement.movementType, pSource->GetGuidStr().c_str());
-                    break;
+                    if ((m_script->movement.timerOrPassTarget & 0x1) != 0)
+                    {
+                        DETAIL_FILTER_LOG(LOG_FILTER_DB_SCRIPT, " DB-SCRIPTS: Process table `%s` id %u, SCRIPT_COMMAND_MOVEMENT called for movement change to %u with source guid %s, pass target true and target nullptr: skipping.", m_table, m_script->id, m_script->movement.movementType, pSource->GetGuidStr().c_str());
+                        break;
+                    }
                 }
             }
 
@@ -2057,43 +2129,42 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                     {
                         float respX, respY, respZ, respO, wander_distance;
                         source->GetRespawnCoord(respX, respY, respZ, &respO, &wander_distance);
-                        wander_distance = m_script->movement.wanderORpathId ? m_script->movement.wanderORpathId : wander_distance;
+                        wander_distance = wanderORpathId ? wanderORpathId : wander_distance;
                         source->GetMotionMaster()->MoveRandomAroundPoint(respX, respY, respZ, wander_distance, 0.f, m_script->movement.timerOrPassTarget);
                     }
                     break;
                 case WAYPOINT_MOTION_TYPE:
+                {
                     source->StopMoving();
                     source->GetMotionMaster()->Clear(false, true);
-                    if (!m_script->movement.timerOrPassTarget)
-                        source->GetMotionMaster()->MoveWaypoint(m_script->movement.wanderORpathId);
-                    else
-                        source->GetMotionMaster()->MoveWaypoint(m_script->movement.wanderORpathId, 0, 0, 0, ForcedMovement(m_script->textId[0]), pTarget->GetObjectGuid());
+                    source->GetMotionMaster()->MoveWaypoint(wanderORpathId, wp_origin, 0, 0, forcedMovement, targetGuid);
                     break;
+                }
                 case PATH_MOTION_TYPE:
+                {
                     source->StopMoving();
-                    if (!m_script->movement.timerOrPassTarget)
-                        source->GetMotionMaster()->MovePath(m_script->movement.wanderORpathId);
-                    else
-                        source->GetMotionMaster()->MovePath(m_script->movement.wanderORpathId, PATH_NO_PATH, ForcedMovement(m_script->textId[0]), false, 0.f, false, pTarget->GetObjectGuid());
+                    source->GetMotionMaster()->MovePath(wanderORpathId, wp_origin, forcedMovement, false, 0.f, false, targetGuid);
                     break;
+                }
                 case LINEAR_WP_MOTION_TYPE:
+                {
                     source->StopMoving();
                     source->GetMotionMaster()->Clear(false, true);
-                    if (!m_script->movement.timerOrPassTarget)
-                        source->GetMotionMaster()->MoveLinearWP(m_script->movement.wanderORpathId);
-                    else
-                        source->GetMotionMaster()->MoveLinearWP(m_script->movement.wanderORpathId, 0, 0, 0, ForcedMovement(m_script->textId[0]), pTarget->GetObjectGuid());
+                    source->GetMotionMaster()->MoveLinearWP(wanderORpathId, wp_origin, 0, 0, forcedMovement, targetGuid);
                     break;
+                }
             }
-
             break;
         }
         case SCRIPT_COMMAND_SET_ACTIVEOBJECT:               // 21
         {
-            if (LogIfNotCreature(pSource))
-                break;
+            if (pSource->GetTypeId() == TYPEID_PLAYER)
+            {
+                sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u call for player, skipping.", m_table, m_script->id, m_script->command);
+                break;;
+            }
 
-            ((Creature*)pSource)->SetActiveObjectState(m_script->activeObject.activate != 0);
+            pSource->SetActiveObjectState(m_script->activeObject.activate != 0);
             break;
         }
         case SCRIPT_COMMAND_SET_FACTION:                    // 22
@@ -2577,11 +2648,7 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
             if (LogIfNotGameObject(pTarget))
                 break;
 
-            // ToDo: Change this to pGo->ForcedDespawn() when function is implemented!
-            if (((GameObject*)pTarget)->GetSpellId())
-                ((GameObject*)pTarget)->Delete();
-            else
-                ((GameObject*)pTarget)->SetLootState(GO_JUST_DEACTIVATED);
+            static_cast<GameObject*>(pTarget)->ForcedDespawn(m_script->despawnGo.despawnDelay);
 
             break;
         }
@@ -2652,9 +2719,6 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
         }
         case SCRIPT_COMMAND_START_RELAY_SCRIPT:             // 45
         {
-            if (LogIfNotUnit(pSource))
-                return false;
-
             uint32 chosenId;
             if (m_script->relayScript.templateId)
                 chosenId = sScriptMgr.GetRandomRelayDbscriptFromTemplate(m_script->relayScript.templateId);
@@ -2726,68 +2790,128 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
             creature->AI()->AttackClosestEnemy();
             break;
         }
-        case SCRIPT_COMMAND_SPAWN_GROUP:                    // 60
+        case SCRIPT_COMMAND_SPAWN_GROUP:                    // 51
         {
-            if (LogIfNotCreature(pTarget))
-                return false;
-
-            Creature* leader = static_cast<Creature*>(pTarget);
-
-            CreatureGroup* leaderGroup = leader->GetCreatureGroup();
-            FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
-            FormationData* leaderFormation = nullptr;
-            if (leaderSlot)
-                leaderFormation = leaderSlot->GetFormationData();
-
             switch (m_script->formationData.command)
             {
-//                 case 2:                         // set formation
-//                 {
-//                     if (LogIfNotCreature(pSource))
-//                         return false;
-// 
-//                     CreatureGroup* targetGroup = nullptr;
-//                     if (!m_script->formationData.data1)
-//                     {
-//                         if (!leaderGroup)
-//                         {
-//                             sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(2) failed. Target group(%u) not found!",
-//                                 m_table, m_script->id, m_script->command, m_script->formationData.data1);
-//                             break;
-//                         }
-//                         leaderGroup->SetFormationData(nullptr);
-//                         break;
-//                     }
-//                     else
-//                     {
-//                         auto sgData = leader->GetMap()->GetSpawnManager().GetSpawnGroup(m_script->formationData.data1);
-//                         if (!sgData || !sgData->GetCreatureGroup())
-//                         {
-//                             sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(2) failed. Target group(%u) not found!",
-//                                 m_table, m_script->id, m_script->command, m_script->formationData.data1);
-//                             break;
-//                         }
-//                         targetGroup = sgData->GetCreatureGroup();
-//                     }
-// 
-//                     if (targetGroup->GetFormationData())
-//                     {
-//                         //
-//                         break;
-//                     }
-// 
-//                     FormationEntrySPtr fEntry = std::make_shared<FormationEntry>();
-//                     fEntry->GroupId = targetGroup->GetGroupId();
-//                     fEntry->Type = static_cast<SpawnGroupFormationType>(m_script->textId[0]);
-//                     fEntry->Spread = m_script->x;
-//                     fEntry->Options = m_script->textId[1];
-//                     fEntry->MovementType = m_script->textId[2]; // todo need to check that data!!!
-//                     fEntry->MovementID = m_script->textId[3];
-//                     fEntry->Comment = "Dynamically created formation!";
-// 
-//                     targetGroup->SetFormationData(fEntry);
-//                     break;
-//                 }
+                case 150:                         // Create formation
+                {
+                    if (!pSource && !pTarget)
+                    {
+                        sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u call with no target, skipping.", m_table, m_script->id, m_script->command);
+                        return false;
+                    }
+
+                    WorldObject* target = nullptr;
+
+                    target = pTarget ? pTarget : pSource;
+
+                    if (LogIfNotCreature(target))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(target);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    CreatureGroup* targetGroup = nullptr;
+
+                    if (!m_script->formationData.data1)
+                    {
+                        if (!leaderGroup)
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(1) failed. Target group(%u) not found!",
+                                m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                            break;
+                        }
+                        targetGroup = leaderGroup;
+                    }
+                    else
+                    {
+                        auto sgData = leader->GetMap()->GetSpawnManager().GetSpawnGroup(m_script->formationData.data1);
+                        if (!sgData || !sgData->GetCreatureGroup())
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(1) failed. Target group(%u) not found!",
+                                m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                            break;
+                        }
+                        targetGroup = sgData->GetCreatureGroup();
+                    }
+
+                    if (targetGroup->GetFormationData())
+                    {
+                        // better fail here, the user have to remove the previous formation first
+                        sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(1) failed. Target group(%u) have already a formation!",
+                            m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                        break;
+                    }
+
+                    FormationEntrySPtr fEntry = std::make_shared<FormationEntry>();
+                    fEntry->GroupId = targetGroup->GetGroupId();
+                    fEntry->Type = static_cast<SpawnGroupFormationType>(m_script->textId[0]);
+                    fEntry->Spread = m_script->x;
+                    fEntry->Options = m_script->textId[1];
+                    fEntry->MovementType = 0;
+                    fEntry->MovementIdOrWander = 0;
+                    fEntry->Comment = "Dynamically created formation!";
+                    fEntry->IsDynamic = true;
+
+                    targetGroup->SetFormationData(fEntry);
+                    break;
+                }
+
+                case 151:                         // Remove formation
+                {
+                    if (!pSource && !pTarget)
+                    {
+                        sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u call with no target, skipping.", m_table, m_script->id, m_script->command);
+                        return false;
+                    }
+
+                    WorldObject* target = nullptr;
+
+                    target = pTarget ? pTarget : pSource;
+
+                    if (LogIfNotCreature(target))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(target);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    CreatureGroup* targetGroup = nullptr;
+
+                    if (!m_script->formationData.data1)
+                    {
+                        if (!leaderGroup)
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation remove(2) failed. Target group(%u) not found!",
+                                m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                            break;
+                        }
+                        targetGroup = leaderGroup;
+                    }
+                    else
+                    {
+                        auto sgData = leader->GetMap()->GetSpawnManager().GetSpawnGroup(m_script->formationData.data1);
+                        if (!sgData || !sgData->GetCreatureGroup())
+                        {
+                            sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation create(1) failed. Target group(%u) not found!",
+                                m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                            break;
+                        }
+                        targetGroup = sgData->GetCreatureGroup();
+                    }
+
+                    if (!targetGroup->GetFormationData())
+                    {
+                        // better fail with message for now, maybe this can be removed in some futur
+                        sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` script id %u, command %u and subcommand formation remove(2) failed. Target group(%u) have already a formation!",
+                            m_table, m_script->id, m_script->command, m_script->formationData.data1);
+                        break;
+                    }
+
+                    targetGroup->SetFormationData(nullptr);
+                    break;
+                }
+
 //                 case 3: // add creature to the formation
 //                 {
 //                     if (LogIfNotCreature(pSource))
@@ -2818,6 +2942,17 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
 //                 }
                 case 100: // switch formation shape
                 {
+                    if (LogIfNotCreature(pTarget))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(pTarget);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
+                    FormationData* leaderFormation = nullptr;
+                    if (leaderSlot)
+                        leaderFormation = leaderSlot->GetFormationData();
+
                     if (!leaderFormation)
                     {
                         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. %s is not in formation!",
@@ -2841,6 +2976,17 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 }
                 case 101:  // set formation spread
                 {
+                    if (LogIfNotCreature(pTarget))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(pTarget);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
+                    FormationData* leaderFormation = nullptr;
+                    if (leaderSlot)
+                        leaderFormation = leaderSlot->GetFormationData();
+
                     if (!leaderFormation)
                     {
                         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. %s is not in formation!",
@@ -2862,6 +3008,17 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 }
                 case 102:  // set formation options
                 {
+                    if (LogIfNotCreature(pTarget))
+                        return false;
+
+                    Creature* leader = static_cast<Creature*>(pTarget);
+
+                    CreatureGroup* leaderGroup = leader->GetCreatureGroup();
+                    FormationSlotDataSPtr leaderSlot = leader->GetFormationSlot();
+                    FormationData* leaderFormation = nullptr;
+                    if (leaderSlot)
+                        leaderFormation = leaderSlot->GetFormationData();
+
                     if (!leaderFormation)
                     {
                         sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. %s is not in formation!",
@@ -2887,6 +3044,19 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 break;
 
             static_cast<Creature*>(pTarget)->SetDefaultGossipMenuId(m_script->setGossipMenu.gossipMenuId);
+            break;
+        }
+        case SCRIPT_COMMAND_SET_WORLDSTATE:                 // 53
+        {
+            m_map->GetVariableManager().SetVariable(m_script->textId[0], m_script->textId[1]);
+            break;
+        }
+        case SCRIPT_COMMAND_SET_SHEATHE:
+        {
+            if (LogIfNotUnit(pSource))
+                break;
+
+            static_cast<Unit*>(pSource)->SetSheath(SheathState(m_script->setSheathe.sheatheState));
             break;
         }
         default:
@@ -3005,7 +3175,7 @@ void ScriptMgr::CollectPossibleEventIds(std::set<uint32>& eventIds)
 }
 
 // Starters for events
-bool StartEvents_Event(Map* map, uint32 id, Object* source, Object* target, bool isStart/*=true*/, Unit* forwardToPvp/*=nullptr*/)
+bool StartEvents_Event(Map* map, uint32 id, Object* source, Object* target, bool isStart/*=true*/)
 {
     MANGOS_ASSERT(source);
 
@@ -3014,28 +3184,25 @@ bool StartEvents_Event(Map* map, uint32 id, Object* source, Object* target, bool
         return true;
 
     // Handle PvP Calls
-    if (forwardToPvp && source->GetTypeId() == TYPEID_GAMEOBJECT)
+    if (source->IsGameObject() || source->IsUnit())
     {
         BattleGround* bg = nullptr;
         OutdoorPvP* opvp = nullptr;
-        if (forwardToPvp->GetTypeId() == TYPEID_PLAYER)
-        {
-            bg = ((Player*)forwardToPvp)->GetBattleGround();
-            if (!bg)
-                opvp = sOutdoorPvPMgr.GetScript(((Player*)forwardToPvp)->GetCachedZoneId());
-        }
+        uint32 zoneId = 0;
+        if (source->IsPlayer())
+            zoneId = static_cast<Player*>(source)->GetCachedZoneId();
         else
-        {
-            if (map->IsBattleGroundOrArena())
-                bg = ((BattleGroundMap*)map)->GetBG();
-            else                                            // Use the go, because GOs don't move
-                opvp = sOutdoorPvPMgr.GetScript(((GameObject*)source)->GetZoneId());
-        }
+            zoneId = static_cast<WorldObject*>(source)->GetZoneId();
 
-        if (bg && bg->HandleEvent(id, static_cast<GameObject*>(source), forwardToPvp))
+        if (map->IsBattleGroundOrArena())
+            bg = static_cast<BattleGroundMap*>(map)->GetBG();
+        else                                            // Use the go, because GOs don't move
+            opvp = sOutdoorPvPMgr.GetScript(zoneId);
+
+        if (bg && bg->HandleEvent(id, source, target))
             return true;
 
-        if (opvp && opvp->HandleEvent(id, static_cast<GameObject*>(source), forwardToPvp))
+        if (opvp && opvp->HandleEvent(id, source, target))
             return true;
     }
 

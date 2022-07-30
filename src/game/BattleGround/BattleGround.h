@@ -313,7 +313,7 @@ class BattleGround
         // that's why the m_map hack is here..
         uint32 GetInstanceId() const        { return m_bgMap ? GetBgMap()->GetInstanceId() : 0; }
         BattleGroundStatus GetStatus() const { return m_status; }
-        uint32 GetClientInstanceID() const  { return m_clientInstanceId; }
+        uint32 GetClientInstanceId() const  { return m_clientInstanceId; }
         uint32 GetStartTime() const         { return m_startTime; }
         uint32 GetEndTime() const           { return m_endTime; }
         uint32 GetMaxPlayers() const        { return m_maxPlayers; }
@@ -477,6 +477,9 @@ class BattleGround
         void SendYellToAll(int32 /*entry*/, uint32 /*language*/, Creature const* /*source*/);
         void SendYell2ToAll(int32 /*entry*/, uint32 /*language*/, Creature const* /*source*/, int32 /*arg1*/, int32 /*arg2*/);
 
+        void SendBcdToAll(int32 bcdEntry, Creature const* source);
+        void SendBcdToTeam(int32 bcdEntry, Creature const* source, Team team);
+
         // Handle raid groups
         Group* GetBgRaid(Team team) const { return m_bgRaids[GetTeamIndexByTeamId(team)]; }
         void SetBgRaid(Team /*team*/, Group* /*bgRaid*/);
@@ -513,7 +516,7 @@ class BattleGround
         virtual void HandleKillUnit(Creature* /*unit*/, Player* /*killer*/) {}
 
         // handle event sent from gameobjects
-        virtual bool HandleEvent(uint32 /*eventId*/, GameObject* /*go*/, Unit* /*invoker*/) { return false; }
+        virtual bool HandleEvent(uint32 /*eventId*/, Object* /*source*/, Object* /*target*/) { return false; }
 
         // Called when a creature is created
         virtual void HandleCreatureCreate(Creature* /*creature*/) {}
@@ -593,9 +596,6 @@ class BattleGround
 
         // Handle script condition fulfillment
         virtual bool IsConditionFulfilled(Player const* /*source*/, uint32 /*conditionId*/, WorldObject const* /*conditionSource*/, uint32 /*conditionSourceType*/) { return false; }
-
-        /* virtual score-array - get's used in bg-subclasses */
-        int32 m_teamScores[PVP_TEAM_COUNT];
 
         struct EventObjects
         {

@@ -263,10 +263,6 @@ struct world_map_outland : public ScriptedMap, public TimerManager
 
     ObjectGuid m_lastRingOfBlood;
 
-    // Worldstate variables
-    uint32 m_deathsDoorEventActive;
-    int32 m_deathsDoorNorthHP;
-    int32 m_deathsDoorSouthHP;
     // Shartuul
     uint32 m_shartuulEventActive;
     uint32 m_shartuulShieldPercent;
@@ -301,9 +297,13 @@ struct world_map_outland : public ScriptedMap, public TimerManager
         m_uiEmissaryOfHate_KilledAddCount = 0;
         m_uiRazaan_KilledAddCount = 0;
 
-        m_deathsDoorEventActive = 1;
-        m_deathsDoorNorthHP = 100;
-        m_deathsDoorSouthHP = 100;
+        instance->GetVariableManager().SetVariable(WORLD_STATE_DEATHS_DOOR_NORTH_WARP_GATE_HEALTH, 100);
+        instance->GetVariableManager().SetVariable(WORLD_STATE_DEATHS_DOOR_SOUTH_WARP_GATE_HEALTH, 100);
+        instance->GetVariableManager().SetVariable(WORLD_STATE_DEATHS_DOOR_EVENT_ACTIVE, 1);
+
+        instance->GetVariableManager().SetVariableData(WORLD_STATE_DEATHS_DOOR_NORTH_WARP_GATE_HEALTH, true, 0, AREAID_DEATHS_DOOR);
+        instance->GetVariableManager().SetVariableData(WORLD_STATE_DEATHS_DOOR_SOUTH_WARP_GATE_HEALTH, true, 0, AREAID_DEATHS_DOOR);
+        instance->GetVariableManager().SetVariableData(WORLD_STATE_DEATHS_DOOR_EVENT_ACTIVE, true, 0, AREAID_DEATHS_DOOR);
 
         m_shartuulEventActive = 0;
         m_shartuulShieldPercent = 1000;
@@ -342,12 +342,10 @@ struct world_map_outland : public ScriptedMap, public TimerManager
         switch (type)
         {
             case TYPE_DEATHS_DOOR_NORTH:
-                m_deathsDoorNorthHP = std::max(0, 100 - int32(data * 15));
-                sWorldState.ExecuteOnAreaPlayers(AREAID_DEATHS_DOOR, [=](Player* player)->void {player->SendUpdateWorldState(WORLD_STATE_DEATHS_DOOR_NORTH_WARP_GATE_HEALTH, m_deathsDoorNorthHP); });
+                instance->GetVariableManager().SetVariable(WORLD_STATE_DEATHS_DOOR_NORTH_WARP_GATE_HEALTH, std::max(0, 100 - int32(data * 15)));
                 break;
             case TYPE_DEATHS_DOOR_SOUTH:
-                m_deathsDoorSouthHP = std::max(0, 100 - int32(data * 15));
-                sWorldState.ExecuteOnAreaPlayers(AREAID_DEATHS_DOOR, [=](Player* player)->void {player->SendUpdateWorldState(WORLD_STATE_DEATHS_DOOR_SOUTH_WARP_GATE_HEALTH, m_deathsDoorSouthHP); });
+                instance->GetVariableManager().SetVariable(WORLD_STATE_DEATHS_DOOR_SOUTH_WARP_GATE_HEALTH, std::max(0, 100 - int32(data * 15)));
                 break;
             case TYPE_SHARTUUL:
                 if (data == EVENT_START)
@@ -483,13 +481,6 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     {
         switch (areaId)
         {
-            case AREAID_DEATHS_DOOR:
-            {
-                FillInitialWorldStateData(data, count, WORLD_STATE_DEATHS_DOOR_NORTH_WARP_GATE_HEALTH, m_deathsDoorNorthHP);
-                FillInitialWorldStateData(data, count, WORLD_STATE_DEATHS_DOOR_SOUTH_WARP_GATE_HEALTH, m_deathsDoorSouthHP);
-                FillInitialWorldStateData(data, count, WORLD_STATE_DEATHS_DOOR_EVENT_ACTIVE, m_deathsDoorEventActive);
-                break;
-            }
             case AREAID_SHARTUUL_TRANSPORTER:
             {
                 FillInitialWorldStateData(data, count, WORLD_STATE_SHARTUUL_SHIELD_REMAINING, m_shartuulShieldPercent / 10);
@@ -1298,7 +1289,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             {
                 spawn->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 spawn->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                spawn->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                spawn->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                 spawn->SetFactionTemporary(SHARTUUL_FACTION_HOSTILE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_RESTORE_REACH_HOME);
                 if (Creature* demon = GetCurrentDemon())
                     spawn->AI()->AttackStart(demon);
@@ -1358,7 +1349,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                 eyestalk->RemoveAurasDueToSpell(SPELL_LEGION_RING_EYE_STALK_TRANSFORM);
                 eyestalk->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 eyestalk->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                eyestalk->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                eyestalk->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                 static_cast<Creature*>(eyestalk)->ClearTemporaryFaction();
                 eyestalk->ForcedDespawn();
             }
@@ -1664,7 +1655,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                     creature->CastSpell(nullptr, SPELL_LEGION_RING_EYE_STALK_TRANSFORM, TRIGGERED_OLD_TRIGGERED);
                     creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                     creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                    creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+                    creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                     static_cast<Creature*>(creature)->SetFactionTemporary(SHARTUUL_FACTION_HOSTILE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_RESTORE_REACH_HOME);
                 }
                 creature->SetCorpseDelay(2);
@@ -1769,6 +1760,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                 std::sort(m_goEntryGuidCollection[go->GetEntry()].begin(), m_goEntryGuidCollection[go->GetEntry()].end());
                 break;
             case GO_BASHIR_CRYSTALFORGE:
+            case GO_HALAA_BANNER:
                 m_goEntryGuidStore.emplace(go->GetEntry(), go->GetObjectGuid());
                 break;
             case GO_WARP_GATE_FIRE_SMALL:
@@ -1853,7 +1845,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     void ShowChatCommands(ChatHandler* handler) override
     {
         handler->SendSysMessage("This instance supports the following commands:\n bashir (0,1,2,3,4,5,6,7) starts event at stage respectively - start event, start phase 1, finish phase 1,"
-        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event\n debuggurthock\n shartuulitem, shartuulreset");
+        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event\n debuggurthock\n shartuulitem, shartuulreset, capturehalaa");
     }
 
     void ExecuteChatCommand(ChatHandler* handler, char* args) override
@@ -1908,6 +1900,14 @@ struct world_map_outland : public ScriptedMap, public TimerManager
         else if (val == "shartuulreset")
         {
             HandleShartuulEventReset();
+        }
+        else if (val == "capturehalaa")
+        {
+            if (GameObject* banner = GetSingleGameObjectFromStorage(GO_HALAA_BANNER))
+            {
+                Player* player = handler->GetSession()->GetPlayer();
+                StartEvents_Event(banner->GetMap(), player->GetTeam() == ALLIANCE ? banner->GetGOInfo()->capturePoint.winEventID1 : banner->GetGOInfo()->capturePoint.winEventID2, banner, player, true);
+            }
         }
     }
 };

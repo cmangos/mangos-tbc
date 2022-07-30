@@ -199,6 +199,7 @@ class Quest
         uint32 GetQuestMethod() const { return QuestMethod; }
         int32  GetZoneOrSort() const { return ZoneOrSort; }
         uint32 GetMinLevel() const { return MinLevel; }
+        uint32 GetMaxLevel() const { return MaxLevel; }
         int32  GetQuestLevel() const { return QuestLevel; }
         uint32 GetType() const { return Type; }
         uint32 GetRequiredClasses() const { return RequiredClasses; }
@@ -217,6 +218,7 @@ class Quest
         int32  GetPrevQuestId() const { return PrevQuestId; }
         int32  GetNextQuestId() const { return NextQuestId; }
         int32  GetExclusiveGroup() const { return ExclusiveGroup; }
+        uint32 GetBreadcrumbForQuestId() const { return BreadcrumbForQuestId; }
         uint32 GetNextQuestInChain() const { return NextQuestInChain; }
         uint32 GetCharTitleId() const { return CharTitleId; }
         uint32 GetCharTitleBitIndex() const;                // in 2.x in different from 3.x in some quest packets used bit index insed id
@@ -291,6 +293,7 @@ class Quest
         PrevQuests prevQuests;
         typedef std::vector<uint32> PrevChainQuests;
         PrevChainQuests prevChainQuests;
+        std::vector<uint32> DependentBreadcrumbQuests;
 
         // cached data
     private:
@@ -308,6 +311,7 @@ class Quest
         uint32 QuestMethod;
         int32  ZoneOrSort;
         uint32 MinLevel;
+        uint32 MaxLevel;
         int32  QuestLevel;
         uint32 Type;
         uint32 RequiredClasses;
@@ -329,6 +333,7 @@ class Quest
         int32  PrevQuestId;
         int32  NextQuestId;
         int32  ExclusiveGroup;
+        uint32 BreadcrumbForQuestId;
         uint32 NextQuestInChain;
         uint32 SrcItemId;
         uint32 SrcItemCount;

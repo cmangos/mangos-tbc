@@ -69,13 +69,13 @@ enum CastFlags
     CAST_NO_MELEE_IF_OOM        = 0x08,                     // Prevents creature from entering melee if out of mana or out of range
     CAST_FORCE_TARGET_SELF      = 0x10,                     // Forces the target to cast this spell on itself
     CAST_AURA_NOT_PRESENT       = 0x20,                     // Only casts the spell if the target does not have an aura from the spell
-    CAST_IGNORE_UNSELECTABLE_TARGET = 0x40,                 // Can target UNIT_FLAG_NOT_SELECTABLE - Needed in some scripts
+    CAST_IGNORE_UNSELECTABLE_TARGET = 0x40,                 // Can target UNIT_FLAG_UNINTERACTIBLE - Needed in some scripts
     CAST_SWITCH_CASTER_TARGET   = 0x80,                     // Switches target and caster for spell cast
-    CAST_MAIN_SPELL             = 0x100,                    // Marks main spell
+    CAST_MAIN_SPELL             = 0x100,                    // Marks main spell - DEPRECATED - use creature_spell_list instead
     CAST_PLAYER_ONLY            = 0x200,                    // Selects only player targets - substitution for EAI not having more params
-    CAST_DISTANCE_YOURSELF      = 0x400,                    // If spell with this cast flag hits main aggro target, caster distances himself - EAI only
+    CAST_DISTANCE_YOURSELF      = 0x400,                    // If spell with this cast flag hits main aggro target, caster distances himself - EAI only - DEPRECATED - use creature_spell_list instead
     CAST_TARGET_CASTING         = 0x800,                    // Selects only targets that are casting - EAI only
-    CAST_ONLY_XYZ               = 0x1000,
+    CAST_ONLY_XYZ               = 0x1000,                   // Targets only coords of target and not unit
 };
 
 enum ReactStates
@@ -93,6 +93,7 @@ enum AIOrders
     ORDER_RETREATING,
     ORDER_EVADE,
     ORDER_FLEE_FROM_CALL_FOR_HELP,
+    ORDER_CRITTER_FLEE,
     ORDER_CUSTOM,
 };
 
@@ -458,7 +459,7 @@ class UnitAI : public CombatActions
         void SetAIOrder(AIOrders order) { m_currentAIOrder = order; }
         AIOrders GetAIOrder() const { return m_currentAIOrder; }
 
-        bool DoFlee();
+        bool DoFlee(uint32 duration = 0);
         virtual bool DoRetreat() { return false; } // implemented for creatures
         void DoDistance(); // TODO
         virtual void DoCallForHelp(float /*radius*/) {} // implemented for creatures
@@ -487,8 +488,10 @@ class UnitAI : public CombatActions
         void SetRootSelf(bool apply, bool combatOnly = false); // must call parent JustDied if this is used
         void ClearSelfRoot();
 
-        virtual void HandleDelayedInstantAnimation(SpellEntry const* spellInfo) {}
+        virtual void HandleDelayedInstantAnimation(SpellEntry const* spellInfo);
         virtual bool IsTargetingRestricted() { return GetCombatScriptStatus(); }
+
+        virtual void OnTaunt() {}
 
         virtual void HandleAssistanceCall(Unit* sender, Unit* invoker) {} // implemented for creatures
 
@@ -550,6 +553,15 @@ class UnitAI : public CombatActions
         std::pair<bool, Unit*> ChooseTarget(CreatureSpellListTargeting* targetData, uint32 spellId) const;
         virtual CreatureSpellList const& GetSpellList() const = 0;
         void AddInitialCooldowns();
+
+        // compatibility layer for removing script_waypoint from escort ai using waypoint_path
+        virtual uint32 GetCurrentWaypointPath() const { return 0; }
+
+        //////////////////////////////////////////////////////////////////////////
+        // Some group Event/Action, not sure best place is here
+        //////////////////////////////////////////////////////////////////////////
+        // member of the group got killed
+        virtual void CreatureGroupMemberDied(Unit* /*killed*/) {}
 
     protected:
         virtual std::string GetAIName() { return "UnitAI"; }

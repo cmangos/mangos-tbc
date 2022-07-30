@@ -220,12 +220,12 @@ Defining a buddy could be done in several way:
                                               (note, migrated from old where faction and modelid were 2 and 3 and now are in spawndatatemplate)
                                             * dataint4 = spawndatatemplate - if > 0 uses settings from creature_spawn_data_template
 
-11 SCRIPT_COMMAND_OPEN_DOOR                 source = any
+11 SCRIPT_COMMAND_OPEN_DOOR                 source = any, works on both doors and buttons
                                             * datalong = db_guid (can be skipped for buddy)
                                             * datalong2 = reset_delay
                                             * datalong3 = alternate state - bool 0 or 1
 
-12 SCRIPT_COMMAND_CLOSE_DOOR                source = any
+12 SCRIPT_COMMAND_CLOSE_DOOR                source = any, works on both doors and buttons
                                             * datalong = db_guid (can be skipped for buddy)
                                             * datalong2 = reset_delay
 
@@ -260,13 +260,14 @@ Defining a buddy could be done in several way:
                                             * datalog = movie id
 
 20 SCRIPT_COMMAND_MOVEMENT                  resultingSource = Creature
-                                            * datalong = MovementType (0:idle, 1:random, 2:waypoint, 3:path)
+                                            * datalong = MovementType (0:idle, 1:random, 2:waypoint, 3:path, 4:linear)
                                             * datalong2 = wanderDistance (for random movement), pathId (for waypoint movement)
-                                            * datalong3 = timer for timed random movement or pass target to waypoint and path movegen (by default, source targets self)
+                                            * datalong3 = 0x1 - timer for timed random movement or pass target to waypoint and path movegen (by default, source targets self)
+                                            *             0x2 - for waypoint, path and linear path - uses pathId from waypoint_path table
                                             * data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL: RandomMovement around current position
                                             * dataint = enum ForcedMovement
 
-21 SCRIPT_COMMAND_SET_ACTIVEOBJECT          resultingSource = Creature
+21 SCRIPT_COMMAND_SET_ACTIVEOBJECT          resultingSource = WorldObject
                                             * datalong=bool 0=off, 1=on
 
 22 SCRIPT_COMMAND_SET_FACTION               resultingSource = Creature
@@ -410,4 +411,21 @@ Defining a buddy could be done in several way:
                                                 - 102: Set formation options
                                                        Set flag 0x1 for keep compact option (after a member death)
                                                        Set flag 0x2 for disabling pathfinding (not impemented yet)
+                                                - 150: Add formation to that group
+                                                       You either have to provide spawngroup id in datalong1 or source/target being already in its spawngroup
+                                                       dataint is formation type -> Random(0), Queue(1), Side bu side(2), Geese(3), Fanned out behind(4), Fanned out in front(5), Circle leader(6)
+                                                       dataint1 is formation options
+                                                       x is formation spread
+                                                - 151: Remove formation from spawngroup (all followers will stop following the leader)
+                                                       datalong1 spawngroup id
+
+52 SCRIPT_COMMAND_SET_GOSSIP_MENU           Sets a new gossip menu id for creature
+                                            * datalong = new gossip menu id
+
+53 SCRIPT_COMMAND_SET_WORLDSTATE            Sets worldstate variable to new value in current map
+                                            * dataint = worldstate variable id
+                                            * dataint2 = new value
+
+54 SCRIPT_COMMAND_SET_SHEATHE               Sets source unit sheathe state to new value (UNIT_FIELD_BYTES_2, offset 1)
+                                            * datalong = new sheathe state - enum SheathState, SHEATH_STATE_UNARMED(0), SHEATH_STATE_MELEE(1), SHEATH_STATE_RANGED(2)
 

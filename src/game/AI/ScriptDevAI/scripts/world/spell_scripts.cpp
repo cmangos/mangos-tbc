@@ -875,6 +875,28 @@ struct RetaliationCreature : public SpellScript
     }
 };
 
+struct HateToHalf : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        spell->GetCaster()->getThreatManager().modifyThreatPercent(spell->GetUnitTarget(), -50);
+    }
+};
+
+struct HateToZero : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        spell->GetCaster()->getThreatManager().modifyThreatPercent(spell->GetUnitTarget(), -100);
+    }
+};
+
 struct PreventSpellIfSameAuraOnCaster : public SpellScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
@@ -883,6 +905,14 @@ struct PreventSpellIfSameAuraOnCaster : public SpellScript
             return SPELL_FAILED_CASTER_AURASTATE;
 
         return SPELL_CAST_OK;
+    }
+};
+
+struct InstillLordValthalaksSpirit : public SpellScript
+{
+    void OnSummon(Spell* spell, Creature* summon) const override
+    {
+        spell->GetCaster()->AddCreature(spell->m_spellInfo->Id, summon);
     }
 };
 
@@ -899,7 +929,7 @@ struct Stoned : public AuraScript
             if (target->GetEntry() == 25507)
                 return;
 
-            target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_NOT_SELECTABLE);
+            target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER | UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_UNINTERACTIBLE);
             target->addUnitState(UNIT_STAT_ROOT);
         }
         else
@@ -921,6 +951,38 @@ struct BirthNoVisualInstantSpawn : public SpellScript
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         spell->GetCaster()->SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_DO_NOT_FADE_IN);
+    }
+};
+
+struct SleepVisualFlavor : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        Unit* target = aura->GetTarget();
+        if (apply)
+            target->SetStandState(UNIT_STAND_STATE_SLEEP);
+        else
+            target->SetStandState(UNIT_STAND_STATE_STAND);
+    }
+};
+
+enum spell_call_of_the_falcon
+{
+    YELL_KILL_FALCONER          = 17624, // Kill $n!
+    NPC_BLOODWARDER_FALCONER    = 17994,
+    NPC_BLOODFALCON             = 18155,
+    SPELL_CALL_OF_THE_FALCON    = 34853,
+};
+
+struct CallOfTheFalcon : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (apply)
+        {
+            DoBroadcastText(YELL_KILL_FALCONER, aura->GetCaster(), aura->GetTarget());
+            aura->GetTarget()->CastSpell(nullptr, SPELL_CALL_OF_THE_FALCON, TRIGGERED_OLD_TRIGGERED);
+        }
     }
 };
 
@@ -961,7 +1023,12 @@ void AddSC_spell_scripts()
     RegisterSpellScript<spell_scourge_strike>("spell_scourge_strike");
     RegisterSpellScript<TribalDeath>("spell_tribal_death");
     RegisterSpellScript<PreventSpellIfSameAuraOnCaster>("spell_prevent_spell_if_same_aura_on_caster");
+    RegisterSpellScript<InstillLordValthalaksSpirit>("spell_instill_lord_valthalaks_spirit");
     RegisterSpellScript<RetaliationCreature>("spell_retaliation_creature");
+    RegisterSpellScript<HateToHalf>("spell_hate_to_half");
+    RegisterSpellScript<HateToZero>("spell_hate_to_zero");
     RegisterSpellScript<Stoned>("spell_stoned");
     RegisterSpellScript<BirthNoVisualInstantSpawn>("spell_birth_no_visual_instant_spawn");
+    RegisterSpellScript<SleepVisualFlavor>("spell_sleep_visual_flavor");
+    RegisterSpellScript<CallOfTheFalcon>("spell_call_of_the_falcon");
 }

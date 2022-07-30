@@ -24,6 +24,7 @@
 
 enum AVTimers
 {
+    BG_AV_MINE_YELL                     = 25 * IN_MILLISECONDS,
     BG_AV_MINE_TICK_TIMER               = 45 * IN_MILLISECONDS,
     BG_AV_MINE_RECLAIM_TIMER            = 20 * MINUTE * IN_MILLISECONDS,         // TODO: get the right value.. this is currently 20 minutes
 
@@ -192,6 +193,7 @@ enum AVCreatures
     // creatures used to yell on the map
     BG_AV_NPC_STORMPIKE_HERALD          = 11997,
     BG_AV_NPC_FROSTWOLF_HERALD          = 11998,
+    BG_AV_NPC_HERALD                    = 14848,
 };
 
 enum AVKillCredits
@@ -313,10 +315,10 @@ enum AVWorldStates
     BG_AV_STATE_SCORE_SHOW_A            = 3134,
 
     BG_AV_STATE_GY_SNOWFALL_N           = 1966,
-    BG_AV_STATE_GY_SNOWFALL_A           = 1343,
-    BG_AV_STATE_GY_SNOWFALL_A_GREY      = 1341,
-    BG_AV_STATE_GY_SNOWFALL_H           = 1344,
-    BG_AV_STATE_GY_SNOWFALL_H_GREY      = 1342,
+    BG_AV_STATE_GY_SNOWFALL_A           = 1341,
+    BG_AV_STATE_GY_SNOWFALL_A_GREY      = 1343,
+    BG_AV_STATE_GY_SNOWFALL_H           = 1342,
+    BG_AV_STATE_GY_SNOWFALL_H_GREY      = 1344,
 
     // mine world states
     BG_AV_STATE_IRONDEEP_MINE_A         = 1358,
@@ -451,6 +453,17 @@ const uint32 avGraveyardEntries[BG_AV_MAX_GRAVEYARDS] =
     BG_AV_GRAVE_MAIN_HORDE
 };
 
+enum AVEndYells
+{
+    YELL_STORMPIKE_DEAD = 7297,
+    YELL_FROSTWOLF_DEAD = 7296,
+    YELL_ALLIANCE_WINS  = 7335,
+    YELL_HORDE_WINS     = 7336,
+
+    YELL_SNIVVLE_MINE   = 10025,
+    YELL_MORLOCH_MINE   = 10024,
+};
+
 // alliance_control horde_control neutral_control
 const uint32 avMineWorldStates[BG_AV_MAX_MINES][BG_AV_TEAMS_COUNT] =
 {
@@ -577,7 +590,6 @@ class BattleGroundAV : public BattleGround
 
         // General functions
         void UpdatePlayerScore(Player* source, uint32 type, uint32 value) override;
-        void FillInitialWorldStates(WorldPacket& data, uint32& count) override;
         Team GetPrematureWinner() override;
 
         // Battleground event handlers
@@ -628,6 +640,7 @@ class BattleGroundAV : public BattleGround
         PvpTeamIndex m_mineOwner[BG_AV_MAX_MINES];
         uint32 m_mineTimer[BG_AV_MAX_MINES];
         uint32 m_mineReclaimTimer[BG_AV_MAX_MINES];
+        uint32 m_mineYellTimer;
 
         uint8 m_homeTowersControlled[PVP_TEAM_COUNT];
         uint8 m_enemyTowersDestroyed[PVP_TEAM_COUNT];

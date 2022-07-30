@@ -27,6 +27,7 @@
 #include "Globals/ObjectMgr.h"
 #include "MotionGenerators/TargetedMovementGenerator.h"
 #include "World/World.h"
+#include "Maps/InstanceData.h"
 
 SpawnGroup::SpawnGroup(SpawnGroupEntry const& entry, Map& map, uint32 typeId) : m_entry(entry), m_map(map), m_objectTypeId(typeId), m_enabled(m_entry.EnabledByDefault)
 {
@@ -40,6 +41,20 @@ void SpawnGroup::AddObject(uint32 dbGuid, uint32 entry)
 void SpawnGroup::RemoveObject(WorldObject* wo)
 {
     m_objects.erase(wo->GetDbGuid());
+
+    if (!m_map.IsDungeon() && m_objects.empty() && m_entry.HasChancedSpawns)
+    {
+        m_chosenSpawns.clear();
+        // save same respawn time for all guids so they all respawn at the same time if chanced
+        time_t lastRespawnTime = m_map.GetPersistentState()->GetObjectRespawnTime(GetObjectTypeId(), wo->GetDbGuid());
+        for (auto& dbGuid : m_entry.DbGuids)
+        {
+            if (dbGuid.DbGuid == wo->GetDbGuid())
+                continue;
+
+            m_map.GetPersistentState()->SaveObjectRespawnTime(GetObjectTypeId(), dbGuid.DbGuid, lastRespawnTime);
+        }
+    }
 }
 
 uint32 SpawnGroup::GetGuidEntry(uint32 dbGuid) const
@@ -104,7 +119,17 @@ void SpawnGroup::Spawn(bool force)
     if (!m_enabled && !force)
         return;
 
-    if (m_objects.size() >= m_entry.MaxCount || (m_entry.WorldStateId && m_map.GetVariableManager().GetVariable(m_entry.WorldStateId) == 0))
+    if (m_objects.size() >= m_entry.MaxCount)
+        return;
+
+    if (!IsWorldstateConditionSatisfied())
+    {
+        if ((m_entry.Flags & SPAWN_GROUP_DESPAWN_ON_COND_FAIL) != 0)
+            Despawn();
+        return;
+    }
+
+    if (m_entry.HasChancedSpawns && m_chosenSpawns.size() >= m_entry.MaxCount)
         return;
 
     std::vector<SpawnGroupDbGuids const*> eligibleGuids;
@@ -180,6 +205,27 @@ void SpawnGroup::Spawn(bool force)
     {
         uint32 dbGuid = (*itr)->DbGuid;
         uint32 entry = 0;
+        if (m_entry.HasChancedSpawns)
+        {
+            if ((*itr)->Chance)
+            {
+                auto spawnItr = m_chosenSpawns.find(dbGuid);
+                bool spawn = true;
+                if (spawnItr == m_chosenSpawns.end())
+                {
+                    spawn = roll_chance_i((*itr)->Chance);
+                    m_chosenSpawns[dbGuid] = spawn;
+                }
+                else
+                    spawn = spawnItr->second;
+
+                if (!spawn)
+                    continue;
+            }
+            else // filling redundant entries when a group has chanced spawns for optimization so we can stop at start
+                m_chosenSpawns[dbGuid] = true;
+        }
+
         // creatures pick random entry on first spawn in dungeons - else always pick random entry
         if (GetObjectTypeId() == TYPEID_UNIT)
         {
@@ -239,6 +285,46 @@ void SpawnGroup::Spawn(bool force)
     }
 }
 
+bool SpawnGroup::IsWorldstateConditionSatisfied() const
+{
+    return !m_entry.WorldStateCondition || IsConditionSatisfied(m_entry.WorldStateCondition, nullptr, &m_map, nullptr, CONDITION_FROM_WORLDSTATE);
+}
+
+void SpawnGroup::RespawnIfInVicinity(Position pos, float range)
+{
+    if (!IsWorldstateConditionSatisfied())
+        return;
+
+    time_t now = time(nullptr);
+    bool eligible = false; // if one is eligible, reset whole group
+    for (auto& dbGuid : m_entry.DbGuids)
+    {
+        float x, y;
+        if (GetObjectTypeId() == TYPEID_UNIT)
+        {
+            auto data = sObjectMgr.GetCreatureData(dbGuid.DbGuid);
+            x = data->posX; y = data->posY;
+        }
+        else
+        {
+            auto data = sObjectMgr.GetGOData(dbGuid.DbGuid);
+            x = data->posX; y = data->posY;
+        }
+
+        if (pos.GetDistance(Position(x, y, pos.z)) < range * range)
+        {
+            eligible = true;
+            break;
+        }
+    }
+
+    if (!eligible)
+        return;
+
+    for (auto& dbGuid : m_entry.DbGuids)
+        m_map.GetPersistentState()->SaveObjectRespawnTime(GetObjectTypeId(), dbGuid.DbGuid, now);
+}
+
 std::string SpawnGroup::to_string() const
 {
     std::stringstream result;
@@ -269,6 +355,8 @@ void CreatureGroup::RemoveObject(WorldObject* wo)
     SpawnGroup::RemoveObject(wo);
     CreatureData const* data = sObjectMgr.GetCreatureData(wo->GetDbGuid());
     m_map.GetPersistentState()->RemoveCreatureFromGrid(wo->GetDbGuid(), data);
+    if (m_objects.empty() && wo->GetInstanceData()) // on last being removed
+        wo->GetInstanceData()->OnCreatureGroupDespawn(this, static_cast<Creature*>(wo));
 }
 
 void CreatureGroup::TriggerLinkingEvent(uint32 event, Unit* target)
@@ -317,6 +405,14 @@ void CreatureGroup::TriggerLinkingEvent(uint32 event, Unit* target)
 
             ClearRespawnTimes();
             break;
+        case CREATURE_GROUP_EVENT_MEMBER_DIED:
+            for (auto const& data : m_objects)
+            {
+                uint32 dbGuid = data.first;
+                if (Creature* creature = m_map.GetCreature(dbGuid))
+                    creature->AI()->CreatureGroupMemberDied(target);
+            }
+            break;
     }
 }
 
@@ -354,6 +450,29 @@ void CreatureGroup::MoveHome()
     }
 }
 
+void CreatureGroup::Despawn(uint32 timeMSToDespawn, bool onlyAlive)
+{
+    for (SpawnGroupDbGuids const& sgEntry : m_entry.DbGuids)
+        if (Creature* creature = m_map.GetCreature(sgEntry.DbGuid))
+            creature->ForcedDespawn(timeMSToDespawn, onlyAlive);
+}
+
+bool CreatureGroup::IsOutOfCombat()
+{
+    for (auto objItr : m_objects)
+    {
+        if (Creature* creature = m_map.GetCreature(objItr.first))
+        {
+            if (!creature->IsAlive())
+                continue;
+
+            if (creature->IsInCombat())
+                return false;
+        }
+    }
+    return true;
+}
+
 void CreatureGroup::ClearRespawnTimes()
 {
     time_t now = time(nullptr);
@@ -370,6 +489,13 @@ void GameObjectGroup::RemoveObject(WorldObject* wo)
     SpawnGroup::RemoveObject(wo);
     GameObjectData const* data = sObjectMgr.GetGOData(wo->GetDbGuid());
     m_map.GetPersistentState()->RemoveGameobjectFromGrid(wo->GetDbGuid(), data);
+}
+
+void GameObjectGroup::Despawn(uint32 timeMSToDespawn /*= 0*/)
+{
+    for (auto objItr : m_objects)
+        if (GameObject* go = m_map.GetGameObject(objItr.first))
+            go->ForcedDespawn(timeMSToDespawn);
 }
 
 ////////////////////
@@ -401,7 +527,7 @@ FormationData::FormationData(CreatureGroup* gData, FormationEntrySPtr fEntry) :
 
 FormationData::~FormationData()
 {
-    //sLog.outDebug("Deleting formation (%u)!!!!!", m_groupData->GetGroupEntry().Id);
+    sLog.outDebug("Deleting formation (%u)!!!!!", m_groupData->GetGroupEntry().Id);
 }
 
 bool FormationData::SetFollowersMaster()
@@ -494,8 +620,14 @@ void FormationData::ClearMoveGen()
         Unit* slotUnit = slot->GetOwner();
         if (slotUnit && slotUnit->IsAlive())
         {
+            if (m_fEntry->IsDynamic && slot->IsFormationMaster())
+                continue;
             if (slot->IsFormationMaster())
             {
+                // do not change leader movement in dynamic state, script have to handle that
+                if (m_fEntry->IsDynamic)
+                    continue;
+
                 m_lastWP = slotUnit->GetMotionMaster()->getLastReachedWaypoint();
                 m_wpPathId = slotUnit->GetMotionMaster()->GetPathId();
             }
@@ -521,14 +653,14 @@ void FormationData::SetMasterMovement()
     newMaster->GetMotionMaster()->Clear(true, true);
     if (m_masterMotionType == WAYPOINT_MOTION_TYPE)
     {
-        newMaster->GetMotionMaster()->MoveWaypoint(m_wpPathId, 4, 0, m_fEntry->MovementID);
+        newMaster->GetMotionMaster()->MoveWaypoint(m_fEntry->MovementIdOrWander, PATH_FROM_WAYPOINT_PATH);
         newMaster->GetMotionMaster()->SetNextWaypoint(m_lastWP + 1);
         m_wpPathId = 0;
         m_lastWP = 0;
     }
     else if (m_masterMotionType == LINEAR_WP_MOTION_TYPE)
     {
-        newMaster->GetMotionMaster()->MoveLinearWP(m_wpPathId, 4, 0, m_fEntry->MovementID);
+        newMaster->GetMotionMaster()->MoveLinearWP(m_fEntry->MovementIdOrWander, PATH_FROM_WAYPOINT_PATH);
         newMaster->GetMotionMaster()->SetNextWaypoint(m_lastWP + 1);
         m_wpPathId = 0;
         m_lastWP = 0;
@@ -598,7 +730,11 @@ bool FormationData::TrySetNewMaster(Unit* masterCandidat /*= nullptr*/)
         StopFollower();
         SwitchSlotOwner(masterSlot, aliveSlot);
         FixSlotsPositions();
-        SetMasterMovement();
+
+        // will start master movement only if its not dynamic formation
+        if (!m_fEntry->IsDynamic)
+            SetMasterMovement();
+
         SetFollowersMaster();
         return true;
     }
@@ -657,6 +793,7 @@ void FormationData::Reset()
     {
         TrySetNewMaster(masterSlotItr->second->GetOwner());
     }
+    StartFollower();
 }
 
 void FormationData::OnDeath(Creature* creature)
@@ -1067,7 +1204,7 @@ std::string FormationData::to_string() const
     result << "Shape: "              << fType                << "\n";
     result << "Spread: "             << m_currentSpread      << "\n";
     result << "MovementType: "       << fMoveType            << "\n";
-    result << "MovementId: "         << m_fEntry->MovementID << "\n";
+    result << "MovementId: "         << m_fEntry->MovementIdOrWander << "\n";
     result << "Options: "            << fOptions             << "\n";
     result << "Comment: "            << m_fEntry->Comment    << "\n";
 
@@ -1083,6 +1220,23 @@ std::string FormationData::to_string() const
     }
 
     return result.str();
+}
+
+// Change movement data so it can resume it if leader change
+void FormationData::SetMovementInfo(MovementGeneratorType moveType, uint32 wanderOrPahtId)
+{
+    m_fEntry->MovementIdOrWander = wanderOrPahtId;
+    m_fEntry->MovementType = moveType;
+    m_masterMotionType = moveType;
+    m_lastWP = 0;
+    auto master = GetMaster();
+    if (master)
+    {
+        static_cast<Creature*>(master)->GetRespawnCoord(m_spawnPos.x, m_spawnPos.y, m_spawnPos.z, nullptr, &m_spawnPos.radius);
+
+        if (wanderOrPahtId)
+            m_spawnPos.radius = static_cast<float>(wanderOrPahtId);
+    }
 }
 
 void FormationData::Update()

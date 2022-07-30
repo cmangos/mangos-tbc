@@ -948,6 +948,20 @@ CreatureSpellList* ObjectMgr::GetCreatureSpellList(uint32 Id) const
     return &(*itr).second;
 }
 
+bool ObjectMgr::HasWorldStateName(int32 Id) const
+{
+    return m_worldStateNames.find(Id) != m_worldStateNames.end();
+}
+
+WorldStateName* ObjectMgr::GetWorldStateName(int32 Id)
+{
+    auto itr = m_worldStateNames.find(Id);
+    if (itr == m_worldStateNames.end())
+        return nullptr;
+
+    return &(itr->second);
+}
+
 void ObjectMgr::LoadCreatureImmunities()
 {
     uint32 count = 0;
@@ -1102,7 +1116,7 @@ void ObjectMgr::LoadSpawnGroups()
             entry.Name = fields[1].GetCppString();
             if (entry.Name.empty())
             {
-                sLog.outErrorDb("LoadSpawnGroups: Invalid spawn_group empty name.");
+                sLog.outErrorDb("LoadSpawnGroups: Invalid spawn_group empty name. Skipping.");
                 continue;
             }
 
@@ -1110,16 +1124,28 @@ void ObjectMgr::LoadSpawnGroups()
 
             if (entry.Type > SPAWN_GROUP_GAMEOBJECT)
             {
-                sLog.outErrorDb("LoadSpawnGroups: Invalid spawn_group unknown type %u.", entry.Type);
+                sLog.outErrorDb("LoadSpawnGroups: Invalid spawn_group unknown type %u. Skipping.", entry.Type);
                 continue;
             }
 
             entry.MaxCount = fields[3].GetUInt32();
-            entry.WorldStateId = fields[4].GetInt32();
+            entry.WorldStateCondition = fields[4].GetInt32();
+
+            if (entry.WorldStateCondition)
+            {
+                const ConditionEntry* condition = sConditionStorage.LookupEntry<ConditionEntry>(entry.WorldStateCondition);
+                if (!condition) // condition does not exist for some reason
+                {
+                    sLog.outErrorDb("LoadSpawnGroups: Invalid spawn_group (%u) condition entry %u. Skipping.", entry.Id, entry.WorldStateCondition);
+                    continue;
+                }
+            }
+
             entry.Flags = fields[5].GetUInt32();
             entry.Active = false;
             entry.EnabledByDefault = true;
             entry.formationEntry = nullptr;
+            entry.HasChancedSpawns = false;
             newContainer->spawnGroupMap.emplace(entry.Id, entry);
         } while (result->NextRow());
     }
@@ -1136,7 +1162,7 @@ void ObjectMgr::LoadSpawnGroups()
             uint32 fType = fields[1].GetUInt32();
             fEntry->Spread = fields[2].GetFloat();
             fEntry->Options = fields[3].GetUInt32();
-            fEntry->MovementID = fields[4].GetUInt32();
+            fEntry->MovementIdOrWander = fields[4].GetUInt32();
             fEntry->MovementType = fields[5].GetUInt32();
             fEntry->Comment = fields[6].GetCppString();
 
@@ -1182,7 +1208,7 @@ void ObjectMgr::LoadSpawnGroups()
         } while (result->NextRow());
     }
 
-    result.reset(WorldDatabase.Query("SELECT Id, Guid, SlotId FROM spawn_group_spawn"));
+    result.reset(WorldDatabase.Query("SELECT Id, Guid, SlotId, Chance FROM spawn_group_spawn"));
     if (result)
     {
         do
@@ -1193,6 +1219,7 @@ void ObjectMgr::LoadSpawnGroups()
             guid.Id = fields[0].GetUInt32();
             guid.DbGuid = fields[1].GetUInt32();
             guid.SlotId = fields[2].GetInt32();
+            guid.Chance = fields[3].GetUInt32();
             guid.OwnEntry = 0;
             guid.RandomEntry = false;
 
@@ -1221,7 +1248,9 @@ void ObjectMgr::LoadSpawnGroups()
                 }
             }
 
-            group.DbGuids.push_back(guid);            
+            group.DbGuids.push_back(guid);
+            if (guid.Chance)
+                group.HasChancedSpawns = true;
         } while (result->NextRow());
 
         // check and fix correctness of slot id indexation
@@ -1335,12 +1364,7 @@ void ObjectMgr::LoadSpawnGroups()
             {
                 maxRandom += randomEntry.MaxCount;
                 if (randomEntry.Chance == 0)
-                {
                     maxCount = true;
-                    entry.EquallyChanced.push_back(&randomEntry);
-                }
-                else
-                    entry.ExplicitlyChanced.push_back(&randomEntry);
             }                
             if (maxCount)
                 entry.MaxCount = entry.DbGuids.size();
@@ -1349,6 +1373,15 @@ void ObjectMgr::LoadSpawnGroups()
             if (!entry.MaxCount && entry.RandomEntries.empty())
                 entry.MaxCount = entry.DbGuids.size();
         }
+
+        for (auto& randomEntry : entry.RandomEntries)
+        {
+            if (randomEntry.Chance == 0)
+                entry.EquallyChanced.push_back(&randomEntry);
+            else
+                entry.ExplicitlyChanced.push_back(&randomEntry);
+        }
+
         for (auto& guidData : entry.DbGuids)
         {
             if (entry.Type == SPAWN_GROUP_CREATURE)
@@ -1763,7 +1796,7 @@ void ObjectMgr::LoadCreatureSpawnDataTemplates()
 {
     m_creatureSpawnTemplateMap.clear();
 
-    std::unique_ptr<QueryResult> result(WorldDatabase.Query("SELECT Entry, UnitFlags, Faction, ModelId, EquipmentId, CurHealth, CurMana, SpawnFlags, RelayId FROM creature_spawn_data_template"));
+    std::unique_ptr<QueryResult> result(WorldDatabase.Query("SELECT Entry, NpcFlags, UnitFlags, Faction, ModelId, EquipmentId, CurHealth, CurMana, SpawnFlags, RelayId FROM creature_spawn_data_template"));
     if (!result)
     {
         BarGoLink bar(1);
@@ -1784,18 +1817,20 @@ void ObjectMgr::LoadCreatureSpawnDataTemplates()
         Field* fields = result->Fetch();
 
         uint32 entry =      fields[0].GetUInt32();
-        int64 unitFlags =   int64(fields[1].GetUInt64());
-        uint32 faction =    fields[2].GetUInt32();
-        uint32 modelId =    fields[3].GetUInt32();
-        int32 equipmentId = fields[4].GetInt32();
-        uint32 curHealth =  fields[5].GetUInt32();
-        uint32 curMana =    fields[6].GetUInt32();
-        uint32 spawnFlags = fields[7].GetUInt32();
-        uint32 relayId = fields[8].GetUInt32();
+        int32 npcFlags =    int32(fields[1].GetUInt32());
+        int64 unitFlags =   int64(fields[2].GetUInt64());
+        uint32 faction =    fields[3].GetUInt32();
+        uint32 modelId =    fields[4].GetUInt32();
+        int32 equipmentId = fields[5].GetInt32();
+        uint32 curHealth =  fields[6].GetUInt32();
+        uint32 curMana =    fields[7].GetUInt32();
+        uint32 spawnFlags = fields[8].GetUInt32();
+        uint32 relayId = fields[9].GetUInt32();
 
         // leave room for invalidation in future
 
         auto& data = m_creatureSpawnTemplateMap[entry];
+        data.npcFlags = npcFlags;
         data.unitFlags = unitFlags;
         data.faction = faction;
         data.modelId = modelId;
@@ -2129,9 +2164,9 @@ void ObjectMgr::LoadGameObjects()
     uint32 count = 0;
 
     //                                                0                           1   2    3           4           5           6
-    QueryResult* result = WorldDatabase.Query("SELECT gameobject.guid, gameobject.id, map, position_x, position_y, position_z, orientation,"
+    QueryResult* result = WorldDatabase.Query("SELECT gameobject.guid, gameobject.id, map, round(position_x, 20), round(position_y, 20), round(position_z, 20), round(orientation, 20),"
                           //   7          8          9          10         11             12               13            14     15         16
-                          "rotation0, rotation1, rotation2, rotation3, spawntimesecsmin, spawntimesecsmax, animprogress, state, spawnMask, event,"
+                          "round(rotation0, 20), round(rotation1, 20), round(rotation2, 20), round(rotation3, 20), spawntimesecsmin, spawntimesecsmax, animprogress, state, spawnMask, event,"
                           //   17                          18
                           "pool_gameobject.pool_entry, pool_gameobject_template.pool_entry "
                           "FROM gameobject "
@@ -4345,38 +4380,38 @@ void ObjectMgr::LoadQuests()
 
     //                                                0      1       2           3         4           5     6                7              8              9
     QueryResult* result = WorldDatabase.Query("SELECT entry, Method, ZoneOrSort, MinLevel, QuestLevel, Type, RequiredClasses, RequiredRaces, RequiredSkill, RequiredSkillValue,"
-                          //   10                   11                 12                     13                   14                     15                   16                17
+                          // 10                 11                 12                     13                   14                     15                   16                17
                           "RepObjectiveFaction, RepObjectiveValue, RequiredMinRepFaction, RequiredMinRepValue, RequiredMaxRepFaction, RequiredMaxRepValue, SuggestedPlayers, LimitTime,"
-                          //   18          19            20           21           22           23              24                25         26            27
-                          "QuestFlags, SpecialFlags, CharTitleId, PrevQuestId, NextQuestId, ExclusiveGroup, NextQuestInChain, SrcItemId, SrcItemCount, SrcSpell,"
-                          //   28     29       30          31               32                33       34              35              36              37
+                          // 18        19            20           21           22           23              24                    25                26         27            28
+                          "QuestFlags, SpecialFlags, CharTitleId, PrevQuestId, NextQuestId, ExclusiveGroup, BreadcrumbForQuestId, NextQuestInChain, SrcItemId, SrcItemCount, SrcSpell,"
+                          // 29   30       31          32               33                34       35              36              37              38
                           "Title, Details, Objectives, OfferRewardText, RequestItemsText, EndText, ObjectiveText1, ObjectiveText2, ObjectiveText3, ObjectiveText4,"
-                          //   38          39          40          41          42             43             44             45
+                          // 39        40          41          42          43             44             45             46
                           "ReqItemId1, ReqItemId2, ReqItemId3, ReqItemId4, ReqItemCount1, ReqItemCount2, ReqItemCount3, ReqItemCount4,"
-                          //   46            47            48            49            50               51               52               53
+                          // 47          48            49            50            51               52               53               54
                           "ReqSourceId1, ReqSourceId2, ReqSourceId3, ReqSourceId4, ReqSourceCount1, ReqSourceCount2, ReqSourceCount3, ReqSourceCount4,"
-                          //   54                  55                  56                  57                  58                     59                     60                     61
+                          // 55                56                  57                  58                  59                     60                     61                     62
                           "ReqCreatureOrGOId1, ReqCreatureOrGOId2, ReqCreatureOrGOId3, ReqCreatureOrGOId4, ReqCreatureOrGOCount1, ReqCreatureOrGOCount2, ReqCreatureOrGOCount3, ReqCreatureOrGOCount4,"
-                          //   62             63             64             65
+                          // 63           64             65             66
                           "ReqSpellCast1, ReqSpellCast2, ReqSpellCast3, ReqSpellCast4,"
-                          //   66                67                68                69                70                71
+                          // 67              68                69                70                71                72
                           "RewChoiceItemId1, RewChoiceItemId2, RewChoiceItemId3, RewChoiceItemId4, RewChoiceItemId5, RewChoiceItemId6,"
-                          //   72                   73                   74                   75                   76                   77
+                          // 73                 74                   75                   76                   77                   78
                           "RewChoiceItemCount1, RewChoiceItemCount2, RewChoiceItemCount3, RewChoiceItemCount4, RewChoiceItemCount5, RewChoiceItemCount6,"
-                          //   78          79          80          81          82             83             84             85
+                          // 79        80          81          82          83             84             85             86
                           "RewItemId1, RewItemId2, RewItemId3, RewItemId4, RewItemCount1, RewItemCount2, RewItemCount3, RewItemCount4,"
-                          //   86              87              88              89              90              91            92            93            94            95
+                          // 87            88              89              90              91              92            93            94            95            96
                           "RewRepFaction1, RewRepFaction2, RewRepFaction3, RewRepFaction4, RewRepFaction5, RewRepValue1, RewRepValue2, RewRepValue3, RewRepValue4, RewRepValue5,"
-                          //   96                 97             98                99        100           101                102               103         104     105     106
+                          // 97               98             99                100       101           102                103               104         105     106     107
                           "RewHonorableKills, RewOrReqMoney, RewMoneyMaxLevel, RewSpell, RewSpellCast, RewMailTemplateId, RewMailDelaySecs, PointMapId, PointX, PointY, PointOpt,"
-                          //   107            108            109            110            111                 112                 113                 114
+                          // 108          109            110            111            112                 113                 114                 115
                           "DetailsEmote1, DetailsEmote2, DetailsEmote3, DetailsEmote4, DetailsEmoteDelay1, DetailsEmoteDelay2, DetailsEmoteDelay3, DetailsEmoteDelay4,"
-                          //   115          116                   117                118                119                120             121                 122          
+                          // 116            117                   118            119                 120                121                122                123          
                           "IncompleteEmote, IncompleteEmoteDelay, CompleteEmote, CompleteEmoteDelay, OfferRewardEmote1, OfferRewardEmote2, OfferRewardEmote3, OfferRewardEmote4,"
-                          //   123                     124                     125                     126
+                          // 124                   125                     126                     127
                           "OfferRewardEmoteDelay1, OfferRewardEmoteDelay2, OfferRewardEmoteDelay3, OfferRewardEmoteDelay4,"
-                          //   127          128            129              130             131               132             133               134
-                          "StartScript, CompleteScript, RewMaxRepValue1, RewMaxRepValue2, RewMaxRepValue3, RewMaxRepValue4, RewMaxRepValue5, RequiredCondition"
+                          // 128        129             130              131              132              133              134              135                136
+                          "StartScript, CompleteScript, RewMaxRepValue1, RewMaxRepValue2, RewMaxRepValue3, RewMaxRepValue4, RewMaxRepValue5, RequiredCondition, MaxLevel"
 
                           " FROM quest_template");
     if (!result)
@@ -4943,14 +4978,13 @@ void ObjectMgr::LoadQuests()
         // fill additional data stores
         if (qinfo->PrevQuestId)
         {
-            if (mQuestTemplates.find(abs(qinfo->GetPrevQuestId())) == mQuestTemplates.end())
-            {
+            QuestMap::iterator qPrevItr = mQuestTemplates.find(abs(qinfo->GetPrevQuestId()));
+            if (qPrevItr == mQuestTemplates.end())
                 sLog.outErrorDb("Quest %d has PrevQuestId %i, but no such quest", qinfo->GetQuestId(), qinfo->GetPrevQuestId());
-            }
+            else if (qPrevItr->second->BreadcrumbForQuestId)
+                sLog.outErrorDb("Quest %d should not be unlocked by breadcrumb quest %u", qinfo->GetQuestId(), qinfo->GetPrevQuestId());
             else
-            {
                 qinfo->prevQuests.push_back(qinfo->PrevQuestId);
-            }
         }
 
         if (qinfo->NextQuestId)
@@ -4972,6 +5006,50 @@ void ObjectMgr::LoadQuests()
 
         if (qinfo->LimitTime)
             qinfo->SetSpecialFlag(QUEST_SPECIAL_FLAG_TIMED);
+
+        if (uint32 breadcrumbQuestId = qinfo->BreadcrumbForQuestId)
+        {
+            QuestMap::iterator qBreadcrumbQuestItr = mQuestTemplates.find(breadcrumbQuestId);
+            if (qBreadcrumbQuestItr == mQuestTemplates.end())
+            {
+                sLog.outErrorDb("Quest %u has BreadcrumbForQuestId %u, but there is no such quest", qinfo->GetQuestId(), breadcrumbQuestId);
+                qinfo->BreadcrumbForQuestId = 0;
+            }
+            else
+            {
+                if (qinfo->NextQuestId)
+                    sLog.outErrorDb("Quest %u is a breadcrumb, it should not unlock quest %d", qinfo->GetQuestId(), qinfo->NextQuestId);
+                if (qinfo->ExclusiveGroup)
+                    sLog.outErrorDb("Quest %u is a breadcrumb, it should not be in exclusive group %d", qinfo->GetQuestId(), qinfo->ExclusiveGroup);
+            }
+        }
+    }
+
+    // Prevent any breadcrumb loops, and inform target quests of their breadcrumbs
+    for (auto& mQuestTemplate : mQuestTemplates)
+    {
+        Quest* qinfo = mQuestTemplate.second;
+        uint32   qid = qinfo->GetQuestId();
+        uint32 breadcrumbForQuestId = qinfo->BreadcrumbForQuestId;
+        std::set<uint32> questSet;
+
+        while (breadcrumbForQuestId)
+        {
+            // If the insertion fails, then we already processed this breadcrumb quest in this iteration. This means that two breadcrumb quests have each other set as targets
+            if (!questSet.insert(qinfo->QuestId).second)
+            {
+                sLog.outErrorDb("Breadcrumb quests %u and %u are in a loop!", qid, breadcrumbForQuestId);
+                qinfo->BreadcrumbForQuestId = 0;
+                break;
+            }
+
+            qinfo = const_cast<Quest*>(sObjectMgr.GetQuestTemplate(breadcrumbForQuestId));
+
+            // Every quest has a list of breadcrumb quests that point toward it
+            qinfo->DependentBreadcrumbQuests.push_back(qid);
+
+            breadcrumbForQuestId = qinfo->GetBreadcrumbForQuestId();
+        }
     }
 
     sLog.outString(">> Loaded " SIZEFMTD " quests definitions", mQuestTemplates.size());
@@ -5579,6 +5657,44 @@ void ObjectMgr::LoadWorldTemplate()
     }
 
     sLog.outString(">> Loaded %u World Template definitions", sWorldTemplate.GetRecordCount());
+    sLog.outString();
+}
+
+void ObjectMgr::LoadWorldStateNames()
+{
+    std::unique_ptr<QueryResult> result(WorldDatabase.Query("SELECT Id, Name FROM worldstate_name"));
+
+    uint32 count = 0;
+
+    if (!result)
+    {
+        BarGoLink bar(1);
+        bar.step();
+
+        sLog.outString();
+        sLog.outString(">> Loaded %u worldstate names", count);
+        return;
+    }
+
+    BarGoLink bar(result->GetRowCount());
+
+    Field* fields;
+    do
+    {
+        bar.step();
+
+        fields = result->Fetch();
+
+        WorldStateName name;
+        name.Id = fields[0].GetInt32();
+        name.Name = fields[1].GetCppString();
+
+        m_worldStateNames.emplace(name.Id, name);
+
+        ++count;
+    } while (result->NextRow());
+
+    sLog.outString(">> Loaded %u worldstate names", count);
     sLog.outString();
 }
 
@@ -9153,7 +9269,7 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
 
     std::set<uint32> skip_vendors;
 
-    QueryResult* result = WorldDatabase.PQuery("SELECT entry, item, maxcount, incrtime, ExtendedCost, condition_id FROM %s", tableName);
+    QueryResult* result = WorldDatabase.PQuery("SELECT entry, item, maxcount, incrtime, ExtendedCost, condition_id FROM %s ORDER BY slot", tableName);
     if (!result)
     {
         BarGoLink bar(1);
@@ -9753,13 +9869,13 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
     uint32 countItems = vItems ? vItems->GetItemCount() : 0;
     countItems += tItems ? tItems->GetItemCount() : 0;
 
-    if (countItems >= MAX_VENDOR_ITEMS)
+    if (countItems > std::numeric_limits<uint8>::max())
     {
         if (pl)
             ChatHandler(pl).SendSysMessage(LANG_COMMAND_ADDVENDORITEMITEMS);
         else
-            sLog.outErrorDb("Table `%s` has too many items (%u >= %i) for %s %u, ignoring",
-                            tableName, countItems, MAX_VENDOR_ITEMS, idStr, vendor_entry);
+            sLog.outErrorDb("Table `%s` has too many items (%u > %i) for %s %u, ignoring",
+                            tableName, countItems, std::numeric_limits<uint8>::max(), idStr, vendor_entry);
         return false;
     }
 

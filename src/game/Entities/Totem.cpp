@@ -36,7 +36,7 @@ bool Totem::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* 
 {
     SetMap(cPos.GetMap());
 
-    if (!CreateFromProto(guidlow, cinfo))
+    if (!CreateFromProto(guidlow, guidlow, cinfo))
         return false;
 
     // special model selection case for totems
@@ -69,6 +69,8 @@ bool Totem::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* 
         SetSpellList(GetCreatureInfo()->SpellList);
     else // legacy compatibility
         SetSpellList(cinfo->Entry * 100 + 0);
+
+    SetAOEImmune(true);
 
     return true;
 }

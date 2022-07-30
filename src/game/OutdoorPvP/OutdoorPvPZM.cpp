@@ -156,7 +156,7 @@ void OutdoorPvPZM::HandlePlayerKillInsideArea(Player* player)
             GameObjectInfo const* info = capturePoint->GetGOInfo();
             if (info && player->IsWithinDistInMap(capturePoint, info->capturePoint.radius))
             {
-                player->CastSpell(player, player->GetTeam() == ALLIANCE ? SPELL_ZANGA_TOWER_TOKEN_ALLIANCE : SPELL_ZANGA_TOWER_TOKEN_HORDE, TRIGGERED_OLD_TRIGGERED);
+                player->CastSpell(nullptr, player->GetTeam() == ALLIANCE ? SPELL_ZANGA_TOWER_TOKEN_ALLIANCE : SPELL_ZANGA_TOWER_TOKEN_HORDE, TRIGGERED_OLD_TRIGGERED);
                 return;
             }
         }
@@ -164,8 +164,12 @@ void OutdoorPvPZM::HandlePlayerKillInsideArea(Player* player)
 }
 
 // process the capture events
-bool OutdoorPvPZM::HandleEvent(uint32 eventId, GameObject* go, Unit* /*invoker*/)
+bool OutdoorPvPZM::HandleEvent(uint32 eventId, Object* source, Object* /*target*/)
 {
+    if (!source->IsGameObject())
+        return true;
+
+    GameObject* go = static_cast<GameObject*>(source);
     for (uint8 i = 0; i < MAX_ZM_TOWERS; ++i)
     {
         if (zangarmarshTowers[i] == go->GetEntry())

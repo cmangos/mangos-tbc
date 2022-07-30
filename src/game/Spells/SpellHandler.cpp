@@ -348,6 +348,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         return;
     }
 
+    Unit* caster = mover;
     if (mover->GetTypeId() == TYPEID_PLAYER)
     {
         // not have spell in spellbook or spell passive and not casted by client
@@ -361,12 +362,18 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     }
     else
     {
+        bool isPassive = IsPassiveSpell(spellInfo);
         // not have spell in spellbook or spell passive and not casted by client
-        if (!mover->HasSpell(spellId) || IsPassiveSpell(spellInfo))
+        if (!mover->HasSpell(spellId) || isPassive)
         {
-            // cheater? kick? ban?
-            recvPacket.rpos(recvPacket.wpos());             // prevent spam at ignore packet
-            return;
+            if (!_player->HasSpell(spellId) || isPassive)
+            {
+                // cheater? kick? ban?
+                recvPacket.rpos(recvPacket.wpos());             // prevent spam at ignore packet
+                return;
+            }
+            else
+                caster = _player;
         }
     }
 
@@ -394,20 +401,21 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
         return;
 
     bool handled = false;
-    Spell* spell = new Spell(mover, spellInfo, TRIGGERED_NONE);
+    Spell* spell = new Spell(caster, spellInfo, TRIGGERED_NONE);
     spell->m_cast_count = cast_count;                       // set count of casts
     spell->m_clientCast = true;
-    if (mover->HasGCD(spellInfo) || !mover->IsSpellReady(*spellInfo))
+    if (caster->HasGCD(spellInfo) || !caster->IsSpellReady(*spellInfo))
     {
-        if (mover->HasGCDOrCooldownWithinMargin(*spellInfo))
+        if (caster->HasGCDOrCooldownWithinMargin(*spellInfo))
         {
             handled = true;
             _player->SetQueuedSpell(spell);
-            GetMessager().AddMessage([guid = mover->GetObjectGuid(), targets = targets](WorldSession* session) mutable
+            GetMessager().AddMessage([guid = caster->GetObjectGuid(), isPlayer = caster != mover, targets = targets](WorldSession* session) mutable
             {
                 if (session->GetPlayer()) // in case of logout
                 {
-                    if (session->GetPlayer()->GetMover()->GetObjectGuid() == guid) // in case of mind control end
+                    // in case of mind control end
+                    if ((isPlayer && session->GetPlayer()->GetObjectGuid() == guid) || (!isPlayer && session->GetPlayer()->GetMover()->GetObjectGuid() == guid))
                         session->GetPlayer()->CastQueuedSpell(targets);
                     else
                         session->GetPlayer()->ClearQueuedSpell();
@@ -447,7 +455,7 @@ void WorldSession::HandleCancelAuraOpcode(WorldPacket& recvPacket)
     if (!spellInfo)
         return;
 
-    if (spellInfo->HasAttribute(SPELL_ATTR_CANT_CANCEL))
+    if (spellInfo->HasAttribute(SPELL_ATTR_NO_AURA_CANCEL))
         return;
 
     if (IsPassiveSpell(spellInfo))
@@ -508,10 +516,6 @@ void WorldSession::HandlePetCancelAuraOpcode(WorldPacket& recvPacket)
     recvPacket >> guid;
     recvPacket >> spellId;
 
-    // ignore for remote control state
-    if (!_player->IsSelfMover())
-        return;
-
     SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     if (!spellInfo)
     {
@@ -540,9 +544,6 @@ void WorldSession::HandlePetCancelAuraOpcode(WorldPacket& recvPacket)
     }
 
     pet->RemoveAurasDueToSpell(spellId);
-
-    // TODO: check if its correctly handled in aura remove
-    //pet->AddCreatureSpellCooldown(spellId);
 }
 
 void WorldSession::HandleCancelGrowthAuraOpcode(WorldPacket& /*recvPacket*/)

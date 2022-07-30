@@ -17,8 +17,10 @@
 */
 
 #include "Spells/Scripts/SpellScript.h"
+#include "Spells/SpellAuras.h"
 
-struct spell_preparation : public SpellScript
+// 14185 - Preparation
+struct Preparation : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
@@ -40,6 +42,7 @@ enum
 };
 
 // Warning: Also currently used by Prowl
+// 1784 - Stealth
 struct Stealth : public AuraScript
 {
     bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override // per 1.12.0 patch notes - no other indication of how it works
@@ -48,7 +51,6 @@ struct Stealth : public AuraScript
         {
             switch (data.spell->m_spellInfo->Id)
             {
-                case SPELL_DISTRACT:
                 case SPELL_EARTHBIND:
                 case SPELL_MASS_DISPEL:
                 case SPELL_MASS_DISPEL_2:
@@ -65,25 +67,10 @@ void CastHighestStealthRank(Unit* caster)
         return;
 
     // get highest rank of the Stealth spell
-    SpellEntry const* stealthSpellEntry = nullptr;
-    const PlayerSpellMap& sp_list = static_cast<Player*>(caster)->GetSpellMap();
-    for (const auto& itr : sp_list)
-    {
-        // only highest rank is shown in spell book, so simply check if shown in spell book
-        if (!itr.second.active || itr.second.disabled || itr.second.state == PLAYERSPELL_REMOVED)
-            continue;
-
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr.first);
-        if (!spellInfo)
-            continue;
-
-        if (spellInfo->IsFitToFamily(SPELLFAMILY_ROGUE, uint64(0x0000000000400000)))
-        {
-            stealthSpellEntry = spellInfo;
-            break;
-        }
-    }
-
+    uint32 spellId = static_cast<Player*>(caster)->LookupHighestLearnedRank(1784);
+    if (!spellId)
+        return;
+    SpellEntry const* stealthSpellEntry = sSpellTemplate.LookupEntry<SpellEntry>(spellId);
     // no Stealth spell found
     if (!stealthSpellEntry)
         return;
@@ -95,6 +82,7 @@ void CastHighestStealthRank(Unit* caster)
     caster->CastSpell(nullptr, stealthSpellEntry, TRIGGERED_OLD_TRIGGERED);
 }
 
+// 1856 - Vanish
 struct VanishRogue : public SpellScript
 {
     void OnCast(Spell* spell) const override
@@ -103,9 +91,63 @@ struct VanishRogue : public SpellScript
     }
 };
 
+// 6770 - Sap
+struct SapRogue : public SpellScript
+{
+    // SPELL_ATTR_EX3_SUPPRESS_TARGET_PROCS prevents sap to proc stealth normally
+    void OnHit(Spell* spell, SpellMissInfo missInfo) const override
+    {
+        if (missInfo == SPELL_MISS_NONE && spell->GetUnitTarget())
+            spell->GetUnitTarget()->RemoveSpellsCausingAura(SPELL_AURA_MOD_STEALTH);
+    }
+};
+
+// 13983 - Setup
+struct SetupRogue : public AuraScript
+{
+    bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
+    {
+        return data.victim->GetTarget() == data.attacker;
+    }
+};
+
+// 14082 - Dirty Deeds
+struct DirtyDeeds : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (aura->GetEffIndex() == EFFECT_INDEX_1)
+            aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_MELEE_DAMAGE_DONE, apply);
+        else if (aura->GetEffIndex() == EFFECT_INDEX_2)
+            aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_MELEE_DAMAGE_DONE, apply);
+    }
+
+    void OnDamageCalculate(Aura* aura, Unit* victim, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        if (aura->GetEffIndex() == EFFECT_INDEX_0)
+            return;
+
+        if (victim->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+        {
+            Aura* eff0 = aura->GetHolder()->m_auras[EFFECT_INDEX_0];
+            if (!eff0)
+            {
+                sLog.outError("Spell structure of DD (%u) changed.", aura->GetId());
+                return;
+            }
+
+            // effect 0 have expected value but in negative state
+            totalMod *= (-eff0->GetModifier()->m_amount + 100.0f) / 100.0f;
+        }
+    }
+};
+
 void LoadRogueScripts()
 {
-    RegisterSpellScript<spell_preparation>("spell_preparation");
+    RegisterSpellScript<Preparation>("spell_preparation");
     RegisterSpellScript<Stealth>("spell_stealth");
     RegisterSpellScript<VanishRogue>("spell_vanish");
+    RegisterSpellScript<SapRogue>("spell_sap");
+    RegisterSpellScript<SetupRogue>("spell_setup_rogue");
+    RegisterSpellScript<DirtyDeeds>("spell_dirty_deeds");
 }

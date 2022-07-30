@@ -22,6 +22,8 @@
 #include "BattleGroundBE.h"
 #include "WorldPacket.h"
 #include "Tools/Language.h"
+#include "World/WorldStateDefines.h"
+#include "World/WorldStateVariableManager.h"
 
 BattleGroundBE::BattleGroundBE()
 {
@@ -35,6 +37,14 @@ BattleGroundBE::BattleGroundBE()
     m_startMessageIds[BG_STARTING_EVENT_SECOND] = LANG_ARENA_THIRTY_SECONDS;
     m_startMessageIds[BG_STARTING_EVENT_THIRD]  = LANG_ARENA_FIFTEEN_SECONDS;
     m_startMessageIds[BG_STARTING_EVENT_FOURTH] = LANG_ARENA_HAS_BEGUN;
+}
+
+void BattleGroundBE::Reset()
+{
+    GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_HUD_ENABLED, 1);
+    GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_BE_HUD_ENABLED, true, 0, 0);
+    GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_BE_ALLIANCE_ALIVE, true, 0, 0);
+    GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_BE_HORDE_ALIVE, true, 0, 0);
 }
 
 void BattleGroundBE::StartingEventOpenDoors()
@@ -53,8 +63,8 @@ void BattleGroundBE::AddPlayer(Player* plr)
 
     m_playerScores[plr->GetObjectGuid()] = sc;
 
-    UpdateWorldState(0x9f1, GetAlivePlayersCountByTeam(ALLIANCE));
-    UpdateWorldState(0x9f0, GetAlivePlayersCountByTeam(HORDE));
+    GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_ALLIANCE_ALIVE, GetAlivePlayersCountByTeam(ALLIANCE));
+    GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_HORDE_ALIVE, GetAlivePlayersCountByTeam(HORDE));
 }
 
 void BattleGroundBE::RemovePlayer(Player* /*plr*/, ObjectGuid /*guid*/)
@@ -62,8 +72,8 @@ void BattleGroundBE::RemovePlayer(Player* /*plr*/, ObjectGuid /*guid*/)
     if (GetStatus() == STATUS_WAIT_LEAVE)
         return;
 
-    UpdateWorldState(0x9f1, GetAlivePlayersCountByTeam(ALLIANCE));
-    UpdateWorldState(0x9f0, GetAlivePlayersCountByTeam(HORDE));
+    GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_ALLIANCE_ALIVE, GetAlivePlayersCountByTeam(ALLIANCE));
+    GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_HORDE_ALIVE, GetAlivePlayersCountByTeam(HORDE));
 
     CheckArenaWinConditions();
 }
@@ -81,8 +91,8 @@ void BattleGroundBE::HandleKillPlayer(Player* player, Player* killer)
 
     BattleGround::HandleKillPlayer(player, killer);
 
-    UpdateWorldState(0x9f1, GetAlivePlayersCountByTeam(ALLIANCE));
-    UpdateWorldState(0x9f0, GetAlivePlayersCountByTeam(HORDE));
+    GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_ALLIANCE_ALIVE, GetAlivePlayersCountByTeam(ALLIANCE));
+    GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_HORDE_ALIVE, GetAlivePlayersCountByTeam(HORDE));
 
     CheckArenaWinConditions();
 }
@@ -91,13 +101,6 @@ bool BattleGroundBE::HandlePlayerUnderMap(Player* player)
 {
     player->TeleportTo(GetMapId(), 6238.930176f, 262.963470f, 0.889519f, player->GetOrientation());
     return true;
-}
-
-void BattleGroundBE::FillInitialWorldStates(WorldPacket& data, uint32& count)
-{
-    FillInitialWorldState(data, count, 0x9f1, GetAlivePlayersCountByTeam(ALLIANCE));
-    FillInitialWorldState(data, count, 0x9f0, GetAlivePlayersCountByTeam(HORDE));
-    FillInitialWorldState(data, count, 0x9f3, 1);
 }
 
 void BattleGroundBE::UpdatePlayerScore(Player* source, uint32 type, uint32 value)

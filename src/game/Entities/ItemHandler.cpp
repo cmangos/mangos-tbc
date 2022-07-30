@@ -719,7 +719,8 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid) const
     }
 
     // Stop the npc if moving
-    pCreature->GetMotionMaster()->PauseWaypoints();
+    if (uint32 pauseTimer = pCreature->GetInteractionPauseTimer())
+        pCreature->GetMotionMaster()->PauseWaypoints(pauseTimer);
 
     VendorItemData const* vItems = pCreature->GetVendorItems();
     VendorItemData const* tItems = pCreature->GetVendorTemplateItems();
@@ -784,6 +785,9 @@ void WorldSession::SendListInventory(ObjectGuid vendorguid) const
                 data << uint32(pProto->MaxDurability);
                 data << uint32(pProto->BuyCount);
                 data << uint32(crItem->ExtendedCost);
+
+                if (count >= MAX_VENDOR_ITEMS)
+                    break;
             }
         }
     }

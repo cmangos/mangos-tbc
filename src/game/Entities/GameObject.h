@@ -724,7 +724,7 @@ class GameObject : public WorldObject
         void AddToWorld() override;
         void RemoveFromWorld() override;
 
-        virtual bool Create(uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang,
+        virtual bool Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang,
                     float rotation0 = 0.0f, float rotation1 = 0.0f, float rotation2 = 0.0f, float rotation3 = 0.0f, uint32 animprogress = GO_ANIMPROGRESS_DEFAULT, GOState go_state = GO_STATE_READY);
         void Update(const uint32 diff) override;
         void Heartbeat() override;
@@ -814,7 +814,7 @@ class GameObject : public WorldObject
         void Use(Unit* user, SpellEntry const* spellInfo = nullptr);
 
         LootState GetLootState() const { return m_lootState; }
-        void SetLootState(LootState state);
+        void SetLootState(LootState state, Unit* user = nullptr);
 
         void AddToSkillupList(Player* player);
         bool IsInSkillupList(Player* player) const;
@@ -854,7 +854,7 @@ class GameObject : public WorldObject
         bool ActivateToQuest(Player* pTarget) const;
         void UseDoorOrButton(uint32 time_to_restore = 0, bool alternative = false);
         // 0 = use `gameobject`.`spawntimesecs`
-        void ResetDoorOrButton();
+        void ResetDoorOrButton(Unit* user = nullptr);
         void UseOpenableObject(bool open, uint32 withRestoreTime = 0, bool useAlternativeState = false);
 
         ReputationRank GetReactionTo(Unit const* unit) const override;
@@ -917,7 +917,6 @@ class GameObject : public WorldObject
 
         void GenerateLootFor(Player* player); // used to tie chest loot to encounter at the moment of its end
 
-        uint32 GetDbGuid() const override { return m_dbGuid; }
         HighGuid GetParentHigh() const override { return HIGHGUID_GAMEOBJECT; }
 
         void SetCooldown(uint32 cooldown); // seconds
@@ -977,8 +976,6 @@ class GameObject : public WorldObject
         ObjectGuid m_linkedTrap;
 
         std::unique_ptr<GameObjectAI> m_AI;
-
-        uint32 m_dbGuid;
 
         ObjectGuid m_spawnerGuid;
 

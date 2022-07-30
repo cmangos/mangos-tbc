@@ -302,6 +302,10 @@ class Pet : public Creature
         void ResetCorpseRespawn();
 
         void ForcedDespawn(uint32 timeMSToDespawn = 0, bool onlyAlive = false) override;
+
+        void StartCooldown(Unit* owner);
+
+        bool IgnoresOwnersDeath() const;
     protected:
         uint32  m_happinessTimer;
         uint32  m_loyaltyTimer;
@@ -316,6 +320,8 @@ class Pet : public Creature
         PetModeFlags m_petModeFlags;
         CharmInfo*   m_originalCharminfo;
         bool m_inStatsUpdate;
+
+        bool m_imposedCooldown;
 
         void SaveToDB(uint32, uint8) override               // overwrited of Creature::SaveToDB     - don't must be called
         {

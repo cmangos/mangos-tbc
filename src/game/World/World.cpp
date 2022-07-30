@@ -637,7 +637,7 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_UINT32_WORLD_BOSS_LEVEL_DIFF, "WorldBossLevelDiff", 3);
 
-    setConfigMinMax(CONFIG_INT32_QUEST_LOW_LEVEL_HIDE_DIFF, "Quests.LowLevelHideDiff", 4, -1, MAX_LEVEL);
+    setConfigMinMax(CONFIG_INT32_QUEST_LOW_LEVEL_HIDE_DIFF, "Quests.LowLevelHideDiff", 5, -1, MAX_LEVEL);
     setConfigMinMax(CONFIG_INT32_QUEST_HIGH_LEVEL_HIDE_DIFF, "Quests.HighLevelHideDiff", 7, -1, MAX_LEVEL);
 
     setConfigMinMax(CONFIG_UINT32_QUEST_DAILY_RESET_HOUR, "Quests.Daily.ResetHour", 6, 0, 23);
@@ -728,6 +728,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_MIRRORTIMER_ENVIRONMENTAL_MAX, "MirrorTimer.Environmental.Max", 1);
     setConfig(CONFIG_UINT32_ENVIRONMENTAL_DAMAGE_MIN, "EnvironmentalDamage.Min", 605);
     setConfigMin(CONFIG_UINT32_ENVIRONMENTAL_DAMAGE_MAX, "EnvironmentalDamage.Max", 610, getConfig(CONFIG_UINT32_ENVIRONMENTAL_DAMAGE_MIN));
+
+    setConfig(CONFIG_UINT32_INTERACTION_PAUSE_TIMER, "InteractionPauseTimer", 180000);
 
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", false);
     setConfig(CONFIG_BOOL_PET_ATTACK_FROM_BEHIND,     "PetAttackFromBehind", true);
@@ -1062,9 +1064,6 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading SpellsScriptTarget...");
     sSpellMgr.LoadSpellScriptTarget();                      // must be after LoadCreatureTemplates, LoadCreatures and LoadGameobjectInfo
 
-    sLog.outString("Loading Spawn Groups");                 // must be after creature and GO load
-    sObjectMgr.LoadSpawnGroups();
-
     sLog.outString("Generating SpellTargetMgr data...\n");
     SpellTargetMgr::Initialize(); // must be after LoadSpellScriptTarget
 
@@ -1098,8 +1097,14 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading Dungeon Encounters...");
     sObjectMgr.LoadDungeonEncounters();                     // Load DungeonEncounter.dbc from DB
 
+    sLog.outString("Loading WorldState Names...");          // must be before conditions and dbscripts
+    sObjectMgr.LoadWorldStateNames();
+
     sLog.outString("Loading Conditions...");                // Load Conditions
     sObjectMgr.LoadConditions();
+
+    sLog.outString("Loading Spawn Groups");                 // must be after creature and GO load
+    sObjectMgr.LoadSpawnGroups();
 
     // Not sure if this can be moved up in the sequence (with static data loading) as it uses MapManager
     sLog.outString("Loading Transports...");
@@ -1305,6 +1310,9 @@ void World::SetInitialWorldSettings()
     // after SD2
     sLog.outString("Loading spell scripts...");
     SpellScriptMgr::LoadScripts();
+
+    // after spellscripts
+    sScriptDevAIMgr.CheckScriptNames();
 
     ///- Initialize game time and timers
     sLog.outString("Initialize game time and timers");

@@ -85,7 +85,7 @@ struct boss_coren_direbrewAI : public CombatAI
         {
             if (Player* player = m_creature->GetMap()->GetPlayer(m_targetPlayer))
             {
-                m_creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_REACH_HOME | TEMPFACTION_RESTORE_RESPAWN);
+                m_creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_REACH_HOME | TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER);
                 m_creature->SetInCombatWithZone();
                 AttackStart(player);
                 CreatureList staticSpawns;
@@ -185,6 +185,17 @@ struct boss_coren_direbrewAI : public CombatAI
         }
     }
 
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_EVENTAI_A)
+        {
+            DoScriptText(SAY_AGGRO, m_creature, invoker);
+
+            m_targetPlayer = invoker->GetObjectGuid();
+            ResetTimer(COREN_ATTACK_TIMER, 2000);
+        }
+    }
+
     // unconfirmed usage - at least during tbc
     //if (m_uiChargeTimer < uiDiff)
     //{
@@ -201,15 +212,7 @@ struct boss_coren_direbrewAI : public CombatAI
 bool QuestRewarded_npc_coren_direbrew(Player* player, Creature* creature, Quest const* quest)
 {
     if (quest->GetQuestId() == QUEST_INSULT_COREN)
-    {
-        DoScriptText(SAY_AGGRO, creature, player);
-
-        if (boss_coren_direbrewAI* ai = dynamic_cast<boss_coren_direbrewAI*>(creature->AI()))
-        {
-            ai->m_targetPlayer = player->GetObjectGuid();
-            ai->ResetTimer(COREN_ATTACK_TIMER, 2000);
-        }
-    }
+        creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, player, creature);
 
     return true;
 }

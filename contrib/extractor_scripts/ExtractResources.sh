@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # This file is part of the CMaNGOS Project. See AUTHORS file for Copyright information
 #
@@ -30,6 +31,42 @@ USE_MMAPS_DELAY=""
 AD_RES=""
 VMAP_RES=""
 NUM_THREAD=""
+
+if [ "$1" != "a" ] && [ "x$1" != "x" ]
+then
+  CLIENT_PATH="$1"
+  OUTPUT_PATH="$2"
+elif [ "x$2" != "x" ]
+then
+  CLIENT_PATH="$2"
+  OUTPUT_PATH="$3"
+fi
+
+if [ "x${CLIENT_PATH}" != "x" ]
+then
+  if [ ! -d "${CLIENT_PATH}/Data" ]
+  then
+    echo "Data folder not found in provided client path [${CLIENT_PATH}]. Plese provide a correct client path."
+    exit 1
+  fi
+else
+  if [ ! -d "$(pwd)/Data" ]
+  then
+    echo "Data folder not found. Make sure you have copied the script to the client folder and the 'Data' folder has the correct case."
+    exit 1
+  fi
+fi
+
+if [ "x${OUTPUT_PATH}" != "x" ]
+then
+  if [ ! -d "${OUTPUT_PATH}" ]
+  then
+    echo "Provided OUTPUT_PATH=${OUTPUT_PATH} does not exist, please create it before"
+    exit 1
+  fi
+  LOG_FILE="${OUTPUT_PATH:-.}/${LOG_FILE}"
+  DETAIL_LOG_FILE="${OUTPUT_PATH:-.}/${DETAIL_LOG_FILE}"
+fi
 
 if [ "$1" = "a" ]
 then
@@ -78,16 +115,6 @@ else
       fi
     fi
   fi
-fi
-
-if [ "$1" != "a" ] && [ "x$1" != "x" ] && [ -d "$1" ]
-then
-  CLIENT_PATH="$1"
-  OUTPUT_PATH="$2"
-elif [ "x$2" != "x" ] && [ -d "$2" ]
-then
-  CLIENT_PATH="$2"
-  OUTPUT_PATH=$3
 fi
 
 if [ "x$CLIENT_PATH" != "x" ]
@@ -225,10 +252,23 @@ if [ "$USE_VMAPS" = "1" ]
 then
   echo "$(date): Start extraction of vmaps..." | tee -a $LOG_FILE
   $PREFIX/vmap_extractor $VMAP_RES $VMAP_OPT_RES | tee -a $DETAIL_LOG_FILE
+  exit_code="${PIPESTATUS[0]}"
+  if [[ "$exit_code" -ne "0" ]]; then
+    echo "$(date): Extraction of vmaps failed with errors. Aborting extraction. See the log file for more details."
+    exit "$exit_code"
+  fi
   echo "$(date): Extracting of vmaps finished" | tee -a $LOG_FILE
-  mkdir ${OUTPUT_PATH:-.}/vmaps
+  if [ ! -d "$(pwd)/vmaps" ]
+  then
+    mkdir ${OUTPUT_PATH:-.}/vmaps
+  fi
   echo "$(date): Start assembling of vmaps..." | tee -a $LOG_FILE
   $PREFIX/vmap_assembler ${OUTPUT_PATH:-.}/Buildings ${OUTPUT_PATH:-.}/vmaps | tee -a $DETAIL_LOG_FILE
+  exit_code="${PIPESTATUS[0]}"
+  if [[ "$exit_code" -ne "0" ]]; then
+    echo "$(date): Assembling of vmaps failed with errors. Aborting extraction. See the log file for more details."
+    exit "$exit_code"
+  fi
   echo "$(date): Assembling of vmaps finished" | tee -a $LOG_FILE
 
   echo | tee -a $LOG_FILE

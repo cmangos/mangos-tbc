@@ -158,6 +158,7 @@ struct CreatureInfo
     uint32  VendorTemplateId;
     uint32  EquipmentTemplateId;
     uint32  GossipMenuId;
+    uint32  InteractionPauseTimer;
     VisibilityDistanceType visibilityDistanceType;
     uint32  CorpseDelay;
     uint32  SpellList;
@@ -220,6 +221,7 @@ enum SpawnFlags
 struct CreatureSpawnTemplate
 {
     uint32 entry;
+    int32 npcFlags;
     int64 unitFlags;
     uint32 faction;
     uint32 modelId;
@@ -475,7 +477,7 @@ struct TrainerSpellData
 #define CREATURE_Z_ATTACK_RANGE_MELEE  3
 #define CREATURE_Z_ATTACK_RANGE_RANGED 15
 
-#define MAX_VENDOR_ITEMS 255                                // Limitation in item count field size in SMSG_LIST_INVENTORY
+#define MAX_VENDOR_ITEMS 150                                // Limitation in item count field size in SMSG_LIST_INVENTORY
 
 enum VirtualItemSlot
 {
@@ -539,7 +541,7 @@ enum TemporaryFactionFlags                                  // Used at real fact
     TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER = 0x10,             // Remove UNIT_FLAG_IMMUNE_TO_PLAYER(0x100) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_TOGGLE_IMMUNE_TO_NPC    = 0x20,             // Remove UNIT_FLAG_IMMUNE_TO_NPC(0x200) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_TOGGLE_PACIFIED         = 0x40,             // Remove UNIT_FLAG_PACIFIED(0x20000) when faction is changed (reapply when temp-faction is removed)
-    TEMPFACTION_TOGGLE_NOT_SELECTABLE   = 0x80,             // Remove UNIT_FLAG_NOT_SELECTABLE(0x2000000) when faction is changed (reapply when temp-faction is removed)
+    TEMPFACTION_TOGGLE_NOT_SELECTABLE   = 0x80,             // Remove UNIT_FLAG_UNINTERACTIBLE(0x2000000) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_ALL,
 };
 
@@ -554,7 +556,7 @@ class Creature : public Unit
         void RemoveFromWorld() override;
         void CleanupsBeforeDelete() override;
 
-        bool Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
+        bool Create(uint32 dbGuid, uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
         bool LoadCreatureAddon(bool reload);
 
         // SelectLevel set creature bases stats for given level or for default levels stored in db
@@ -762,6 +764,7 @@ class Creature : public Unit
 
         void SetDefaultGossipMenuId(uint32 menuId) { m_gossipMenuId = menuId; }
         uint32 GetDefaultGossipMenuId() const { return m_gossipMenuId; }
+        uint32 GetInteractionPauseTimer() const { return m_interactionPauseTimer; }
 
         GridReference<Creature>& GetGridRef() { return m_gridRef; }
         bool IsRegeneratingHealth() const { return (GetCreatureInfo()->RegenerateStats & REGEN_FLAG_HEALTH) != 0; }
@@ -844,7 +847,6 @@ class Creature : public Unit
         void UnregisterHitBySpell(uint32 spellId);
         void ResetSpellHitCounter();
 
-        uint32 GetDbGuid() const override { return m_dbGuid; }
         HighGuid GetParentHigh() const override { return HIGHGUID_UNIT; }
 
         // Spell Lists
@@ -863,7 +865,7 @@ class Creature : public Unit
         bool IsNoWeaponSkillGain() const override { return m_noWeaponSkillGain; }
 
     protected:
-        bool CreateFromProto(uint32 guidlow, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
+        bool CreateFromProto(uint32 dbGuid, uint32 guidlow, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
         bool InitEntry(uint32 Entry, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
 
         uint32 GetCreatureConditionalSpawnEntry(uint32 guidlow, Map* map) const;
@@ -893,6 +895,7 @@ class Creature : public Unit
         bool m_canAggro;                                    // controls response of creature to attacks
         bool m_checkForHelp;                                // controls checkforhelp in ai
         float m_respawnradius;
+        uint32 m_interactionPauseTimer;                     // (msecs) waypoint pause time when interacted with
 
         CreatureSubtype m_subtype;                          // set in Creatures subclasses for fast it detect without dynamic_cast use
         void RegeneratePower(float timerMultiplier);
@@ -908,7 +911,6 @@ class Creature : public Unit
         uint32 m_temporaryFactionFlags;                     // used for real faction changes (not auras etc)
 
         uint32 m_originalEntry;
-        uint32 m_dbGuid;
 
         Position m_combatStartPos;                          // after combat contains last position
         Position m_respawnPos;

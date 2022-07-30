@@ -375,7 +375,7 @@ bool Unit::CanAttack(const Unit* unit) const
     }
 
     // We can't attack unit when at least one of these flags is present on it:
-    const uint32 mask = (UNIT_FLAG_SPAWNING | UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_NON_ATTACKABLE_2 | UNIT_FLAG_TAXI_FLIGHT | UNIT_FLAG_NOT_SELECTABLE);
+    const uint32 mask = (UNIT_FLAG_SPAWNING | UNIT_FLAG_NOT_ATTACKABLE_1 | UNIT_FLAG_UNTARGETABLE | UNIT_FLAG_TAXI_FLIGHT | UNIT_FLAG_UNINTERACTIBLE);
     if (unit->HasFlag(UNIT_FIELD_FLAGS, mask))
         return false;
 
@@ -486,7 +486,7 @@ bool Unit::CanAssist(const Unit* unit, bool ignoreFlags) const
     // Original logic
 
     // We can't assist unselectable unit
-    if (unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
+    if (unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
         return false;
 
     // Check immunity flags
@@ -644,7 +644,7 @@ bool Unit::CanInteract(const Unit* unit) const
     // Original logic
 
     // Unit must be selectable
-    if (unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE))
+    if (unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
         return false;
 
     // Unit must have NPC flags so we can actually interact in some way
@@ -1125,7 +1125,7 @@ bool Unit::CanAttackSpell(Unit const* target, SpellEntry const* spellInfo, bool 
     if (spellInfo)
     {
         // inversealive is needed for some spells which need to be casted at dead targets (aoe)
-        if (!target->IsAlive() && !spellInfo->HasAttribute(SPELL_ATTR_EX2_CAN_TARGET_DEAD))
+        if (!target->IsAlive() && !spellInfo->HasAttribute(SPELL_ATTR_EX2_ALLOW_DEAD_TARGET))
             return false;
     }
 
@@ -1181,7 +1181,7 @@ bool Unit::CanAttackSpell(Unit const* target, SpellEntry const* spellInfo, bool 
 /////////////////////////////////////////////////
 bool Unit::CanAssistSpell(Unit const* target, SpellEntry const* spellInfo) const
 {
-    return CanAssist(target, (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX6_ASSIST_IGNORE_IMMUNE_FLAG)));
+    return CanAssist(target, (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX6_CAN_ASSIST_IMMUNE_PC)));
 }
 
 /////////////////////////////////////////////////
@@ -1391,7 +1391,7 @@ bool Unit::CanAssistInCombatAgainst(Unit const* who, Unit const* enemy) const
     MANGOS_ASSERT(enemy)
 
     if (GetMap()->Instanceable()) // in dungeons nothing else needs to be evaluated
-        return true;
+        return CanJoinInAttacking(enemy);
 
     if (IsInCombat()) // if fighting something else, do not assist
         return false;
@@ -1414,6 +1414,9 @@ bool Unit::CanAssistInCombatAgainst(Unit const* who, Unit const* enemy) const
 bool Unit::CanJoinInAttacking(Unit const* enemy) const
 {
     if (!CanEnterCombat())
+        return false;
+
+    if (!CanInitiateAttack())
         return false;
 
     if (IsFeigningDeathSuccessfully())

@@ -39,7 +39,7 @@ struct npc_escortAI : public ScriptedAI
         virtual void WaypointReached(uint32 pointId) = 0;
         virtual void WaypointStart(uint32 /*pointId*/) {}
 
-        void Start(bool run = false, const Player* player = nullptr, const Quest* quest = nullptr, bool instantRespawn = false, bool canLoopPath = false);
+        void Start(bool run = false, const Player* player = nullptr, const Quest* quest = nullptr, bool instantRespawn = false, bool canLoopPath = false, uint32 waypointPath = 0);
 
         void SetRun(bool run = true);
         void SetEscortPaused(bool paused);
@@ -52,12 +52,18 @@ struct npc_escortAI : public ScriptedAI
         void FailQuestForPlayerAndGroup();
 
         bool AssistPlayerInCombat(Unit* who) override;
+
+        uint32 GetCurrentWaypointPath() const override { return m_currentEscortWaypointPath; }
+
     protected:
         Player* GetPlayerForEscort() const { return m_creature->GetMap()->GetPlayer(m_playerGuid); }
         bool IsSD2EscortMovement(uint32 moveType) const;
         virtual void JustStartedEscort() {}
 
         void SetEscortWaypoints(uint32 pathId);
+
+        const Quest* m_questForEscort;                     // generally passed in Start() when regular escort script.
+
     private:
         bool IsPlayerOrGroupInRange();
 
@@ -68,13 +74,13 @@ struct npc_escortAI : public ScriptedAI
         uint32 m_playerCheckTimer;
         uint32 m_escortState;
 
-        const Quest* m_questForEscort;                     // generally passed in Start() when regular escort script.
 
         bool m_isRunning;                                  // all creatures are walking by default (has flag SPLINEFLAG_WALKMODE)
         bool m_canInstantRespawn;                          // if creature should respawn instantly after escort over (if not, database respawntime are used)
         bool m_canReturnToStart;                           // if creature can walk same path (loop) without despawn. Not for regular escort quests.
 
         uint32 m_waypointPathID;
+        uint32 m_currentEscortWaypointPath;
 };
 
 #endif

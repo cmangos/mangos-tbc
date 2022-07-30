@@ -519,6 +519,8 @@ class Aura
         // Variable storage
         void SetScriptValue(uint64 value) { m_scriptValue = value; }
         uint64 GetScriptValue() { return m_scriptValue; }
+        void SetScriptStorage(ScriptStorage* storage) { m_storage = storage; } // do not set more than once
+        ScriptStorage* GetScriptStorage() { return m_storage; }
         // hooks
         void OnAuraInit();
         int32 OnAuraValueCalculate(Unit* caster, int32 currentValue);
@@ -535,6 +537,7 @@ class Aura
         void OnPeriodicTickEnd();
         void OnPeriodicCalculateAmount(uint32& amount);
         void OnHeartbeat();
+        uint32 GetAuraScriptCustomizationValue();
         // Hook Requirements
         void ForcePeriodicity(uint32 periodicTime);
 
@@ -576,6 +579,7 @@ class Aura
 
         // Scripting system
         uint64 m_scriptValue; // persistent value for spell script state
+        ScriptStorage* m_storage;
     private:
         void ReapplyAffectedPassiveAuras(Unit* target, bool owner_mode);
 };
@@ -600,19 +604,6 @@ class PersistentAreaAura : public Aura
         virtual ~PersistentAreaAura();
     protected:
         void Update(uint32 diff) override;
-};
-
-class SingleEnemyTargetAura : public Aura
-{
-        friend Aura* CreateAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* currentDamage, int32 const* currentBasePoints, SpellAuraHolder* holder, Unit* target, Unit* caster, Item* castItem);
-
-    public:
-        virtual ~SingleEnemyTargetAura();
-        Unit* GetTriggerTarget() const override;
-
-    protected:
-        SingleEnemyTargetAura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* currentDamage, int32 const* currentBasePoints, SpellAuraHolder* holder, Unit* target, Unit* caster  = nullptr, Item* castItem = nullptr);
-        ObjectGuid m_castersTargetGuid;
 };
 
 // Used for GO Area Auras

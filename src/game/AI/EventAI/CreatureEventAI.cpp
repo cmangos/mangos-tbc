@@ -404,7 +404,7 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
                 return false;
 
             CreatureEventAI_EventComputedData const& data = (*sEventAIMgr.GetEAIComputedDataMap().find(event.event_id)).second; // always found
-            Unit* pUnit = DoSelectLowestHpFriendly(float(event.friendly_hp.radius), float(event.friendly_hp.hpDeficit), false, data.friendlyHp.targetSelf);
+            Unit* pUnit = DoSelectLowestHpFriendly(float(event.friendly_hp.radius), float(event.friendly_hp.hpDeficit), event.friendly_hp.isPercent, data.friendlyHp.targetSelf);
             if (!pUnit)
                 return false;
 
@@ -1189,7 +1189,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
         }
         case ACTION_T_CHANGE_MOVEMENT:
         {
-            if (action.changeMovement.asDefault)
+            if (action.changeMovement.flags & CHANGE_MOVEMENT_FLAG_AS_DEFAULT)
                 m_defaultMovement = MovementGeneratorType(action.changeMovement.movementType);
             switch (action.changeMovement.movementType)
             {
@@ -1200,15 +1200,34 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                     m_creature->GetMotionMaster()->MoveRandomAroundPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), float(action.changeMovement.wanderORpathID));
                     break;
                 case WAYPOINT_MOTION_TYPE:
+                {
                     m_creature->StopMoving();
                     m_creature->GetMotionMaster()->Clear(false, true);
-                    m_creature->GetMotionMaster()->MoveWaypoint(action.changeMovement.wanderORpathID);
+                    WaypointPathOrigin origin = PATH_NO_PATH;
+                    if (action.changeMovement.flags & CHANGE_MOVEMENT_FLAG_WAYPOINT_PATH)
+                        origin = PATH_FROM_WAYPOINT_PATH;
+                    m_creature->GetMotionMaster()->MoveWaypoint(action.changeMovement.wanderORpathID, origin);
                     break;
+                }
+                case PATH_MOTION_TYPE:
+                {
+                    m_creature->StopMoving();
+                    WaypointPathOrigin origin = PATH_NO_PATH;
+                    if (action.changeMovement.flags & CHANGE_MOVEMENT_FLAG_WAYPOINT_PATH)
+                        origin = PATH_FROM_WAYPOINT_PATH;
+                    m_creature->GetMotionMaster()->MovePath(action.changeMovement.wanderORpathID, origin);
+                    break;
+                }
                 case LINEAR_WP_MOTION_TYPE:
+                {
                     m_creature->StopMoving();
                     m_creature->GetMotionMaster()->Clear(false, true);
-                    m_creature->GetMotionMaster()->MoveLinearWP(action.changeMovement.wanderORpathID);
+                    WaypointPathOrigin origin = PATH_NO_PATH;
+                    if (action.changeMovement.flags & CHANGE_MOVEMENT_FLAG_WAYPOINT_PATH)
+                        origin = PATH_FROM_WAYPOINT_PATH;
+                    m_creature->GetMotionMaster()->MoveLinearWP(action.changeMovement.wanderORpathID, origin);
                     break;
+                }
             }
             break;
         }

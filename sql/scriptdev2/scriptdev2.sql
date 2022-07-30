@@ -34,6 +34,7 @@ INSERT INTO scripted_areatrigger VALUES
 (2046,'at_blackrock_spire'),
 (2066,'at_blackrock_spire'),
 (2067,'at_blackrock_spire'),
+(2746,'at_stormwind_recruiter'),
 (3066,'at_ravenholdt'),
 (3146,'at_hive_tower'),
 -- Darnassian bank
@@ -114,6 +115,16 @@ UPDATE gameobject_template SET ScriptName='go_containment_coffer' WHERE entry=12
 UPDATE gameobject_template SET ScriptName='go_large_jack_o_lantern' WHERE entry=186887;
 UPDATE gameobject_template SET ScriptName='go_imp_in_a_ball' WHERE entry=185898;
 
+/* Outdoor PVP*/
+-- si
+UPDATE gameobject_template SET ScriptName='go_outdoor_pvp_notify' WHERE entry IN(181597,181598);
+-- ep
+UPDATE gameobject_template SET ScriptName='go_outdoor_pvp_notify' WHERE entry IN(181682,181955);
+-- halaa
+UPDATE gameobject_template SET ScriptName='go_outdoor_pvp_notify' WHERE entry IN(182297,182298,182299,182300,182266,182275,182276,182277);
+UPDATE gameobject_template SET ScriptName='go_outdoor_pvp_notify' WHERE entry IN(182301,182302,182303,182304,182267,182280,182281,182282);
+UPDATE gameobject_template SET ScriptName='go_outdoor_pvp_notify' WHERE entry IN(182222,182272,182273,182274,182305,182306,182307,182308);
+
 /* GUARD */
 UPDATE creature_template SET ScriptName='guard_azuremyst' WHERE entry=18038;
 UPDATE creature_template SET ScriptName='guard_orgrimmar' WHERE entry=3296;
@@ -147,7 +158,6 @@ UPDATE item_template SET ScriptName='item_orb_of_draconic_energy' WHERE entry=12
 /* NPC (usually creatures to be found in more than one specific zone) */
 UPDATE creature_template SET ScriptName='npc_air_force_bots' WHERE entry IN (2614, 2615, 21974, 21993, 21996, 21997, 21999, 22001, 22002, 22003, 22063, 22065, 22066, 22068, 22069, 22070, 22071, 22078, 22079, 22080, 22086, 22087, 22088, 22090, 22124, 22125, 22126);
 UPDATE creature_template SET ScriptName='npc_chicken_cluck' WHERE entry=620;
-UPDATE creature_template SET ScriptName='npc_dancing_flames' WHERE entry=25305;
 UPDATE creature_template SET ScriptName='npc_garments_of_quests' WHERE entry IN (12429,12423,12427,12430,12428);
 UPDATE creature_template SET ScriptName='npc_guardian' WHERE entry=5764;
 UPDATE creature_template SET ScriptName='npc_doctor' WHERE entry IN (12939,12920);
@@ -700,6 +710,7 @@ UPDATE creature_template SET ScriptName='boss_tethyr' WHERE entry=23899;
 UPDATE creature_template SET ScriptName='npc_major_mills' WHERE entry=23905;
 UPDATE creature_template SET ScriptName='mob_invis_firework_helper' WHERE entry=24025;
 UPDATE creature_template SET ScriptName='npc_smolderwing' WHERE entry=23789;
+UPDATE creature_template SET ScriptName='npc_theramore_spar_controller' WHERE entry=5090;
 
 INSERT INTO scripted_areatrigger VALUES
 (302,'at_sentry_point');
@@ -793,7 +804,6 @@ UPDATE instance_template SET ScriptName='instance_shattered_halls' WHERE map=540
 UPDATE instance_template SET ScriptName='instance_magtheridons_lair' WHERE map=544;
 UPDATE gameobject_template SET ScriptName='go_manticron_cube' WHERE entry=181713;
 UPDATE creature_template SET ScriptName='boss_magtheridon' WHERE entry=17257;
-UPDATE creature_template SET ScriptName='mob_abyssal' WHERE entry=17454;
 UPDATE creature_template SET ScriptName='mob_hellfire_channeler' WHERE entry=17256;
 
 /* HELLFIRE PENINSULA */
@@ -883,7 +893,6 @@ INSERT INTO scripted_event_id VALUES
 UPDATE gameobject_template SET ScriptName='go_chessboard' WHERE entry IN(185324);
 
 /* LOCH MODAN */
-UPDATE creature_template SET ScriptName='npc_mountaineer_pebblebitty' WHERE entry=3836;
 UPDATE creature_template SET ScriptName='npc_miran' WHERE entry=1379;
 
 /* MAGISTER'S TERRACE */
@@ -1360,6 +1369,7 @@ UPDATE creature_template SET ScriptName='npc_tirion_fordring' WHERE entry=12126;
 /* WESTFALL */
 UPDATE creature_template SET ScriptName='npc_daphne_stilwell' WHERE entry=6182;
 UPDATE creature_template SET ScriptName='npc_defias_traitor' WHERE entry=467;
+UPDATE creature_template SET ScriptName='npc_foreman_klaven_mortwake' WHERE entry=7053;
 
 /* WETLANDS */
 UPDATE creature_template SET ScriptName='npc_tapoke_slim_jahn' WHERE entry=4962;
@@ -1610,9 +1620,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000207','Mmm. Me thirsty!','0','0','0','0','18172','bladespire ogre SAY_BREW_2'),
 ('-1000208','Ohh, look! Bloodmaul Brew! Mmmm...','0','0','0','0','18170','bladespire ogre SAY_BREW_3'),
 
-('-1000209','Very well.  Let''s see what you have to show me, $n','0','0','1','0','11734','anvilward SAY_ANVIL1'),
-('-1000210','What manner of trick is this, $r?  If you seek to ambush me, I warn you I will not go down quietly!  ','0','0','1','0','11735','anvilward SAY_ANVIL2'),
-
 ('-1000211','Warning!  %s emergency shutdown process initiated by $n.  Shutdown will complete in two minutes.','0','2','0','0','18155','manaforge_control EMOTE_START'),
 ('-1000212','Emergency shutdown will complete in one minute.','0','2','0','0','18156','manaforge_control EMOTE_60'),
 ('-1000213','Emergency shutdown will complete in thirty seconds.','0','2','0','0','17884','manaforge_control EMOTE_30'),
@@ -1841,8 +1848,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000407','Rin''ji can see the road now, $N. Rin''ji knows the way home.','0','0','1','0','3790','SAY_RIN_COMPLETE'),
 ('-1000408','Rin''ji will tell you secret now... $N should go to the Overlook Cliffs. Rin''ji hid something on island there.','0','0','1','0','3817','SAY_RIN_PROGRESS_1'),
 ('-1000409','You find it, you keep it! Don''t tell no one that Rin''ji talked to you!','0','0','1','0','3818','SAY_RIN_PROGRESS_2'),
-
-('-1000410','Here they come! Defend yourselves!','0','0','1','5','6149','kanati SAY_KAN_START'),
 
 ('-1000411','Come, $N. See what the Nightmare brings...','0','4','0','0','11271','Twilight Corrupter SAY_TWILIGHT_CORRUPTER_SPAWN'),
 
@@ -6728,8 +6733,6 @@ INSERT INTO script_waypoint (Entry, PathId, Point, PositionX, PositionY, Positio
 (10427,0,26,-4929.55,-1101.27,-50.637,0,0,0,''),
 (10427,0,27,-4920.68,-1100.03,-51.944,0,10000,0,'SAY_COMPLETE'),
 (10427,0,28,-4920.68,-1100.03,-51.944,0,0,0,'quest complete'),
-(10638,0,1,-4903.52,-1368.34,-52.611,0,5000,0,'SAY_KAN_START'),
-(10638,0,2,-4906,-1367.05,-52.611,0,0,0,''),
 (10646,0,1,-4792.4,-2137.78,82.423,0,0,0,''),
 (10646,0,2,-4813.51,-2141.54,80.774,0,0,0,''),
 (10646,0,3,-4828.63,-2154.31,82.074,0,0,0,''),
@@ -7080,14 +7083,17 @@ INSERT INTO script_waypoint (Entry, PathId, Point, PositionX, PositionY, Positio
 (12858,0,21,1776.9,-2024.56,109.83,0,0,0,'win'),
 (12858,0,22,1776.87,-2028.31,109.83,0,60000,0,'stay'),
 (12858,0,23,1776.9,-2028.3,109.83,0,0,0,''),
-(15420,0,1,9294.78,-6682.51,22.42,0,0,0,''),
-(15420,0,2,9298.27,-6667.99,22.42,0,0,0,''),
-(15420,0,3,9309.63,-6658.84,22.43,0,0,0,''),
-(15420,0,4,9304.43,-6649.31,26.46,0,0,0,''),
-(15420,0,5,9298.83,-6648,28.61,0,0,0,''),
-(15420,0,6,9291.06,-6653.46,31.83,0,2500,0,''),
-(15420,0,7,9289.08,-6660.17,31.85,0,5000,0,''),
-(15420,0,8,9291.06,-6653.46,31.83,0,0,0,''),
+(15420, 0, 1, 9296.278, -6676.996, 22.358725, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 2, 9299.323, -6668.9614, 22.41846, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 3, 9303.353, -6666.7637, 22.432236, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 4, 9307.93, -6660.8057, 22.43064, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 5, 9309.302, -6656.1987, 23.005793, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 6, 9307.386, -6651.9053, 24.834118, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 7, 9300.505, -6648.1587, 28.052294, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 8, 9293.393, -6650.7246, 30.57717, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 9, 9290.5205, -6654.362, 31.830189, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 10, 9289.944, -6657.774, 31.828085, 100, 0, 0, 'Prospector Anvilward'),
+(15420, 0, 11, 9290.866, -6658.0156, 31.823935, 0.104719758033752441, 60000, 0, 'Prospector Anvilward'),
 (16295,0,1,7545.07,-7359.87,162.354,0,4000,0,'SAY_START'),
 (16295,0,2,7550.05,-7362.24,162.236,0,0,0,''),
 (16295,0,3,7566.98,-7364.32,161.739,0,0,0,''),

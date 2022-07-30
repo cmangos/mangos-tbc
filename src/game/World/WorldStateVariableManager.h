@@ -44,22 +44,23 @@ class WorldStateVariableManager
     public:
         WorldStateVariableManager(Map* map);
 
-        void Initialize();
+        void Initialize(uint32 completedEncounterMask);
 
-        int32 GetVariable(uint32 Id) const;
-        void SetVariable(uint32 Id, int32 value);
-        void SetVariableData(uint32 Id, bool send, uint32 zoneId, uint32 areaId);
-        void AddVariableExecutor(uint32 Id, std::function<void()>& executor);
+        int32 GetVariable(int32 Id) const;
+        WorldStateVariable const* GetVariableData(int32 Id) const;
+        void SetVariable(int32 Id, int32 value);
+        void SetVariableData(int32 Id, bool send, uint32 zoneId, uint32 areaId);
+        void AddVariableExecutor(int32 Id, std::function<void()>& executor);
 
         void FillInitialWorldStates(ByteBuffer& data, uint32& count, uint32 zoneId, uint32 areaId);
-        void BroadcastVariable(uint32 Id);
+        void BroadcastVariable(int32 Id) const;
 
         std::string GetVariableList() const;
 
         void SetEncounterVariable(uint32 encounterId, bool state);
 
     private:
-        std::map<uint32, WorldStateVariable> m_variables;
+        std::map<int32, WorldStateVariable> m_variables;
         Map* m_owner;
 };
 

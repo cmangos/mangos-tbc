@@ -1465,7 +1465,7 @@ bool ChatHandler::HandleLearnAllCommand(char* /*args*/)
                     // skip passives
                     if (newSpell->HasAttribute(SPELL_ATTR_PASSIVE) ||
                         newSpell->HasAttribute(SPELL_ATTR_DO_NOT_DISPLAY) ||
-                        newSpell->HasAttribute(SPELL_ATTR_EX2_DISPLAY_IN_STANCE_BAR))
+                        newSpell->HasAttribute(SPELL_ATTR_EX2_USE_SHAPESHIFT_BAR))
                         continue;
                 }
 
@@ -2099,50 +2099,211 @@ bool ChatHandler::HandleListObjectCommand(char* args)
         return false;
     }
 
-    uint32 count;
-    if (!ExtractOptUInt32(&args, count, 10))
-        return false;
+    Player* player = m_session ? m_session->GetPlayer() : nullptr;
 
-    uint32 obj_count = 0;
-    QueryResult* result = WorldDatabase.PQuery("SELECT COUNT(guid) FROM gameobject WHERE id='%u'", go_id);
-    if (result)
-    {
-        obj_count = (*result)[0].GetUInt32();
-        delete result;
-    }
+    static const uint32 MaxResult = 200; // guessed value for maximum result
 
-    if (m_session)
-    {
-        Player* pl = m_session->GetPlayer();
-        result = WorldDatabase.PQuery("SELECT guid, position_x, position_y, position_z, map, (POW(position_x - '%f', 2) + POW(position_y - '%f', 2) + POW(position_z - '%f', 2)) AS order_ FROM gameobject WHERE id = '%u' ORDER BY order_ ASC LIMIT %u",
-                                      pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ(), go_id, uint32(count));
-    }
+    uint32 count = MaxResult;
+
+    bool restrictZone = false;
+    bool restrictArea = false;
+    bool restrictMap = false;
+    bool noRestriction = false;
+    uint32 playerZoneId = 0;
+    uint32 playerAreaId = 0;
+
+    char* prevArgs = args;
+
+    char const* za = ExtractLiteralArg(&args);
+    if (za == nullptr || za[0] == 'w' || za[0] == 'W')
+        noRestriction = true;
     else
-        result = WorldDatabase.PQuery("SELECT guid, position_x, position_y, position_z, map FROM gameobject WHERE id = '%u' LIMIT %u",
-                                      go_id, uint32(count));
+    {
+        if (za[0] == 'a' || za[0] == 'A') // area filter
+        {
+            restrictArea = true;
+        }
+        else if (za[0] == 'z' || za[0] == 'Z') // zone filter
+        {
+            restrictZone = true;
+        }
+        else if (za[0] == 'm' || za[0] == 'M') // map filter
+        {
+            restrictMap = true;
+        }
+        else
+        {
+            restrictZone = true;
+            args = prevArgs;
+        }
+    }
 
-    if (result)
+    if (za != nullptr)
+        ExtractOptUInt32(&args, count, MaxResult);
+
+    if (player)
+        player->GetTerrain()->GetZoneAndAreaId(playerZoneId, playerAreaId, player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+
+    static const std::string QueryTablesName[] = {
+        "gameobject",
+        "gameobject_spawn_entry",
+        "spawn_group_entry"
+    };
+
+    // temporary struct to hold gameobject data
+    struct TempGobData
+    {
+        uint32 guid;
+        float x;
+        float y;
+        float z;
+        int mapid;
+        float dist;
+        uint32 originTable;
+        bool operator < (const TempGobData& other) const { return dist < other.dist; }
+    };
+
+    std::set<TempGobData> tempData;
+    std::unique_ptr<QueryResult> result;
+    uint32 counter = 0;
+    uint32 worldCounter = 0;
+    uint32 zoneCounter = 0;
+    uint32 areaCounter = 0;
+    uint32 mapCounter = 0;
+    uint32 queryTableNameIndex = 0;
+
+    // this lambda just fill tempData with request data (expect guid, position_x, position_y, position_z, map) in that order!
+    // it will handle zone, area, map and sort result by distance from player
+    auto AddPlayerData = [&]()
     {
         do
         {
             Field* fields = result->Fetch();
-            uint32 guid = fields[0].GetUInt32();
-            float x = fields[1].GetFloat();
-            float y = fields[2].GetFloat();
-            float z = fields[3].GetFloat();
-            int mapid = fields[4].GetUInt16();
+            TempGobData data;
+            data.guid = fields[0].GetUInt32();
+            data.x = fields[1].GetFloat();
+            data.y = fields[2].GetFloat();
+            data.z = fields[3].GetFloat();
+            data.mapid = fields[4].GetUInt16();
+            data.originTable = queryTableNameIndex;
+            data.dist = std::pow(data.x - player->GetPositionX(), 2) + std::pow(data.y - player->GetPositionY(), 2) + std::pow(data.z - player->GetPositionZ(), 2);
 
-            if (m_session)
-                PSendSysMessage(LANG_GO_LIST_CHAT, guid, PrepareStringNpcOrGoSpawnInformation<GameObject>(guid).c_str(), guid, gInfo->name, x, y, z, mapid);
+            uint32 objZoneId = 0;
+            uint32 objAreaId = 0;
+            player->GetTerrain()->GetZoneAndAreaId(objZoneId, objAreaId, data.x, data.y, data.z);
+            if (player->GetMapId() == data.mapid)
+            {
+                if (objZoneId == playerZoneId)
+                {
+                    zoneCounter++;
+                    if (restrictZone)
+                        tempData.emplace(data);
+                }
+
+                if (objAreaId == playerAreaId)
+                {
+                    areaCounter++;
+                    if (restrictArea)
+                        tempData.emplace(data);
+                }
+
+                mapCounter++;
+                if (restrictMap)
+                    tempData.emplace(data);
+            }
+
+            if (noRestriction)
+                tempData.emplace(data);
+
+            worldCounter++;
+        } while (result->NextRow());
+    };
+
+    // this lambda just fill tempData with request data (expect guid, position_x, position_y, position_z, map) in that order!
+    // handle only list of the object in the world as no session and command is pretty limited to add wanted map/zone/area id
+    auto AddSimpleData = [&]()
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            TempGobData data;
+            data.guid = fields[0].GetUInt32();
+            data.x = fields[1].GetFloat();
+            data.y = fields[2].GetFloat();
+            data.z = fields[3].GetFloat();
+            data.mapid = fields[4].GetUInt16();
+            data.originTable = queryTableNameIndex;
+            data.dist = counter++;
+
+            worldCounter++;
+            tempData.emplace(data);
+
+        } while (result->NextRow());
+    };
+
+    // query gameobject
+    result.reset(WorldDatabase.PQuery(
+        "SELECT guid, position_x, position_y, position_z, map "
+        "FROM gameobject "
+        "WHERE id = '%u'",
+        go_id));
+
+    if (result)
+        player ? AddPlayerData() : AddSimpleData();
+
+    // query gameobject_spawn_entry
+    queryTableNameIndex = 1;
+    result.reset(WorldDatabase.PQuery(
+        "SELECT a.guid, b.position_x, b.position_y, b.position_z, b.map "
+        "FROM gameobject_spawn_entry a LEFT JOIN gameobject b ON a.guid = b.guid "
+        "WHERE a.entry = '%u'",
+        go_id));
+
+    if (result)
+        player ? AddPlayerData() : AddSimpleData();
+
+    // query spawn_group_entry
+    queryTableNameIndex = 2;
+    result.reset(WorldDatabase.PQuery(
+        "SELECT d.guid, d.position_x, d.position_y, d.position_z, d.map "
+        "FROM spawn_group_entry a LEFT JOIN spawn_group b ON a.Id = b.Id LEFT JOIN spawn_group_spawn c ON a.ID = c.Id LEFT JOIN gameobject d ON c.Guid = d.guid "
+        "WHERE a.Entry = '%u' AND b.Type = 1",
+        go_id));
+
+    if (result)
+        player ? AddPlayerData() : AddSimpleData();
+
+    // send result to client
+    if (tempData.empty())
+        PSendSysMessage("Object not found!");
+    else
+    {
+        uint32 counter = 0;
+        for (auto const& gob : tempData)
+        {
+            std::string info = " - From `" + QueryTablesName[gob.originTable];
+            info += "`";
+            info += PrepareStringNpcOrGoSpawnInformation<GameObject>(gob.guid);
+            if (player)
+                PSendSysMessage(LANG_GO_LIST_CHAT, gob.guid, info.c_str(),
+                    gob.guid, gInfo->name, gob.x, gob.y, gob.z, gob.mapid);
             else
-                PSendSysMessage(LANG_GO_LIST_CONSOLE, guid, PrepareStringNpcOrGoSpawnInformation<GameObject>(guid).c_str(), gInfo->name, x, y, z, mapid);
+                PSendSysMessage(LANG_GO_LIST_CONSOLE, gob.guid, info.c_str(),
+                    gInfo->name, gob.x, gob.y, gob.z, gob.mapid);
+            ++counter;
+            if (counter >= count)
+                break;
         }
-        while (result->NextRow());
-
-        delete result;
+        if (player)
+        {
+            PSendSysMessage("%u object[%u] found in the world!", worldCounter, go_id);
+            PSendSysMessage("Total in your map : %u", mapCounter);
+            PSendSysMessage("Total in your zone : %u", zoneCounter);
+            PSendSysMessage("Total in your area : %u", areaCounter);
+        }
+        else
+            PSendSysMessage("%u object[%u] found in the world!", worldCounter, go_id);
     }
-
-    PSendSysMessage(LANG_COMMAND_LISTOBJMESSAGE, go_id, obj_count);
     return true;
 }
 
@@ -2168,50 +2329,211 @@ bool ChatHandler::HandleListCreatureCommand(char* args)
         return false;
     }
 
-    uint32 count;
-    if (!ExtractOptUInt32(&args, count, 10))
-        return false;
+    Player* player = m_session ? m_session->GetPlayer() : nullptr;
 
-    uint32 cr_count = 0;
-    QueryResult* result = WorldDatabase.PQuery("SELECT COUNT(guid) FROM creature WHERE id='%u'", cr_id);
-    if (result)
-    {
-        cr_count = (*result)[0].GetUInt32();
-        delete result;
-    }
+    static const uint32 MaxResult = 200; // guessed value for maximum result
 
-    if (m_session)
-    {
-        Player* pl = m_session->GetPlayer();
-        result = WorldDatabase.PQuery("SELECT guid, position_x, position_y, position_z, map, (POW(position_x - '%f', 2) + POW(position_y - '%f', 2) + POW(position_z - '%f', 2)) AS order_ FROM creature WHERE id = '%u' ORDER BY order_ ASC LIMIT %u",
-                                      pl->GetPositionX(), pl->GetPositionY(), pl->GetPositionZ(), cr_id, uint32(count));
-    }
+    uint32 count = MaxResult;
+
+    bool restrictZone = false;
+    bool restrictArea = false;
+    bool restrictMap = false;
+    bool noRestriction = false;
+    uint32 playerZoneId = 0;
+    uint32 playerAreaId = 0;
+
+    char* prevArgs = args;
+
+    char const* za = ExtractLiteralArg(&args);
+    if (za == nullptr || za[0] == 'w' || za[0] == 'W')
+        noRestriction = true;
     else
-        result = WorldDatabase.PQuery("SELECT guid, position_x, position_y, position_z, map FROM creature WHERE id = '%u' LIMIT %u",
-                                      cr_id, uint32(count));
+    {
+        if (za[0] == 'a' || za[0] == 'A') // area filter
+        {
+            restrictArea = true;
+        }
+        else if (za[0] == 'z' || za[0] == 'Z') // zone filter
+        {
+            restrictZone = true;
+        }
+        else if (za[0] == 'm' || za[0] == 'M') // map filter
+        {
+            restrictMap = true;
+        }
+        else
+        {
+            restrictZone = true;
+            args = prevArgs;
+        }
+    }
 
-    if (result)
+    if (za != nullptr)
+        ExtractOptUInt32(&args, count, MaxResult);
+
+    if (player)
+        player->GetTerrain()->GetZoneAndAreaId(playerZoneId, playerAreaId, player->GetPositionX(), player->GetPositionY(), player->GetPositionZ());
+
+    static const std::string QueryTablesName[] = {
+        "creature",
+        "creature_spawn_entry",
+        "spawn_group_entry"
+    };
+
+    // temporary struct to hold creatures data
+    struct TempCreatureData
+    {
+        uint32 guid;
+        float x;
+        float y;
+        float z;
+        int mapid;
+        float dist;
+        uint32 originTable;
+        bool operator < (const TempCreatureData& other) const { return dist < other.dist; }
+    };
+
+    std::set<TempCreatureData> tempData;
+    std::unique_ptr<QueryResult> result;
+    uint32 counter = 0;
+    uint32 worldCounter = 0;
+    uint32 zoneCounter = 0;
+    uint32 areaCounter = 0;
+    uint32 mapCounter = 0;
+    uint32 queryTableNameIndex = 0;
+
+    // this lambda just fill tempData with request data (expect guid, position_x, position_y, position_z, map) in that order!
+    // it will handle zone, area, map and sort result by distance from player
+    auto AddPlayerData = [&]()
     {
         do
         {
             Field* fields = result->Fetch();
-            uint32 guid = fields[0].GetUInt32();
-            float x = fields[1].GetFloat();
-            float y = fields[2].GetFloat();
-            float z = fields[3].GetFloat();
-            int mapid = fields[4].GetUInt16();
+            TempCreatureData data;
+            data.guid = fields[0].GetUInt32();
+            data.x = fields[1].GetFloat();
+            data.y = fields[2].GetFloat();
+            data.z = fields[3].GetFloat();
+            data.mapid = fields[4].GetUInt16();
+            data.originTable = queryTableNameIndex;
+            data.dist = std::pow(data.x - player->GetPositionX(), 2) + std::pow(data.y - player->GetPositionY(), 2) + std::pow(data.z - player->GetPositionZ(), 2);
 
-            if (m_session)
-                PSendSysMessage(LANG_CREATURE_LIST_CHAT, guid, PrepareStringNpcOrGoSpawnInformation<Creature>(guid).c_str(), guid, cInfo->Name, x, y, z, mapid);
+            uint32 objZoneId = 0;
+            uint32 objAreaId = 0;
+            player->GetTerrain()->GetZoneAndAreaId(objZoneId, objAreaId, data.x, data.y, data.z);
+            if (player->GetMapId() == data.mapid)
+            {
+                if (objZoneId == playerZoneId)
+                {
+                    zoneCounter++;
+                    if (restrictZone)
+                        tempData.emplace(data);
+                }
+
+                if (objAreaId == playerAreaId)
+                {
+                    areaCounter++;
+                    if (restrictArea)
+                        tempData.emplace(data);
+                }
+
+                mapCounter++;
+                if (restrictMap)
+                    tempData.emplace(data);
+            }
+
+            if (noRestriction)
+                tempData.emplace(data);
+
+            worldCounter++;
+        } while (result->NextRow());
+    };
+
+    // this lambda just fill tempData with request data (expect guid, position_x, position_y, position_z, map) in that order!
+    // handle only list of the object in the world as no session and command is pretty limited to add wanted map/zone/area id
+    auto AddSimpleData = [&]()
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            TempCreatureData data;
+            data.guid = fields[0].GetUInt32();
+            data.x = fields[1].GetFloat();
+            data.y = fields[2].GetFloat();
+            data.z = fields[3].GetFloat();
+            data.mapid = fields[4].GetUInt16();
+            data.originTable = queryTableNameIndex;
+            data.dist = counter++;
+
+            worldCounter++;
+            tempData.emplace(data);
+
+        } while (result->NextRow());
+    };
+
+    // query creature
+    result.reset(WorldDatabase.PQuery(
+        "SELECT guid, position_x, position_y, position_z, map "
+        "FROM creature "
+        "WHERE id = '%u'",
+        cr_id));
+
+    if (result)
+        player ? AddPlayerData() : AddSimpleData();
+
+    // query gameobject_spawn_entry
+    queryTableNameIndex = 1;
+    result.reset(WorldDatabase.PQuery(
+        "SELECT a.guid, b.position_x, b.position_y, b.position_z, b.map "
+        "FROM creature_spawn_entry a LEFT JOIN creature b ON a.guid = b.guid "
+        "WHERE a.entry = '%u'",
+        cr_id));
+
+    if (result)
+        player ? AddPlayerData() : AddSimpleData();
+
+    // query spawn_group_entry
+    queryTableNameIndex = 2;
+    result.reset(WorldDatabase.PQuery(
+        "SELECT d.guid, d.position_x, d.position_y, d.position_z, d.map "
+        "FROM spawn_group_entry a LEFT JOIN spawn_group b ON a.Id = b.Id LEFT JOIN spawn_group_spawn c ON a.ID = c.Id LEFT JOIN creature d ON c.Guid = d.guid "
+        "WHERE a.Entry = '%u' AND b.Type = 0",
+        cr_id));
+
+    if (result)
+        player ? AddPlayerData() : AddSimpleData();
+
+    // send result to client
+    if (tempData.empty())
+        PSendSysMessage("Creature not found!");
+    else
+    {
+        uint32 counter = 0;
+        for (auto const& crData : tempData)
+        {
+            std::string info = " - From `" + QueryTablesName[crData.originTable];
+            info += "`";
+            info += PrepareStringNpcOrGoSpawnInformation<GameObject>(crData.guid);
+            if (player)
+                PSendSysMessage(LANG_CREATURE_LIST_CHAT, crData.guid, info.c_str(),
+                    crData.guid, cInfo->Name, crData.x, crData.y, crData.z, crData.mapid);
             else
-                PSendSysMessage(LANG_CREATURE_LIST_CONSOLE, guid, PrepareStringNpcOrGoSpawnInformation<Creature>(guid).c_str(), cInfo->Name, x, y, z, mapid);
+                PSendSysMessage(LANG_CREATURE_LIST_CONSOLE, crData.guid, info.c_str(),
+                    cInfo->Name, crData.x, crData.y, crData.z, crData.mapid);
+            ++counter;
+            if (counter >= count)
+                break;
         }
-        while (result->NextRow());
-
-        delete result;
+        if (player)
+        {
+            PSendSysMessage("%u creature[%u] found in the world!", worldCounter, cr_id);
+            PSendSysMessage("Total in your map : %u", mapCounter);
+            PSendSysMessage("Total in your zone : %u", zoneCounter);
+            PSendSysMessage("Total in your area : %u", areaCounter);
+        }
+        else
+            PSendSysMessage("%u creature[%u] found in the world!", worldCounter, cr_id);
     }
-
-    PSendSysMessage(LANG_COMMAND_LISTCREATUREMESSAGE, cr_id, cr_count);
     return true;
 }
 
@@ -3202,6 +3524,8 @@ bool ChatHandler::HandleAuraCommand(char* args)
     }
     if (!target->AddSpellAuraHolder(holder))
         delete holder;
+    else
+        holder->SetState(SPELLAURAHOLDER_STATE_READY);
 
     return true;
 }
@@ -3450,6 +3774,9 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
 
     PSendSysMessage("Combat Script: %s", target->AI()->GetCombatScriptStatus() ? "true" : "false");
     PSendSysMessage("Movementflags: %u", target->m_movementInfo.moveFlags);
+
+    if (CreatureGroup* group = target->GetCreatureGroup())
+        PSendSysMessage("Creature group: %u", group->GetGroupEntry().Id);
 
     if (auto vector = sObjectMgr.GetAllRandomCreatureEntries(target->GetGUIDLow()))
     {
@@ -4064,6 +4391,63 @@ bool ChatHandler::HandleTeleDelCommand(char* args)
     }
 
     SendSysMessage(LANG_COMMAND_TP_DELETED);
+    return true;
+}
+
+bool ChatHandler::HandleListAreaTriggerCommand(char* args)
+{
+    Player* player = m_session->GetPlayer();
+    if (!player)
+        return false;
+
+    uint32 counter = 0;
+    uint32 playerMap = player->GetMap()->GetId();
+
+    if (player->GetMap()->IsContinent())
+    {
+        // Get areatriggers in the same area as the player
+        uint32 playerArea = player->GetAreaId();
+        AreaTableEntry const* areaEntry = GetAreaEntryByAreaID(playerArea);
+        PSendSysMessage(LANG_AREATRIGGER_LIST, "area", areaEntry ? areaEntry->area_name[GetSessionDbcLocale()] : "<unknown>");
+
+        for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+        {
+            AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
+            if (!atEntry)
+                continue;
+
+            if (atEntry->mapid != playerMap)
+                continue;
+
+            uint32 areaTriggerArea = player->GetTerrain()->GetAreaId(atEntry->x, atEntry->y, atEntry->z);
+            if (areaTriggerArea != playerArea)
+                continue;
+
+            ShowTriggerListHelper(atEntry);
+            ++counter;
+        }
+    }
+    else
+    {
+        // Get areatriggers in the same map as the player
+        PSendSysMessage(LANG_AREATRIGGER_LIST, "map", player->GetMap()->GetMapName());
+
+        for (uint32 id = 0; id < sAreaTriggerStore.GetNumRows(); ++id)
+        {
+            AreaTriggerEntry const* atEntry = sAreaTriggerStore.LookupEntry(id);
+            if (!atEntry)
+                continue;
+
+            if (atEntry->mapid != playerMap)
+                continue;
+
+            ShowTriggerListHelper(atEntry);
+            ++counter;
+        }
+    }
+
+    if (counter == 0)
+        SendSysMessage(LANG_COMMAND_NOTRIGGERFOUND);
     return true;
 }
 
@@ -5236,6 +5620,8 @@ bool ChatHandler::HandleRespawnCommand(char* /*args*/)
     MaNGOS::RespawnDo u_do;
     MaNGOS::WorldObjectWorker<MaNGOS::RespawnDo> worker(u_do);
     Cell::VisitGridObjects(pl, worker, pl->GetVisibilityData().GetVisibilityDistance());
+
+    pl->GetMap()->GetSpawnManager().RespawnSpawnGroupsInVicinity(pl->GetPosition(), pl->GetVisibilityData().GetVisibilityDistance());
     return true;
 }
 
@@ -5413,7 +5799,7 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
         return false;
     }
 
-    PSendSysMessage(LANG_MOVEGENS_LIST, (unit->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), unit->GetGUIDLow());
+    PSendSysMessage("%s movement generators stack:", unit->GetGuidStr().c_str());
 
     MotionMaster* mm = unit->GetMotionMaster();
     float x, y, z;
@@ -5474,6 +5860,9 @@ bool ChatHandler::HandleMovegensCommand(char* /*args*/)
             case FLEEING_MOTION_TYPE:  SendSysMessage(LANG_MOVEGENS_FEAR);    break;
             case DISTRACT_MOTION_TYPE: SendSysMessage(LANG_MOVEGENS_DISTRACT);  break;
             case EFFECT_MOTION_TYPE: SendSysMessage(LANG_MOVEGENS_EFFECT);  break;
+            case FORMATION_MOTION_TYPE:
+                PSendSysMessage("   Formation movement, following [%s]", unit->GetFormationSlot()->GetMaster()->GetGuidStr().c_str());
+                break;
             default:
                 PSendSysMessage(LANG_MOVEGENS_UNKNOWN, (*itr)->GetMovementGeneratorType());
                 break;

@@ -1015,6 +1015,8 @@ class Player : public Unit
         bool isGMVisible() const { return !(m_ExtraFlags & PLAYER_EXTRA_GM_INVISIBLE); }
         void SetGMVisible(bool on);
         void SetPvPDeath(bool on) { if (on) m_ExtraFlags |= PLAYER_EXTRA_PVP_DEATH; else m_ExtraFlags &= ~PLAYER_EXTRA_PVP_DEATH; }
+        bool isDebuggingAreaTriggers() { return m_isDebuggingAreaTriggers; }
+        void SetDebuggingAreaTriggers(bool on) { m_isDebuggingAreaTriggers = on; }
 
         // 0 = own auction, -1 = enemy auction, 1 = goblin auction
         int GetAuctionAccessMode() const { return m_ExtraFlags & PLAYER_EXTRA_AUCTION_ENEMY ? -1 : (m_ExtraFlags & PLAYER_EXTRA_AUCTION_NEUTRAL ? 1 : 0); }
@@ -1316,6 +1318,8 @@ class Player : public Unit
         bool SatisfyQuestLevel(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestLog(bool msg) const;
         bool SatisfyQuestPreviousQuest(Quest const* qInfo, bool msg) const;
+        bool SatisfyQuestBreadcrumbQuest(Quest const* qInfo, bool msg) const;
+        bool SatisfyQuestDependentBreadcrumbQuests(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestClass(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestRace(Quest const* qInfo, bool msg) const;
         bool SatisfyQuestReputation(Quest const* qInfo, bool msg) const;
@@ -1448,10 +1452,9 @@ class Player : public Unit
         void SendTalentWipeConfirm(ObjectGuid guid) const;
         void RewardRage(uint32 damage, uint32 weaponSpeedHitFactor, bool attacker);
         void SendPetSkillWipeConfirm() const;
-        void RegenerateAll();
+        void RegenerateAll(uint32 diff = REGEN_TIME_FULL);
         void Regenerate(Powers power, uint32 diff);
         void RegenerateHealth(uint32 diff);
-        void setRegenTimer(uint32 time) {m_regenTimer = time;}
 
         uint32 GetMoney() const { return GetUInt32Value(PLAYER_FIELD_COINAGE); }
         void ModifyMoney(int32 d)
@@ -1526,7 +1529,6 @@ class Player : public Unit
         void PetSpellInitialize() const;
         void CharmSpellInitialize() const;
         void PossessSpellInitialize();
-        void CharmCooldownInitialize(WorldPacket& data) const;
         void RemovePetActionBar() const;
         std::pair<float, float> RequestFollowData(ObjectGuid guid);
         void RelinquishFollowData(ObjectGuid guid);
@@ -1939,7 +1941,10 @@ class Player : public Unit
         void SendAuraDurationsOnLogin(bool visible); // uses different packets
 
         PlayerMenu* GetPlayerMenu() const { return m_playerMenu.get(); }
-        std::vector<ItemSetEffect*> ItemSetEff;
+
+        ItemSetEffect* GetItemSetEffect(uint32 setId);
+        ItemSetEffect* AddItemSetEffect(uint32 setId);
+        void RemoveItemSetEffect(uint32 setId);
 
         /*********************************************************/
         /***               BATTLEGROUND SYSTEM                 ***/
@@ -2515,6 +2520,8 @@ class Player : public Unit
         ObjectGuid m_summoner;
 
         DeclinedName* m_declinedname;
+
+        bool m_isDebuggingAreaTriggers;
     private:
         // internal common parts for CanStore/StoreItem functions
         InventoryResult _CanStoreItem_InSpecificSlot(uint8 bag, uint8 slot, ItemPosCountVec& dest, ItemPrototype const* pProto, uint32& count, bool swap, Item* pSrcItem) const;
@@ -2624,6 +2631,10 @@ class Player : public Unit
         uint32 m_createdInstanceClearTimer;
 
         std::map<uint32, ObjectGuid> m_followAngles;
+
+        uint8 m_fishingSteps;
+
+        std::map<uint32, ItemSetEffect> m_itemSetEffects;
 };
 
 void AddItemsSetItem(Player* player, Item* item);

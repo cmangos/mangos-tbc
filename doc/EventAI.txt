@@ -81,7 +81,7 @@ Some events such as EVENT_T_AGGRO, EVENT_T_DEATH, EVENT_T_SPAWNED, and EVENT_T_E
 11  EVENT_T_SPAWNED                     Condition, CondValue1, unused, unused                                   Expires on initial spawn and respawn of the NPC if Condition is met (Useful for setting Ranged Movement/Summoning Pets/Applying Buffs).
 12  EVENT_T_TARGET_HP                   HPMax%, HPMin%, RepeatMin, RepeatMax                                    Expires when current target's HP% is between (Param1) and (Param2). Will repeat every (Param3) and (Param4)If Event Conditions Are Still Met.
 13  EVENT_T_TARGET_CASTING              RepeatMin, RepeatatMax, unused, unused                                  Expires when the current target is casting a spell. Will repeat every (Param1) and (Param2) If Event Conditions Are Still Met.
-14  EVENT_T_FRIENDLY_HP                 HPDeficit, Radius, RepeatMin, RepeatMax                                 Expires when a friendly unit in (Radius) has at least (Param1) HP points missing. Will repeat every (Param3) and (Param4) If Event Conditions Are Still Met.
+14  EVENT_T_FRIENDLY_HP                 HPDeficit, Radius, RepeatMin, RepeatMax, IsPercent                      Expires when a friendly unit in (Radius) has at least (Param1) HP points missing. Will repeat every (Param3) and (Param4) If Event Conditions Are Still Met. If Param5=1 deficit is percentage of hp.
 15  EVENT_T_FRIENDLY_IS_CC              DispelType, Radius, RepeatMin, RepeatMax                                Expires when a friendly unit is crowd controlled within the given Radius (Param2). Will repeat every (Param3) and (Param4).
 16  EVENT_T_FRIENDLY_MISSING_BUFF       SpellId, Radius, RepeatMin, RepeatMax, InCombat                         Expires when a friendly unit is missing aura(s) given by a spell (Param1) within Radius (Param2). Will repeat every (Param3) and (Param4) If Event Conditions Are Still Met.
 17  EVENT_T_SUMMONED_UNIT               CreatureId, RepeatMin, RepeatMax, unused                                Expires after creature with entry = (Param1) is spawned (Param1 = 0 means all spawns). Will repeat every (Param2) and (Param3).
@@ -161,7 +161,7 @@ For all ACTION_T_RANDOM Actions, When a Particular Param is selected for the Eve
 45  ACTION_T_THROW_AI_EVENT                 EventType, Radius, Target           Throws an AIEvent of type (Param1) to nearby friendly Npcs in range of (Param2), Invoker of event is Target
 46  ACTION_T_SET_THROW_MASK                 EventTypeMask                       Marks for which AIEvents the npc will throw AIEvents on its own.
 47  ACTION_T_SET_STAND_STATE                StandState                          Set the unit stand state (Param1) of the current creature.
-48  ACTION_T_CHANGE_MOVEMENT                MovementType, WanderDistance        Change the unit movement type (Param1). If the movement type is Random Movement (1), the WanderDistance (Param2) must be provided. If the movement type is Waypoint Movement (2), Param2 is PathId. Param3 is asDefault.
+48  ACTION_T_CHANGE_MOVEMENT                MovementType, WanderDistance        Change the unit movement type (Param1). If the movement type is Random Movement (1), the WanderDistance (Param2) must be provided. If the movement type is Waypoint Movement (2), Param2 is PathId. Param3 0x1 is asDefault, 0x2 forces waypoint, path or linear path movement to use waypoint_path table PathId
 49  ACTION_T_REUSE
 50  ACTION_T_SET_REACT_STATE                ReactState                          Change react state of the creature
 51  ACTION_T_PAUSE_WAYPOINTS                DoPause                             Pause waypoints of creature
@@ -352,6 +352,7 @@ Parameter 1: HPDeficit - This is the Amount of HP Missing from Full HP to trigge
 Parameter 2: Radius    - This is the Range in Yards the NPC will scan for nearby Friendlies (Faction is Friendly To) for the missing amount of HP in Param1.
 Parameter 3: RepeatMin - Minimum Time used to calculate Random Repeat Expire
 Parameter 4: RepeatMax - Maximum Time used to calculate Random Repeat Expire
+Parameter 5: IsPercent - Deficit is handled as percentage
 
 COMBAT ONLY - Expires when a friendly unit in radius(param2) has at least (param1) hp missing. Will repeat every (Param3) and (Param4).
 This is commonly used when an NPC in Combat will heal a nearby Friendly NPC in Combat with a Heal/Renew Spell.
@@ -566,7 +567,7 @@ Action Types
 =========================================
 
 ------------------
-1 = ACTION_T_TEXT:
+1 = ACTION_T_TEXT: - DEPRECATED - use ACTION_T_TEXT_NEW instead
 ------------------
 Parameter 1: The entry of the text that the NPC should use from eventai_texts table. Optionally a entry from other tables can be used (such as custom_texts).
              Entry are required to be negative and exist in a *_texts-table. The type text to be displayed are defined in the texts-table itself (Say, Yell, Whisper, Emote Text, Boss Whisper, Boss Emote)
@@ -702,7 +703,7 @@ NOTE: This action can only be used with player targets so it must be ensured tha
 This is commonly used for Quests where only ONE player will gain credit for the quest.
 
 -----------------------------
-16 = ACTION_T_CASTCREATUREGO:
+16 = ACTION_T_CASTCREATUREGO: - DEPRECATED - use ACTION_T_KILLED_MONSTER instead
 -----------------------------
 Parameter 1: CreatureID - The Creature Template ID to be Summoned. The value here needs to be a valid Creature Template ID.
 Parameter 2: SpellID    - The Spell ID to use to simulate the cast. The value used in this field needs to be a valid Spell ID.
@@ -712,7 +713,7 @@ This action will call CastedCreatureOrGO() function for the player. It can be us
 This is commonly used for NPC's who have a special requirement to have a Spell cast on them to complete a quest.
 
 -----------------------------
-17 = ACTION_T_SET_UNIT_FIELD:
+17 = ACTION_T_SET_UNIT_FIELD: - DEPRECATED - use specific field action instead - not portable across versions
 -----------------------------
 Parameter 1: Field_Number - The index of the Field Number to be changed. Use (http://wiki.udbforums.org/index.php/Character_data) for a list of indeces and what they control. Creatures only contain the OBJECT_FIELD_* and UNIT_FIELD_* fields. They do not contain the PLAYER_FIELD_* fields.
 Parameter 2: Value        - The new value to be put in the field.
@@ -749,7 +750,7 @@ This is commonly used in combination with EVENT_T_RANGE and ACTION_T_COMBAT_MOVE
 21 = ACTION_T_COMBAT_MOVEMENT:
 ------------------------------
 Parameter 1: If zero, then the creature will stop moving towards its victim (if its victim gets out of melee range) and will be stationary. If non-zero, then the creature will either continue to follow its victim (the action would have no effect) or it will start to follow the target with the top threat if its movement was disabled before.
-Parameter 2: If non-zero, then stop melee combat state (if param1=0) or start melee combat state (if param1!=0) and creature in combat with selected target.
+Parameter 2: If non-zero, then stop melee combat state (if param1=0) or start melee combat state (if param1!=0) and creature in combat with selected target. - DEPRECATED - use action 20 instead
 
 This action controls whether or not the creature will always move towards its target.
 NOTE: The ACID Dev Team has conformed to using either 0 or 1 for the Param values. (0 = Stop Movement, 1 = Start Movement)
@@ -797,7 +798,7 @@ This action does the same thing as the ACTION_T_QUEST_EVENT does but it does it 
 NOTE: If a player is not in the NPC's threat list for whatever reason, he/she won't get the quest completed.
 
 ---------------------------------
-27 = ACTION_T_CASTCREATUREGO_ALL:
+27 = ACTION_T_CASTCREATUREGO_ALL: - DEPRECATED - use ACTION_T_KILLED_MONSTER instead
 ---------------------------------
 Parameter 1: QuestId - The quest template ID.
 Parameter 2: SpellId - The spell ID used to simulate the cast.
@@ -899,11 +900,10 @@ Calls ScriptedInstance::SetData64 with field (param1) and data (param2) target's
 ------------------------------
 36 = ACTION_T_UPDATE_TEMPLATE:
 ------------------------------
-Parameter 1: TemplateId - The creature template ID. The value here must be a valid creature template ID.
-Parameter 2: Team       - Use model_id from team : Alliance(0) or Horde (1).
+Parameter 1: TemplateId - The creature template ID. The value here must be a valid creature template ID
 
 This function temporarily changes creature entry to new entry, display is changed, loot is changed, but AI is not changed. At respawn creature will be reverted to original entry.
-Changes the creature to a new creature template of (param1) with team = Alliance if (param2) = false or Horde if (param2) = true
+Changes the creature to a new creature template of (param1).
 
 ------------------
 37 = ACTION_T_DIE:
@@ -1112,7 +1112,7 @@ Sets facing, i.e. orientation to target, or resets it to last waypoint hit, or t
 --------------------------------
 60 - ACTION_T_SET_SPELL_SET
 --------------------------------
-Parameter 1: creature_template_spells setid
+Parameter 1: creature_spell_list Id
 
 --------------------------------
 61 - ACTION_T_SET_IMMOBILIZED_STATE
@@ -1184,6 +1184,8 @@ Another example: the number "5" (101 in Binary, selecting first and third option
 9   256         CAST_MAIN_SPELL                     Marks main spell for ranged mode. When this spell is interrupted or goes OOM, the AI owner goes into melee mode. Connected to ACTION_T_SET_RANGED_MODE
 10  512         CAST_PLAYER_ONLY                    To be used in connection with targets. Restricts targeting to player only
 11  1024        CAST_DISTANCE_YOURSELF              Marks spell which stuns or immobilizes, so that creature distances itself from target, when main aggro target is hit (GetVictim()). Connected to ACTION_T_SET_RANGED_MODE.
+12  2048        CAST_TARGET_CASTING                 Selects only targets that are casting
+13  4096        CAST_ONLY_XYZ                       Targets only coords of target and not unit
 
 NOTE: You can add the numbers in the decimal column to combine flags.
 For example if you wanted to use CAST_NO_MELEE_IF_OOM(8) and CAST_TRIGGERED(2) you would simply use 10 in the cast flags field (8 + 2 = 10).

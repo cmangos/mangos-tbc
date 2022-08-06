@@ -8715,6 +8715,12 @@ bool Unit::IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, boo
         if (!u->IsAlive())
             detect = false;
     }
+    else if (spell)
+    {
+        // all despawned creatures/players not visible for any creatures spells
+        if (u->GetDeathState() == DEAD || GetDeathState() == DEAD)
+            return false;
+    }
     else
     {
         // all dead creatures/players not visible for any creatures

@@ -2496,7 +2496,7 @@ void WorldState::StartSunsReachPhase(bool initial)
             if (Map* map = sMapMgr.FindMap(530))
                 map->GetMessager().AddMessage([](Map* map)
                 {
-                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 4, 0.75f);
+                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 0, 4, 0.75f);
                 });
             break;
         case SUNS_REACH_PHASE_2_SANCTUM:
@@ -2505,7 +2505,7 @@ void WorldState::StartSunsReachPhase(bool initial)
             if (Map* map = sMapMgr.FindMap(530))
                 map->GetMessager().AddMessage([](Map* map)
                 {
-                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 3, 0.5f);
+                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 0, 3, 0.5f);
                 });
             break;
         case SUNS_REACH_PHASE_3_ARMORY:
@@ -2515,7 +2515,7 @@ void WorldState::StartSunsReachPhase(bool initial)
             if (Map* map = sMapMgr.FindMap(530))
                 map->GetMessager().AddMessage([](Map* map)
                 {
-                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 2, 0.25f);
+                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 0, 2, 0.25f);
                 });
             break;
         case SUNS_REACH_PHASE_4_HARBOR:
@@ -2528,7 +2528,7 @@ void WorldState::StartSunsReachPhase(bool initial)
             if (Map* map = sMapMgr.FindMap(530))
                 map->GetMessager().AddMessage([](Map* map)
                 {
-                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 0, 0.f);
+                    map->SetZoneWeather(ZONEID_ISLE_OF_QUEL_DANAS, 0, 0, 0.f);
                 });
             break;
         default: break;

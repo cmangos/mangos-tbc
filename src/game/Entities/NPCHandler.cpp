@@ -24,7 +24,7 @@
 #include "Server/Opcodes.h"
 #include "Log.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Entities/Player.h"
 #include "Entities/GossipDef.h"
 #include "DBScripts/ScriptMgr.h"

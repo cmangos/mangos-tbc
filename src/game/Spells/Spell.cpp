@@ -26,7 +26,7 @@
 #include "Log.h"
 #include "World/World.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Entities/Player.h"
 #include "Entities/Pet.h"
 #include "Entities/Unit.h"

@@ -22,7 +22,7 @@
 #include "Grids/GridNotifiers.h"
 #include "Grids/CellImpl.h"
 #include "Grids/GridNotifiersImpl.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Server/DBCStores.h"
 #include "Spells/Scripts/SpellScript.h"
 

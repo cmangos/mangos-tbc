@@ -21,7 +21,7 @@
 #include "Log.h"
 #include "WorldPacket.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Tools/Formulas.h"
 #include "Spells/SpellAuras.h"
 #include "Entities/Unit.h"

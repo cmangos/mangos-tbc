@@ -17,7 +17,7 @@
  */
 
 #include "IdleMovementGenerator.h"
-#include "AI/BaseAI/CreatureAI.h"
+#include "BaseAI/CreatureAI.h"
 #include "Entities/Creature.h"
 
 IdleMovementGenerator si_idleMovement;

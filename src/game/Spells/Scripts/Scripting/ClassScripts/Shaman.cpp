@@ -19,8 +19,8 @@
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellAuras.h"
 #include "Entities/Totem.h"
-#include "AI/BaseAI/TotemAI.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "BaseAI/TotemAI.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 
 struct SentryTotem : public SpellScript, public AuraScript
 {

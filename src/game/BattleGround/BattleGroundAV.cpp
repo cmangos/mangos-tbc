@@ -25,7 +25,7 @@
 #include "Tools/Language.h"
 #include "WorldPacket.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
+#include "ScriptDev/include/sc_grid_searchers.h"
 
 BattleGroundAV::BattleGroundAV(): m_mineYellTimer(BG_AV_MINE_YELL), m_honorMapComplete(0), m_repTowerDestruction(0), m_repCaptain(0), m_repBoss(0), m_repOwnedGrave(0), m_repOwnedMine(0), m_repSurviveCaptain(0), m_repSurviveTower(0)
 {

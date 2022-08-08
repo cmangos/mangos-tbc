@@ -19,7 +19,7 @@
 #include "Common.h"
 #include "Log.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Entities/Player.h"
 #include "Entities/Unit.h"
 #include "Spells/Spell.h"

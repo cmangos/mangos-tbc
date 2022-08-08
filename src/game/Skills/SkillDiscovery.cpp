@@ -24,7 +24,7 @@
 #include "World/World.h"
 #include "Util.h"
 #include "Skills/SkillDiscovery.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Entities/Player.h"
 #include "Server/DBCStores.h"
 #include <map>

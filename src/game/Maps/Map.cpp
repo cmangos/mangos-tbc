@@ -38,7 +38,7 @@
 #include "MotionGenerators/MoveMap.h"
 #include "Chat/Chat.h"
 #include "Weather/Weather.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 
 #ifdef BUILD_METRICS
  #include "Metric/Metric.h"

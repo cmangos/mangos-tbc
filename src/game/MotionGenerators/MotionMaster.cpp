@@ -29,7 +29,7 @@
 #include "Movement/MoveSplineInit.h"
 #include "Maps/GridDefines.h"
 #include "Maps/Map.h"
-#include "AI/CreatureAISelector.h"
+#include "CreatureAISelector.h"
 #include "Entities/Creature.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Entities/Player.h"

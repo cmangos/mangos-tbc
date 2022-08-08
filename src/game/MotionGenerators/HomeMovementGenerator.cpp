@@ -19,7 +19,7 @@
 #include "HomeMovementGenerator.h"
 #include "Maps/Map.h"
 #include "Entities/Creature.h"
-#include "AI/BaseAI/CreatureAI.h"
+#include "BaseAI/CreatureAI.h"
 #include "Movement/MoveSplineInit.h"
 #include "Movement/MoveSpline.h"
 

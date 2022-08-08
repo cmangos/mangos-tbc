@@ -24,7 +24,7 @@
 #include "Log.h"
 #include "World/World.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Entities/Player.h"
 #include "Entities/Unit.h"
 #include "Spells/Spell.h"
@@ -38,7 +38,7 @@
 #include "Entities/Creature.h"
 #include "BattleGround/BattleGround.h"
 #include "OutdoorPvP/OutdoorPvP.h"
-#include "AI/BaseAI/CreatureAI.h"
+#include "BaseAI/CreatureAI.h"
 #include "DBScripts/ScriptMgr.h"
 #include "Util.h"
 #include "Grids/GridNotifiers.h"
@@ -49,7 +49,7 @@
 #include "Loot/LootMgr.h"
 #include "Entities/TemporarySpawn.h"
 #include "Maps/InstanceData.h"
-#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
+#include "ScriptDev/include/sc_grid_searchers.h"
 
 #define NULL_AURA_SLOT 0xFF
 

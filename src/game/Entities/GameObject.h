@@ -23,7 +23,7 @@
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
 #include "Util.h"
-#include "AI/BaseAI/GameObjectAI.h"
+#include "BaseAI/GameObjectAI.h"
 #include "Spells/SpellDefines.h"
 
 #include <array>

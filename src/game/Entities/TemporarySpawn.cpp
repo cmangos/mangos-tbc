@@ -18,7 +18,7 @@
 
 #include "Entities/TemporarySpawn.h"
 #include "Log.h"
-#include "AI/BaseAI/CreatureAI.h"
+#include "BaseAI/CreatureAI.h"
 
 TemporarySpawn::TemporarySpawn(ObjectGuid summoner) :
     Creature(CREATURE_SUBTYPE_TEMPORARY_SUMMON), m_type(TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN), m_lifetime(0), m_spawner(summoner), m_linkedToOwnerAura(0)

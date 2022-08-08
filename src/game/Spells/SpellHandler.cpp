@@ -21,7 +21,7 @@
 #include "WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Log.h"
 #include "Server/Opcodes.h"
 #include "Spells/Spell.h"

@@ -27,7 +27,7 @@
 #include "WorldPacket.h"
 #include "Server/DBCStores.h"
 #include "ProgressBar.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 
 #include "Movement/MoveSpline.h"
 

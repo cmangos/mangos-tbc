@@ -77,10 +77,8 @@ add_library(${LIBRARY_NAME} STATIC
 )
 
 target_link_libraries(${LIBRARY_NAME}
-  PRIVATE shared
-  PRIVATE g3dlite
-  PRIVATE detour
-  PRIVATE zlib
+  PRIVATE shared g3dlite detour zlib
+  PUBLIC SD3
 )
 
 # include additionals headers

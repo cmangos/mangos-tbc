@@ -31,7 +31,7 @@
 #include "BattleGround.h"
 #include "Arena/ArenaTeam.h"
 #include "Tools/Language.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "World/World.h"
 
 // Sent by client when player talk to the battle master

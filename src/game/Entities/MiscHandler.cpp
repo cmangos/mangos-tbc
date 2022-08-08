@@ -33,7 +33,7 @@
 #include "Server/WorldSession.h"
 #include "Entities/UpdateData.h"
 #include "Chat/Chat.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Globals/ObjectAccessor.h"
 #include "Entities/Object.h"
 #include "BattleGround/BattleGround.h"

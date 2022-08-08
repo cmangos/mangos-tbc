@@ -27,7 +27,7 @@
 #include "WorldPacket.h"
 #include "Util.h"
 #include "Maps/MapManager.h"
-#include "AI/ScriptDevAI/include/sc_grid_searchers.h"
+#include "ScriptDev/include/sc_grid_searchers.h"
 
 BattleGroundEY::BattleGroundEY(): m_flagState(), m_honorTicks(0), m_flagRespawnTimer(0), m_resourceUpdateTimer(0)
 {

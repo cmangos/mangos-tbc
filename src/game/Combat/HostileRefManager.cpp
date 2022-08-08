@@ -20,7 +20,7 @@
 #include "Combat/ThreatManager.h"
 #include "Entities/Unit.h"
 #include "Server/DBCStructure.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Maps/Map.h"
 
 HostileRefManager::HostileRefManager(Unit* owner) : iOwner(owner)

@@ -25,7 +25,7 @@
 #include "Globals/ObjectAccessor.h"
 #include "Tools/Language.h"
 #include "Accounts/AccountMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "SystemConfig.h"
 #include "revision.h"
 #include "Util.h"

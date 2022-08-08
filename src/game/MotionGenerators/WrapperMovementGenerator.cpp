@@ -18,7 +18,7 @@
 
 #include "MotionGenerators/WrapperMovementGenerator.h"
 #include "Entities/Creature.h"
-#include "AI/BaseAI/UnitAI.h"
+#include "BaseAI/UnitAI.h"
 #include "Entities/TemporarySpawn.h"
 #include "Movement/MoveSpline.h"
 #include "Movement/MoveSplineInit.h"

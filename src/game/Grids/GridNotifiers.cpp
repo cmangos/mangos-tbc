@@ -25,7 +25,7 @@
 #include "Entities/Transports.h"
 #include "Globals/ObjectAccessor.h"
 #include "BattleGround/BattleGroundMgr.h"
-#include "AI/BaseAI/UnitAI.h"
+#include "BaseAI/UnitAI.h"
 
 using namespace MaNGOS;
 

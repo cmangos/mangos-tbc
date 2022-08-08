@@ -26,7 +26,7 @@
 #include <algorithm>
 #include <map>
 #include <World/WorldStateDefines.h>
-#include "AI/ScriptDevAI/scripts/world/scourge_invasion.h"
+#include "ScriptDev/scripts/world/scourge_invasion.h"
 
 enum
 {

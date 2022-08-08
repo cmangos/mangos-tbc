@@ -21,7 +21,7 @@
 #include "Entities/Player.h"
 #include "Entities/Creature.h"
 #include "Entities/TemporarySpawn.h"
-#include "AI/BaseAI/CreatureAI.h"
+#include "BaseAI/CreatureAI.h"
 #include "MotionGenerators/WaypointManager.h"
 #include "DBScripts/ScriptMgr.h"
 #include "Movement/MoveSplineInit.h"

@@ -21,7 +21,7 @@
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
 #include "Server/Opcodes.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "World/World.h"
 #include "WorldPacket.h"
 #include "Server/WorldSession.h"

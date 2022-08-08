@@ -25,7 +25,7 @@
 #include "Maps/MapManager.h"
 #include "Entities/ObjectGuid.h"
 #include "DBScripts/ScriptMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "World/World.h"
 #include "Groups/Group.h"
 #include "Arena/ArenaTeam.h"

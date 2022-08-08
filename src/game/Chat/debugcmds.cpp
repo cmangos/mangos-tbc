@@ -31,7 +31,7 @@
 #include "Maps/MapManager.h"
 #include "Globals/ObjectMgr.h"
 #include "Entities/ObjectGuid.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Maps/InstanceData.h"
 #include "Cinematics/M2Stores.h"
 #include "Entities/Transports.h"

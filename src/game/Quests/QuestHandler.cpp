@@ -27,7 +27,7 @@
 #include "Entities/GossipDef.h"
 #include "Quests/QuestDef.h"
 #include "Globals/ObjectAccessor.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Groups/Group.h"
 #include "Tools/Formulas.h"
 

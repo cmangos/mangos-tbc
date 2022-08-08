@@ -31,7 +31,7 @@
 #include "OutdoorPvP/OutdoorPvP.h"
 #include "MotionGenerators/WaypointMovementGenerator.h"
 #include "Mails/Mail.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Maps/InstanceData.h"
 #include "Entities/Object.h"
 

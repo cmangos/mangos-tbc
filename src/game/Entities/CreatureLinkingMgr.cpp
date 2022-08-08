@@ -39,7 +39,7 @@
 #include "Globals/ObjectMgr.h"
 #include "Globals/SharedDefines.h"
 #include "Entities/Creature.h"
-#include "AI/BaseAI/UnitAI.h"
+#include "BaseAI/UnitAI.h"
 #include "Maps/InstanceData.h"
 
 INSTANTIATE_SINGLETON_1(CreatureLinkingMgr);

@@ -21,7 +21,7 @@
 #include "Movement/MoveSplineInit.h"
 #include "Entities/Creature.h"
 #include "Entities/TemporarySpawn.h"
-#include "AI/BaseAI/UnitAI.h"
+#include "BaseAI/UnitAI.h"
 #include "Entities/Player.h"
 
 #include <algorithm>

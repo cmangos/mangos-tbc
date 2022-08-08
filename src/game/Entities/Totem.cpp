@@ -21,9 +21,9 @@
 #include "Groups/Group.h"
 #include "Entities/Player.h"
 #include "Globals/ObjectMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Server/DBCStores.h"
-#include "AI/BaseAI/CreatureAI.h"
+#include "BaseAI/CreatureAI.h"
 #include "Maps/InstanceData.h"
 
 Totem::Totem() : Creature(CREATURE_SUBTYPE_TOTEM)

@@ -19,7 +19,7 @@
 #include "Combat/ThreatManager.h"
 #include "Entities/Unit.h"
 #include "Entities/Creature.h"
-#include "AI/BaseAI/CreatureAI.h"
+#include "BaseAI/CreatureAI.h"
 #include "Maps/Map.h"
 #include "Entities/Player.h"
 #include "Globals/ObjectAccessor.h"

@@ -30,7 +30,7 @@
 #include "Grids/GridNotifiersImpl.h"
 #include "Grids/CellImpl.h"
 #include "Accounts/AccountMgr.h"
-#include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "ScriptDev/ScriptDevAIMgr.h"
 #include "Pools/PoolManager.h"
 #include "GameEvents/GameEventMgr.h"
 

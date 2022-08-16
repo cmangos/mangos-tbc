@@ -40,6 +40,7 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Anticheat/Anticheat.hpp"
 #include "AI/ScriptDevAI/scripts/custom/Transmogrification.h"
+#include "Mail.h"
 
 #ifdef BUILD_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
@@ -928,6 +929,126 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     if (pCurrChar->HasAtLoginFlag(AT_LOGIN_FIRST))
         pCurrChar->RemoveAtLoginFlag(AT_LOGIN_FIRST);
+
+    // add collector to all accounts if enabled
+    if (sWorld.getConfig(CONFIG_BOOL_COLLECTORS_EDITION) && !(HasAccountFlag(ACCOUNT_FLAG_COLLECTOR_CLASSIC) || HasAccountFlag(ACCOUNT_FLAG_COLLECTOR_TBC)))
+    {
+        AddAccountFlag(ACCOUNT_FLAG_COLLECTOR_CLASSIC | ACCOUNT_FLAG_COLLECTOR_TBC);
+        LoginDatabase.PExecute("UPDATE account SET flags = flags | 0x%x WHERE id = %u", GetAccountId(), ACCOUNT_FLAG_COLLECTOR_CLASSIC | ACCOUNT_FLAG_COLLECTOR_TBC);
+    }
+
+    // create collector's edition reward (tbc)
+    if (HasAccountFlag(ACCOUNT_FLAG_COLLECTOR_TBC) && !pCurrChar->HasItemCount(25535, 1, true))
+    {
+        bool hasPetReward = false;
+        // check if already has in mail
+        for (PlayerMails::iterator itr = _player->GetMailBegin(); itr != _player->GetMailEnd(); ++itr)
+        {
+            // skip deleted mails
+            if ((*itr)->state == MAIL_STATE_DELETED)
+                continue;
+
+            uint8 item_count = uint8((*itr)->items.size());
+            for (uint8 i = 0; i < item_count; ++i)
+            {
+                Item* item = _player->GetMItem((*itr)->items[i].item_guid);
+                if (item->GetEntry() == 25535)
+                {
+                    hasPetReward = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasPetReward)
+        {
+            ostringstream body;
+            body << "Hello, " << pCurrChar->GetName() << ",\n\n";
+            body << "Welcome to the World of Warcraft!\n\n";
+            body << "As special thanks for purchasing the World of Warcraft: The Burning Crusade Collector's Edition we send you a gift: a little companion to join you on your quest for adventure and glory.\n\n";
+            body << "Thanks again, and enjoy your stay in the World of Warcraft!";
+
+            MailDraft draft;
+            draft.SetSubjectAndBody("Collector's Edition Gift", body.str());
+
+            Item* gift = Item::CreateItem(25535, 1, nullptr);
+            gift->SaveToDB();
+            draft.AddItem(gift);
+
+            MailSender sender(MAIL_NORMAL, (uint32)0, MAIL_STATIONERY_GM);
+            draft.SendMailTo(MailReceiver(pCurrChar, pCurrChar->GetObjectGuid()), sender);
+        }
+    }
+
+    // create collector's edition reward (vanilla)
+    if (HasAccountFlag(ACCOUNT_FLAG_COLLECTOR_CLASSIC))
+    {
+        uint32 itemid = 0;
+        uint32 questid = 0;
+        switch (pCurrChar->getRace())
+        {
+        case RACE_HUMAN:
+            itemid = 14646;
+            questid = 5805;
+            break;
+        case RACE_ORC:
+        case RACE_TROLL:
+            itemid = 14649;
+            questid = 5843;
+            break;
+        case RACE_DWARF:
+        case RACE_GNOME:
+            itemid = 14647;
+            questid = 5843;
+            break;
+        case RACE_NIGHTELF:
+            itemid = 14648;
+            questid = 5842;
+            break;
+        case RACE_UNDEAD:
+            itemid = 14651;
+            questid = 5847;
+            break;
+        case RACE_TAUREN:
+            itemid = 14650;
+            questid = 5844;
+            break;
+        }
+
+        if (itemid && questid)
+        {
+            if (!pCurrChar->HasQuest(questid) && !pCurrChar->HasItemCount(itemid, 1, true) && !pCurrChar->GetQuestRewardStatus(questid))
+            {
+                ItemPrototype const* pProto = ObjectMgr::GetItemPrototype(itemid);
+                if (pProto)
+                {
+                    uint32 noSpaceForCount = 0;
+                    ItemPosCountVec dest;
+                    uint8 msg = pCurrChar->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemid, 1, &noSpaceForCount);
+                    if (msg != EQUIP_ERR_OK)
+                    {
+                        ostringstream body;
+                        body << "Hello, " << pCurrChar->GetName() << ",\n\n";
+                        body << "Welcome to the World of Warcraft!\n\n";
+                        body << "As special thanks for purchasing the World of Warcraft Collector's Edition we send you a gift: a little companion to join you on your quest for adventure and glory.\n\n";
+                        body << "Thanks again, and enjoy your stay in the World of Warcraft!";
+
+                        MailDraft draft;
+                        draft.SetSubjectAndBody("Collector's Edition Gift", body.str());
+
+                        Item* gift = Item::CreateItem(itemid, 1, nullptr);
+                        gift->SaveToDB();
+                        draft.AddItem(gift);
+
+                        MailSender sender(MAIL_NORMAL, (uint32)0, MAIL_STATIONERY_GM);
+                        draft.SendMailTo(MailReceiver(pCurrChar, pCurrChar->GetObjectGuid()), sender);
+                    }
+                    else
+                        Item* item = pCurrChar->StoreNewItem(dest, itemid, true);
+                }
+            }
+        }
+    }
 
     // show time before shutdown if shutdown planned.
     if (sWorld.IsShutdowning())

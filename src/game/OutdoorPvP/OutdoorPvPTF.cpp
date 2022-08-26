@@ -144,7 +144,7 @@ void OutdoorPvPTF::HandleObjectiveComplete(uint32 eventId, const std::list<Playe
 bool OutdoorPvPTF::HandleEvent(uint32 eventId, Object* source, Object* /*target*/)
 {
     if (!source->IsGameObject())
-        return true;
+        return false;
 
     GameObject* go = static_cast<GameObject*>(source);
     for (uint8 i = 0; i < MAX_TF_TOWERS; ++i)

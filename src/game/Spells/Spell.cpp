@@ -1269,6 +1269,8 @@ void Spell::DoAllEffectOnTarget(TargetInfo* target)
             }
         }
 
+        m_damgeBeforeAbsorb = spellDamageInfo.damage;
+
         unitTarget->CalculateAbsorbResistBlock(affectiveCaster, &spellDamageInfo, m_spellInfo);
 
         Unit::DealDamageMods(affectiveCaster, spellDamageInfo.target, spellDamageInfo.damage, &spellDamageInfo.absorb, SPELL_DIRECT_DAMAGE, m_spellInfo);

@@ -19,6 +19,7 @@
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
+#include<iostream>
 
 struct SpiritOfRedemptionHeal : public SpellScript
 {
@@ -86,7 +87,7 @@ struct ShadowWordDeath : public SpellScript
 {
     void OnHit(Spell* spell, SpellMissInfo /*missInfo*/) const override
     {
-        int32 swdDamage = spell->GetTotalTargetDamage();
+        int32 swdDamage = spell->GetTargetDamageBeforeAbsorb();
         spell->GetCaster()->CastCustomSpell(nullptr, 32409, &swdDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
     }
 };

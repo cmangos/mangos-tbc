@@ -19,7 +19,6 @@
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
-#include<iostream>
 
 struct SpiritOfRedemptionHeal : public SpellScript
 {

@@ -830,6 +830,8 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
         if (invisibleAuraInfo && IsSpellAppliesAura(invisibleAuraInfo))
             pCurrChar->CastSpell(pCurrChar, invisibleAuraInfo, TRIGGERED_OLD_TRIGGERED);
     }
+    else if (pCurrChar->HasAura(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA)))
+        pCurrChar->RemoveAurasDueToSpell(sWorld.getConfig(CONFIG_UINT32_GM_INVISIBLE_AURA));
 
     std::string IP_str = GetRemoteAddress();
     sLog.outChar("Account: %d (IP: %s) Login Character:[%s] (guid: %u)",

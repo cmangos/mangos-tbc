@@ -321,6 +321,28 @@ struct SoulLeech : public AuraScript
     }
 };
 
+// Curse of Tongues 
+// Spell IDs: 1714 (Rank 1), 11719 (Rank 2)
+// Patch 2.1 - "... now has a 12 second duration when used on PvP targets."
+struct CurseOfTongues : public SpellScript, public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        uint32 auraId = aura->GetId();
+        if (Unit* target = aura->GetTarget())
+        {
+            if (target->IsPlayer())
+            {
+                if (SpellAuraHolder* holder = target->GetSpellAuraHolder(auraId))
+                {
+                    holder->SetAuraDuration(12000);
+                    holder->UpdateAuraDuration();
+                }
+            }
+        }
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterSpellScript<UnstableAffliction>("spell_unstable_affliction");
@@ -338,4 +360,5 @@ void LoadWarlockScripts()
     RegisterSpellScript<SeedOfCorruptionDamage>("spell_seed_of_corruption_damage");
     RegisterSpellScript<CurseOfDoom>("spell_curse_of_doom");
     RegisterSpellScript<CurseOfDoomEffect>("spell_curse_of_doom_effect");
+    RegisterSpellScript<CurseOfTongues>("spell_curse_of_tongues");
 }

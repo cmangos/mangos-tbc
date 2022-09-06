@@ -642,7 +642,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (19734,'spell_devour_magic'),
 (19736,'spell_devour_magic'),
 (27276,'spell_devour_magic'),
-(27277,'spell_devour_magic');
+(27277,'spell_devour_magic'),
+(1714,'spell_curse_of_tongues'),
+(11719,'spell_curse_of_tongues');
 
 -- Pet Scaling
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

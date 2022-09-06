@@ -321,6 +321,28 @@ struct SoulLeech : public AuraScript
     }
 };
 
+// Curse of Recklessness
+// Spell IDs: 704 (Rank 1), 7658 (Rank 2), 7659 (Rank 3), 11717 (Rank 4), 27226 (Rank 5)
+// 2min aura in PvP also
+struct CurseOfRecklessness : public SpellScript, public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        uint32 auraId = aura->GetId();
+        if (Unit* target = aura->GetTarget())
+        {
+            if (target->IsPlayer())
+            {
+                if (SpellAuraHolder* holder = target->GetSpellAuraHolder(auraId))
+                {
+                    holder->SetAuraDuration(120000);
+                    holder->UpdateAuraDuration();
+                }
+            }
+        }
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterSpellScript<UnstableAffliction>("spell_unstable_affliction");
@@ -338,4 +360,5 @@ void LoadWarlockScripts()
     RegisterSpellScript<SeedOfCorruptionDamage>("spell_seed_of_corruption_damage");
     RegisterSpellScript<CurseOfDoom>("spell_curse_of_doom");
     RegisterSpellScript<CurseOfDoomEffect>("spell_curse_of_doom_effect");
+    RegisterSpellScript<CurseOfRecklessness>("spell_curse_of_recklessness");
 }

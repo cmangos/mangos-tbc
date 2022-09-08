@@ -552,7 +552,12 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (42919,'spell_tricky_treat');
 
 -- Wotlk
-
+INSERT INTO spell_scripts(Id, ScriptName) VALUES
+(36435,'spell_forget_36435'),
+(36436,'spell_forget_36436'),
+(36438,'spell_forget_36438'),
+(36439,'spell_forget_36439'),
+(36441,'spell_forget_36441');
 
 -- Hunter
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

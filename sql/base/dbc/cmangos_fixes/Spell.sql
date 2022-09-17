@@ -2339,6 +2339,17 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 ('24956', '1', '0', '0', '0', '320', '268435456', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '101', '0', '0', '0', '0', '21', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '0', '0', '6', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '23', '0', '0', '60000', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '2025', '0', '0', 'Dream Fog', '', '', '', '', '', '', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0');
 
 -- ============================================================
+-- SPELL_ATTR_SS_IGNORE_EVADE - IsSpellRemovedOnEvade()
+-- ============================================================
+UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
+4044,  -- Target Dummy Passive
+11816, -- Land Mine Arming
+27791, -- Suicide (Suicide)
+21789, -- Hate to Half (Hate to Half)
+28330  -- Flameshocker - Immolate Visual
+);
+
+-- ============================================================
 -- TBC section
 -- ============================================================
 
@@ -2909,6 +2920,15 @@ UPDATE spell_template SET AttributesServerside = 4 WHERE id IN (29363,31386);
 UPDATE `spell_template` SET `EffectMiscValueB1`=64 WHERE `Id` IN(38107);
 
 -- ============================================================
+-- SPELL_ATTR_SS_IGNORE_EVADE - IsSpellRemovedOnEvade()
+-- ============================================================
+UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
+37248, -- Power Converters: Electromental Visual
+43119, -- Cyclone Visual
+43120, -- Cyclone
+43457  -- Ball of Energy
+);
+
+-- ============================================================
 -- WOTLK section
 -- ============================================================
-

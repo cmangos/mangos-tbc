@@ -299,7 +299,7 @@ namespace MMAP
         // now that we have gathered the data, we can figure out which parts to keep:
         // liquid above ground, ground above liquid
         int loopStart, loopEnd, loopInc, tTriCount = 4;
-        bool useTerrain, useLiquid;
+        bool useTerrain, useLiquid, useTerrainAsLiquid;
 
         float* lverts = meshData.liquidVerts.getCArray();
         int* ltris = ltriangles.getCArray();
@@ -327,6 +327,7 @@ namespace MMAP
                 // default is true, will change to false if needed
                 useTerrain = true;
                 useLiquid = true;
+                useTerrainAsLiquid = false;
                 uint8 liquidType = MAP_LIQUID_TYPE_NO_WATER;
 
                 // if there is no liquid, don't use liquid
@@ -419,6 +420,13 @@ namespace MMAP
                             minTLevel = h;
                     }
 
+                    // terrain under the liquid?
+                    if (minLLevel > maxTLevel)
+                    {
+                        useTerrainAsLiquid = true;
+                        useTerrain = false;
+                    }
+
                     // liquid under the terrain?
                     if (minTLevel > maxLLevel)
                         useLiquid = false;
@@ -430,6 +438,20 @@ namespace MMAP
                     meshData.liquidType.append(liquidType);
                     for (int k = 0; k < 3; ++k)
                         meshData.liquidTris.append(ltris[k]);
+                }
+
+                if (useTerrainAsLiquid)
+                {
+                    for (int i = 0; i < tTriCount / 2; ++i)
+                        meshData.liquidType.append(liquidType);
+                    for (int k = 0; k < tTriCount / 2; ++k)
+                    {
+                        for (int i = 0; i < 3; ++i)
+                        {
+                            meshData.liquidVerts.append(meshData.solidVerts[ttris[k] * 3 + i]);
+                            meshData.liquidTris.append((meshData.liquidVerts.size() - 1) / 3);
+                        }
+                    }
                 }
 
                 if (useTerrain)

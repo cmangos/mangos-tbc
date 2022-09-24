@@ -8635,6 +8635,7 @@ bool SpellAuraHolder::IsSaveToDbHolder() const
             case 33377: // blessing of auchindoun
             case 33779: // twin spire blessing
             case 33795: // halaani strength
+            case 37800: // 50% Transparency (GM aura)
             case 39911: // nazgrels command
             case 39913: // trollbanes command
             case 39953: // adals song of battle

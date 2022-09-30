@@ -148,7 +148,7 @@ Creature::Creature(CreatureSubtype subtype) : Unit(),
     m_countSpawns(false),
     m_creatureInfo(nullptr),
     m_immunitySet(UINT32_MAX),
-    m_creatureGroup(nullptr)
+    m_creatureGroup(nullptr), m_imposedCooldown(false)
 {
     m_valuesCount = UNIT_END;
 
@@ -249,6 +249,10 @@ void Creature::RemoveFromWorld()
         if (uint32 spellId = GetCreatedBySpellId())
             if (Unit* spawner = GetSpawner())
                 spawner->RemoveCreature(spellId, false);
+
+        if (GetUInt32Value(UNIT_CREATED_BY_SPELL)) // optimization
+            if (Unit* owner = GetOwner())
+                StartCooldown(owner);
 
         ClearCreatureGroup();
     }
@@ -1861,6 +1865,10 @@ void Creature::SetDeathState(DeathState s)
         Unmount();
         ClearCreatureGroup();
 
+        if (GetUInt32Value(UNIT_CREATED_BY_SPELL)) // optimization
+            if (Unit* owner = GetOwner())
+                StartCooldown(owner);
+
         Unit::SetDeathState(CORPSE);
     }
 
@@ -3017,5 +3025,17 @@ void Creature::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* /*
                 player->GetSession()->SendPacket(data);
             }
         }
+    }
+}
+
+void Creature::StartCooldown(Unit* owner)
+{
+    if (!m_imposedCooldown)
+    {
+        m_imposedCooldown = true;
+        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(GetUInt32Value(UNIT_CREATED_BY_SPELL));
+        // Remove infinity cooldown
+        if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_COOLDOWN_ON_EVENT))
+            owner->AddCooldown(*spellInfo);
     }
 }

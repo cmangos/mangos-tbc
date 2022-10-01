@@ -2186,7 +2186,7 @@ struct AddGameObjectToRemoveListInMapsWorker
     void operator()(Map* map)
     {
         if (GameObject* pGameobject = map->GetGameObject(i_guid))
-            pGameobject->AddObjectToRemoveList();
+            pGameobject->Delete();
     }
 
     ObjectGuid i_guid;

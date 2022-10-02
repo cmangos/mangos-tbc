@@ -39,6 +39,8 @@
 #include "Loot/LootMgr.h"
 #include "Anticheat/Anticheat.hpp"
 
+#include <openssl/md5.h>
+
 #include <mutex>
 #include <deque>
 #include <algorithm>
@@ -1052,15 +1054,27 @@ void WorldSession::SetAccountData(AccountDataType type, time_t time_, const std:
 
 const uint8 emptyArray[16] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 
-void WorldSession::SendAccountDataTimes(uint32 /*mask*/)
+void WorldSession::SendAccountDataTimes()
 {
-    // unknown identifier on TBC - if sent all 0 - client only sends
-    // if sent all 1 - client requests everything
-    // probably needs to be some sort of client unique identifier I was not able to reverse
-    bool configValue = sWorld.getConfig(CONFIG_BOOL_ACCOUNT_DATA);
-    WorldPacket data(SMSG_ACCOUNT_DATA_TIMES, 128);
-    for (int i = 0; i < 32; ++i)
-        data << uint32(configValue);
+    WorldPacket data(SMSG_ACCOUNT_DATA_TIMES, NUM_ACCOUNT_DATA_TYPES * MD5_DIGEST_LENGTH);
+    for (AccountData const& itr : m_accountData)
+    {
+        if (itr.Data.empty())
+        {
+            for (int i = 0; i < MD5_DIGEST_LENGTH; i++)
+                data << uint8(0);
+        }
+        else
+        {
+            MD5_CTX md5;
+            MD5_Init(&md5);
+            MD5_Update(&md5, itr.Data.c_str(), itr.Data.size());
+
+            uint8 fileHash[MD5_DIGEST_LENGTH];
+            MD5_Final(fileHash, &md5);
+            data.append(fileHash, MD5_DIGEST_LENGTH);
+        }
+    }
     SendPacket(data);
 }
 

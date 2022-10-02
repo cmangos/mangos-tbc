@@ -633,7 +633,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     // load player specific part before send times
     LoadAccountData(holder->GetResult(PLAYER_LOGIN_QUERY_LOADACCOUNTDATA), PER_CHARACTER_CACHE_MASK);
-    SendAccountDataTimes(PER_CHARACTER_CACHE_MASK);
+    SendAccountDataTimes();
 
     data.Initialize(SMSG_FEATURE_SYSTEM_STATUS, 2);         // added in 2.2.0
     data << uint8(2);                                       // Can complain (0 = disabled, 1 = enabled, don't auto ignore, 2 = enabled, auto ignore)
@@ -878,10 +878,7 @@ void WorldSession::HandlePlayerReconnect()
     data << _player->GetOrientation();
     SendPacket(data);
 
-    data.Initialize(SMSG_ACCOUNT_DATA_TIMES, 128);
-    for (int i = 0; i < 32; ++i)
-        data << uint32(0);
-    SendPacket(data);
+    SendAccountDataTimes();
 
     data.Initialize(SMSG_FEATURE_SYSTEM_STATUS, 2);         // added in 2.2.0
     data << uint8(2);                                       // Can complain (0 = disabled, 1 = enabled, don't auto ignore, 2 = enabled, auto ignore)

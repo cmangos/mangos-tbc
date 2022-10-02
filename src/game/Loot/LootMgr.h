@@ -400,9 +400,11 @@ void LoadLootTemplates_Skinning();
 void LoadLootTemplates_Disenchant();
 void LoadLootTemplates_Prospecting();
 
-void LoadLootTemplates_Reference();
+void LoadLootTemplates_Reference(LootIdSet& ids_set);
 
-inline void LoadLootTables()
+void CheckLootTemplates_Reference(LootIdSet& ids_set); // has to be split due to bg usage
+
+inline void LoadLootTables(LootIdSet& ids_set)
 {
     LoadLootTemplates_Creature();
     LoadLootTemplates_Fishing();
@@ -414,7 +416,7 @@ inline void LoadLootTables()
     LoadLootTemplates_Disenchant();
     LoadLootTemplates_Prospecting();
 
-    LoadLootTemplates_Reference();
+    LoadLootTemplates_Reference(ids_set);
 }
 
 class LootMgr
@@ -423,6 +425,7 @@ class LootMgr
         void PlayerVote(Player* player, ObjectGuid const& lootTargetGuid, uint32 itemSlot, RollVote vote);
         Loot* GetLoot(Player* player, ObjectGuid const& targetGuid = ObjectGuid()) const;
         void CheckDropStats(ChatHandler& chat, uint32 amountOfCheck, uint32 lootId, std::string lootStore) const;
+        bool ExistsRefLootTemplate(uint32 refLootId) const;
 };
 
 #define sLootMgr MaNGOS::Singleton<LootMgr>::Instance()

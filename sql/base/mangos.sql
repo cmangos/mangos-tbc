@@ -349,15 +349,15 @@ CREATE TABLE `battleground_template` (
 
 LOCK TABLES `battleground_template` WRITE;
 /*!40000 ALTER TABLE `battleground_template` DISABLE KEYS */;
-INSERT INTO `battleground_template` VALUES
-(1,0,0,0,0,611,610,100),
-(2,0,0,0,0,769,770,75),
-(3,0,0,0,0,890,889,75),
-(4,0,2,10,70,929,936,0),
-(5,0,2,10,70,939,940,0),
-(6,0,2,10,70,0,0,0),
-(7,0,0,0,0,1103,1104,75),
-(8,0,2,10,70,1258,1259,0);
+INSERT INTO `battleground_template`(`id`,`MinPlayersPerTeam`,`MaxPlayersPerTeam`,`MinLvl`,`MaxLvl`,`AllianceStartLoc`,`HordeStartLoc`,`StartMaxDist`,`PlayerSkinReflootId`) VALUES
+(1,0,0,0,0,611,610,100,0),
+(2,0,0,0,0,769,770,75,0),
+(3,0,0,0,0,890,889,75,0),
+(4,0,2,10,70,929,936,0,0),
+(5,0,2,10,70,939,940,0,0),
+(6,0,2,10,70,0,0,0,0),
+(7,0,0,0,0,1103,1104,75,0),
+(8,0,2,10,70,1258,1259,0,0);
 /*!40000 ALTER TABLE `battleground_template` ENABLE KEYS */;
 UNLOCK TABLES;
 

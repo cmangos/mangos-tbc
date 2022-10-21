@@ -38,9 +38,10 @@ EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "Spells/Scripts/SpellScript.h"
+#include "Grids/Cell.h"
+#include "Grids/CellImpl.h"
 #include "Grids/GridNotifiers.h"
 #include "Grids/GridNotifiersImpl.h"
-#include "Grids/CellImpl.h"
 
 /* When you make a spell effect:
 - always check spell id and effect index
@@ -1007,6 +1008,20 @@ struct MaximizePetLoyalty : public SpellScript
     }
 };
 
+struct GameobjectCallForHelpOnUsage : public SpellScript
+{
+    void OnSuccessfulStart(Spell* spell) const
+    {
+        UnitList targets;
+        MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck check(spell->GetCaster(), 12.f);
+        MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(targets, check);
+        Cell::VisitAllObjects(spell->GetCaster(), searcher, 12.f);
+        for (Unit* attacker : targets)
+            if (attacker->AI())
+                attacker->AI()->AttackStart(spell->GetCaster());
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -1053,4 +1068,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<SleepVisualFlavor>("spell_sleep_visual_flavor");
     RegisterSpellScript<CallOfTheFalcon>("spell_call_of_the_falcon");
     RegisterSpellScript<MaximizePetLoyalty>("spell_maximize_pet_loyalty_and_happiness");
+    RegisterSpellScript<GameobjectCallForHelpOnUsage>("spell_gameobject_call_for_help_on_usage");
 }

@@ -321,6 +321,16 @@ struct SoulLeech : public AuraScript
     }
 };
 
+struct CurseDiminishingDuration : public AuraScript
+{
+    int32 OnDurationCalculate(WorldObject const* caster, Unit const* target, int32 duration) const override
+    {
+        if (caster->IsControlledByPlayer() && target->IsPlayerControlled())
+            return 12000;
+        return duration;
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterSpellScript<UnstableAffliction>("spell_unstable_affliction");
@@ -338,4 +348,5 @@ void LoadWarlockScripts()
     RegisterSpellScript<SeedOfCorruptionDamage>("spell_seed_of_corruption_damage");
     RegisterSpellScript<CurseOfDoom>("spell_curse_of_doom");
     RegisterSpellScript<CurseOfDoomEffect>("spell_curse_of_doom_effect");
+    RegisterSpellScript<CurseDiminishingDuration>("spell_curse_diminishing_duration");
 }

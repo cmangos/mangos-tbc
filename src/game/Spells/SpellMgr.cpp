@@ -3007,9 +3007,6 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
             // ToDo: Fix  diminishing returns aspect of this spell, currently limited to 10secs in pvp only as setting DIMINISHING_FEAR to DRTYPE_ALL messes with PvE
             if (spellproto->IsFitToFamilyMask(uint64(0x00040000000)) && spellproto->Id != 7870) // Exclude Lesser Invisibility
                 return DIMINISHING_FEAR;
-            // Curses/etc
-            if (spellproto->IsFitToFamilyMask(uint64(0x00080000000)))
-                return DIMINISHING_LIMITONLY;
             /* Unstable Affliction Dispel Silence
             // ToDo: Fix diminishing returns aspect for this spell 5 2.5 1.25 0
             else if (spellproto->Id == 31117)

@@ -1162,7 +1162,7 @@ void BattleGroundQueue::Update(BattleGroundTypeId bgTypeId, BattleGroundBracketI
 */
 bool BgQueueInviteEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
 {
-    sWorld.GetMessager().AddMessage([=](World* world)
+    sWorld.GetMessager().AddMessage([=](World* /*world*/)
     {
         Player* plr = sObjectMgr.GetPlayer(m_playerGuid);
         // player logged off (we should do nothing, he is correctly removed from queue in another procedure)
@@ -1209,7 +1209,7 @@ void BgQueueInviteEvent::Abort(uint64 /*e_time*/)
 */
 bool BgQueueRemoveEvent::Execute(uint64 /*e_time*/, uint32 /*p_time*/)
 {
-    sWorld.GetMessager().AddMessage([=](World* world)
+    sWorld.GetMessager().AddMessage([=](World* /*world*/)
     {
         Player* plr = sObjectMgr.GetPlayer(m_playerGuid);
         if (!plr)

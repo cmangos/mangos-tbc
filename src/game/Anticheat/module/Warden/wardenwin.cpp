@@ -672,7 +672,7 @@ void WardenWin::LoadScriptedScans()
 
     sWardenScanMgr.AddWindowsScan(std::make_shared<WindowsScan>(
     // builder
-    [](const Warden *warden, std::vector<std::string> &strings, ByteBuffer &scan)
+    [](const Warden *warden, std::vector<std::string> & /*strings*/, ByteBuffer &scan)
     {
         auto const seed = urand();
 

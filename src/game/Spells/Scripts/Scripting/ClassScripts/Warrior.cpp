@@ -89,7 +89,7 @@ struct Devastate : public SpellScript
 
 struct RetaliationWarrior : public AuraScript
 {
-    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    SpellAuraProcResult OnProc(Aura* /*aura*/, ProcExecutionData& procData) const override
     {
         // check attack comes not from behind
         if (procData.victim->IsFacingTargetsBack(procData.attacker))

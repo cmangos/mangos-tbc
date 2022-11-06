@@ -198,7 +198,7 @@ struct Corruption : public AuraScript
 
 struct EyeOfKilrogg : public SpellScript
 {
-    void OnSummon(Spell* spell, Creature* summon) const override
+    void OnSummon(Spell* /*spell*/, Creature* summon) const override
     {
         summon->CastSpell(nullptr, 2585, TRIGGERED_OLD_TRIGGERED);
         summon->DisableThreatPropagationToOwner();
@@ -226,7 +226,7 @@ struct CurseOfDoom : public SpellScript, public AuraScript
 
 struct CurseOfDoomEffect : public SpellScript
 {
-    void OnSummon(Spell* spell, Creature* summon) const override
+    void OnSummon(Spell* /*spell*/, Creature* summon) const override
     {
         summon->CastSpell(nullptr, 42010, TRIGGERED_OLD_TRIGGERED);
     }
@@ -234,7 +234,7 @@ struct CurseOfDoomEffect : public SpellScript
 
 struct DevourMagic : public SpellScript
 {
-    SpellCastResult OnCheckCast(Spell* spell, bool strict) const override
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
     {
         Unit* target = spell->m_targets.getUnitTarget();
         Unit* caster = spell->GetCaster();

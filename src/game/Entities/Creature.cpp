@@ -1589,7 +1589,7 @@ bool Creature::CreateFromProto(uint32 dbGuid, uint32 guidlow, CreatureInfo const
     return UpdateEntry(newEntry, data, eventData, false);
 }
 
-bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forcedEntry, GenericTransport* transport)
+bool Creature::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forcedEntry, GenericTransport* /*transport*/)
 {
     CreatureData const* data = sObjectMgr.GetCreatureData(dbGuid);
 

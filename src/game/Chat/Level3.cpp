@@ -4406,7 +4406,7 @@ bool ChatHandler::HandleTeleDelCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleListAreaTriggerCommand(char* args)
+bool ChatHandler::HandleListAreaTriggerCommand(char* /*args*/)
 {
     Player* player = m_session->GetPlayer();
     if (!player)
@@ -5922,7 +5922,7 @@ bool ChatHandler::HandleDebugMovement(char* args)
     return true;
 }
 
-bool ChatHandler::HandlePrintMovement(char* args)
+bool ChatHandler::HandlePrintMovement(char* /*args*/)
 {
     Creature* unit = getSelectedCreature();
     if (!unit)
@@ -7218,7 +7218,7 @@ bool ChatHandler::HandleLinkCheckCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleVariablePrint(char* args)
+bool ChatHandler::HandleVariablePrint(char* /*args*/)
 {
     Player* player = GetSession()->GetPlayer();
 
@@ -7226,7 +7226,7 @@ bool ChatHandler::HandleVariablePrint(char* args)
     return true;
 }
 
-bool ChatHandler::HandleWarEffortCommand(char* args)
+bool ChatHandler::HandleWarEffortCommand(char* /*args*/)
 {
     PSendSysMessage("%s", sWorldState.GetAQPrintout().data());
     return true;
@@ -7264,7 +7264,7 @@ bool ChatHandler::HandleWarEffortCounterCommand(char* args)
     return true;
 }
 
-bool ChatHandler::HandleScourgeInvasionCommand(char* args)
+bool ChatHandler::HandleScourgeInvasionCommand(char* /*args*/)
 {
     return true;
 }

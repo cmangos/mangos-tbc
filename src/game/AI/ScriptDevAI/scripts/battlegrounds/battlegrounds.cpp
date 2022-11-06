@@ -189,7 +189,7 @@ struct FlagClickBg : public SpellScript
         return SPELL_CAST_OK;
     }
 
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         Unit* target = spell->GetUnitTarget();
         uint32 spellId = 0;
@@ -237,7 +237,7 @@ struct ArenaPreparation : public AuraScript
 #####*/
 struct spell_battleground_banner_trigger : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         // TODO: Fix when go casting is fixed
         WorldObject* obj = spell->GetAffectiveCasterObject();
@@ -259,7 +259,7 @@ struct spell_battleground_banner_trigger : public SpellScript
 #####*/
 struct spell_outdoor_pvp_banner_trigger : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         // TODO: Fix when go casting is fixed
         WorldObject* obj = spell->GetAffectiveCasterObject();
@@ -278,7 +278,7 @@ struct OutdoorPvpNotifyAI : public GameObjectAI
 {
     using GameObjectAI::GameObjectAI;
 
-    void OnUse(Unit* user, SpellEntry const* spellInfo) override
+    void OnUse(Unit* user, SpellEntry const* /*spellInfo*/) override
     {
         if (!user->IsPlayer())
             return;

@@ -1426,7 +1426,7 @@ void FormationMovementGenerator::HandleTargetedMovement(Unit& owner, const uint3
     }
 }
 
-void FormationMovementGenerator::HandleFinalizedMovement(Unit& owner)
+void FormationMovementGenerator::HandleFinalizedMovement(Unit& /*owner*/)
 {
 
     if (!i_target->movespline->Finalized())

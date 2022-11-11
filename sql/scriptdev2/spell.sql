@@ -296,6 +296,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (37896,'spell_to_infinity_and_above'),
 (38119,'spell_calling_rider'),
 (38249,'spell_calling_rider'),
+(37751,'spell_submerged'),
+(37752,'spell_stand'),
 (38606,'spell_exorcism_feather'),
 (38640,'spell_koi_koi_death'),
 (38915,'spell_mental_interference'),

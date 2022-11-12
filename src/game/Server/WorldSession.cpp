@@ -96,7 +96,7 @@ bool WorldSessionFilter::Process(WorldPacket const& packet) const
 WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, std::string accountName, uint32 accountFlags, uint32 recruitingFriend, bool isARecruiter) :
     LookingForGroup_auto_join(false), LookingForGroup_auto_add(true), m_muteTime(mute_time), m_accountName(accountName),
     _player(nullptr), m_Socket(sock ? sock->shared<WorldSocket>() : nullptr),
-    m_gameBuild(0), m_clientOS(CLIENT_OS_UNKNOWN), m_accountMaxLevel(0), m_lastAnticheatUpdate(0), m_anticheat(nullptr), m_localAddress("127.0.0.1"),
+    m_gameBuild(0), m_clientOS(CLIENT_OS_UNKNOWN), m_clientPlatform(CLIENT_PLATFORM_UNKNOWN), m_accountMaxLevel(0), m_lastAnticheatUpdate(0), m_anticheat(nullptr), m_localAddress("127.0.0.1"),
     m_requestSocket(nullptr), m_sessionState(WORLD_SESSION_STATE_CREATED),
     _security(sec), _accountId(id), m_expansion(expansion), m_orderCounter(0), _logoutTime(0), m_playerSave(true),
     m_inQueue(false), m_playerLoading(false), m_kickSession(false), m_playerLogout(false), m_playerRecentlyLogout(false),

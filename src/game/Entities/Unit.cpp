@@ -8603,6 +8603,9 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
             if (IsNonCombatSpell(spell->m_spellInfo))
                 InterruptSpell(CurrentSpellTypes(i), false);
 
+    if (notInCombat)
+        GetCombatManager().OnCombatStart();
+
     if (creatureNotInCombat)
     {
         Creature* creature = static_cast<Creature*>(this);

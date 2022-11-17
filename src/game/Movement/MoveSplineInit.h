@@ -91,6 +91,7 @@ namespace Movement
             PointsArray& Path() { return args.path; }
 
             void SetCombatSlowed() { args.slowed = true; }
+            bool CheckBounds() const { return args._checkPathBounds(); }
         protected:
 
             MoveSplineInitArgs args;

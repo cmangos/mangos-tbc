@@ -439,8 +439,15 @@ bool Map::Add(Player* player)
     SendInitTransports(player);
 
     NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
+#ifdef ENABLE_PLAYERBOTS
+    if (player->isRealPlayer())
+    {
+#endif
     player->GetViewPoint().Event_AddedToWorld(&(*grid)(cell.CellX(), cell.CellY()));
     UpdateObjectVisibility(player, cell, p);
+#ifdef ENABLE_PLAYERBOTS
+    }
+#endif
 
     //Start Solocraft Functions
     if (sWorld.getConfig(CONFIG_BOOL_SOLOCRAFT_ENABLED))
@@ -1003,6 +1010,11 @@ void Map::Update(const uint32& t_diff)
         if (!player || !player->IsInWorld() || !player->IsPositionValid())
             continue;
 
+#ifdef ENABLE_PLAYERBOTS
+        if (!player->isRealPlayer())
+            player->GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Tiny);
+#endif
+
         // update objects beyond visibility distance
         if (!player->GetPlayerbotAI() && !player->isAFK())
             player->GetCamera().UpdateVisibilityForOwner(false, true);
@@ -1012,6 +1024,11 @@ void Map::Update(const uint32& t_diff)
         // If player is using far sight, visit that object too
         if (WorldObject* viewPoint = GetWorldObject(player->GetFarSightGuid()))
             VisitNearbyCellsOf(viewPoint, grid_object_update, world_object_update);
+
+#ifdef ENABLE_PLAYERBOTS
+        if (!player->isRealPlayer())
+            player->GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Normal);
+#endif
     }
 
     // non-player active objects

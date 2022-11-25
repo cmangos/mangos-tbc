@@ -21265,6 +21265,167 @@ void Player::learnSpellHighRank(uint32 spellid)
     sSpellMgr.doForHighRanks(spellid, worker);
 }
 
+void Player::learnClassLevelSpells(bool includeHighLevelQuestRewards)
+{
+    ChrClassesEntry const* clsEntry = sChrClassesStore.LookupEntry(getClass());
+    if (!clsEntry)
+        return;
+    uint32 family = clsEntry->spellfamily;
+
+    // special cases which aren't sourced from trainers and normally require quests to obtain - added here for convenience
+    ObjectMgr::QuestMap const& qTemplates = sObjectMgr.GetQuestTemplates();
+    for (const auto& qTemplate : qTemplates)
+    {
+        Quest const* quest = qTemplate.second;
+        if (!quest)
+            continue;
+
+        // only class quests player could do
+        if (quest->GetRequiredClasses() == 0 || !SatisfyQuestClass(quest, false) || !SatisfyQuestRace(quest, false) || !SatisfyQuestLevel(quest, false))
+            continue;
+
+        // custom filter for scripting purposes
+        if (!includeHighLevelQuestRewards && quest->GetMinLevel() >= 60)
+            continue;
+
+        learnQuestRewardedSpells(quest);
+    }
+
+    // learn trainer spells
+    for (uint32 id = 0; id < sCreatureStorage.GetMaxEntry(); ++id)
+    {
+        CreatureInfo const* co = sCreatureStorage.LookupEntry<CreatureInfo>(id);
+        if (!co)
+            continue;
+
+        if (co->TrainerType != TRAINER_TYPE_CLASS)
+            continue;
+
+        if (co->TrainerType == TRAINER_TYPE_CLASS && co->TrainerClass != getClass())
+            continue;
+
+        uint32 trainerId = co->TrainerTemplateId;
+        if (!trainerId)
+            trainerId = co->Entry;
+
+        TrainerSpellData const* trainer_spells = sObjectMgr.GetNpcTrainerTemplateSpells(trainerId);
+        if (!trainer_spells)
+            trainer_spells = sObjectMgr.GetNpcTrainerSpells(trainerId);
+
+        if (!trainer_spells)
+            continue;
+
+        for (TrainerSpellMap::const_iterator itr = trainer_spells->spellList.begin(); itr != trainer_spells->spellList.end(); ++itr)
+        {
+            TrainerSpell const* tSpell = &itr->second;
+
+            if (!tSpell)
+                continue;
+
+            uint32 reqLevel = 0;
+
+            // skip wrong class/race skills
+            if (!IsSpellFitByClassAndRace(tSpell->learnedSpell, &reqLevel))
+                continue;
+
+            if (tSpell->conditionId && !sObjectMgr.IsConditionSatisfied(tSpell->conditionId, this, GetMap(), this, CONDITION_FROM_TRAINER))
+                continue;
+
+            bool isTalent = false;
+            bool hasTalent = false;
+
+            // skip spells with first rank learned as talent (and all talents then also)
+            uint32 first_rank = sSpellMgr.GetFirstSpellInChain(tSpell->learnedSpell);
+            isTalent = GetTalentSpellCost(first_rank) > 0;
+            hasTalent = isTalent && HasSpell(first_rank);
+
+            if (isTalent && !hasTalent)
+                continue;
+
+            reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
+            TrainerSpellState state = GetTrainerSpellState(tSpell, reqLevel);
+            if (state != TRAINER_SPELL_GREEN && (!isTalent || (isTalent && !hasTalent)))
+                continue;
+
+            //if (first_rank && tSpell->learnedSpell == first_rank)
+            //    continue;
+
+            SpellEntry const* proto = sSpellTemplate.LookupEntry<SpellEntry>(tSpell->learnedSpell);
+            if (!proto)
+                continue;
+
+            // fix activate state for non-stackable low rank (and find next spell for !active case)
+            if (uint32 nextId = sSpellMgr.GetSpellBookSuccessorSpellId(proto->Id))
+            {
+                if (HasSpell(nextId))
+                {
+                    // high rank already known so this must !active
+                    continue;
+                }
+            }
+
+            // skip other spell families (minus a few exceptions)
+            if (proto->SpellFamilyName != family)
+            {
+                SkillLineAbilityMapBounds bounds = sSpellMgr.GetSkillLineAbilityMapBoundsBySpellId(tSpell->learnedSpell);
+                if (bounds.first == bounds.second)
+                    continue;
+
+                SkillLineAbilityEntry const* skillInfo = bounds.first->second;
+                if (!skillInfo)
+                    continue;
+
+                switch (skillInfo->skillId)
+                {
+                case SKILL_SUBTLETY:
+                    //case SKILL_POISONS:
+                case SKILL_BEAST_MASTERY:
+                case SKILL_SURVIVAL:
+                case SKILL_DEFENSE:
+                case SKILL_DUAL_WIELD:
+                case SKILL_FERAL_COMBAT:
+                case SKILL_PROTECTION:
+                    //case SKILL_BEAST_TRAINING:
+                case SKILL_PLATE_MAIL:
+                case SKILL_DEMONOLOGY:
+                case SKILL_ENHANCEMENT:
+                case SKILL_MAIL:
+                case SKILL_HOLY2:
+                case SKILL_LOCKPICKING:
+                    break;
+                default:
+                    continue;
+                }
+            }
+
+            // skip wrong class/race skills
+            if (!IsSpellFitByClassAndRace(tSpell->learnedSpell))
+                continue;
+
+            // skip broken spells
+            if (!SpellMgr::IsSpellValid(proto, this, false))
+                continue;
+
+            if (tSpell->learnedSpell)
+            {
+                bool learned = false;
+                for (int j = 0; j < 3; ++j)
+                {
+                    if (proto->Effect[j] == SPELL_EFFECT_LEARN_SPELL)
+                    {
+                        uint32 learnedSpell = proto->EffectTriggerSpell[j];
+                        learnSpell(learnedSpell, false);
+                        learned = true;
+                    }
+                }
+                if (!learned) learnSpell(tSpell->learnedSpell, false);
+            }
+            else
+                CastSpell(this, tSpell->spell, TRIGGERED_OLD_TRIGGERED);
+        }
+    }
+}
+
 void Player::_LoadSkills(std::unique_ptr<QueryResult> queryResult)
 {
     //                                                           0      1      2

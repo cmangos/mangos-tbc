@@ -377,6 +377,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "all_myclass",    SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLearnAllMyClassCommand,     "", nullptr },
         { "all_myspells",   SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLearnAllMySpellsCommand,    "", nullptr },
         { "all_mytalents",  SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLearnAllMyTalentsCommand,   "", nullptr },
+        { "all_mylevel",    SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLearnAllMyLevelCommand,     "", nullptr },
         { "all_recipes",    SEC_GAMEMASTER,     false, &ChatHandler::HandleLearnAllRecipesCommand,     "", nullptr },
         { "",               SEC_ADMINISTRATOR,  false, &ChatHandler::HandleLearnCommand,               "", nullptr },
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }

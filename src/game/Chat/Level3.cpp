@@ -1650,6 +1650,15 @@ bool ChatHandler::HandleLearnAllMyTalentsCommand(char* /*args*/)
     return true;
 }
 
+bool ChatHandler::HandleLearnAllMyLevelCommand(char* /*args*/)
+{
+    Player* player = m_session->GetPlayer();
+    player->learnClassLevelSpells();
+
+    SendSysMessage(LANG_COMMAND_LEARN_CLASS_SPELLS);
+    return true;
+}
+
 bool ChatHandler::HandleLearnAllLangCommand(char* /*args*/)
 {
     Player* player = m_session->GetPlayer();

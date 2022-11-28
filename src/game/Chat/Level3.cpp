@@ -349,6 +349,14 @@ bool ChatHandler::HandleReloadAreaTriggerTeleportCommand(char* /*args*/)
     return true;
 }
 
+bool ChatHandler::HandleReloadAutoBroadcastCommand(char* /*args*/)
+{
+    sLog.outString("Re-Loading broadcast strings...");
+    sWorld.LoadBroadcastStrings();
+    SendGlobalSysMessage("Broadcast strings reloaded.");
+    return true;
+}
+
 bool ChatHandler::HandleReloadLocalesAreaTriggerCommand(char* /*args*/)
 {
     sLog.outString("Re-Loading AreaTrigger teleport locales definitions...");

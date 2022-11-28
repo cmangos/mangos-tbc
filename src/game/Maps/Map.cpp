@@ -1011,8 +1011,21 @@ void Map::Update(const uint32& t_diff)
             continue;
 
 #ifdef ENABLE_PLAYERBOTS
-        if (!player->isRealPlayer())
-            player->GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Tiny);
+        if (!player->isRealPlayer()) //For non-players only load the grid.
+        {
+            CellPair center = MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY()).normalize();
+            uint32 cell_id = (center.y_coord * TOTAL_NUMBER_OF_CELLS_PER_MAP) + center.x_coord;
+
+            if (!isCellMarked(cell_id))
+            {
+                Cell cell(center);
+                const uint32 x = cell.GridX();
+                const uint32 y = cell.GridY();
+                if (!cell.NoCreate() || loaded(GridPair(x, y)))
+                    EnsureGridLoaded(player->GetCurrentCell());
+            }
+            continue;
+        }
 #endif
 
         // update objects beyond visibility distance
@@ -1024,11 +1037,6 @@ void Map::Update(const uint32& t_diff)
         // If player is using far sight, visit that object too
         if (WorldObject* viewPoint = GetWorldObject(player->GetFarSightGuid()))
             VisitNearbyCellsOf(viewPoint, grid_object_update, world_object_update);
-
-#ifdef ENABLE_PLAYERBOTS
-        if (!player->isRealPlayer())
-            player->GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Normal);
-#endif
     }
 
     // non-player active objects

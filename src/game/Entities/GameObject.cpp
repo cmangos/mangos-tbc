@@ -292,8 +292,8 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
     if (InstanceData* iData = map->GetInstanceData())
         iData->OnObjectCreate(this);
 
-    // Check if GameObject is Large
-    if (GetGOInfo()->IsLargeGameObject())
+    // Check if GameObject is Large, skip if map has same or better visibility (e.g. Battleground)
+    if (GetGOInfo()->IsLargeGameObject() && GetVisibilityData().GetVisibilityDistance() < VISIBILITY_DISTANCE_LARGE)
         GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
 
     if (GetEntry() == 187039) // Smuggled Mana Cell - only GO in phase in TBC

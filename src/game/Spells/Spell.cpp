@@ -39,6 +39,7 @@
 #include "Globals/SharedDefines.h"
 #include "Loot/LootMgr.h"
 #include "VMapFactory.h"
+#include "IVMapManager.h"
 #include "BattleGround/BattleGround.h"
 #include "Util.h"
 #include "Chat/Chat.h"
@@ -4805,7 +4806,7 @@ SpellCastResult Spell::CheckCast(bool strict)
 
         if (m_caster->GetTypeId() == TYPEID_PLAYER && !((Player*)m_caster)->IsGameMaster() &&
             sWorld.getConfig(CONFIG_BOOL_VMAP_INDOOR_CHECK) &&
-            VMAP::VMapFactory::createOrGetVMapManager()->isLineOfSightCalcEnabled())
+            VMAP::VMapFactory::GetVMapManager().isLineOfSightCalcEnabled())
         {
             if (m_spellInfo->HasAttribute(SPELL_ATTR_ONLY_OUTDOORS) &&
                 !m_caster->GetTerrain()->IsOutdoors(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()))

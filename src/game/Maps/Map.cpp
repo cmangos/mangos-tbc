@@ -35,6 +35,7 @@
 #include "MapRefManager.h"
 #include "Server/DBCEnums.h"
 #include "VMapFactory.h"
+#include "IVMapManager.h"
 #include "MotionGenerators/MoveMap.h"
 #include "Chat/Chat.h"
 #include "Weather/Weather.h"
@@ -2357,7 +2358,7 @@ void Map::PlayDirectSoundToMap(uint32 soundId, uint32 zoneId /*=0*/) const
  */
 bool Map::IsInLineOfSight(float srcX, float srcY, float srcZ, float destX, float destY, float destZ, bool ignoreM2Model) const
 {
-    return VMAP::VMapFactory::createOrGetVMapManager()->isInLineOfSight(GetId(), srcX, srcY, srcZ, destX, destY, destZ, ignoreM2Model)
+    return VMAP::VMapFactory::GetVMapManager().isInLineOfSight(GetId(), srcX, srcY, srcZ, destX, destY, destZ, ignoreM2Model)
            && m_dyn_tree.isInLineOfSight(srcX, srcY, srcZ, destX, destY, destZ, ignoreM2Model);
 }
 
@@ -2369,7 +2370,7 @@ bool Map::GetHitPosition(float srcX, float srcY, float srcZ, float& destX, float
 {
     // at first check all static objects
     float tempX, tempY, tempZ = 0.0f;
-    bool result0 = VMAP::VMapFactory::createOrGetVMapManager()->getObjectHitPos(GetId(), srcX, srcY, srcZ, destX, destY, destZ, tempX, tempY, tempZ, modifyDist);
+    bool result0 = VMAP::VMapFactory::GetVMapManager().getObjectHitPos(GetId(), srcX, srcY, srcZ, destX, destY, destZ, tempX, tempY, tempZ, modifyDist);
     if (result0)
     {
         //DEBUG_LOG("Map::GetHitPosition vmaps corrects gained with static objects! new dest coords are X:%f Y:%f Z:%f", destX, destY, destZ);
@@ -2396,14 +2397,11 @@ bool Map::GetHeightInRange(float x, float y, float& z, float maxSearchDist /*= 4
     float mapHeight = INVALID_HEIGHT_VALUE;
     float vmapHeight = VMAP_INVALID_HEIGHT_VALUE;
 
-    VMAP::IVMapManager* vmgr = VMAP::VMapFactory::createOrGetVMapManager();
-    if (!vmgr->isLineOfSightCalcEnabled())
-        vmgr = nullptr;
-
-    if (vmgr)
+    VMAP::IVMapManager& vmgr = VMAP::VMapFactory::GetVMapManager();
+    if (vmgr.isLineOfSightCalcEnabled())
     {
         // pure vmap search
-        vmapHeight = vmgr->getHeight(i_id, x, y, z + 2.0f, maxSearchDist + 2.0f);
+        vmapHeight = vmgr.getHeight(i_id, x, y, z + 2.0f, maxSearchDist + 2.0f);
     }
 
     // find raw height from .map file on X,Y coordinates

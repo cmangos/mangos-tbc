@@ -57,7 +57,7 @@ class CreatureAI : public UnitAI
 
         void TimedFleeingEnded() override;
 
-        void OnCallForHelp(Unit* caller, Unit* enemy) override;
+        void OnCallForHelp(Unit* enemy) override;
     protected:
         Creature* m_creature;
         bool m_deathPrevention;

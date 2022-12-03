@@ -296,6 +296,10 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
     if (GetGOInfo()->IsLargeGameObject())
         GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
 
+    // set maximum visibility for some object types Yexs Fix
+    if (GetGOInfo()->IsInfiniteGameObject() && !GetVisibilityData().IsVisibilityOverridden() && GetVisibilityData().GetVisibilityDistance() < MAX_VISIBILITY_DISTANCE)
+        GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Infinite);
+
     if (GetEntry() == 187039) // Smuggled Mana Cell - only GO in phase in TBC
         SetPhaseMask(2);
 

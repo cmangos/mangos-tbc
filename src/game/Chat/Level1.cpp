@@ -347,7 +347,7 @@ bool ChatHandler::HandleGPSCommand(char* args)
                     zone_id, (zoneEntry ? zoneEntry->area_name[GetSessionDbcLocale()] : "<unknown>"),
                     area_id, nameInfo.areaName, wmoAreaOverride.c_str(),
                     obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ(), obj->GetOrientation(),
-                    cell.GridX(), cell.GridY(), cell.CellX(), cell.CellY(), obj->GetInstanceId(),
+                    cell.GridX(), cell.GridY(), cell.CellX(), cell.CellY(), gx, gy, obj->GetInstanceId(),
                     zone_x, zone_y, ground_z, floor_z, have_map, have_vmap);
 
     if (GenericTransport* transport = obj->GetTransport())

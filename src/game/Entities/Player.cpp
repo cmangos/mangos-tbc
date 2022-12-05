@@ -21334,24 +21334,14 @@ void Player::learnClassLevelSpells(bool includeHighLevelQuestRewards)
             if (tSpell->conditionId && !sObjectMgr.IsConditionSatisfied(tSpell->conditionId, this, GetMap(), this, CONDITION_FROM_TRAINER))
                 continue;
 
-            bool isTalent = false;
-            bool hasTalent = false;
-
             // skip spells with first rank learned as talent (and all talents then also)
             uint32 first_rank = sSpellMgr.GetFirstSpellInChain(tSpell->learnedSpell);
-            isTalent = GetTalentSpellCost(first_rank) > 0;
-            hasTalent = isTalent && HasSpell(first_rank);
-
-            if (isTalent && !hasTalent)
-                continue;
-
             reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
-            TrainerSpellState state = GetTrainerSpellState(tSpell, reqLevel);
-            if (state != TRAINER_SPELL_GREEN && (!isTalent || (isTalent && !hasTalent)))
-                continue;
+            bool isValidTalent = GetTalentSpellCost(first_rank) && HasSpell(first_rank) && reqLevel <= GetLevel();
 
-            //if (first_rank && tSpell->learnedSpell == first_rank)
-            //    continue;
+            TrainerSpellState state = GetTrainerSpellState(tSpell, reqLevel);
+            if (state != TRAINER_SPELL_GREEN && !isValidTalent)
+                continue;
 
             SpellEntry const* proto = sSpellTemplate.LookupEntry<SpellEntry>(tSpell->learnedSpell);
             if (!proto)

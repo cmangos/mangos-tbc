@@ -976,7 +976,7 @@ class WorldSession
         uint32 m_timeSyncNextCounter;
         uint32 m_timeSyncTimer;
 
-        std::set<ObjectGuid> m_offlineNameQueries; // for name queires made when not logged in (character selection screen)
+        std::set<ObjectGuid> m_offlineNameQueries; // for name queries made when not logged in (character selection screen)
         std::deque<CharacterNameQueryResponse> m_offlineNameResponses; // for responses to name queries made when not logged in
 
         bool m_initialZoneUpdated = false;

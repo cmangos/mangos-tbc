@@ -673,7 +673,7 @@ struct npc_grandmotherAI : public ScriptedAI
 
     }
 
-    void UpdateAI(const uint32 diff) override
+    void UpdateAI(const uint32 /*diff*/) override
     {
         if (m_instance)
         {

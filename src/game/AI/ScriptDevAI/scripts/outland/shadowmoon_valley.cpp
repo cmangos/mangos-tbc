@@ -3047,7 +3047,7 @@ struct npc_commanderAI : public CombatAI
         m_creature->SetActiveObjectState(false);
     }
 
-    void JustDied(Unit* killer) override
+    void JustDied(Unit* /*killer*/) override
     {
         FailEvent();
     }
@@ -3434,7 +3434,7 @@ struct npc_dragonmaw_racer_ichmanAI : public npc_dragonmaw_racerAI
 {
     npc_dragonmaw_racer_ichmanAI(Creature* creature) : npc_dragonmaw_racerAI(creature, RACER_ICHMAN) {}
 
-    void MovementInform(uint32 moveType, uint32 pointId) override
+    void MovementInform(uint32 /*moveType*/, uint32 pointId) override
     {
         switch (pointId)
         {
@@ -3459,7 +3459,7 @@ struct npc_dragonmaw_racer_mulverickAI : public npc_dragonmaw_racerAI
 {
     npc_dragonmaw_racer_mulverickAI(Creature* creature) : npc_dragonmaw_racerAI(creature, RACER_MULVERICK) {}
 
-    void MovementInform(uint32 moveType, uint32 pointId) override
+    void MovementInform(uint32 /*moveType*/, uint32 pointId) override
     {
         switch (pointId)
         {
@@ -3497,7 +3497,7 @@ struct npc_dragonmaw_racer_skyshatterAI : public npc_dragonmaw_racerAI
 {
     npc_dragonmaw_racer_skyshatterAI(Creature* creature) : npc_dragonmaw_racerAI(creature, RACER_SKYSHATTER) {}
 
-    void MovementInform(uint32 moveType, uint32 pointId) override
+    void MovementInform(uint32 /*moveType*/, uint32 pointId) override
     {
         switch (pointId)
         {

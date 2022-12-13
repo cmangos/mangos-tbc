@@ -453,7 +453,7 @@ struct SummonToxicSlime : public SpellScript
 
 struct ViscidusDespawnAdds : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (!spell->GetUnitTarget())
             return;
@@ -467,7 +467,7 @@ struct ViscidusDespawnAdds : public SpellScript
 
 struct ViscidusSuicideTrigger : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (!spell->GetUnitTarget())
             return;

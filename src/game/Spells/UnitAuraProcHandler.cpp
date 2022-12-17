@@ -515,7 +515,7 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
             if (spellProcEvent && spellProcEvent->cooldown)
                 cooldown = spellProcEvent->cooldown;
             if (cooldown)
-                AddCooldown(*holder->GetSpellProto(), nullptr, false, cooldown * IN_MILLISECONDS);
+                holder->SetProcCooldown(std::chrono::seconds(cooldown), GetMap()->GetCurrentClockTime());
         }
 
         if (result != SpellProcEventTriggerCheck::SPELL_PROC_TRIGGER_OK)
@@ -606,6 +606,9 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
 
             anyAuraProc = true;
         }
+
+        if (procSuccess && execData.cooldown)
+            triggeredByHolder->SetProcCooldown(std::chrono::seconds(execData.cooldown), GetMap()->GetCurrentClockTime());
 
         // Remove charge (aura can be removed by triggers)
         if (useCharges && procSuccess && anyAuraProc && !triggeredByHolder->IsDeleted())
@@ -766,7 +769,7 @@ SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MA
     if (target && (target != this && !target->IsAlive()))
         return SPELL_AURA_PROC_FAILED;
 
-    if (!IsSpellReady(*spellInfo))
+    if (!triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
         return SPELL_AURA_PROC_FAILED;
 
     if (basepoints[EFFECT_INDEX_0] || basepoints[EFFECT_INDEX_1] || basepoints[EFFECT_INDEX_2])
@@ -779,7 +782,7 @@ SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MA
         CastSpell(target, spellInfo, TRIGGERED_OLD_TRIGGERED | TRIGGERED_INSTANT_CAST | TRIGGERED_DO_NOT_RESET_LEASH, castItem, triggeredByAura, originalCaster);
 
     if (cooldown)
-        AddCooldown(*spellInfo, nullptr, false, cooldown * IN_MILLISECONDS);
+        triggeredByAura->GetHolder()->SetProcCooldown(std::chrono::seconds(cooldown), GetMap()->GetCurrentClockTime());
 
     return SPELL_AURA_PROC_OK;
 }
@@ -1775,8 +1778,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     if (castItem->GetSlot() == EQUIPMENT_SLOT_OFFHAND && procFlags & PROC_FLAG_MAIN_HAND_WEAPON_SWING)
                         return SPELL_AURA_PROC_FAILED;
 
-                    // custom cooldown processing case
-                    if (cooldown && !IsSpellReady(*dummySpell))
+                    if (cooldown && !triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
                         return SPELL_AURA_PROC_FAILED;
 
                     uint32 spellId;
@@ -1823,13 +1825,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         basepoints[0] = int32(extra_attack_power / 14.0f * GetAttackTime(BASE_ATTACK) / 1000);
                         triggered_spell_id = 25504;
                     }
-
-                    if (cooldown && !IsSpellReady(triggered_spell_id))
-                        return SPELL_AURA_PROC_FAILED;
-
-                    // apply cooldown before cast to prevent processing itself
-                    if (cooldown)
-                        AddCooldown(*dummySpell, nullptr, false, cooldown * IN_MILLISECONDS);
 
                     // Attack Twice
                     for (uint32 i = 0; i < 2; ++i)
@@ -1911,7 +1906,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     return SPELL_AURA_PROC_FAILED;
 
                 // custom cooldown processing case
-                if (cooldown && !IsSpellReady(*dummySpell))
+                if (cooldown && !triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
                     return SPELL_AURA_PROC_FAILED;
 
                 uint32 spellId;
@@ -1951,13 +1946,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     return SPELL_AURA_PROC_FAILED;
                 }
 
-                if (spellInfo->SpellFamilyFlags & uint64(0x0000000000000002))
-                    RemoveSpellCooldown(*procSpellEntry);
-
                 CastSpell(pVictim, procSpellEntry, TRIGGERED_OLD_TRIGGERED, castItem, triggeredByAura);
-
-                if (cooldown)
-                    AddCooldown(*dummySpell, nullptr, false, cooldown * IN_MILLISECONDS);
 
                 return SPELL_AURA_PROC_OK;
             }

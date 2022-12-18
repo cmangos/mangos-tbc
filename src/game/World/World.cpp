@@ -60,6 +60,7 @@
 #include "MotionGenerators/WaypointManager.h"
 #include "GMTickets/GMTicketMgr.h"
 #include "Util.h"
+#include "Tools/Language.h"
 #include "Tools/CharacterDatabaseCleaner.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Weather/Weather.h"
@@ -111,6 +112,8 @@ World::World() : mail_timer(0), mail_timer_expires(0), m_NextDailyQuestReset(0),
     m_startTime = m_gameTime;
     m_maxActiveSessionCount = 0;
     m_maxQueuedSessionCount = 0;
+    m_broadcastEnable = false;
+    m_broadcastList.clear();
 
     m_defaultDbcLocale = DEFAULT_LOCALE;
     m_availableDbcLocaleMask = 0;
@@ -374,6 +377,22 @@ void World::LoadConfigSettings(bool reload)
     ///- Read the player limit and the Message of the day from the config file
     SetPlayerLimit(sConfig.GetIntDefault("PlayerLimit", DEFAULT_PLAYER_LIMIT), true);
     SetMotd(sConfig.GetStringDefault("Motd", "Welcome to the Massive Network Game Object Server."));
+
+    setConfigMin(CONFIG_UINT32_AUTOBROADCAST_INTERVAL, "Autobroadcast", 0, 0);
+
+    if (getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) > 0)
+    {
+        m_broadcastEnable = true;
+    }
+    else
+    {
+        m_broadcastEnable = false;
+    }
+
+    if (reload && m_broadcastEnable)
+    {
+        m_broadcastTimer.SetInterval(getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) * IN_MILLISECONDS);
+    }
 
     ///- Read all rates from the config file
     setConfigPos(CONFIG_FLOAT_RATE_HEALTH,                               "Rate.Health",                               1.0f);
@@ -1339,6 +1358,23 @@ void World::SetInitialWorldSettings()
     m_timers[WUPDATE_AHBOT].SetInterval(20 * IN_MILLISECONDS); // every 20 sec
 #endif
 
+    // for AutoBroadcast
+    sLog.outString("Starting AutoBroadcast System");
+    if (m_broadcastEnable)
+    {
+        LoadBroadcastStrings();
+    }
+    else
+    {
+        sLog.outString("AutoBroadcast is disabled");
+    }
+    sLog.outString();
+
+    if (m_broadcastEnable)
+    {
+        m_broadcastTimer.SetInterval(getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) * IN_MILLISECONDS);
+    }
+
     // Update groups with offline leader after delay in seconds
     m_timers[WUPDATE_GROUPS].SetInterval(IN_MILLISECONDS);
 
@@ -1492,6 +1528,24 @@ void World::Update(uint32 diff)
             m_timer.Update(diff);
         else
             m_timer.SetCurrent(0);
+    }
+
+    if (m_broadcastEnable)
+    {
+        if (m_broadcastTimer.GetCurrent() >= 0)
+        {
+            m_broadcastTimer.Update(diff);
+        }
+        else
+        {
+            m_broadcastTimer.SetCurrent(0);
+        }
+
+        if (m_broadcastTimer.Passed())
+        {
+            m_broadcastTimer.Reset();
+            AutoBroadcast();
+        }
     }
 
     ///- Update the game time and check for shutdown time
@@ -2798,4 +2852,80 @@ void World::LoadWorldSafeLocs() const
 {
     sWorldSafeLocsStore.Load(true);
     sLog.outString(">> Loaded %u world safe locs", sWorldSafeLocsStore.GetRecordCount());
+}
+
+void World::LoadBroadcastStrings()
+{
+    if (!m_broadcastEnable)
+    {
+        return;
+    }
+
+    std::string queryStr = "SELECT `autobroadcast`.`id`, `autobroadcast`.`content`,`autobroadcast`.`ratio` FROM `autobroadcast`";
+
+    QueryResult* result = WorldDatabase.Query(queryStr.c_str());
+
+    if (!result)
+    {
+        m_broadcastEnable = false;
+        sLog.outErrorDb("DB table `autobroadcast` is empty.");
+        sLog.outString();
+        return;
+    }
+
+    m_broadcastList.clear();
+
+    BarGoLink bar(result->GetRowCount());
+    m_broadcastWeight = 0;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        bar.step();
+
+        uint32 ratio = fields[2].GetUInt32();
+        if (ratio == 0)
+        {
+            continue;
+        }
+
+        m_broadcastWeight += ratio;
+
+        BroadcastString bs;
+        bs.text = fields[1].GetString();
+        bs.freq = m_broadcastWeight;
+        m_broadcastList.push_back(bs);
+    } while (result->NextRow());
+
+    delete result;
+    if (m_broadcastWeight == 0)
+    {
+        sLog.outString(">> Loaded 0 broadcast strings.");
+        m_broadcastEnable = false;
+    }
+    else
+    {
+        sLog.outString(">> Loaded " SIZEFMTD " broadcast strings.", m_broadcastList.size());
+    }
+}
+
+void World::AutoBroadcast()
+{
+    if (m_broadcastList.size() == 1)
+    {
+        SendWorldText(LANG_AUTOBROADCAST, m_broadcastList[0].text.c_str());
+    }
+    else
+    {
+        uint32 rn = urand(1, m_broadcastWeight);
+        std::vector<BroadcastString>::const_iterator it;
+        for (it = m_broadcastList.begin(); it != m_broadcastList.end(); ++it)
+        {
+            if (rn <= it->freq)
+            {
+                break;
+            }
+        }
+        SendWorldText(LANG_AUTOBROADCAST, it->text.c_str());
+    }
 }

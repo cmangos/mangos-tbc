@@ -529,6 +529,7 @@ class ChatHandler
 
         bool HandleReloadAreaTriggerTavernCommand(char* args);
         bool HandleReloadAreaTriggerTeleportCommand(char* args);
+        bool HandleReloadAutoBroadcastCommand(char* args);
         bool HandleReloadBattleEventCommand(char* args);
         bool HandleReloadCommandCommand(char* args);
         bool HandleReloadConditionsCommand(char* args);

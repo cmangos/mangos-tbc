@@ -207,6 +207,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL,
     CONFIG_UINT32_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL_DIFFERENCE,
     CONFIG_UINT32_SUNSREACH_COUNTER,
+    CONFIG_UINT32_AUTOBROADCAST_INTERVAL,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -631,6 +632,8 @@ class World
 
         std::vector<std::string> GetSpamRecords() const { return m_spamRecords; }
 
+        void LoadBroadcastStrings();
+
         /**
         * \brief: force all client to request player data
         * \param: ObjectGuid guid : guid of the specified player
@@ -773,6 +776,18 @@ class World
         static uint32 m_currentDiff;
 
         Messager<World> m_messager;
+
+        // AutoBroadcast system
+        void AutoBroadcast();
+        struct BroadcastString
+        {
+            uint32 freq;
+            std::string text;
+        };
+        std::vector<BroadcastString> m_broadcastList;
+        uint32 m_broadcastWeight;
+        bool m_broadcastEnable;
+        IntervalTimer m_broadcastTimer;
 
         // Opcode logging
         std::vector<std::atomic<uint32>> m_opcodeCounters;

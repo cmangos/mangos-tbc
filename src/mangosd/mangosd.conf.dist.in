@@ -807,6 +807,12 @@ LogColors = ""
 #    Motd
 #        Message of the Day. Displayed at worldlogin for every user ('@' for a newline).
 #
+#    AutoBroadcast
+#        Timer interval (in seconds) for automatic server announcements (autobroadcasts). Zero value means AB is disabled
+#                   0 (AB is disabled)
+#        Default: 600 (AB every 10 minutes)
+#                   N (>0, AB every N seconds)
+#
 #    PlayerCommands
 #        Should player chat be parsed for GM commands.
 #        Default: 1 (parse commands)
@@ -882,6 +888,7 @@ BeepAtStart = 1
 ShowProgressBars = 0
 WaitAtStartupError = 0
 Motd = "Welcome to the Continued Massive Network Game Object Server."
+AutoBroadcast = 0
 PlayerCommands = 1
 
 ###################################################################################################################

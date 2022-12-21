@@ -2161,7 +2161,7 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
                 case FALL_MOTION_TYPE:
                 {
                     source->StopMoving();
-                    source->GetMotionMaster()->MoveFall();
+                    source->GetMotionMaster()->MoveFall(targetGuid, wanderORpathId);
                     break;
                 }
             }

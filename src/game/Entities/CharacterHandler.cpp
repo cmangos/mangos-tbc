@@ -29,7 +29,6 @@
 #include "Guilds/Guild.h"
 #include "Guilds/GuildMgr.h"
 #include "UpdateMask.h"
-#include "Auth/md5.h"
 #include "Globals/ObjectAccessor.h"
 #include "Groups/Group.h"
 #include "Database/DatabaseImpl.h"

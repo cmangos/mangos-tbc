@@ -10,9 +10,8 @@
 #include "WardenModule.hpp"
 #include "ByteBuffer.h"
 #include "Util.h"
+#include "Auth/CryptoHash.h"
 #include "Auth/HMACSHA1.h"
-
-#include <openssl/sha.h>
 
 #include <string>
 #include <algorithm>
@@ -39,7 +38,7 @@ WindowsModuleScan::WindowsModuleScan(const std::string &module, bool wanted, con
     {
         auto const found = buff.read<uint8>() == ModuleFound;
         return found != this->_wanted;
-    }, sizeof(uint8) + sizeof(uint32) + SHA_DIGEST_LENGTH, sizeof(uint8), comment, flags),
+    }, sizeof(uint8) + sizeof(uint32) + Sha1Hash::GetLength(), sizeof(uint8), comment, flags),
     _module(module), _wanted(wanted)
 {
     // the game depends on uppercase module names being sent
@@ -62,7 +61,7 @@ WindowsModuleScan::WindowsModuleScan(const std::string &module, CheckT checker, 
 
         scan.append(hash.GetDigest(), hash.GetLength());
     },
-    checker, sizeof(uint8) + sizeof(uint32) + SHA_DIGEST_LENGTH, sizeof(uint8), comment, flags),
+    checker, sizeof(uint8) + sizeof(uint32) + Sha1Hash::GetLength(), sizeof(uint8), comment, flags),
     _module(module)
 {
     // the game depends on uppercase module names being sent
@@ -198,7 +197,7 @@ WindowsCodeScan::WindowsCodeScan(uint32 offset, const std::vector<uint8> &patter
     {
         auto const found = buff.read<uint8>() == PatternFound;
         return found != this->_wanted;
-    }, sizeof(uint8) + sizeof(uint32) + SHA_DIGEST_LENGTH + sizeof(uint32) + sizeof(uint8), sizeof(uint8), comment, flags),
+    }, sizeof(uint8) + sizeof(uint32) + Sha1Hash::GetLength() + sizeof(uint32) + sizeof(uint8), sizeof(uint8), comment, flags),
     _offset(offset), _pattern(pattern), _memImageOnly(memImageOnly), _wanted(wanted)
 {
     MANGOS_ASSERT(_pattern.size() <= 0xFF);
@@ -231,13 +230,13 @@ WindowsFileHashScan::WindowsFileHashScan(const std::string &file, const void *ex
         if (!this->_wanted && !success)
             return false;
 
-        uint8 hash[SHA_DIGEST_LENGTH];
+        uint8 hash[Sha1Hash::GetLength()];
 
         buff.read(hash, sizeof(hash));
 
         // if a hash was given, check it (some checks may only be interested in existence)
         return this->_hashMatch && !!memcmp(hash, this->_expected, sizeof(hash));
-    }, sizeof(uint8) + sizeof(uint8) + file.length(), sizeof(uint8) + SHA_DIGEST_LENGTH, comment, flags),
+    }, sizeof(uint8) + sizeof(uint8) + file.length(), sizeof(uint8) + Sha1Hash::GetLength(), comment, flags),
     _file(file), _hashMatch(!!expected), _wanted(wanted)
 {
     if (_hashMatch)
@@ -356,7 +355,7 @@ WindowsHookScan::WindowsHookScan(const std::string &module, const std::string &p
     {
         return buff.read<uint8>() == Detoured;
     },
-    sizeof(uint8) + sizeof(uint32) + SHA_DIGEST_LENGTH + sizeof(uint8) + sizeof(uint8) + sizeof(uint32) + sizeof(uint8), sizeof(uint8), comment, flags),
+    sizeof(uint8) + sizeof(uint32) + Sha1Hash::GetLength() + sizeof(uint8) + sizeof(uint8) + sizeof(uint32) + sizeof(uint8), sizeof(uint8), comment, flags),
     _module(module), _proc(proc), _offset(offset), _length(length)
 {
     MANGOS_ASSERT(length <= 0xFF);
@@ -390,7 +389,7 @@ WindowsDriverScan::WindowsDriverScan(const std::string &name, const std::string 
         auto const found = buff.read<uint8>() == Found;
 
         return found != this->_wanted;
-    }, sizeof(uint8) + sizeof(uint32) + SHA_DIGEST_LENGTH + sizeof(uint8) + name.length(), sizeof(uint8), comment, flags),
+    }, sizeof(uint8) + sizeof(uint32) + Sha1Hash::GetLength() + sizeof(uint8) + name.length(), sizeof(uint8), comment, flags),
     _name(name), _targetPath(targetPath), _wanted(wanted)
     {}
 

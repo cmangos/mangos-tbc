@@ -758,7 +758,7 @@ bool AuthSocket::_HandleReconnectProof()
     sha.UpdateBigNumbers(&t1, &_reconnectProof, &K, nullptr);
     sha.Finalize();
 
-    if (!memcmp(sha.GetDigest(), lp.R2, SHA_DIGEST_LENGTH))
+    if (!memcmp(sha.GetDigest(), lp.R2, Sha1Hash::GetLength()))
     {
         if (!VerifyVersion(lp.R1, sizeof(lp.R1), lp.R3, true))
         {

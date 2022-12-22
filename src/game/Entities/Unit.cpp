@@ -5798,6 +5798,11 @@ void Unit::RemoveAura(Aura* Aur, AuraRemoveMode mode)
             case SPELL_AURA_MOD_POSSESS_PET:
                 Aur->ApplyModifier(false, true);
                 break;
+            // We need to undo any auras with spell modifiers so they get deleted.
+            case SPELL_AURA_ADD_FLAT_MODIFIER:
+            case SPELL_AURA_ADD_PCT_MODIFIER:
+                Aur->ApplyModifier(false, true);
+                break;
             default: break;
         }
     }

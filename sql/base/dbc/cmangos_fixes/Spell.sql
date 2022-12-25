@@ -2180,6 +2180,8 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- SPELL_ATTR_SS_IGNORE_EVADE
 -- ==========================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|4 WHERE `Id` IN (
+15978, -- Puncture
+21911, -- Puncture
 28330 -- Flameshocker - Immolate Visual
 );
 

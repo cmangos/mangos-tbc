@@ -17,10 +17,10 @@
  */
 
 #include "AuthCrypt.h"
-#include "CryptoHash.h"
-#include "HMACSHA1.h"
+#include "Auth/CryptoHash.h"
+#include "Auth/HMACSHA1.h"
 #include "Log.h"
-#include "BigNumber.h"
+#include "Auth/BigNumber.h"
 
 const static size_t CRYPTED_SEND_LEN = 4;
 const static size_t CRYPTED_RECV_LEN = 6;

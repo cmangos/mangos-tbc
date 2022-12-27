@@ -187,6 +187,27 @@ void stripLineInvisibleChars(std::string& str)
         str.erase(wpos, str.size());
 }
 
+tm TimeBreakdown(time_t time)
+{
+    tm timeLocal = *localtime(&time);
+    return timeLocal;
+}
+
+time_t GetLocalHourTimestamp(time_t time, uint8 hour, bool onlyAfterTime)
+{
+    tm timeLocal = TimeBreakdown(time);
+    timeLocal.tm_hour = 0;
+    timeLocal.tm_min = 0;
+    timeLocal.tm_sec = 0;
+    time_t midnightLocal = mktime(&timeLocal);
+    time_t hourLocal = midnightLocal + hour * HOUR;
+
+    if (onlyAfterTime && hourLocal <= time)
+        hourLocal += DAY;
+
+    return hourLocal;
+}
+
 std::string secsToTimeString(time_t timeInSecs, bool shortText, bool hoursOnly)
 {
     time_t secs    = timeInSecs % MINUTE;
@@ -256,6 +277,21 @@ std::string TimeToTimestampStr(time_t t)
     if (snRes < 0 || snRes >= sizeof(buf))
         return "";
     return std::string(buf);
+}
+
+time_t timeBitFieldsToSecs(uint32 packedDate)
+{
+    tm lt;
+    memset(&lt, 0, sizeof(lt));
+
+    lt.tm_min = packedDate & 0x3F;
+    lt.tm_hour = (packedDate >> 6) & 0x1F;
+    lt.tm_wday = (packedDate >> 11) & 7;
+    lt.tm_mday = ((packedDate >> 14) & 0x3F) + 1;
+    lt.tm_mon = (packedDate >> 20) & 0xF;
+    lt.tm_year = ((packedDate >> 24) & 0x1F) + 100;
+
+    return time_t(mktime(&lt));
 }
 
 /// Check if the string is a valid ip address representation
@@ -376,7 +412,7 @@ void utf8truncate(std::string& utf8str, size_t len)
         Utf8toWStr(utf8str, wstr, len);
         WStrToUtf8(wstr, utf8str);
     }
-    catch (const std::exception&)
+    catch (std::exception)
     {
         utf8str = "";
     }

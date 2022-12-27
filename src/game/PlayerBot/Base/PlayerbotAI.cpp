@@ -24,7 +24,7 @@
 #include "Database/DatabaseEnv.h"
 #include "PlayerbotAI.h"
 #include "PlayerbotMgr.h"
-#include "ProgressBar.h"
+#include "Util/ProgressBar.h"
 
 #include "../../AuctionHouse/AuctionHouseMgr.h"
 #include "../../Chat/Chat.h"

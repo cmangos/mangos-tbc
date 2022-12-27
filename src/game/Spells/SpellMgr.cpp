@@ -19,7 +19,7 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Globals/ObjectMgr.h"
 #include "Spells/SpellAuraDefines.h"
-#include "ProgressBar.h"
+#include "Util/ProgressBar.h"
 #include "Server/DBCStores.h"
 #include "Server/SQLStorages.h"
 #include "Chat/Chat.h"

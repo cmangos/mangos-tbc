@@ -27,7 +27,7 @@
 #include "Entities/Totem.h"
 #include "Entities/Creature.h"
 #include "DBScripts/ScriptMgr.h"
-#include "Util.h"
+#include "Util/Util.h"
 
 pAuraProcHandler AuraProcHandler[TOTAL_AURAS] =
 {

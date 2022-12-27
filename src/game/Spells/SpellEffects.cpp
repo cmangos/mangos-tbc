@@ -42,7 +42,7 @@
 #include "BattleGround/BattleGround.h"
 #include "Tools/Language.h"
 #include "Social/SocialMgr.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "Entities/TemporarySpawn.h"
 #include "DBScripts/ScriptMgr.h"
 #include "Skills/SkillDiscovery.h"

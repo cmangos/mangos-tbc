@@ -23,7 +23,7 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Spells/Spell.h"
 #include "Server/Opcodes.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "World/World.h"
 #include "Database/DatabaseEnv.h"
 #include "Loot/LootMgr.h"

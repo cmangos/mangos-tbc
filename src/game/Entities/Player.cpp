@@ -17100,6 +17100,10 @@ void Player::_SaveQuestStatus()
         {
             case QUEST_NEW :
             {
+                Quest const* quest = sObjectMgr.GetQuestTemplate(mQuestStatu.first);
+                if (quest->IsAutoComplete() && !questStatus.m_rewarded)
+                    continue;
+
                 SqlStatement stmt = CharacterDatabase.CreateStatement(insertQuestStatus, "INSERT INTO character_queststatus (guid,quest,status,rewarded,explored,timer,mobcount1,mobcount2,mobcount3,mobcount4,itemcount1,itemcount2,itemcount3,itemcount4) "
                                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
@@ -17119,7 +17123,7 @@ void Player::_SaveQuestStatus()
             case QUEST_CHANGED :
             {
                 Quest const* quest = sObjectMgr.GetQuestTemplate(mQuestStatu.first);
-                if (quest->IsAutoComplete())
+                if (quest->IsAutoComplete() && !questStatus.m_rewarded)
                     continue;
 
                 SqlStatement stmt = CharacterDatabase.CreateStatement(updateQuestStatus, "UPDATE character_queststatus SET status = ?,rewarded = ?,explored = ?,timer = ?,"

@@ -93,15 +93,19 @@ if(BUILD_METRICS)
 endif()
 
 set(SRC_GRP_NETWORK
-    Network/PacketBuffer.cpp
-    Network/Socket.cpp
+    Network/Listener.cpp
     Network/Listener.hpp
+    Network/NetworkThread.cpp
     Network/NetworkThread.hpp
+    Network/PacketBuffer.cpp
     Network/PacketBuffer.hpp
+    Network/Socket.cpp
     Network/Socket.hpp
 )
 
 set(SRC_GRP_PLATFORM
+    Platform/CompilerDefs.h
+    Platform/Define.h
     Platform/Filesystem.h
 )
 
@@ -130,6 +134,7 @@ endif()
 set(SRC_GRP_UTIL
     Util/ByteBuffer.cpp
     Util/ByteBuffer.h
+    Util/ByteConverter.h
     Util/Errors.h
     Util/ProgressBar.cpp
     Util/ProgressBar.h
@@ -193,6 +198,11 @@ if(BUILD_METRICS)
         ${SRC_GRP_METRIC}
     )
 endif()
+
+source_group("Network"
+  FILES
+    ${SRC_GRP_NETWORK}
+)
 
 source_group("Platform"
   FILES

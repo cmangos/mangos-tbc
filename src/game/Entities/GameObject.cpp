@@ -2604,6 +2604,7 @@ bool GameObject::IsAtInteractDistance(Position const& pos, float radius, bool is
             .contains({ pos.GetPositionX(), pos.GetPositionY(), is3D ? pos.GetPositionZ() : GetPositionZ() });
     }
 
+    // else case is incorrect - meant to reverse lookup M2 model - however this case should never happen because we do not allow m_displayInfo to be nullptr
     return GetDistance(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), DIST_CALC_NONE) <= (radius * radius);
 }
 

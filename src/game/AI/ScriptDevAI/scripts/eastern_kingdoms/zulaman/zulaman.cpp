@@ -658,29 +658,42 @@ uint8 instance_zulaman::GetKilledPreBosses()
 
 void instance_zulaman::DoTimeRunSay(RunEventSteps data)
 {
-    switch (data)
+    if (Creature* NPC_MALACRASS_YELL = GetSingleCreatureFromStorage(NPC_MALACRASS))
     {
-        case RUN_START:     DoOrSimulateScriptTextForThisInstance(SAY_INST_BEGIN, NPC_MALACRASS); break;
-        case RUN_FAIL:      DoOrSimulateScriptTextForThisInstance(urand(0, 1) ? SAY_INST_SACRIF1 : SAY_INST_SACRIF2, NPC_MALACRASS); break;
-        case RUN_DONE:      DoOrSimulateScriptTextForThisInstance(SAY_INST_COMPLETE, NPC_MALACRASS); break;
+        switch (data)
+        {
+        case RUN_START:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_BEGIN, NPC_MALACRASS); break;*/
+            DoBroadcastText(23253, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+        case RUN_FAIL:      /*DoOrSimulateScriptTextForThisInstance(urand(0, 1) ? SAY_INST_SACRIF1 : SAY_INST_SACRIF2, NPC_MALACRASS); break;*/
+            DoBroadcastText(urand(0, 1) ? 23333 : 23335, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+        case RUN_DONE:      /*DoOrSimulateScriptTextForThisInstance(SAY_INST_COMPLETE, NPC_MALACRASS); break;*/
+            DoBroadcastText(23334, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
         case RUN_PROGRESS:
             // This function is on progress called before the data is set to the array
             switch (GetKilledPreBosses() + 1)
             {
-                case 1:     DoOrSimulateScriptTextForThisInstance(SAY_INST_PROGRESS_1, NPC_MALACRASS); break;
-                case 2:     DoOrSimulateScriptTextForThisInstance(SAY_INST_PROGRESS_2, NPC_MALACRASS); break;
-                case 3:     DoOrSimulateScriptTextForThisInstance(SAY_INST_PROGRESS_3, NPC_MALACRASS); break;
+            case 1:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_PROGRESS_1, NPC_MALACRASS); break;*/
+                DoBroadcastText(23316, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 2:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_PROGRESS_2, NPC_MALACRASS); break;*/
+                DoBroadcastText(23317, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 3:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_PROGRESS_3, NPC_MALACRASS); break;*/
+                DoBroadcastText(23318, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
             }
             break;
         case RUN_FAIL_SOON:
             switch (GetKilledPreBosses())
             {
-                case 0:     DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_1, NPC_MALACRASS); break;
-                case 1:     DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_2, NPC_MALACRASS); break;
-                case 2:     DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_3, NPC_MALACRASS); break;
-                case 3:     DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_4, NPC_MALACRASS); break;
+            case 0:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_1, NPC_MALACRASS); break;*/
+                DoBroadcastText(23326, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 1:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_2, NPC_MALACRASS); break;*/
+                DoBroadcastText(23327, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 2:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_3, NPC_MALACRASS); break;*/
+                DoBroadcastText(23328, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 3:     /*DoOrSimulateScriptTextForThisInstance(SAY_INST_WARN_4, NPC_MALACRASS); break;*/
+                DoBroadcastText(23329, NPC_MALACRASS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
             }
             break;
+        }
     }
 }
 

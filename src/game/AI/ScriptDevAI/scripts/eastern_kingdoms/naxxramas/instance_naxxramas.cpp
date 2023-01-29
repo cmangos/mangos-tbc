@@ -349,7 +349,13 @@ void instance_naxxramas::OnCreatureDeath(Creature* creature)
     {
         case NPC_MR_BIGGLESWORTH:
             if (m_auiEncounter[TYPE_KELTHUZAD] != DONE)
-                DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_CAT_DIED, NPC_KELTHUZAD);
+            {
+                if (Creature* NPC_KELTHUZAD_YELL = GetSingleCreatureFromStorage(NPC_KELTHUZAD))
+                {
+                    DoBroadcastText(13150, NPC_KELTHUZAD_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                    //DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_CAT_DIED, NPC_KELTHUZAD);
+                }
+            }
             break;
         case NPC_ZOMBIE_CHOW:
             creature->ForcedDespawn(2000);
@@ -851,7 +857,11 @@ void instance_naxxramas::Update(uint32 diff)
                     textId = SAY_ZELI_TAUNT3;
                     break;
             }
-            DoOrSimulateScriptTextForThisInstance(textId, horsemenEntry);
+            if (Creature* horsemenEntry_yell = GetSingleCreatureFromStorage(horsemenEntry))
+            {
+                DoScriptText(textId, horsemenEntry_yell, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            }
+            //DoOrSimulateScriptTextForThisInstance(textId, horsemenEntry);
             m_horsemenTauntTimer = urand(30, 40) * MINUTE * IN_MILLISECONDS;
         }
         else
@@ -1005,15 +1015,21 @@ void instance_naxxramas::DoTaunt()
 
         if (m_auiEncounter[TYPE_THADDIUS] == DONE)
             ++wingsCleared;
-
-        switch (wingsCleared)
+        if (Creature* NPC_KELTHUZAD_YELL = GetSingleCreatureFromStorage(NPC_KELTHUZAD))
         {
-            case 1: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT1, NPC_KELTHUZAD); break;
-            case 2: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT2, NPC_KELTHUZAD); break;
-            case 3: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT3, NPC_KELTHUZAD); break;
-            case 4: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT4, NPC_KELTHUZAD); break;
+            switch (wingsCleared)
+            {
+            case 1: /*DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT1, NPC_KELTHUZAD); break;*/
+                DoBroadcastText(12984, NPC_KELTHUZAD_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 2: /*DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT2, NPC_KELTHUZAD); break;*/
+                DoBroadcastText(12985, NPC_KELTHUZAD_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 3: /*DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT3, NPC_KELTHUZAD); break;*/
+                DoBroadcastText(12986, NPC_KELTHUZAD_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+            case 4: /*DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT4, NPC_KELTHUZAD); break;*/
+                DoBroadcastText(12987, NPC_KELTHUZAD_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
             default:
                 break;
+            }
         }
     }
 }

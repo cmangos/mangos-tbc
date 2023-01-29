@@ -520,13 +520,22 @@ void instance_sunwell_plateau::Update(uint32 diff)
         {
             if (m_uiKiljaedenYellTimer < diff)
             {
-                switch (urand(0, 4))
+                if (Creature* NPC_KILJAEDEN_CONTROLLER_YELL = GetSingleCreatureFromStorage(NPC_KILJAEDEN_CONTROLLER))
                 {
-                    case 0: DoOrSimulateScriptTextForThisInstance(SAY_ORDER_1, NPC_KILJAEDEN_CONTROLLER); break;
-                    case 1: DoOrSimulateScriptTextForThisInstance(SAY_ORDER_2, NPC_KILJAEDEN_CONTROLLER); break;
-                    case 2: DoOrSimulateScriptTextForThisInstance(SAY_ORDER_3, NPC_KILJAEDEN_CONTROLLER); break;
-                    case 3: DoOrSimulateScriptTextForThisInstance(SAY_ORDER_4, NPC_KILJAEDEN_CONTROLLER); break;
-                    case 4: DoOrSimulateScriptTextForThisInstance(SAY_ORDER_5, NPC_KILJAEDEN_CONTROLLER); break;
+                    switch (urand(0, 4))
+                    {
+
+                    case 0: /*DoOrSimulateScriptTextForThisInstance(SAY_ORDER_1, NPC_KILJAEDEN_CONTROLLER); break;*/
+                        DoBroadcastText(SAY_ORDER_1, NPC_KILJAEDEN_CONTROLLER_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+                    case 1: /*DoOrSimulateScriptTextForThisInstance(SAY_ORDER_2, NPC_KILJAEDEN_CONTROLLER); break;*/
+                        DoBroadcastText(SAY_ORDER_2, NPC_KILJAEDEN_CONTROLLER_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+                    case 2: /*DoOrSimulateScriptTextForThisInstance(SAY_ORDER_3, NPC_KILJAEDEN_CONTROLLER); break;*/
+                        DoBroadcastText(SAY_ORDER_3, NPC_KILJAEDEN_CONTROLLER_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+                    case 3: /*DoOrSimulateScriptTextForThisInstance(SAY_ORDER_4, NPC_KILJAEDEN_CONTROLLER); break;*/
+                        DoBroadcastText(SAY_ORDER_4, NPC_KILJAEDEN_CONTROLLER_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+                    case 4: /*DoOrSimulateScriptTextForThisInstance(SAY_ORDER_5, NPC_KILJAEDEN_CONTROLLER); break;*/
+                        DoBroadcastText(SAY_ORDER_5, NPC_KILJAEDEN_CONTROLLER_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL); break;
+                    }
                 }
                 m_uiKiljaedenYellTimer = 10 * MINUTE * IN_MILLISECONDS;
             }

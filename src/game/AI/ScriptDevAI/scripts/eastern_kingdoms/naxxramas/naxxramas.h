@@ -16,15 +16,15 @@ enum
     SOUND_SCREAM1               = 8873,
 
     // Kel'Thuzad
-    SAY_KELTHUZAD_CAT_DIED      = -1533089,
-    SAY_KELTHUZAD_SHACKLES_1    = -1533106,
+    SAY_KELTHUZAD_CAT_DIED      = -1533089,//13150 ,
+    SAY_KELTHUZAD_SHACKLES_1    = -1533106,//13492 ,
     SAY_KELTHUZAD_SHACKLES_2    = -1533108,
     // Kel'Thuzad's taunts after killing Wing Bosses
-    SAY_KELTHUZAD_TAUNT1        = -1533090,
-    SAY_KELTHUZAD_TAUNT2        = -1533091,
-    SAY_KELTHUZAD_TAUNT3        = -1533092,
-    SAY_KELTHUZAD_TAUNT4        = -1533093,
-    EMOTE_FLEE                  = -1533159,
+    SAY_KELTHUZAD_TAUNT1        = -1533090,//12984,
+    SAY_KELTHUZAD_TAUNT2        = -1533091,//12985,
+    SAY_KELTHUZAD_TAUNT3        = -1533092,//12986,
+    SAY_KELTHUZAD_TAUNT4        = -1533093,//12987,
+    EMOTE_FLEE                  = -1533159,//**12391**//,
     // Dialogues with Lich King
     SAY_SAPP_DIALOG1            = -1533084,
     SAY_SAPP_DIALOG2_LICH       = -1533085,

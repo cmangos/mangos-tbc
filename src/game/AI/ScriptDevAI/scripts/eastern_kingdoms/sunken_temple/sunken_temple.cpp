@@ -166,8 +166,11 @@ void instance_sunken_temple::SetData(uint32 uiType, uint32 uiData)
                     m_auiEncounter[uiType] = uiData;
                     DoUseDoorOrButton(GO_JAMMALAN_BARRIER);
                     // Intro yell
-                    DoOrSimulateScriptTextForThisInstance(SAY_JAMMALAN_INTRO, NPC_JAMMALAN);
+                    if (Creature* NPC_JAMMALAN_YELL = GetSingleCreatureFromStorage(NPC_JAMMALAN))
+{                    DoScriptText(SAY_JAMMALAN_INTRO, NPC_JAMMALAN_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                    //DoOrSimulateScriptTextForThisInstance(SAY_JAMMALAN_INTRO, NPC_JAMMALAN);
 
+}
                     if (Creature* jammalan = GetSingleCreatureFromStorage(NPC_JAMMALAN))
                         jammalan->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
 

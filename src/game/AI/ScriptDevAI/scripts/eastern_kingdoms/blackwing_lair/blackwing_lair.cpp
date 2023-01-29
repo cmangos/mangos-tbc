@@ -466,52 +466,64 @@ void instance_blackwing_lair::Update(uint32 uiDiff)
     {
         if (m_uiScepterEpicTimer <= uiDiff)
         {
-            switch (m_uiScepterQuestStep)
+            if (Creature* NPC_LORD_VICTOR_NEFARIUS_YELL = GetSingleCreatureFromStorage(NPC_LORD_VICTOR_NEFARIUS))
             {
+                switch (m_uiScepterQuestStep)
+                {
                 case 0:     // On quest acceptance
-                    DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_1, NPC_LORD_VICTOR_NEFARIUS);
+                    DoBroadcastText(11267, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                    //DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_1, NPC_LORD_VICTOR_NEFARIUS);
                     m_uiScepterEpicTimer = 2 * HOUR * IN_MILLISECONDS;
                     break;
                 case 1:     // 2 hours time mark
                     switch (urand(0, 1))
                     {
-                        case 0:
-                            DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_2, NPC_LORD_VICTOR_NEFARIUS);
-                            DoOrSimulateScriptTextForThisInstance(EMOTE_REDSHARD_TAUNT_1, NPC_LORD_VICTOR_NEFARIUS);
-                            break;
-                        case 1:
-                            DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_3, NPC_LORD_VICTOR_NEFARIUS);
-                            break;
+                    case 0:
+                        DoBroadcastText(11214, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_2, NPC_LORD_VICTOR_NEFARIUS);
+                        DoBroadcastText(11267, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //DoOrSimulateScriptTextForThisInstance(EMOTE_REDSHARD_TAUNT_1, NPC_LORD_VICTOR_NEFARIUS);
+                        break;
+                    case 1:
+                        DoBroadcastText(11215, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_3, NPC_LORD_VICTOR_NEFARIUS);
+                        break;
                     }
                     m_uiScepterEpicTimer = 2 * HOUR * IN_MILLISECONDS;
                     break;
                 case 2:     // 1 hour left
                     switch (urand(0, 1))
                     {
-                        case 0:
-                            DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_4, NPC_LORD_VICTOR_NEFARIUS);
-                            break;
-                        case 1:
-                            DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_5, NPC_LORD_VICTOR_NEFARIUS);
-                            break;
+                    case 0:
+                        DoBroadcastText(11217, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_4, NPC_LORD_VICTOR_NEFARIUS);
+                        break;
+                    case 1:
+                        DoBroadcastText(11216, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_5, NPC_LORD_VICTOR_NEFARIUS);
+                        break;
                     }
                     m_uiScepterEpicTimer = 30 * MINUTE * IN_MILLISECONDS;
                     break;
                 case 3:     // 30 min left
-                    DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_6, NPC_LORD_VICTOR_NEFARIUS);
+                    DoBroadcastText(11218, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                    //DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_6, NPC_LORD_VICTOR_NEFARIUS);
                     m_uiScepterEpicTimer = 30 * MINUTE * IN_MILLISECONDS;
                     break;
                 case 4:     // Failure
                     SetData(TYPE_QUEST_SCEPTER, FAIL);
                     if (GetData(TYPE_NEFARIAN) == NOT_STARTED)
                     {
+                        DoBroadcastText(11231, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
                         DoOrSimulateScriptTextForThisInstance(EMOTE_REDSHARD_TAUNT_2, NPC_LORD_VICTOR_NEFARIUS);
-                        DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_7, NPC_LORD_VICTOR_NEFARIUS);
+                        DoBroadcastText(11219, NPC_LORD_VICTOR_NEFARIUS_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //DoOrSimulateScriptTextForThisInstance(YELL_REDSHARD_TAUNT_7, NPC_LORD_VICTOR_NEFARIUS);
                     }
                 default:    // Something weird happened: stop timer and fail the event
                     m_uiScepterEpicTimer = 0;
                     SetData(TYPE_QUEST_SCEPTER, FAIL);
                     break;
+                }
             }
             m_uiScepterQuestStep++;
         }

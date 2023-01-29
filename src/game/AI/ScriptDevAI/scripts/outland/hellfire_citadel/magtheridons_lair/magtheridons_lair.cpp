@@ -241,8 +241,12 @@ void instance_magtheridons_lair::Update(uint32 uiDiff)
 
     if (m_uiRandYellTimer < uiDiff)
     {
-        DoOrSimulateScriptTextForThisInstance(aRandomTaunt[urand(0, 5)], NPC_MAGTHERIDON);
-        m_uiRandYellTimer = 90000;
+        if (Creature* NPC_MAGTHERIDON_YELL = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
+        {
+            DoBroadcastText(aRandomTaunt[urand(0, 5)], NPC_MAGTHERIDON_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            //DoOrSimulateScriptTextForThisInstance(aRandomTaunt[urand(0, 5)], NPC_MAGTHERIDON);
+            m_uiRandYellTimer = 90000;
+        }
     }
     else
         m_uiRandYellTimer -= uiDiff;

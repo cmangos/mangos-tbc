@@ -30,7 +30,7 @@ enum
     EMOTE_NEARLY_FREE           = -1544016,
 };
 
-static const int32 aRandomTaunt[] = { -1544000, -1544001, -1544002, -1544003, -1544004, -1544005};
+static const int32 aRandomTaunt[] = { 17339,/*-1544000,*/ 17340,/*-1544001,*/ 17341,/*-1544002,*/17342, /*-1544003,*/17343, /*-1544004,*/ 17344/* -1544005*/};
 
 class instance_magtheridons_lair : public ScriptedInstance
 {

@@ -70,11 +70,11 @@ enum
     SAY_TWINS_INTRO             = -1580044,
 
     // Kil'jaeden yells
-    SAY_ORDER_1                 = -1580064,
-    SAY_ORDER_2                 = -1580065,
-    SAY_ORDER_3                 = -1580066,
-    SAY_ORDER_4                 = -1580067,
-    SAY_ORDER_5                 = -1580068,
+    SAY_ORDER_1                 = 25544,//-1580064,
+    SAY_ORDER_2                 = 25545,//-1580065,
+    SAY_ORDER_3                 = 25546,//-1580066,
+    SAY_ORDER_4                 = 25547,//-1580067,
+    SAY_ORDER_5                 = 25548,//-1580068,
 
     AREATRIGGER_TWINS           = 4937,
 

@@ -62,8 +62,8 @@ enum
     SPELL_KARGATH_EXECUTIONER_3 = 39290,                    // 15 min - last prisoner
 
     // I'm not sure if these texts are used at the execution but this is most likely they are used to
-    SAY_KARGATH_EXECUTE_ALLY    = -1540049,
-    SAY_KARGATH_EXECUTE_HORDE   = -1540050,
+    SAY_KARGATH_EXECUTE_ALLY    = -1540049,//13721,
+    SAY_KARGATH_EXECUTE_HORDE   = -1540050, //13727,//
 
     // AT_NETHEKURSE               = 4524,                  // Area trigger used for the execution event
 

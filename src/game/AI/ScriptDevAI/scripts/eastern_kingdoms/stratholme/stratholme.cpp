@@ -85,7 +85,10 @@ bool instance_stratholme::StartSlaughterSquare()
 {
     if (m_auiEncounter[TYPE_BARONESS] == SPECIAL && m_auiEncounter[TYPE_NERUB] == SPECIAL && m_auiEncounter[TYPE_PALLID] == SPECIAL)
     {
-        DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RIVENDARE, NPC_BARON);
+        if (Creature* NPC_BARON_YELL = GetSingleCreatureFromStorage(NPC_BARON))
+        //DoScriptText(SAY_ANNOUNCE_RIVENDARE, NPC_BARON_YELL);
+        DoBroadcastText(6289, NPC_BARON_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+        //DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RIVENDARE, NPC_BARON);
 
         DoUseDoorOrButton(GO_PORT_GAUNTLET);
         DoUseDoorOrButton(GO_PORT_SLAUGHTER);
@@ -222,7 +225,9 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
                     // Baron ultimatum starts: summon Ysida in the cage
                     if (Creature* pBaron = GetSingleCreatureFromStorage(NPC_BARON))
                     {
-                        DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_START, NPC_BARON);
+                        //DoScriptText(SAY_ANNOUNCE_RUN_START, pBaron);
+                        DoBroadcastText(11812, pBaron, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_START, NPC_BARON);
                         if (Creature* pYsida = pBaron->SummonCreature(NPC_YSIDA, stratholmeLocation[7].m_fX, stratholmeLocation[7].m_fY, stratholmeLocation[7].m_fZ, stratholmeLocation[7].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0))
                             pYsida->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER | UNIT_NPC_FLAG_GOSSIP);
                     }
@@ -289,7 +294,9 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
 
                     if (Creature* baron = GetSingleCreatureFromStorage(NPC_BARON))
                     {
-                        DoScriptText(SAY_ANNOUNCE_RAMSTEIN, baron);
+                        //DoScriptText(SAY_ANNOUNCE_RAMSTEIN, baron);
+                        DoBroadcastText(6398, baron, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                        //
                         if (Creature* ramstein = baron->SummonCreature(NPC_RAMSTEIN, stratholmeLocation[2].m_fX, stratholmeLocation[2].m_fY, stratholmeLocation[2].m_fZ, stratholmeLocation[2].m_fO, TEMPSPAWN_DEAD_DESPAWN, 0))
                             ramstein->GetMotionMaster()->MovePoint(0, stratholmeLocation[5].m_fX, stratholmeLocation[5].m_fY, stratholmeLocation[5].m_fZ);
 
@@ -386,6 +393,7 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
                     if (Creature* ysida = GetSingleCreatureFromStorage(NPC_YSIDA))
                     {
                         DoScriptText(SAY_EPILOGUE, ysida);
+                        //11931
                         DoUseDoorOrButton(GO_YSIDA_CAGE);
                         ysida->GetMotionMaster()->MovePoint(0, stratholmeLocation[8].m_fX, stratholmeLocation[8].m_fY, stratholmeLocation[8].m_fZ);
                         ysida->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER | UNIT_NPC_FLAG_GOSSIP);
@@ -401,6 +409,7 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
                         if (aurius->IsAlive())
                         {
                             DoScriptText(SAY_AURIUS_DEATH, aurius);
+                            //6237
                             aurius->StopMoving();
                             aurius->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER | UNIT_NPC_FLAG_GOSSIP);
                             aurius->InterruptNonMeleeSpells(true);
@@ -430,7 +439,9 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
                 Creature* barthilas = GetSingleCreatureFromStorage(NPC_BARTHILAS);
                 if (barthilas && barthilas->IsAlive() && !barthilas->IsInCombat())
                 {
-                    DoScriptText(SAY_WARN_BARON, barthilas);
+                    //DoScriptText(SAY_WARN_BARON, barthilas);
+                    //6162
+                    DoBroadcastText(6162, barthilas,nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
                     barthilas->SetWalk(false);
                     barthilas->GetMotionMaster()->MovePoint(0, stratholmeLocation[0].m_fX, stratholmeLocation[0].m_fY, stratholmeLocation[0].m_fZ);
 
@@ -453,7 +464,8 @@ void instance_stratholme::SetData(uint32 type, uint32 data)
             if (data == DONE)
             {
                 if (Creature* baron = GetSingleCreatureFromStorage(NPC_BARON))
-                    DoScriptText(SAY_UNDEAD_DEFEAT, baron);
+                    //DoScriptText(SAY_UNDEAD_DEFEAT, baron);
+					DoBroadcastText(6401, baron, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
                 DoUseDoorOrButton(GO_ZIGGURAT_DOOR_5);
             }
             m_auiEncounter[type] = data;
@@ -712,7 +724,8 @@ void instance_stratholme::OnCreatureDeath(Creature* creature)
         case NPC_BARON:             SetData(TYPE_BARON, DONE);    break;
 
         case NPC_AURIUS:
-            DoScriptText(SAY_AURIUS_DEATH, creature);
+            //DoScriptText(SAY_AURIUS_DEATH, creature);
+            DoBroadcastText(6237, creature,nullptr, ChatType::CHAT_TYPE_SAY);
             break;
 
         case NPC_THUZADIN_ACOLYTE:
@@ -799,8 +812,10 @@ void instance_stratholme::ThazudinAcolyteJustDied(Creature* creature)
         if (m_zigguratStorage[i].m_zigguratAcolyteGuid.empty())
         {
             // A random zone yell after one is cleared
+            Creature* NPC_THUZADIN_ACOLYTE_YELL = GetSingleCreatureFromStorage(NPC_THUZADIN_ACOLYTE);
             int32 aAnnounceSay[MAX_ZIGGURATS] = {SAY_ANNOUNCE_ZIGGURAT_1, SAY_ANNOUNCE_ZIGGURAT_2, SAY_ANNOUNCE_ZIGGURAT_3};
-            DoOrSimulateScriptTextForThisInstance(aAnnounceSay[i], NPC_THUZADIN_ACOLYTE);
+            DoScriptText(aAnnounceSay[i], NPC_THUZADIN_ACOLYTE_YELL);
+            //DoOrSimulateScriptTextForThisInstance(aAnnounceSay[i], NPC_THUZADIN_ACOLYTE);
 
             // Kill Crystal
             if (Creature* crystal = instance->GetCreature(m_zigguratStorage[i].m_crystalGuid))
@@ -1135,7 +1150,8 @@ void instance_stratholme::Update(uint32 diff)
                     aurius->SetStandState(UNIT_STAND_STATE_STAND);
                     aurius->NearTeleportTo(fX, fY, fZ, aurius->GetOrientation());
                     aurius->SetRespawnCoord(fX, fY, fZ, aurius->GetOrientation());
-                    DoScriptText(SAY_AURIUS_AGGRO, aurius);
+                    //DoScriptText(SAY_AURIUS_AGGRO, aurius);
+                    DoBroadcastText(6326, aurius,nullptr, ChatType::CHAT_TYPE_YELL);
                     aurius->SetFactionTemporary(FACTION_VICTIM, TEMPFACTION_RESTORE_RESPAWN);
                     aurius->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER | UNIT_NPC_FLAG_GOSSIP);
                     aurius->AI()->AttackStart(baron);
@@ -1152,18 +1168,27 @@ void instance_stratholme::Update(uint32 diff)
     {
         if (m_yellCounter == 0 && m_baronRunTimer <= 10 * MINUTE * IN_MILLISECONDS)
         {
-            DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_10_MIN, NPC_BARON);
+            if(Creature* NPC_BARON_YELL = GetSingleCreatureFromStorage(NPC_BARON))
+            DoBroadcastText(11813, NPC_BARON_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            //DoScriptText(SAY_ANNOUNCE_RUN_10_MIN, NPC_BARON_YELL,  nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            //DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_10_MIN, NPC_BARON);
             ++m_yellCounter;
         }
         else if (m_yellCounter == 1 && m_baronRunTimer <= 5 * MINUTE * IN_MILLISECONDS)
         {
-            DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_5_MIN, NPC_BARON);
+           if( Creature* NPC_BARON_YELL = GetSingleCreatureFromStorage(NPC_BARON))
+            DoBroadcastText(11815, NPC_BARON_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            //DoScriptText(SAY_ANNOUNCE_RUN_5_MIN, NPC_BARON_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            /*DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_5_MIN, NPC_BARON);*/
             ++m_yellCounter;
         }
         // Used to create a delay of 10s between Baron speech and Ysida's answer
         else if (m_yellCounter == 2 && m_baronRunTimer <= (5 * MINUTE - 10) * IN_MILLISECONDS)
         {
-            DoOrSimulateScriptTextForThisInstance(SAY_YSIDA_RUN_5_MIN, NPC_YSIDA);
+            if (Creature* NPC_YSIDA_YELL = GetSingleCreatureFromStorage(NPC_YSIDA))
+            DoBroadcastText(11816, NPC_YSIDA_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            //DoScriptText(SAY_YSIDA_RUN_5_MIN, NPC_YSIDA_YELL);
+            //DoOrSimulateScriptTextForThisInstance(SAY_YSIDA_RUN_5_MIN, NPC_YSIDA);
             ++m_yellCounter;
         }
 
@@ -1179,8 +1204,10 @@ void instance_stratholme::Update(uint32 diff)
                     ysida->GetMotionMaster()->MovePoint(0, stratholmeLocation[8].m_fX, stratholmeLocation[8].m_fY, stratholmeLocation[8].m_fZ);
                     DoUseDoorOrButton(GO_YSIDA_CAGE);
                 }
-
-                DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_FAIL, NPC_BARON);
+               if( Creature* NPC_BARON_YELL = GetSingleCreatureFromStorage(NPC_BARON))
+                DoBroadcastText(11814, NPC_BARON_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                //DoScriptText(SAY_ANNOUNCE_RUN_FAIL, NPC_BARON_YELL);
+                //DoOrSimulateScriptTextForThisInstance(SAY_ANNOUNCE_RUN_FAIL, NPC_BARON);
 
                 m_baronRunTimer = 8 * IN_MILLISECONDS;  // We reset the timer so the speech of Ysida is not said at the same time than the Baron's one
             }
@@ -1192,8 +1219,10 @@ void instance_stratholme::Update(uint32 diff)
                     if (Creature* baron = GetSingleCreatureFromStorage(NPC_BARON))
                         baron->CastSpell(ysida, SPELL_BARON_SOUL_DRAIN, TRIGGERED_NONE);
                 }
-
-                DoOrSimulateScriptTextForThisInstance(SAY_YSIDA_RUN_FAIL, NPC_YSIDA);
+                if (Creature* NPC_YSIDA_YELL = GetSingleCreatureFromStorage(NPC_YSIDA))
+                //DoScriptText(SAY_YSIDA_RUN_FAIL, NPC_YSIDA_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                DoBroadcastText(11817, NPC_YSIDA_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                //DoOrSimulateScriptTextForThisInstance(SAY_YSIDA_RUN_FAIL, NPC_YSIDA);
 
                 m_baronRunTimer = 0;  // event done for good, no more speech
                 debug_log("SD2: Instance Stratholme: Baron run event reached end. Event has state %u.", GetData(TYPE_BARON_RUN));

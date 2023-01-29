@@ -67,12 +67,12 @@ void instance_scarlet_monastery::OnCreatureCreate(Creature* pCreature)
 
 void instance_scarlet_monastery::OnCreatureDeath(Creature* pCreature)
 {
-    if (pCreature->GetEntry() == NPC_INTERROGATOR_VISHAS)
-    {
-        // Any other actions to do with Vorrel? setStandState?
-        if (Creature* pVorrel = GetSingleCreatureFromStorage(NPC_VORREL))
-            DoScriptText(SAY_TRIGGER_VORREL, pVorrel);
-    }
+	if (pCreature->GetEntry() == NPC_INTERROGATOR_VISHAS)
+	{
+		// Any other actions to do with Vorrel? setStandState?
+		if (Creature* pVorrel = GetSingleCreatureFromStorage(NPC_VORREL))
+			DoScriptText(SAY_TRIGGER_VORREL, pVorrel);
+	}
 }
 
 void instance_scarlet_monastery::OnObjectCreate(GameObject* pGo)
@@ -176,16 +176,18 @@ InstanceData* GetInstanceData_instance_scarlet_monastery(Map* pMap)
 
 bool instance_scarlet_monastery::DoHandleAreaTrigger(AreaTriggerEntry const* areaTrigger)
 {
-    if (areaTrigger->id == AREATRIGGER_CATHEDRAL_ENTRANCE)
-    {
-        if (GetData(TYPE_ASHBRINGER_EVENT) == NOT_STARTED)
-        {
-            SetData(TYPE_ASHBRINGER_EVENT, IN_PROGRESS);
-            DoOrSimulateScriptTextForThisInstance(SAY_ASHBRINGER_ENTRANCE, NPC_MOGRAINE);
-            return true;
-        }
-    }
-    return false;
+	if (areaTrigger->id == AREATRIGGER_CATHEDRAL_ENTRANCE)
+	{
+		if (GetData(TYPE_ASHBRINGER_EVENT) == NOT_STARTED)
+		{
+			SetData(TYPE_ASHBRINGER_EVENT, IN_PROGRESS);
+			if (Creature* NPC_MOGRAINE_YELL = GetSingleCreatureFromStorage(NPC_MOGRAINE))
+				DoBroadcastText(12389, NPC_MOGRAINE_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+			//DoOrSimulateScriptTextForThisInstance(SAY_ASHBRINGER_ENTRANCE, NPC_MOGRAINE);
+			return true;
+		}
+	}
+	return false;
 }
 
 bool AreaTrigger_at_cathedral_entrance(Player* player, AreaTriggerEntry const* areaTrigger)

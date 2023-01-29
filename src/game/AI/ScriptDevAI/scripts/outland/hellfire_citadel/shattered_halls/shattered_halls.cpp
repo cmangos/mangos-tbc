@@ -546,7 +546,9 @@ void instance_shattered_halls::Update(uint32 uiDiff)
                     pSoldier->Suicide();
 
                 // Make Kargath yell
-                DoOrSimulateScriptTextForThisInstance(m_uiTeam == ALLIANCE ? SAY_KARGATH_EXECUTE_ALLY : SAY_KARGATH_EXECUTE_HORDE, NPC_KARGATH_BLADEFIST);
+               if( Creature* NPC_KARGATH_BLADEFIST_YELL = GetSingleCreatureFromStorage(NPC_KARGATH_BLADEFIST))
+                   DoBroadcastText(m_uiTeam == ALLIANCE ? 13721 : 13727, NPC_KARGATH_BLADEFIST_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+                //DoOrSimulateScriptTextForThisInstance(m_uiTeam == ALLIANCE ? SAY_KARGATH_EXECUTE_ALLY : SAY_KARGATH_EXECUTE_HORDE, NPC_KARGATH_BLADEFIST);
 
                 // Set timer for the next execution
                 DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_2);

@@ -15,17 +15,17 @@ enum InstanceZA
     MAX_BEAR_WAVES          = 4,
 
     SAY_INST_RELEASE        = -1568067,                     // TODO Event NYI
-    SAY_INST_BEGIN          = -1568068,
-    SAY_INST_PROGRESS_1     = -1568069,
-    SAY_INST_PROGRESS_2     = -1568070,
-    SAY_INST_PROGRESS_3     = -1568071,
-    SAY_INST_WARN_1         = -1568072,
-    SAY_INST_WARN_2         = -1568073,
-    SAY_INST_WARN_3         = -1568074,
-    SAY_INST_WARN_4         = -1568075,
-    SAY_INST_SACRIF1        = -1568076,
-    SAY_INST_SACRIF2        = -1568077,
-    SAY_INST_COMPLETE       = -1568078,
+    SAY_INST_BEGIN          = -1568068, //23253,//
+    SAY_INST_PROGRESS_1     = -1568069, //23316,//
+    SAY_INST_PROGRESS_2     = -1568070, //23317,//
+    SAY_INST_PROGRESS_3     = -1568071, //23318,//
+    SAY_INST_WARN_1         = -1568072, //23326,//
+    SAY_INST_WARN_2         = -1568073, //23327,//
+    SAY_INST_WARN_3         = -1568074, //23328,//
+    SAY_INST_WARN_4         = -1568075, //23329,//
+    SAY_INST_SACRIF1        = -1568076, //23333,//
+    SAY_INST_SACRIF2        = -1568077, //23335,//
+    SAY_INST_COMPLETE       = -1568078, //23334,//
 
     // Bear event yells
     SAY_WAVE1_AGGRO         = -1568010,

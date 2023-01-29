@@ -38,15 +38,20 @@ void instance_zulgurub::Initialize()
 
 void instance_zulgurub::DoYellAtTriggerIfCan(uint32 triggerId)
 {
-    if (triggerId == AREATRIGGER_ENTER && !m_bHasIntroYelled)
+    if (Creature* NPC_HAKKAR_YELL = GetSingleCreatureFromStorage(NPC_HAKKAR))
     {
-        DoOrSimulateScriptTextForThisInstance(SAY_HAKKAR_PROTECT, NPC_HAKKAR);
-        m_bHasIntroYelled = true;
-    }
-    else if (triggerId == AREATRIGGER_ALTAR && !m_bHasAltarYelled)
-    {
-        DoOrSimulateScriptTextForThisInstance(SAY_MINION_DESTROY, NPC_HAKKAR);
-        m_bHasAltarYelled = true;
+        if (triggerId == AREATRIGGER_ENTER && !m_bHasIntroYelled)
+        {
+            DoBroadcastText(10546, NPC_HAKKAR_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            //DoOrSimulateScriptTextForThisInstance(SAY_HAKKAR_PROTECT, NPC_HAKKAR);
+            m_bHasIntroYelled = true;
+        }
+        else if (triggerId == AREATRIGGER_ALTAR && !m_bHasAltarYelled)
+        {
+            DoBroadcastText(10594, NPC_HAKKAR_YELL, nullptr, ChatType::CHAT_TYPE_ZONE_YELL);
+            //DoOrSimulateScriptTextForThisInstance(SAY_MINION_DESTROY, NPC_HAKKAR);
+            m_bHasAltarYelled = true;
+        }
     }
 }
 

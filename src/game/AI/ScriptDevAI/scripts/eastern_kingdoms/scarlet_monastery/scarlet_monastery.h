@@ -20,10 +20,10 @@ enum
     GO_WHITEMANE_DOOR               = 104600,
     GO_CHAPEL_DOOR                  = 104591,
 
-    SAY_TRIGGER_VORREL              = -1189015,
+    SAY_TRIGGER_VORREL              = -1189015,//1376
 
     ITEM_CORRUPTED_ASHRBRINGER      = 22691,
-    SAY_ASHBRINGER_ENTRANCE         = -1189036,
+    SAY_ASHBRINGER_ENTRANCE         = -1189036,//12389
     AREATRIGGER_CATHEDRAL_ENTRANCE  = 4089, // used to trigger Corrupted Ashbringer event
     // these npcs are tracked for purposes of turning them friendly during the Corrupted Ashbringer event
     NPC_SORCERER    = 4294,

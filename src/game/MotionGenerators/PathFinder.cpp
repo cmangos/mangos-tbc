@@ -409,6 +409,8 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
         {
             if (m_sourceUnit->GetTypeId() != TYPEID_PLAYER)
                 m_type = m_sourceUnit->CanFly() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+            else if (((Player*)m_sourceUnit)->GetPlayerbotAI())
+                m_type = m_sourceUnit->CanFly() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
             else
                 m_type = PATHFIND_NOPATH;
         }

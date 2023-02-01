@@ -77,7 +77,7 @@ void ShowTransmogItems(Player* player, Creature* creature, uint8 slot) // Only c
 		}
 	}
 
-	player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Remove transmogrification", EQUIPMENT_SLOT_END + 3, slot, "Remove transmogrification from the slot?", 0, false);
+	player->ADD_GOSSIP_ITEM_EXTENDED(GOSSIP_ICON_MONEY_BAG, "Remove transmogrification", EQUIPMENT_SLOT_END + 3, slot, "Remove transmogrification from the slot?", 0, false);
 	player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Update menu", EQUIPMENT_SLOT_END, slot);
 	player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Back...", EQUIPMENT_SLOT_END + 1, 0);
 	player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetObjectGuid());
@@ -201,8 +201,8 @@ bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 ac
 		for (Transmogrification::slotMap::const_iterator it = sTransmogrifier->presetById[player->GetObjectGuid()][action].begin(); it != sTransmogrifier->presetById[player->GetObjectGuid()][action].end(); ++it)
 			player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "zzz"/*sTransmogrifier->GetItemIcon(it->second, 30, 30, -18, 0) + sTransmogrifier->GetItemLink(it->second, session)*/, sender, action);
 
-		player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Use this set", EQUIPMENT_SLOT_END + 5, action, "Using this set for transmogrify will bind transmogrified items to you and make them non-refundable and non-tradeable.\nDo you wish to continue?\n\n" + sT->presetByName[player->GetObjectGuid()][action], 0, false);
-		player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Delete set", EQUIPMENT_SLOT_END + 7, action, "Are you sure you want to delete " + sT->presetByName[player->GetObjectGuid()][action] + "?", 0, false);
+		player->ADD_GOSSIP_ITEM_EXTENDED(GOSSIP_ICON_MONEY_BAG, "Use this set", EQUIPMENT_SLOT_END + 5, action, "Using this set for transmogrify will bind transmogrified items to you and make them non-refundable and non-tradeable.\nDo you wish to continue?\n\n" + sTransmogrifier->presetByName[player->GetObjectGuid()][action], 0, false);
+		player->ADD_GOSSIP_ITEM_EXTENDED(GOSSIP_ICON_MONEY_BAG, "Delete set", EQUIPMENT_SLOT_END + 7, action, "Are you sure you want to delete " + sTransmogrifier->presetByName[player->GetObjectGuid()][action] + "?", 0, false);
 		player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Back...", EQUIPMENT_SLOT_END + 4, 0);
 		player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetObjectGuid());
 	} break;
@@ -250,7 +250,7 @@ bool OnGossipSelect(Player* player, Creature* creature, uint32 sender, uint32 ac
 			}
 		}
 		if (canSave)
-			player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Save set", 0, 0, "Insert set name", cost * sT->GetSetCostModifier() + sT->GetSetCopperCost(), true);
+			player->ADD_GOSSIP_ITEM_EXTENDED(GOSSIP_ICON_MONEY_BAG, "Save set", 0, 0, "Insert set name", cost * sTransmogrifier->GetSetCostModifier() + sTransmogrifier->GetSetCopperCost(), true);
 		player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Update menu", sender, action);
 		player->ADD_GOSSIP_ITEM(GOSSIP_ICON_MONEY_BAG, "Back...", EQUIPMENT_SLOT_END + 4, 0);
 		player->SEND_GOSSIP_MENU(DEFAULT_GOSSIP_MESSAGE, creature->GetObjectGuid());

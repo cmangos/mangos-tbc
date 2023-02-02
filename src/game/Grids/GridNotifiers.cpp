@@ -163,6 +163,15 @@ void ObjectMessageDeliverer::Visit(CameraMapType& m)
     }
 }
 
+void ObjectThreatMessageDeliverer::Visit(CameraMapType& m)
+{
+    for (auto& iter : m)
+    {
+        if (Player* player = iter.getSource()->GetOwner())
+            player->SendThreatMessageToPlayer(i_message);
+    }
+}
+
 void MessageDistDeliverer::Visit(CameraMapType& m)
 {
     for (auto& iter : m)

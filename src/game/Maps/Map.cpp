@@ -699,6 +699,29 @@ void Map::MessageBroadcast(WorldObject const* obj, WorldPacket const& msg)
     cell.Visit(p, message, *this, *obj, obj->GetVisibilityData().GetVisibilityDistance());
 }
 
+void Map::ThreatMessageBroadcast(WorldObject const* obj, std::string const& msg)
+{
+    CellPair p = MaNGOS::ComputeCellPair(obj->GetPositionX(), obj->GetPositionY());
+
+    if (p.x_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP || p.y_coord >= TOTAL_NUMBER_OF_CELLS_PER_MAP)
+    {
+        sLog.outError("Map::MessageBroadcast: Object (GUID: %u TypeId: %u) have invalid coordinates X:%f Y:%f grid cell [%u:%u]", obj->GetGUIDLow(), obj->GetTypeId(), obj->GetPositionX(), obj->GetPositionY(), p.x_coord, p.y_coord);
+        return;
+    }
+
+    Cell cell(p);
+    cell.SetNoCreate();
+
+    if (!loaded(GridPair(cell.data.Part.grid_x, cell.data.Part.grid_y)))
+        return;
+
+    // TODO: currently on continents when Visibility.Distance.InFlight > Visibility.Distance.Continents
+    // we have alot of blinking mobs because monster move packet send is broken...
+    MaNGOS::ObjectThreatMessageDeliverer post_man(msg);
+    TypeContainerVisitor<MaNGOS::ObjectThreatMessageDeliverer, WorldTypeMapContainer > message(post_man);
+    cell.Visit(p, message, *this, *obj, obj->GetVisibilityData().GetVisibilityDistance());
+}
+
 void Map::MessageDistBroadcast(Player const* player, WorldPacket const& msg, float dist, bool to_self, bool own_team_only)
 {
     CellPair p = MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY());

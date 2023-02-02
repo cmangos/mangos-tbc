@@ -2289,6 +2289,7 @@ class Player : public Unit
         void SetTitle(CharTitlesEntry const* title, bool lost = false, bool send = true);
 
         void SendMessageToPlayer(std::string const& message) const; // debugging purposes
+        void SendThreatMessageToPlayer(std::string const& message) const; // debugging purposes
 
 #ifdef BUILD_PLAYERBOT
         // A Player can either have a playerbotMgr (to manage its bots), or have playerbotAI (if it is a bot), or

@@ -89,6 +89,14 @@ namespace MaNGOS
         template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
     };
 
+    struct ObjectThreatMessageDeliverer
+    {
+        std::string const& i_message;
+        explicit ObjectThreatMessageDeliverer(std::string const& msg) : i_message(msg) {}
+        void Visit(CameraMapType& m);
+        template<class SKIP> void Visit(GridRefManager<SKIP>&) {}
+    };
+
     struct MessageDistDeliverer
     {
         Player const& i_player;

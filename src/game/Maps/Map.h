@@ -187,6 +187,7 @@ class Map : public GridRefManager<NGridType>
 
         void MessageBroadcast(Player const*, WorldPacket const&, bool to_self);
         void MessageBroadcast(WorldObject const*, WorldPacket const&);
+        void ThreatMessageBroadcast(WorldObject const*, std::string const&);
         void MessageDistBroadcast(Player const*, WorldPacket const&, float dist, bool to_self, bool own_team_only = false);
         void MessageDistBroadcast(WorldObject const*, WorldPacket const&, float dist);
         void MessageMapBroadcast(WorldObject const* obj, WorldPacket const& msg);

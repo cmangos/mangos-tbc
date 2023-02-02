@@ -18282,6 +18282,14 @@ void Player::SendMessageToPlayer(std::string const& message) const
         session->SendPacket(data);
 }
 
+void Player::SendThreatMessageToPlayer(std::string const& message) const
+{
+    WorldPacket data;
+    ChatHandler::BuildChatPacket(data, CHAT_MSG_COMBAT_MISC_INFO, message.data(), LANG_UNIVERSAL, CHAT_TAG_NONE, GetObjectGuid(), nullptr, ObjectGuid(), nullptr, "THREAT");
+    if (WorldSession* session = GetSession())
+        session->SendPacket(data);
+}
+
 // send Proficiency
 void Player::SendProficiency(ItemClass itemClass, uint32 itemSubclassMask) const
 {

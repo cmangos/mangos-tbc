@@ -248,7 +248,7 @@ void LootStore::LoadAndCheckReferenceNames()
         while (result->NextRow());
 
         for (uint32 entry : foundIds)
-            sLog.outErrorDb("Table reference_loot_template has entry %u but no name", GetName(), entry);
+            sLog.outErrorDb("Table reference_loot_template has entry %u but no name", entry);
     }
 }
 

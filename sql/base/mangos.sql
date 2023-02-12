@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2458_01_mangos_addon_drop` bit(1) DEFAULT NULL
+  `required_s2459_01_mangos_addon_stand_state` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -793,9 +793,8 @@ DROP TABLE IF EXISTS `creature_addon`;
 CREATE TABLE `creature_addon` (
   `guid` int(10) unsigned NOT NULL DEFAULT '0',
   `mount` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `bytes1` int(10) unsigned NOT NULL DEFAULT '0',
+  `stand_state` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
   `b2_0_sheath` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `b2_1_flags` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `emote` int(10) unsigned NOT NULL DEFAULT '0',
   `moveflags` int(10) unsigned NOT NULL DEFAULT '0',
   `auras` text,
@@ -1450,9 +1449,8 @@ DROP TABLE IF EXISTS `creature_template_addon`;
 CREATE TABLE `creature_template_addon` (
   `entry` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `mount` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `bytes1` int(10) unsigned NOT NULL DEFAULT '0',
+  `stand_state` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
   `b2_0_sheath` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `b2_1_flags` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `emote` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `moveflags` int(10) unsigned NOT NULL DEFAULT '0',
   `auras` text,

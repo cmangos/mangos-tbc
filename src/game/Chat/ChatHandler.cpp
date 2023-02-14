@@ -197,6 +197,19 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             if (!CheckChatMessage(msg))
                 return;
 
+#ifdef ENABLE_PLAYERBOTS
+            if (GetSecurity() > SEC_PLAYER && GetPlayer()->IsGameMaster())
+                sRandomPlayerbotMgr.HandleCommand(type, msg, *_player, "", TEAM_BOTH_ALLOWED, lang);
+            else
+                sRandomPlayerbotMgr.HandleCommand(type, msg, *_player, "", GetPlayer()->GetTeam(), lang);
+
+            // apply to own bots
+            if (_player->GetPlayerbotMgr())
+            {
+                _player->GetPlayerbotMgr()->HandleCommand(type, msg, lang);
+            }
+#endif
+
             if (type == CHAT_MSG_SAY)
             {
                 GetPlayer()->Say(msg, lang);

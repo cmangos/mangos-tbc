@@ -622,7 +622,10 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
         SetSpellList(Entry * 100 + 0);
     UpdateImmunitiesSet(0);
     if (IsCritter()) // meant to be also settable per creature immunity set
+    {
         SetAOEImmune(true);
+        SetChainImmune(true);
+    }
 
     // if eventData set then event active and need apply spell_start
     if (eventData)
@@ -1548,17 +1551,17 @@ std::vector<uint32> Creature::GetCharmSpells() const
     return spells;
 }
 
-bool Creature::GetSpellCooldown(uint32 spellId, uint32& cooldown) const
+Creature::CooldownResult Creature::GetSpellCooldown(uint32 spellId, uint32& cooldown) const
 {
     for (auto& data : m_spellList.Spells)
     {
         if (data.second.SpellId == spellId)
         {
             cooldown = urand(data.second.RepeatMin, data.second.RepeatMax);
-            return true;
+            return (data.second.Flags & SPELL_LIST_FLAG_CATEGORY_COOLDOWN) ? COOLDOWN_RESULT_CATEGORY_FOUND : COOLDOWN_RESULT_FOUND;
         }
     }
-    return false;
+    return COOLDOWN_RESULT_NOT_FOUND;
 }
 
 void Creature::SetCreatureGroup(CreatureGroup* group)
@@ -2241,19 +2244,8 @@ bool Creature::LoadCreatureAddon(bool reload)
     if (cainfo->mount != 0)
         Mount(cainfo->mount);
 
-    if (cainfo->bytes1 != 0)
-    {
-        // 0 StandState
-        // 1 LoyaltyLevel  Pet only, so always 0 for default creature
-        // 2 StandFlags
-        // 3 MiscFlags
-
-        SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_STATE, uint8(cainfo->bytes1 & 0xFF));
-        // SetByteValue(UNIT_FIELD_BYTES_1, 1, uint8((cainfo->bytes1 >> 8) & 0xFF));
-        SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_PET_LOYALTY, 0);
-        SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_VIS_FLAGS, uint8((cainfo->bytes1 >> 16) & 0xFF));
-        SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, uint8((cainfo->bytes1 >> 24) & 0xFF));
-    }
+    if (cainfo->standState != 0)
+        SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_STAND_STATE, uint8(cainfo->standState));
 
     // UNIT_FIELD_BYTES_2
     // 0 SheathState
@@ -2992,16 +2984,22 @@ bool Creature::IsSlowedInCombat() const
 void Creature::AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* /*itemProto*/, bool permanent, uint32 forcedDuration)
 {
     uint32 recTime = forcedDuration ? forcedDuration : spellEntry.RecoveryTime;
+    uint32 categoryRecTime = spellEntry.CategoryRecoveryTime;
     if (!forcedDuration)
     {
         uint32 cooldown = 0;
-        bool success = GetSpellCooldown(spellEntry.Id, cooldown);
+        Creature::CooldownResult result = GetSpellCooldown(spellEntry.Id, cooldown);
+        bool success = result != COOLDOWN_RESULT_NOT_FOUND;
         if (!success)
             success = sObjectMgr.GetCreatureCooldown(GetCreatureInfo()->Entry, spellEntry.Id, cooldown);
         if (success && cooldown) // lets see if this will one day become a problem, if it does, add -1 -1 defaults to creature spell lists
-            recTime = cooldown;
+        {
+            if (result == COOLDOWN_RESULT_FOUND)
+                recTime = cooldown;
+            else if (result == COOLDOWN_RESULT_CATEGORY_FOUND)
+                categoryRecTime = cooldown;
+        }
     }
-    uint32 categoryRecTime = spellEntry.CategoryRecoveryTime;
     if (recTime || categoryRecTime)
     {
         if (Player* modOwner = GetSpellModOwner())

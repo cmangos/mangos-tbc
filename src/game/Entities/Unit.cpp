@@ -438,6 +438,7 @@ Unit::Unit() :
     m_comboPoints = 0;
 
     m_aoeImmune = false;
+    m_chainImmune = false;
 }
 
 Unit::~Unit()
@@ -8601,7 +8602,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
         CreatureDataAddon const* cainfo = creature->GetCreatureAddon();
         if (cainfo)
         {
-            if (getStandState() == cainfo->bytes1)
+            if (getStandState() == cainfo->standState)
                 SetStandState(UNIT_STAND_STATE_STAND);
             if (cainfo->emote && GetUInt32Value(UNIT_NPC_EMOTESTATE) == cainfo->emote)
                 HandleEmoteState(0);
@@ -12577,6 +12578,16 @@ void Unit::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap /*=null
     {
         float groundZ = atMap->GetHeight(x, y, z);
         if (z < groundZ)
+            z = groundZ;
+    }
+}
+
+void Unit::AdjustZForCollision(float x, float y, float& z, float halfHeight) const
+{
+    if (CanFly())
+    {
+        float groundZ = GetMap()->GetHeight(x, y, z);
+        if (z - halfHeight < groundZ)
             z = groundZ;
     }
 }

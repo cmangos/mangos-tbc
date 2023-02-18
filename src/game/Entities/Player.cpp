@@ -6230,8 +6230,6 @@ bool Player::SetPosition(float x, float y, float z, float orientation, bool tele
         else
             RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_TURNING);
 
-        RemoveSpellsCausingAura(SPELL_AURA_FEIGN_DEATH);
-
         // move and update visible state if need
         m->PlayerRelocation(this, x, y, z, orientation);
 
@@ -17102,6 +17100,10 @@ void Player::_SaveQuestStatus()
         {
             case QUEST_NEW :
             {
+                Quest const* quest = sObjectMgr.GetQuestTemplate(mQuestStatu.first);
+                if (quest->IsAutoComplete() && !questStatus.m_rewarded)
+                    continue;
+
                 SqlStatement stmt = CharacterDatabase.CreateStatement(insertQuestStatus, "INSERT INTO character_queststatus (guid,quest,status,rewarded,explored,timer,mobcount1,mobcount2,mobcount3,mobcount4,itemcount1,itemcount2,itemcount3,itemcount4) "
                                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
@@ -17121,7 +17123,7 @@ void Player::_SaveQuestStatus()
             case QUEST_CHANGED :
             {
                 Quest const* quest = sObjectMgr.GetQuestTemplate(mQuestStatu.first);
-                if (quest->IsAutoComplete())
+                if (quest->IsAutoComplete() && !questStatus.m_rewarded)
                     continue;
 
                 SqlStatement stmt = CharacterDatabase.CreateStatement(updateQuestStatus, "UPDATE character_queststatus SET status = ?,rewarded = ?,explored = ?,timer = ?,"

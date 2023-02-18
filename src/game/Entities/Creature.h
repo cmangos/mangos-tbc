@@ -280,9 +280,8 @@ struct CreatureDataAddon
 {
     uint32 guidOrEntry;
     uint32 mount;
-    uint32 bytes1;
+    uint8  standState;
     uint8  sheath_state;                                    // SheathState
-    uint8  flags;                                           // UnitBytes2_Flags
     uint32 emote;
     uint32 move_flags;
     uint32 const* auras;                                    // loaded as char* "spell1 spell2 ... "
@@ -858,7 +857,13 @@ class Creature : public Unit
         // Spell Lists
         CreatureSpellList const& GetSpellList() const { return m_spellList; }
         std::vector<uint32> GetCharmSpells() const;
-        bool GetSpellCooldown(uint32 spellId, uint32& cooldown) const;
+        enum CooldownResult
+        {
+            COOLDOWN_RESULT_NOT_FOUND       = 0,
+            COOLDOWN_RESULT_FOUND           = 1,
+            COOLDOWN_RESULT_CATEGORY_FOUND  = 2,
+        };
+        CooldownResult GetSpellCooldown(uint32 spellId, uint32& cooldown) const;
 
         void SetCreatureGroup(CreatureGroup* group);
         void ClearCreatureGroup();

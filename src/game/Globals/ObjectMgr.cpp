@@ -691,6 +691,17 @@ void ObjectMgr::LoadCreatureTemplates()
             const_cast<CreatureInfo*>(cInfo)->visibilityDistanceType = VisibilityDistanceType::Normal;
         }
 
+        if (cInfo->StringID1 && !sScriptMgr.ExistsStringId(cInfo->StringID1))
+        {
+            sLog.outErrorDb("Table creature_template entry %u StringId1 %u does not exist. Setting to 0.", cInfo->Entry, cInfo->StringID1);
+            const_cast<CreatureInfo*>(cInfo)->StringID1 = 0;
+        }
+
+        if (cInfo->StringID2 && !sScriptMgr.ExistsStringId(cInfo->StringID2))
+        {
+            sLog.outErrorDb("Table creature_template entry %u StringID2 %u does not exist. Setting to 0.", cInfo->Entry, cInfo->StringID2);
+            const_cast<CreatureInfo*>(cInfo)->StringID2 = 0;
+        }
     }
 
     sLog.outString(">> Loaded %u creature definitions", sCreatureStorage.GetRecordCount());
@@ -1107,7 +1118,7 @@ void ObjectMgr::LoadSpawnGroups()
     std::shared_ptr<SpawnGroupEntryContainer> newContainer = std::make_shared<SpawnGroupEntryContainer>();
     uint32 count = 0;
 
-    std::unique_ptr<QueryResult> result(WorldDatabase.Query("SELECT Id, Name, Type, MaxCount, WorldState, Flags FROM spawn_group"));
+    std::unique_ptr<QueryResult> result(WorldDatabase.Query("SELECT Id, Name, Type, MaxCount, WorldState, Flags, StringId FROM spawn_group"));
     if (result)
     {
         do
@@ -1144,6 +1155,14 @@ void ObjectMgr::LoadSpawnGroups()
             }
 
             entry.Flags = fields[5].GetUInt32();
+            entry.StringId = fields[6].GetUInt32();
+
+            if (!sScriptMgr.ExistsStringId(entry.StringId))
+            {
+                sLog.outErrorDb("Table spawn_group entry %u stringId %u does not exist. Setting to 0.", entry, entry.StringId);
+                entry.StringId = 0;
+            }
+
             entry.Active = false;
             entry.EnabledByDefault = true;
             entry.formationEntry = nullptr;
@@ -1840,6 +1859,13 @@ void ObjectMgr::LoadCreatureSpawnDataTemplates()
         uint32 curMana =    fields[7].GetUInt32();
         uint32 spawnFlags = fields[8].GetUInt32();
         uint32 relayId = fields[9].GetUInt32();
+        uint32 stringId = fields[10].GetUInt32();
+
+        if (!sScriptMgr.ExistsStringId(stringId))
+        {
+            stringId = 0;
+            sLog.outErrorDb("Table creature_spawn_data_template entry %u stringId %u does not exist. Setting to 0.", entry, stringId);
+        }
 
         // leave room for invalidation in future
 
@@ -1853,9 +1879,11 @@ void ObjectMgr::LoadCreatureSpawnDataTemplates()
         data.curMana = curMana;
         data.spawnFlags = spawnFlags;
         data.relayId = relayId;
+        data.stringId = stringId;
 
         ++count;
-    } while (result->NextRow());
+    }
+    while (result->NextRow());
 
     sLog.outString(">> Loaded %u creature_spawn_data_template entries", count);
     sLog.outString();
@@ -2324,12 +2352,21 @@ void ObjectMgr::LoadGameObjects()
 
         data.animprogress = fields[1].GetUInt32();
         int32 state = fields[2].GetInt32();
+        uint32 stringId = fields[3].GetUInt32();
 
         if (data.goState != -1 && data.goState >= MAX_GO_STATE)
         {
             sLog.outErrorDb("Table `gameobject` have gameobject (GUID: %u Entry: %u) with invalid `state` (%u) value, skip", guid, data.id, data.goState);
             continue;
         }
+
+        if (!sScriptMgr.ExistsStringId(stringId))
+        {
+            stringId = 0;
+            sLog.outErrorDb("Table gameobject_addon guid %u stringId %u does not exist. Setting to 0.", guid, stringId);
+        }
+
+        data.StringId = stringId;
         data.goState = state;
     }
     while (result->NextRow());
@@ -7227,6 +7264,12 @@ std::vector<uint32> ObjectMgr::LoadGameobjectInfo()
             ERROR_DB_STRICT_LOG("Gameobject (Entry: %u GoType: %u) have too small size=%f",
                                 goInfo->id, goInfo->type, goInfo->size);
             const_cast<GameObjectInfo*>(goInfo)->size =  DEFAULT_OBJECT_SCALE;
+        }
+
+        if (goInfo->StringId && !sScriptMgr.ExistsStringId(goInfo->StringId))
+        {
+            sLog.outErrorDb("Table creature_template entry %u StringID2 %u does not exist. Setting to 0.", goInfo->id, goInfo->StringId);
+            const_cast<GameObjectInfo*>(goInfo)->StringId = 0;
         }
 
         // some GO types have unused go template, check goInfo->displayId at GO spawn data loading or ignore

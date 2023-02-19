@@ -157,7 +157,7 @@ void WaypointManager::Load()
     std::set<uint32> movementScriptSet;
 
     auto creatureMovementScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_CREATURE_MOVEMENT);
-    for (ScriptMapMap::const_iterator itr = creatureMovementScripts->second.begin(); itr != creatureMovementScripts->second.end(); ++itr)
+    for (auto itr = creatureMovementScripts->second.begin(); itr != creatureMovementScripts->second.end(); ++itr)
         movementScriptSet.insert(itr->first);
 
     // /////////////////////////////////////////////////////

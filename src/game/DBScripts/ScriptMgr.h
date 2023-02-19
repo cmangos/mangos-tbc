@@ -22,8 +22,9 @@
 #include "Common.h"
 #include "Entities/ObjectGuid.h"
 #include "Server/DBCEnums.h"
+#include "DBScripts/ScriptMgrDefines.h"
 
-#include <atomic>
+#include <memory>
 
 class Map;
 class Object;
@@ -582,22 +583,6 @@ struct ScriptInfo
                 return false;
         }
     }
-};
-
-enum ScriptMapType
-{
-    SCRIPT_TYPE_QUEST_END           = 0,
-    SCRIPT_TYPE_QUEST_START         = 1,
-    SCRIPT_TYPE_SPELL               = 2,
-    SCRIPT_TYPE_GAMEOBJECT          = 3,
-    SCRIPT_TYPE_GAMEOBJECT_TEMPLATE = 4,
-    SCRIPT_TYPE_EVENT               = 5,
-    SCRIPT_TYPE_GOSSIP              = 6,
-    SCRIPT_TYPE_CREATURE_DEATH      = 7,
-    SCRIPT_TYPE_CREATURE_MOVEMENT   = 8,
-    SCRIPT_TYPE_RELAY               = 9,
-    SCRIPT_TYPE_INTERNAL            = 10, // must be last
-    SCRIPT_TYPE_MAX
 };
 
 class ScriptAction

@@ -952,7 +952,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
         {
             auto questEndScripts = GetScriptMap(scriptType);
             // check ids
-            for (ScriptMapMap::const_iterator itr = questEndScripts->second.begin(); itr != questEndScripts->second.end(); ++itr)
+            for (auto itr = questEndScripts->second.begin(); itr != questEndScripts->second.end(); ++itr)
             {
                 if (!sObjectMgr.GetQuestTemplate(itr->first))
                     sLog.outErrorDb("Table `dbscripts_on_quest_end` has not existing quest (Id: %u) as script id", itr->first);
@@ -963,7 +963,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
         {
             auto questStartScripts = GetScriptMap(scriptType);
             // check ids
-            for (ScriptMapMap::const_iterator itr = questStartScripts->second.begin(); itr != questStartScripts->second.end(); ++itr)
+            for (auto itr = questStartScripts->second.begin(); itr != questStartScripts->second.end(); ++itr)
             {
                 if (!sObjectMgr.GetQuestTemplate(itr->first))
                     sLog.outErrorDb("Table `dbscripts_on_quest_start` has not existing quest (Id: %u) as script id", itr->first);
@@ -974,7 +974,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
         {
             auto spellScripts = GetScriptMap(scriptType);
             // check ids
-            for (ScriptMapMap::const_iterator itr = spellScripts->second.begin(); itr != spellScripts->second.end(); ++itr)
+            for (auto itr = spellScripts->second.begin(); itr != spellScripts->second.end(); ++itr)
             {
                 SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(itr->first);
                 if (!spellInfo)
@@ -1003,7 +1003,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
         {
             auto goScripts = GetScriptMap(scriptType);
             // check ids
-            for (ScriptMapMap::const_iterator itr = goScripts->second.begin(); itr != goScripts->second.end(); ++itr)
+            for (auto itr = goScripts->second.begin(); itr != goScripts->second.end(); ++itr)
             {
                 if (!sObjectMgr.GetGOData(itr->first))
                     sLog.outErrorDb("Table `dbscripts_on_go_use` has not existing gameobject (GUID: %u) as script id", itr->first);
@@ -1014,7 +1014,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
         {
             auto goTemplateScripts = GetScriptMap(scriptType);
             // check ids
-            for (ScriptMapMap::const_iterator itr = goTemplateScripts->second.begin(); itr != goTemplateScripts->second.end(); ++itr)
+            for (auto itr = goTemplateScripts->second.begin(); itr != goTemplateScripts->second.end(); ++itr)
             {
                 if (!sObjectMgr.GetGameObjectInfo(itr->first))
                     sLog.outErrorDb("Table `dbscripts_on_go_template_use` has not existing gameobject (Entry: %u) as script id", itr->first);
@@ -1029,7 +1029,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
             auto eventScripts = GetScriptMap(scriptType);
 
             // Then check if all scripts are in above list of possible script entries
-            for (ScriptMapMap::const_iterator itr = eventScripts->second.begin(); itr != eventScripts->second.end(); ++itr)
+            for (auto itr = eventScripts->second.begin(); itr != eventScripts->second.end(); ++itr)
             {
                 std::set<uint32>::const_iterator itr2 = eventIds.find(itr->first);
                 if (itr2 == eventIds.end())
@@ -1046,7 +1046,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
         {
             // check ids
             auto deathScripts = GetScriptMap(scriptType);
-            for (ScriptMapMap::const_iterator itr = deathScripts->second.begin(); itr != deathScripts->second.end(); ++itr)
+            for (auto itr = deathScripts->second.begin(); itr != deathScripts->second.end(); ++itr)
             {
                 if (!sObjectMgr.GetCreatureTemplate(itr->first))
                     sLog.outErrorDb("Table `dbscripts_on_creature_death` has not existing creature (Entry: %u) as script id", itr->first);
@@ -1061,7 +1061,7 @@ void ScriptMgr::LoadScriptMap(ScriptMapType scriptType, bool reload)
         {
             // check ids
             auto relayScripts = GetScriptMap(scriptType);
-            for (ScriptMapMap::const_iterator itr = relayScripts->second.begin(); itr != relayScripts->second.end(); ++itr)
+            for (auto itr = relayScripts->second.begin(); itr != relayScripts->second.end(); ++itr)
             {
                 for (auto& data : itr->second) // need to check after load is complete, because of nesting
                 {
@@ -1167,7 +1167,7 @@ void ScriptMgr::CheckRandomRelayTemplates()
 void ScriptMgr::CheckScriptTexts(ScriptMapType scriptType)
 {
     ScriptMapMapName const& scripts = *GetScriptMap(scriptType).get();
-    for (ScriptMapMap::const_iterator itrMM = scripts.second.begin(); itrMM != scripts.second.end(); ++itrMM)
+    for (auto itrMM = scripts.second.begin(); itrMM != scripts.second.end(); ++itrMM)
     {
         for (ScriptMap::const_iterator itrM = itrMM->second.begin(); itrM != itrMM->second.end(); ++itrM)
         {

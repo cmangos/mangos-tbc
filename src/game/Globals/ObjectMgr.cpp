@@ -9725,7 +9725,7 @@ void ObjectMgr::LoadGossipMenus()
     auto gossipScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_GOSSIP);
     // Check which script-ids in dbscripts_on_gossip are not used
     std::set<uint32> gossipScriptSet;
-    for (ScriptMapMap::const_iterator itr = gossipScripts->second.begin(); itr != gossipScripts->second.end(); ++itr)
+    for (auto itr = gossipScripts->second.begin(); itr != gossipScripts->second.end(); ++itr)
         gossipScriptSet.insert(itr->first);
 
     // Load gossip_menu and gossip_menu_option data

@@ -20,6 +20,7 @@
 #include "Globals/ObjectMgr.h"
 #include "AI/EventAI/CreatureEventAI.h"
 #include "AI/EventAI/CreatureEventAIMgr.h"
+#include "DBScripts/ScriptMgr.h"
 
 MapDataContainer::MapDataContainer() : m_spellListContainer(sObjectMgr.GetCreatureSpellListContainer()),
     m_spawnGroupContainer(sObjectMgr.GetSpawnGroupContainer()), m_CreatureEventAIEventEntryMap(sEventAIMgr.GetCreatureEventEntryAIMap()),

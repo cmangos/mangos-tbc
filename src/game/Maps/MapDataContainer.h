@@ -50,6 +50,9 @@ class MapDataContainer
         std::shared_ptr<CreatureEventAI_Event_Map> GetCreatureEventEntryAIMap() const;
         std::shared_ptr<CreatureEventAI_Event_Map> GetCreatureEventGuidAIMap() const;
         std::shared_ptr<CreatureEventAI_EventComputedData_Map> GetEAIComputedDataMap() const;
+
+        void SetScriptMap(ScriptMapType scriptMapType, std::shared_ptr<ScriptMapMapName> scriptMap);
+        std::shared_ptr<ScriptMapMapName> GetScriptMap(ScriptMapType scriptMapType);
     private:
         std::shared_ptr<CreatureSpellListContainer> m_spellListContainer;
         std::shared_ptr<SpawnGroupEntryContainer> m_spawnGroupContainer;
@@ -57,6 +60,8 @@ class MapDataContainer
         std::shared_ptr<CreatureEventAI_Event_Map>  m_CreatureEventAIEventEntryMap;
         std::shared_ptr<CreatureEventAI_Event_Map>  m_CreatureEventAIEventGuidMap;
         std::shared_ptr<CreatureEventAI_EventComputedData_Map>  m_creatureEventAIComputedDataMap;
+
+        std::shared_ptr<ScriptMapMapName> m_scriptMaps[SCRIPT_TYPE_MAX];
 };
 
 #endif

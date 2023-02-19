@@ -9459,10 +9459,8 @@ void ObjectMgr::LoadNpcGossips()
 void ObjectMgr::LoadGossipMenu(std::set<uint32>& gossipScriptSet)
 {
     m_mGossipMenusMap.clear();
-    //                                                0      1        2
-    QueryResult* result = WorldDatabase.Query("SELECT entry, text_id, script_id, "
-                          //   3
-                          "condition_id FROM gossip_menu");
+    //                                                                  0      1        2          3
+    std::unique_ptr<QueryResult> result(WorldDatabase.Query("SELECT entry, text_id, script_id, condition_id FROM gossip_menu"));
 
     if (!result)
     {
@@ -9472,6 +9470,8 @@ void ObjectMgr::LoadGossipMenu(std::set<uint32>& gossipScriptSet)
         sLog.outString();
         return;
     }
+
+    auto gossipScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_GOSSIP);
 
     BarGoLink bar(result->GetRowCount());
 
@@ -9500,7 +9500,7 @@ void ObjectMgr::LoadGossipMenu(std::set<uint32>& gossipScriptSet)
         // Check script-id
         if (gMenu.script_id)
         {
-            if (sGossipScripts.second.find(gMenu.script_id) == sGossipScripts.second.end())
+            if (gossipScripts->second.find(gMenu.script_id) == gossipScripts->second.end())
             {
                 sLog.outErrorDb("Table gossip_menu for menu %u, text-id %u have script_id %u that does not exist in `dbscripts_on_gossip`, ignoring", gMenu.entry, gMenu.text_id, gMenu.script_id);
                 continue;
@@ -9525,8 +9525,6 @@ void ObjectMgr::LoadGossipMenu(std::set<uint32>& gossipScriptSet)
         ++count;
     }
     while (result->NextRow());
-
-    delete result;
 
     // post loading tests
     for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
@@ -9599,6 +9597,8 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
                 if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
                     menu_ids.erase(cInfo->GossipMenuId);
             }
+
+    auto gossipScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_GOSSIP);
 
     do
     {
@@ -9682,7 +9682,7 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
 
         if (gMenuItem.action_script_id)
         {
-            if (sGossipScripts.second.find(gMenuItem.action_script_id) == sGossipScripts.second.end())
+            if (gossipScripts->second.find(gMenuItem.action_script_id) == gossipScripts->second.end())
             {
                 sLog.outErrorDb("Table gossip_menu_option for menu %u, id %u have action_script_id %u that does not exist in `dbscripts_on_gossip`, ignoring", gMenuItem.menu_id, gMenuItem.id, gMenuItem.action_script_id);
                 continue;
@@ -9722,9 +9722,10 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
 
 void ObjectMgr::LoadGossipMenus()
 {
+    auto gossipScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_GOSSIP);
     // Check which script-ids in dbscripts_on_gossip are not used
     std::set<uint32> gossipScriptSet;
-    for (ScriptMapMap::const_iterator itr = sGossipScripts.second.begin(); itr != sGossipScripts.second.end(); ++itr)
+    for (ScriptMapMap::const_iterator itr = gossipScripts->second.begin(); itr != gossipScripts->second.end(); ++itr)
         gossipScriptSet.insert(itr->first);
 
     // Load gossip_menu and gossip_menu_option data
@@ -9734,7 +9735,7 @@ void ObjectMgr::LoadGossipMenus()
     LoadGossipMenuItems(gossipScriptSet);
 
     for (uint32 itr : gossipScriptSet)
-    sLog.outErrorDb("Table `dbscripts_on_gossip` contains unused script, id %u.", itr);
+        sLog.outErrorDb("Table `dbscripts_on_gossip` contains unused script, id %u.", itr);
 }
 
 void ObjectMgr::LoadDungeonEncounters()

@@ -24,6 +24,7 @@
 #include <memory>
 #include <vector>
 #include <unordered_map>
+#include <map>
 
 struct CreatureSpellListContainer;
 struct CreatureSpellList;

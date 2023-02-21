@@ -550,6 +550,8 @@ void World::LoadConfigSettings(bool reload)
 
     setConfigMinMax(CONFIG_UINT32_START_ARENA_POINTS, "StartArenaPoints", 0, 0, getConfig(CONFIG_UINT32_MAX_ARENA_POINTS));
 
+    setConfig(CONFIG_BOOL_HONOR_KILLS_TITLES, "Custom.HonorKillsTitles", false);
+
     setConfig(CONFIG_BOOL_COLLECTORS_EDITION, "Custom.CollectorsEdition", true);
 
     setConfig(CONFIG_BOOL_TAXI_FLIGHT_CHAT_FIX, "TaxiFlightChatFix", false);

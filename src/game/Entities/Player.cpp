@@ -6759,6 +6759,74 @@ void Player::UpdateHonorFields()
     }
 
     m_lastHonorUpdateTime = now;
+
+    // START custom PvP Honor Kills Title System
+    if (sWorld.getConfig(CONFIG_BOOL_HONOR_KILLS_TITLES))
+    {
+        uint32 HonorKills = GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS);
+        uint32 victim_rank = 0;
+
+        //this may consume a lot of cpu cycles.
+        //You can use this sql query: "SELECT max(totalKills) FROM characters" to get the max totalKills
+        //of yours players and edit this condition to:  "if (HonorKills < 15 || HonorKills > max(totalKills)+1)) return;"
+        //don't forget to replace max(totalKills) with the result of query
+        if (HonorKills < 10)
+            return;
+
+        if (HonorKills >= 10 && HonorKills < 50)
+            victim_rank = 1;
+        else if (HonorKills >= 50 && HonorKills < 10)
+            victim_rank = 2;
+        else if (HonorKills >= 100 && HonorKills < 200)
+            victim_rank = 3;
+        else if (HonorKills >= 200 && HonorKills < 450)
+            victim_rank = 4;
+        else if (HonorKills >= 450 && HonorKills < 750)
+            victim_rank = 5;
+        else if (HonorKills >= 750 && HonorKills < 1300)
+            victim_rank = 6;
+        else if (HonorKills >= 1300 && HonorKills < 2000)
+            victim_rank = 7;
+        else if (HonorKills >= 2000 && HonorKills < 3500)
+            victim_rank = 8;
+        else if (HonorKills >= 3500 && HonorKills < 6000)
+            victim_rank = 9;
+        else if (HonorKills >= 6000 && HonorKills < 9500)
+            victim_rank = 10;
+        else if (HonorKills >= 9500 && HonorKills < 15000)
+            victim_rank = 11;
+        else if (HonorKills >= 15000 && HonorKills < 21000)
+            victim_rank = 12;
+        else if (HonorKills >= 21000 && HonorKills < 30000)
+            victim_rank = 13;
+        else if (HonorKills >= 30000)
+            victim_rank = 14;
+
+        // horde titles starting from 15+
+        if (GetTeam() == HORDE)
+            victim_rank += 14;
+
+        if (CharTitlesEntry const* titleEntry = sCharTitlesStore.LookupEntry(victim_rank))
+        {
+            // if player does have title there is no need to update fourther
+            if (!HasTitle(titleEntry))
+            {
+                // lets remove all previous ranks
+                for (uint8 i = 1; i < 29; ++i)
+                {
+                    if (CharTitlesEntry const* title = sCharTitlesStore.LookupEntry(i))
+                    {
+                        if (HasTitle(title))
+                            SetTitle(title, true);
+                    }
+                }
+                // finaly apply and set as active new title
+                SetTitle(titleEntry);
+                SetUInt32Value(PLAYER_CHOSEN_TITLE, victim_rank);
+            }
+        }
+    }
+    // END custom PvP Honor Kills Title System
 }
 
 /// Calculate the amount of honor gained based on the victim

@@ -23,22 +23,25 @@
 #include "Globals/SharedDefines.h"
 #include "Utilities/LinkedReference/Reference.h"
 #include "Entities/UnitEvents.h"
+#include "Timer.h"
 #include "Entities/ObjectGuid.h"
 #include <list>
 
-//==============================================================
+ //==============================================================
 
 class Unit;
 class ThreatManager;
 struct SpellEntry;
+
+#define THREAT_UPDATE_INTERVAL (1 * IN_MILLISECONDS)        // Server should send threat update to client periodically each second
 
 //==============================================================
 // Class to calculate the real threat based
 
 class ThreatCalcHelper
 {
-    public:
-        static float CalcThreat(Unit* hatedUnit, Unit* hatingUnit, float threat, bool crit, SpellSchoolMask schoolMask, SpellEntry const* threatSpell, bool assist);
+public:
+    static float CalcThreat(Unit* hatedUnit, Unit* hatingUnit, float threat, bool crit, SpellSchoolMask schoolMask, SpellEntry const* threatSpell, bool assist);
 };
 
 enum HostileState : uint32
@@ -58,87 +61,87 @@ enum TauntState : uint32
 //==============================================================
 class HostileReference : public Reference<Unit, ThreatManager>
 {
-    public:
-        HostileReference(Unit* unit, ThreatManager* threatManager, float threat);
+public:
+    HostileReference(Unit* unit, ThreatManager* threatManager, float threat);
 
-        //=================================================
-        void addThreat(float mod);
+    //=================================================
+    void addThreat(float mod);
 
-        void setThreat(float threat) { addThreat(threat - getThreat()); }
+    void setThreat(float threat) { addThreat(threat - getThreat()); }
 
-        void addThreatPercent(int32 threatPercent)
-        {
-            // for special -100 case avoid rounding
-            addThreat(threatPercent == -100 ? -iThreat : iThreat * threatPercent / 100.0f);
-        }
+    void addThreatPercent(int32 threatPercent)
+    {
+        // for special -100 case avoid rounding
+        addThreat(threatPercent == -100 ? -iThreat : iThreat * threatPercent / 100.0f);
+    }
 
-        float getThreat() const { return iThreat; }
-        float getFadeoutThreatReduction() const { return iFadeoutThreadReduction; }
-        void setFadeoutThreatReduction(float value);
-        void resetFadeoutThreatReduction();
+    float getThreat() const { return iThreat; }
+    float getFadeoutThreatReduction() const { return iFadeoutThreadReduction; }
+    void setFadeoutThreatReduction(float value);
+    void resetFadeoutThreatReduction();
 
-        bool isOnline() const { return m_online; }
+    bool isOnline() const { return m_online; }
 
-        // The Unit might be in water and the creature can not enter the water, but has range attack
-        // in this case online = true, but accessable = false
-        bool isAccessable() const { return iAccessible; }
+    // The Unit might be in water and the creature can not enter the water, but has range attack
+    // in this case online = true, but accessable = false
+    bool isAccessable() const { return iAccessible; }
 
-        //=================================================
-        // check, if source can reach target and set the status
-        void updateOnlineStatus();
+    //=================================================
+    // check, if source can reach target and set the status
+    void updateOnlineStatus();
 
-        void setOnlineOfflineState(bool isOnline);
+    void setOnlineOfflineState(bool isOnline);
 
-        void setAccessibleState(bool isAccessible);
-        //=================================================
+    void setAccessibleState(bool isAccessible);
+    //=================================================
 
-        bool operator ==(const HostileReference& hostileReference) const { return hostileReference.getUnitGuid() == getUnitGuid(); }
+    bool operator ==(const HostileReference& hostileReference) const { return hostileReference.getUnitGuid() == getUnitGuid(); }
 
-        //=================================================
+    //=================================================
 
-        ObjectGuid const& getUnitGuid() const { return iUnitGuid; }
+    ObjectGuid const& getUnitGuid() const { return iUnitGuid; }
 
-        //=================================================
-        // reference is not needed anymore. realy delete it !
+    //=================================================
+    // reference is not needed anymore. realy delete it !
 
-        void removeReference();
+    void removeReference();
 
-        //=================================================
+    //=================================================
 
-        HostileReference* next() { return static_cast<HostileReference*>(Reference<Unit, ThreatManager>::next()); }
+    HostileReference* next() { return static_cast<HostileReference*>(Reference<Unit, ThreatManager>::next()); }
 
-        //=================================================
+    //=================================================
 
-        // Tell our refTo (target) object that we have a link
-        void targetObjectBuildLink() override;
+    // Tell our refTo (target) object that we have a link
+    void targetObjectBuildLink() override;
 
-        // Tell our refTo (taget) object, that the link is cut
-        void targetObjectDestroyLink() override;
+    // Tell our refTo (taget) object, that the link is cut
+    void targetObjectDestroyLink() override;
 
-        // Tell our refFrom (source) object, that the link is cut (Target destroyed)
-        void sourceObjectDestroyLink() override;
+    // Tell our refFrom (source) object, that the link is cut (Target destroyed)
+    void sourceObjectDestroyLink() override;
 
-        // Priority alterations
-        void SetSuppressabilityToggle() { m_suppresabilityToggle = true; }
-        void SetHostileState(HostileState state);
-        HostileState GetHostileState() const { return m_hostileState; }
+    // Priority alterations
+    void SetSuppressabilityToggle() { m_suppresabilityToggle = true; }
+    void SetHostileState(HostileState state);
+    HostileState GetHostileState() const { return m_hostileState; }
 
-        void SetTauntState(TauntState state) { m_tauntState = state; }
-        TauntState GetTauntState() const { return m_tauntState; }
-    protected:
-        // Inform the source, that the status of that reference was changed
-        void fireStatusChanged(ThreatRefStatusChangeEvent& threatRefStatusChangeEvent);
+    void SetTauntState(TauntState state) { m_tauntState = state; }
+    TauntState GetTauntState() const { return m_tauntState; }
+protected:
+    // Inform the source, that the status of that reference was changed
+    void fireStatusChanged(ThreatRefStatusChangeEvent& threatRefStatusChangeEvent);
 
-        Unit* getSourceUnit() const;
-    private:
-        float iThreat;
-        HostileState m_hostileState;
-        bool m_suppresabilityToggle;
-        TauntState m_tauntState;
-        float iFadeoutThreadReduction;                      // used for fade
-        ObjectGuid iUnitGuid;
-        bool m_online;
-        bool iAccessible;
+    Unit* getSourceUnit() const;
+private:
+    float iThreat;
+    HostileState m_hostileState;
+    bool m_suppresabilityToggle;
+    TauntState m_tauntState;
+    float iFadeoutThreadReduction;                      // used for fade
+    ObjectGuid iUnitGuid;
+    bool m_online;
+    bool iAccessible;
 };
 
 //==============================================================
@@ -146,105 +149,108 @@ class ThreatManager;
 
 typedef std::list<HostileReference*> ThreatList;
 
-
 class ThreatContainer
 {
-    public:
-        ThreatContainer() { iDirty = false; }
-        ~ThreatContainer() { clearReferences(); }
+public:
+    ThreatContainer() { iDirty = false; }
+    ~ThreatContainer() { clearReferences(); }
 
-        HostileReference* addThreat(Unit* victim, float threat);
+    HostileReference* addThreat(Unit* victim, float threat);
 
-        void modifyThreatPercent(Unit* victim, int32 threatPercent);
-        void modifyAllThreatPercent(int32 threatPercent);
+    void modifyThreatPercent(Unit* victim, int32 threatPercent);
+    void modifyAllThreatPercent(int32 threatPercent);
 
-        HostileReference* selectNextVictim(Unit* attacker, HostileReference* currentVictim);
+    HostileReference* selectNextVictim(Unit* attacker, HostileReference* currentVictim);
 
-        void setDirty(bool dirty) { iDirty = dirty; }
+    void setDirty(bool dirty) { iDirty = dirty; }
 
-        bool isDirty() const { return iDirty; }
+    bool isDirty() const { return iDirty; }
 
-        bool empty() const { return iThreatList.empty(); }
+    bool empty() const { return iThreatList.empty(); }
 
-        HostileReference* getMostHated() { return iThreatList.empty() ? nullptr : iThreatList.front(); }
+    HostileReference* getMostHated() { return iThreatList.empty() ? nullptr : iThreatList.front(); }
 
-        HostileReference* getReferenceByTarget(Unit* victim);
+    HostileReference* getReferenceByTarget(Unit* victim);
 
-        ThreatList const& getThreatList() const { return iThreatList; }
-    protected:
-        friend class ThreatManager;
+    ThreatList const& getThreatList() const { return iThreatList; }
+protected:
+    friend class ThreatManager;
 
-        void remove(HostileReference* ref) { iThreatList.remove(ref); }
-        void addReference(HostileReference* hostileReference) { iThreatList.push_back(hostileReference); }
-        void clearReferences();
-        // Sort the list if necessary
-        void update(bool force, bool isPlayer);
+    void remove(HostileReference* ref) { iThreatList.remove(ref); }
+    void addReference(HostileReference* hostileReference) { iThreatList.push_back(hostileReference); }
+    void clearReferences();
+    // Sort the list if necessary
+    void update(bool force, bool isPlayer);
 
-        ThreatList iThreatList;
-    private:
-        bool iDirty;
+    ThreatList iThreatList;
+private:
+    bool iDirty;
 };
 
 //=================================================
 
 class ThreatManager
 {
-    public:
-        friend class HostileReference;
+public:
+    friend class HostileReference;
 
-        explicit ThreatManager(Unit* owner);
+    explicit ThreatManager(Unit* owner);
 
-        ~ThreatManager() { clearReferences(); }
+    ~ThreatManager() { clearReferences(); }
 
-        void clearReferences();
+    void clearReferences();
 
-        void addThreat(Unit* victim, float threat, bool crit, SpellSchoolMask schoolMask, SpellEntry const* threatSpell, bool assist);
-        void addThreat(Unit* victim, float threat) { addThreat(victim, threat, false, SPELL_SCHOOL_MASK_NONE, nullptr, false); }
+    void addThreat(Unit* victim, float threat, bool crit, SpellSchoolMask schoolMask, SpellEntry const* threatSpell, bool assist);
+    void addThreat(Unit* victim, float threat) { addThreat(victim, threat, false, SPELL_SCHOOL_MASK_NONE, nullptr, false); }
 
-        // add threat as raw value (ignore redirections and expection all mods applied already to it
-        void addThreatDirectly(Unit* victim, float threat, bool noNew);
+    // add threat as raw value (ignore redirections and expection all mods applied already to it
+    void addThreatDirectly(Unit* victim, float threat);
 
-        void modifyThreatPercent(Unit* victim, int32 threatPercent); // -101 removes whole ref, -100 sets threat to 0, rest modifies it
-        void modifyAllThreatPercent(int32 threatPercent);
+    // add threat as raw value (ignore redirections and expection all mods applied already to it
+    void addThreatDirectly(Unit* victim, float threat, bool noNew);
 
-        float getThreat(Unit* victim, bool alsoSearchOfflineList = false);
-        float GetHighestThreat(); // for purpose of taunt effect
+    float getThreat(Unit* victim, bool alsoSearchOfflineList = false);
+    float GetHighestThreat(); // for purpose of taunt effect
 
-        bool HasThreat(Unit* victim, bool alsoSearchOfflineList = false);
+    bool HasThreat(Unit* victim, bool alsoSearchOfflineList = false);
 
-        bool isThreatListEmpty() const { return iThreatContainer.empty(); }
+    bool isThreatListEmpty() const { return iThreatContainer.empty(); }
 
-        void processThreatEvent(ThreatRefStatusChangeEvent& threatRefStatusChangeEvent);
+    void processThreatEvent(ThreatRefStatusChangeEvent& threatRefStatusChangeEvent);
 
-        HostileReference* getCurrentVictim() const { return iCurrentVictim; }
+    void UpdateForClient(uint32 diff);
 
-        Unit* getOwner() const { return iOwner; }
+    HostileReference* getCurrentVictim() const { return iCurrentVictim; }
 
-        Unit* getHostileTarget();
+    Unit* getOwner() const { return iOwner; }
 
-        void TauntUpdate();
-        void FixateTarget(Unit* victim);
+    Unit* getHostileTarget();
 
-        void setCurrentVictim(HostileReference* hostileReference);
-        void setCurrentVictimByTarget(Unit* target); // Used in SPELL_EFFECT_ATTACK_ME to set the current target to the taunter
+    void TauntUpdate();
+    void FixateTarget(Unit* victim);
 
-        void setDirty(bool dirty) { iThreatContainer.setDirty(dirty); }
+    void setCurrentVictim(HostileReference* hostileReference);
+    void setCurrentVictimByTarget(Unit* target); // Used in SPELL_EFFECT_ATTACK_ME to set the current target to the taunter
 
-        // Don't must be used for explicit modify threat values in iterator return pointers
-        ThreatList const& getThreatList() const { return iThreatContainer.getThreatList(); }
+    void setDirty(bool dirty) { iThreatContainer.setDirty(dirty); }
 
-        void DeleteOutOfRangeReferences();
+    // Don't must be used for explicit modify threat values in iterator return pointers
+    ThreatList const& getThreatList() const { return iThreatContainer.getThreatList(); }
 
-        // When a target is unreachable, we need to set someone as low priority
-        void SetTargetSuppressed(Unit* target);
-        void ClearSuppressed(HostileReference* except);
-    private:
-        void UpdateContainers();
+    void DeleteOutOfRangeReferences();
 
-        HostileReference* iCurrentVictim;
-        Unit* iOwner;
-        ThreatContainer iThreatContainer;
-        ThreatContainer iThreatOfflineContainer;
+    // When a target is unreachable, we need to set someone as low priority
+    void SetTargetSuppressed(Unit* target);
+    void ClearSuppressed(HostileReference* except);
+private:
+    void UpdateContainers();
+
+    HostileReference* iCurrentVictim;
+    Unit* iOwner;
+    ShortTimeTracker iUpdateTimer;
+    bool iUpdateNeed;
+    ThreatContainer iThreatContainer;
+    ThreatContainer iThreatOfflineContainer;
 };
 
 //=================================================

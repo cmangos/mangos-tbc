@@ -26,11 +26,11 @@
 #include "Entities/UnitEvents.h"
 #include "Spells/SpellAuras.h"
 
-//==============================================================
-//================= ThreatCalcHelper ===========================
-//==============================================================
+ //==============================================================
+ //================= ThreatCalcHelper ===========================
+ //==============================================================
 
-// The pHatingUnit is not used yet
+ // The pHatingUnit is not used yet
 float ThreatCalcHelper::CalcThreat(Unit* hatedUnit, Unit* hatingUnit, float threat, bool crit, SpellSchoolMask schoolMask, SpellEntry const* threatSpell, bool assist)
 {
     // all flat mods applied early
@@ -63,7 +63,7 @@ float ThreatCalcHelper::CalcThreat(Unit* hatedUnit, Unit* hatingUnit, float thre
 //================= HostileReference ==========================
 //============================================================
 
-HostileReference::HostileReference(Unit* unit, ThreatManager* threatManager, float threat) : 
+HostileReference::HostileReference(Unit* unit, ThreatManager* threatManager, float threat) :
     m_hostileState(STATE_NORMAL), m_tauntState(STATE_NONE)
 {
     iThreat = threat;
@@ -292,36 +292,36 @@ void ThreatContainer::update(bool force, bool isPlayer)
     if ((iDirty || force || isPlayer) && iThreatList.size() > 1)
     {
         iThreatList.sort([&](const HostileReference* lhs, const HostileReference* rhs)->bool
-        {
-            Unit* owner = lhs->getSource()->getOwner();
-            if (isPlayer)
             {
-                Unit* left = lhs->getTarget();
-                Unit* right = rhs->getTarget();
-                if (left->IsPlayer() && !right->IsPlayer())
-                    return true;
-                if (!left->IsPlayer() && right->IsPlayer())
-                    return false;
-                bool attackLeft = owner->CanAttack(left);
-                bool attackRight = owner->CanAttack(right);
-                if (attackLeft && !attackRight)
-                    return true;
-                if (!attackLeft && attackRight)
-                    return false;
-            }
-            if (lhs->GetTauntState() != rhs->GetTauntState())
-                return lhs->GetTauntState() > rhs->GetTauntState();
-            if (force)
-            {
-                bool first = owner->CanReachWithMeleeAttack(lhs->getTarget());
-                bool second = owner->CanReachWithMeleeAttack(rhs->getTarget());
-                if (first != second)
-                    return first > second;
-            }
-            if (lhs->GetHostileState() != rhs->GetHostileState())
-                return lhs->GetHostileState() > rhs->GetHostileState();
-            return lhs->getThreat() > rhs->getThreat(); // reverse sorting
-        });
+                Unit* owner = lhs->getSource()->getOwner();
+                if (isPlayer)
+                {
+                    Unit* left = lhs->getTarget();
+                    Unit* right = rhs->getTarget();
+                    if (left->IsPlayer() && !right->IsPlayer())
+                        return true;
+                    if (!left->IsPlayer() && right->IsPlayer())
+                        return false;
+                    bool attackLeft = owner->CanAttack(left);
+                    bool attackRight = owner->CanAttack(right);
+                    if (attackLeft && !attackRight)
+                        return true;
+                    if (!attackLeft && attackRight)
+                        return false;
+                }
+                if (lhs->GetTauntState() != rhs->GetTauntState())
+                    return lhs->GetTauntState() > rhs->GetTauntState();
+                if (force)
+                {
+                    bool first = owner->CanReachWithMeleeAttack(lhs->getTarget());
+                    bool second = owner->CanReachWithMeleeAttack(rhs->getTarget());
+                    if (first != second)
+                        return first > second;
+                }
+                if (lhs->GetHostileState() != rhs->GetHostileState())
+                    return lhs->GetHostileState() > rhs->GetHostileState();
+                return lhs->getThreat() > rhs->getThreat(); // reverse sorting
+            });
     }
     iDirty = false;
 }
@@ -432,7 +432,7 @@ HostileReference* ThreatContainer::selectNextVictim(Unit* attacker, HostileRefer
 //============================================================
 
 ThreatManager::ThreatManager(Unit* owner)
-    : iCurrentVictim(nullptr), iOwner(owner)
+    : iCurrentVictim(nullptr), iOwner(owner), iUpdateTimer(THREAT_UPDATE_INTERVAL), iUpdateNeed(false)
 {
 }
 
@@ -443,6 +443,8 @@ void ThreatManager::clearReferences()
     iThreatContainer.clearReferences();
     iThreatOfflineContainer.clearReferences();
     iCurrentVictim = nullptr;
+    iUpdateTimer.Reset(THREAT_UPDATE_INTERVAL);
+    iUpdateNeed = false;
 }
 
 //============================================================
@@ -486,8 +488,11 @@ void ThreatManager::addThreat(Unit* victim, float threat, bool crit, SpellSchool
 void ThreatManager::addThreatDirectly(Unit* victim, float threat, bool noNew)
 {
     HostileReference* ref = iThreatContainer.addThreat(victim, threat);
+    // Ref is online
+    if (ref)
+        iUpdateNeed = true;
     // Ref is not in the online refs, search the offline refs next
-    if (!ref)
+    else
         ref = iThreatOfflineContainer.addThreat(victim, threat);
 
     if (!ref && !noNew) // there was no ref => create a new one
@@ -495,6 +500,7 @@ void ThreatManager::addThreatDirectly(Unit* victim, float threat, bool noNew)
         HostileReference* hostileReference = new HostileReference(victim, this, 0); // threat has to be 0 here
         iThreatContainer.addReference(hostileReference);
         hostileReference->addThreat(threat); // now we add the real threat
+        iUpdateNeed = true;
         Unit* owner = getOwner();
         owner->TriggerAggroLinkingEvent(victim);
         Unit* victim_owner = victim->GetMaster();
@@ -510,11 +516,13 @@ void ThreatManager::addThreatDirectly(Unit* victim, float threat, bool noNew)
 void ThreatManager::modifyThreatPercent(Unit* victim, int32 threatPercent)
 {
     iThreatContainer.modifyThreatPercent(victim, threatPercent);
+    iUpdateNeed = true;
 }
 
 void ThreatManager::modifyAllThreatPercent(int32 threatPercent)
 {
     iThreatContainer.modifyAllThreatPercent(threatPercent);
+    iUpdateNeed = true;
 }
 
 //============================================================
@@ -560,7 +568,7 @@ float ThreatManager::GetHighestThreat()
     return value;
 }
 
-bool ThreatManager::HasThreat(Unit * victim, bool alsoSearchOfflineList)
+bool ThreatManager::HasThreat(Unit* victim, bool alsoSearchOfflineList)
 {
     HostileReference* ref = iThreatContainer.getReferenceByTarget(victim);
     if (!ref && alsoSearchOfflineList)
@@ -608,7 +616,15 @@ void ThreatManager::FixateTarget(Unit* victim)
 
 void ThreatManager::setCurrentVictim(HostileReference* hostileReference)
 {
+    // including nullptr==nullptr case
+    if (hostileReference == iCurrentVictim)
+        return;
+
+    if (hostileReference)
+        iOwner->SendHighestThreatUpdate(hostileReference);
+
     iCurrentVictim = hostileReference;
+    iUpdateNeed = true;
 }
 
 void ThreatManager::setCurrentVictimByTarget(Unit* target)
@@ -631,49 +647,69 @@ void ThreatManager::processThreatEvent(ThreatRefStatusChangeEvent& threatRefStat
 
     switch (threatRefStatusChangeEvent.getType())
     {
-        case UEV_THREAT_REF_THREAT_CHANGE:
-            if ((getCurrentVictim() == hostileReference && threatRefStatusChangeEvent.getFValue() < 0.0f) ||
-                    (getCurrentVictim() != hostileReference && threatRefStatusChangeEvent.getFValue() > 0.0f))
-                setDirty(true);                             // the order in the threat list might have changed
-            break;
-        case UEV_THREAT_REF_ONLINE_STATUS:
-            if (!hostileReference->isOnline())
-            {
-                if (hostileReference == getCurrentVictim())
-                {
-                    setCurrentVictim(nullptr);
-                    setDirty(true);
-                }
-                iThreatContainer.remove(hostileReference);
-                iThreatOfflineContainer.addReference(hostileReference);
-            }
-            else
-            {
-                if (getCurrentVictim() && hostileReference->getThreat() > (1.1f * getCurrentVictim()->getThreat()))
-                    setDirty(true);
-                iThreatContainer.addReference(hostileReference);
-                iThreatOfflineContainer.remove(hostileReference);
-            }
-            break;
-        case UEV_THREAT_REF_REMOVE_FROM_LIST:
+    case UEV_THREAT_REF_THREAT_CHANGE:
+        if ((getCurrentVictim() == hostileReference && threatRefStatusChangeEvent.getFValue() < 0.0f) ||
+            (getCurrentVictim() != hostileReference && threatRefStatusChangeEvent.getFValue() > 0.0f))
+            setDirty(true);                             // the order in the threat list might have changed
+        break;
+    case UEV_THREAT_REF_ONLINE_STATUS:
+        if (!hostileReference->isOnline())
+        {
             if (hostileReference == getCurrentVictim())
             {
                 setCurrentVictim(nullptr);
                 setDirty(true);
             }
-            if (hostileReference->isOnline())
-            {
-                iThreatContainer.remove(hostileReference);
-            }
-            else
-                iThreatOfflineContainer.remove(hostileReference);
-            break;
-        case UEV_THREAT_REF_SUPPRESSED_STATUS:
-            // Clear suppressed on suppress change
-            ClearSuppressed(hostileReference);
+            iOwner->SendThreatRemove(hostileReference);
+            iThreatContainer.remove(hostileReference);
+            iUpdateNeed = true;
+            iThreatOfflineContainer.addReference(hostileReference);
+        }
+        else
+        {
+            if (getCurrentVictim() && hostileReference->getThreat() > (1.1f * getCurrentVictim()->getThreat()))
+                setDirty(true);
+            iThreatContainer.addReference(hostileReference);
+            iUpdateNeed = true;
+            iThreatOfflineContainer.remove(hostileReference);
+        }
+        break;
+    case UEV_THREAT_REF_REMOVE_FROM_LIST:
+        if (hostileReference == getCurrentVictim())
+        {
+            setCurrentVictim(nullptr);
             setDirty(true);
-            break;
+        }
+        if (hostileReference->isOnline())
+        {
+            iOwner->SendThreatRemove(hostileReference);
+            iThreatContainer.remove(hostileReference);
+            iUpdateNeed = true;
+        }
+        else
+            iThreatOfflineContainer.remove(hostileReference);
+        break;
+    case UEV_THREAT_REF_SUPPRESSED_STATUS:
+        // Clear suppressed on suppress change
+        ClearSuppressed(hostileReference);
+        setDirty(true);
+        break;
     }
+}
+
+void ThreatManager::UpdateForClient(uint32 diff)
+{
+    if (!iUpdateNeed || isThreatListEmpty())
+        return;
+
+    iUpdateTimer.Update(diff);
+    if (iUpdateTimer.Passed())
+    {
+        iOwner->SendThreatUpdate();
+        iUpdateTimer.Reset(THREAT_UPDATE_INTERVAL);
+        iUpdateNeed = false;
+    }
+
 }
 
 void ThreatManager::ClearSuppressed(HostileReference* except)

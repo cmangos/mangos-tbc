@@ -1911,15 +1911,15 @@ void ObjectMgr::LoadCreatureSpawnEntry()
 void ObjectMgr::LoadCreatures()
 {
     uint32 count = 0;
-    //                                                0                       1   2    3
-    QueryResult* result = WorldDatabase.Query("SELECT creature.guid, creature.id, map, modelid,"
-                          //   4             5           6           7           8            9              10               11         12
-                          "equipment_id, position_x, position_y, position_z, orientation, spawntimesecsmin, spawntimesecsmax, spawndist, currentwaypoint,"
-                          //   13         14       15          16            17         18
-                          "curhealth, curmana, DeathState, MovementType, spawnMask, event,"
-                          //   19                        20
+    //                                                0                       1   2
+    QueryResult* result = WorldDatabase.Query("SELECT creature.guid, creature.id, map,"
+                          //   3             4           5           6           7            8              9                10
+                          "equipment_id, position_x, position_y, position_z, orientation, spawntimesecsmin, spawntimesecsmax, spawndist,"
+                          //   11         12        13
+                          "MovementType, spawnMask, event,"
+                          //   14                        15
                           "pool_creature.pool_entry, pool_creature_template.pool_entry,"
-                          //   21
+                          //   16
                           "creature_spawn_data.id "
                           "FROM creature "
                           "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
@@ -1986,26 +1986,21 @@ void ObjectMgr::LoadCreatures()
 
         data.id                 = entry;
         data.mapid              = fields[ 2].GetUInt32();
-        data.modelid_override   = fields[ 3].GetUInt32();
-        data.equipmentId        = fields[ 4].GetUInt32();
-        data.posX               = fields[ 5].GetFloat();
-        data.posY               = fields[ 6].GetFloat();
-        data.posZ               = fields[ 7].GetFloat();
-        data.orientation        = fields[ 8].GetFloat();
-        data.spawntimesecsmin   = fields[ 9].GetUInt32();
-        data.spawntimesecsmax   = fields[10].GetUInt32();
-        data.spawndist          = fields[11].GetFloat();
-        data.currentwaypoint    = fields[12].GetUInt32();
-        data.curhealth          = fields[13].GetUInt32();
-        data.curmana            = fields[14].GetUInt32();
-        data.is_dead            = fields[15].GetBool();
-        data.movementType       = fields[16].GetUInt8();
-        data.spawnMask          = fields[17].GetUInt8();
-        data.gameEvent          = fields[18].GetInt16();
-        data.GuidPoolId         = fields[19].GetInt16();
-        data.EntryPoolId        = fields[20].GetInt16();
+        data.equipmentId        = fields[ 3].GetUInt32();
+        data.posX               = fields[ 4].GetFloat();
+        data.posY               = fields[ 5].GetFloat();
+        data.posZ               = fields[ 6].GetFloat();
+        data.orientation        = fields[ 7].GetFloat();
+        data.spawntimesecsmin   = fields[ 8].GetUInt32();
+        data.spawntimesecsmax   = fields[ 9].GetUInt32();
+        data.spawndist          = fields[10].GetFloat();
+        data.movementType       = fields[11].GetUInt8();
+        data.spawnMask          = fields[12].GetUInt8();
+        data.gameEvent          = fields[13].GetInt16();
+        data.GuidPoolId         = fields[14].GetInt16();
+        data.EntryPoolId        = fields[15].GetInt16();
         data.spawnTemplate      = GetCreatureSpawnTemplate(0);
-        uint32 spawnDataEntry   = fields[21].GetUInt32();
+        uint32 spawnDataEntry   = fields[16].GetUInt32();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
         if (!mapEntry)
@@ -2042,12 +2037,6 @@ void ObjectMgr::LoadCreatures()
         {
             sLog.outErrorDb("Table `creature` have creature (GUID: %u) that listed as heroic template (entry: %u) in `creature_template`, skipped.", guid, data.id);
             continue;
-        }
-
-        if (data.modelid_override > 0 && !sCreatureDisplayInfoStore.LookupEntry(data.modelid_override))
-        {
-            sLog.outErrorDb("Table `creature` GUID %u (entry %u) has model for nonexistent model id (%u), set to 0.", guid, data.id, data.modelid_override);
-            data.modelid_override = 0;
         }
 
         if (data.equipmentId > 0)                           // -1 no equipment, 0 use default

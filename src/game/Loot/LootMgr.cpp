@@ -241,7 +241,7 @@ void LootStore::LoadAndCheckReferenceNames()
                 foundIds.erase(entry);
             else
             {
-                sLog.outErrorDb("Table reference_loot_template_names for entry %u has name but no entry", GetName(), entry);
+                sLog.outErrorDb("Table reference_loot_template_names for entry %u has name but no entry", entry);
                 continue;
             }
         }

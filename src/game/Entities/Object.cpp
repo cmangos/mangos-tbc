@@ -1217,6 +1217,11 @@ void WorldObject::RemoveStringId(std::string& stringId)
         SetStringId(stringIdId, false);
 }
 
+bool WorldObject::HasStringId(uint32 stringId)
+{
+    return m_stringIds.find(stringId) != m_stringIds.end();
+}
+
 WorldObject::WorldObject() :
     m_transport(nullptr), m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_visibilityData(this), m_currMap(nullptr),

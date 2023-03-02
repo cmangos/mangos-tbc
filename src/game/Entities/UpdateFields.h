@@ -383,7 +383,7 @@ enum EUnitFields
     PLAYER_FIELD_KILLS                        = UNIT_END + 0x0500, // Size: 1, Type: TWO_SHORT, Flags: PRIVATE
     PLAYER_FIELD_TODAY_CONTRIBUTION           = UNIT_END + 0x0501, // Size: 1, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_YESTERDAY_CONTRIBUTION       = UNIT_END + 0x0502, // Size: 1, Type: INT, Flags: PRIVATE
-    PLAYER_FIELD_LIFETIME_HONORBALE_KILLS     = UNIT_END + 0x0503, // Size: 1, Type: INT, Flags: PRIVATE
+    PLAYER_FIELD_LIFETIME_HONORABLE_KILLS     = UNIT_END + 0x0503, // Size: 1, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_BYTES2                       = UNIT_END + 0x0504, // Size: 1, Type: BYTES, Flags: PRIVATE
     PLAYER_FIELD_WATCHED_FACTION_INDEX        = UNIT_END + 0x0505, // Size: 1, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_COMBAT_RATING_1              = UNIT_END + 0x0506, // Size: 24, Type: INT, Flags: PRIVATE

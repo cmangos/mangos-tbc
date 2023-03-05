@@ -11,4 +11,9 @@ ALTER TABLE spawn_group ADD COLUMN `StringId` INT(11) UNSIGNED NOT NULL DEFAULT 
 ALTER TABLE creature_template ADD COLUMN `StringId1` INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER `SpellList`;
 ALTER TABLE creature_template ADD COLUMN `StringId2` INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER `StringId1`;
 ALTER TABLE gameobject_template ADD COLUMN `StringId` INT(11) UNSIGNED NOT NULL DEFAULT '0' AFTER `maxgold`;
+ALTER TABLE `creature_spawn_data_template` ADD COLUMN `Name` VARCHAR(200) NOT NULL;
+UPDATE creature_spawn_data_template SET Name='GENERIC - NONE - DO NOT EDIT' WHERE entry IN(0);
+UPDATE creature_spawn_data_template SET Name='GENERIC - SPAWN FLAG RUN' WHERE entry IN(0);
+UPDATE creature_spawn_data_template SET Name='GENERIC - SPAWN FLAG HOVER' WHERE entry IN(0);
+UPDATE creature_spawn_data_template SET Name='GENERIC - SPAWN FLAG RUN + HOVER' WHERE entry IN(0);
 

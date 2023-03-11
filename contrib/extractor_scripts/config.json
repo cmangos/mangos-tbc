@@ -50,6 +50,9 @@
 			"walkableHeight": 10.0
 	},
         "554": {
+                "_Info": "The Mechanar - .go c 5540016",
+                "walkableHeight": 5.0,
+                "walkableClimb": 4.5,
                 "walkableSlopeAngle":60,
                 "minRegionArea": 30,
                 "walkableRadius": 1

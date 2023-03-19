@@ -5384,8 +5384,6 @@ SpellCastResult PlayerbotAI::CheckBotCast(const SpellEntry* sInfo)
                 tmp_spell->m_targets.setGOTarget(obj);
         }
 
-        // DEBUG_LOG("CheckBotCast SpellCastResult res(%u)", res);
-        SpellCastResult res = tmp_spell->CheckCast(false);
         return tmp_spell->CheckCast(false);
     }
     return SPELL_FAILED_ERROR;

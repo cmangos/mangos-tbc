@@ -28,6 +28,7 @@
 #include "RecastDebugDraw.h"
 #include "Filelist.h"
 #include <filesystem>
+#include <sstream>
 
 //#include "Sample_SoloMesh.h"
 //#include "Sample_TileMesh.h"
@@ -71,6 +72,39 @@ bool handleArgs(int argc, char** argv, char*& dataDir)
     return true;
 }
 
+uint32 check_int_input(const char* arg)
+{
+    std::istringstream ss(arg);
+    unsigned int x;
+    if (!(ss >> x))
+        return 0; // std::cerr << "Invalid number: " << arg << '\n';
+    else if (!ss.eof())
+        return 0; // std::cerr << "Trailing characters after number: " << arg << '\n';
+    return x;
+}
+
+bool handleArgs(int argc, char** argv, char* argName, uint32& result)
+{
+    uint32 param = 0;
+
+    for (int i = 1; i < argc; ++i)
+    {
+        if (strcmp(argv[i], argName) == 0)
+        {
+            param = check_int_input(argv[++i]);
+            if (!param)
+            {
+                printUsage();
+                return false;
+            }
+
+            result = param;
+        }
+    }
+
+    return true;
+}
+
 int main(int argc, char** argv)
 {
     // Init SDL
@@ -81,9 +115,16 @@ int main(int argc, char** argv)
     }
 
     char* dataDir = nullptr;
+    uint32 mapId = 0;
+    uint32 tileX = 0;
+    uint32 tileY = 0;
 
     if (!handleArgs(argc, argv, dataDir))
         return -1;
+
+    handleArgs(argc, argv, "-map", mapId);
+    handleArgs(argc, argv, "-tilex", tileX);
+    handleArgs(argc, argv, "-tiley", tileY);
 
     // Center window
     char env[] = "SDL_VIDEO_CENTERED=1";
@@ -164,7 +205,7 @@ int main(int argc, char** argv)
 
     //InputGeom* geom = 0;
     CMaNGOS_Map* sample = new CMaNGOS_Map();
-    BuildContext ctx(dataDir);
+    BuildContext ctx(dataDir, mapId, tileX, tileY);
     sample->setContext(&ctx);
     sample->Init();
     if (sample->GetMapId() < 0)

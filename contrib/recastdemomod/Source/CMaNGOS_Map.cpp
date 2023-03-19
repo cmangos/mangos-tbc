@@ -264,11 +264,58 @@ void CMaNGOS_Map::Init()
     ScanFoldersForMaps();
     if (m_mapID < 0)
         return;
+
+    if (m_ctx->getMapId() != m_mapID && m_ctx->getTileX() && m_ctx->getTileY())
+        m_mapID = m_ctx->getMapId();
+
     scanFoldersForTiles();
     m_MapInfos = new MapInfos();
     m_MapInfos->Init(m_mapID, m_ctx);
     m_navMesh = m_MapInfos->GetNavMesh();
     m_navQuery = m_MapInfos->GetNavMeshQuery();
+
+    if (m_ctx->getTileX() && m_ctx->getTileY())
+    {
+        if (LoadTileData(m_ctx->getTileX(), m_ctx->getTileY()))
+        {
+            //m_showLevel = SHOW_LEVEL_NONE;
+        }
+        // if first chosen tile, add neighbor
+        if (!m_MapInfos->IsEmpty())
+        {
+            unsigned int x, y;
+            x = m_ctx->getTileX();
+            y = m_ctx->getTileY();
+            m_NeighborTiles.clear();
+            if (x != y || x != 64)
+            {
+                for (int i = 0; i < 3; ++i)
+                {
+                    for (int j = 0; j < 3; ++j)
+                    {
+                        uint32 tx = x - 1 + i;
+                        uint32 ty = y - 1 + j;
+
+                        // skip current already loaded tile
+                        if (tx == x && ty == y)
+                            continue;
+
+                        // add only available tile
+                        uint32 pxy = VMAP::StaticMapTree::packTileID(tx, ty);
+                        if (m_TilesFound.find(pxy) != m_TilesFound.end())
+                            m_NeighborTiles.insert(pxy);
+                    }
+                }
+            }
+        }
+
+        if (m_MapInfos->IsEmpty())
+            m_TileButtonStr = "Click to choose a tile";
+        else if (!m_NeighborTiles.empty())
+            m_TileButtonStr = "Add neighbor tile";
+        else
+            m_TileButtonStr = "No neighbor tile to add";
+    }
 }
 
 void CMaNGOS_Map::ClearAllGeoms()

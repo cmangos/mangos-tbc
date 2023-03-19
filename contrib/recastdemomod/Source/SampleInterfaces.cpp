@@ -16,11 +16,14 @@
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-BuildContext::BuildContext(const char* dataDir) :
+BuildContext::BuildContext(const char* dataDir, unsigned int mapid, unsigned int tilex, unsigned int tiley) :
 	m_messageCount(0),
 	m_textPoolSize(0)
 {
 	m_dataDir = dataDir;
+	mapID = mapid;
+	tileX = tilex;
+	tileY = tiley;
     m_mapsFolder = dataDir;
     m_vMapsFolder = dataDir;
     m_mMapsFolder = dataDir;

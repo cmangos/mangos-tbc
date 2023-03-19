@@ -46,14 +46,21 @@ class BuildContext : public rcContext
     std::string m_mMapsFolder;
     std::string m_vMapsFolder;
 
+	unsigned int mapID;
+	unsigned int tileX;
+	unsigned int tileY;
+
 public:
-	BuildContext(const char* dataDir);
+	BuildContext(const char* dataDir, unsigned int mapId, unsigned int tileX, unsigned int tileY);
 	virtual ~BuildContext();
 
 	const char* getMapFolder() { return m_mapsFolder.c_str(); }
 	const char* getMMapFolder() { return m_mMapsFolder.c_str(); }
 	const char* getVMapFolder() { return m_vMapsFolder.c_str(); }
 	const char* getDataDir() { return m_dataDir; }
+	unsigned int getMapId() { return mapID; }
+	unsigned int getTileX() { return tileX; }
+	unsigned int getTileY() { return tileY; }
 
 	/// Dumps the log to stdout.
 	void dumpLog(const char* format, ...);

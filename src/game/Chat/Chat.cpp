@@ -449,6 +449,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "stats",          SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapStatsCommand,           "", nullptr },
         { "testarea",       SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapTestArea,               "", nullptr },
         { "testheight",     SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapTestHeight,             "", nullptr },
+        { "demoapp",        SEC_GAMEMASTER,     false, &ChatHandler::HandleMmapDemoApp,                "", nullptr },
         { "",               SEC_ADMINISTRATOR,  false, &ChatHandler::HandleMmap,                       "", nullptr },
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };

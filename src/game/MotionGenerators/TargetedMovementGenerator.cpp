@@ -740,6 +740,9 @@ float FollowMovementGenerator::GetSpeed(Unit& owner) const
     // Followers sync with master's speed when not in combat
     // Use default speed when a mix of PC and NPC units involved (escorting?)
     if (owner.HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) == i_target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+#ifdef ENABLE_PLAYERBOTS
+        if (!(!m_boost && owner.IsPlayer() && !((Player*)(&owner))->isRealPlayer())) //Do not speed up bots when not boosting. 
+#endif
         speed = i_target->GetSpeedInMotion();
 
     // Catchup boost is not allowed, stop here:

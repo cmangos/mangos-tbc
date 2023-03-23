@@ -7441,6 +7441,17 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
     if (m_spellInfo->MaxTargetLevel && target->GetLevel() > m_spellInfo->MaxTargetLevel)
         return false;
 
+#ifdef ENABLE_PLAYERBOTS
+    if (target->IsPlayer())
+    {
+        PlayerbotAI* bot = ((Player*)target)->GetPlayerbotAI();
+        if (bot && bot->IsImmuneToSpell(m_spellInfo->Id))
+        {
+            return false;
+        }
+    }
+#endif
+
     return OnCheckTarget(target, eff);
 }
 

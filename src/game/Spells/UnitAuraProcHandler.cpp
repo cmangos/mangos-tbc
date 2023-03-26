@@ -1889,16 +1889,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 }
                 break;
             }
-            // Earth Shield
-            if (dummySpell->SpellFamilyFlags & uint64(0x0000040000000000))
-            {
-                // heal
-                basepoints[0] = triggerAmount;
-                target = this;
-                triggered_spell_id = 379;
-                triggeredByAura = nullptr;
-                break;
-            }
             // Lightning Overload
             if (dummySpell->SpellIconID == 2018)            // only this spell have SpellFamily Shaman SpellIconID == 2018 and dummy aura
             {

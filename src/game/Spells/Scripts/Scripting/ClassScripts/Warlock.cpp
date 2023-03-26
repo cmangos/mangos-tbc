@@ -325,7 +325,7 @@ struct CurseDiminishingDuration : public AuraScript
 {
     int32 OnDurationCalculate(WorldObject const* caster, Unit const* target, int32 duration) const override
     {
-        if (caster->IsControlledByPlayer() && target->IsPlayerControlled())
+        if (caster->IsControlledByPlayer() && target && target->IsPlayerControlled())
             return 12000;
         return duration;
     }

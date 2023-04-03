@@ -220,6 +220,7 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
 
     // Horde flag in base (but not respawned yet)
     GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[otherTeamIdx], BG_WS_FLAG_STATE_ON_BASE);
+    GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[otherTeamIdx], BG_WS_FLAG_ICON_INVISIBLE);
     m_flagOnRespawn[otherTeamIdx] = true;
 
     // Drop Horde Flag from Player
@@ -237,9 +238,6 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
     // update score
     int32 pointsWorldState = team == ALLIANCE ? BG_WS_STATE_CAPTURES_ALLIANCE : BG_WS_STATE_CAPTURES_HORDE;
     GetBgMap()->GetVariableManager().SetVariable(pointsWorldState, GetBgMap()->GetVariableManager().GetVariable(pointsWorldState) + 1);
-
-    GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[teamIdx], BG_WS_FLAG_STATE_ON_BASE);
-    GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[teamIdx], BG_WS_FLAG_ICON_INVISIBLE);
 
     // despawn flags
     SpawnEvent(WS_EVENT_FLAG_A, 0, false);

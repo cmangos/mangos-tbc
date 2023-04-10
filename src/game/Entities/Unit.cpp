@@ -438,6 +438,7 @@ Unit::Unit() :
     m_comboPoints = 0;
 
     m_aoeImmune = false;
+    m_chainImmune = false;
 }
 
 Unit::~Unit()
@@ -1421,7 +1422,7 @@ void Unit::JustKilledCreature(Unit* killer, Creature* victim, Player* responsibl
         outdoorPvP->HandleCreatureDeath(victim);
 
     // Start creature death script
-    victim->GetMap()->ScriptsStart(sCreatureDeathScripts, victim->GetEntry(), victim, responsiblePlayer ? responsiblePlayer : killer);
+    victim->GetMap()->ScriptsStart(SCRIPT_TYPE_CREATURE_DEATH, victim->GetEntry(), victim, responsiblePlayer ? responsiblePlayer : killer);
 
     if (victim->IsLinkingEventTrigger())
         victim->GetMap()->GetCreatureLinkingHolder()->DoCreatureLinkingEvent(LINKING_EVENT_DIE, victim);
@@ -2997,24 +2998,24 @@ float Unit::CalculateLevelPenalty(SpellEntry const* spellProto) const
     return (100.0f - LvlPenalty) * LvlFactor / 100.0f;
 }
 
-void Unit::SendMeleeAttackStart(Unit* pVictim) const
+void Unit::SendMeleeAttackStart(const Unit& victim) const
 {
     WorldPacket data(SMSG_ATTACKSTART, 8 + 8);
     data << GetObjectGuid();
-    data << pVictim->GetObjectGuid();
+    data << victim.GetObjectGuid();
 
     SendMessageToSet(data, true);
     DETAIL_FILTER_LOG(LOG_FILTER_COMBAT, "WORLD: Sent SMSG_ATTACKSTART");
 }
 
-void Unit::SendMeleeAttackStop(Unit* victim) const
+void Unit::SendMeleeAttackStop(const Unit& victim) const
 {
     WorldPacket data(SMSG_ATTACKSTOP, (4 + 16));            // we guess size
     data << GetPackGUID();
-    data << (victim ? victim->GetPackGUID() : PackedGuid());
+    data << victim.GetPackGUID();
     data << uint32(IsDead() ? 1 : 0);
     SendMessageToSet(data, true);
-    DETAIL_FILTER_LOG(LOG_FILTER_COMBAT, "%s stopped attacking %s", GetGuidStr().c_str(), victim->GetGuidStr().c_str());
+    DETAIL_FILTER_LOG(LOG_FILTER_COMBAT, "%s stopped attacking %s", GetGuidStr().c_str(), victim.GetGuidStr().c_str());
 }
 
 SpellMissInfo Unit::MeleeSpellHitResult(Unit* pVictim, SpellEntry const* spell, uint32* heartbeatResistChance/* = nullptr*/)
@@ -6758,7 +6759,7 @@ void Unit::MeleeAttackStart(Unit* victim)
     {
         addUnitState(UNIT_STAT_MELEE_ATTACKING);
         if (victim)
-            SendMeleeAttackStart(victim);
+            SendMeleeAttackStart(*victim);
     }
 }
 
@@ -6769,7 +6770,7 @@ void Unit::MeleeAttackStop(Unit* victim)
         clearUnitState(UNIT_STAT_MELEE_ATTACKING);
         InterruptSpell(CURRENT_MELEE_SPELL);
         if (victim)
-            SendMeleeAttackStop(victim);
+            SendMeleeAttackStop(*victim);
     }
 }
 
@@ -8601,7 +8602,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
         CreatureDataAddon const* cainfo = creature->GetCreatureAddon();
         if (cainfo)
         {
-            if (getStandState() == cainfo->bytes1)
+            if (getStandState() == cainfo->standState)
                 SetStandState(UNIT_STAND_STATE_STAND);
             if (cainfo->emote && GetUInt32Value(UNIT_NPC_EMOTESTATE) == cainfo->emote)
                 HandleEmoteState(0);
@@ -12321,8 +12322,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
         }
     }
 
-    Creature* charmedCreature = nullptr;
-    CharmInfo* charmInfo = charmed->GetCharmInfo();
+    const Position charmStartPosition = charmed->GetCharmInfo()->GetCharmStartPosition();
 
     // if charm expires mid evade clear evade since movement is also cleared
     // TODO: maybe should be done on HomeMovementGenerator::MovementExpires
@@ -12331,7 +12331,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
     if (charmed->GetTypeId() == TYPEID_UNIT)
     {
         // now we have to clean threat list to be able to restore normal creature behavior
-        charmedCreature = static_cast<Creature*>(charmed);
+        Creature* charmedCreature = static_cast<Creature*>(charmed);
         if (!charmedCreature->IsPet())
         {
             charmedCreature->ClearTemporaryFaction();
@@ -12340,7 +12340,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
             charmed->InterruptSpell(CURRENT_AUTOREPEAT_SPELL);
             charmed->InterruptSpell(CURRENT_MELEE_SPELL);
 
-            charmInfo->ResetCharmState();
+            charmed->GetCharmInfo()->ResetCharmState();
             charmed->DeleteCharmInfo();
 
             charmed->RemoveUnattackableTargets();
@@ -12354,7 +12354,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
             if (Unit* owner = charmedCreature->GetOwner())
                 charmed->setFaction(owner->GetFaction());
 
-            charmInfo->ResetCharmState();
+            charmed->GetCharmInfo()->ResetCharmState();
 
             // as possessed is a pet we have to restore original charminfo so Pet::DeleteCharmInfo will take care of that
             charmed->DeleteCharmInfo();
@@ -12373,7 +12373,7 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
         else
             charmedPlayer->setFactionForRace(charmedPlayer->getRace());
 
-        charmInfo->ResetCharmState();
+        charmed->GetCharmInfo()->ResetCharmState();
         charmedPlayer->DeleteCharmInfo();
 
         charmed->GetMotionMaster()->Clear(false, true);
@@ -12408,9 +12408,8 @@ void Unit::Uncharm(Unit* charmed, uint32 spellId)
 
             if (charmed->GetTypeId() == TYPEID_UNIT)
             {
-                Position const& pos = charmInfo->GetCharmStartPosition();
-                if (!pos.IsEmpty())
-                    static_cast<Creature*>(charmed)->SetCombatStartPosition(pos);
+                if (!charmStartPosition.IsEmpty())
+                    static_cast<Creature*>(charmed)->SetCombatStartPosition(charmStartPosition);
             }
         }
     }
@@ -12577,6 +12576,16 @@ void Unit::UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap /*=null
     {
         float groundZ = atMap->GetHeight(x, y, z);
         if (z < groundZ)
+            z = groundZ;
+    }
+}
+
+void Unit::AdjustZForCollision(float x, float y, float& z, float halfHeight) const
+{
+    if (CanFly())
+    {
+        float groundZ = GetMap()->GetHeight(x, y, z);
+        if (z - halfHeight < groundZ)
             z = groundZ;
     }
 }

@@ -1187,6 +1187,41 @@ void Object::ForceValuesUpdateAtIndex(uint16 index)
     }
 }
 
+void WorldObject::SetStringId(uint32 stringId, bool apply)
+{
+    if (apply)
+        m_stringIds.insert(stringId);
+    else
+        m_stringIds.erase(stringId);
+
+    if (IsInWorld())
+    {
+        if (apply)
+            GetMap()->AddStringIdObject(stringId, this);
+        else
+            GetMap()->RemoveStringIdObject(stringId, this);
+    }
+}
+
+void WorldObject::AddStringId(std::string& stringId)
+{
+    uint32 stringIdId = GetMap()->GetMapDataContainer().GetStringId(stringId);
+    if (stringIdId)
+        SetStringId(stringIdId, true);
+}
+
+void WorldObject::RemoveStringId(std::string& stringId)
+{
+    uint32 stringIdId = GetMap()->GetMapDataContainer().GetStringId(stringId);
+    if (stringIdId)
+        SetStringId(stringIdId, false);
+}
+
+bool WorldObject::HasStringId(uint32 stringId)
+{
+    return m_stringIds.find(stringId) != m_stringIds.end();
+}
+
 WorldObject::WorldObject() :
     m_transport(nullptr), m_transportInfo(nullptr), m_isOnEventNotified(false),
     m_visibilityData(this), m_currMap(nullptr),
@@ -1256,7 +1291,7 @@ uint32 WorldObject::GetAreaId() const
     return GetTerrain()->GetAreaId(m_position.x, m_position.y, m_position.z);
 }
 
-char const* WorldObject::GetAreaName(LocaleConstant locale) const
+AreaNameInfo WorldObject::GetAreaName(LocaleConstant locale) const
 {
     return GetTerrain()->GetAreaName(m_position.x, m_position.y, m_position.z, locale);
 }
@@ -1699,7 +1734,7 @@ void WorldObject::MovePositionToFirstCollision(Position& pos, float dist, float 
             destZ = result.z;
             // no collision detected - reset height
             if (dest.z == result.z)
-                destZ -= halfHeight;
+                AdjustZForCollision(destX, destY, destZ, halfHeight);
             if (transport) // transport produces offset, but we need global pos
                 transport->CalculatePassengerPosition(destX, destY, destZ);
         }
@@ -1988,6 +2023,10 @@ void WorldObject::AddToWorld()
     if (m_isOnEventNotified)
         m_currMap->AddToOnEventNotified(this);
 
+    if (!m_stringIds.empty())
+        for (uint32 stringId : m_stringIds)
+            m_currMap->AddStringIdObject(stringId, this);
+
     Object::AddToWorld();
 }
 
@@ -1995,6 +2034,10 @@ void WorldObject::RemoveFromWorld()
 {
     if (m_isOnEventNotified)
         m_currMap->RemoveFromOnEventNotified(this);
+
+    if (!m_stringIds.empty())
+        for (uint32 stringId : m_stringIds)
+            m_currMap->RemoveStringIdObject(stringId, this);
 
     Object::RemoveFromWorld();
 }
@@ -2123,6 +2166,8 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
             if (templateData->IsHovering())
                 creature->SetHover(true);
             relayId = templateData->relayId;
+            if (templateData->stringId)
+                creature->SetStringId(templateData->stringId, true);
         }
     }
 
@@ -2142,7 +2187,7 @@ Creature* WorldObject::SummonCreature(TempSpawnSettings settings, Map* map)
     creature->Summon(settings.spawnType, settings.despawnTime);                  // Also initializes the AI and MMGen
 
     if (relayId)
-        map->ScriptsStart(sRelayScripts, relayId, creature, settings.dbscriptTarget);
+        map->ScriptsStart(SCRIPT_TYPE_RELAY, relayId, creature, settings.dbscriptTarget);
 
     if (settings.corpseDespawnTime)
         creature->SetCorpseDelay(settings.corpseDespawnTime);
@@ -2175,7 +2220,7 @@ GameObject* WorldObject::SpawnGameObject(uint32 dbGuid, Map* map, uint32 forcedE
         return nullptr;
 
     GameObject* gameobject = GameObject::CreateGameObject(forcedEntry ? forcedEntry : data->id);
-    if (!gameobject->LoadFromDB(dbGuid, map, map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT), forcedEntry))
+    if (!gameobject->LoadFromDB(dbGuid, map, 0, forcedEntry))
     {
         delete gameobject;
         return nullptr;
@@ -2194,19 +2239,12 @@ Creature* WorldObject::SpawnCreature(uint32 dbGuid, Map* map, uint32 forcedEntry
 
     uint32 entry = forcedEntry ? forcedEntry : data->id;
 
-    CreatureInfo const* cinfo = ObjectMgr::GetCreatureTemplate(entry);
-    if (!cinfo)
-    {
-        sLog.outErrorDb("Creature (Entry: %u) not found in table `creature_template`, can't load. ", entry);
-        return nullptr;
-    }
-
     if (data->spawnMask && !map->CanSpawn(TYPEID_UNIT, dbGuid))
         return nullptr;
 
     Creature* creature = new Creature;
     // DEBUG_LOG("Spawning creature %u",*itr);
-    if (!creature->LoadFromDB(dbGuid, map, map->GenerateLocalLowGuid(cinfo->GetHighGuid()), forcedEntry))
+    if (!creature->LoadFromDB(dbGuid, map, 0, forcedEntry))
     {
         delete creature;
         return nullptr;

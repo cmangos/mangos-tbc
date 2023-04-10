@@ -155,9 +155,9 @@ void SpawnGroup::Spawn(bool force)
     // duplicated code for optimization - way fewer cond fails
     if ((m_entry.Flags & SPAWN_GROUP_DESPAWN_ON_COND_FAIL) != 0) // must be before count check
     {
-        if (!IsWorldstateConditionSatisfied())
+        if (!m_objects.empty() && !IsWorldstateConditionSatisfied())
         {
-            Despawn();
+            Despawn(0, 1); // respawn delay 1 to immediately be available for spawn on next condition success
             return;
         }
     }
@@ -445,7 +445,7 @@ void CreatureGroup::TriggerLinkingEvent(uint32 event, Unit* target)
             if (FormationData* formation = GetFormationData())
                 if (!IsEvading()) // on last evade complete
                     formation->OnHome();
-
+            [[fallthrough]];
         case CREATURE_GROUP_EVENT_RESPAWN:
             if ((m_entry.Flags & CREATURE_GROUP_RESPAWN_TOGETHER) == 0)
                 return;
@@ -497,11 +497,27 @@ void CreatureGroup::MoveHome()
     }
 }
 
-void CreatureGroup::Despawn(uint32 timeMSToDespawn, bool onlyAlive)
+void CreatureGroup::Despawn(uint32 timeMSToDespawn, bool onlyAlive, uint32 forcedDespawnTime)
 {
-    for (SpawnGroupDbGuids const& sgEntry : m_entry.DbGuids)
-        if (Creature* creature = m_map.GetCreature(sgEntry.DbGuid))
+    time_t when = time(nullptr) + forcedDespawnTime;
+    for (auto objItr : m_objects)
+    {
+        uint32 dbGuid = objItr.first;
+        if (Creature* creature = m_map.GetCreature(dbGuid))
+        {
+            if (forcedDespawnTime)
+                creature->SetRespawnDelay(forcedDespawnTime, true);
             creature->ForcedDespawn(timeMSToDespawn, onlyAlive);
+        }
+        else if (timeMSToDespawn == 0)
+        {
+            CreatureData const* data = sObjectMgr.GetCreatureData(dbGuid);
+            m_map.GetPersistentState()->RemoveCreatureFromGrid(dbGuid, data);
+            m_map.GetPersistentState()->SaveObjectRespawnTime(GetObjectTypeId(), dbGuid, when);
+        }
+    }
+    if (timeMSToDespawn == 0) // only when instant - clears grid unloaded cases
+        m_objects.clear();
 }
 
 bool CreatureGroup::IsOutOfCombat()
@@ -554,11 +570,27 @@ void GameObjectGroup::RemoveObject(WorldObject* wo)
     m_map.GetPersistentState()->RemoveGameobjectFromGrid(wo->GetDbGuid(), data);
 }
 
-void GameObjectGroup::Despawn(uint32 timeMSToDespawn /*= 0*/)
+void GameObjectGroup::Despawn(uint32 timeMSToDespawn /*= 0*/, uint32 forcedDespawnTime /*= 0*/)
 {
+    time_t when = time(nullptr) + forcedDespawnTime;
     for (auto objItr : m_objects)
-        if (GameObject* go = m_map.GetGameObject(objItr.first))
+    {
+        uint32 dbGuid = objItr.first;
+        if (GameObject* go = m_map.GetGameObject(dbGuid))
+        {
+            if (forcedDespawnTime)
+                go->SetRespawnDelay(forcedDespawnTime, true);
             go->ForcedDespawn(timeMSToDespawn);
+        }
+        else if (timeMSToDespawn == 0)
+        {
+            CreatureData const* data = sObjectMgr.GetCreatureData(dbGuid);
+            m_map.GetPersistentState()->RemoveCreatureFromGrid(dbGuid, data);
+            m_map.GetPersistentState()->SaveObjectRespawnTime(GetObjectTypeId(), dbGuid, when);
+        }
+    }
+    if (timeMSToDespawn == 0) // only when instant - clears grid unloaded cases
+        m_objects.clear();
 }
 
 ////////////////////
@@ -1230,7 +1262,7 @@ FormationSlotDataSPtr FormationData::SetFormationSlot(Creature* creature, SpawnG
     if (auto currentSlot = creature->GetFormationSlot())
     {
         // no more work to do
-        return std::move(currentSlot);
+        return currentSlot;
     }
 
     // add it in the corresponding slot

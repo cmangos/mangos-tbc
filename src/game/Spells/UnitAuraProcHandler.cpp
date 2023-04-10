@@ -1889,16 +1889,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 }
                 break;
             }
-            // Earth Shield
-            if (dummySpell->SpellFamilyFlags & uint64(0x0000040000000000))
-            {
-                // heal
-                basepoints[0] = triggerAmount;
-                target = this;
-                triggered_spell_id = 379;
-                triggeredByAura = nullptr;
-                break;
-            }
             // Lightning Overload
             if (dummySpell->SpellIconID == 2018)            // only this spell have SpellFamily Shaman SpellIconID == 2018 and dummy aura
             {
@@ -2562,16 +2552,24 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
 
 SpellAuraProcResult Unit::HandleProcTriggerDamageAuraProc(ProcExecutionData& data)
 {
-    Unit* victim = data.target; Aura* triggeredByAura = data.triggeredByAura;
+    Unit* victim = data.target; Aura* triggeredByAura = data.triggeredByAura; uint32 cooldown = data.cooldown;
     SpellEntry const* spellInfo = triggeredByAura->GetSpellProto();
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "ProcDamageAndSpell: doing %u damage from spell id %u (triggered by auratype %u of spell %u)",
                      triggeredByAura->GetModifier()->m_amount, spellInfo->Id, triggeredByAura->GetModifier()->m_auraname, triggeredByAura->GetId());
+
+    if (!triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
+        return SPELL_AURA_PROC_FAILED;
+
     // Trigger damage can be resisted...
     if (SpellMissInfo missInfo = SpellHitResult(this, victim, spellInfo, uint8(1 << triggeredByAura->GetEffIndex()), false))
     {
         SendSpellDamageResist(victim, spellInfo->Id);
         return SPELL_AURA_PROC_OK;
     }
+
+    if (cooldown)
+        triggeredByAura->GetHolder()->SetProcCooldown(std::chrono::seconds(cooldown), GetMap()->GetCurrentClockTime());
+
     SpellNonMeleeDamage spellDamageInfo(this, victim, spellInfo->Id, SpellSchoolMask(spellInfo->SchoolMask));
     CalculateSpellDamage(&spellDamageInfo, triggeredByAura->GetModifier()->m_amount, spellInfo);
     spellDamageInfo.target->CalculateAbsorbResistBlock(this, &spellDamageInfo, spellInfo);

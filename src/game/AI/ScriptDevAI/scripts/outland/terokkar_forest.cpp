@@ -1310,7 +1310,7 @@ struct npc_draenei_tomb_guardian : public ScriptedAI
         //m_creature->RemoveGuardians();
 
         // Despawn Bone Wastes - Orb Waypoint 01, Bone Wastes - Event Trigger B, Nether Cloud
-        m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_EVENT_RESET, m_creature, m_creature);
+        m_creature->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, DBSCRIPT_EVENT_RESET, m_creature, m_creature);
 
         // Despawn Vengeful Harbinger and Vengeful Draenei
         for (ObjectGuid &guid : summons)
@@ -1351,7 +1351,7 @@ struct npc_draenei_tomb_guardian : public ScriptedAI
         if (uiMovementType == POINT_MOTION_TYPE && uiData == POINT_HARBINGER_POSITION && harbinger)
         {
             m_creature->CastSpell(harbinger, SPELL_COSMETIC_CHAIN_LIGHTNING, TRIGGERED_OLD_TRIGGERED);
-            m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_TOMB_GUARDIAN, m_creature, m_creature);
+            m_creature->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, DBSCRIPT_TOMB_GUARDIAN, m_creature, m_creature);
         }
     }
 };
@@ -1491,7 +1491,7 @@ struct npc_vengeful_harbinger : public ScriptedAI
         m_creature->ClearAllReactives();
         m_creature->GetMotionMaster()->Clear(false, true);
         m_creature->GetMotionMaster()->MoveIdle();
-        m_creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_VENGEFUL_HARBINGER_FAKE_DEATH, m_creature, m_creature);
+        m_creature->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, DBSCRIPT_VENGEFUL_HARBINGER_FAKE_DEATH, m_creature, m_creature);
     }
 };
 

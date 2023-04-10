@@ -261,7 +261,7 @@ class Map : public GridRefManager<NGridType>
             SCRIPT_EXEC_PARAM_UNIQUE_BY_TARGET        = 0x02,   // Start Script only if not yet started (uniqueness identified by id and target)
             SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE_TARGET = 0x03,   // Start Script only if not yet started (uniqueness identified by id, source and target)
         };
-        bool ScriptsStart(ScriptMapMapName const& scripts, uint32 id, Object* source, Object* target, ScriptExecutionParam execParams = SCRIPT_EXEC_PARAM_NONE);
+        bool ScriptsStart(ScriptMapType scriptType, uint32 id, Object* source, Object* target, ScriptExecutionParam execParams = SCRIPT_EXEC_PARAM_NONE);
         void ScriptCommandStart(ScriptInfo const& script, uint32 delay, Object* source, Object* target);
 
         // must called with AddToWorld
@@ -285,13 +285,20 @@ class Map : public GridRefManager<NGridType>
         Unit* GetUnit(ObjectGuid guid);                     // only use if sure that need objects at current map, specially for player case
         WorldObject* GetWorldObject(ObjectGuid guid);       // only use if sure that need objects at current map, specially for player case
         // dbguid methods
-        Creature* GetCreature(uint32 dbguid);
-        std::vector<Creature*> GetCreatures(uint32 dbguid);
-        GameObject* GetGameObject(uint32 dbguid);
-        std::vector<GameObject*> GetGameObjects(uint32 dbguid);
+        Creature* GetCreature(uint32 dbguid) const;
+        GameObject* GetGameObject(uint32 dbguid) const;
+        std::vector<WorldObject*> const* GetWorldObjects(std::string stringId) const;
+        std::vector<Creature*> const* GetCreatures(std::string stringId) const;
+        std::vector<GameObject*> const* GetGameObjects(std::string stringId) const;
+        std::vector<WorldObject*> const* GetWorldObjects(uint32 stringId) const;
+        std::vector<Creature*> const* GetCreatures(uint32 stringId) const;
+        std::vector<GameObject*> const* GetGameObjects(uint32 stringId) const;
 
         void AddDbGuidObject(WorldObject* obj);
         void RemoveDbGuidObject(WorldObject* obj);
+
+        void AddStringIdObject(uint32 stringId, WorldObject* obj);
+        void RemoveStringIdObject(uint32 stringId, WorldObject* obj);
 
         typedef TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid> MapStoredObjectTypesContainer;
         MapStoredObjectTypesContainer& GetObjectsStore() { return m_objectsStore; }
@@ -506,6 +513,15 @@ class Map : public GridRefManager<NGridType>
 
         // spawning
         SpawnManager m_spawnManager;
+
+        struct StringIdMapStorage
+        {
+            std::vector<WorldObject*> worldObjects;
+            std::vector<Creature*> creatures;
+            std::vector<GameObject*> gameobjects;
+        };
+
+        std::unordered_map<uint32, StringIdMapStorage> m_objectsPerStringId;
 
         MapDataContainer m_dataContainer;
         std::shared_ptr<CreatureSpellListContainer> m_spellListContainer;

@@ -2197,7 +2197,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             {
                 case TARGET_UNIT_ENEMY_NEAR_CASTER:
                 {
-                    FillAreaTargets(tempTargetUnitMap, max_range, 0.f, PUSH_SELF_CENTER, SPELL_TARGETS_AOE_ATTACKABLE);
+                    FillAreaTargets(tempTargetUnitMap, max_range, 0.f, PUSH_SELF_CENTER, SPELL_TARGETS_CHAIN_ATTACKABLE);
                     break;
                 }
                 case TARGET_UNIT_NEAR_CASTER: // TODO: Rename TARGET_UNIT_NEAR_CASTER to something better and find real difference with TARGET_UNIT_FRIEND_NEAR_CASTER.
@@ -2304,7 +2304,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                         pushType = PUSH_SELF_CENTER;
                     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX5_MELEE_CHAIN_TARGETING))
                         pushType = PUSH_CONE;
-                    FillAreaTargets(tempAoeList, maxRadiusTarget, cone, pushType, SPELL_TARGETS_AOE_ATTACKABLE);
+                    FillAreaTargets(tempAoeList, maxRadiusTarget, cone, pushType, SPELL_TARGETS_CHAIN_ATTACKABLE);
                     tempAoeList.erase(std::remove(tempAoeList.begin(), tempAoeList.end(), newUnitTarget), tempAoeList.end());
 
                     for (auto itr = tempAoeList.begin(); itr != tempAoeList.end();)
@@ -2853,20 +2853,7 @@ SpellCastResult Spell::CheckScriptTargeting(SpellEffectIndex effIndex, uint32 ch
                 MaNGOS::GameObjectListSearcher<MaNGOS::AllGameObjectEntriesListInObjectRangeCheck> checker(foundScriptGOTargets, go_check);
                 Cell::VisitGridObjects(m_trueCaster, checker, radius);
             }
-            for (auto itr = foundScriptGOTargets.begin(); itr != foundScriptGOTargets.end();)
-            {
-                if (!OnCheckTarget(*itr, effIndex))
-                    itr = foundScriptGOTargets.erase(itr);
-                else
-                    ++itr;
-            }
-            foundScriptGOTargets.sort([=](const GameObject* a, const GameObject* b) -> bool
-            {
-                return caster->GetDistance(a, true, DIST_CALC_NONE) < caster->GetDistance(b, true, DIST_CALC_NONE);
-            });
 
-            if (foundScriptGOTargets.size() > targetCount) // if we have too many targets, we need to trim the list
-                foundScriptGOTargets.resize(targetCount);
             break;
         }
         case SPELL_TARGET_TYPE_CREATURE:
@@ -2903,31 +2890,76 @@ SpellCastResult Spell::CheckScriptTargeting(SpellEffectIndex effIndex, uint32 ch
                     if (u_check.FoundOutOfRange())
                         foundButOutOfRange = true;
                 }
-                for (auto iter = foundScriptCreatureTargets.begin(); iter != foundScriptCreatureTargets.end();)
+            }
+            break;
+        }
+        case SPELL_TARGET_TYPE_STRING_ID:
+        {
+            for (uint32 stringId : entriesToUse)
+            {
+                auto creatures = m_trueCaster->GetMap()->GetCreatures(stringId);
+                for (Creature* creature : *creatures)
                 {
-                    bool failed = false;
-                    if (!OnCheckTarget(*iter, effIndex))
-                        failed = true;
-                    else if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_EXCLUDE_CASTER) && m_trueCaster == (*iter))
-                        failed = true;
-                    if (failed)
-                        iter = foundScriptCreatureTargets.erase(iter);
+                    if (creature->IsWithinCombatDistInMap(caster, radius, true))
+                        foundScriptCreatureTargets.push_back(creature);
                     else
-                        ++iter;
+                        foundButOutOfRange = true;
                 }
-
-                foundScriptCreatureTargets.sort([=](const Creature* a, const Creature* b) -> bool
+                auto gameObjects = m_trueCaster->GetMap()->GetGameObjects(stringId);
+                for (GameObject* gameObject : *gameObjects)
                 {
-                    return caster->GetDistance(a, true, DIST_CALC_NONE) < caster->GetDistance(b, true, DIST_CALC_NONE);
-                });
-
-                if (foundScriptCreatureTargets.size() > targetCount) // if we have too many targets, we need to trim the list
-                    foundScriptCreatureTargets.resize(targetCount);
+                    if (gameObject->IsWithinDist(caster, radius, true))
+                        foundScriptGOTargets.push_back(gameObject);
+                    else
+                        foundButOutOfRange = true;
+                }
             }
             break;
         }
         default:
             break;
+    }
+
+    if (!foundScriptCreatureTargets.empty())
+    {
+        for (auto iter = foundScriptCreatureTargets.begin(); iter != foundScriptCreatureTargets.end();)
+        {
+            bool failed = false;
+            if (!OnCheckTarget(*iter, effIndex))
+                failed = true;
+            else if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_EXCLUDE_CASTER) && m_trueCaster == (*iter))
+                failed = true;
+            if (failed)
+                iter = foundScriptCreatureTargets.erase(iter);
+            else
+                ++iter;
+        }
+
+        foundScriptCreatureTargets.sort([=](const Creature* a, const Creature* b) -> bool
+        {
+            return caster->GetDistance(a, true, DIST_CALC_NONE) < caster->GetDistance(b, true, DIST_CALC_NONE);
+        });
+
+        if (foundScriptCreatureTargets.size() > targetCount) // if we have too many targets, we need to trim the list
+            foundScriptCreatureTargets.resize(targetCount);
+    }
+
+    if (!foundScriptGOTargets.empty())
+    {
+        for (auto itr = foundScriptGOTargets.begin(); itr != foundScriptGOTargets.end();)
+        {
+            if (!OnCheckTarget(*itr, effIndex))
+                itr = foundScriptGOTargets.erase(itr);
+            else
+                ++itr;
+        }
+        foundScriptGOTargets.sort([=](const GameObject* a, const GameObject* b) -> bool
+        {
+            return caster->GetDistance(a, true, DIST_CALC_NONE) < caster->GetDistance(b, true, DIST_CALC_NONE);
+        });
+
+        if (foundScriptGOTargets.size() > targetCount) // if we have too many targets, we need to trim the list
+            foundScriptGOTargets.resize(targetCount);
     }
 
     if (!foundScriptCreatureTargets.empty())
@@ -2988,26 +3020,42 @@ void Spell::CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTa
             if (spellST->type == SPELL_TARGET_TYPE_GAMEOBJECT || spellST->type == SPELL_TARGET_TYPE_GAMEOBJECT_GUID)
                 continue;
 
-            if (spellST->type == SPELL_TARGET_TYPE_CREATURE_GUID ? target->GetDbGuid() == spellST->targetEntry : target->GetEntry() == spellST->targetEntry)
+            bool fail = false;
+            switch (spellST->type)
             {
-                switch (spellST->type)
-                {
-                    case SPELL_TARGET_TYPE_DEAD:
-                        if (static_cast<Creature*>(target)->IsCorpse())
-                            targetUnitMap.push_back(target);
-                        break;
-                    case SPELL_TARGET_TYPE_CREATURE:
-                        if (target->IsAlive())
-                            targetUnitMap.push_back(target);
-                        break;
-                    case SPELL_TARGET_TYPE_CREATURE_GUID:
-                        targetUnitMap.push_back(target);
-                        break;
-                    default:
-                        break;
-                }
-                break;
+                case SPELL_TARGET_TYPE_CREATURE_GUID:
+                    fail = target->GetDbGuid() != spellST->targetEntry;
+                    break;
+                case SPELL_TARGET_TYPE_STRING_ID:
+                    break;
+                default:
+                    fail = target->GetEntry() != spellST->targetEntry;
+                    break;
             }
+            if (fail)
+                continue;
+
+            switch (spellST->type)
+            {
+                case SPELL_TARGET_TYPE_DEAD:
+                    if (static_cast<Creature*>(target)->IsCorpse())
+                        targetUnitMap.push_back(target);
+                    break;
+                case SPELL_TARGET_TYPE_CREATURE:
+                    if (target->IsAlive())
+                        targetUnitMap.push_back(target);
+                    break;
+                case SPELL_TARGET_TYPE_CREATURE_GUID:
+                    targetUnitMap.push_back(target);
+                    break;
+                case SPELL_TARGET_TYPE_STRING_ID:
+                    if (target->HasStringId(spellST->targetEntry))
+                        targetUnitMap.push_back(target);
+                    break;
+                default:
+                    break;
+            }
+            break;
         }
     }
 }

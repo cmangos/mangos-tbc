@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2456_01_mangos_aggro_range` bit(1) DEFAULT NULL
+  `required_s2464_01_mangos_string_id` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -455,6 +455,10 @@ INSERT INTO `command` VALUES
 ('debug arena',3,'Syntax: .debug arena\r\n\r\nToggle debug mode for arenas. In debug mode GM can start arena with single player.'),
 ('debug areatriggers', 1, 'Syntax: .debug areatriggers\n\nToggle debug mode for areatriggers. In debug mode GM will be notified if reaching an areatrigger.'),
 ('debug bg',3,'Syntax: .debug bg\r\n\r\nToggle debug mode for battlegrounds. In debug mode GM can start battleground with single player.'),
+('debug dbscript',3,'.debug dbscript\r\n\r\nStarts dbscript type param0 id param1 from player(source) to selected(target)'),
+('debug dbscripttargeted',3,'.debug dbscript\r\n\r\nStarts dbscript type param0 id param1 from selected(source) to param2 dbguid(target creature)'),
+('debug dbscriptsourced',3,'.debug dbscript\r\n\r\nStarts dbscript type param0 id param1 from param2 dbguid(source creature) to selected(target)'),
+('debug dbscriptguided',3,'.debug dbscript\r\n\r\nStarts dbscript type param0 id param1 from param2 dbguid(source creature) to param3 dbguid(target creature)'),
 ('debug getitemvalue',3,'Syntax: .debug getitemvalue #itemguid #field [int|hex|bit|float]\r\n\r\nGet the field #field of the item #itemguid in your inventroy.\r\n\r\nUse type arg for set output format: int (decimal number), hex (hex value), bit (bitstring), float. By default use integer output.'),
 ('debug getvaluebyindex', 3, 'Syntax: .debug getvaluebyindex #field [int|hex|bit|float]\r\n\r\nGet the field index #field (integer) of the selected target. If no target is selected, get the content of your field.\r\n\r\nUse type arg for set output format: int (decimal number), hex (hex value), bit (bitstring), float. By default use integer output.'),
 ('debug getvaluebyname', 3, 'Syntax: .debug getvaluebyname #field [int|hex|bit|float]\r\n\r\nGet the field name #field (string) of the selected target. If no target is selected, get the content of your field.\r\n\r\nUse type arg for set output format: int (decimal number), hex (hex value), bit (bitstring), float. By default use integer output.'),
@@ -757,7 +761,6 @@ CREATE TABLE `creature` (
   `id` mediumint(8) unsigned NOT NULL DEFAULT '0' COMMENT 'Creature Identifier',
   `map` smallint(5) unsigned NOT NULL DEFAULT '0' COMMENT 'Map Identifier',
   `spawnMask` tinyint(3) unsigned NOT NULL DEFAULT '1',
-  `modelid` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `equipment_id` mediumint(9) NOT NULL DEFAULT '0',
   `position_x` float NOT NULL DEFAULT '0',
   `position_y` float NOT NULL DEFAULT '0',
@@ -766,10 +769,6 @@ CREATE TABLE `creature` (
   `spawntimesecsmin` int(10) unsigned NOT NULL DEFAULT '120' COMMENT 'Creature respawn time minimum',
   `spawntimesecsmax` int(10) unsigned NOT NULL DEFAULT '120' COMMENT 'Creature respawn time maximum',
   `spawndist` float NOT NULL DEFAULT '5',
-  `currentwaypoint` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `curhealth` int(10) unsigned NOT NULL DEFAULT '1',
-  `curmana` int(10) unsigned NOT NULL DEFAULT '0',
-  `DeathState` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `MovementType` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`guid`),
   KEY `idx_map` (`map`),
@@ -793,9 +792,8 @@ DROP TABLE IF EXISTS `creature_addon`;
 CREATE TABLE `creature_addon` (
   `guid` int(10) unsigned NOT NULL DEFAULT '0',
   `mount` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `bytes1` int(10) unsigned NOT NULL DEFAULT '0',
-  `b2_0_sheath` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `b2_1_flags` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `stand_state` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+  `sheath_state` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `emote` int(10) unsigned NOT NULL DEFAULT '0',
   `moveflags` int(10) unsigned NOT NULL DEFAULT '0',
   `auras` text,
@@ -987,7 +985,7 @@ CREATE TABLE `creature_spawn_data_template` (
   `UnitFlags` bigint NOT NULL DEFAULT '-1',
   `Faction` int unsigned NOT NULL DEFAULT '0',
   `ModelId` mediumint unsigned NOT NULL DEFAULT '0',
-  `EquipmentId` mediumint NOT NULL DEFAULT '0',
+  `EquipmentId` mediumint NOT NULL DEFAULT '-1',
   `CurHealth` int unsigned NOT NULL DEFAULT '0',
   `CurMana` int unsigned NOT NULL DEFAULT '0',
   `SpawnFlags` int unsigned NOT NULL DEFAULT '0',
@@ -1450,9 +1448,8 @@ DROP TABLE IF EXISTS `creature_template_addon`;
 CREATE TABLE `creature_template_addon` (
   `entry` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `mount` mediumint(8) unsigned NOT NULL DEFAULT '0',
-  `bytes1` int(10) unsigned NOT NULL DEFAULT '0',
-  `b2_0_sheath` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `b2_1_flags` tinyint(3) unsigned NOT NULL DEFAULT '0',
+  `stand_state` TINYINT(3) UNSIGNED NOT NULL DEFAULT '0',
+  `sheath_state` tinyint(3) unsigned NOT NULL DEFAULT '0',
   `emote` mediumint(8) unsigned NOT NULL DEFAULT '0',
   `moveflags` int(10) unsigned NOT NULL DEFAULT '0',
   `auras` text,
@@ -2113,8 +2110,6 @@ CREATE TABLE `gameobject` (
   `rotation3` float NOT NULL DEFAULT '0',
   `spawntimesecsmin` int(11) NOT NULL DEFAULT '0' COMMENT 'GameObject respawn time minimum',
   `spawntimesecsmax` int(11) NOT NULL DEFAULT '0' COMMENT 'Gameobject respawn time maximum',
-  `animprogress` tinyint(3) unsigned NOT NULL DEFAULT '0',
-  `state` tinyint(3) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`guid`),
   KEY `idx_map` (`map`),
   KEY `idx_id` (`id`)
@@ -2128,6 +2123,14 @@ LOCK TABLES `gameobject` WRITE;
 /*!40000 ALTER TABLE `gameobject` DISABLE KEYS */;
 /*!40000 ALTER TABLE `gameobject` ENABLE KEYS */;
 UNLOCK TABLES;
+
+DROP TABLE IF EXISTS `gameobject_addon`;
+CREATE TABLE `gameobject_addon` (
+  `guid` int(10) unsigned NOT NULL DEFAULT '0',
+  `animprogress` TINYINT(3) UNSIGNED NOT NULL DEFAULT '100',
+  `state` TINYINT(3) NOT NULL DEFAULT -1,
+  PRIMARY KEY(`guid`)
+);
 
 DROP TABLE IF EXISTS `gameobject_spawn_entry`;
 CREATE TABLE `gameobject_spawn_entry`(
@@ -3877,7 +3880,7 @@ INSERT INTO `mangos_string` VALUES
 (66,'No script library loaded',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (67,'|c00FFFFFF|Announce:',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (100,'Global notify: ',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
-(101,'Map: %u (%s) Zone: %u (%s) Area: %u (%s)\nX: %f Y: %f Z: %f Orientation: %f\ngrid[%u,%u]cell[%u,%u] InstanceID: %u\n ZoneX: %f ZoneY: %f\nGroundZ: %f FloorZ: %f Have height data (Map: %u VMap: %u)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
+(101,'Map: %u (%s) Zone: %u (%s) Area: %u (%s) %s\nX: %f Y: %f Z: %f Orientation: %f\ngrid[%u,%u]cell[%u,%u] InstanceID: %u\n ZoneX: %f ZoneY: %f\nGroundZ: %f FloorZ: %f Have height data (Map: %u VMap: %u)',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (102,'%s is already being teleported.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (103,'You can summon a player to your instance only if he is in your party with you as leader.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
 (104,'You cannot go to the player\'s instance because you are in a party now.',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL),
@@ -12667,6 +12670,12 @@ LOCK TABLES `reference_loot_template` WRITE;
 /*!40000 ALTER TABLE `reference_loot_template` DISABLE KEYS */;
 /*!40000 ALTER TABLE `reference_loot_template` ENABLE KEYS */;
 UNLOCK TABLES;
+
+CREATE TABLE `reference_loot_template_names` (
+  `entry` int unsigned NOT NULL DEFAULT '0',
+  `name` varchar(255) NOT NULL DEFAULT '',
+  PRIMARY KEY (`entry`)
+)COMMENT='Reference Loot Template Names';
 
 --
 -- Table structure for table `reputation_reward_rate`

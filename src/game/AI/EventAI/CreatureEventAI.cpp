@@ -949,9 +949,9 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             SetCombatMovement(action.combat_movement.state != 0, true);
 
             if (hasCombatMovement && action.combat_movement.melee && m_creature->IsInCombat() && m_creature->GetVictim())
-                m_creature->SendMeleeAttackStart(m_creature->GetVictim());
+                m_creature->SendMeleeAttackStart(*m_creature->GetVictim());
             else if (action.combat_movement.melee && m_creature->IsInCombat() && m_creature->GetVictim())
-                m_creature->SendMeleeAttackStop(m_creature->GetVictim());
+                m_creature->SendMeleeAttackStop(*m_creature->GetVictim());
             break;
         }
         case ACTION_T_SET_PHASE:
@@ -1279,10 +1279,10 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 uint32 relayId = sScriptMgr.GetRandomRelayDbscriptFromTemplate(uint32(-action.relayScript.relayId));
                 if (relayId == 0)
                     break;
-                m_creature->GetMap()->ScriptsStart(sRelayScripts, relayId, target, m_creature);
+                m_creature->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, relayId, target, m_creature);
             }
             else
-                m_creature->GetMap()->ScriptsStart(sRelayScripts, action.relayScript.relayId, target, m_creature);
+                m_creature->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, action.relayScript.relayId, target, m_creature);
             break;
         }
         case ACTION_T_TEXT_NEW:

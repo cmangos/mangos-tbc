@@ -2424,8 +2424,8 @@ struct GossipNPCAI : public ScriptedAI
             case NPC_ORC_COMMONER:
             case NPC_TAUREN_COMMONER:
             case NPC_TROLL_COMMONER:
-            case NPC_FORSAKEN_COMMONER:
-            case NPC_GOBLIN_COMMONER: m_team = HORDE; break;
+            case NPC_FORSAKEN_COMMONER: m_team = HORDE; break;
+            case NPC_GOBLIN_COMMONER: m_team = TEAM_NONE; break;
         }
     }
 
@@ -2563,6 +2563,7 @@ struct GossipNPCPeriodicTalk : public AuraScript
 
 const std::vector<uint32> winterTextsAlliance = { 16422, 24341, 16032, 24342 };
 const std::vector<uint32> winterTextsHorde = { 16464, 24324, 24325 };
+const std::vector<uint32> winterTextsGoblin = { 16423, 16463 };
 
 const std::vector<uint32> midsummerTextsAlliance = { 24532, 24531 };
 const std::vector<uint32> midsummerTextsHorde = { 24533, 24534 };
@@ -2572,6 +2573,9 @@ const std::vector<uint32> brewfestTextsHorde = { 23627, 23628 };
 
 const std::vector<uint32> hallowsEndTextsAlliance = { 24346, 24348, 24338, 24339, 23287, 23293, 24347, 23357 };
 const std::vector<uint32> hallowsEndTextsHorde = { 23295, 24331, 23298, 24329, 24336, 23351, 24337, 24330 };
+
+const std::vector<uint32> lunarTextsAlliance = { 24349, 24350 };
+const std::vector<uint32> lunarTextsHorde = { 24332, 24333 };
 
 uint32 GetRandomText(const std::vector<uint32> texts)
 {
@@ -2602,8 +2606,8 @@ struct GossipNPCPeriodicTriggerTalk : public SpellScript
                 case NPC_ORC_COMMONER:
                 case NPC_TAUREN_COMMONER:
                 case NPC_TROLL_COMMONER:
-                case NPC_FORSAKEN_COMMONER:
-                case NPC_GOBLIN_COMMONER: textId = GetRandomText(winterTextsHorde); break;
+                case NPC_FORSAKEN_COMMONER: textId = GetRandomText(winterTextsHorde); break;
+                case NPC_GOBLIN_COMMONER: textId = GetRandomText(winterTextsGoblin); break;
             }
         }
 
@@ -2644,7 +2648,21 @@ struct GossipNPCPeriodicTriggerTalk : public SpellScript
 
         if (events == GOSSIP_EVENT_LUNAR_FESTIVAL)
         {
-
+            switch (spell->GetCaster()->GetEntry())
+            {
+                default:
+                case NPC_HUMAN_COMMONER:
+                case NPC_DWARF_COMMONER:
+                case NPC_GNOME_COMMONER:
+                case NPC_NIGHT_ELF_COMMONER:
+                case NPC_DRAENEI_COMMONER: textId = GetRandomText(lunarTextsAlliance); break;
+                case NPC_BLOOD_ELF_COMMONER:
+                case NPC_ORC_COMMONER:
+                case NPC_TAUREN_COMMONER:
+                case NPC_TROLL_COMMONER:
+                case NPC_FORSAKEN_COMMONER: textId = GetRandomText(lunarTextsHorde); break;
+                case NPC_GOBLIN_COMMONER: textId = GetRandomText(lunarTextsHorde); break;
+            }
         }
 
         if (events == GOSSIP_EVENT_BREWFEST)
@@ -2779,8 +2797,9 @@ struct GossipNPCAppearanceAllPirateDay : public AuraScript
 
 enum GossipNpcGossips
 {
-    GOSSIP_WINTER_VEIL_A            = 10513,
-    GOSSIP_WINTER_VEIL_H            = 0,
+    GOSSIP_WINTER_VEIL_A            = 7907,
+    GOSSIP_WINTER_VEIL_H            = 7911,
+    GOSSIP_WINTER_VEIL_GOBLIN       = 8065,
     GOSSIP_LUNAR_FESTIVAL           = 0,
     GOSSIP_HALLOWS_END              = 8939,
     GOSSIP_BREWFEST                 = 8988,
@@ -2801,7 +2820,7 @@ bool GossipHello_npc_gossip_npc(Player* player, Creature* creature)
         Team team = ai->m_team;
         switch (gossipEvent)
         {
-            case GOSSIP_EVENT_WINTER_VEIL: gossipId = team == ALLIANCE ? GOSSIP_WINTER_VEIL_A : GOSSIP_WINTER_VEIL_H; break;
+            case GOSSIP_EVENT_WINTER_VEIL: gossipId = team == ALLIANCE ? GOSSIP_WINTER_VEIL_A : team == TEAM_NONE ? GOSSIP_WINTER_VEIL_GOBLIN : GOSSIP_WINTER_VEIL_H; break;
             case GOSSIP_EVENT_LUNAR_FESTIVAL: gossipId = GOSSIP_LUNAR_FESTIVAL; break;
             case GOSSIP_EVENT_HALLOWS_END: gossipId = GOSSIP_HALLOWS_END; break;
             case GOSSIP_EVENT_BREWFEST: gossipId = GOSSIP_BREWFEST; break;

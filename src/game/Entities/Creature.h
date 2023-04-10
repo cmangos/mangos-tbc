@@ -162,6 +162,8 @@ struct CreatureInfo
     VisibilityDistanceType visibilityDistanceType;
     uint32  CorpseDelay;
     uint32  SpellList;
+    uint32  StringID1;
+    uint32  StringID2;
     char const* AIName;
     uint32  ScriptID;
 
@@ -230,6 +232,7 @@ struct CreatureSpawnTemplate
     uint32 curMana;
     uint32 spawnFlags;
     uint32 relayId;
+    uint32 stringId;
 
     bool IsRunning() const { return (spawnFlags & SPAWN_FLAG_RUN_ON_SPAWN) != 0; }
     bool IsHovering() const { return (spawnFlags & SPAWN_FLAG_HOVER) != 0; }
@@ -240,7 +243,6 @@ struct CreatureData
 {
     uint32 id;                                              // entry in creature_template
     uint16 mapid;
-    uint32 modelid_override;                                // overrides any model defined in creature_template
     int32 equipmentId;
     float posX;
     float posY;
@@ -249,10 +251,6 @@ struct CreatureData
     uint32 spawntimesecsmin;
     uint32 spawntimesecsmax;
     float spawndist;
-    uint32 currentwaypoint;
-    uint32 curhealth;
-    uint32 curmana;
-    bool  is_dead;
     uint8 movementType;
     uint8 spawnMask;
     int16 gameEvent;
@@ -280,9 +278,8 @@ struct CreatureDataAddon
 {
     uint32 guidOrEntry;
     uint32 mount;
-    uint32 bytes1;
+    uint8  standState;
     uint8  sheath_state;                                    // SheathState
-    uint8  flags;                                           // UnitBytes2_Flags
     uint32 emote;
     uint32 move_flags;
     uint32 const* auras;                                    // loaded as char* "spell1 spell2 ... "
@@ -735,7 +732,6 @@ class Creature : public Unit
         bool IsVisibleInGridForPlayer(Player* pl) const override;
 
         void RemoveCorpse(bool inPlace = false);
-        bool IsDeadByDefault() const { return m_isDeadByDefault; };
 
         virtual void ForcedDespawn(uint32 timeMSToDespawn = 0, bool onlyAlive = false);
 
@@ -786,8 +782,6 @@ class Creature : public Unit
         void GetRespawnCoord(float& x, float& y, float& z, float* ori = nullptr, float* dist = nullptr) const;
         Position const& GetRespawnPosition() const { return m_respawnPos; }
         void ResetRespawnCoord();
-
-        void SetDeadByDefault(bool death_state) { m_isDeadByDefault = death_state; }
 
         void SetFactionTemporary(uint32 factionId, uint32 tempFactionFlags = TEMPFACTION_ALL);
         void ClearTemporaryFaction();
@@ -858,7 +852,13 @@ class Creature : public Unit
         // Spell Lists
         CreatureSpellList const& GetSpellList() const { return m_spellList; }
         std::vector<uint32> GetCharmSpells() const;
-        bool GetSpellCooldown(uint32 spellId, uint32& cooldown) const;
+        enum CooldownResult
+        {
+            COOLDOWN_RESULT_NOT_FOUND       = 0,
+            COOLDOWN_RESULT_FOUND           = 1,
+            COOLDOWN_RESULT_CATEGORY_FOUND  = 2,
+        };
+        CooldownResult GetSpellCooldown(uint32 spellId, uint32& cooldown) const;
 
         void SetCreatureGroup(CreatureGroup* group);
         void ClearCreatureGroup();
@@ -915,7 +915,6 @@ class Creature : public Unit
         // below fields has potential for optimization
         bool m_AlreadyCallAssistance;
         bool m_canCallForAssistance;
-        bool m_isDeadByDefault;
         uint32 m_temporaryFactionFlags;                     // used for real faction changes (not auras etc)
 
         uint32 m_originalEntry;

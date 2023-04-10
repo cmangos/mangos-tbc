@@ -100,6 +100,14 @@ struct EarthShield : public AuraScript
         }
         return value;
     }
+
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    {
+        procData.basepoints[0] = aura->GetAmount();
+        procData.triggerTarget = aura->GetTarget();
+        procData.triggeredSpellId = 379;
+        return SPELL_AURA_PROC_OK;
+    }
 };
 
 void LoadShamanScripts()

@@ -150,6 +150,7 @@ struct boss_magtheridonAI : public CombatAI
         {
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
+            m_creature->SetInCombatWithZone();
 
             DoScriptText(EMOTE_FREED, m_creature);
             DoScriptText(SAY_AGGRO, m_creature);
@@ -166,7 +167,7 @@ struct boss_magtheridonAI : public CombatAI
             ResetCombatAction(MAGTHERIDON_BLAZE, urand(10000, 15000));
             ResetCombatAction(MAGTHERIDON_QUAKE, 40000);
             ResetCombatAction(MAGTHERIDON_BLAST_NOVA, 55000);
-            ResetCombatAction(MAGTHERIDON_CLEAVE, 15000);
+            ResetCombatAction(MAGTHERIDON_CLEAVE, urand(8000, 12000));
         }
         else if (eventType == AI_EVENT_CUSTOM_B)
         {
@@ -297,7 +298,7 @@ struct boss_magtheridonAI : public CombatAI
             case MAGTHERIDON_CLEAVE:
             {
                 if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
-                    ResetCombatAction(action, 10000);
+                    ResetCombatAction(action, urand(8000, 16000));
                 break;
             }
             case MAGTHERIDON_BLAZE:

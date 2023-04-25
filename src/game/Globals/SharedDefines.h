@@ -2144,4 +2144,7 @@ enum MovementEvent
 // #define PRENERF_2_3         // Pre 2.4
 // #define PRENERF_2_4         // Pre 2.4.3
 
+#define MAX_TALENT_RANK 5
+#define MAX_TALENT_SPECS 2
+
 #endif

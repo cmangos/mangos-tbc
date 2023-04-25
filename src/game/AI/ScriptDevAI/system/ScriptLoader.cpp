@@ -9,6 +9,9 @@ extern void AddSC_battleground();
 
 // custom
 extern void AddSC_Transmog();
+extern void AddSC_TargetDummy();
+extern void AddSC_npc_custom_dualspec();
+extern void AddSC_item_custom_dualspec();
 
 // examples
 extern void AddSC_example_creature();
@@ -374,6 +377,9 @@ void AddScripts()
 
     // custom
     AddSC_Transmog();
+    AddSC_TargetDummy();
+    AddSC_npc_custom_dualspec();
+    AddSC_item_custom_dualspec();
 
     // examples
     AddSC_example_creature();

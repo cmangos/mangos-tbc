@@ -1008,6 +1008,9 @@ void World::LoadConfigSettings(bool reload)
 
     sTransmogrification->LoadConfig(reload);
 
+    setConfig(CONFIG_UINT32_DUAL_SPEC_ITEM_ID, "Custom.DualSpecItemId", 17731);
+    setConfig(CONFIG_UINT32_DUAL_SPEC_COST, "Custom.DualSpecCost", 10000000);
+
     sLog.outString();
 }
 

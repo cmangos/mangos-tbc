@@ -1945,13 +1945,13 @@ void ObjectMgr::LoadCreatures()
     uint32 count = 0;
     //                                                0                       1   2
     QueryResult* result = WorldDatabase.Query("SELECT creature.guid, creature.id, map,"
-                          //   3             4           5           6           7            8              9                10
-                          "equipment_id, position_x, position_y, position_z, orientation, spawntimesecsmin, spawntimesecsmax, spawndist,"
-                          //   11         12        13
+                          //        3           4           5           6            7              8                9
+                          "position_x, position_y, position_z, orientation, spawntimesecsmin, spawntimesecsmax, spawndist,"
+                          //   10         11        12
                           "MovementType, spawnMask, event,"
-                          //   14                        15
+                          //   13                        14
                           "pool_creature.pool_entry, pool_creature_template.pool_entry,"
-                          //   16
+                          //   15
                           "creature_spawn_data.id "
                           "FROM creature "
                           "LEFT OUTER JOIN game_event_creature ON creature.guid = game_event_creature.guid "
@@ -2018,19 +2018,18 @@ void ObjectMgr::LoadCreatures()
 
         data.id                 = entry;
         data.mapid              = fields[ 2].GetUInt32();
-        data.equipmentId        = fields[ 3].GetUInt32();
-        data.posX               = fields[ 4].GetFloat();
-        data.posY               = fields[ 5].GetFloat();
-        data.posZ               = fields[ 6].GetFloat();
-        data.orientation        = fields[ 7].GetFloat();
-        data.spawntimesecsmin   = fields[ 8].GetUInt32();
-        data.spawntimesecsmax   = fields[ 9].GetUInt32();
-        data.spawndist          = fields[10].GetFloat();
-        data.movementType       = fields[11].GetUInt8();
-        data.spawnMask          = fields[12].GetUInt8();
-        data.gameEvent          = fields[13].GetInt16();
-        data.GuidPoolId         = fields[14].GetInt16();
-        data.EntryPoolId        = fields[15].GetInt16();
+        data.posX               = fields[ 3].GetFloat();
+        data.posY               = fields[ 4].GetFloat();
+        data.posZ               = fields[ 5].GetFloat();
+        data.orientation        = fields[ 6].GetFloat();
+        data.spawntimesecsmin   = fields[ 7].GetUInt32();
+        data.spawntimesecsmax   = fields[ 8].GetUInt32();
+        data.spawndist          = fields[ 9].GetFloat();
+        data.movementType       = fields[10].GetUInt8();
+        data.spawnMask          = fields[11].GetUInt8();
+        data.gameEvent          = fields[12].GetInt16();
+        data.GuidPoolId         = fields[13].GetInt16();
+        data.EntryPoolId        = fields[14].GetInt16();
         data.spawnTemplate      = GetCreatureSpawnTemplate(0);
         uint32 spawnDataEntry   = fields[16].GetUInt32();
 
@@ -2069,20 +2068,6 @@ void ObjectMgr::LoadCreatures()
         {
             sLog.outErrorDb("Table `creature` have creature (GUID: %u) that listed as heroic template (entry: %u) in `creature_template`, skipped.", guid, data.id);
             continue;
-        }
-
-        if (data.equipmentId > 0)                           // -1 no equipment, 0 use default
-        {
-            if (!GetEquipmentInfo(data.equipmentId) && !GetEquipmentInfoRaw(data.equipmentId))
-            {
-                sLog.outErrorDb("Table `creature` have creature (Entry: %u) with equipment_id %u not found in table `creature_equip_template` or `creature_equip_template_raw`, set to no equipment.", data.id, data.equipmentId);
-                data.equipmentId = -1;
-            }
-            if (cInfo && data.equipmentId == cInfo->EquipmentTemplateId)
-            {
-                sLog.outErrorDb("Table `creature` has creature (GUID: %u, Entry: %u) with equipment_id %u already defined in creature_template table", guid, data.id, data.equipmentId); 
-                data.equipmentId = 0;
-            }
         }
 
         if (data.spawndist < 0.0f)

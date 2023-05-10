@@ -2031,7 +2031,7 @@ void ObjectMgr::LoadCreatures()
         data.GuidPoolId         = fields[13].GetInt16();
         data.EntryPoolId        = fields[14].GetInt16();
         data.spawnTemplate      = GetCreatureSpawnTemplate(0);
-        uint32 spawnDataEntry   = fields[16].GetUInt32();
+        uint32 spawnDataEntry   = fields[15].GetUInt32();
 
         MapEntry const* mapEntry = sMapStore.LookupEntry(data.mapid);
         if (!mapEntry)

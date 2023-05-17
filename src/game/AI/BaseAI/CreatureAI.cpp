@@ -28,7 +28,7 @@ CreatureAI::CreatureAI(Creature* creature) : CreatureAI(creature, 0) { }
 CreatureAI::CreatureAI(Creature* creature, uint32 combatActions) :
     UnitAI(creature, combatActions),
     m_creature(creature),
-    m_deathPrevention(false), m_deathPrevented(false), m_followAngle(0.f), m_followDist(0.f)
+    m_deathPrevented(false), m_followAngle(0.f), m_followDist(0.f)
 {
     m_dismountOnAggro = !(m_creature->GetCreatureInfo()->CreatureTypeFlags & CREATURE_TYPEFLAGS_MOUNTED_COMBAT);
 
@@ -83,7 +83,7 @@ void CreatureAI::AttackStart(Unit* who)
 
 void CreatureAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType damageType, SpellEntry const* /*spellInfo*/)
 {
-    if (m_deathPrevention && damageType != INSTAKILL)
+    if (m_creature->GetSettings().HasFlag(CreatureStaticFlags::UNKILLABLE) && damageType != INSTAKILL)
     {
         if (m_creature->GetHealth() <= damage) // the damage will be reduced in Unit::DealDamage
         {
@@ -98,9 +98,10 @@ void CreatureAI::DamageTaken(Unit* dealer, uint32& damage, DamageEffectType dama
 
 void CreatureAI::SetDeathPrevention(bool state)
 {
-    m_deathPrevention = state;
     if (state)
-        m_deathPrevented = false;
+        m_creature->GetSettings().SetFlag(CreatureStaticFlags::UNKILLABLE);
+    else
+        m_creature->GetSettings().RemoveFlag(CreatureStaticFlags::UNKILLABLE);
 }
 
 void CreatureAI::DoFakeDeath(uint32 spellId)

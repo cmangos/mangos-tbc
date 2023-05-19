@@ -2359,6 +2359,7 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- ============================================================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
 4044,  -- Target Dummy Passive
+8852, -- Moss Hide
 11816, -- Land Mine Arming
 17205, -- Winterfall Firewater
 27791, -- Suicide (Suicide)

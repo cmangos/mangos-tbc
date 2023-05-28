@@ -769,7 +769,7 @@ SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MA
     if (target && (target != this && !target->IsAlive()))
         return SPELL_AURA_PROC_FAILED;
 
-    if (!triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
+    if (triggeredByAura && !triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
         return SPELL_AURA_PROC_FAILED;
 
     if (basepoints[EFFECT_INDEX_0] || basepoints[EFFECT_INDEX_1] || basepoints[EFFECT_INDEX_2])
@@ -781,7 +781,7 @@ SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MA
     else
         CastSpell(target, spellInfo, TRIGGERED_OLD_TRIGGERED | TRIGGERED_INSTANT_CAST | TRIGGERED_DO_NOT_RESET_LEASH, castItem, triggeredByAura, originalCaster);
 
-    if (cooldown)
+    if (cooldown && triggeredByAura)
         triggeredByAura->GetHolder()->SetProcCooldown(std::chrono::seconds(cooldown), GetMap()->GetCurrentClockTime());
 
     return SPELL_AURA_PROC_OK;

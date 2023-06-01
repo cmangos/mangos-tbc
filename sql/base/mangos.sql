@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2469_01_mangos_trainer_ability` bit(1) DEFAULT NULL
+  `required_s2470_01_mangos_worldstate_expression_spawn_group` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -12966,6 +12966,7 @@ CREATE TABLE `spawn_group`  (
   `Type` int(11) NOT NULL COMMENT 'Creature or GO spawn group',
   `MaxCount` int(11) NOT NULL DEFAULT 0 COMMENT 'Maximum total count of all spawns in a group',
   `WorldState` int(11) NOT NULL DEFAULT 0 COMMENT 'Worldstate which enables spawning of given group',
+  `WorldStateExpression` int(11) NOT NULL DEFAULT 0 COMMENT 'Worldstate expression Id',
   `Flags` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Flags for various behaviour',
   `StringId` INT(11) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY (`Id`)

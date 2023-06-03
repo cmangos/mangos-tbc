@@ -1192,6 +1192,11 @@ void UnitAI::UpdateSpellLists()
 
     CreatureSpellList const& spells = GetSpellList();
 
+    if (spells.Disabled)
+    {
+        return;
+    }
+
     // when probability is 0 for all spells, they will use priority based on positions
     std::vector<std::tuple<uint32, uint32, uint32, Unit*>> eligibleSpells;
     uint32 sum = 0;

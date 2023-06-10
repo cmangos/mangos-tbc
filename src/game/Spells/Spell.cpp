@@ -2126,6 +2126,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                 }
             }
             m_targets.setDestination(nextPos.x, nextPos.y, nextPos.z);
+            break;
         }
         case TARGET_LOCATION_UNIT_POSITION:
         {

@@ -4513,9 +4513,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1558006','Stare into the darkness of your soul.','10511','1','0','0','17645','maladaar SAY_SOUL_CLEAVE'),
 ('-1558007','These walls will be your tomb!','10516','1','0','0','17650','maladaar SAY_SLAY_1'),
 ('-1558008','Now you''ll stay... for eternity.','10517','1','0','0','17651','maladaar SAY_SLAY_2'),
-('-1558009','This is... where I belong.','10518','1','0','0','17646','maladaar SAY_DEATH'),
-
-('-1558010','%s focuses on $N','0','3','0','0','0','shirrak EMOTE_FOCUS');
+('-1558009','This is... where I belong.','10518','1','0','0','17646','maladaar SAY_DEATH');
 
 -- -1 560 000 ESCAPE FROM DURNHOLDE (OLD HILLSBRAD)
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES

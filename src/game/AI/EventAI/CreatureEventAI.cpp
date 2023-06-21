@@ -506,9 +506,36 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
             break;
         case EVENT_T_AURA:
         {
-            SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
-            if (!auraHolder || auraHolder->GetStackAmount() < event.buffed.amount)
-                return false;
+            // 0 = Out and in combat
+            // 1 = Only in Combat
+            // 2 = Only out of combat
+
+            if (event.buffed.inCombat == 0)
+            {
+                SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+                if (!auraHolder || auraHolder->GetStackAmount() < event.buffed.amount)
+                    return false;
+            }
+
+            if (event.buffed.inCombat == 1)
+            {
+                if (!m_creature->IsInCombat())
+                    return false;
+
+                SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+                if (!auraHolder || auraHolder->GetStackAmount() < event.buffed.amount)
+                    return false;
+            }
+            if (event.buffed.inCombat == 2)
+            {
+
+                if (!m_creature->IsInCombat())
+                    return false;
+
+                SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+                if (!auraHolder || auraHolder->GetStackAmount() < event.buffed.amount)
+                    return false;
+            }           
             break;
         }
         case EVENT_T_TARGET_AURA:
@@ -523,9 +550,36 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
         }
         case EVENT_T_MISSING_AURA:
         {
-            SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
-            if (auraHolder && auraHolder->GetStackAmount() >= event.buffed.amount)
-                return false;
+            // 0 = Out and in combat
+            // 1 = Only in Combat
+            // 2 = Only out of combat
+
+            if (event.buffed.inCombat == 0)
+            {
+                SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+                if (auraHolder && auraHolder->GetStackAmount() >= event.buffed.amount)
+                    return false;
+            }
+
+            if (event.buffed.inCombat == 1)
+            {
+                if (!m_creature->IsInCombat())
+                    return false;
+
+                SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+                if (auraHolder && auraHolder->GetStackAmount() >= event.buffed.amount)
+                    return false;
+            }
+            if (event.buffed.inCombat == 2)
+            {
+
+                if (!m_creature->IsInCombat())
+                    return false;
+
+                SpellAuraHolder* auraHolder = m_creature->GetSpellAuraHolder(event.buffed.spellId);
+                if (auraHolder && auraHolder->GetStackAmount() >= event.buffed.amount)
+                    return false;
+            }
             break;
         }
         case EVENT_T_TARGET_MISSING_AURA:

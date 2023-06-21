@@ -62,11 +62,11 @@ enum EventAI_Type
     EVENT_T_QUEST_COMPLETE          = 20,                   //
     EVENT_T_REACHED_HOME            = 21,                   // NONE
     EVENT_T_RECEIVE_EMOTE           = 22,                   // EmoteId, ConditionId
-    EVENT_T_AURA                    = 23,                   // Param1 = SpellID, Param2 = Number of time stacked, Param3/4 Repeat Min/Max
+    EVENT_T_AURA                    = 23,                   // Param1 = SpellID, Param2 = Number of time stacked, Param3/4 Repeat Min/Max, inCombat
     EVENT_T_TARGET_AURA             = 24,                   // Param1 = SpellID, Param2 = Number of time stacked, Param3/4 Repeat Min/Max
     EVENT_T_SUMMONED_JUST_DIED      = 25,                   // CreatureId, RepeatMin, RepeatMax
     EVENT_T_SUMMONED_JUST_DESPAWN   = 26,                   // CreatureId, RepeatMin, RepeatMax
-    EVENT_T_MISSING_AURA            = 27,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
+    EVENT_T_MISSING_AURA            = 27,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max, inCombat
     EVENT_T_TARGET_MISSING_AURA     = 28,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
     EVENT_T_TIMER_GENERIC           = 29,                   // InitialMin, InitialMax, RepeatMin, RepeatMax
     EVENT_T_RECEIVE_AI_EVENT        = 30,                   // AIEventType, Sender-Entry, unused, unused
@@ -746,6 +746,7 @@ struct CreatureEventAI_Event
             uint32 amount;
             uint32 repeatMin;
             uint32 repeatMax;
+            uint32 inCombat;
         } buffed;
         // EVENT_T_RECEIVE_AI_EVENT                         = 30
         struct

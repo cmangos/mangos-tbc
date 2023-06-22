@@ -4433,14 +4433,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 
 -- -1 556 000 SETHEKK HALLS
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
-('-1556000','I have pets -- ca-caw! -- of my own!','10502','1','0','0','17733','syth SAY_SUMMON'),
-('-1556001','Mmm... time to make my move!','10503','1','0','0','17734','syth SAY_AGGRO_1'),
-('-1556002','Nice pets, yes... raa-a-ak!','10504','1','0','0','17735','syth SAY_AGGRO_2'),
-('-1556003','Nice pets have weapons. No so -- ra-ak -- nice.','10505','1','0','0','17736','syth SAY_AGGRO_3'),
-('-1556004','Yes, fleeting life is, rak-a-kak!','10506','1','0','0','17737','syth SAY_SLAY_1'),
-('-1556005','Mmmm... be free. Caw!','10507','1','0','0','17738','syth SAY_SLAY_2'),
-('-1556006','Mmm... no more life. No more pain. A-ak!','10508','1','0','0','17739','syth SAY_DEATH'),
-
 ('-1556007','Ra-ak! Trinkets, yes. Pretty trinkets! Ak! Power, great power. Ra-kaw! Power in trinkets! Ak-caw!','10557','1','0','0','17769','ikiss SAY_INTRO'),
 ('-1556008','Mmm, you make war on Ikiss? Aa-ak!','10554','1','0','0','17765','ikiss SAY_AGGRO_1'),
 ('-1556009','Ikiss cut you, pretty -- ak-a-ak -- slice you, yes!','10555','1','0','0','17767','ikiss SAY_AGGRO_2'),

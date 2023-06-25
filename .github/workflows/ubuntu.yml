@@ -110,7 +110,7 @@ jobs:
           severity: error
           username: ${{env.EXPENSION_NAME}}-core
           description: |
-            **Linux buid failed**
+            **Linux build failed**
           details: |
             - **Branch:** ${{env.GIT_BRANCH}}
             - **Pusher:** ${{github.event.pusher.name}}

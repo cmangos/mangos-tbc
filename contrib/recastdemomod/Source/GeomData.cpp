@@ -217,12 +217,15 @@ void MeshObjects::LoadVMap()
 {
     TerrainBuilder* terrainBuilder = new TerrainBuilder(false, m_Ctx->getDataDir());
 
-    terrainBuilder->loadVMap(m_MapId, m_TileX, m_TileY, m_VMapMesh);
+    IVMapManager* vmapManager = new VMapManager2();
+    terrainBuilder->loadVMap(m_MapId, m_TileX, m_TileY, m_VMapMesh, vmapManager);
 
     // get the coord bounds of the model data
     if (m_VMapMesh.solidVerts.size() + m_VMapMesh.liquidVerts.size() == 0)
     {
         m_Ctx->log(RC_LOG_ERROR, "Could not load vmap file for tile(%i, %i)", m_TileX, m_TileY);
+        vmapManager->unloadMap(m_MapId, m_TileX, m_TileY);
+        delete vmapManager;
         return;
     }
 
@@ -264,6 +267,8 @@ void MeshObjects::LoadVMap()
         m_VMapInfos = new MeshInfos(solid, liquid, sBMin, sBMax);
     }
     delete terrainBuilder;
+    vmapManager->unloadMap(m_MapId, m_TileX, m_TileY);
+    delete vmapManager;
 }
 
 void MeshObjects::LoadObject()

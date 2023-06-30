@@ -390,6 +390,46 @@ namespace VMAP
         return hit;
     }
 
+    class UnderObjectCheckerCallback
+    {
+    public:
+        UnderObjectCheckerCallback(std::vector<GroupModel> const& vals, Vector3 const& up, bool _ism2) :
+            prims(vals.begin()), hit(vals.end()), m2(_ism2), zVec(up), outDist(-1), inDist(-1) {}
+        std::vector<GroupModel>::const_iterator prims;
+        std::vector<GroupModel>::const_iterator hit;
+        bool m2;
+        Vector3 zVec;
+        float outDist;
+        float inDist;
+        void operator()(Vector3 const& point, uint32 entry)
+        {
+            float currentOutDist = -1.0f;
+            float currentInDist = -1.0f;
+            prims[entry].IsUnderObject(point, zVec, m2, &currentOutDist, &currentInDist);
+            if (outDist < 0 || (currentOutDist >= 0 && currentOutDist <= outDist))
+                outDist = currentOutDist;
+            if (inDist < 0 || (currentInDist >= 0 && currentInDist <= inDist))
+                inDist = currentInDist;
+        }
+        bool UnderModel() const
+        {
+            return (outDist < 0 && inDist >= 0) || (0 <= inDist && inDist < outDist);
+        }
+    };
+
+    bool WorldModel::IsUnderObject(G3D::Vector3 const& p, G3D::Vector3 const& up, bool m2, float* outDist, float* inDist) const
+    {
+        if (groupModels.empty())
+            return false;
+        UnderObjectCheckerCallback callback(groupModels, up, m2);
+        groupTree.intersectPoint(p, callback);
+        if (outDist)
+            *outDist = callback.outDist;
+        if (inDist)
+            *inDist = callback.inDist;
+        return callback.UnderModel();
+    }
+
     bool GroupModel::GetLiquidLevel(const Vector3& pos, float& liqHeight) const
     {
         if (iLiquid)
@@ -579,5 +619,71 @@ namespace VMAP
 
         fclose(rf);
         return result;
+    }
+
+    // Triangle oriented intersection: in -> out
+    bool IsGoingOut(Vector3 const& p0, Vector3 const& p1, Vector3 const& p2, Vector3 const& direction)
+    {
+        Vector3 e0 = p1 - p0;
+        Vector3 e1 = p2 - p0;
+        Vector3 norm = e0.cross(e1);
+        return norm.dot(direction) < 0;
+    }
+
+    struct GModelRayOrientedCallback
+    {
+        GModelRayOrientedCallback(std::vector<MeshTriangle> const& tris, std::vector<Vector3> const& vert, bool isM2) :
+            vertices(vert.begin()), triangles(tris.begin()), minOutDist(-1), minInDist(-1), m2(isM2) {}
+        bool operator()(G3D::Ray const& ray, uint32 entry, float& unusedD, bool /*pStopAtFirstHit*/, bool /*ignoreM2Model*/)
+        {
+            // Dont modify unusedD. Keep it to infinity. We want to traverse every triangle.
+            float distance = unusedD;
+            if (IntersectTriangle(triangles[entry], vertices, ray, distance))
+            {
+                // Going in or out ?
+                bool inToOutCollision = false;
+                if (m2)
+                    inToOutCollision = IsGoingOut(vertices[triangles[entry].idx2], vertices[triangles[entry].idx1], vertices[triangles[entry].idx0], ray.direction());
+                else
+                    inToOutCollision = IsGoingOut(vertices[triangles[entry].idx0], vertices[triangles[entry].idx1], vertices[triangles[entry].idx2], ray.direction());
+                if (inToOutCollision)
+                {
+                    if (minOutDist > distance || minOutDist < 0)
+                        minOutDist = distance;
+                }
+                else
+                {
+                    if (minInDist > distance || minInDist < -0)
+                        minInDist = distance;
+                }
+            }
+            return true;
+        }
+        bool UnderModel() const
+        {
+            return (minOutDist < 0 && minInDist >= 0) || (0 <= minInDist && minInDist < minOutDist);
+        }
+        std::vector<Vector3>::const_iterator vertices;
+        std::vector<MeshTriangle>::const_iterator triangles;
+        float minOutDist; // in -> out
+        float minInDist;  // out-> in
+        bool m2;
+    };
+
+    bool GroupModel::IsUnderObject(Vector3 const& pos, Vector3 const& up, bool isM2, float* outDist, float* inDist) const
+    {
+        // M2 models do not have bounds defined.
+        if (triangles.empty())
+            return false;
+        Vector3 rPos = pos;
+        float dist = G3D::inf();
+        G3D::Ray rayUp(rPos, up);
+        GModelRayOrientedCallback callback(triangles, vertices, isM2);
+        meshTree.intersectRay(rayUp, callback, dist, false);
+        if (outDist)
+            *outDist = callback.minOutDist;
+        if (inDist)
+            *inDist = callback.minInDist;
+        return callback.UnderModel();
     }
 }

@@ -31,36 +31,6 @@
 
 using namespace VMAP;
 
-void rcModAlmostUnwalkableTriangles(rcContext* ctx, const float walkableSlopeAngle,
-    const float* verts, int /*nv*/,
-    const int* tris, int nt,
-    unsigned char* areas)
-{
-    rcIgnoreUnused(ctx);
-
-    const float walkableThr = cosf(walkableSlopeAngle / 180.0f * RC_PI);
-
-    float norm[3];
-
-    for (int i = 0; i < nt; ++i)
-    {
-        if (areas[i] & RC_WALKABLE_AREA)
-        {
-            const int* tri = &tris[i * 3];
-
-            float e0[3], e1[3];
-            rcVsub(e0, &verts[tri[1] * 3], &verts[tri[0] * 3]);
-            rcVsub(e1, &verts[tri[2] * 3], &verts[tri[0] * 3]);
-            rcVcross(norm, e0, e1);
-            rcVnormalize(norm);
-
-            // Check if the face is walkable.
-            if (norm[1] <= walkableThr)
-                areas[i] = NAV_AREA_GROUND_STEEP; //Slopes between 50 and 60. Walkable for mobs, unwalkable for players.
-        }
-    }
-}
-
 void from_json(const json& j, rcConfig& config)
 {
     config.tileSize = MMAP::VERTEX_PER_TILE;
@@ -318,7 +288,7 @@ namespace MMAP
         rcCalcGridSize(config.bmin, config.bmax, config.cs, &config.width, &config.height);
 
         Tile tile;
-        buildCommonTile(modelName.data(), tile, config, tVerts, tVertCount, tTris, tTriCount, nullptr, 0, nullptr, 0, 0);
+        buildCommonTile(modelName.data(), tile, config, tVerts, tVertCount, tTris, tTriCount, nullptr, 0, nullptr, 0, 0, meshData);
 
         IntermediateValues iv;
         iv.polyMesh = tile.pmesh;
@@ -521,8 +491,16 @@ namespace MMAP
 
         // make sure we process maps which don't have tiles
         // initialize the static tree, which loads WDT models
-        if (!m_terrainBuilder->loadVMap(mapID, 64, 64, meshData))
+        IVMapManager* vmapManager = new VMapManager2();
+        if (!m_terrainBuilder->loadVMap(mapID, 64, 64, meshData, vmapManager))
+        {
+            vmapManager->unloadMap(mapID, 64, 64);
+            delete vmapManager;
             return;
+        }
+
+        vmapManager->unloadMap(mapID, 64, 64);
+        delete vmapManager;
 
         // get the coord bounds of the model data
         if (meshData.solidVerts.size() + meshData.liquidVerts.size() == 0)
@@ -638,6 +616,92 @@ namespace MMAP
         dtFreeNavMesh(navMesh);
     }
 
+    static void calcTriNormal(const float* v0, const float* v1, const float* v2, float* norm)
+    {
+        float e0[3], e1[3];
+        rcVsub(e0, v1, v0);
+        rcVsub(e1, v2, v0);
+        rcVcross(norm, e0, e1);
+        rcVnormalize(norm);
+    }
+
+    void filterSteepSlopeTriangles(rcContext* ctx,
+        const float* verts, int nv,
+        const int* tris, int nt,
+        unsigned char* areas, MeshData& meshData, TerrainBuilder* m_terrainBuilder, VMAP::IVMapManager* vmapManager)
+    {
+        rcIgnoreUnused(ctx);
+        rcIgnoreUnused(nv);
+
+        float norm[3];
+
+        const float playerClimbLimit = cosf(50.0f / 180.0f * RC_PI);
+        const float maxClimbLimitTerrain = cosf(75.0f / 180.0f * RC_PI);
+        const float maxClimbLimitVmaps = cosf(61.0f / 180.0f * RC_PI);
+
+        uint32 terrainPolysSlope = 0;
+        uint32 terrainPolysNull = 0;
+        uint32 nonTerrainPolysSlope = 0;
+        uint32 nonTerrainPolysNull = 0;
+        uint32 undermapPolys = 0;
+
+        for (int i = 0; i < nt; ++i)
+        {
+            if (areas[i] & RC_WALKABLE_AREA)
+            {
+                const int* tri = &tris[i * 3];
+                calcTriNormal(&verts[tri[0] * 3], &verts[tri[1] * 3], &verts[tri[2] * 3], norm);
+
+                bool terrain = meshData.IsTerrainTriangle(i);
+                // Check if the face is walkable: different angle for different type of triangle
+                // NPCs, charges, ... can climb up to the HardLimit
+                // blinks, randomPosGenerator ... can climb up to playerClimbLimit
+                // With playerClimbLimit < HardLimit
+                float climbHardLimit = terrain ? maxClimbLimitTerrain : maxClimbLimitVmaps;
+
+                if (norm[1] <= playerClimbLimit)
+                {
+                    areas[i] = NAV_AREA_GROUND_STEEP;
+                    if (terrain)
+                        terrainPolysSlope++;
+                    else
+                        nonTerrainPolysSlope++;
+                }
+                if (norm[1] <= climbHardLimit)
+                {
+                    areas[i] = RC_NULL_AREA;
+                    if (terrain)
+                        terrainPolysNull++;
+                    else
+                        nonTerrainPolysNull++;
+                }
+
+                // Now we remove underterrain triangles (actually set flags to 0)
+                // This prevents selecting wrong poly for a player in the server later.
+                if (vmapManager && !terrain && areas[i])
+                {
+                    // Get triangle corners (as usual, yzx positions)
+                    // (actually we push these corners towards the center a bit to prevent collision with border models etc...)
+                    float cVerts[9];
+                    for (int c = 0; c < 3; ++c) // Corner
+                        for (int v = 0; v < 3; ++v) // Coordinate
+                            cVerts[3 * c + v] = (5 * verts[tri[c] * 3 + v] + verts[tri[(c + 1) % 3] * 3 + v] + verts[tri[(c + 2) % 3] * 3 + v]) / 7;
+
+                    // A triangle is undermap if all corners are undermap
+                    if (m_terrainBuilder->IsUnderMap(&cVerts[0], vmapManager) && m_terrainBuilder->IsUnderMap(&cVerts[3], vmapManager) && m_terrainBuilder->IsUnderMap(&cVerts[6], vmapManager))
+                    {
+                        areas[i] = RC_NULL_AREA;
+                        undermapPolys++;
+                        continue;
+                    }
+                }
+            }
+        }
+        //printf("Slopes filtered: terrain: %u vmaps: %u     \n", terrainPolysSlope, nonTerrainPolysSlope);
+        //printf("Unwalkable filtered: terrain: %u vmaps: %u     \n", terrainPolysNull, nonTerrainPolysNull);
+        //printf("Undermap polygons filtered: %u     \n", undermapPolys);
+    }
+
     /**************************************************************************/
     void MapBuilder::buildTile(uint32 mapID, uint32 tileX, uint32 tileY, dtNavMesh* navMesh, uint32 curTile, uint32 tileCount)
     {
@@ -649,11 +713,16 @@ namespace MMAP
         m_terrainBuilder->loadMap(mapID, tileX, tileY, meshData);
 
         // get model data
-        m_terrainBuilder->loadVMap(mapID, tileY, tileX, meshData);
+        IVMapManager* vmapManager = new VMapManager2();
+        m_terrainBuilder->loadVMap(mapID, tileY, tileX, meshData, vmapManager);
 
         // if there is no data, give up now
         if (!meshData.solidVerts.size() && !meshData.liquidVerts.size())
+        {
+            vmapManager->unloadMap(mapID, tileX, tileY);
+            delete vmapManager;
             return;
+        }
 
         // remove unused vertices
         TerrainBuilder::cleanVertices(meshData.solidVerts, meshData.solidTris);
@@ -674,7 +743,11 @@ namespace MMAP
         m_terrainBuilder->loadOffMeshConnections(mapID, tileX, tileY, meshData, m_offMeshFilePath);
 
         // build navmesh tile
-        buildMoveMapTile(mapID, tileX, tileY, meshData, bmin, bmax, navMesh);
+        buildMoveMapTile(mapID, tileX, tileY, meshData, bmin, bmax, navMesh, vmapManager);
+
+        // clean up
+        vmapManager->unloadMap(mapID, tileX, tileY);
+        delete vmapManager;
     }
 
     /**************************************************************************/
@@ -757,7 +830,7 @@ namespace MMAP
     /**************************************************************************/
     void MapBuilder::buildMoveMapTile(uint32 mapID, uint32 tileX, uint32 tileY,
         MeshData& meshData, float bmin[3], float bmax[3],
-        dtNavMesh* navMesh)
+        dtNavMesh* navMesh, IVMapManager* vmapManager)
     {
         // console output
         char tileString[20];
@@ -783,6 +856,18 @@ namespace MMAP
 
         rcVcopy(config.bmin, bmin);
         rcVcopy(config.bmax, bmax);
+
+        /*printf("Parameters:                  \n");
+        printf("ch: %f                       \n", config.ch);
+        printf("cs: %f                       \n", config.cs);
+        printf("walkableHeight: %u           \n", config.walkableHeight);
+        printf("walkableClimb: %u            \n", config.walkableClimb);
+        printf("walkableRadius: %u           \n", config.walkableRadius);
+        printf("walkableSlopeAngle: %f       \n", config.walkableSlopeAngle);
+        printf("maxEdgeLen: %u               \n", config.maxEdgeLen);
+        printf("borderSize: %u               \n", config.borderSize);
+        printf("detailSampleDist: %f         \n", config.detailSampleDist);
+        printf("detailSampleMaxError: %f     \n", config.detailSampleMaxError);*/
 
         // this sets the dimensions of the heightfield - should maybe happen before border padding
         rcCalcGridSize(config.bmin, config.bmax, config.cs, &config.width, &config.height);
@@ -870,10 +955,26 @@ namespace MMAP
         {
             if (uint8 area = iv.polyMesh->areas[i] & NAV_AREA_ALL_MASK)
             {
-                if (area >= NAV_AREA_MIN_VALUE)
-                    iv.polyMesh->flags[i] = 1 << (NAV_AREA_MAX_VALUE - area);
-                else
-                    iv.polyMesh->flags[i] = NAV_GROUND; // TODO: these will be dynamic in future
+                switch (area)
+                {
+                case NAV_AREA_EMPTY:
+                    break;
+                case NAV_AREA_GROUND:
+                    iv.polyMesh->flags[i] |= NAV_GROUND;
+                    break;
+                case NAV_AREA_GROUND_STEEP:
+                    iv.polyMesh->flags[i] |= (NAV_GROUND | NAV_GROUND_STEEP);
+                    break;
+                case NAV_AREA_WATER:
+                    iv.polyMesh->flags[i] |= NAV_WATER;
+                    break;
+                case NAV_AREA_MAGMA_SLIME:
+                    iv.polyMesh->flags[i] |= NAV_MAGMA_SLIME;
+                    break;
+                default:
+                    iv.polyMesh->flags[i] |= NAV_GROUND; // TODO: these will be dynamic in future
+                    break;
+                }
             }
         }
 
@@ -987,7 +1088,7 @@ namespace MMAP
                 continue;
             }
 
-            printf("%s Writing to file...                                 \r", tileString);
+            printf("%s Writing to file...                                 \n", tileString);
 
             // write header
             MmapTileHeader header;
@@ -1019,7 +1120,7 @@ namespace MMAP
     }
 
     bool MapBuilder::buildCommonTile(const char* tileString, Tile& tile, rcConfig& tileCfg, float* tVerts, int tVertCount, int* tTris, int tTriCount, float* lVerts, int lVertCount,
-        int* lTris, int lTriCount, uint8* lTriFlags)
+        int* lTris, int lTriCount, uint8* lTriFlags, MeshData& meshData, IVMapManager* vmapManager)
     {
         // Build heightfield for walkable area
         tile.solid = rcAllocHeightfield();
@@ -1033,7 +1134,7 @@ namespace MMAP
         unsigned char* triFlags = new unsigned char[tTriCount];
         memset(triFlags, NAV_AREA_GROUND, tTriCount * sizeof(unsigned char));
         rcClearUnwalkableTriangles(m_rcContext, tileCfg.walkableSlopeAngle, tVerts, tVertCount, tTris, tTriCount, triFlags);
-        rcModAlmostUnwalkableTriangles(m_rcContext, 50.0f, tVerts, tVertCount, tTris, tTriCount, triFlags);
+        filterSteepSlopeTriangles(m_rcContext, tVerts, tVertCount, tTris, tTriCount, triFlags, meshData, m_terrainBuilder, vmapManager);
         rcRasterizeTriangles(m_rcContext, tVerts, tVertCount, tTris, triFlags, tTriCount, *tile.solid, tileCfg.walkableClimb);
         delete[] triFlags;
 

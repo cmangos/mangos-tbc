@@ -29,7 +29,7 @@
 
 namespace MMAP
 {
-    TerrainBuilder::TerrainBuilder(bool skipLiquid, const char* workdir /*= "./"*/) : m_skipLiquid(skipLiquid), m_workdir(workdir) { }
+    TerrainBuilder::TerrainBuilder(bool skipLiquid, const char* workdir /*= "./"*/) : m_skipLiquid(skipLiquid), m_workdir(workdir), m_V9(nullptr), m_V8(nullptr), m_mapId(0) { }
     TerrainBuilder::~TerrainBuilder() { }
 
     /**************************************************************************/
@@ -167,6 +167,16 @@ namespace MMAP
             memset(holes, 0, fheader.holesSize);
             fseek(mapFile, fheader.holesOffset, SEEK_SET);
             fread(holes, fheader.holesSize, 1, mapFile);
+
+            if (portion == ENTIRE)
+            {
+                if (!m_V8)
+                    m_V8 = new float[V8_SIZE_SQ];
+                if (!m_V9)
+                    m_V9 = new float[V9_SIZE_SQ];
+                memcpy(m_V8, V8, V8_SIZE_SQ * sizeof(float));
+                memcpy(m_V9, V9, V9_SIZE_SQ * sizeof(float));
+            }
 
             int count = meshData.solidVerts.size() / 3;
             float xoffset = (float(tileX) - 32) * GRID_SIZE;
@@ -556,10 +566,10 @@ namespace MMAP
     }
 
     /**************************************************************************/
-    bool TerrainBuilder::loadVMap(uint32 mapID, uint32 tileX, uint32 tileY, MeshData& meshData)
+    bool TerrainBuilder::loadVMap(uint32 mapID, uint32 tileX, uint32 tileY, MeshData& meshData, IVMapManager* vmapManager)
     {
+        m_mapId = mapID;
         char vmaps_dir[1024];
-        IVMapManager* vmapManager = new VMapManager2();
         sprintf(vmaps_dir, "%s/vmaps", m_workdir);
         VMAPLoadResult result = vmapManager->loadMap(vmaps_dir, mapID, tileX, tileY);
         bool retval = false;
@@ -568,6 +578,10 @@ namespace MMAP
         {
             if (result == VMAP_LOAD_RESULT_ERROR)
                 break;
+
+            int mapVertsCount = meshData.solidVerts.size();
+            int mapTrisCount = meshData.solidTris.size();
+            meshData.vmapFirstTriangle = meshData.solidTris.size() / 3;
 
             InstanceTreeMap instanceTrees;
             ((VMapManager2*)vmapManager)->getInstanceMapTree(instanceTrees);
@@ -702,11 +716,204 @@ namespace MMAP
                     }
                 }
             }
+
+            /// First: remove from terrain all triangles inside any model.
+            meshData.vmapLastTriangle = meshData.solidTris.size() / 3;
+            float* terrainInsideModelsVerts = new float[meshData.solidVerts.size()];
+            for (int i = 0; i < meshData.solidVerts.size(); ++i)
+                terrainInsideModelsVerts[i] = -1.0f;
+
+            for (uint32 i = 0; i < count; ++i)
+            {
+                ModelInstance instance = models[i];
+
+                // model instances exist in tree even though there are instances of that model in this tile
+                WorldModel* worldModel = instance.getWorldModel();
+                if (!worldModel)
+                    continue;
+
+                vector<GroupModel> groupModels;
+                worldModel->getGroupModels(groupModels);
+
+                // all M2s need to have triangle indices reversed
+                bool isM2 = instance.name.find(".m2") != instance.name.npos || instance.name.find(".M2") != instance.name.npos;
+
+                // transform data
+                float scale = instance.iScale;
+                G3D::Matrix3 rotation = G3D::Matrix3::fromEulerAnglesXYZ(G3D::pi() * instance.iRot.z / -180.f, G3D::pi() * instance.iRot.x / -180.f, G3D::pi() * instance.iRot.y / -180.f);
+                Vector3 position = instance.iPos;
+                position.x -= 32 * GRID_SIZE;
+                position.y -= 32 * GRID_SIZE;
+
+                /// Check every map vertice
+                // x, y * -1
+                Vector3 up(0, 0, 1);
+                //up.x *= -1.0f;
+                //up.y *= -1.0f;
+                //up = up * rotation.inverse() / scale;
+                for (vector<GroupModel>::iterator it = groupModels.begin(); it != groupModels.end(); ++it)
+                    for (int t = 0; t < mapVertsCount / 3; ++t)
+                    {
+                        // y, z, x
+                        Vector3 v(meshData.solidVerts[3 * t + 2], meshData.solidVerts[3 * t], meshData.solidVerts[3 * t + 1] + 0.2f);
+                        v.x *= -1.f;
+                        v.y *= -1.f;
+                        v -= position;
+                        v = v * rotation.inverse() / scale;
+
+                        float outDist = -1.0f;
+                        float inDist = -1.0f;
+
+                        // check if has borders in 4 directions
+                        if (it->IsUnderObject(v, up, isM2, &outDist, &inDist)) // inDist < outDist
+                        {
+                            Vector3 vbordersEast(meshData.solidVerts[3 * t + 2], meshData.solidVerts[3 * t], meshData.solidVerts[3 * t + 1] + 0.2f);
+                            Vector3 vbordersWest(meshData.solidVerts[3 * t + 2], meshData.solidVerts[3 * t], meshData.solidVerts[3 * t + 1] + 0.2f);
+
+                            bool hasEastBorders = false;
+                            bool hasWestBorders = false;
+                            Vector3 leftEast(1, 0, 0);
+                            Vector3 leftWest(0, 1, 0);
+                            Vector3 rightEast(1, 0, 0);
+                            Vector3 rightWest(0, 1, 0);
+
+                            vbordersEast.x *= -1.f;
+                            vbordersEast.y *= -1.f;
+                            vbordersEast -= position;
+                            vbordersEast = vbordersEast * rotation.inverse() / scale;
+
+                            vbordersWest.x *= -1.f;
+                            vbordersWest.y *= -1.f;
+                            vbordersWest -= position;
+                            vbordersWest = vbordersWest * rotation.inverse() / scale;
+
+                            hasEastBorders = it->IsUnderObject(vbordersEast, leftEast, isM2) || it->IsUnderObject(vbordersEast, rightEast, isM2);
+                            hasWestBorders = it->IsUnderObject(vbordersWest, leftWest, isM2) || it->IsUnderObject(vbordersWest, rightWest, isM2);
+
+                            if (hasEastBorders && hasWestBorders)
+                                terrainInsideModelsVerts[t] = inDist;
+                        }
+                    }
+            }
+            /// Correct triangles partially under models
+            for (int i = 0; i < mapTrisCount / 3; ++i)
+            {
+                Vector3 tri[3];
+                uint32 vertIdx[3];
+                bool    insideModel[3] = { false }; // triangle vertex inside model
+                for (int j = 0; j < 3; ++j)
+                {
+                    vertIdx[j] = meshData.solidTris[i * 3 + j];
+                    if (vertIdx[j] < mapVertsCount)
+                        insideModel[j] = (terrainInsideModelsVerts[vertIdx[j]] >= 0.1f);
+                    tri[j] = Vector3(meshData.solidVerts[3 * vertIdx[j] + 2], meshData.solidVerts[3 * vertIdx[j]], meshData.solidVerts[3 * vertIdx[j] + 1]);
+                }
+
+                // First case: nothing to do =)
+                if (terrainInsideModelsVerts[vertIdx[0]] < 1.0f && terrainInsideModelsVerts[vertIdx[1]] < 1.0f && terrainInsideModelsVerts[vertIdx[2]] < 1.0f)
+                    continue;
+                if (insideModel[0] == insideModel[1] && insideModel[1] == insideModel[2])
+                    continue;
+
+                // There is one vertex outside
+                uint32 outsideIdx;
+                for (outsideIdx = 0; outsideIdx < 3; ++outsideIdx)
+                    if (!insideModel[outsideIdx])
+                        break;
+
+                // Intersection to vertexes
+                // - vert 1 & 2 are inside.
+                if (insideModel[(outsideIdx + 1) % 3] && insideModel[(outsideIdx + 2) % 3])
+                {
+                    Vector3 intersectTo1;
+                    Vector3 intersectTo2;
+                    bool inters1 = (vmapManager->getObjectHitPos(mapID, tri[outsideIdx].x, tri[outsideIdx].y, tri[outsideIdx].z,
+                        tri[(outsideIdx + 1) % 3].x, tri[(outsideIdx + 1) % 3].y, tri[(outsideIdx + 1) % 3].z,
+                        intersectTo1.x, intersectTo1.y, intersectTo1.z, 0.0f));
+                    bool inters2 = (vmapManager->getObjectHitPos(mapID, tri[outsideIdx].x, tri[outsideIdx].y, tri[outsideIdx].z,
+                        tri[(outsideIdx + 2) % 3].x, tri[(outsideIdx + 2) % 3].y, tri[(outsideIdx + 2) % 3].z,
+                        intersectTo2.x, intersectTo2.y, intersectTo2.z, 0.0f));
+                    if (!inters1)
+                        intersectTo1 = (tri[(outsideIdx + 1) % 3] * 4 + tri[outsideIdx]) / 5;
+                    if (!inters2)
+                        intersectTo2 = (tri[(outsideIdx + 2) % 3] * 4 + tri[outsideIdx]) / 5;
+
+                    // Insert new vertices
+                    int offset = meshData.solidVerts.size() / 3;
+                    meshData.solidVerts.append(intersectTo1.y);
+                    meshData.solidVerts.append(intersectTo1.z);
+                    meshData.solidVerts.append(intersectTo1.x);
+                    meshData.solidVerts.append(intersectTo2.y);
+                    meshData.solidVerts.append(intersectTo2.z);
+                    meshData.solidVerts.append(intersectTo2.x);
+                    vertIdx[(outsideIdx + 1) % 3] = offset;
+                    vertIdx[(outsideIdx + 2) % 3] = offset + 1;
+                }
+                if (insideModel[(outsideIdx + 1) % 3] != insideModel[(outsideIdx + 2) % 3])
+                {
+                    // Only one vert is inside
+                    for (int insideIdx = 0; insideIdx < 3; ++insideIdx)
+                        if (insideIdx != outsideIdx && insideModel[insideIdx])
+                        {
+                            int outsideIdx2 = (outsideIdx + 1) % 3;
+                            if (outsideIdx2 == insideIdx)
+                                outsideIdx2 = (outsideIdx2 + 1) % 3;
+
+                            // 2 vertexes outside: outsideIdx/outsideIdx2. One inside: insideIdx
+                            Vector3 intersectFrom1;
+                            Vector3 intersectFrom2;
+                            bool inters1 = (vmapManager->getObjectHitPos(mapID, tri[outsideIdx].x, tri[outsideIdx].y, tri[outsideIdx].z,
+                                tri[insideIdx].x, tri[insideIdx].y, tri[insideIdx].z,
+                                intersectFrom1.x, intersectFrom1.y, intersectFrom1.z, -0.01f));
+                            bool inters2 = (vmapManager->getObjectHitPos(mapID, tri[outsideIdx2].x, tri[outsideIdx2].y, tri[outsideIdx2].z,
+                                tri[insideIdx].x, tri[insideIdx].y, tri[insideIdx].z,
+                                intersectFrom2.x, intersectFrom2.y, intersectFrom2.z, -0.01f));
+                            if (!inters1 && !inters2)
+                            {
+                                intersectFrom1 = (tri[outsideIdx] + tri[insideIdx] * 3) / 4;
+                                intersectFrom2 = (tri[outsideIdx2] + tri[insideIdx] * 3) / 4;
+                            }
+                            int offsetVerts = meshData.solidVerts.size() / 3;
+                            meshData.solidVerts.append(intersectFrom1.y);
+                            meshData.solidVerts.append(intersectFrom1.z);
+                            meshData.solidVerts.append(intersectFrom1.x);
+                            meshData.solidVerts.append(intersectFrom2.y);
+                            meshData.solidVerts.append(intersectFrom2.z);
+                            meshData.solidVerts.append(intersectFrom2.x);
+                            // Triangles verts are oriented surfaces ("inside" / "outside")
+                            meshData.solidTris.append(vertIdx[outsideIdx2]);
+                            meshData.solidTris.append(offsetVerts);
+                            meshData.solidTris.append(offsetVerts + 1);
+                            meshData.solidTris.append(offsetVerts + 1);
+                            meshData.solidTris.append(offsetVerts);
+                            meshData.solidTris.append(vertIdx[outsideIdx2]);
+                            vertIdx[insideIdx] = offsetVerts;
+                            break;
+                        }
+                }
+                for (int j = 0; j < 3; ++j)
+                    meshData.solidTris[i * 3 + j] = vertIdx[j];
+            }
+
+            for (int i = 0; i < mapTrisCount / 3; ++i)
+            {
+                bool    insideModel[3] = { false }; // triangle vertex inside model
+                bool    allInBorder = true;
+                for (int j = 0; j < 3; ++j)
+                {
+                    if (meshData.solidTris[i * 3 + j] < mapVertsCount)
+                        insideModel[j] = (terrainInsideModelsVerts[meshData.solidTris[i * 3 + j]] >= 1.0f);
+                    if (terrainInsideModelsVerts[meshData.solidTris[i * 3 + j]] >= 1.5f)
+                        allInBorder = false;
+                }
+
+                if (insideModel[0] && insideModel[1] && insideModel[2] && !allInBorder)
+                    for (int j = 0; j < 3; ++j)
+                        meshData.solidTris[i * 3 + j] = 0;
+            }
+            delete[] terrainInsideModelsVerts;
         }
         while (false);
-
-        vmapManager->unloadMap(mapID, tileX, tileY);
-        delete vmapManager;
 
         return retval;
     }
@@ -836,7 +1043,7 @@ namespace MMAP
                              &p0[0], &p0[1], &p0[2], &p1[0], &p1[1], &p1[2], &size))
                 continue;
 
-            if (mapID == mid, tileX == tx, tileY == ty)
+            if (mapID == mid && tileX == tx && tileY == ty)
             {
                 meshData.offMeshConnections.append(p0[1]);
                 meshData.offMeshConnections.append(p0[2]);
@@ -857,5 +1064,102 @@ namespace MMAP
 
         delete [] buf;
         fclose(fp);
+    }
+
+    float TerrainBuilder::getHeight(float x, float y) const
+    {
+        if (!m_V8 || !m_V9)
+            return -50000;
+
+        x = MAP_RESOLUTION * (32 - x / GRID_SIZE);
+        y = MAP_RESOLUTION * (32 - y / GRID_SIZE);
+
+        int x_int = (int)x;
+        int y_int = (int)y;
+        x -= x_int;
+        y -= y_int;
+        x_int &= (MAP_RESOLUTION - 1);
+        y_int &= (MAP_RESOLUTION - 1);
+
+        // Height stored as: h5 - its v8 grid, h1-h4 - its v9 grid
+        // +--------------> X
+        // | h1-------h2     Coordinates is:
+        // | | \  1  / |     h1 0,0
+        // | |  \   /  |     h2 0,1
+        // | | 2  h5 3 |     h3 1,0
+        // | |  /   \  |     h4 1,1
+        // | | /  4  \ |     h5 1/2,1/2
+        // | h3-------h4
+        // V Y
+        // For find height need
+        // 1 - detect triangle
+        // 2 - solve linear equation from triangle points
+        // Calculate coefficients for solve h = a*x + b*y + c
+
+        float a, b, c;
+        // Select triangle:
+        if (x + y < 1)
+        {
+            if (x > y)
+            {
+                // 1 triangle (h1, h2, h5 points)
+                float h1 = m_V9[(x_int) * 129 + y_int];
+                float h2 = m_V9[(x_int + 1) * 129 + y_int];
+                float h5 = 2 * m_V8[x_int * 128 + y_int];
+                a = h2 - h1;
+                b = h5 - h1 - h2;
+                c = h1;
+            }
+            else
+            {
+                // 2 triangle (h1, h3, h5 points)
+                float h1 = m_V9[x_int * 129 + y_int];
+                float h3 = m_V9[x_int * 129 + y_int + 1];
+                float h5 = 2 * m_V8[x_int * 128 + y_int];
+                a = h5 - h1 - h3;
+                b = h3 - h1;
+                c = h1;
+            }
+        }
+        else
+        {
+            if (x > y)
+            {
+                // 3 triangle (h2, h4, h5 points)
+                float h2 = m_V9[(x_int + 1) * 129 + y_int];
+                float h4 = m_V9[(x_int + 1) * 129 + y_int + 1];
+                float h5 = 2 * m_V8[x_int * 128 + y_int];
+                a = h2 + h4 - h5;
+                b = h4 - h2;
+                c = h5 - h4;
+            }
+            else
+            {
+                // 4 triangle (h3, h4, h5 points)
+                float h3 = m_V9[(x_int) * 129 + y_int + 1];
+                float h4 = m_V9[(x_int + 1) * 129 + y_int + 1];
+                float h5 = 2 * m_V8[x_int * 128 + y_int];
+                a = h4 - h3;
+                b = h3 + h4 - h5;
+                c = h5 - h4;
+            }
+        }
+        // Calculate height
+        return a * x + b * y + c;
+    }
+
+    /**
+     * A triangle is undermap if there is no ground under
+     * the notion of 'ground' is determined by the triangles normal orientations.
+     * Note: Pos = {y, z, x}
+     */
+    bool TerrainBuilder::IsUnderMap(float* pos, IVMapManager* vmapManager)
+    {
+        float terrainHeight = getHeight(pos[2], pos[0]);
+        float z = pos[1];
+        if (z + 0.2f > terrainHeight) // Over terrain
+            return false;
+
+        return ((VMapManager2*)vmapManager)->isUnderModel(m_mapId, pos[2], pos[0], z + 0.2f);
     }
 }

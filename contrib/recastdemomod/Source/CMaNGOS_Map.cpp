@@ -344,7 +344,7 @@ void CMaNGOS_Map::resetCommonSettings()
     m_agentHeight = m_bigBaseUnit ? 3.0f : 6.0f;
     m_agentRadius = m_bigBaseUnit ? 1.0f : 2.0f;
     m_agentMaxClimb = m_bigBaseUnit ? 2.0f : 4.0f;
-    m_agentMaxSlope = 60.0f;
+    m_agentMaxSlope = 75.0f;
     m_regionMinSize = 60;
     m_regionMergeSize = 50;
     m_partitionType = SAMPLE_PARTITION_WATERSHED;

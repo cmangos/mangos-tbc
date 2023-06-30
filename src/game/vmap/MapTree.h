@@ -79,6 +79,7 @@ namespace VMAP
             bool getObjectHitPos(const G3D::Vector3& pPos1, const G3D::Vector3& pPos2, G3D::Vector3& pResultHitPos, float pModifyDist) const;
             float getHeight(const G3D::Vector3& pPos, float maxSearchDist) const;
             bool getAreaInfo(G3D::Vector3& pos, uint32& flags, int32& adtId, int32& rootId, int32& groupId) const;
+            bool isUnderModel(G3D::Vector3& pos, float* outDist = nullptr, float* inDist = nullptr) const;
             bool GetLocationInfo(const Vector3& pos, LocationInfo& info) const;
 
             bool InitMap(const std::string& fname, VMapManager2* vm);

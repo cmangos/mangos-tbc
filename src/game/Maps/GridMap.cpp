@@ -907,6 +907,9 @@ bool TerrainInfo::IsOutdoors(float x, float y, float z) const
 
 bool TerrainInfo::GetAreaInfo(float x, float y, float z, uint32& flags, int32& adtId, int32& rootId, int32& groupId) const
 {
+    // We build a ray decreasing z and finding the first floor.
+    // We need to increase z a bit, if we are slightly undermap
+    z += 1.0f;
     float vmap_z = z;
     if (m_vmgr->getAreaInfo(GetMapId(), x, y, vmap_z, flags, adtId, rootId, groupId))
     {

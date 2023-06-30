@@ -588,7 +588,7 @@ void ChaseMovementGenerator::CutPath(Unit& owner, PointsArray& path)
 {
     if (this->i_offset != 0.f) // need to cut path until most distant viable point
     {
-        const float dist = (i_offset * CHASE_MOVE_CLOSER_FACTOR) + (this->i_target->GetCombinedCombatReach(&owner, false) * CHASE_DEFAULT_RANGE_FACTOR);
+        const float dist = (i_offset * (owner.IsPlayer() ? 1.0f : CHASE_MOVE_CLOSER_FACTOR)) + (this->i_target->GetCombinedCombatReach(&owner, false) * CHASE_DEFAULT_RANGE_FACTOR);
         const float distSquared = (dist * dist);
         float tarX, tarY, tarZ;
         this->i_target->GetPosition(tarX, tarY, tarZ);

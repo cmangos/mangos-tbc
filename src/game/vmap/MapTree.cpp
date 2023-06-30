@@ -111,6 +111,42 @@ namespace VMAP
         return false;
     }
 
+    class UnderModelCallback
+    {
+    public:
+        UnderModelCallback(ModelInstance* val) : prims(val), outDist(-1), inDist(-1) {}
+        void operator()(Vector3 const& point, uint32 entry)
+        {
+            float newOut = -1;
+            float newIn = -1;
+            prims[entry].isUnderModel(point, &newOut, &newIn);
+            if (outDist < 0 || (newOut >= 0 && newOut < outDist))
+                outDist = newOut;
+            if (inDist < 0 || (newIn >= 0 && newIn < inDist))
+                inDist = newIn;
+        }
+        bool UnderModel() const
+        {
+            return (outDist < 0 && inDist >= 0) || (0 <= inDist && inDist < outDist);
+        }
+
+        ModelInstance* prims;
+        float outDist;
+        float inDist;
+    };
+
+
+    bool StaticMapTree::isUnderModel(Vector3& pos, float* outDist, float* inDist) const
+    {
+        UnderModelCallback intersectionCallBack(iTreeValues);
+        iTree.intersectPoint(pos, intersectionCallBack);
+        if (outDist)
+            *outDist = intersectionCallBack.outDist;
+        if (inDist)
+            *inDist = intersectionCallBack.inDist;
+        return intersectionCallBack.UnderModel();
+    }
+
     bool StaticMapTree::GetLocationInfo(const Vector3& pos, LocationInfo& info) const
     {
         LocationInfoCallback intersectionCallBack(iTreeValues, info);

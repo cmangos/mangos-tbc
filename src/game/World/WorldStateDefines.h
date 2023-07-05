@@ -337,9 +337,13 @@ enum WorldStateID : int32
     WORLD_STATE_SHADE_OF_THE_HORSEMAN_TIMER = -4676,
 
     // Custom Worldstates
-    WORLD_STATE_CUSTOM_SPAWN_MALACRASS = 10000,
+    // Vanilla
+    WORLD_STATE_CUSTOM_SPAWN_ANNORA    = 700001,
 
-    WORLD_STATE_CUSTOM_SPAWN_ANNORA    = 20000,
+    // Tbc
+    WORLD_STATE_CUSTOM_SPAWN_MALACRASS = 5680001,
+
+    // Wotlk
 };
 
 #endif

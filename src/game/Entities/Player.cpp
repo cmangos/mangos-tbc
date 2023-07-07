@@ -6809,7 +6809,7 @@ void Player::UpdateHonorFields()
     // START custom PvP Honor Kills Title System
     if (sWorld.getConfig(CONFIG_BOOL_HONOR_KILLS_TITLES))
     {
-        uint32 HonorKills = GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS);
+        uint32 HonorKills = GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS);
         uint32 victim_rank = 0;
 
         //this may consume a lot of cpu cycles.

@@ -1128,9 +1128,9 @@ void UnitAI::UpdateAI(const uint32 diff)
         }
     }
 
-    UpdateSpellLists();
+    ExecuteActions(); // before lists so phase transitions have higher priority
 
-    ExecuteActions();
+    UpdateSpellLists();
 
     DoMeleeAttackIfReady();
 }

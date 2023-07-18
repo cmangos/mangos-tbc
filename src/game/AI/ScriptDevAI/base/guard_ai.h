@@ -5,6 +5,8 @@
 #ifndef SC_GUARDAI_H
 #define SC_GUARDAI_H
 
+#include "AI/ScriptDevAI/base/CombatAI.h"
+
 enum GuardAI
 {
     GENERIC_CREATURE_COOLDOWN       = 5000,
@@ -63,7 +65,7 @@ enum eHallowsEndGuard
     NPC_AZUREMYST_PEACEKEEPER           = 18038,
 };
 
-struct guardAI : public ScriptedAI
+struct guardAI : public CombatAI
 {
     public:
         explicit guardAI(Creature* creature);
@@ -80,8 +82,6 @@ struct guardAI : public ScriptedAI
         void Aggro(Unit* who) override;
 
         void JustDied(Unit* /*killer*/) override;
-
-        void UpdateAI(const uint32 diff) override;
 
         // Commonly used for guards in main cities
         void DoReplyToTextEmote(uint32 textEmote);

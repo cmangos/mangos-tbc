@@ -137,12 +137,12 @@ struct boss_watchkeeper_gargolmarAI : public CombatAI
                 {
                     DoScriptText(SAY_HEAL, m_creature);
 
-                    CreatureList WatcherList;
-                    GetCreatureListWithEntryInGrid(WatcherList, m_creature, NPC_HELLFIRE_WATCHER, 100.0f);
-                    for (auto& itr : WatcherList)
+                    CreatureList watcherList;
+                    GetCreatureListWithEntryInGrid(watcherList, m_creature, NPC_HELLFIRE_WATCHER, 100.0f);
+                    for (Creature* watcher: watcherList)
                     {
-                        if (itr->IsAlive())
-                            m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, itr);
+                        if (watcher->IsAlive())
+                            m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, watcher);
                     }
 
                     SetActionReadyStatus(action, false);

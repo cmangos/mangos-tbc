@@ -136,6 +136,15 @@ struct boss_watchkeeper_gargolmarAI : public CombatAI
                 if (m_creature->GetHealthPercent() < 40.0f)
                 {
                     DoScriptText(SAY_HEAL, m_creature);
+
+                    CreatureList WatcherList;
+                    GetCreatureListWithEntryInGrid(WatcherList, m_creature, NPC_HELLFIRE_WATCHER, 100.0f);
+                    for (auto& itr : WatcherList)
+                    {
+                        if (itr->IsAlive())
+                            m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, itr);
+                    }
+
                     SetActionReadyStatus(action, false);
                 }
                 break;

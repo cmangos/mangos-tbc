@@ -187,6 +187,35 @@ struct PainSuppression : public AuraScript
     }
 };
 
+// 17 - Power Word: Shield
+struct PowerWordShieldPriest : public AuraScript
+{
+    void OnAbsorb(Aura* aura, int32& currentAbsorb, int32& remainingDamage, uint32& reflectedSpellId, int32& reflectDamage, bool& /*preventedDeath*/, bool& /*dropCharge*/) const override
+    {
+        Unit* caster = aura->GetTarget();
+        Unit::AuraList const& vOverRideCS = caster->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
+        for (auto k : vOverRideCS) // 33201 - Reflective Shield
+        {
+            switch (k->GetModifier()->m_miscvalue)
+            {
+                case 5065:                      // Rank 1
+                case 5064:                      // Rank 2
+                case 5063:                      // Rank 3
+                case 5062:                      // Rank 4
+                case 5061:                      // Rank 5
+                {
+                    if (remainingDamage >= currentAbsorb)
+                        reflectDamage = k->GetModifier()->m_amount * currentAbsorb / 100;
+                    else
+                        reflectDamage = k->GetModifier()->m_amount * remainingDamage / 100;
+                    reflectedSpellId = 33619;
+                } break;
+                default: break;
+            }
+        }
+    }
+};
+
 void LoadPriestScripts()
 {
     RegisterSpellScript<ConsumeMagic>("spell_consume_magic");
@@ -198,4 +227,5 @@ void LoadPriestScripts()
     RegisterSpellScript<PrayerOfMending>("spell_prayer_of_mending");
     RegisterSpellScript<PainSuppression>("spell_pain_suppression");
     RegisterSpellScript<Shadowfiend>("spell_shadowfiend");
+    RegisterSpellScript<PowerWordShieldPriest>("spell_power_word_shield_priest");
 }

@@ -190,8 +190,11 @@ class SpellAuraHolder
         bool IsDispellableByMask(uint32 dispelMask, Unit const* caster, SpellEntry const* spellInfo) const;
 
         void UpdateAuraDuration();
-        void SendAuraDurationForTarget(uint32 slot = MAX_AURAS);
-        void SendAuraDurationForCaster(Player* caster);
+        void LoginAuraDuration();
+        void ForceUpdateAuraDuration();
+        void SendAuraDuration();
+        void SendAuraDurationToCaster(Player* caster, uint32 slot = MAX_AURAS);
+        void SendAuraDurationToCasterNeedUpdate(Player* caster);
 
         void SetAura(uint32 slot, bool remove) { m_target->SetUInt32Value(UNIT_FIELD_AURA + slot, remove ? 0 : GetId()); }
         void SetAuraFlag(uint32 slot, bool add);

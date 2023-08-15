@@ -7913,10 +7913,34 @@ void SpellAuraHolder::_AddSpellAuraHolder()
         }
     }
 
+    if (slot >= MAX_AURAS)
+    {
+        uint32 theoreticalSlot = MAX_AURAS;
+        std::set<uint32> freeSlot;
+        for (auto& data : m_target->GetSpellAuraHolderMap())
+        {
+            SpellAuraHolder* holder = data.second;
+            if (holder->GetAuraSlot() >= MAX_AURAS)
+                freeSlot.insert(holder->GetAuraSlot());
+        }
+        for (uint32 slot : freeSlot)
+        {
+            // set is sorted so this should yield first empty
+            if (theoreticalSlot == slot)
+                theoreticalSlot++;
+            else
+                break;
+        }
+        // slot is uint8 - avoid shenanigans - 56 max visible auras - 255 max all auras
+        if (theoreticalSlot > NULL_AURA_SLOT)
+            theoreticalSlot = NULL_AURA_SLOT;
+        slot = theoreticalSlot;
+    }
+
     SetAuraSlot(slot);
 
     // Not update fields for not first spell's aura, all data already in fields
-    if (slot < MAX_AURAS)                                   // slot found
+    if (slot < MAX_AURAS) // slot found
     {
         SetAura(slot, false);
         SetAuraFlag(slot, true);
@@ -7925,9 +7949,9 @@ void SpellAuraHolder::_AddSpellAuraHolder()
 
         // update for out of range group members
         m_target->UpdateAuraForGroup(slot);
-
-        UpdateAuraDuration();
     }
+
+    UpdateAuraDuration();
 
     //*****************************************************
     // Update target aura state flag (at 1 aura apply)
@@ -8736,55 +8760,78 @@ void SpellAuraHolder::ClearExtraAuraInfo(Unit* caster)
 
 void SpellAuraHolder::UpdateAuraDuration()
 {
-    if (GetAuraSlot() >= MAX_AURAS || m_isPassive)
-        return;
-
-    if (m_target->IsPlayer())
-    {
-        if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_DO_NOT_DISPLAY_DURATION))
-        {
-            WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
-            data << uint8(GetAuraSlot());
-            data << uint32(GetAuraDuration());
-            static_cast<Player*>(m_target)->SendDirectMessage(data);
-
-            SendAuraDurationForTarget();
-        }
-    }
-
-    // not send in case player loading (will not work anyway until player not added to map), sent in visibility change code
-    if (m_target->GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(m_target)->GetSession()->PlayerLoading())
+    // not send in case player loading - on load is sent differently
+    if (m_target->IsPlayer() && static_cast<Player*>(m_target)->GetSession()->PlayerLoading())
         return;
 
     Unit* caster = GetCaster();
 
-    if (caster && caster->GetTypeId() == TYPEID_PLAYER && caster != m_target)
-        SendAuraDurationForCaster(static_cast<Player*>(caster));
+    if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_DO_NOT_DISPLAY_DURATION))
+    {
+        // if caster == target and player, meant to get both
+        if (GetAuraSlot() < MAX_AURAS) // only visible auras
+            SendAuraDuration();       
+
+        if (caster && caster->IsPlayer())
+            SendAuraDurationToCaster(static_cast<Player*>(caster));
+    }
 }
 
-void SpellAuraHolder::SendAuraDurationForTarget(uint32 slot)
+void SpellAuraHolder::LoginAuraDuration()
+{
+    // target is currently logging in player and only send what he needs
+    SendAuraDuration();
+    if (m_casterGuid == m_target->GetObjectGuid()) // no need to fetch caster - must only send if they are the same anyway
+        SendAuraDurationToCaster(static_cast<Player*>(m_target));
+}
+
+void SpellAuraHolder::ForceUpdateAuraDuration()
+{
+    if (GetAuraSlot() >= MAX_AURAS)
+        return;
+
+    Unit* caster = GetCaster();
+    if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_DO_NOT_DISPLAY_DURATION))
+    {
+        // if caster == target and player, meant to get both
+        SendAuraDuration();
+
+        if (caster && caster->IsPlayer())
+            SendAuraDurationToCasterNeedUpdate(static_cast<Player*>(caster));
+    }
+}
+
+void SpellAuraHolder::SendAuraDuration()
+{
+    if (!m_target->IsPlayer())
+        return;
+
+    WorldPacket data(SMSG_UPDATE_AURA_DURATION, 5);
+    data << uint8(GetAuraSlot());
+    data << uint32(GetAuraMaxDuration() == -1 ? 0 : GetAuraDuration());
+    static_cast<Player*>(m_target)->SendDirectMessage(data);
+}
+
+void SpellAuraHolder::SendAuraDurationToCaster(Player* caster, uint32 slot)
 {
     WorldPacket data(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
     data << m_target->GetPackGUID();
     data << uint8(slot == MAX_AURAS ? GetAuraSlot() : slot);
     data << uint32(GetId());
-    data << uint32(GetAuraMaxDuration());
-    data << uint32(GetAuraDuration());
+    data << int32(GetAuraMaxDuration());
+    data << uint32(GetAuraMaxDuration() == -1 ? 0 : GetAuraDuration());
 
-    static_cast<Player*>(m_target)->SendDirectMessage(data);
+    caster->SendDirectMessage(data);
 }
 
-void SpellAuraHolder::SendAuraDurationForCaster(Player* caster)
+void SpellAuraHolder::SendAuraDurationToCasterNeedUpdate(Player* caster)
 {
     WorldPacket data(SMSG_SET_EXTRA_AURA_INFO_NEED_UPDATE, (8 + 1 + 4 + 4 + 4));
     data << m_target->GetPackGUID();
     data << uint8(GetAuraSlot());
     data << uint32(GetId());
-    if (!GetSpellProto()->HasAttribute(SPELL_ATTR_EX5_DO_NOT_DISPLAY_DURATION))
-    {
-        data << uint32(GetAuraMaxDuration());                   // full
-        data << uint32(GetAuraDuration());                      // remain
-    }
+    data << int32(GetAuraMaxDuration());                   // full
+    data << uint32(GetAuraMaxDuration() == -1 ? 0 : GetAuraDuration()); // remain
     caster->GetSession()->SendPacket(data);
 }
 

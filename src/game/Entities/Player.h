@@ -1942,7 +1942,8 @@ class Player : public Unit
         void SendDirectMessage(WorldPacket const& data) const;
 
         void SendAuraDurationsForTarget(Unit* target);
-        void SendAuraDurationsOnLogin(bool visible); // uses different packets
+        void SendAuraDurationsOnLogin(); // sends own durations
+        void SendExtraAuraDurationsOnLogin(bool visible); // sends init and non visible slot auras
 
         PlayerMenu* GetPlayerMenu() const { return m_playerMenu.get(); }
 

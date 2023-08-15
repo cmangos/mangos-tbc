@@ -19532,17 +19532,18 @@ void Player::SendInitialPacketsAfterAddToMap()
             auraList.front()->ApplyModifier(true, true);
     }
 
+    SendAuraDurationsOnLogin();
+
     if (IsImmobilizedState()) // TODO: Figure out if this protocol is correct
         SendMoveRoot(true);
-
-    SendAuraDurationsOnLogin(true);
 
     SendEnchantmentDurations();                             // must be after add to map
     SendItemDurations();                                    // must be after add to map
 
-    CastSpell(this, 836, TRIGGERED_OLD_TRIGGERED);          // LOGINEFFECT
+    CastSpell(this, 836, TRIGGERED_IGNORE_CURRENT_CASTED_SPELL); // LOGINEFFECT
 
-    SendAuraDurationsOnLogin(false);
+    SendExtraAuraDurationsOnLogin(true);
+    SendExtraAuraDurationsOnLogin(false);
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()
@@ -19782,18 +19783,25 @@ void Player::SendAuraDurationsForTarget(Unit* target)
         if (holder->GetAuraSlot() >= MAX_AURAS || holder->IsPassive() || holder->GetCasterGuid() != GetObjectGuid())
             continue;
 
-        holder->SendAuraDurationForCaster(this);
+        holder->SendAuraDurationToCaster(this);
     }
 }
 
-void Player::SendAuraDurationsOnLogin(bool visible)
+void Player::SendAuraDurationsOnLogin()
 {
-    if (!visible)
+    for (auto& data : GetSpellAuraHolderMap())
     {
-        WorldPacket data(SMSG_SET_EXTRA_AURA_INFO, 8);
-        data << GetPackGUID();
-        SendDirectMessage(data);
+        SpellAuraHolder* holder = data.second;
+        if (holder->GetAuraSlot() >= MAX_AURAS)
+            continue;
+
+        holder->LoginAuraDuration();
     }
+}
+
+void Player::SendExtraAuraDurationsOnLogin(bool visible)
+{
+    std::vector<SpellAuraHolder*> holders;
 
     uint32 counter = MAX_AURAS;
     SpellAuraHolderMap const& auraHolders = GetSpellAuraHolderMap();
@@ -19813,8 +19821,28 @@ void Player::SendAuraDurationsOnLogin(bool visible)
                 continue;
         }
 
-        holder->SendAuraDurationForTarget(!visible ? counter : MAX_AURAS);
+        holders.push_back(holder);
         ++counter;
+    }
+
+    if (!visible) // slots >= 56 are sent as singles
+    {
+        std::sort(holders.begin(), holders.end(), [](SpellAuraHolder* left, SpellAuraHolder* right) { return left->GetAuraSlot() < right->GetAuraSlot(); });
+        for (SpellAuraHolder* holder : holders)
+            holder->SendAuraDurationToCaster(this);
+    }
+    else // visible slots (<= 56) are sent in a single packet
+    {
+        WorldPacket data(SMSG_INIT_EXTRA_AURA_INFO, (8 + (1 + 4 + 4 + 4) * holders.size()));
+        data << GetPackGUID();
+        for (SpellAuraHolder* holder : holders)
+        {
+            data << uint8(holder->GetAuraSlot());
+            data << uint32(holder->GetId());
+            data << int32(holder->GetAuraMaxDuration());
+            data << uint32(holder->GetAuraMaxDuration() == -1 ? 0 : holder->GetAuraDuration());
+        }
+        SendDirectMessage(data);
     }
 }
 

@@ -99,14 +99,14 @@ void instance_shattered_halls::OnCreatureCreate(Creature* creature)
             if (creature->IsTemporarySummon())
                 m_gauntletTemporaryGuids.push_back(creature->GetObjectGuid());
             else
-                m_gauntletPermanentGuids.push_back(creature->GetObjectGuid());
+                m_gauntletPermanentGuids.push_back(creature->GetDbGuid());
             break;
         case NPC_SHATTERED_HAND_ARCHER:
             m_npcEntryGuidCollection[creature->GetEntry()].push_back(creature->GetObjectGuid());
             // [[breakthrough]]
         case NPC_BLOOD_GUARD:
         case NPC_PORUNG:
-            m_gauntletBossGuids.push_back(creature->GetObjectGuid());
+            m_gauntletBossGuids.push_back(creature->GetDbGuid());
             m_npcEntryGuidStore[creature->GetEntry()] = creature->GetObjectGuid();
             break;
     }
@@ -470,7 +470,7 @@ void instance_shattered_halls::Update(uint32 diff)
         }
         else // not done spawning first waves
         {
-            instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_WAVES, 0);
+            instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_WAVES, 1);
             m_initialWavesSpawned = true;
         }
     }
@@ -519,23 +519,21 @@ void instance_shattered_halls::Update(uint32 diff)
 void instance_shattered_halls::FailGauntlet()
 {
     // If success despawn all, else respawn permanents
-    for (ObjectGuid& guid : m_gauntletPermanentGuids)
-        if (Creature* creature = instance->GetCreature(guid))
-            creature->Respawn();
+    RespawnDbGuids(m_gauntletPermanentGuids, 10);
+    m_gauntletPermanentGuids.clear();
 
     for (ObjectGuid& guid : m_gauntletTemporaryGuids)
         if (Creature* creature = instance->GetCreature(guid))
             creature->ForcedDespawn();
 
-    for (ObjectGuid& guid : m_gauntletBossGuids)
-        if (Creature* boss = instance->GetCreature(guid))
-            boss->Respawn();
+    RespawnDbGuids(m_gauntletBossGuids, 10);
+    m_gauntletBossGuids.clear();
 
     for (auto& blaze : m_blazeTimers) // despawn blaze GOs from flame arrows
         if (GameObject* go = instance->GetGameObject(blaze.first))
             go->AddObjectToRemoveList();
 
-    instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_WAVES, 1);
+    instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_WAVES, 0);
     GauntletReset();
     EndGauntlet();
 }
@@ -548,7 +546,7 @@ void instance_shattered_halls::StopGauntlet()
 void instance_shattered_halls::EndGauntlet()
 {
     m_gauntletTemporaryGuids.clear();
-    instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_WAVES, 1);
+    instance->GetVariableManager().SetVariable(WORLD_STATE_CUSTOM_SPAWN_WAVES, 0);
 }
 
 // Add debuff to all players in the instance
@@ -655,9 +653,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
             {
                 case 4:
                     DoZealotsEmoteReady();
-
                     m_creature->GetMap()->GetInstanceData()->SetData(TYPE_GAUNTLET, IN_PROGRESS);
-
                     m_creature->ForcedDespawn();
                     break;
             }

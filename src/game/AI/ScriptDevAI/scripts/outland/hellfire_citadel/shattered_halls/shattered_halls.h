@@ -122,8 +122,6 @@ class instance_shattered_halls : public ScriptedInstance
 
         void DoInitialGets();
 
-        void DoSummonInitialWave();
-
         void DoSummonSHZealot();
 
         void DoBeginArcherAttack(bool leftOrRight);
@@ -144,9 +142,9 @@ class instance_shattered_halls : public ScriptedInstance
         uint8 m_executionStage;
         uint8 m_prisonersLeft;
 
-        GuidVector m_gauntletPermanentGuids;
+        std::vector<uint32> m_gauntletPermanentGuids;
         GuidVector m_gauntletTemporaryGuids;
-        GuidVector m_gauntletBossGuids;
+        std::vector<uint32>  m_gauntletBossGuids;
 
         std::vector<std::pair<ObjectGuid, uint32>> m_blazeTimers;
 

@@ -304,11 +304,6 @@ static float gauntletSpawnCoords[1][3] =
     { 409.848f, 315.385f, 1.921f}
 };
 
-static float scoutCoords[1][3] =
-{
-    {494.015f, 316.213f, 1.945f}
-};
-
 static float zealotSpawnCoords[3][3] =
 {
     {519.107f, 273.546f, 1.916f}, // (waves)
@@ -733,9 +728,9 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
     void DoStartRunning()
     {
         m_bRunning = true;
-        m_creature->SetWalk(false);
         m_creature->AI()->SetCombatMovement(false);
-        m_creature->GetMotionMaster()->MovePoint(0, scoutCoords[0][0], scoutCoords[0][1], scoutCoords[0][2]);
+        m_creature->SetInCombatWithZone();
+        m_creature->GetMotionMaster()->MoveWaypoint(1, 0, 0, 0, FORCED_MOVEMENT_RUN);
         CreatureList guards;
         GetCreatureListWithEntryInGrid(guards, m_creature, NPC_SHATTERED_HAND_ZEALOT, 15.f);
         for (Creature* creature : guards)
@@ -759,11 +754,11 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
 
     void MovementInform(uint32 movementType, uint32 data) override
     {
-        if (movementType == POINT_MOTION_TYPE && m_creature->IsAlive())
+        if (movementType == WAYPOINT_MOTION_TYPE && m_creature->IsAlive())
         {
             switch (data)
             {
-                case 0:
+                case 4:
                     DoZealotsEmoteReady();
 
                     m_creature->GetMap()->GetInstanceData()->SetData(TYPE_GAUNTLET, IN_PROGRESS);

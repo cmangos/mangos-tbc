@@ -299,11 +299,6 @@ bool instance_shattered_halls::CheckConditionCriteriaMeet(Player const* player, 
     return false;
 }
 
-static float gauntletSpawnCoords[1][3] =
-{
-    { 409.848f, 315.385f, 1.921f}
-};
-
 static float zealotSpawnCoords[1][3] =
 {
     {520.062f, 255.486f, 2.033f}, // (waves)
@@ -564,8 +559,7 @@ void instance_shattered_halls::DoCastGroupDebuff(uint32 spellId)
 struct npc_shattered_hands_zealotAI : public CreatureEventAI
 {
     npc_shattered_hands_zealotAI(Creature* creature) : CreatureEventAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
-    {
-    
+    {    
     }
 
     ScriptedInstance* m_instance;
@@ -579,20 +573,18 @@ struct npc_shattered_hands_zealotAI : public CreatureEventAI
                 case 2:
                     if (m_creature->GetMotionMaster()->GetPathId() == 1)
                     {
-                        m_creature->SetInCombatWithZone();
-                        m_creature->AI()->AttackClosestEnemy();
+                        if (m_instance && m_creature->GetHealth() > 0)
+                    
+                        {
+                            m_creature->SetInCombatWithZone();
+                            if (!m_creature->IsInCombat())
+                                m_instance->SetData(TYPE_GAUNTLET, FAIL);
+                            else
+                                m_creature->AI()->AttackClosestEnemy();
+                        }
                     }
                     break;
                 default:
-                    m_creature->GetMotionMaster()->MoveIdle();
-                    if (m_instance && m_creature->GetHealth() > 0)
-                    {
-                        m_creature->SetInCombatWithZone();
-                        if (!m_creature->IsInCombat())
-                            m_instance->SetData(TYPE_GAUNTLET, FAIL);
-                        else
-                            m_creature->AI()->AttackClosestEnemy();
-                    }
                     break;
             }
         }        

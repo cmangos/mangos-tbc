@@ -574,13 +574,16 @@ struct npc_shattered_hands_zealotAI : public CreatureEventAI
 
     void MovementInform(uint32 motionType, uint32 data) override
     {
-        if (motionType == POINT_MOTION_TYPE) // sanity check
+        if (motionType == WAYPOINT_MOTION_TYPE) // sanity check
         {
             switch (data)
             {                
-                case 99:
-                    m_creature->SetFacingTo(-2.8f);
-                    m_creature->GetMotionMaster()->MoveIdle();
+                case 2:
+                    if (m_creature->GetMotionMaster()->GetPathId() == 1)
+                    {
+                        m_creature->SetInCombatWithZone();
+                        m_creature->AI()->AttackClosestEnemy();
+                    }
                     break;
                 default:
                     m_creature->GetMotionMaster()->MoveIdle();

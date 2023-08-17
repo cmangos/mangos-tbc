@@ -306,15 +306,7 @@ static float gauntletSpawnCoords[1][3] =
 
 static float zealotSpawnCoords[1][3] =
 {
-    {519.107f, 273.546f, 1.916f}, // (waves)
-};
-
-static float zealotWaypoints[4][3] =
-{
-    {518.681f, 291.375f, 1.923f}, // 1
-    {504.559f, 315.952f, 1.942f}, // 2
-    {482.445f, 315.779f, 1.939f}, // 3
-    {352.104f, 315.725f, 3.139f}, // 4
+    {520.062f, 255.486f, 2.033f}, // (waves)
 };
 
 void instance_shattered_halls::GauntletReset()
@@ -341,8 +333,10 @@ void instance_shattered_halls::DoSummonSHZealot()
 {
     if (Creature* pAdd = WorldObject::SummonCreature(TempSpawnSettings(nullptr, NPC_SHATTERED_HAND_ZEALOT, zealotSpawnCoords[0][0], zealotSpawnCoords[0][1], zealotSpawnCoords[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 150000, true, true), instance))
     {
-        pAdd->GetMotionMaster()->MovePoint(0, zealotWaypoints[0][0], zealotWaypoints[0][1], zealotWaypoints[0][2]);
+        pAdd->GetMotionMaster()->MoveWaypoint(1, 0, 2000, 0, FORCED_MOVEMENT_RUN);
         pAdd->HandleEmoteState(EMOTE_STATE_READY1H);
+        pAdd->SetCanCallForAssistance(false);
+        pAdd->SetCanCheckForHelp(false);
     }
 }
 

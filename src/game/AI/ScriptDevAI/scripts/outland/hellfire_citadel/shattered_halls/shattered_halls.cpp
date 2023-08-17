@@ -730,14 +730,7 @@ struct npc_Shattered_Hand_Scout : public ScriptedAI
         m_bRunning = true;
         m_creature->AI()->SetCombatMovement(false);
         m_creature->SetInCombatWithZone();
-        m_creature->GetMotionMaster()->MoveWaypoint(1, 0, 0, 0, FORCED_MOVEMENT_RUN);
-        CreatureList guards;
-        GetCreatureListWithEntryInGrid(guards, m_creature, NPC_SHATTERED_HAND_ZEALOT, 15.f);
-        for (Creature* creature : guards)
-        {
-            creature->SetInCombatWithZone();
-            creature->AI()->AttackClosestEnemy();
-        }
+        m_creature->GetMotionMaster()->MoveWaypoint(1, 0, 0, 0, FORCED_MOVEMENT_RUN);       
         DoScriptText(SCOUT_AGGRO_YELL, m_creature);
     }
 

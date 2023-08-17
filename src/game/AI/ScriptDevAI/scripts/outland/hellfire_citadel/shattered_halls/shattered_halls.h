@@ -72,6 +72,8 @@ enum
     NPC_HEARTHEN_GUARD          = 17621,
     NPC_SHARPSHOOTER_GUARD      = 17622,
     NPC_REAVER_GUARD            = 17623,
+
+    WORLD_STATE_CUSTOM_SPAWN_WAVES = 5400004,
 };
 
 struct SpawnLocation

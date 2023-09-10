@@ -2203,6 +2203,7 @@ UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|4 WH
 5888, -- Darkshore Frenzy
 7131, -- Illusion Passive
 8203, -- Elemental Spirit Invisibility
+10092, -- Sand Storm
 11011, -- Stone Watcher of Norgannon Passive
 15978, -- Puncture
 21911, -- Puncture

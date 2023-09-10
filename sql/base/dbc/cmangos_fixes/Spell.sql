@@ -2202,6 +2202,7 @@ UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|4 WH
 5667, -- Bogling Passive
 5888, -- Darkshore Frenzy
 7131, -- Illusion Passive
+8203, -- Elemental Spirit Invisibility
 15978, -- Puncture
 21911, -- Puncture
 24692, -- Hakkar Power

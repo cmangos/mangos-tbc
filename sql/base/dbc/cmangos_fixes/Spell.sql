@@ -2198,6 +2198,7 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- SPELL_ATTR_SS_IGNORE_EVADE
 -- ==========================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|4 WHERE `Id` IN (
+5888, -- Darkshore Frenzy
 15978, -- Puncture
 21911, -- Puncture
 24692, -- Hakkar Power

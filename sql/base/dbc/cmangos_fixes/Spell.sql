@@ -2206,6 +2206,7 @@ UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|4 WH
 10092, -- Sand Storm
 10868, -- Frost Vulnerable
 11011, -- Stone Watcher of Norgannon Passive
+11048, -- Perm. Illusion Bishop Tyriona
 15978, -- Puncture
 21911, -- Puncture
 24692, -- Hakkar Power

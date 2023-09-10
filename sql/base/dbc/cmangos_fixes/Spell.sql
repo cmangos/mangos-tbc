@@ -2200,6 +2200,7 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|4 WHERE `Id` IN (
 5667, -- Bogling Passive
 5888, -- Darkshore Frenzy
+7131, -- Illusion Passive
 15978, -- Puncture
 21911, -- Puncture
 24692, -- Hakkar Power

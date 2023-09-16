@@ -7510,27 +7510,6 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellSchoolMask schoolMask, Spe
     // ..taken
     TakenTotalMod *= GetTotalAuraMultiplierByMiscMask(SPELL_AURA_MOD_DAMAGE_PERCENT_TAKEN, schoolMask);
 
-    // .. taken pct: dummy auras
-    AuraList const& mDummyAuras = GetAurasByType(SPELL_AURA_DUMMY);
-    for (auto mDummyAura : mDummyAuras)
-    {
-        switch (mDummyAura->GetSpellProto()->SpellIconID)
-        {
-            // Cheat Death
-            case 2109:
-                if (mDummyAura->GetModifier()->m_miscvalue & GetSpellSchoolMask(spellInfo))
-                {
-                    if (GetTypeId() != TYPEID_PLAYER)
-                        continue;
-                    float mod = -((Player*)this)->GetRatingBonusValue(CR_CRIT_TAKEN_SPELL) * 2 * 4;
-                    if (mod < float(mDummyAura->GetModifier()->m_amount))
-                        mod = float(mDummyAura->GetModifier()->m_amount);
-                    TakenTotalMod *= (mod + 100.0f) / 100.0f;
-                }
-                break;
-        }
-    }
-
     // From caster spells
     // Mod damage taken from AoE spells
     if (IsAreaOfEffectSpell(spellInfo) || spellInfo->HasAttribute(SPELL_ATTR_EX5_TREAT_AS_AREA_EFFECT))
@@ -8146,29 +8125,6 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackTyp
 
     // special dummys/class scripts and other effects
     // =============================================
-
-    // .. taken (dummy auras)
-    AuraList const& mDummyAuras = GetAurasByType(SPELL_AURA_DUMMY);
-    for (auto mDummyAura : mDummyAuras)
-    {
-        switch (mDummyAura->GetSpellProto()->SpellIconID)
-        {
-            case 2109:                                      // Cheating Death
-                if (mDummyAura->GetModifier()->m_miscvalue & SPELL_SCHOOL_MASK_NORMAL)
-                {
-                    if (GetTypeId() != TYPEID_PLAYER)
-                        continue;
-
-                    float mod = ((Player*)this)->GetRatingBonusValue(CR_CRIT_TAKEN_MELEE) * (-8.0f);
-                    if (mod < float(mDummyAura->GetModifier()->m_amount))
-                        mod = float(mDummyAura->GetModifier()->m_amount);
-
-                    TakenTotalMod *= (mod + 100.0f) / 100.0f;
-                }
-                break;
-        }
-    }
-
     for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_MELEE_DAMAGE_TAKEN))
     {
         if (!i->isAffectedOnSpell(spellInfo))

@@ -8101,21 +8101,21 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
  * Calculates target part of melee damage bonuses,
  * will be called on each tick for periodic damage over time auras
  */
-uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackType attType, SpellSchoolMask schoolMask, SpellEntry const* spellProto, DamageEffectType damagetype, uint32 stack, bool flat)
+uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackType attType, SpellSchoolMask schoolMask, SpellEntry const* spellInfo, DamageEffectType damagetype, uint32 stack, bool flat)
 {
     if (pdamage == 0)
         return pdamage;
 
-    if (spellProto && spellProto->HasAttribute(SPELL_ATTR_EX4_IGNORE_DAMAGE_TAKEN_MODIFIERS))
+    if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX4_IGNORE_DAMAGE_TAKEN_MODIFIERS))
         return pdamage;
 
     // differentiate for weapon damage based spells
-    bool isWeaponDamageBasedSpell = !(spellProto && (damagetype == DOT || IsSpellHaveEffect(spellProto, SPELL_EFFECT_SCHOOL_DAMAGE)));
-    schoolMask              = ((spellProto && schoolMask != spellProto->SchoolMask) ? SpellSchoolMask(spellProto->SchoolMask) : schoolMask);
-    uint32 mechanicMask     = spellProto ? GetAllSpellMechanicMask(spellProto) : 0;
+    bool isWeaponDamageBasedSpell = !(spellInfo && (damagetype == DOT || IsSpellHaveEffect(spellInfo, SPELL_EFFECT_SCHOOL_DAMAGE)));
+    schoolMask              = ((spellInfo && schoolMask != spellInfo->SchoolMask) ? SpellSchoolMask(spellInfo->SchoolMask) : schoolMask);
+    uint32 mechanicMask     = spellInfo ? GetAllSpellMechanicMask(spellInfo) : 0;
 
     // Shred also have bonus as MECHANIC_BLEED damages
-    if (spellProto && spellProto->SpellFamilyName == SPELLFAMILY_DRUID && spellProto->SpellFamilyFlags & uint64(0x00008000))
+    if (spellInfo && spellInfo->SpellFamilyName == SPELLFAMILY_DRUID && spellInfo->SpellFamilyFlags & uint64(0x00008000))
         mechanicMask |= (1 << (MECHANIC_BLEED - 1));
 
     // FLAT damage bonus auras
@@ -8145,7 +8145,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackTyp
         TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_MELEE_DAMAGE_TAKEN_PCT);
 
     // ..taken pct (aoe avoidance)
-    if (spellProto && (IsAreaOfEffectSpell(spellProto) || spellProto->HasAttribute(SPELL_ATTR_EX5_TREAT_AS_AREA_EFFECT)))
+    if (spellInfo && (IsAreaOfEffectSpell(spellInfo) || spellInfo->HasAttribute(SPELL_ATTR_EX5_TREAT_AS_AREA_EFFECT)))
         TakenTotalMod *= GetTotalAuraMultiplier(SPELL_AURA_MOD_AOE_DAMAGE_AVOIDANCE);
 
     // special dummys/class scripts and other effects
@@ -8177,11 +8177,11 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackTyp
         }
     }
 
-    if (spellProto)
+    if (spellInfo)
     {
         for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_MELEE_DAMAGE_TAKEN))
         {
-            if (!i->isAffectedOnSpell(spellProto))
+            if (!i->isAffectedOnSpell(spellInfo))
                 continue;
             i->OnDamageCalculate(this, TakenAdvertisedBenefit, TakenTotalMod);
         }
@@ -8191,11 +8191,11 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackTyp
     // =================
 
     // scaling of non weapon based spells
-    if (!isWeaponDamageBasedSpell || (spellProto && (schoolMask &~ SPELL_SCHOOL_MASK_NORMAL) != 0))
+    if (!isWeaponDamageBasedSpell || (spellInfo && (schoolMask &~ SPELL_SCHOOL_MASK_NORMAL) != 0))
     {
         // apply benefit affected by spell power implicit coeffs and spell level penalties
         if (caster)
-            TakenAdvertisedBenefit = caster->SpellBonusWithCoeffs(spellProto, 0, TakenAdvertisedBenefit, 0, damagetype, false);
+            TakenAdvertisedBenefit = caster->SpellBonusWithCoeffs(spellInfo, 0, TakenAdvertisedBenefit, 0, damagetype, false);
     }
 
     if (!flat)

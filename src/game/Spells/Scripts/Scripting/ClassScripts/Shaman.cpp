@@ -110,6 +110,20 @@ struct EarthShield : public AuraScript
     }
 };
 
+// 29203 - Healing Way
+struct HealingWay : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_HEALING_TAKEN, apply);
+    }
+
+    void OnDamageCalculate(Aura* aura, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        totalMod *= (aura->GetModifier()->m_amount + 100.0f) / 100.0f;
+    }
+};
+
 void LoadShamanScripts()
 {
     Script* pNewScript = new Script;
@@ -119,4 +133,5 @@ void LoadShamanScripts()
 
     RegisterSpellScript<SentryTotem>("spell_sentry_totem");
     RegisterSpellScript<EarthShield>("spell_earth_shield");
+    RegisterSpellScript<HealingWay>("spell_healing_way");
 }

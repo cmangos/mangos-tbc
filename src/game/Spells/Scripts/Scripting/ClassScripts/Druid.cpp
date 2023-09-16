@@ -94,10 +94,53 @@ struct GuardianAggroSpell : public SpellScript
     }
 };
 
+// 33876, 33878 - Mangle
+struct MangleDruidTBC : public AuraScript
+{
+    void OnAuraInit(Aura* aura) const override
+    {
+        aura->SetAffectOverriden();
+    }
+
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_MELEE_DAMAGE_TAKEN, apply);
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_DAMAGE_TAKEN, apply);
+    }
+
+    bool OnAffectCheck(Aura const* /*aura*/, SpellEntry const* spellInfo) const override
+    {
+        if (spellInfo == nullptr)
+            return false;
+
+        if (GetAllSpellMechanicMask(spellInfo) & (1 << (MECHANIC_BLEED - 1)))
+            return true;
+        
+        switch (spellInfo->Id)
+        {
+            case 5221: // Shred
+            case 6800:
+            case 8992:
+            case 9829:
+            case 9830:
+            case 27001:
+            case 27002:
+                return true;
+            default: return false;
+        }
+    }
+
+    void OnDamageCalculate(Aura* aura, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        totalMod *= (100.0f + aura->GetModifier()->m_amount) / 100.0f;
+    }
+};
+
 void LoadDruidScripts()
 {
     RegisterSpellScript<Regrowth>("spell_regrowth");
     RegisterSpellScript<FormScalingAttackPowerAuras>("spell_druid_form_scaling_ap_auras");
     RegisterSpellScript<ForceOfNatureSummon>("spell_force_of_nature_summon");
     RegisterSpellScript<GuardianAggroSpell>("spell_guardian_aggro_spell");
+    RegisterSpellScript<MangleDruidTBC>("spell_mangle_druid_tbc");
 }

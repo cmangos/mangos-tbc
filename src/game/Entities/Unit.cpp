@@ -8038,13 +8038,13 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
                 }
             }
         }
+    }
 
-        for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_MELEE_DAMAGE_DONE))
-        {
-            if (!i->isAffectedOnSpell(spellInfo))
-                continue;
-            i->OnDamageCalculate(victim, DoneFlat, DoneTotalMod);
-        }
+    for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_MELEE_DAMAGE_DONE))
+    {
+        if (!i->isAffectedOnSpell(spellInfo))
+            continue;
+        i->OnDamageCalculate(victim, DoneFlat, DoneTotalMod);
     }
 
     // final calculation
@@ -8114,10 +8114,6 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackTyp
     schoolMask              = ((spellInfo && schoolMask != spellInfo->SchoolMask) ? SpellSchoolMask(spellInfo->SchoolMask) : schoolMask);
     uint32 mechanicMask     = spellInfo ? GetAllSpellMechanicMask(spellInfo) : 0;
 
-    // Shred also have bonus as MECHANIC_BLEED damages
-    if (spellInfo && spellInfo->SpellFamilyName == SPELLFAMILY_DRUID && spellInfo->SpellFamilyFlags & uint64(0x00008000))
-        mechanicMask |= (1 << (MECHANIC_BLEED - 1));
-
     // FLAT damage bonus auras
     // =======================
     int32 TakenFlat = 0;
@@ -8170,21 +8166,14 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackTyp
                     TakenTotalMod *= (mod + 100.0f) / 100.0f;
                 }
                 break;
-            case 2312:                                      // Mangle
-                if (mechanicMask & (1 << (MECHANIC_BLEED - 1)))
-                    TakenTotalMod *= (100.0f + mDummyAura->GetModifier()->m_amount) / 100.0f;
-                break;
         }
     }
 
-    if (spellInfo)
+    for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_MELEE_DAMAGE_TAKEN))
     {
-        for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_MELEE_DAMAGE_TAKEN))
-        {
-            if (!i->isAffectedOnSpell(spellInfo))
-                continue;
-            i->OnDamageCalculate(this, TakenAdvertisedBenefit, TakenTotalMod);
-        }
+        if (!i->isAffectedOnSpell(spellInfo))
+            continue;
+        i->OnDamageCalculate(this, TakenAdvertisedBenefit, TakenTotalMod);
     }
 
     // final calculation

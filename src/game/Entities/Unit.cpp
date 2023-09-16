@@ -7400,7 +7400,7 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellSchoolMask schoolMask, Spel
     {
         if (!i->isAffectedOnSpell(spellInfo))
             continue;
-        i->OnDamageCalculate(victim, DoneAdvertisedBenefit, DoneTotalMod);
+        i->OnDamageCalculate(this, victim, DoneAdvertisedBenefit, DoneTotalMod);
     }
 
     AuraList const& mOverrideClassScript = owner->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
@@ -7522,7 +7522,7 @@ uint32 Unit::SpellDamageBonusTaken(Unit* caster, SpellSchoolMask schoolMask, Spe
     {
         if (!i->isAffectedOnSpell(spellInfo))
             continue;
-        i->OnDamageCalculate(this, TakenAdvertisedBenefit, TakenTotalMod);
+        i->OnDamageCalculate(caster, this, TakenAdvertisedBenefit, TakenTotalMod);
     }
 
     // apply benefit affected by spell power implicit coeffs and spell level penalties
@@ -7660,7 +7660,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellEntry const* spellInfo, in
     {
         if (!i->isAffectedOnSpell(spellInfo))
             continue;
-        i->OnDamageCalculate(victim, DoneAdvertisedBenefit, DoneTotalMod);
+        i->OnDamageCalculate(this, victim, DoneAdvertisedBenefit, DoneTotalMod);
     }
 
     // apply ap bonus and benefit affected by spell power implicit coeffs and spell level penalties
@@ -7679,7 +7679,7 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellEntry const* spellInfo, in
  * Calculates target part of healing spell bonuses,
  * will be called on each tick for periodic damage over time auras
  */
-uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellInfo, int32 healamount, DamageEffectType damagetype, uint32 stack)
+uint32 Unit::SpellHealingBonusTaken(Unit* caster, SpellEntry const* spellInfo, int32 healamount, DamageEffectType damagetype, uint32 stack)
 {
     float TakenTotalMod = 1.0f;
 
@@ -7706,40 +7706,15 @@ uint32 Unit::SpellHealingBonusTaken(Unit* pCaster, SpellEntry const* spellInfo, 
     // Taken fixed damage bonus auras
     int32 TakenAdvertisedBenefit = SpellBaseHealingBonusTaken(GetSpellSchoolMask(spellInfo));
 
-    // Blessing of Light dummy affects healing taken from Holy Light and Flash of Light
-    if (spellInfo->SpellFamilyName == SPELLFAMILY_PALADIN && (spellInfo->SpellFamilyFlags & uint64(0x00000000C0000000)))
-    {
-        AuraList const& auraDummy = GetAurasByType(SPELL_AURA_DUMMY);
-        for (auto i : auraDummy)
-        {
-            if (i->GetSpellProto()->SpellVisual == 9180)
-            {
-                if (((spellInfo->SpellFamilyFlags & uint64(0x0000000040000000)) && i->GetEffIndex() == EFFECT_INDEX_1) ||  // Flash of Light
-                        ((spellInfo->SpellFamilyFlags & uint64(0x0000000080000000)) && i->GetEffIndex() == EFFECT_INDEX_0))    // Holy Light
-                {
-                    TakenAdvertisedBenefit += (i->GetModifier()->m_amount);  // BoL is penalized since 2.3.0
-                    // Note: This forces the caster to keep libram equipped, but works regardless if the BOL is his or not
-                    if (Aura* aura = pCaster->GetAura(38320, EFFECT_INDEX_0)) // improved Blessing of light
-                    {
-                        if (i->GetEffIndex() == EFFECT_INDEX_0)
-                            TakenAdvertisedBenefit += aura->GetModifier()->m_amount; // holy light gets full amount
-                        else
-                            TakenAdvertisedBenefit += (aura->GetModifier()->m_amount / 2); // flash of light gets half
-                    }
-                }
-            }
-        }
-    }
-
     for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_SPELL_HEALING_TAKEN))
     {
         if (!i->isAffectedOnSpell(spellInfo))
             continue;
-        i->OnDamageCalculate(this, TakenAdvertisedBenefit, TakenTotalMod);
+        i->OnDamageCalculate(caster, this, TakenAdvertisedBenefit, TakenTotalMod);
     }
 
     // apply benefit affected by spell power implicit coeffs and spell level penalties
-    TakenTotal = pCaster->SpellBonusWithCoeffs(spellInfo, TakenTotal, TakenAdvertisedBenefit, 0, damagetype, false);
+    TakenTotal = caster->SpellBonusWithCoeffs(spellInfo, TakenTotal, TakenAdvertisedBenefit, 0, damagetype, false);
 
     // use float as more appropriate for negative values and percent applying
     float heal = (healamount + TakenTotal * int32(stack)) * TakenTotalMod;
@@ -8014,7 +7989,7 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     {
         if (!i->isAffectedOnSpell(spellInfo))
             continue;
-        i->OnDamageCalculate(victim, DoneFlat, DoneTotalMod);
+        i->OnDamageCalculate(this, victim, DoneFlat, DoneTotalMod);
     }
 
     // final calculation
@@ -8120,7 +8095,7 @@ uint32 Unit::MeleeDamageBonusTaken(Unit* caster, uint32 pdamage, WeaponAttackTyp
     {
         if (!i->isAffectedOnSpell(spellInfo))
             continue;
-        i->OnDamageCalculate(this, TakenAdvertisedBenefit, TakenTotalMod);
+        i->OnDamageCalculate(caster, this, TakenAdvertisedBenefit, TakenTotalMod);
     }
 
     // final calculation

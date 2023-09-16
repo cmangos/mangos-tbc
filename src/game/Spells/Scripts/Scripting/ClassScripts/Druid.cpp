@@ -130,7 +130,7 @@ struct MangleDruidTBC : public AuraScript
         }
     }
 
-    void OnDamageCalculate(Aura* aura, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
+    void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
     {
         totalMod *= (100.0f + aura->GetModifier()->m_amount) / 100.0f;
     }

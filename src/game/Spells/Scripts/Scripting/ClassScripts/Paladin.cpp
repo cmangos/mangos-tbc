@@ -127,7 +127,7 @@ struct IncreasedHolyLightHealing : public AuraScript
         aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_HEALING_DONE, apply);
     }
 
-    void OnDamageCalculate(Aura* aura, Unit* /*victim*/, int32& advertisedBenefit, float& /*totalMod*/) const override
+    void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* /*victim*/, int32& advertisedBenefit, float& /*totalMod*/) const override
     {
         advertisedBenefit += aura->GetModifier()->m_amount;
     }
@@ -192,6 +192,28 @@ struct SealOfBloodSelfDamage : public SpellScript
     }
 };
 
+// 19977 - Blessing of Light
+struct BlessingOfLight : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_HEALING_TAKEN, apply);
+    }
+
+    void OnDamageCalculate(Aura* aura, Unit* attacker, Unit* /*victim*/, int32& advertisedBenefit, float& totalMod) const override
+    {
+        advertisedBenefit += (aura->GetModifier()->m_amount);  // BoL is penalized since 2.3.0
+        // Note: This forces the caster to keep libram equipped, but works regardless if the BOL is his or not
+        if (Aura* improved = attacker->GetAura(38320, EFFECT_INDEX_0)) // improved Blessing of light
+        {
+            if (aura->GetEffIndex() == EFFECT_INDEX_0)
+                advertisedBenefit += improved->GetModifier()->m_amount; // holy light gets full amount
+            else
+                advertisedBenefit += (improved->GetModifier()->m_amount / 2); // flash of light gets half
+        }
+    }
+};
+
 void LoadPaladinScripts()
 {
     RegisterSpellScript<IncreasedHolyLightHealing>("spell_increased_holy_light_healing");
@@ -200,4 +222,5 @@ void LoadPaladinScripts()
     RegisterSpellScript<SealOfTheCrusader>("spell_seal_of_the_crusader");
     RegisterSpellScript<SealOfBloodSelfDamage>("spell_seal_of_blood_self_damage");
     RegisterSpellScript<spell_paladin_tier_6_trinket>("spell_paladin_tier_6_trinket");
+    RegisterSpellScript<BlessingOfLight>("spell_blessing_of_light");
 }

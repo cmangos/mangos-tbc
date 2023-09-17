@@ -7606,39 +7606,6 @@ uint32 Unit::SpellHealingBonusDone(Unit* victim, SpellEntry const* spellInfo, in
     Unit* owner = GetOwner();
     if (!owner) owner = this;
 
-    AuraList const& mOverrideClassScript = owner->GetAurasByType(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS);
-    for (auto i : mOverrideClassScript)
-    {
-        if (!i->isAffectedOnSpell(spellInfo))
-            continue;
-        switch (i->GetModifier()->m_miscvalue)
-        {
-            case 4415: // Increased Rejuvenation Healing
-            case 4953:
-            case 3736: // Hateful Totem of the Third Wind / Increased Lesser Healing Wave / LK Arena (4/5/6) Totem of the Third Wind / Savage Totem of the Third Wind
-                DoneAdvertisedBenefit += i->GetModifier()->m_amount;
-                break;
-            default:
-                break;
-        }
-    }
-
-    AuraList const& auraDummy = owner->GetAurasByType(SPELL_AURA_DUMMY);
-    for (auto i : auraDummy)
-    {
-        if (!i->isAffectedOnSpell(spellInfo))
-            continue;
-        switch (i->GetSpellProto()->Id)
-        {
-            case 28851: // Flash of Light - need to create generic container for this and the above
-            case 28853:
-            case 32403:
-            case 34246: // Lifebloom
-                DoneAdvertisedBenefit += i->GetModifier()->m_amount;
-                break;
-        }
-    }
-
     for (auto i : GetScriptedLocationAuras(SCRIPT_LOCATION_SPELL_HEALING_DONE))
     {
         if (!i->isAffectedOnSpell(spellInfo))

@@ -20,17 +20,30 @@
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
 
+// 21082 - Seal of the Crusader
 struct SealOfTheCrusader : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const
     {
-        if (aura->GetEffIndex() != EFFECT_INDEX_1)
+        if (aura->GetEffIndex() == EFFECT_INDEX_1)
+        {
+            // Seal of the Crusader damage reduction
+            // SotC increases attack speed but reduces damage to maintain the same DPS
+            float reduction = (-100.0f * aura->GetModifier()->m_amount) / (aura->GetModifier()->m_amount + 100.0f);
+            aura->GetTarget()->HandleStatModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, reduction, apply);
             return;
+        }
 
-        // Seal of the Crusader damage reduction
-        // SotC increases attack speed but reduces damage to maintain the same DPS
-        float reduction = (-100.0f * aura->GetModifier()->m_amount) / (aura->GetModifier()->m_amount + 100.0f);
-        aura->GetTarget()->HandleStatModifier(UNIT_MOD_DAMAGE_MAINHAND, TOTAL_PCT, reduction, apply);
+        if (aura->GetEffIndex() == EFFECT_INDEX_2)
+        {
+            aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_MELEE_DAMAGE_DONE, apply);
+            return;
+        }
+    }
+
+    void OnDamageCalculate(Aura* /*aura*/, Unit* /*attacker*/, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        totalMod *= 1.4f; // Patch 2.4.2 - Increases damage of Crusader Strike by 40%
     }
 };
 

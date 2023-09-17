@@ -7466,23 +7466,6 @@ uint32 Unit::SpellDamageBonusDone(Unit* victim, SpellSchoolMask schoolMask, Spel
         }
     }
 
-    // Custom scripted damage
-    switch (spellInfo->SpellFamilyName)
-    {
-        case SPELLFAMILY_MAGE:
-        {
-            // Ice Lance
-            if (spellInfo->SpellIconID == 186)
-            {
-                if (victim->isFrozen())
-                    DoneTotalMod *= 3.0f;
-            }
-            break;
-        }
-        default:
-            break;
-    }
-
     // apply ap bonus and benefit affected by spell power implicit coeffs and spell level penalties
     DoneTotal = SpellBonusWithCoeffs(spellInfo, DoneTotal, DoneAdvertisedBenefit, 0, damagetype, true);
 

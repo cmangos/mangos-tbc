@@ -804,6 +804,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (12983,'spell_shatter_mage'),
 (12984,'spell_shatter_mage'),
 (12985,'spell_shatter_mage'),
+(30455,'spell_ice_lance'),
 (42208,'spell_blizzard'),
 (42209,'spell_blizzard'),
 (42210,'spell_blizzard'),

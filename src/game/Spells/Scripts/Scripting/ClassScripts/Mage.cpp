@@ -85,9 +85,24 @@ struct Blizzard : public SpellScript
     }
 };
 
+// 30455 - Ice Lance
+struct IceLance : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        Unit* target = spell->GetUnitTarget();
+        if (target->isFrozen()) // does not affect damage taken modifiers per research
+            spell->SetDamageDoneModifier(3.f, EFFECT_INDEX_0);
+    }
+};
+
 void LoadMageScripts()
 {
     RegisterSpellScript<ArcaneConcentration>("spell_arcane_concentration");
     RegisterSpellScript<ShatterMage>("spell_shatter_mage");
     RegisterSpellScript<Blizzard>("spell_blizzard");
+    RegisterSpellScript<IceLance>("spell_ice_lance");
 }

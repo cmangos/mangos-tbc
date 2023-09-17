@@ -47,6 +47,49 @@ struct SealOfTheCrusader : public AuraScript
     }
 };
 
+// 5373 - Judgement of Light Intermediate
+struct JudgementOfLightIntermediate : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (spell->GetTriggeredByAuraSpellInfo() == nullptr)
+            return;
+
+        uint32 triggerSpell = 0;
+        switch (spell->GetTriggeredByAuraSpellInfo()->Id)
+        {
+            case 20185: triggerSpell = 20267; break; // Rank 1
+            case 20344: triggerSpell = 20341; break; // Rank 2
+            case 20345: triggerSpell = 20342; break; // Rank 3
+            case 20346: triggerSpell = 20343; break; // Rank 4
+            case 27162: triggerSpell = 27163; break; // Rank 5
+        }
+        if (triggerSpell)
+            spell->GetUnitTarget()->CastSpell(nullptr, triggerSpell, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+    }
+};
+
+// 1826 - Judgement of Wisdom Intermediate
+struct JudgementOfWisdomIntermediate : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (spell->GetTriggeredByAuraSpellInfo() == nullptr)
+            return;
+
+        uint32 triggerSpell = 0;
+        switch (spell->GetTriggeredByAuraSpellInfo()->Id)
+        {
+            case 20186: triggerSpell = 20268; break; // Rank 1
+            case 20354: triggerSpell = 20352; break; // Rank 2
+            case 20355: triggerSpell = 20353; break; // Rank 3
+            case 27164: triggerSpell = 27165; break; // Rank 4
+        }
+        if (triggerSpell)
+            spell->GetUnitTarget()->CastSpell(nullptr, triggerSpell, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+    }
+};
+
 struct spell_judgement : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
@@ -133,19 +176,6 @@ struct spell_paladin_tier_6_trinket : public AuraScript
     }
 };
 
-struct IncreasedHolyLightHealing : public AuraScript
-{
-    void OnApply(Aura* aura, bool apply) const
-    {
-        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_HEALING_DONE, apply);
-    }
-
-    void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* /*victim*/, int32& advertisedBenefit, float& /*totalMod*/) const override
-    {
-        advertisedBenefit += aura->GetModifier()->m_amount;
-    }
-};
-
 struct RighteousDefense : public SpellScript
 {
     bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
@@ -229,7 +259,8 @@ struct BlessingOfLight : public AuraScript
 
 void LoadPaladinScripts()
 {
-    RegisterSpellScript<IncreasedHolyLightHealing>("spell_increased_holy_light_healing");
+    RegisterSpellScript<JudgementOfLightIntermediate>("spell_judgement_of_light_intermediate");
+    RegisterSpellScript<JudgementOfWisdomIntermediate>("spell_judgement_of_wisdom_intermediate");
     RegisterSpellScript<spell_judgement>("spell_judgement");
     RegisterSpellScript<RighteousDefense>("spell_righteous_defense");
     RegisterSpellScript<SealOfTheCrusader>("spell_seal_of_the_crusader");

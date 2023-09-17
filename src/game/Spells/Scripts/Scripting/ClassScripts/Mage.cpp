@@ -85,6 +85,16 @@ struct Blizzard : public SpellScript
     }
 };
 
+// 31679 - Molten Fury
+struct MoltenFury : public AuraScript
+{
+    void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* victim, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        if (victim->HasAuraState(AURA_STATE_HEALTHLESS_20_PERCENT))
+            totalMod *= (100.0f + aura->GetModifier()->m_amount) / 100.0f;
+    }
+};
+
 // 30455 - Ice Lance
 struct IceLance : public SpellScript
 {
@@ -104,5 +114,6 @@ void LoadMageScripts()
     RegisterSpellScript<ArcaneConcentration>("spell_arcane_concentration");
     RegisterSpellScript<ShatterMage>("spell_shatter_mage");
     RegisterSpellScript<Blizzard>("spell_blizzard");
+    RegisterSpellScript<MoltenFury>("spell_molten_fury");
     RegisterSpellScript<IceLance>("spell_ice_lance");
 }

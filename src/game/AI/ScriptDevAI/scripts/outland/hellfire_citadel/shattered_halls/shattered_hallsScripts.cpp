@@ -120,15 +120,15 @@ struct npc_shattered_hand_gladiator : public CombatAI
     {
         switch (action)
         {
-        case GLADIATOR_STOP_EVENT:
-        {
-            if (m_creature->GetHealthPercent() <= 40.f)
+            case GLADIATOR_STOP_EVENT:
             {
-                if (Creature* centurion = GetClosestCreatureWithEntry(m_creature, NPC_SHATTERED_HAND_CENTURION, 15.f, true, false, true))
-                    SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, centurion);
+                if (m_creature->GetHealthPercent() <= 40.f)
+                {
+                    if (Creature* centurion = GetClosestCreatureWithEntry(m_creature, NPC_SHATTERED_HAND_CENTURION, 15.f, true, false, true))
+                        SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, centurion);
+                }
+                break;
             }
-            break;
-        }
         }
     }
     void UpdateAI(const uint32 diff) override
@@ -164,7 +164,7 @@ struct npc_shattered_hand_centurion : public CombatAI
         m_eventStarted(false)
     {
         AddCustomAction(CENTURION_START_EVENT, 4000u, [&]() { HandleEventStart(); });
-        AddCustomAction(CENTURION_EVENT_RP, urand(2000, 10000), [&]() { HandleRP(); });
+        AddCustomAction(CENTURION_EVENT_RP, 2000, 10000, [&]() { HandleRP(); });
     }
 
     void Reset() override
@@ -199,11 +199,6 @@ struct npc_shattered_hand_centurion : public CombatAI
         }
     }
 
-    void JustReachedHome() override
-    {
-        CombatAI::JustReachedHome();
-    }
-
     void HandleEventStart()
     {
         if (m_creature->IsInCombat())
@@ -228,15 +223,15 @@ struct npc_shattered_hand_centurion : public CombatAI
         Creature* first = m_creature->GetMap()->GetCreature(m_gladiatorGuid[0]);  // A  
         Creature* second = m_creature->GetMap()->GetCreature(m_gladiatorGuid[1]); // B
         Creature* third = m_creature->GetMap()->GetCreature(m_gladiatorGuid[2]); // A
-        Creature* forth = m_creature->GetMap()->GetCreature(m_gladiatorGuid[3]); // B
+        Creature* fourth = m_creature->GetMap()->GetCreature(m_gladiatorGuid[3]); // B
 
         if (first->IsAlive() && second->IsAlive())
             if (npc_shattered_hand_gladiator* firstGladiator = dynamic_cast<npc_shattered_hand_gladiator*>(first->AI()))
                 firstGladiator->HandleEventStart(second);
 
-        if (third->IsAlive() && forth->IsAlive())
+        if (third->IsAlive() && fourth->IsAlive())
             if (npc_shattered_hand_gladiator* thirdGladiator = dynamic_cast<npc_shattered_hand_gladiator*>(third->AI()))
-                thirdGladiator->HandleEventStart(forth);
+                thirdGladiator->HandleEventStart(fourth);
 
         DoBroadcastText(SAY_START, m_creature);
         m_eventStarted = true;

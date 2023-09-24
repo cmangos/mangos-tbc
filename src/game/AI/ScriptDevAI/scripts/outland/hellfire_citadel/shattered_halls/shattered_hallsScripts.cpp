@@ -98,7 +98,6 @@ struct npc_shattered_hand_gladiator : public CombatAI
                 m_creature->getThreatManager().modifyThreatPercent(partner, -101);
                 m_creature->ClearTemporaryFaction();
                 m_eventStarted = false;
-                m_creature->SetInCombatWithZone();
             }
         }
         else if (eventType == AI_EVENT_CUSTOM_B) // End Duel
@@ -176,7 +175,7 @@ struct npc_shattered_hand_centurion : public CombatAI
     ScriptedInstance* m_instance;
     bool m_eventStarted;
 
-    void Aggro(Unit* /*who*/) override
+    void Aggro(Unit* who) override
     {
         switch (urand(0, 5))
         {
@@ -195,7 +194,11 @@ struct npc_shattered_hand_centurion : public CombatAI
         for (Creature* gladiator : gladiatorList)
         {
             if (gladiator->IsAlive())
+            {
                 SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, gladiator);
+                gladiator->AI()->AttackStart(who);
+
+            }
         }
     }
 

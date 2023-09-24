@@ -52,9 +52,7 @@ enum GladiatiorActions
     GLADIATOR_STOP_EVENT,
     GLADIATIOR_EVENT_RP,
     GLADIATOR_ACTION_MAX,
-    GLADIATOR_START_EVENT,
 };
-
 
 struct npc_shattered_hand_gladiator : public CombatAI
 {
@@ -152,13 +150,21 @@ struct npc_shattered_hand_gladiator : public CombatAI
     }
 };
 
+enum CenturionActions
+{
+    CENTURION_EVENT_RP,
+    CENTURION_ACTION_MAX,
+    CENTURION_START_EVENT,
+};
+
 struct npc_shattered_hand_centurion : public CombatAI
 {
-    npc_shattered_hand_centurion(Creature* creature) : CombatAI(creature, GLADIATOR_ACTION_MAX),
+    npc_shattered_hand_centurion(Creature* creature) : CombatAI(creature, CENTURION_ACTION_MAX),
         m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())),
         m_eventStarted(false)
     {
-        AddCustomAction(GLADIATOR_START_EVENT, 4000u, [&]() { HandleEventStart(); });
+        AddCustomAction(CENTURION_START_EVENT, 4000u, [&]() { HandleEventStart(); });
+        AddCustomAction(CENTURION_EVENT_RP, urand(2000, 10000), [&]() { HandleRP(); });
     }
 
     void Reset() override
@@ -174,13 +180,13 @@ struct npc_shattered_hand_centurion : public CombatAI
     {
         switch (urand(0, 5))
         {
-        case 0: DoBroadcastText(SAY_AGGRO1, m_creature); break;
-        case 1: DoBroadcastText(SAY_AGGRO2, m_creature); break;
-        case 2: DoBroadcastText(SAY_AGGRO3, m_creature); break;
-        case 3: DoBroadcastText(SAY_AGGRO4, m_creature); break;
-        case 4: DoBroadcastText(SAY_AGGRO5, m_creature); break;
-        case 5: DoBroadcastText(SAY_AGGRO6, m_creature); break;
-        case 6: DoBroadcastText(SAY_AGGRO7, m_creature); break;
+            case 0: DoBroadcastText(SAY_AGGRO1, m_creature); break;
+            case 1: DoBroadcastText(SAY_AGGRO2, m_creature); break;
+            case 2: DoBroadcastText(SAY_AGGRO3, m_creature); break;
+            case 3: DoBroadcastText(SAY_AGGRO4, m_creature); break;
+            case 4: DoBroadcastText(SAY_AGGRO5, m_creature); break;
+            case 5: DoBroadcastText(SAY_AGGRO6, m_creature); break;
+            case 6: DoBroadcastText(SAY_AGGRO7, m_creature); break;
         }
 
         // Set Gladiators infight too and reset their factions
@@ -234,7 +240,19 @@ struct npc_shattered_hand_centurion : public CombatAI
 
         DoBroadcastText(SAY_START, m_creature);
         m_eventStarted = true;
-        DisableTimer(GLADIATOR_START_EVENT);
+        DisableTimer(CENTURION_START_EVENT);
+    }
+
+
+    void HandleRP()
+    {
+        switch (urand(0, 3))
+        {
+            case 0: m_creature->HandleEmote(EMOTE_ONESHOT_LAUGH); break;
+            case 1: m_creature->HandleEmote(EMOTE_ONESHOT_FLEX); break;
+            case 2: m_creature->HandleEmote(EMOTE_ONESHOT_ROAR); break;
+            case 3: m_creature->HandleEmote(EMOTE_ONESHOT_EXCLAMATION); break;
+        }
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 /*miscValue*/) override
@@ -247,6 +265,7 @@ struct npc_shattered_hand_centurion : public CombatAI
 
             if (m_eventStarted)
             {
+                m_creature->HandleEmote(EMOTE_ONESHOT_POINT);
                 DoBroadcastText(SAY_FINISH, m_creature);
 
                 CreatureList gladiatorList;
@@ -257,7 +276,7 @@ struct npc_shattered_hand_centurion : public CombatAI
                         SendAIEvent(AI_EVENT_CUSTOM_B, m_creature, gladiator);
                 }
                 m_eventStarted = false;
-                ResetTimer(GLADIATOR_START_EVENT, urand(10000, 25000));
+                ResetTimer(CENTURION_START_EVENT, urand(10000, 25000));
             }
         }
     }

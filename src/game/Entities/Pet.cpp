@@ -2434,7 +2434,6 @@ bool Pet::IgnoresOwnersDeath() const
             if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX_IGNORE_OWNERS_DEATH))
                 return true;
         }
-        return false;
     }
-    return true;
+    return false;
 }

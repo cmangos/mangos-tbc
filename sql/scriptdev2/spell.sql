@@ -157,6 +157,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (28856,'spell_increased_healing_done_dummy'),
 (28851,'spell_increased_healing_done_dummy'),
 (28853,'spell_increased_healing_done_dummy'),
+(27859,'spell_increased_spell_damage_done_dummy'),
+(28857,'spell_increased_spell_damage_done_dummy'),
 (21056,'spell_mark_of_lord_kazzak'),
 (21063,'spell_twisted_reflection'),
 (491,'spell_gameobject_call_for_help_on_usage'), -- Khadgar's Unlocking
@@ -623,9 +625,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (47514,'spell_summon_mole_machine'),
 (46649,'spell_maximize_pet_loyalty_and_happiness'),
 (42919,'spell_tricky_treat'),
-(27859,'spell_increased_spell_damage_done_dummy'),
 (33556,'spell_increased_spell_damage_done_dummy'),
-(28857,'spell_increased_spell_damage_done_dummy'),
 (34230,'spell_increased_spell_damage_done_dummy'),
 (41040,'spell_increased_spell_damage_done_dummy'),
 (28854,'spell_increased_spell_damage_done_dummy'),

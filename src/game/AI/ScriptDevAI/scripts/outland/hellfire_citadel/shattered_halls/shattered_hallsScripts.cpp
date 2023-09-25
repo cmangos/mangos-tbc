@@ -140,22 +140,11 @@ struct npc_shattered_hand_gladiator : public CombatAI
             if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, nullptr, SELECT_FLAG_PLAYER))
             {
                 if (Creature* partner = m_creature->GetMap()->GetCreature(m_sparringPartner))
-                {                    
+                {
+                    SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, partner);
                     m_creature->getThreatManager().modifyThreatPercent(partner, -101);
                     m_creature->ClearTemporaryFaction();
                     m_eventStarted = false;
-                }
-                // Hackfix: Let all Gldiators reset their faction, remove threat from their duel partner and start fighting player
-                CreatureList gladiatorList;
-                GetCreatureListWithEntryInGrid(gladiatorList, m_creature, NPC_SHATTERED_HAND_GLADIATIOR, 20.0f);
-                for (Creature* gladiator : gladiatorList)
-                {
-                    if (gladiator->IsAlive())
-                    {
-                        SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, gladiator);
-                        gladiator->AI()->AttackStart(target);
-
-                    }
                 }
             }
         }
@@ -175,7 +164,7 @@ struct npc_shattered_hand_centurion : public CombatAI
         m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())),
         m_eventStarted(false)
     {
-        AddCustomAction(CENTURION_START_EVENT, 4000u, [&]() { HandleEventStart(); });
+        AddCustomAction(CENTURION_START_EVENT, 1000, 4000, [&]() { HandleEventStart(); });
         AddCustomAction(CENTURION_EVENT_RP, 2000, 10000, [&]() { HandleRP(); });
     }
 
@@ -183,6 +172,7 @@ struct npc_shattered_hand_centurion : public CombatAI
     {
         CombatAI::Reset();
         m_eventStarted = false;
+        ResetTimer(CENTURION_START_EVENT, urand(10000, 25000));
     }
 
     ScriptedInstance* m_instance;
@@ -199,19 +189,6 @@ struct npc_shattered_hand_centurion : public CombatAI
             case 4: DoBroadcastText(SAY_AGGRO5, m_creature); break;
             case 5: DoBroadcastText(SAY_AGGRO6, m_creature); break;
             case 6: DoBroadcastText(SAY_AGGRO7, m_creature); break;
-        }
-
-        // Set Gladiators infight too and reset their factions
-        CreatureList gladiatorList;
-        GetCreatureListWithEntryInGrid(gladiatorList, m_creature, NPC_SHATTERED_HAND_GLADIATIOR, 20.0f);
-        for (Creature* gladiator : gladiatorList)
-        {
-            if (gladiator->IsAlive())
-            {
-                SendAIEvent(AI_EVENT_CUSTOM_A, m_creature, gladiator);
-                gladiator->AI()->AttackStart(who);
-
-            }
         }
     }
 
@@ -250,8 +227,8 @@ struct npc_shattered_hand_centurion : public CombatAI
                 thirdGladiator->HandleEventStart(fourth);
 
         DoBroadcastText(SAY_START, m_creature);
-        m_eventStarted = true;
         DisableTimer(CENTURION_START_EVENT);
+        m_eventStarted = true;
     }
 
 

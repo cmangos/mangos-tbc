@@ -2198,8 +2198,18 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- SPELL_ATTR_SS_IGNORE_EVADE
 -- ==========================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|4 WHERE `Id` IN (
+3418, -- Improved Blocking
+5667, -- Bogling Passive
+5888, -- Darkshore Frenzy
+7131, -- Illusion Passive
+8203, -- Elemental Spirit Invisibility
+10092, -- Sand Storm
+10868, -- Frost Vulnerable
+11011, -- Stone Watcher of Norgannon Passive
+11048, -- Perm. Illusion Bishop Tyriona
 15978, -- Puncture
 21911, -- Puncture
+24692, -- Hakkar Power
 28330 -- Flameshocker - Immolate Visual
 );
 
@@ -2363,6 +2373,7 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- ============================================================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
 4044,  -- Target Dummy Passive
+5301, -- Defensive State (DND)
 6742, -- Bloodlust
 8852, -- Moss Hide
 11816, -- Land Mine Arming
@@ -2373,6 +2384,7 @@ UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00
 17205, -- Winterfall Firewater
 18163, -- Strength of Arko'narin
 18167, -- Holy Fire
+21080, -- Putrid Breath
 23378, -- Magma Splash
 27791, -- Suicide (Suicide)
 21789, -- Hate to Half (Hate to Half)

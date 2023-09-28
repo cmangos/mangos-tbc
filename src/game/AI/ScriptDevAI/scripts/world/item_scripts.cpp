@@ -325,7 +325,7 @@ struct OrbOfDeception : public AuraScript
 // 39228 - Argussian Compass
 struct ArgussianCompass : public AuraScript
 {
-    void OnAbsorb(Aura* aura, int32& currentAbsorb, int32& /*remainingDamage*/, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& /*preventedDeath*/, bool& /*dropCharge*/) const override
+    void OnAbsorb(Aura* aura, int32& currentAbsorb, int32& /*remainingDamage*/, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& /*preventedDeath*/, bool& /*dropCharge*/, DamageEffectType /*damageType*/) const override
     {
         // Max absorb stored in 1 dummy effect
         int32 max_absorb = aura->GetSpellProto()->CalculateSimpleValue(EFFECT_INDEX_1);

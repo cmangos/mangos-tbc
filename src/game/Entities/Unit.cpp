@@ -2494,7 +2494,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
 
         bool preventedDeath = preventDeathAura != nullptr;
         bool dropCharge = true;
-        (*i)->OnAbsorb(currentAbsorb, remainingDamage, reflectSpell, reflectDamage, preventedDeath, dropCharge);
+        (*i)->OnAbsorb(currentAbsorb, remainingDamage, reflectSpell, reflectDamage, preventedDeath, dropCharge, damagetype);
         if (preventedDeath)
             preventDeathAura = (*i);
 

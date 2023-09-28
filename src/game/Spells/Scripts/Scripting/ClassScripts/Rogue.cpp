@@ -149,7 +149,7 @@ struct DirtyDeeds : public AuraScript
 // 31228 - Cheat Death
 struct CheatDeathRogue : public AuraScript
 {
-    void OnAbsorb(Aura* aura, int32& currentAbsorb, int32& remainingDamage, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& preventedDeath, bool& dropCharge) const override
+    void OnAbsorb(Aura* aura, int32& currentAbsorb, int32& remainingDamage, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& preventedDeath, bool& dropCharge, DamageEffectType /*damageType*/) const override
     {
         if (!preventedDeath && aura->GetTarget()->IsPlayer() &&
             aura->GetHolder()->IsProcReady(aura->GetTarget()->GetMap()->GetCurrentClockTime()) &&

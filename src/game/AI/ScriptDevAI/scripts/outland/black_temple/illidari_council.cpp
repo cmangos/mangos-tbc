@@ -718,7 +718,7 @@ struct VerasDeadlyPoisonTick : public AuraScript
 // 41341 - Balance of Power
 struct BalanceOfPower : public AuraScript
 {
-    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, int32& remainingDamage, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& /*preventedDeath*/, bool& dropCharge) const override
+    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, int32& remainingDamage, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& /*preventedDeath*/, bool& dropCharge, DamageEffectType /*damageType*/) const override
     {
         // unused atm
         remainingDamage += currentAbsorb;
@@ -730,7 +730,7 @@ struct BalanceOfPower : public AuraScript
 // 41475 - Reflective Shield
 struct ReflectiveShieldMalande : public AuraScript
 {
-    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, int32& remainingDamage, uint32& reflectedSpellId, int32& reflectDamage, bool& /*preventedDeath*/, bool& /*dropCharge*/) const override
+    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, int32& remainingDamage, uint32& reflectedSpellId, int32& reflectDamage, bool& /*preventedDeath*/, bool& /*dropCharge*/, DamageEffectType /*damageType*/) const override
     {
         if (remainingDamage < currentAbsorb)
             reflectDamage = remainingDamage / 2;

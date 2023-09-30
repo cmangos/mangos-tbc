@@ -2381,6 +2381,7 @@ UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00
 12896, -- Helboar
 12898, -- Smoke Aura Visual
 13879, -- Magma Splash
+16331, -- Incorporeal Defense
 17205, -- Winterfall Firewater
 18163, -- Strength of Arko'narin
 18167, -- Holy Fire

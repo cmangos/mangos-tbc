@@ -269,6 +269,6 @@ void LoadPaladinScripts()
     RegisterSpellScript<RighteousDefense>("spell_righteous_defense");
     RegisterSpellScript<SealOfTheCrusader>("spell_seal_of_the_crusader");
     RegisterSpellScript<SealOfBloodSelfDamage>("spell_seal_of_blood_self_damage");
-    RegisterSpellScript<PaladinTier6Trinket>("PaladinTier6Trinket");
+    RegisterSpellScript<PaladinTier6Trinket>("spell_paladin_tier_6_trinket");
     RegisterSpellScript<BlessingOfLight>("spell_blessing_of_light");
 }

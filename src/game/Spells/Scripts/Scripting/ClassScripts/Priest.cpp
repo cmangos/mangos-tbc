@@ -20,6 +20,7 @@
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
 
+// 27827 - Spirit of Redemption
 struct SpiritOfRedemptionHeal : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
@@ -34,6 +35,7 @@ enum
     SPELL_PLAYER_CONSUME_MAGIC = 32676,
 };
 
+// 32676 - Consume Magic
 struct ConsumeMagic : public SpellScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool strict) const override
@@ -68,6 +70,7 @@ struct ConsumeMagic : public SpellScript
     }
 };
 
+// 10060 - Power Infusion
 struct PowerInfusion : public SpellScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool/* strict*/) const override
@@ -82,6 +85,7 @@ struct PowerInfusion : public SpellScript
     }
 };
 
+// 32379 - Shadow Word: Death
 struct ShadowWordDeath : public SpellScript
 {
     void OnHit(Spell* spell, SpellMissInfo /*missInfo*/) const override
@@ -92,6 +96,7 @@ struct ShadowWordDeath : public SpellScript
     }
 };
 
+// 15268 - Blackout
 struct Blackout : public AuraScript
 {
     bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
@@ -102,6 +107,7 @@ struct Blackout : public AuraScript
     }
 };
 
+// 28376 - Shadowguard
 struct Shadowguard : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
@@ -132,6 +138,7 @@ enum
     MANA_LEECH_PASSIVE = 28305,
 };
 
+// 34433 - Shadowfiend
 struct Shadowfiend : public SpellScript
 {
     void OnSummon(Spell* spell, Creature* summon) const override
@@ -141,6 +148,7 @@ struct Shadowfiend : public SpellScript
     }
 };
 
+// 33076 - Prayer of Mending
 struct PrayerOfMending : public SpellScript
 {
     // not needed in wotlk
@@ -178,6 +186,7 @@ enum
     SPELL_PAIN_SUPPRESSION_THREAT_REDUCTION = 44416,
 };
 
+// 33206 - Pain Suppression
 struct PainSuppression : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override

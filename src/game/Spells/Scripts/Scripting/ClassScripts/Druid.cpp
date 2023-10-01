@@ -25,6 +25,7 @@ enum
     SPELL_BLESSING_OF_THE_CLAW = 28750,
 };
 
+// 8936 - Regrowth
 struct Regrowth : public AuraScript
 {
     void OnPeriodicTickEnd(Aura* aura) const override
@@ -35,6 +36,7 @@ struct Regrowth : public AuraScript
     }
 };
 
+// 1178 - Bear Form, 3025 - Cat Form, 9635 - Dire Bear Form, 24905 - Moonkin Form
 struct FormScalingAttackPowerAuras : public AuraScript
 {
     int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
@@ -56,6 +58,7 @@ struct FormScalingAttackPowerAuras : public AuraScript
     }
 };
 
+// 33831 - Force of Nature
 struct ForceOfNatureSummon : public SpellScript, public AuraScript
 {
     void OnSummon(Spell* /*spell*/, Creature* summon) const override
@@ -75,6 +78,7 @@ struct ForceOfNatureSummon : public SpellScript, public AuraScript
     }
 };
 
+// 41929 - Guardian Aggro Spell
 struct GuardianAggroSpell : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override

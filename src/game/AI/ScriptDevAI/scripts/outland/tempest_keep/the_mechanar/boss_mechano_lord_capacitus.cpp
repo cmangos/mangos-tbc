@@ -88,7 +88,7 @@ struct boss_mechano_lord_capacitusAI : public CombatAI
         DespawnGuids(m_summons);
     }
 
-    void OnSpellCast(SpellEntry const* spellInfo, Unit* target) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
     {
         switch (spellInfo->Id)
         {

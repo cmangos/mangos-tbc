@@ -456,7 +456,7 @@ struct SoulSiphon : public AuraScript
 // 37384 - Improved Corruption and Immolate
 struct ImprovedCorruptionAndImmolate : public AuraScript
 {
-    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    SpellAuraProcResult OnProc(Aura* /*aura*/, ProcExecutionData& procData) const override
     {
         if (procData.spell)
         {

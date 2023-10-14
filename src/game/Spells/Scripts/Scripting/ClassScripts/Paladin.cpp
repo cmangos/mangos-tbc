@@ -247,7 +247,7 @@ struct BlessingOfLight : public AuraScript
         aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_HEALING_TAKEN, apply);
     }
 
-    void OnDamageCalculate(Aura* aura, Unit* attacker, Unit* /*victim*/, int32& advertisedBenefit, float& totalMod) const override
+    void OnDamageCalculate(Aura* aura, Unit* attacker, Unit* /*victim*/, int32& advertisedBenefit, float& /*totalMod*/) const override
     {
         advertisedBenefit += (aura->GetModifier()->m_amount);  // BoL is penalized since 2.3.0
         // Note: This forces the caster to keep libram equipped, but works regardless if the BOL is his or not

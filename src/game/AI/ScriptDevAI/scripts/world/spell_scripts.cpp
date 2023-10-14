@@ -1163,6 +1163,18 @@ struct Stand : public SpellScript
     }
 };
 
+// s.7131 - npc 2638,4785,5097,6493,6932,11027,11263 - might be different delay per npc!
+struct IllusionPassive : public AuraScript
+{
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& /*procData*/) const override
+    {
+        if (Unit* caster = aura->GetCaster())
+            if (caster->IsCreature())
+                static_cast<Creature*>(caster)->ForcedDespawn(1000);
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
@@ -1218,4 +1230,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<GameobjectCallForHelpOnUsage>("spell_gameobject_call_for_help_on_usage");
     RegisterSpellScript<Submerged>("spell_submerged");
     RegisterSpellScript<Stand>("spell_stand");
+    RegisterSpellScript<IllusionPassive>("spell_illusion_passive");
 }

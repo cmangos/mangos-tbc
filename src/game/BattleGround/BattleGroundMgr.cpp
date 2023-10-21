@@ -1824,10 +1824,10 @@ uint32 BattleGroundMgr::CreateBattleGround(BattleGroundTypeId bgTypeId, bool IsA
 void BattleGroundMgr::CreateInitialBattleGrounds()
 {
     uint32 count = 0;
-    //                                                0   1                 2                 3      4      5                6             7            8
-    QueryResult* result = WorldDatabase.Query("SELECT id, MinPlayersPerTeam,MaxPlayersPerTeam,MinLvl,MaxLvl,AllianceStartLoc,HordeStartLoc,StartMaxDist,PlayerSkinReflootId FROM battleground_template");
+    //                                             0   1                 2                 3      4      5                6             7            8
+    auto queryResult = WorldDatabase.Query("SELECT id, MinPlayersPerTeam,MaxPlayersPerTeam,MinLvl,MaxLvl,AllianceStartLoc,HordeStartLoc,StartMaxDist,PlayerSkinReflootId FROM battleground_template");
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -1836,11 +1836,11 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         bar.step();
 
         uint32 resultedBgTypeId = fields[0].GetUInt32();
@@ -1939,9 +1939,7 @@ void BattleGroundMgr::CreateInitialBattleGrounds()
 
         ++count;
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u battlegrounds", count);
     sLog.outString();
@@ -1954,14 +1952,14 @@ void BattleGroundMgr::InitAutomaticArenaPointDistribution()
 {
     if (sWorld.getConfig(CONFIG_BOOL_ARENA_AUTO_DISTRIBUTE_POINTS))
     {
-        QueryResult* result = CharacterDatabase.Query("SELECT NextArenaPointDistributionTime FROM saved_variables");
+        auto queryResult = CharacterDatabase.Query("SELECT NextArenaPointDistributionTime FROM saved_variables");
         bool save = false;
         bool insert = false;
-        if (!result) // if not set generate time for next wednesday
+        if (!queryResult) // if not set generate time for next wednesday
             insert = true;
         else
         {
-            m_nextAutoDistributionTime = time_t((*result)[0].GetUInt64());
+            m_nextAutoDistributionTime = time_t((*queryResult)[0].GetUInt64());
             if (m_nextAutoDistributionTime == 0) // uninitialized
                 save = true;
             else // if time already exists - check for config changes
@@ -1978,7 +1976,6 @@ void BattleGroundMgr::InitAutomaticArenaPointDistribution()
                         save = true;
                 }
             }
-            delete result;
         }
 
         if (save || insert)
@@ -2535,11 +2532,11 @@ void BattleGroundMgr::LoadBattleMastersEntry()
 {
     m_battleMastersMap.clear();                              // need for reload case
 
-    QueryResult* result = WorldDatabase.Query("SELECT entry,bg_template FROM battlemaster_entry");
+    auto queryResult = WorldDatabase.Query("SELECT entry,bg_template FROM battlemaster_entry");
 
     uint32 count = 0;
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -2548,14 +2545,14 @@ void BattleGroundMgr::LoadBattleMastersEntry()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
         ++count;
         bar.step();
 
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
 
         uint32 entry = fields[0].GetUInt32();
         uint32 bgTypeId  = fields[1].GetUInt32();
@@ -2567,9 +2564,7 @@ void BattleGroundMgr::LoadBattleMastersEntry()
 
         m_battleMastersMap[entry] = BattleGroundTypeId(bgTypeId);
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u battlemaster entries", count);
     sLog.outString();
@@ -2634,7 +2629,7 @@ void BattleGroundMgr::LoadBattleEventIndexes()
 
     uint32 count = 0;
 
-    QueryResult* result =
+    auto queryResult =
         //                           0         1           2                3                4              5           6
         WorldDatabase.Query("SELECT data.typ, data.guid1, data.ev1 AS ev1, data.ev2 AS ev2, data.map AS m, data.guid2, description.map, "
                             //                              7                  8                   9
@@ -2666,7 +2661,7 @@ void BattleGroundMgr::LoadBattleEventIndexes()
                             "LEFT OUTER JOIN battleground_events AS description ON data.map = description.map "
                             "AND data.ev1 = description.event1 AND data.ev2 = description.event2 "
                             "ORDER BY m, ev1, ev2");
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -2675,12 +2670,12 @@ void BattleGroundMgr::LoadBattleEventIndexes()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
         bar.step();
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         if (fields[2].GetUInt8() == BG_EVENT_NONE || fields[3].GetUInt8() == BG_EVENT_NONE)
             continue;                                       // we don't need to add those to the eventmap
 
@@ -2725,9 +2720,8 @@ void BattleGroundMgr::LoadBattleEventIndexes()
 
         ++count;
     }
-    while (result->NextRow());
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u battleground eventindexes", count);
     sLog.outString();
-    delete result;
 }

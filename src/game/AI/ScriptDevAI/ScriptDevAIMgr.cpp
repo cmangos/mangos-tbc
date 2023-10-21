@@ -526,7 +526,7 @@ void ScriptDevAIMgr::Initialize()
 void ScriptDevAIMgr::LoadScriptNames()
 {
     m_scriptNames.push_back("");
-    QueryResult* result = WorldDatabase.Query(
+    auto queryResult = WorldDatabase.Query(
                               "SELECT DISTINCT(ScriptName) FROM creature_template WHERE ScriptName <> '' "
                               "UNION "
                               "SELECT DISTINCT(ScriptName) FROM gameobject_template WHERE ScriptName <> '' "
@@ -541,7 +541,7 @@ void ScriptDevAIMgr::LoadScriptNames()
                               "UNION "
                               "SELECT DISTINCT(ScriptName) FROM world_template WHERE ScriptName <> ''");
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -550,17 +550,16 @@ void ScriptDevAIMgr::LoadScriptNames()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
     uint32 count = 0;
 
     do
     {
         bar.step();
-        m_scriptNames.push_back((*result)[0].GetString());
+        m_scriptNames.push_back((*queryResult)[0].GetString());
         ++count;
     }
-    while (result->NextRow());
-    delete result;
+    while (queryResult->NextRow());
 
     std::sort(m_scriptNames.begin(), m_scriptNames.end());
 
@@ -597,11 +596,11 @@ uint32 ScriptDevAIMgr::GetScriptId(const char* name) const
 void ScriptDevAIMgr::LoadAreaTriggerScripts()
 {
     m_AreaTriggerScripts.clear();                           // need for reload case
-    QueryResult* result = WorldDatabase.Query("SELECT entry, ScriptName FROM scripted_areatrigger");
+    auto queryResult = WorldDatabase.Query("SELECT entry, ScriptName FROM scripted_areatrigger");
 
     uint32 count = 0;
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -610,14 +609,14 @@ void ScriptDevAIMgr::LoadAreaTriggerScripts()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
         ++count;
         bar.step();
 
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
 
         uint32 triggerId = fields[0].GetUInt32();
         const char* scriptName = fields[1].GetString();
@@ -630,9 +629,7 @@ void ScriptDevAIMgr::LoadAreaTriggerScripts()
 
         m_AreaTriggerScripts[triggerId] = GetScriptId(scriptName);
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u areatrigger scripts", count);
     sLog.outString();
@@ -642,11 +639,11 @@ void ScriptDevAIMgr::LoadAreaTriggerScripts()
 void ScriptDevAIMgr::LoadEventIdScripts()
 {
     m_EventIdScripts.clear();                           // need for reload case
-    QueryResult* result = WorldDatabase.Query("SELECT id, ScriptName FROM scripted_event_id");
+    auto queryResult = WorldDatabase.Query("SELECT id, ScriptName FROM scripted_event_id");
 
     uint32 count = 0;
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -655,7 +652,7 @@ void ScriptDevAIMgr::LoadEventIdScripts()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     std::set<uint32> eventIds;                              // Store possible event ids
     ScriptMgr::CollectPossibleEventIds(eventIds);
@@ -665,7 +662,7 @@ void ScriptDevAIMgr::LoadEventIdScripts()
         ++count;
         bar.step();
 
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
 
         uint32 eventId = fields[0].GetUInt32();
         const char* scriptName = fields[1].GetString();
@@ -677,9 +674,7 @@ void ScriptDevAIMgr::LoadEventIdScripts()
 
         m_EventIdScripts[eventId] = GetScriptId(scriptName);
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u scripted event id", count);
     sLog.outString();

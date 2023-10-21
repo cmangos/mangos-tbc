@@ -482,9 +482,8 @@ void GameEventMgr::LoadFromDB()
 
             if (newData.vendor_id)
             {
-                if (QueryResult* testResult = WorldDatabase.PQuery("SELECT 1 FROM npc_vendor_template where entry = '%u'", newData.vendor_id))
-                    delete testResult;
-                else
+                auto testResult = WorldDatabase.PQuery("SELECT 1 FROM npc_vendor_template where entry = '%u'", newData.vendor_id);
+                if (!testResult)
                 {
                     sLog.outErrorDb("Table `game_event_creature_data` has a creature with (Guid: %u) and vendor_id %u which was not found in table `npc_vendor_template`, set to no vendor.", guid, newData.vendor_id);
                     newData.vendor_id = 0;

@@ -2353,7 +2353,7 @@ void ObjectMgr::LoadGameObjects()
     sLog.outString(">> Loaded " SIZEFMTD " gameobjects", mGameObjectDataMap.size());
     sLog.outString();
 
-    queryResult.reset(WorldDatabase.PQuery("SELECT guid, animprogress, state, stringId FROM gameobject_addon"));
+    queryResult = WorldDatabase.PQuery("SELECT guid, animprogress, state, stringId FROM gameobject_addon");
     do
     {
         Field* fields = queryResult->Fetch();
@@ -2519,12 +2519,11 @@ int32 ObjectMgr::GetPlayerMapIdByGUID(ObjectGuid const& guid) const
     if (Player* player = GetPlayer(guid))
         return int32(player->GetMapId());
 
-    QueryResult* result = CharacterDatabase.PQuery("SELECT map FROM characters WHERE guid = '%u'", guid.GetCounter());
+    auto queryResult = CharacterDatabase.PQuery("SELECT map FROM characters WHERE guid = '%u'", guid.GetCounter());
 
-    if (result)
+    if (queryResult)
     {
-        uint32 mapId = (*result)[0].GetUInt32();
-        delete result;
+        uint32 mapId = (*queryResult)[0].GetUInt32();
         return int32(mapId);
     }
 
@@ -2539,12 +2538,10 @@ ObjectGuid ObjectMgr::GetPlayerGuidByName(std::string name) const
     CharacterDatabase.escape_string(name);
 
     // Player name safe to sending to DB (checked at login) and this function using
-    QueryResult* result = CharacterDatabase.PQuery("SELECT guid FROM characters WHERE name = '%s'", name.c_str());
-    if (result)
+    auto queryResult = CharacterDatabase.PQuery("SELECT guid FROM characters WHERE name = '%s'", name.c_str());
+    if (queryResult)
     {
-        guid = ObjectGuid(HIGHGUID_PLAYER, (*result)[0].GetUInt32());
-
-        delete result;
+        guid = ObjectGuid(HIGHGUID_PLAYER, (*queryResult)[0].GetUInt32());
     }
 
     return guid;
@@ -2561,12 +2558,11 @@ bool ObjectMgr::GetPlayerNameByGUID(ObjectGuid guid, std::string& name) const
 
     uint32 lowguid = guid.GetCounter();
 
-    QueryResult* result = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = '%u'", lowguid);
+    auto queryResult = CharacterDatabase.PQuery("SELECT name FROM characters WHERE guid = '%u'", lowguid);
 
-    if (result)
+    if (queryResult)
     {
-        name = (*result)[0].GetCppString();
-        delete result;
+        name = (*queryResult)[0].GetCppString();
         return true;
     }
 
@@ -2581,12 +2577,11 @@ Team ObjectMgr::GetPlayerTeamByGUID(ObjectGuid guid) const
 
     uint32 lowguid = guid.GetCounter();
 
-    QueryResult* result = CharacterDatabase.PQuery("SELECT race FROM characters WHERE guid = '%u'", lowguid);
+    auto queryResult = CharacterDatabase.PQuery("SELECT race FROM characters WHERE guid = '%u'", lowguid);
 
-    if (result)
+    if (queryResult)
     {
-        uint8 race = (*result)[0].GetUInt8();
-        delete result;
+        uint8 race = (*queryResult)[0].GetUInt8();
         return Player::TeamForRace(race);
     }
 
@@ -2604,11 +2599,10 @@ uint32 ObjectMgr::GetPlayerAccountIdByGUID(ObjectGuid guid) const
 
     uint32 lowguid = guid.GetCounter();
 
-    QueryResult* result = CharacterDatabase.PQuery("SELECT account FROM characters WHERE guid = '%u'", lowguid);
-    if (result)
+    auto queryResult = CharacterDatabase.PQuery("SELECT account FROM characters WHERE guid = '%u'", lowguid);
+    if (queryResult)
     {
-        uint32 acc = (*result)[0].GetUInt32();
-        delete result;
+        uint32 acc = (*queryResult)[0].GetUInt32();
         return acc;
     }
 
@@ -2617,11 +2611,10 @@ uint32 ObjectMgr::GetPlayerAccountIdByGUID(ObjectGuid guid) const
 
 uint32 ObjectMgr::GetPlayerAccountIdByPlayerName(const std::string& name) const
 {
-    QueryResult* result = CharacterDatabase.PQuery("SELECT account FROM characters WHERE name = '%s'", name.c_str());
-    if (result)
+    auto queryResult = CharacterDatabase.PQuery("SELECT account FROM characters WHERE name = '%s'", name.c_str());
+    if (queryResult)
     {
-        uint32 acc = (*result)[0].GetUInt32();
-        delete result;
+        uint32 acc = (*queryResult)[0].GetUInt32();
         return acc;
     }
 
@@ -6256,8 +6249,8 @@ void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
     if (!serverUp)
         CharacterDatabase.PExecute("DELETE FROM mail WHERE expire_time < '" UI64FMTD "' AND has_items = '0' AND itemTextId = 0", (uint64)basetime);
     //                                                     0  1           2      3        4          5         6           7   8       9
-    QueryResult* result = CharacterDatabase.PQuery("SELECT id,messageType,sender,receiver,itemTextId,has_items,expire_time,cod,checked,mailTemplateId FROM mail WHERE expire_time < '" UI64FMTD "'", (uint64)basetime);
-    if (!result)
+    auto queryResult = CharacterDatabase.PQuery("SELECT id,messageType,sender,receiver,itemTextId,has_items,expire_time,cod,checked,mailTemplateId FROM mail WHERE expire_time < '" UI64FMTD "'", (uint64)basetime);
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -6271,14 +6264,14 @@ void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
     // delitems << "DELETE FROM item_instance WHERE guid IN ( ";
     // delmails << "DELETE FROM mail WHERE id IN ( "
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
     uint32 count = 0;
 
     do
     {
         bar.step();
 
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         Mail* m = new Mail;
         m->messageID = fields[0].GetUInt32();
         m->messageType = fields[1].GetUInt8();
@@ -6304,7 +6297,7 @@ void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
         // delete or return mail:
         if (has_items)
         {
-            QueryResult* resultItems = CharacterDatabase.PQuery("SELECT item_guid,item_template FROM mail_items WHERE mail_id='%u'", m->messageID);
+            auto resultItems = CharacterDatabase.PQuery("SELECT item_guid,item_template FROM mail_items WHERE mail_id='%u'", m->messageID);
             if (resultItems)
             {
                 do
@@ -6317,8 +6310,6 @@ void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
                     m->AddItem(item_guid_low, item_template);
                 }
                 while (resultItems->NextRow());
-
-                delete resultItems;
             }
             // if it is mail from non-player, or if it's already return mail, it shouldn't be returned, but deleted
             if (m->messageType != MAIL_NORMAL || (m->checked & (MAIL_CHECK_MASK_COD_PAYMENT | MAIL_CHECK_MASK_RETURNED)))
@@ -6352,8 +6343,7 @@ void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
         delete m;
         ++count;
     }
-    while (result->NextRow());
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u mails", count);
     sLog.outString();
@@ -8130,9 +8120,9 @@ void ObjectMgr::LoadQuestRelationsHelper(QuestRelationsMap& map, char const* tab
 
     uint32 count = 0;
 
-    QueryResult* result = WorldDatabase.PQuery("SELECT id,quest FROM %s", table);
+    auto queryResult = WorldDatabase.PQuery("SELECT id,quest FROM %s", table);
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
 
@@ -8143,11 +8133,11 @@ void ObjectMgr::LoadQuestRelationsHelper(QuestRelationsMap& map, char const* tab
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         bar.step();
 
         uint32 id    = fields[0].GetUInt32();
@@ -8163,9 +8153,7 @@ void ObjectMgr::LoadQuestRelationsHelper(QuestRelationsMap& map, char const* tab
 
         ++count;
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString();
     sLog.outString(">> Loaded %u quest relations from %s", count, table);
@@ -8620,10 +8608,10 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
 
     sLog.outString("Loading texts from %s%s", table, extra_content ? ", with additional data" : "");
 
-    QueryResult* result = db.PQuery("SELECT entry,content_default,content_loc1,content_loc2,content_loc3,content_loc4,content_loc5,content_loc6,content_loc7,content_loc8 %s FROM %s",
+    auto queryResult = db.PQuery("SELECT entry,content_default,content_loc1,content_loc2,content_loc3,content_loc4,content_loc5,content_loc6,content_loc7,content_loc8 %s FROM %s",
                                     extra_content ? ",sound,type,language,emote,broadcast_text_id" : "", table);
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
 
@@ -8639,11 +8627,11 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
 
     uint32 count = 0;
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         bar.step();
 
         int32 entry = fields[0].GetInt32();
@@ -8732,9 +8720,7 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
             }
         }
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     if (min_value == MIN_MANGOS_STRING_ID)
         sLog.outString(">> Loaded %u MaNGOS strings from table %s", count, table);
@@ -9084,9 +9070,9 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
 
     std::set<uint32> skip_trainers;
 
-    std::unique_ptr<QueryResult> result(WorldDatabase.PQuery("SELECT entry, spell,spellcost,reqskill,reqskillvalue,reqlevel,ReqAbility1,ReqAbility2,ReqAbility3,condition_id FROM %s", tableName));
+    auto queryResult = WorldDatabase.PQuery("SELECT entry, spell,spellcost,reqskill,reqskillvalue,reqlevel,ReqAbility1,ReqAbility2,ReqAbility3,condition_id FROM %s", tableName);
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -9095,7 +9081,7 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     std::set<uint32> talentIds;
 
@@ -9104,7 +9090,7 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
     {
         bar.step();
 
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
 
         uint32 entry  = fields[0].GetUInt32();
         uint32 spell  = fields[1].GetUInt32();
@@ -9220,7 +9206,7 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
 
         ++count;
     }
-    while (result->NextRow());
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %d trainer %sspells", count, isTemplates ? "template " : "");
     sLog.outString();
@@ -9270,8 +9256,8 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
         itr.second.Clear();
     vendorList.clear();
 
-    QueryResult* result = WorldDatabase.PQuery("SELECT entry, item, maxcount, incrtime, ExtendedCost, condition_id FROM %s ORDER BY slot", tableName);
-    if (!result)
+    auto queryResult = WorldDatabase.PQuery("SELECT entry, item, maxcount, incrtime, ExtendedCost, condition_id FROM %s ORDER BY slot", tableName);
+    if (!queryResult)
     {
         BarGoLink bar(1);
 
@@ -9282,13 +9268,13 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     uint32 count = 0;
     do
     {
         bar.step();
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
 
         uint32 entry        = fields[0].GetUInt32();
         uint32 item_id      = fields[1].GetUInt32();
@@ -9305,8 +9291,7 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
         vList.AddItem(item_id, maxcount, incrtime, ExtendedCost, conditionId);
         ++count;
     }
-    while (result->NextRow());
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u vendor %sitems", count, isTemplates ? "template " : "");
     sLog.outString();

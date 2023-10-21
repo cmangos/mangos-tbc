@@ -79,8 +79,7 @@ void BattleGroundWS::Update(uint32 diff)
             {
                 for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
                 {
-                    Team playerTeam = GetTeamIdByTeamIndex((PvpTeamIndex)i);
-                    if (IsFlagPickedUp(playerTeam))
+                    if (IsFlagPickedUp((PvpTeamIndex)i))
                         if (Player* player = GetBgMap()->GetPlayer(GetFlagCarrierGuid((PvpTeamIndex)i)))
                             player->CastSpell(player, BG_WS_SPELL_FOCUSED_ASSAULT, TRIGGERED_OLD_TRIGGERED);
                 }
@@ -90,8 +89,7 @@ void BattleGroundWS::Update(uint32 diff)
             {
                 for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
                 {
-                    Team playerTeam = GetTeamIdByTeamIndex((PvpTeamIndex)i);
-                    if (IsFlagPickedUp(playerTeam))
+                    if (IsFlagPickedUp((PvpTeamIndex)i))
                     {
                         if (Player* player = GetBgMap()->GetPlayer(GetFlagCarrierGuid((PvpTeamIndex)i)))
                         {

@@ -125,15 +125,14 @@ void instance_zulgurub::SetData(uint32 type, uint32 data)
                         pDoor->UseDoorOrButton();
                 }
             }
-            if (data == IN_PROGRESS)
+            if (data == IN_PROGRESS) {
                 // Make Door locked
                 if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_FORCEFIELD))
                 {
                     if (pDoor->GetLootState() == GO_ACTIVATED)
                         pDoor->ResetDoorOrButton();
                 }
-            else if (GameObject* pForcefield = GetSingleGameObjectFromStorage(GO_FORCEFIELD))
-                pForcefield->ResetDoorOrButton();
+            }
             if (data == DONE)
                 RemoveHakkarPowerStack();
             if (data == FAIL)

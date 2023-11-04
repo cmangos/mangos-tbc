@@ -117,8 +117,21 @@ void instance_zulgurub::SetData(uint32 type, uint32 data)
             break;
         case TYPE_ARLOKK:
             m_auiEncounter[type] = data;
+            if (data == DONE || data == FAIL) {
+                // Make Door unlocked again
+                if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_FORCEFIELD))
+                {
+                    if (pDoor->GetLootState() == GO_READY)
+                        pDoor->UseDoorOrButton();
+                }
+            }
             if (data == IN_PROGRESS)
-                DoUseDoorOrButton(GO_FORCEFIELD);
+                // Make Door locked
+                if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_FORCEFIELD))
+                {
+                    if (pDoor->GetLootState() == GO_ACTIVATED)
+                        pDoor->ResetDoorOrButton();
+                }
             else if (GameObject* pForcefield = GetSingleGameObjectFromStorage(GO_FORCEFIELD))
                 pForcefield->ResetDoorOrButton();
             if (data == DONE)

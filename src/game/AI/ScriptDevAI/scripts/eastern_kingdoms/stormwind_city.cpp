@@ -90,6 +90,7 @@ enum
     QUEST_MISSING_DIPLO_PT8     = 1447,
     FACTION_HOSTILE             = 168,
     NPC_OLD_TOWN_THUG           = 4969,
+    SPELL_PUMMEL                = 12555,
 
     SAY_STONEFIST_1             = -1001274,
     SAY_STONEFIST_2             = -1001275,
@@ -107,6 +108,7 @@ struct npc_dashel_stonefistAI : public ScriptedAI
 
     uint32 m_uiStartEventTimer;
     uint32 m_uiEndEventTimer;
+    uint32 m_pummelTimer;
     ObjectGuid m_playerGuid;
 
     void Reset() override
@@ -114,6 +116,8 @@ struct npc_dashel_stonefistAI : public ScriptedAI
         SetReactState(REACT_PASSIVE);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
         m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+
+        m_pummelTimer = urand(10000, 20000);
     }
 
     void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
@@ -170,6 +174,17 @@ struct npc_dashel_stonefistAI : public ScriptedAI
             else
                 m_uiEndEventTimer -= uiDiff;
         }
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+            return;
+
+        if (m_pummelTimer <= uiDiff)
+        {
+            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_PUMMEL) == CAST_OK)
+                m_pummelTimer = 60000;
+        }
+        else
+            m_pummelTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }

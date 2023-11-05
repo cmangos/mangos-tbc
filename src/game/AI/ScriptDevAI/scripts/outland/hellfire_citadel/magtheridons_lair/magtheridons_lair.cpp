@@ -131,7 +131,10 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                 case DONE:
                     // Reset door on Fail or Done
                     if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_DOODAD_HF_MAG_DOOR01))
-                        pDoor->ResetDoorOrButton();
+                    {
+                        if (pDoor->GetLootState() == GO_READY)
+                            pDoor->UseDoorOrButton();
+                    }
 
                     SetData(TYPE_CHANNELER_EVENT, DONE);
                     break;
@@ -165,7 +168,10 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
 
                 // Reset door on Fail
                 if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_DOODAD_HF_MAG_DOOR01))
-                    pDoor->ResetDoorOrButton();
+                {
+                    if (pDoor->GetLootState() == GO_READY)
+                        pDoor->UseDoorOrButton();
+                }
 
                 // Reset Magtheridon
                 if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
@@ -187,7 +193,11 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
                 }
 
                 // combat door
-                DoUseDoorOrButton(GO_DOODAD_HF_MAG_DOOR01);
+                if (GameObject* pDoor = GetSingleGameObjectFromStorage(GO_DOODAD_HF_MAG_DOOR01))
+                {
+                    if (pDoor->GetLootState() == GO_ACTIVATED)
+                        pDoor->ResetDoorOrButton();
+                }
             }
             m_auiEncounter[uiType] = uiData;
             break;

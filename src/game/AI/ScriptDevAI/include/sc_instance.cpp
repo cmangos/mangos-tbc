@@ -389,6 +389,18 @@ void DialogueHelper::DoNextDialogueStep()
         if (pSpeaker)
             DoScriptText(iTextEntry, pSpeaker);
     }
+    else if (uiSpeakerEntry && iTextEntry > 0)
+    {
+        // Use Speaker if directly provided
+        Creature* pSpeaker = GetSpeakerByEntry(uiSpeakerEntry);
+        if (m_instance && !pSpeaker)                       // Get Speaker from instance
+        {
+            pSpeaker = m_instance->GetSingleCreatureFromStorage(uiSpeakerEntry);
+        }
+
+        if (pSpeaker)
+            DoBroadcastText(iTextEntry, pSpeaker);
+    }
 
     JustDidDialogueStep(m_dialogueArray ?  m_currentEntry->textEntry : m_currentEntryTwoSide->textEntry);
 

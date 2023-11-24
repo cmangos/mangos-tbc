@@ -2133,7 +2133,7 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000738','%s begins chanting a strange spell...','0','2','0','0','7467','Ranshalla EMOTE_CHANT_SPELL'),
 ('-1000739','Remember, I need your help to properly channel. I will ask you to aid me several times on our path, so please be ready.','0','0','0','0','7365','Ranshalla SAY_QUEST_START'),
 
-('-1000771','Let''s go $N!','0','0','0','0','21649','Feero Ironhand SAY_QUEST_START'),
+('-1000771','We must move quickly. Auberdine isn''t too far away, but many enemies lurk in the forest.','0','0','0','0','1292','Feero Ironhand SAY_QUEST_START'),
 ('-1000772','It looks like we''re in trouble. Look lively, here they come!','0','0','0','0','1372','Feero Ironhand SAY_FIRST_AMBUSH_START'),
 ('-1000773','Assassins from that cult you found... Let''s get moving before someone else finds us out here.','0','0','0','0','1294','Feero Ironhand SAY_FIRST_AMBUSH_END'),
 ('-1000774','Hold! I sense an evil presence... Undead!','0','0','0','0','1373','Feero Ironhand SAY_SECOND_AMBUSH_START'),

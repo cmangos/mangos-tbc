@@ -10484,9 +10484,14 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
         ApplyEquipCooldown(pItem);
 
         if (slot == EQUIPMENT_SLOT_MAINHAND)
+        {
             UpdateExpertise(BASE_ATTACK);
+            UpdateMeleeHitChances();
+        }
         else if (slot == EQUIPMENT_SLOT_OFFHAND)
             UpdateExpertise(OFF_ATTACK);
+        else if (slot == EQUIPMENT_SLOT_RANGED)
+            UpdateRangedHitChances();
     }
     else
     {

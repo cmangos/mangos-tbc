@@ -967,6 +967,24 @@ WorldStateName* ObjectMgr::GetWorldStateName(int32 Id)
     return &(itr->second);
 }
 
+std::vector<uint32>* ObjectMgr::GetCreatureDynGuidForMap(uint32 mapId)
+{
+    auto itr = m_dynguidCreatureDbGuids.find(mapId);
+    if (itr == m_dynguidCreatureDbGuids.end())
+        return nullptr;
+
+    return &(*itr).second;
+}
+
+std::vector<uint32>* ObjectMgr::GetGameObjectDynGuidForMap(uint32 mapId)
+{
+    auto itr = m_dynguidGameobjectDbGuids.find(mapId);
+    if (itr == m_dynguidGameobjectDbGuids.end())
+        return nullptr;
+
+    return &(*itr).second;
+}
+
 void ObjectMgr::LoadCreatureImmunities()
 {
     uint32 count = 0;
@@ -1952,7 +1970,9 @@ void ObjectMgr::LoadCreatureSpawnEntry()
         }
 
         auto& entries = m_creatureSpawnEntryMap[guid];
-        entries.push_back(entry);
+        if (cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_ACTIVE)
+            entries.first = true; // if at least one entry is dynguided, promote dbGuid to dynguided
+        entries.second.push_back(entry);
 
         ++count;
     } while (queryResult->NextRow());
@@ -2008,13 +2028,17 @@ void ObjectMgr::LoadCreatures()
 
         // validate creature dual spawn template
         bool isConditional  = false;
+        bool dynGuid = false;
         if (entry == 0)
         {
             CreatureConditionalSpawn const* cSpawn = GetCreatureConditionalSpawn(guid);
             if (!cSpawn)
             {
                 if (uint32 randomEntry = GetRandomCreatureEntry(guid))
+                {
                     entry = randomEntry;
+                    dynGuid = IsCreatureDbGuidDynGuided(guid);
+                }
             }
             else
             {
@@ -2039,6 +2063,9 @@ void ObjectMgr::LoadCreatures()
                 sLog.outErrorDb("Table `creature` has a creature (GUID: %u, entry: %u) using TotemAI via AIName, skipped.", guid, entry);
                 continue;
             }
+
+            if (cInfo->ExtraFlags & CREATURE_EXTRA_FLAG_DYNGUID)
+                dynGuid = true;
         }
 
         CreatureData& data = mCreatureDataMap[guid];
@@ -2135,6 +2162,10 @@ void ObjectMgr::LoadCreatures()
         else
             data.OriginalZoneId = 0;
 
+        if (dynGuid)
+        {
+            m_dynguidCreatureDbGuids[data.mapid].push_back(guid);
+        }
         if (data.IsNotPartOfPoolOrEvent()) // if not this is to be managed by GameEvent System or Pool system
         {
             AddCreatureToGrid(guid, &data);
@@ -2221,9 +2252,15 @@ void ObjectMgr::LoadGameObjects()
         uint32 guid         = fields[ 0].GetUInt32();
         uint32 entry        = fields[ 1].GetUInt32();
 
+        bool dynGuid = false;
         if (entry == 0)
+        {
             if (uint32 randomEntry = GetRandomGameObjectEntry(guid))
+            {
                 entry = randomEntry;
+                dynGuid = IsGameObjectDbGuidDynGuided(guid);
+            }
+        }
 
         GameObjectInfo const* gInfo = nullptr;
         if (entry)
@@ -2240,6 +2277,9 @@ void ObjectMgr::LoadGameObjects()
                 sLog.outErrorDb("Gameobject (GUID: %u Entry %u GoType: %u) have invalid displayId (%u), not loaded.", guid, entry, gInfo->type, gInfo->displayId);
                 continue;
             }
+
+            if (gInfo->ExtraFlags & GAMEOBJECT_EXTRA_FLAG_DYNGUID)
+                dynGuid = true;
         }
 
         GameObjectData& data = mGameObjectDataMap[guid];
@@ -2338,7 +2378,11 @@ void ObjectMgr::LoadGameObjects()
         else
             data.OriginalZoneId = 0;
 
-        if (data.IsNotPartOfPoolOrEvent()) // if not this is to be managed by GameEvent System or Pool system
+        if (dynGuid)
+        {
+            m_dynguidGameobjectDbGuids[data.mapid].push_back(guid);
+        }
+        else if (data.IsNotPartOfPoolOrEvent()) // if not this is to be managed by GameEvent System or Pool system
         {
             AddGameobjectToGrid(guid, &data);
 
@@ -2405,6 +2449,8 @@ void ObjectMgr::LoadGameObjectSpawnEntry()
 
     uint32 count = 0;
 
+    std::set<uint32> dynGuided;
+
     do
     {
         bar.step();
@@ -2422,7 +2468,9 @@ void ObjectMgr::LoadGameObjectSpawnEntry()
         }
 
         auto& entries = m_gameobjectSpawnEntryMap[guid];
-        entries.push_back(entry);
+        if (info->ExtraFlags & GAMEOBJECT_EXTRA_FLAG_DYNGUID)
+            entries.first = true; // if at least one entry is dynguided, promote dbGuid to dynguided
+        entries.second.push_back(entry);
 
         ++count;
     } while (queryResult->NextRow());

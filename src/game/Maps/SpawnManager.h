@@ -74,6 +74,7 @@ class SpawnManager
         Map& m_map;
 
         std::vector<SpawnInfo> m_spawns; // must only be erased from in Update
+        std::vector<SpawnInfo> m_spawnInserts;
         std::map<uint32, SpawnGroup*> m_spawnGroups;
 };
 

@@ -78,15 +78,13 @@ void SpawnManager::Initialize()
 void SpawnManager::AddCreature(uint32 dbguid)
 {
     time_t respawnTime = m_map.GetPersistentState()->GetCreatureRespawnTime(dbguid);
-    m_spawns.emplace_back(TimePoint(std::chrono::seconds(respawnTime)), dbguid, HIGHGUID_UNIT);
-    std::sort(m_spawns.begin(), m_spawns.end());
+    m_spawnInserts.emplace_back(TimePoint(std::chrono::seconds(respawnTime)), dbguid, HIGHGUID_UNIT);
 }
 
 void SpawnManager::AddGameObject(uint32 dbguid)
 {
     time_t respawnTime = m_map.GetPersistentState()->GetGORespawnTime(dbguid);
-    m_spawns.emplace_back(TimePoint(std::chrono::seconds(respawnTime)), dbguid, HIGHGUID_GAMEOBJECT);
-    std::sort(m_spawns.begin(), m_spawns.end());
+    m_spawnInserts.emplace_back(TimePoint(std::chrono::seconds(respawnTime)), dbguid, HIGHGUID_GAMEOBJECT);
 }
 
 void SpawnManager::RespawnCreature(uint32 dbguid, uint32 respawnDelay)
@@ -160,6 +158,9 @@ void SpawnManager::RespawnAll()
 
 void SpawnManager::Update()
 {
+    std::move(m_spawnInserts.begin(), m_spawnInserts.end(), std::back_inserter(m_spawns));
+    m_spawnInserts.clear();
+    std::sort(m_spawns.begin(), m_spawns.end());
     auto now = m_map.GetCurrentClockTime();
     for (auto itr = m_spawns.begin(); itr != m_spawns.end();)
     {

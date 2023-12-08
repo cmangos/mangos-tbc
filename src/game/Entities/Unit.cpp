@@ -4647,7 +4647,7 @@ void Unit::SetFacingTo(float ori)
     init.Launch();
     // orientation change is in-place
     UpdateSplinePosition();
-    movespline->_Finalize();
+    DisableSpline();
 }
 
 void Unit::SetFacingToObject(WorldObject* object)
@@ -4661,7 +4661,7 @@ void Unit::SetFacingToObject(WorldObject* object)
     init.Launch();
     // orientation change is in-place
     UpdateSplinePosition();
-    movespline->_Finalize();
+    DisableSpline();
 }
 
 bool Unit::isInAccessablePlaceFor(Unit const* unit) const

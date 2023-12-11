@@ -1246,3 +1246,73 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
 
     return true;
 }
+
+bool ChatHandler::HandleBoostCommand(char *args)
+{
+    char* nameStr = nullptr;
+    ObjectGuid target_guid;
+    std::string target_name;
+    Player* target;
+    Player* player = m_session->GetPlayer();
+    if (!ExtractPlayerTarget(&nameStr, &target, &target_guid, &target_name))
+        return false;
+    uint32 botAccountId = sObjectMgr.GetPlayerAccountIdByGUID(target_guid);
+
+    if (botAccountId != m_session->GetAccountId())
+    {
+        PSendSysMessage("|cffff0000You may only boost bots from the same account.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+    //add pet to levelup command
+    if (m_session)
+    {
+        Pet* pet = getSelectedPet();
+        if (pet && pet->GetOwner() && pet->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+        {
+            if (pet->getPetType() == HUNTER_PET)
+            {
+                uint32 newPetLevel = player->GetLevel();
+
+                if (newPetLevel <= player->GetLevel())
+                {
+                    pet->GivePetLevel(newPetLevel);
+
+                    std::string nameLink = petLink(pet->GetName());
+                    PSendSysMessage(LANG_YOU_CHANGE_LVL, nameLink.c_str(), newPetLevel);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    if (!ExtractPlayerTarget(&nameStr, &target, &target_guid, &target_name))
+        return false;
+
+    int32 oldlevel = target ? target->GetLevel() : Player::GetLevelFromDB(target_guid);
+    int32 newlevel = player->GetLevel();
+    if (oldlevel >= newlevel)
+    {
+        PSendSysMessage("|cffff0000You may only increase levels with boost.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (newlevel < 1)
+        newlevel = 1;
+
+    if (newlevel > STRONG_MAX_LEVEL)                        // hardcoded maximum level
+        newlevel = STRONG_MAX_LEVEL;
+
+    HandleCharacterLevel(target, target_guid, oldlevel, newlevel);
+
+    if (!m_session || m_session->GetPlayer() != target)     // including chr==nullptr
+    {
+        std::string nameLink = playerLink(target_name);
+        PSendSysMessage(LANG_YOU_CHANGE_LVL, nameLink.c_str(), newlevel);
+    }
+
+    return true;
+}

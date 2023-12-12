@@ -85,6 +85,7 @@ class PlayerbotMgr
         bool m_confCollectObjects;
         uint32 m_confCollectDistance;
         uint32 m_confCollectDistanceMax;
+        bool gConfigAllowBoost;
 
     private:
         Player* const m_master;

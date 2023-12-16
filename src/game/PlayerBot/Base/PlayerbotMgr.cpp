@@ -66,6 +66,7 @@ PlayerbotMgr::PlayerbotMgr(Player* const master) : m_master(master)
     m_confCollectObjects = botConfig.GetBoolDefault("PlayerbotAI.Collect.Objects", true);
     m_confCollectDistanceMax = botConfig.GetIntDefault("PlayerbotAI.Collect.DistanceMax", 50);
     gConfigSellLevelDiff = botConfig.GetIntDefault("PlayerbotAI.SellAll.LevelDiff", 10);
+    gConfigAllowBoost = botConfig.GetBoolDefault("PlayerbotAI.AllowBoost", false);
     if (m_confCollectDistanceMax > 100)
     {
         sLog.outError("Playerbot: PlayerbotAI.Collect.DistanceMax higher than allowed. Using 100");
@@ -1204,7 +1205,11 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
         {
             if (charlvl > maxlvl)
             {
-                PSendSysMessage("|cffff0000You cannot summon |cffffffff[%s]|cffff0000, it's level is too high.(Current Max:lvl |cffffffff%u)", fields[1].GetString(), maxlvl);
+                PSendSysMessage(
+                    "|cffff0000You cannot summon |cffffffff[%s]|cffff0000, it's level is too high.(Current Max:lvl |cffffffff%u)",
+                    fields[1].GetString(),
+                    maxlvl
+                );
                 SetSentErrorMessage(true);
                 return false;
             }
@@ -1242,6 +1247,89 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
         CharacterDatabase.DirectPExecute("UPDATE characters SET online = 0 WHERE guid = '%u'", guid.GetCounter());
         mgr->LogoutPlayerBot(guid);
         PSendSysMessage("Bot removed successfully.");
+    }
+
+    return true;
+}
+
+bool ChatHandler::HandleBoostCommand(char *args)  // Copied over from levelup chat command and slightly modified
+{
+    if (gConfigAllowBoost <= 0)
+    {
+        PSendSysMessage("|cffff0000Bot boosting is not enabled on this server.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+    char* nameStr = nullptr;
+    ObjectGuid target_guid;
+    std::string target_name;
+    Player* target;
+    Player* player = m_session->GetPlayer();
+    if (!ExtractPlayerTarget(&nameStr, &target, &target_guid, &target_name))
+        return false;
+    if (!target)
+    {
+        PSendSysMessage("|cffff0000You must target a bot to boost.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+    uint32 botAccountId = sObjectMgr.GetPlayerAccountIdByGUID(target_guid);
+
+    if (botAccountId != m_session->GetAccountId())
+    {
+        PSendSysMessage("|cffff0000You may only boost characters that are your alts.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    //add pet to boost command
+    if (m_session)
+    {
+        Pet* pet = getSelectedPet();
+        if (pet && pet->GetOwner() && pet->GetOwner()->GetTypeId() == TYPEID_PLAYER)
+        {
+            if (pet->getPetType() == HUNTER_PET)
+            {
+                uint32 newPetLevel = player->GetLevel();
+
+                if (newPetLevel <= player->GetLevel())
+                {
+                    pet->GivePetLevel(newPetLevel);
+
+                    std::string nameLink = petLink(pet->GetName());
+                    PSendSysMessage(LANG_YOU_CHANGE_LVL, nameLink.c_str(), newPetLevel);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    }
+
+    if (!ExtractPlayerTarget(&nameStr, &target, &target_guid, &target_name))
+        return false;
+
+    int32 oldlevel = target ? target->GetLevel() : Player::GetLevelFromDB(target_guid);
+    int32 newlevel = player->GetLevel();
+    if (oldlevel >= newlevel)
+    {
+        PSendSysMessage("|cffff0000You may only increase levels with boost.");
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    if (newlevel < 1)
+        newlevel = 1;
+
+    if (newlevel > STRONG_MAX_LEVEL)                        // hardcoded maximum level
+        newlevel = STRONG_MAX_LEVEL;
+
+    HandleCharacterLevel(target, target_guid, oldlevel, newlevel);
+
+    if (!m_session || m_session->GetPlayer() != target)     // including chr==nullptr
+    {
+        std::string nameLink = playerLink(target_name);
+        PSendSysMessage(LANG_YOU_CHANGE_LVL, nameLink.c_str(), newlevel);
     }
 
     return true;

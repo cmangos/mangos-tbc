@@ -762,6 +762,7 @@ class ChatHandler
         bool HandleQuitCommand(char* args);
 #ifdef BUILD_PLAYERBOT
         bool HandlePlayerbotCommand(char* args);
+        bool HandleBoostCommand(char* args);
 #endif
 
         bool HandleArenaFlushPointsCommand(char* args);

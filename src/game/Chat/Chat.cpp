@@ -1032,6 +1032,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "worldstate",     SEC_ADMINISTRATOR,  false, nullptr,                                        "", worldStateTable },
 #ifdef BUILD_PLAYERBOT
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
+        { "boost",          SEC_PLAYER,         false, &ChatHandler::HandleBoostCommand,               "", nullptr },
 #endif
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };

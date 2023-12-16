@@ -2568,6 +2568,7 @@ class Unit : public WorldObject
         bool m_canDualWield = false;
 
         void DisableSpline();
+        void EndSpline();
         bool m_isCreatureLinkingTrigger;
         bool m_isSpawningLinked;
 

@@ -35,7 +35,7 @@ void Transmogrification::LoadPlayerSets(ObjectGuid pGUID)
 
 	presetByName[pGUID].clear();
 
-	QueryResult* result = CharacterDatabase.PQuery("SELECT `PresetID`, `SetName`, `SetData` FROM `custom_transmogrification_sets` WHERE Owner = %u", pGUID.GetCounter());
+	auto result = CharacterDatabase.PQuery("SELECT `PresetID`, `SetName`, `SetData` FROM `custom_transmogrification_sets` WHERE Owner = %u", pGUID.GetCounter());
 	if (result)
 	{
 		do
@@ -313,7 +313,7 @@ TransmogAcoreStrings Transmogrification::Transmogrify(Player* player, ObjectGuid
 					return LANG_ERR_TRANSMOG_NOT_ENOUGH_TOKENS;
 			}
 
-			int32 cost = GetSpecialPrice(itemTransmogrified->GetProto());
+			uint32 cost = GetSpecialPrice(itemTransmogrified->GetProto());
 			cost *= ScaledCostModifier;
 			cost += CopperCost;
 
@@ -321,7 +321,7 @@ TransmogAcoreStrings Transmogrification::Transmogrify(Player* player, ObjectGuid
 			{
 				if (player->GetMoney() < cost)
 					return LANG_ERR_TRANSMOG_NOT_ENOUGH_MONEY;
-				player->ModifyMoney(-cost);
+				player->ModifyMoney(-(int)cost);
 			}
 		}
 
@@ -427,7 +427,7 @@ bool Transmogrification::SuitableForTransmogrification(Player* player, ItemProto
 
 uint32 Transmogrification::GetSpecialPrice(ItemPrototype const* proto) const
 {
-	uint32 cost = proto->SellPrice < 10000 ? 10000 : proto->SellPrice;
+	uint32 cost = proto->SellPrice ? proto->SellPrice : 100;
 	return cost;
 }
 
@@ -606,7 +606,7 @@ void Transmogrification::DeleteFakeFromDB(const ObjectGuid itemLowGuid)
 
 void Transmogrification::CleanUp(Player* pPlayer)
 {
-	QueryResult* result = CharacterDatabase.PQuery("SELECT GUID, FakeEntry FROM custom_transmogrification WHERE Owner = %u", pPlayer->GetObjectGuid());
+	auto result = CharacterDatabase.PQuery("SELECT GUID, FakeEntry FROM custom_transmogrification WHERE Owner = %u", pPlayer->GetObjectGuid());
 	if (result)
 	{
 		do
@@ -622,7 +622,7 @@ void Transmogrification::BuildTransmogMap(Player* pPlayer)
 {
 	const ObjectGuid playerGUID = pPlayer->GetObjectGuid();
 	entryMap.erase(playerGUID);
-	QueryResult* result = CharacterDatabase.PQuery("SELECT GUID, FakeEntry FROM custom_transmogrification WHERE Owner = %u", pPlayer->GetObjectGuid());
+	auto result = CharacterDatabase.PQuery("SELECT GUID, FakeEntry FROM custom_transmogrification WHERE Owner = %u", pPlayer->GetObjectGuid());
 	if (result)
 	{
 		do

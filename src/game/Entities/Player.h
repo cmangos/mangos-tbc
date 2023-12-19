@@ -1465,7 +1465,7 @@ class Player : public Unit
         bool LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder);
 
 #ifdef ENABLE_PLAYERBOTS
-        bool MinimalLoadFromDB(QueryResult *result, uint32 guid);
+        bool MinimalLoadFromDB(std::unique_ptr<QueryResult> result, uint32 guid);
 #endif
 
         static uint32 GetZoneIdFromDB(ObjectGuid guid);

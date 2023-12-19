@@ -899,7 +899,7 @@ namespace MMAP
                 tileCfg.bmax[0] += tileCfg.borderSize * tileCfg.cs;
                 tileCfg.bmax[2] += tileCfg.borderSize * tileCfg.cs;
 
-                buildCommonTile(tileString, tile, tileCfg, tVerts, tVertCount, tTris, tTriCount, lVerts, lVertCount, lTris, lTriCount, lTriFlags);
+                buildCommonTile(tileString, tile, tileCfg, tVerts, tVertCount, tTris, tTriCount, lVerts, lVertCount, lTris, lTriCount, lTriFlags, meshData, vmapManager);
             }
         }
 

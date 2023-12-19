@@ -3424,7 +3424,7 @@ void Map::ApplyBuffs(Player* player, Map* map, float difficulty, int dunLevel, i
             }
 
             //Check Database for a current dungeon entry
-            QueryResult* result = CharacterDatabase.PQuery("SELECT `GUID`, `Difficulty`, `GroupSize`, `SpellPower`, `Stats` FROM `custom_solocraft_character_stats` WHERE GUID = %u", player->GetGUIDLow());
+            auto result = CharacterDatabase.PQuery("SELECT `GUID`, `Difficulty`, `GroupSize`, `SpellPower`, `Stats` FROM `custom_solocraft_character_stats` WHERE GUID = %u", player->GetGUIDLow());
 
             //Modify Player Stats
             for (int32 i = STAT_STRENGTH; i < MAX_STATS; ++i) //STATS defined/enum in SharedDefines.h
@@ -3504,7 +3504,7 @@ float Map::GetGroupDifficulty(Player* player)
             if (itr->guid != player->GetGUIDLow())
             {
                 //Database query to find difficulty for each group member that is currently in an instance
-                QueryResult* result = CharacterDatabase.PQuery("SELECT `GUID`, `Difficulty`, `GroupSize` FROM `custom_solocraft_character_stats` WHERE GUID = %u", itr->guid);
+                auto result = CharacterDatabase.PQuery("SELECT `GUID`, `Difficulty`, `GroupSize` FROM `custom_solocraft_character_stats` WHERE GUID = %u", itr->guid);
                 if (result)
                 {
                     //Test for debuffs already give to other members - They cannot be used to determine the total offset because negative numbers will skew the total difficulty offset
@@ -3523,7 +3523,7 @@ float Map::GetGroupDifficulty(Player* player)
 void Map::ClearBuffs(Player* player, Map* map)
 {
     //Database query to get offset from the last instance player exited
-    QueryResult* result = CharacterDatabase.PQuery("SELECT `GUID`, `Difficulty`, `GroupSize`, `SpellPower`, `Stats` FROM `custom_solocraft_character_stats` WHERE GUID = %u", player->GetGUIDLow());
+    auto result = CharacterDatabase.PQuery("SELECT `GUID`, `Difficulty`, `GroupSize`, `SpellPower`, `Stats` FROM `custom_solocraft_character_stats` WHERE GUID = %u", player->GetGUIDLow());
     if (result)
     {
         float difficulty = (*result)[1].GetFloat();

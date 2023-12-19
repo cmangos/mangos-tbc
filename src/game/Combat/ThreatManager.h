@@ -209,6 +209,9 @@ public:
     // add threat as raw value (ignore redirections and expection all mods applied already to it
     void addThreatDirectly(Unit* victim, float threat, bool noNew);
 
+    void modifyThreatPercent(Unit* victim, int32 threatPercent); // -101 removes whole ref, -100 sets threat to 0, rest modifies it
+    void modifyAllThreatPercent(int32 threatPercent);
+
     float getThreat(Unit* victim, bool alsoSearchOfflineList = false);
     float GetHighestThreat(); // for purpose of taunt effect
 

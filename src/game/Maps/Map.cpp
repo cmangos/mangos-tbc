@@ -1138,6 +1138,54 @@ void Map::UnloadAll(bool pForce)
     }
 }
 
+float Map::GetPetKillXPMod() const
+{
+    switch (GetExpansion())
+    {
+        default:
+        case 0:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL_VANILLA);
+        case 1:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL_BC);
+    }
+}
+
+float Map::GetQuestXPMod() const
+{
+    switch (GetExpansion())
+    {
+        default:
+        case 0:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST_VANILLA);
+        case 1:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_XP_QUEST_BC);
+    }
+}
+
+float Map::GetKillXPMod() const
+{
+    switch (GetExpansion())
+    {
+        default:
+        case 0:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_XP_KILL_VANILLA);
+        case 1:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_XP_KILL_BC);
+    }
+}
+
+float Map::GetExploreXPMod() const
+{
+    switch (GetExpansion())
+    {
+        default:
+        case 0:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_XP_EXPLORE_VANILLA);
+        case 1:
+            return sWorld.getConfig(CONFIG_FLOAT_RATE_XP_EXPLORE_BC);
+    }
+}
+
 uint32 Map::GetMaxPlayers() const
 {
     InstanceTemplate const* iTemplate = ObjectMgr::GetInstanceTemplate(GetId());

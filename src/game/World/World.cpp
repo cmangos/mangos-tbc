@@ -395,9 +395,17 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_DROP_ITEM_QUEST,                      "Rate.Drop.Item.Quest",                      1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_DROP_MONEY,                           "Rate.Drop.Money",                           1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL,                          "Rate.Pet.XP.Kill",                          1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL_VANILLA,                  "Rate.Pet.XP.Kill.Vanilla",                  1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_PET_XP_KILL_BC,                       "Rate.Pet.XP.Kill.BC",                       1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_KILL,                              "Rate.XP.Kill",                              1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_KILL_VANILLA,                      "Rate.XP.Kill.Vanilla",                      1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_KILL_BC,                           "Rate.XP.Kill.BC",                           1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_QUEST,                             "Rate.XP.Quest",                             1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_QUEST_VANILLA,                     "Rate.XP.Quest.Vanilla",                     1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_QUEST_BC,                          "Rate.XP.Quest.BC",                          1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE,                           "Rate.XP.Explore",                           1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE_VANILLA,                   "Rate.XP.Explore.Vanilla",                   1.0f);
+    setConfigPos(CONFIG_FLOAT_RATE_XP_EXPLORE_BC,                        "Rate.XP.Explore.BC",                        1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_GAIN,                      "Rate.Reputation.Gain",                      1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_KILL,             "Rate.Reputation.LowLevel.Kill",             0.2f);
     setConfigPos(CONFIG_FLOAT_RATE_REPUTATION_LOWLEVEL_QUEST,            "Rate.Reputation.LowLevel.Quest",            1.0f);

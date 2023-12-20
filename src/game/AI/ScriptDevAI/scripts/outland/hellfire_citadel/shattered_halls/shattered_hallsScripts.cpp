@@ -270,6 +270,112 @@ struct npc_shattered_hand_centurion : public CombatAI
     }
 };
 
+/*######
+ ## npc_shattered_hand_legionnaire 16700
+ ######*/
+
+enum ShatteredHandLegionnairActions
+{
+    LEGIONNAIRE_PUMMEL,
+    LEGIONNAIRE_AURA_OF_DISCIPLIN,
+    LEGIONNAIRE_ACTION_MAX,
+    LEGIONNAIRE_CALL_FOR_REINFORCEMENTS,
+};
+
+enum ShatteredHandLegionnair
+{
+    SPELL_AURA_OF_DISCIPLINE = 30472,
+    SPELL_PUMMEL = 15615,
+    SPELL_ENRAGE = 30485,
+
+    EMOTE_ENRAGE = 1151,
+
+    MOB_FEL_ORC = 17083,
+
+    // Guids
+    FIRST_LEGIONNAIRE_GUID = 5400150,
+    DEFAULT_LEGIONNAIRE = 1,
+
+    WORLDSTATE_LEGIONNAIRE_001 = 5400001
+};
+
+static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
+static const int32 aRandomReinf[] = { 16356, 16357, 16358, 16359, 16360, 16361, 16362 };
+
+// old used -1540061, -1540062, 1540063,  not in bct?
+
+struct npc_shattered_hand_legionnaire : public CombatAI
+{
+    npc_shattered_hand_legionnaire(Creature* creature) : CombatAI(creature, LEGIONNAIRE_ACTION_MAX), m_instance(static_cast<instance_shattered_halls*>(creature->GetInstanceData()))
+    {
+        AddCombatAction(LEGIONNAIRE_PUMMEL, 10000, 15000);
+        AddCombatAction(LEGIONNAIRE_AURA_OF_DISCIPLIN, 0, 5000);
+        AddCustomAction(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, true, [&]() { CallForReinforcements(); });
+        uint32 guid = m_creature->GetDbGuid();
+        if (guid == FIRST_LEGIONNAIRE_GUID)
+            m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
+    }
+
+    uint32 legionnaireGuid;
+    instance_shattered_halls* m_instance;
+
+    void Aggro(Unit* /*who*/) override
+    {
+        if (urand(0, 4) > 2)
+            DoBroadcastText(aRandomAggro[urand(0, 6)], m_creature);
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        uint32 guid = m_creature->GetDbGuid();
+        if (guid == FIRST_LEGIONNAIRE_GUID)
+        { 
+            // When Legionnaire 001 is dead change worldstate to false, heathen/savage group around him cant respawn anymore
+            m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
+        }
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_EVENTAI_B)
+            ResetTimer(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, 0u);
+    }
+
+    void CallForReinforcements()
+    {
+        if (!m_creature->HasAura(SPELL_ENRAGE))
+        {
+            m_creature->CastSpell(nullptr, SPELL_ENRAGE, TRIGGERED_NONE);
+            DoScriptText(EMOTE_ENRAGE, m_creature);
+        }
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        switch (action)
+        {
+            case LEGIONNAIRE_PUMMEL:
+            {
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, (SELECT_FLAG_PLAYER | SELECT_FLAG_CASTING)))
+                    if (DoCastSpellIfCan(target, SPELL_PUMMEL) == CAST_OK)
+                        ResetCombatAction(action, urand(10000, 15000));
+                return;
+            }
+            case LEGIONNAIRE_AURA_OF_DISCIPLIN:
+            {
+                if (DoCastSpellIfCan(nullptr, SPELL_AURA_OF_DISCIPLINE) == CAST_OK)
+                    ResetCombatAction(action, 240000);
+                return;
+            }
+            case LEGIONNAIRE_CALL_FOR_REINFORCEMENTS:
+            {
+                CallForReinforcements();
+                return;
+            }
+        }
+    }
+};
+
 
 void AddSC_shattered_halls()
 {
@@ -281,5 +387,10 @@ void AddSC_shattered_halls()
     pNewScript = new Script;
     pNewScript->Name = "npc_shattered_hand_gladiator";
     pNewScript->GetAI = &GetNewAIInstance<npc_shattered_hand_gladiator>;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_shattered_hand_legionnaire";
+    pNewScript->GetAI = &GetNewAIInstance<npc_shattered_hand_legionnaire>;
     pNewScript->RegisterSelf();
 }

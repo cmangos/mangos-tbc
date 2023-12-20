@@ -280,6 +280,7 @@ enum ShatteredHandLegionnairActions
     LEGIONNAIRE_AURA_OF_DISCIPLIN,
     LEGIONNAIRE_ACTION_MAX,
     LEGIONNAIRE_CALL_FOR_REINFORCEMENTS,
+    LEGIONNAIRE_REINF_CD,
 };
 
 enum ShatteredHandLegionnair
@@ -294,9 +295,21 @@ enum ShatteredHandLegionnair
 
     // Guids
     FIRST_LEGIONNAIRE_GUID = 5400150,
+    SECOND_LEGIONNAIRE_GUID = 5400163,
     DEFAULT_LEGIONNAIRE = 1,
 
     WORLDSTATE_LEGIONNAIRE_001 = 5400001
+};
+
+static float FelOrcSpawnCoords[][4] =                    // Coords needed for spawns 
+{
+    { 79.9949f, 111.5607f, -13.1384f, 4.6949f},    // Legionnaire 002 right side felorc spawn
+    { 61.1264f, 110.8250f, -13.1384f, 6.1784f }    // Legionnaire 002 left side felorc spawn
+};
+
+static float FelOrcWaypointsCoords[][3] =                    // Coords needed for waypoints 
+{
+    { 70.039566f, 47.337353f, -13.221819f},         // Legionnaire 002 felorc waypoint
 };
 
 static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
@@ -306,11 +319,13 @@ static const int32 aRandomReinf[] = { 16356, 16357, 16358, 16359, 16360, 16361, 
 
 struct npc_shattered_hand_legionnaire : public CombatAI
 {
-    npc_shattered_hand_legionnaire(Creature* creature) : CombatAI(creature, LEGIONNAIRE_ACTION_MAX), m_instance(static_cast<instance_shattered_halls*>(creature->GetInstanceData()))
+    npc_shattered_hand_legionnaire(Creature* creature) : CombatAI(creature, LEGIONNAIRE_ACTION_MAX), m_instance(static_cast<instance_shattered_halls*>(creature->GetInstanceData())),
+    m_reinfCD(false)
     {
         AddCombatAction(LEGIONNAIRE_PUMMEL, 10000, 15000);
         AddCombatAction(LEGIONNAIRE_AURA_OF_DISCIPLIN, 0, 5000);
         AddCustomAction(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, true, [&]() { CallForReinforcements(); });
+        AddCustomAction(LEGIONNAIRE_REINF_CD, true, [&]() { DoReinfCD(); });
         uint32 guid = m_creature->GetDbGuid();
         if (guid == FIRST_LEGIONNAIRE_GUID)
             m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
@@ -318,6 +333,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
 
     uint32 legionnaireGuid;
     instance_shattered_halls* m_instance;
+    bool m_reinfCD;
 
     void Aggro(Unit* /*who*/) override
     {
@@ -341,13 +357,64 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             ResetTimer(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, 0u);
     }
 
-    void CallForReinforcements()
+    void SummonedCreatureJustDied(Creature* summoned) override
     {
+        // There can always be just one reinforcement up, when summoned dies legionnaire can spawn a new one after ~5 seconds cooldown
+        if (m_reinfCD)
+            ResetTimer(LEGIONNAIRE_REINF_CD, urand(10000, 15000));
+    }
+
+    // also reset timer when summoned despawns 
+    void SummonedCreatureDespawn(Creature* /*summoned*/) override
+    {
+        if (m_reinfCD)
+            ResetTimer(LEGIONNAIRE_REINF_CD, urand(10000, 15000));
+    }
+
+    void SummonedMovementInform(Creature* summoned, uint32 /*motionType*/, uint32 pointId) override
+    {
+        // When last waypoint reached, search for players.
+        if (summoned->GetEntry() == MOB_FEL_ORC && pointId == 100)
+        {
+            summoned->GetMotionMaster()->MoveIdle();
+            summoned->GetMotionMaster()->MoveRandomAroundPoint(summoned->GetPositionX(), summoned->GetPositionY(), summoned->GetPositionZ(), 5.0f);
+            summoned->SetInCombatWithZone();
+            summoned->AI()->AttackClosestEnemy();
+        }
+    }
+
+    void CallForReinforcements()
+    {       
+        // reinforcement can get spawned even if legionnaire is outfight and has a cooldown between 10 and 15 seconds, but only one can be up
+        if (!m_reinfCD)
+        {
+            uint32 guid = m_creature->GetDbGuid();
+            if (guid == SECOND_LEGIONNAIRE_GUID)
+            {
+                uint32 leftorright = urand(0, 1);
+                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[leftorright][0], FelOrcSpawnCoords[leftorright][1], FelOrcSpawnCoords[leftorright][2], FelOrcSpawnCoords[leftorright][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
+                {
+                    felorc->GetMotionMaster()->MovePoint(100, FelOrcWaypointsCoords[0][0], FelOrcWaypointsCoords[0][1], FelOrcWaypointsCoords[0][2]);
+                    felorc->SetCanCallForAssistance(false);
+                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                }
+            }            
+            m_reinfCD = true;
+        }
+        // Buff cant only get casted when he is infight and doesnt already have the buff
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+            return;
+
         if (!m_creature->HasAura(SPELL_ENRAGE))
         {
             m_creature->CastSpell(nullptr, SPELL_ENRAGE, TRIGGERED_NONE);
-            DoScriptText(EMOTE_ENRAGE, m_creature);
+            DoBroadcastText(EMOTE_ENRAGE, m_creature);
         }
+    }
+
+    void DoReinfCD()
+    {
+        m_reinfCD = false;
     }
 
     void ExecuteAction(uint32 action) override

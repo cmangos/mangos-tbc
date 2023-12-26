@@ -331,13 +331,13 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         uint32 guid = m_creature->GetDbGuid();
         if (guid == FIRST_LEGIONNAIRE_GUID)
             m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
-        else if (guid = SECOND_LEGIONNAIRE_GUID)
-            legionnaireGuid = urand(1, 2);
+        else if (guid == SECOND_LEGIONNAIRE_GUID)
+            legionnaireGuid = urand (1,2);
         else if (guid == THIRD_LEGIONNAIRE_GUID)
             legionnaireGuid = 3;
-        else if (guid = FOURTH_LEGIONNAIRE_GUID)
+        else if (guid == FOURTH_LEGIONNAIRE_GUID)
             legionnaireGuid = 4;
-        else if (guid = FIFTH_LEGIONNAIRE_GUID)
+        else if (guid == FIFTH_LEGIONNAIRE_GUID)
             legionnaireGuid = 5;
     }
 

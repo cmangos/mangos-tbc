@@ -297,6 +297,7 @@ enum ShatteredHandLegionnair
     FIRST_LEGIONNAIRE_GUID = 5400150,
     SECOND_LEGIONNAIRE_GUID = 5400163,
     THIRD_LEGIONNAIRE_GUID = 5400182, 
+    FOURTH_LEGIONNAIRE_GUID = 5400187,
     DEFAULT_LEGIONNAIRE = 1,
 
     WORLDSTATE_LEGIONNAIRE_001 = 5400001
@@ -307,7 +308,8 @@ static float FelOrcSpawnCoords[][4] =                    // Coords needed for sp
     { 0.0f, 0.0f, 0.0f, 0.0f},                      // Legionnaire 001 spawn coords
     { 79.9949f, 111.5607f, -13.1384f, 4.6949f},     // Legionnaire 002 right side felorc spawn
     { 61.1264f, 110.8250f, -13.1384f, 6.1784f },    // Legionnaire 002 left side felorc spawn
-    { 88.4735f, 187.3315f, -13.1929f, 3.144f}       // Legionnaire 003 spawn
+    { 88.4735f, 187.3315f, -13.1929f, 3.144f },     // Legionnaire 003 spawn
+    { 78.6885f, 218.2196f, -13.2166f, 4.013f }      // Legionnaire 004 spawn
 };
 
 static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
@@ -327,6 +329,10 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         uint32 guid = m_creature->GetDbGuid();
         if (guid == FIRST_LEGIONNAIRE_GUID)
             m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
+        else if (guid == THIRD_LEGIONNAIRE_GUID)
+            legionnaireGuid = 3;
+        else if (guid = FOURTH_LEGIONNAIRE_GUID)
+            legionnaireGuid = 4;
     }
 
     uint32 legionnaireGuid;
@@ -386,11 +392,11 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                     DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
                 }
             }   
-            if (guid == THIRD_LEGIONNAIRE_GUID)
+            if (guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID)
             {
-                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[3][0], FelOrcSpawnCoords[3][1], FelOrcSpawnCoords[3][2], FelOrcSpawnCoords[3][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
+                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
                 {
-                    felorc->GetMotionMaster()->MoveWaypoint(3, 0, 0, 0, FORCED_MOVEMENT_RUN);
+                    felorc->GetMotionMaster()->MoveWaypoint(legionnaireGuid, 0, 0, 0, FORCED_MOVEMENT_RUN);
                     felorc->SetCanCallForAssistance(false);
                     felorc->SetCanCheckForHelp(false);
                     DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);

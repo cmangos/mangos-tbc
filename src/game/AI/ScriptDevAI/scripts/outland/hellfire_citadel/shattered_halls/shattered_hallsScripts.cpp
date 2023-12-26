@@ -298,6 +298,7 @@ enum ShatteredHandLegionnair
     SECOND_LEGIONNAIRE_GUID = 5400163,
     THIRD_LEGIONNAIRE_GUID = 5400182, 
     FOURTH_LEGIONNAIRE_GUID = 5400187,
+    FIFTH_LEGIONNAIRE_GUID = 5400192,
     DEFAULT_LEGIONNAIRE = 1,
 
     WORLDSTATE_LEGIONNAIRE_001 = 5400001
@@ -309,7 +310,8 @@ static float FelOrcSpawnCoords[][4] =                    // Coords needed for sp
     { 79.9949f, 111.5607f, -13.1384f, 4.6949f},     // Legionnaire 002 right side felorc spawn
     { 61.1264f, 110.8250f, -13.1384f, 6.1784f },    // Legionnaire 002 left side felorc spawn
     { 88.4735f, 187.3315f, -13.1929f, 3.144f },     // Legionnaire 003 spawn
-    { 78.6885f, 218.2196f, -13.2166f, 4.013f }      // Legionnaire 004 spawn
+    { 78.6885f, 218.2196f, -13.2166f, 4.013f },     // Legionnaire 004 spawn
+    { 83.5307f, 250.5344f, -13.1131f, 3.060f }      // Legionnaire 005 spawn
 };
 
 static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
@@ -335,6 +337,8 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             legionnaireGuid = 3;
         else if (guid = FOURTH_LEGIONNAIRE_GUID)
             legionnaireGuid = 4;
+        else if (guid = FIFTH_LEGIONNAIRE_GUID)
+            legionnaireGuid = 5;
     }
 
     uint32 legionnaireGuid;
@@ -383,7 +387,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         if (!m_reinfCD)
         {
             uint32 guid = m_creature->GetDbGuid(); 
-            if (guid == SECOND_LEGIONNAIRE_GUID | guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID)
+            if (guid == SECOND_LEGIONNAIRE_GUID || guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID || guid == FIFTH_LEGIONNAIRE_GUID)
             {
                 if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
                 {

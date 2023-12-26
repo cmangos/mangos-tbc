@@ -329,6 +329,8 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         uint32 guid = m_creature->GetDbGuid();
         if (guid == FIRST_LEGIONNAIRE_GUID)
             m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
+        else if (guid = SECOND_LEGIONNAIRE_GUID)
+            legionnaireGuid = urand(1, 2);
         else if (guid == THIRD_LEGIONNAIRE_GUID)
             legionnaireGuid = 3;
         else if (guid = FOURTH_LEGIONNAIRE_GUID)
@@ -380,19 +382,8 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         // reinforcement can get spawned even if legionnaire is outfight and has a cooldown between 10 and 15 seconds, but only one can be up
         if (!m_reinfCD)
         {
-            uint32 guid = m_creature->GetDbGuid();
-            if (guid == SECOND_LEGIONNAIRE_GUID)
-            {
-                uint32 leftorright = urand(1, 2);
-                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[leftorright][0], FelOrcSpawnCoords[leftorright][1], FelOrcSpawnCoords[leftorright][2], FelOrcSpawnCoords[leftorright][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
-                {
-                    felorc->GetMotionMaster()->MoveWaypoint(leftorright, 0, 0, 0, FORCED_MOVEMENT_RUN);
-                    felorc->SetCanCallForAssistance(false);
-                    felorc->SetCanCheckForHelp(false);
-                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
-                }
-            }   
-            if (guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID)
+            uint32 guid = m_creature->GetDbGuid(); 
+            if (guid == SECOND_LEGIONNAIRE_GUID | guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID)
             {
                 if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
                 {

@@ -296,6 +296,7 @@ enum ShatteredHandLegionnair
     // Guids
     FIRST_LEGIONNAIRE_GUID = 5400150,
     SECOND_LEGIONNAIRE_GUID = 5400163,
+    THIRD_LEGIONNAIRE_GUID = 5400182, 
     DEFAULT_LEGIONNAIRE = 1,
 
     WORLDSTATE_LEGIONNAIRE_001 = 5400001
@@ -303,13 +304,10 @@ enum ShatteredHandLegionnair
 
 static float FelOrcSpawnCoords[][4] =                    // Coords needed for spawns 
 {
-    { 79.9949f, 111.5607f, -13.1384f, 4.6949f},    // Legionnaire 002 right side felorc spawn
-    { 61.1264f, 110.8250f, -13.1384f, 6.1784f }    // Legionnaire 002 left side felorc spawn
-};
-
-static float FelOrcWaypointsCoords[][3] =                    // Coords needed for waypoints 
-{
-    { 70.039566f, 47.337353f, -13.221819f},         // Legionnaire 002 felorc waypoint
+    { 0.0f, 0.0f, 0.0f, 0.0f},                      // Legionnaire 001 spawn coords
+    { 79.9949f, 111.5607f, -13.1384f, 4.6949f},     // Legionnaire 002 right side felorc spawn
+    { 61.1264f, 110.8250f, -13.1384f, 6.1784f },    // Legionnaire 002 left side felorc spawn
+    { 88.4735f, 187.3315f, -13.1929f, 3.144f}       // Legionnaire 003 spawn
 };
 
 static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
@@ -371,18 +369,6 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             ResetTimer(LEGIONNAIRE_REINF_CD, urand(10000, 15000));
     }
 
-    void SummonedMovementInform(Creature* summoned, uint32 /*motionType*/, uint32 pointId) override
-    {
-        // When last waypoint reached, search for players.
-        if (summoned->GetEntry() == MOB_FEL_ORC && pointId == 100)
-        {
-            summoned->GetMotionMaster()->MoveIdle();
-            summoned->GetMotionMaster()->MoveRandomAroundPoint(summoned->GetPositionX(), summoned->GetPositionY(), summoned->GetPositionZ(), 5.0f);
-            summoned->SetInCombatWithZone();
-            summoned->AI()->AttackClosestEnemy();
-        }
-    }
-
     void CallForReinforcements()
     {       
         // reinforcement can get spawned even if legionnaire is outfight and has a cooldown between 10 and 15 seconds, but only one can be up
@@ -391,17 +377,28 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             uint32 guid = m_creature->GetDbGuid();
             if (guid == SECOND_LEGIONNAIRE_GUID)
             {
-                uint32 leftorright = urand(0, 1);
+                uint32 leftorright = urand(1, 2);
                 if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[leftorright][0], FelOrcSpawnCoords[leftorright][1], FelOrcSpawnCoords[leftorright][2], FelOrcSpawnCoords[leftorright][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
                 {
-                    felorc->GetMotionMaster()->MovePoint(100, FelOrcWaypointsCoords[0][0], FelOrcWaypointsCoords[0][1], FelOrcWaypointsCoords[0][2]);
+                    felorc->GetMotionMaster()->MoveWaypoint(leftorright, 0, 0, 0, FORCED_MOVEMENT_RUN);
                     felorc->SetCanCallForAssistance(false);
+                    felorc->SetCanCheckForHelp(false);
                     DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
                 }
-            }            
+            }   
+            if (guid == THIRD_LEGIONNAIRE_GUID)
+            {
+                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[3][0], FelOrcSpawnCoords[3][1], FelOrcSpawnCoords[3][2], FelOrcSpawnCoords[3][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
+                {
+                    felorc->GetMotionMaster()->MoveWaypoint(3, 0, 0, 0, FORCED_MOVEMENT_RUN);
+                    felorc->SetCanCallForAssistance(false);
+                    felorc->SetCanCheckForHelp(false);
+                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                }
+            }
             m_reinfCD = true;
         }
-        // Buff cant only get casted when he is infight and doesnt already have the buff
+        // Buff cant only get casted when legionnaire is infight and doesnt already have the buff
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 

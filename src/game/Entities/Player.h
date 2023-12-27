@@ -1716,8 +1716,7 @@ class Player : public Unit
         void UpdateAllCritPercentages();
         void UpdateParryPercentage();
         void UpdateDodgePercentage();
-        void UpdateMeleeHitChances();
-        void UpdateRangedHitChances();
+        void UpdateWeaponHitChances(WeaponAttackType attType);
         void UpdateSpellHitChances();
 
         void UpdateAllSpellCritChances();
@@ -1725,6 +1724,8 @@ class Player : public Unit
         void UpdateExpertise(WeaponAttackType attType);
         void UpdateManaRegen();
         void UpdateEnergyRegen();
+
+        void UpdateWeaponDependantStats(WeaponAttackType attType);
 
         ObjectGuid const& GetLootGuid() const { return m_lootGuid; }
         void SetLootGuid(ObjectGuid const& guid) { m_lootGuid = guid; }

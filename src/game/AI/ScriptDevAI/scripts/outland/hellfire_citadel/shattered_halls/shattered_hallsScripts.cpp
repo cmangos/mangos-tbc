@@ -299,12 +299,14 @@ enum ShatteredHandLegionnair
     FOURTH_LEGIONNAIRE_GUID = 5400187,
     FIFTH_LEGIONNAIRE_GUID = 5400192,
     SIX_LEGIONNAIRE_GUID = 5400198,
+    SEVENTH_LEGIONNAIRE_GUID = 5400300,
     DEFAULT_LEGIONNAIRE = 1,
 
     WORLDSTATE_LEGIONNAIRE_001 = 5400001,
 
     // String IDs
     SLEEPING_REINF_STRING = 5400014, // StringID assigned to sleeping mobs
+    DUMMY_REINF_STRING_1 = 5400015, // StringID assigned to Dummy Group nr 1
     AURA_SLEEPING = 16093
 };
 
@@ -343,7 +345,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             else
                 m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
         else if (guid == SECOND_LEGIONNAIRE_GUID)
-            legionnaireGuid = urand (1,2);
+            legionnaireGuid = urand(1, 2);
         else if (guid == THIRD_LEGIONNAIRE_GUID)
             legionnaireGuid = 3;
         else if (guid == FOURTH_LEGIONNAIRE_GUID)
@@ -368,7 +370,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
     {
         uint32 guid = m_creature->GetDbGuid();
         if (guid == FIRST_LEGIONNAIRE_GUID)
-        { 
+        {
             // When Legionnaire 001 is dead change worldstate to false, heathen/savage group around him cant respawn anymore
             m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
         }
@@ -395,11 +397,11 @@ struct npc_shattered_hand_legionnaire : public CombatAI
     }
 
     void CallForReinforcements()
-    {     
+    {
         uint32 guid = m_creature->GetDbGuid();
         // reinforcement can get spawned even if legionnaire is outfight and has a cooldown between 10 and 15 seconds, but only one can be up
         if (!m_reinfCD)
-        {            
+        {
             if (guid == SECOND_LEGIONNAIRE_GUID || guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID || guid == FIFTH_LEGIONNAIRE_GUID)
             {
                 if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
@@ -436,6 +438,29 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                 static_cast<Creature*>(closest)->RemoveAurasDueToSpell(AURA_SLEEPING);
                 static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(1, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
             }
+        }
+        if (guid == SEVENTH_LEGIONNAIRE_GUID)
+        {
+            // For the legionnaire 07, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
+            // all 3 npc at dummys have StringID 5400015 assigned
+            auto worldObjects = m_creature->GetMap()->GetWorldObjects(DUMMY_REINF_STRING_1);
+            WorldObject* closest = nullptr;
+            for (WorldObject* wo : *worldObjects)
+            {
+                if (wo->IsCreature() && static_cast<Creature*>(wo)->IsAlive())
+                    continue;
+
+                if (!closest)
+                    closest = wo;
+                else if (m_creature->GetDistance(wo, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
+                    closest = wo;
+            }
+            if (closest)
+                if (m_creature->IsInCombat())
+                {   
+                    static_cast<Creature*>(closest)->AI()->AttackClosestEnemy();
+                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                }
         }
         // Buff can only get casted when legionnaire is infight and doesnt already have the buff
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())

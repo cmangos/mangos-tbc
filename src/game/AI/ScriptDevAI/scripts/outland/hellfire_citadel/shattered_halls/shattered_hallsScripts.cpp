@@ -300,6 +300,7 @@ enum ShatteredHandLegionnair
     FIFTH_LEGIONNAIRE_GUID = 5400192,
     SIX_LEGIONNAIRE_GUID = 5400198,
     SEVENTH_LEGIONNAIRE_GUID = 5400300,
+    EIGTH_LEGIONNAIRE_GUID = 5400309,
     DEFAULT_LEGIONNAIRE = 1,
 
     WORLDSTATE_LEGIONNAIRE_001 = 5400001,
@@ -307,6 +308,7 @@ enum ShatteredHandLegionnair
     // String IDs
     SLEEPING_REINF_STRING = 5400014, // StringID assigned to sleeping mobs
     DUMMY_REINF_STRING_1 = 5400015, // StringID assigned to Dummy Group nr 1
+    DUMMY_REINF_STRING_2 = 5400016, // StringID assigned to Dummy Group nr 2
     AURA_SLEEPING = 16093
 };
 
@@ -439,7 +441,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                 static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(1, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
             }
         }
-        if (guid == SEVENTH_LEGIONNAIRE_GUID)
+        else if (guid == SEVENTH_LEGIONNAIRE_GUID)
         {
             // For the legionnaire 07, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
             // all 3 npc at dummys have StringID 5400015 assigned
@@ -462,6 +464,30 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                     DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
                 }
         }
+        else if (guid == EIGTH_LEGIONNAIRE_GUID)
+        {
+            // For the legionnaire 08, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
+            // all 3 npc at dummys have StringID 5400016 assigned
+            auto worldObjects = m_creature->GetMap()->GetWorldObjects(DUMMY_REINF_STRING_2);
+            WorldObject* closest = nullptr;
+            for (WorldObject* wo : *worldObjects)
+            {
+                if (wo->IsCreature() && static_cast<Creature*>(wo)->IsAlive())
+                    continue;
+
+                if (!closest)
+                    closest = wo;
+                else if (m_creature->GetDistance(wo, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
+                    closest = wo;
+            }
+            if (closest)
+                if (m_creature->IsInCombat())
+                {
+                    static_cast<Creature*>(closest)->AI()->AttackClosestEnemy();
+                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                }
+        }
+
         // Buff can only get casted when legionnaire is infight and doesnt already have the buff
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;

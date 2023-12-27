@@ -25,7 +25,6 @@
 #include "shattered_halls.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 
-
 enum
 {
     SAY_START = 14134,
@@ -299,9 +298,14 @@ enum ShatteredHandLegionnair
     THIRD_LEGIONNAIRE_GUID = 5400182, 
     FOURTH_LEGIONNAIRE_GUID = 5400187,
     FIFTH_LEGIONNAIRE_GUID = 5400192,
+    SIX_LEGIONNAIRE_GUID = 5400198,
     DEFAULT_LEGIONNAIRE = 1,
 
-    WORLDSTATE_LEGIONNAIRE_001 = 5400001
+    WORLDSTATE_LEGIONNAIRE_001 = 5400001,
+
+    // String IDs
+    SLEEPING_REINF_STRING = 5400014, // StringID assigned to sleeping mobs
+    AURA_SLEEPING = 16093
 };
 
 static float FelOrcSpawnCoords[][4] =                    // Coords needed for spawns 
@@ -311,11 +315,15 @@ static float FelOrcSpawnCoords[][4] =                    // Coords needed for sp
     { 61.1264f, 110.8250f, -13.1384f, 6.1784f },    // Legionnaire 002 left side felorc spawn
     { 88.4735f, 187.3315f, -13.1929f, 3.144f },     // Legionnaire 003 spawn
     { 78.6885f, 218.2196f, -13.2166f, 4.013f },     // Legionnaire 004 spawn
-    { 83.5307f, 250.5344f, -13.1131f, 3.060f }      // Legionnaire 005 spawn
+    { 83.5307f, 250.5344f, -13.1131f, 3.060f },      // Legionnaire 005 spawn
+    { 69.4524f, 239.9877f, -13.1936f, 0.0 }         // Legionnaire 006 waypoint
 };
 
 static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
 static const int32 aRandomReinf[] = { 16356, 16357, 16358, 16359, 16360, 16361, 16362 };
+
+static const int32 aRandomReinfSleeping[] = { 16363, 16364, 16365, 16366, 16367 };
+
 
 // old used -1540061, -1540062, 1540063,  not in bct?
 
@@ -341,6 +349,8 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         else if (guid == FOURTH_LEGIONNAIRE_GUID)
             legionnaireGuid = 4;
         else if (guid == FIFTH_LEGIONNAIRE_GUID)
+            legionnaireGuid = 5;
+        else if (guid == SIX_LEGIONNAIRE_GUID)
             legionnaireGuid = 5;
     }
 
@@ -385,11 +395,11 @@ struct npc_shattered_hand_legionnaire : public CombatAI
     }
 
     void CallForReinforcements()
-    {       
+    {     
+        uint32 guid = m_creature->GetDbGuid();
         // reinforcement can get spawned even if legionnaire is outfight and has a cooldown between 10 and 15 seconds, but only one can be up
         if (!m_reinfCD)
-        {
-            uint32 guid = m_creature->GetDbGuid(); 
+        {            
             if (guid == SECOND_LEGIONNAIRE_GUID || guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID || guid == FIFTH_LEGIONNAIRE_GUID)
             {
                 if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
@@ -402,7 +412,32 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             }
             m_reinfCD = true;
         }
-        // Buff cant only get casted when legionnaire is infight and doesnt already have the buff
+
+        // Legionnaire 006
+        if (guid == SIX_LEGIONNAIRE_GUID)
+        {
+            // there are 4 sleeping npcs around him, if one of his group members dies he will call for one of the sleeping creatures to get up and join the fight
+            // this doesnt have a cd, if all 4 npcs with sleeping aura are up, nothing more happens
+            auto worldObjects = m_creature->GetMap()->GetWorldObjects(SLEEPING_REINF_STRING);
+            WorldObject* closest = nullptr;
+            for (WorldObject* wo : *worldObjects)
+            {
+                if (wo->IsCreature() && static_cast<Creature*>(wo)->IsAlive() && static_cast<Creature*>(wo)->HasAura(AURA_SLEEPING))
+                    continue;
+
+                if (!closest)
+                    closest = wo;
+                else if (m_creature->GetDistance(wo, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
+                    closest = wo;
+            }
+            if (closest)
+            {
+                DoBroadcastText(aRandomReinfSleeping[urand(0, 6)], m_creature);
+                static_cast<Creature*>(closest)->RemoveAurasDueToSpell(AURA_SLEEPING);
+                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(1, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
+            }
+        }
+        // Buff can only get casted when legionnaire is infight and doesnt already have the buff
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 

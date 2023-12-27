@@ -330,7 +330,10 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         AddCustomAction(LEGIONNAIRE_REINF_CD, true, [&]() { DoReinfCD(); });
         uint32 guid = m_creature->GetDbGuid();
         if (guid == FIRST_LEGIONNAIRE_GUID)
-            m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
+            if (m_creature->IsAlive())
+                m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
+            else
+                m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
         else if (guid == SECOND_LEGIONNAIRE_GUID)
             legionnaireGuid = urand (1,2);
         else if (guid == THIRD_LEGIONNAIRE_GUID)
@@ -363,7 +366,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
     {
-        if (eventType == AI_EVENT_CUSTOM_EVENTAI_B)
+        if (eventType == AI_EVENT_JUST_DIED)
             ResetTimer(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, 0u);
     }
 

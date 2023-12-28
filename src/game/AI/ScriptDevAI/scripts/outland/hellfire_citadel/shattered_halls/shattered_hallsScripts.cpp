@@ -284,32 +284,29 @@ enum ShatteredHandLegionnairActions
 
 enum ShatteredHandLegionnair
 {
-    SPELL_AURA_OF_DISCIPLINE = 30472,
-    SPELL_PUMMEL = 15615,
-    SPELL_ENRAGE = 30485,
+    SPELL_AURA_OF_DISCIPLINE        = 30472,
+    SPELL_PUMMEL                    = 15615,
+    SPELL_ENRAGE                    = 30485,
+    EMOTE_ENRAGE                    = 1151,
+    MOB_FEL_ORC                     = 17083,
 
-    EMOTE_ENRAGE = 1151,
+    // Legionnaire StringID
+    FIRST_LEGIONNAIRE_STRING        = 5400001,
+    SECOND_LEGIONNAIRE_STRING       = 5400007,
+    THIRD_LEGIONNAIRE_STRING        = 5400008,
+    FOURTH_LEGIONNAIRE_STRING       = 5400009,
+    FIFTH_LEGIONNAIRE_STRING        = 5400010,
+    SIX_LEGIONNAIRE_STRING          = 5400011,
+    SEVENTH_LEGIONNAIRE_STRING      = 5400012,
+    EIGTH_LEGIONNAIRE_STRING        = 5400013,
 
-    MOB_FEL_ORC = 17083,
+    WORLDSTATE_LEGIONNAIRE_001      = 5400001,
 
-    // Guids
-    FIRST_LEGIONNAIRE_GUID = 5400150,
-    SECOND_LEGIONNAIRE_GUID = 5400163,
-    THIRD_LEGIONNAIRE_GUID = 5400182, 
-    FOURTH_LEGIONNAIRE_GUID = 5400187,
-    FIFTH_LEGIONNAIRE_GUID = 5400192,
-    SIX_LEGIONNAIRE_GUID = 5400198,
-    SEVENTH_LEGIONNAIRE_GUID = 5400300,
-    EIGTH_LEGIONNAIRE_GUID = 5400309,
-    DEFAULT_LEGIONNAIRE = 1,
-
-    WORLDSTATE_LEGIONNAIRE_001 = 5400001,
-
-    // String IDs
-    SLEEPING_REINF_STRING = 5400014, // StringID assigned to sleeping mobs
-    DUMMY_REINF_STRING_1 = 5400015, // StringID assigned to Dummy Group nr 1
-    DUMMY_REINF_STRING_2 = 5400016, // StringID assigned to Dummy Group nr 2
-    AURA_SLEEPING = 16093
+    // Reinforcement String IDs 
+    SLEEPING_REINF_STRING           = 5400014, // StringID assigned to sleeping mobs
+    DUMMY_REINF_STRING_1            = 5400015, // StringID assigned to Dummy Group nr 1
+    DUMMY_REINF_STRING_2            = 5400016, // StringID assigned to Dummy Group nr 2
+    AURA_SLEEPING                   = 16093
 };
 
 static float FelOrcSpawnCoords[][4] =                    // Coords needed for spawns 
@@ -340,21 +337,20 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         AddCombatAction(LEGIONNAIRE_AURA_OF_DISCIPLIN, 0, 5000);
         AddCustomAction(LEGIONNAIRE_CALL_FOR_REINFORCEMENTS, true, [&]() { CallForReinforcements(); });
         AddCustomAction(LEGIONNAIRE_REINF_CD, true, [&]() { DoReinfCD(); });
-        uint32 guid = m_creature->GetDbGuid();
-        if (guid == FIRST_LEGIONNAIRE_GUID)
+        if (m_creature->HasStringId(FIRST_LEGIONNAIRE_STRING))
             if (m_creature->IsAlive())
                 m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
             else
                 m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
-        else if (guid == SECOND_LEGIONNAIRE_GUID)
+        else if (m_creature->HasStringId(SECOND_LEGIONNAIRE_STRING))
             legionnaireGuid = urand(1, 2);
-        else if (guid == THIRD_LEGIONNAIRE_GUID)
+        else if (m_creature->HasStringId(THIRD_LEGIONNAIRE_STRING))
             legionnaireGuid = 3;
-        else if (guid == FOURTH_LEGIONNAIRE_GUID)
+        else if (m_creature->HasStringId(FOURTH_LEGIONNAIRE_STRING))
             legionnaireGuid = 4;
-        else if (guid == FIFTH_LEGIONNAIRE_GUID)
+        else if (m_creature->HasStringId(FIFTH_LEGIONNAIRE_STRING))
             legionnaireGuid = 5;
-        else if (guid == SIX_LEGIONNAIRE_GUID)
+        else if (m_creature->HasStringId(SIX_LEGIONNAIRE_STRING))
             legionnaireGuid = 5;
     }
 
@@ -370,8 +366,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
 
     void JustDied(Unit* /*killer*/) override
     {
-        uint32 guid = m_creature->GetDbGuid();
-        if (guid == FIRST_LEGIONNAIRE_GUID)
+        if (m_creature->HasStringId(FIRST_LEGIONNAIRE_STRING))
         {
             // When Legionnaire 001 is dead change worldstate to false, heathen/savage group around him cant respawn anymore
             m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
@@ -404,7 +399,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         // reinforcement can get spawned even if legionnaire is outfight and has a cooldown between 10 and 15 seconds, but only one can be up
         if (!m_reinfCD)
         {
-            if (guid == SECOND_LEGIONNAIRE_GUID || guid == THIRD_LEGIONNAIRE_GUID || guid == FOURTH_LEGIONNAIRE_GUID || guid == FIFTH_LEGIONNAIRE_GUID)
+            if (m_creature->HasStringId(SECOND_LEGIONNAIRE_STRING) || m_creature->HasStringId(THIRD_LEGIONNAIRE_STRING) || m_creature->HasStringId(FOURTH_LEGIONNAIRE_STRING) || m_creature->HasStringId(FIFTH_LEGIONNAIRE_STRING))
             {
                 if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
                 {
@@ -418,7 +413,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         }
 
         // Legionnaire 006
-        if (guid == SIX_LEGIONNAIRE_GUID)
+        if (guid == SIX_LEGIONNAIRE_STRING)
         {
             // there are 4 sleeping npcs around him, if one of his group members dies he will call for one of the sleeping creatures to get up and join the fight
             // this doesnt have a cd, if all 4 npcs with sleeping aura are up, nothing more happens
@@ -441,7 +436,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                 static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(1, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
             }
         }
-        else if (guid == SEVENTH_LEGIONNAIRE_GUID)
+        else if (m_creature->HasStringId(SEVENTH_LEGIONNAIRE_STRING))
         {
             // For the legionnaire 07, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
             // all 3 npc at dummys have StringID 5400015 assigned
@@ -464,7 +459,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                     DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
                 }
         }
-        else if (guid == EIGTH_LEGIONNAIRE_GUID)
+        else if (m_creature->HasStringId(EIGTH_LEGIONNAIRE_STRING))
         {
             // For the legionnaire 08, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
             // all 3 npc at dummys have StringID 5400016 assigned

@@ -417,17 +417,17 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         {
             // there are 4 sleeping npcs around him, if one of his group members dies he will call for one of the sleeping creatures to get up and join the fight
             // this doesnt have a cd, if all 4 npcs with sleeping aura are up, nothing more happens
-            auto worldObjects = m_creature->GetMap()->GetWorldObjects(SLEEPING_REINF_STRING);
+            auto m_sleepingReinf = m_creature->GetMap()->GetCreatures(SLEEPING_REINF_STRING);
             WorldObject* closest = nullptr;
-            for (WorldObject* wo : *worldObjects)
+            for (Creature* creature : *m_sleepingReinf)
             {
-                if (wo->IsCreature() && static_cast<Creature*>(wo)->IsAlive() && static_cast<Creature*>(wo)->HasAura(AURA_SLEEPING))
+                if (creature->IsAlive() && creature->HasAura(AURA_SLEEPING))
                     continue;
 
                 if (!closest)
-                    closest = wo;
-                else if (m_creature->GetDistance(wo, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
-                    closest = wo;
+                    closest = creature;
+                else if (m_creature->GetDistance(creature, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
+                    closest = creature;
             }
             if (closest)
             {
@@ -440,17 +440,17 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         {
             // For the legionnaire 07, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
             // all 3 npc at dummys have StringID 5400015 assigned
-            auto worldObjects = m_creature->GetMap()->GetWorldObjects(DUMMY_REINF_STRING_1);
+            auto m_dummyReinf = m_creature->GetMap()->GetCreatures(DUMMY_REINF_STRING_1);
             WorldObject* closest = nullptr;
-            for (WorldObject* wo : *worldObjects)
+            for (Creature* creature : *m_dummyReinf)
             {
-                if (wo->IsCreature() && static_cast<Creature*>(wo)->IsAlive())
+                if (creature->IsAlive() && creature->HasAura(AURA_SLEEPING))
                     continue;
 
                 if (!closest)
-                    closest = wo;
-                else if (m_creature->GetDistance(wo, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
-                    closest = wo;
+                    closest = creature;
+                else if (m_creature->GetDistance(creature, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
+                    closest = creature;
             }
             if (closest)
                 if (m_creature->IsInCombat())
@@ -463,17 +463,17 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         {
             // For the legionnaire 08, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
             // all 3 npc at dummys have StringID 5400016 assigned
-            auto worldObjects = m_creature->GetMap()->GetWorldObjects(DUMMY_REINF_STRING_2);
+            auto m_dummyReinf = m_creature->GetMap()->GetCreatures(DUMMY_REINF_STRING_2);
             WorldObject* closest = nullptr;
-            for (WorldObject* wo : *worldObjects)
+            for (Creature* creature : *m_dummyReinf)
             {
-                if (wo->IsCreature() && static_cast<Creature*>(wo)->IsAlive())
+                if (creature->IsAlive() && creature->HasAura(AURA_SLEEPING))
                     continue;
 
                 if (!closest)
-                    closest = wo;
-                else if (m_creature->GetDistance(wo, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
-                    closest = wo;
+                    closest = creature;
+                else if (m_creature->GetDistance(creature, true, DIST_CALC_NONE) < m_creature->GetDistance(closest, true, DIST_CALC_NONE))
+                    closest = creature;
             }
             if (closest)
                 if (m_creature->IsInCombat())
@@ -514,11 +514,6 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_AURA_OF_DISCIPLINE) == CAST_OK)
                     ResetCombatAction(action, 240000);
-                return;
-            }
-            case LEGIONNAIRE_CALL_FOR_REINFORCEMENTS:
-            {
-                CallForReinforcements();
                 return;
             }
         }

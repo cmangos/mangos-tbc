@@ -300,33 +300,28 @@ enum ShatteredHandLegionnair
     SEVENTH_LEGIONNAIRE_STRING      = 5400012,
     EIGTH_LEGIONNAIRE_STRING        = 5400013,
 
-    WORLDSTATE_LEGIONNAIRE_001      = 5400001,
-
     // Reinforcement String IDs 
-    SLEEPING_REINF_STRING           = 5400014, // StringID assigned to sleeping mobs
-    DUMMY_REINF_STRING_1            = 5400015, // StringID assigned to Dummy Group nr 1
-    DUMMY_REINF_STRING_2            = 5400016, // StringID assigned to Dummy Group nr 2
+    SLEEPING_REINF_STRING           = 5400014,      // StringID assigned to sleeping mobs
+    DUMMY_REINF_STRING_1            = 5400015,      // StringID assigned to Dummy Group nr 1
+    DUMMY_REINF_STRING_2            = 5400016,      // StringID assigned to Dummy Group nr 2
     AURA_SLEEPING                   = 16093
 };
 
-static float FelOrcSpawnCoords[][4] =                    // Coords needed for spawns 
+static float FelOrcSpawnCoords[][4] =               // Coords needed for spawns 
 {
     { 0.0f, 0.0f, 0.0f, 0.0f},                      // Legionnaire 001 spawn coords
     { 79.9949f, 111.5607f, -13.1384f, 4.6949f},     // Legionnaire 002 right side felorc spawn
     { 61.1264f, 110.8250f, -13.1384f, 6.1784f },    // Legionnaire 002 left side felorc spawn
     { 88.4735f, 187.3315f, -13.1929f, 3.144f },     // Legionnaire 003 spawn
     { 78.6885f, 218.2196f, -13.2166f, 4.013f },     // Legionnaire 004 spawn
-    { 83.5307f, 250.5344f, -13.1131f, 3.060f },      // Legionnaire 005 spawn
+    { 83.5307f, 250.5344f, -13.1131f, 3.060f },     // Legionnaire 005 spawn
     { 69.4524f, 239.9877f, -13.1936f, 0.0 }         // Legionnaire 006 waypoint
 };
 
 static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
+
 static const int32 aRandomReinf[] = { 16356, 16357, 16358, 16359, 16360, 16361, 16362 };
-
 static const int32 aRandomReinfSleeping[] = { 16363, 16364, 16365, 16366, 16367 };
-
-
-// old used -1540061, -1540062, 1540063,  not in bct?
 
 struct npc_shattered_hand_legionnaire : public CombatAI
 {
@@ -339,9 +334,9 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         AddCustomAction(LEGIONNAIRE_REINF_CD, true, [&]() { DoReinfCD(); });
         if (m_creature->HasStringId(FIRST_LEGIONNAIRE_STRING))
             if (m_creature->IsAlive())
-                m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 1);
+                m_creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_001, 1);
             else
-                m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
+                m_creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_001, 0);
         else if (m_creature->HasStringId(SECOND_LEGIONNAIRE_STRING))
             legionnaireGuid = urand(1, 2);
         else if (m_creature->HasStringId(THIRD_LEGIONNAIRE_STRING))
@@ -369,7 +364,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         if (m_creature->HasStringId(FIRST_LEGIONNAIRE_STRING))
         {
             // When Legionnaire 001 is dead change worldstate to false, heathen/savage group around him cant respawn anymore
-            m_creature->GetMap()->GetVariableManager().SetVariable(WORLDSTATE_LEGIONNAIRE_001, 0);
+            m_creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_001, 0);
         }
     }
 

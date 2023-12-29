@@ -41,6 +41,8 @@ void instance_shattered_halls::Initialize()
 {
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     GauntletReset();
+    instance->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_002, 0);
+    instance->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_002, 0);
 }
 
 void instance_shattered_halls::OnPlayerEnter(Player* pPlayer)
@@ -128,6 +130,14 @@ void instance_shattered_halls::OnCreatureRespawn(Creature* creature)
     }
     if (creature->GetRespawnDelay() == 5)
         creature->SetNoRewards();
+}
+
+// Hall of Fathers intro 
+// when SpawnGroup with 2 shattered hand sentry's die, legionnaire group will spawn and run to their positions.
+void instance_shattered_halls::OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* /*pCreature*/)
+{
+    if (pGroup->GetGroupId() == SPAWN_GROUP_SENTRY)
+        instance->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_002, 1);
 }
 
 void instance_shattered_halls::SetData(uint32 type, uint32 data)

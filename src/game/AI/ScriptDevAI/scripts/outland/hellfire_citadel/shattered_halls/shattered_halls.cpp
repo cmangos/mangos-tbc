@@ -32,6 +32,7 @@ instance_shattered_halls::instance_shattered_halls(Map* pMap) : ScriptedInstance
     m_team(0),
     m_executionStage(0),
     m_prisonersLeft(3),
+    m_legionnaireIntroTimer(1000),
     m_gauntletStopped(false)
 {
     Initialize();
@@ -378,6 +379,26 @@ void instance_shattered_halls::DoBeginArcherAttack(bool leftOrRight)
 
 void instance_shattered_halls::Update(uint32 diff)
 {
+    if (m_legionnaireIntroTimer)
+    {
+        if (m_legionnaireIntroTimer <= diff)
+        {
+            m_legionnaireIntroTimer = 1000;
+            for (const auto& data : instance->GetPlayers())
+            {
+                // Event got triggered on wotlk classic when player moved at
+                // Position: X: 69.95503 Y: 124.538864 Z: -13.209421 O: 1.5825446
+                if (data.getSource()->GetPositionY() > 124.5f)
+                {
+                    m_legionnaireIntroTimer = 0;                    
+                    // Trigger Legionnaire group 04 and 05
+                    instance->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_003, 1);
+                }
+            }            
+        }
+        else m_legionnaireIntroTimer -= diff;
+    }
+
     if (m_auiEncounter[TYPE_GAUNTLET] == IN_PROGRESS)
     {
         if (!GetPlayerInMap(true))

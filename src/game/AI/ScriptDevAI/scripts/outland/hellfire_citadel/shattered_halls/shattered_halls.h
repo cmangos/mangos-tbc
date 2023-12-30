@@ -149,6 +149,7 @@ class instance_shattered_halls : public ScriptedInstance
         uint32 m_team;
         uint8 m_executionStage;
         uint8 m_prisonersLeft;
+        uint32 m_legionnaireIntroTimer;
 
         std::vector<uint32> m_gauntletPermanentGuids;
         GuidVector m_gauntletTemporaryGuids;

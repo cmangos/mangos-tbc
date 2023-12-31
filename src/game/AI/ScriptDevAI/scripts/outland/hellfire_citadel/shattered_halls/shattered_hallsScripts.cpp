@@ -396,7 +396,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         {
             if (m_creature->HasStringId(SECOND_LEGIONNAIRE_STRING) || m_creature->HasStringId(THIRD_LEGIONNAIRE_STRING) || m_creature->HasStringId(FOURTH_LEGIONNAIRE_STRING) || m_creature->HasStringId(FIFTH_LEGIONNAIRE_STRING))
             {
-                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_CORPSE_DESPAWN, urand(20000, 25000), true, true))
+                if (Creature* felorc = m_creature->SummonCreature(MOB_FEL_ORC, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FelOrcSpawnCoords[legionnaireGuid][3], TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, urand(20000, 25000), true, true))
                 {
                     felorc->GetMotionMaster()->MoveWaypoint(legionnaireGuid, 0, 0, 0, FORCED_MOVEMENT_RUN);
                     felorc->SetCanCallForAssistance(false);

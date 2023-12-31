@@ -73,6 +73,11 @@ enum
     NPC_SHARPSHOOTER_GUARD      = 17622,
     NPC_REAVER_GUARD            = 17623,
     
+    // First Group in Dungeon should not drop any loot/give any rep
+    NPC_SHATTERED_HAND_HEATHEN      = 17420,
+    NPC_SHATTERED_HAND_SAVAGE       = 16523,
+    STRING_ID_ENTRANCE_GROUP        = 5400002,
+    
     // Used for Hall of Fathers intro
     WORLD_STATE_LEGIONNAIRE_001     = 5400001,              // Prevents that shattered hand savage/heathen can respawn when legionnaire 01 is dead
     WORLD_STATE_LEGIONNAIRE_002     = 5400002,              // Spawns Legionnaire 03 group

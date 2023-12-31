@@ -128,6 +128,15 @@ void instance_shattered_halls::OnCreatureRespawn(Creature* creature)
         case NPC_FLAME_ARROW:
             creature->SetCanEnterCombat(false);
             break;
+        case NPC_SHATTERED_HAND_HEATHEN:
+        case NPC_SHATTERED_HAND_SAVAGE:
+            if (creature->HasStringId(STRING_ID_ENTRANCE_GROUP))
+            {
+                creature->SetNoXP(true);
+                creature->SetNoLoot(true);
+                creature->SetNoReputation(true);
+            }
+            break;
     }
     if (creature->GetRespawnDelay() == 5)
         creature->SetNoRewards();

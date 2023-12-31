@@ -315,7 +315,7 @@ static float FelOrcSpawnCoords[][4] =               // Coords needed for spawns
     { 88.4735f, 187.3315f, -13.1929f, 3.144f },     // Legionnaire 003 spawn
     { 78.6885f, 218.2196f, -13.2166f, 4.013f },     // Legionnaire 004 spawn
     { 83.5307f, 250.5344f, -13.1131f, 3.060f },     // Legionnaire 005 spawn
-    { 69.4524f, 239.9877f, -13.1936f, 0.0 }         // Legionnaire 006 waypoint
+    { 69.8188f, 239.513f, -13.193643f, 0.0 }         // Legionnaire 006 waypoint
 };
 
 static const int32 aRandomAggro[] = { 16700, 16703, 16698, 16701, 16702, 16697, 16699 };
@@ -390,7 +390,6 @@ struct npc_shattered_hand_legionnaire : public CombatAI
 
     void CallForReinforcements()
     {
-        uint32 guid = m_creature->GetDbGuid();
         // reinforcement can get spawned even if legionnaire is outfight and has a cooldown between 10 and 15 seconds, but only one can be up
         if (!m_reinfCD)
         {
@@ -408,7 +407,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         }
 
         // Legionnaire 006
-        if (guid == SIX_LEGIONNAIRE_STRING)
+        if (m_creature->HasStringId(SIX_LEGIONNAIRE_STRING))
         {
             // there are 4 sleeping npcs around him, if one of his group members dies he will call for one of the sleeping creatures to get up and join the fight
             // this doesnt have a cd, if all 4 npcs with sleeping aura are up, nothing more happens
@@ -416,7 +415,10 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             WorldObject* closest = nullptr;
             for (Creature* creature : *m_sleepingReinf)
             {
-                if (creature->IsAlive() && creature->HasAura(AURA_SLEEPING))
+                // Only call alive creatures
+                // Only call creature that isnt in combat already
+                // Only call creature that still has sleeping aura
+                if (creature->IsAlive() && !creature->IsInCombat() && !creature->HasAura(AURA_SLEEPING))
                     continue;
 
                 if (!closest)
@@ -428,6 +430,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             {
                 DoBroadcastText(aRandomReinfSleeping[urand(0, 6)], m_creature);
                 static_cast<Creature*>(closest)->RemoveAurasDueToSpell(AURA_SLEEPING);
+                static_cast<Creature*>(closest)->SetIgnoreMMAP(true); // hackfix
                 static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(1, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
             }
         }
@@ -439,7 +442,9 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             WorldObject* closest = nullptr;
             for (Creature* creature : *m_dummyReinf)
             {
-                if (creature->IsAlive() && creature->HasAura(AURA_SLEEPING))
+                // Only call alive creatures
+                // Only call creature that isnt in combat already
+                if (creature->IsAlive() && !creature->IsInCombat())
                     continue;
 
                 if (!closest)
@@ -462,7 +467,9 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             WorldObject* closest = nullptr;
             for (Creature* creature : *m_dummyReinf)
             {
-                if (creature->IsAlive() && creature->HasAura(AURA_SLEEPING))
+                // Only call alive creatures
+                // Only call creature that isnt in combat already
+                if (creature->IsAlive() && !creature->IsInCombat())
                     continue;
 
                 if (!closest)

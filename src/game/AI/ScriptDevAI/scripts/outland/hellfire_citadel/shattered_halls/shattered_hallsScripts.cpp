@@ -288,23 +288,7 @@ enum ShatteredHandLegionnair
     SPELL_PUMMEL                    = 15615,
     SPELL_ENRAGE                    = 30485,
     EMOTE_ENRAGE                    = 1151,
-    MOB_FEL_ORC                     = 17083,
-
-    // Legionnaire StringID
-    FIRST_LEGIONNAIRE_STRING        = 5400001,
-    SECOND_LEGIONNAIRE_STRING       = 5400007,
-    THIRD_LEGIONNAIRE_STRING        = 5400008,
-    FOURTH_LEGIONNAIRE_STRING       = 5400009,
-    FIFTH_LEGIONNAIRE_STRING        = 5400010,
-    SIX_LEGIONNAIRE_STRING          = 5400011,
-    SEVENTH_LEGIONNAIRE_STRING      = 5400012,
-    EIGTH_LEGIONNAIRE_STRING        = 5400013,
-
-    // Reinforcement String IDs 
-    SLEEPING_REINF_STRING           = 5400014,      // StringID assigned to sleeping mobs
-    DUMMY_REINF_STRING_1            = 5400015,      // StringID assigned to Dummy Group nr 1
-    DUMMY_REINF_STRING_2            = 5400016,      // StringID assigned to Dummy Group nr 2
-    AURA_SLEEPING                   = 16093
+    MOB_FEL_ORC                     = 17083,   
 };
 
 static float FelOrcSpawnCoords[][4] =               // Coords needed for spawns 

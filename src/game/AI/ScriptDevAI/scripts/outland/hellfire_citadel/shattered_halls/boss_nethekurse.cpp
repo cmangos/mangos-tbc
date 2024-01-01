@@ -313,6 +313,19 @@ struct mob_fel_orc_convertAI : public ScriptedAI
     {
         if (m_instance)
         {
+            if (m_creature->HasStringId(STRING_ID_LEGIONNAIRE_06_GROUP))
+            {
+                auto m_sleepingReinf = m_creature->GetMap()->GetCreatures(SIX_LEGIONNAIRE_STRING);
+                for (Creature* legionnaire : *m_sleepingReinf)
+                {
+                    // Only call alive creatures
+                    if (!legionnaire->IsAlive())
+                        return;
+
+                    SendAIEvent(AI_EVENT_JUST_DIED, m_creature, legionnaire);
+                }
+            }
+
             if (m_instance->GetData(TYPE_NETHEKURSE) != IN_PROGRESS)
                 return;
 

@@ -84,7 +84,25 @@ enum
     WORLD_STATE_LEGIONNAIRE_003     = 5400003,              // Spawns Legionnaire 04 and 05 groups
     WORLD_STATE_CUSTOM_SPAWN_WAVES  = 5400004,              // Spawns initial waves at gauntlet of flame
 
-    SPAWN_GROUP_SENTRY              = 5400013               // SpawnGroup that triggers spawning of Legionnaire Group 03
+    // Legionnaire StringID
+    FIRST_LEGIONNAIRE_STRING        = 5400001,
+    SECOND_LEGIONNAIRE_STRING       = 5400007,
+    THIRD_LEGIONNAIRE_STRING        = 5400008,
+    FOURTH_LEGIONNAIRE_STRING       = 5400009,
+    FIFTH_LEGIONNAIRE_STRING        = 5400010,
+    SIX_LEGIONNAIRE_STRING          = 5400011,
+    SEVENTH_LEGIONNAIRE_STRING      = 5400012,
+    EIGTH_LEGIONNAIRE_STRING        = 5400013,
+
+    // Reinforcement String IDs 
+    SLEEPING_REINF_STRING           = 5400014,      // StringID assigned to sleeping mobs
+    DUMMY_REINF_STRING_1            = 5400015,      // StringID assigned to Dummy Group nr 1
+    DUMMY_REINF_STRING_2            = 5400016,      // StringID assigned to Dummy Group nr 2
+    AURA_SLEEPING                   = 16093,
+
+    SPAWN_GROUP_SENTRY              = 5400013,              // SpawnGroup that triggers spawning of Legionnaire Group 03
+
+    STRING_ID_LEGIONNAIRE_06_GROUP  = 5400017               // Legionnaire Group 06 StringID
 };
 
 struct SpawnLocation

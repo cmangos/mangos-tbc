@@ -330,7 +330,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         else if (m_creature->HasStringId(FIFTH_LEGIONNAIRE_STRING))
             legionnaireGuid = 5;
         else if (m_creature->HasStringId(SIX_LEGIONNAIRE_STRING))
-            legionnaireGuid = 5;
+            legionnaireGuid = 6;
     }
 
     uint32 legionnaireGuid;
@@ -370,6 +370,16 @@ struct npc_shattered_hand_legionnaire : public CombatAI
     {
         if (m_reinfCD)
             ResetTimer(LEGIONNAIRE_REINF_CD, urand(10000, 15000));
+    }
+
+    void SummonedMovementInform(Creature* summoned, uint32 /*motionType*/, uint32 pointId) override
+    {
+        // When last waypoint reached, search for players.
+        if (pointId == 100)
+        {
+            summoned->GetMotionMaster()->MoveIdle();
+            summoned->SetInCombatWithZone();            
+        }
     }
 
     void CallForReinforcements()
@@ -415,7 +425,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                 DoBroadcastText(aRandomReinfSleeping[urand(0, 6)], m_creature);
                 static_cast<Creature*>(closest)->RemoveAurasDueToSpell(AURA_SLEEPING);
                 static_cast<Creature*>(closest)->SetIgnoreMMAP(true); // hackfix
-                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(1, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
+                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(100, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
             }
         }
         else if (m_creature->HasStringId(SEVENTH_LEGIONNAIRE_STRING))
@@ -437,11 +447,10 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                     closest = creature;
             }
             if (closest)
-                if (m_creature->IsInCombat())
-                {   
-                    static_cast<Creature*>(closest)->AI()->AttackClosestEnemy();
-                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
-                }
+            {
+                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(100, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), FORCED_MOVEMENT_RUN);
+                DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+            }
         }
         else if (m_creature->HasStringId(EIGTH_LEGIONNAIRE_STRING))
         {
@@ -462,11 +471,10 @@ struct npc_shattered_hand_legionnaire : public CombatAI
                     closest = creature;
             }
             if (closest)
-                if (m_creature->IsInCombat())
-                {
-                    static_cast<Creature*>(closest)->AI()->AttackClosestEnemy();
-                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
-                }
+            {
+                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(100, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), FORCED_MOVEMENT_RUN);
+                DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+            }
         }
 
         // Buff can only get casted when legionnaire is infight and doesnt already have the buff

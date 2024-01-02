@@ -2319,6 +2319,9 @@ class Player : public Unit
         void SetSpellModSpell(Spell* spell);
 
         uint32 LookupHighestLearnedRank(uint32 spellId);
+
+        std::pair<uint32, bool> GetLastData() { return std::make_pair(m_lastDbGuid, m_lastGameObject); }
+        void SetLastData(uint32 dbGuid, bool gameobject) { m_lastDbGuid = dbGuid; m_lastGameObject = gameobject; }
     protected:
         /*********************************************************/
         /***               BATTLEGROUND SYSTEM                 ***/
@@ -2645,6 +2648,8 @@ class Player : public Unit
         uint8 m_fishingSteps;
 
         std::map<uint32, ItemSetEffect> m_itemSetEffects;
+
+        uint32 m_lastDbGuid; bool m_lastGameObject;
 };
 
 void AddItemsSetItem(Player* player, Item* item);

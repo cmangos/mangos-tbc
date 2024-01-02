@@ -406,7 +406,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             // there are 4 sleeping npcs around him, if one of his group members dies he will call for one of the sleeping creatures to get up and join the fight
             // this doesnt have a cd, if all 4 npcs with sleeping aura are up, nothing more happens
             auto m_sleepingReinf = m_creature->GetMap()->GetCreatures(SLEEPING_REINF_STRING);
-            WorldObject* closest = nullptr;
+            Creature* closest = nullptr;
             for (Creature* creature : *m_sleepingReinf)
             {
                 // Only call alive creatures
@@ -423,9 +423,9 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             if (closest)
             {
                 DoBroadcastText(aRandomReinfSleeping[urand(0, 6)], m_creature);
-                static_cast<Creature*>(closest)->RemoveAurasDueToSpell(AURA_SLEEPING);
-                static_cast<Creature*>(closest)->SetIgnoreMMAP(true); // hackfix
-                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(100, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
+                closest->RemoveAurasDueToSpell(AURA_SLEEPING);
+                closest->SetIgnoreMMAP(true); // hackfix
+                closest->GetMotionMaster()->MovePoint(100, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
             }
         }
         else if (m_creature->HasStringId(SEVENTH_LEGIONNAIRE_STRING))
@@ -433,7 +433,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             // For the legionnaire 07, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
             // all 3 npc at dummys have StringID 5400015 assigned
             auto m_dummyReinf = m_creature->GetMap()->GetCreatures(DUMMY_REINF_STRING_1);
-            WorldObject* closest = nullptr;
+            Creature* closest = nullptr;
             for (Creature* creature : *m_dummyReinf)
             {
                 // Only call alive creatures
@@ -448,7 +448,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             }
             if (closest)
             {
-                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(100, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), FORCED_MOVEMENT_RUN);
+                closest->GetMotionMaster()->MovePoint(100, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), FORCED_MOVEMENT_RUN);
                 DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
             }
         }

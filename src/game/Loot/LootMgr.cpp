@@ -2473,10 +2473,10 @@ LootStoreItem const* LootTemplate::LootGroup::Roll(Loot const& loot, Player cons
 // True if group includes at least 1 quest drop entry
 bool LootTemplate::LootGroup::HasQuestDrop() const
 {
-    for (auto i : ExplicitlyChanced)
+    for (auto const& i : ExplicitlyChanced)
         if (i.needs_quest)
             return true;
-    for (auto i : EqualChanced)
+    for (auto const& i : EqualChanced)
         if (i.needs_quest)
             return true;
     return false;
@@ -2485,10 +2485,10 @@ bool LootTemplate::LootGroup::HasQuestDrop() const
 // True if group includes at least 1 quest drop entry for active quests of the player
 bool LootTemplate::LootGroup::HasQuestDropForPlayer(Player const* player) const
 {
-    for (auto i : ExplicitlyChanced)
+    for (auto const& i : ExplicitlyChanced)
         if (player->HasQuestForItem(i.itemid))
             return true;
-    for (auto i : EqualChanced)
+    for (auto const& i : EqualChanced)
         if (player->HasQuestForItem(i.itemid))
             return true;
     return false;
@@ -2521,7 +2521,7 @@ float LootTemplate::LootGroup::RawTotalChance() const
 {
     float result = 0;
 
-    for (auto i : ExplicitlyChanced)
+    for (auto const& i : ExplicitlyChanced)
         if (!i.needs_quest)
             result += i.chance;
 
@@ -2601,7 +2601,7 @@ void LootTemplate::Process(Loot& loot, Player const* lootOwner, LootStore const&
     }
 
     // Rolling non-grouped items
-    for (auto Entrie : Entries)
+    for (auto const& Entrie : Entries)
     {
         // Check condition
         if (Entrie.conditionId && lootOwner && !PlayerOrGroupFulfilsCondition(loot, lootOwner, Entrie.conditionId))
@@ -2625,7 +2625,7 @@ void LootTemplate::Process(Loot& loot, Player const* lootOwner, LootStore const&
     }
 
     // Now processing groups
-    for (const auto& Group : Groups)
+    for (auto const& Group : Groups)
         Group.Process(loot, lootOwner, store, rate);
 }
 
@@ -2639,7 +2639,7 @@ bool LootTemplate::HasQuestDrop(LootTemplateMap const& store, uint8 groupId) con
         return Groups[groupId - 1].HasQuestDrop();
     }
 
-    for (auto Entrie : Entries)
+    for (auto const& Entrie : Entries)
     {
         if (Entrie.mincountOrRef < 0)                           // References
         {
@@ -2654,7 +2654,7 @@ bool LootTemplate::HasQuestDrop(LootTemplateMap const& store, uint8 groupId) con
     }
 
     // Now processing groups
-    for (const auto& Group : Groups)
+    for (auto const& Group : Groups)
         if (Group.HasQuestDrop())
             return true;
 
@@ -2672,7 +2672,7 @@ bool LootTemplate::HasQuestDropForPlayer(LootTemplateMap const& store, Player co
     }
 
     // Checking non-grouped entries
-    for (auto Entrie : Entries)
+    for (auto const& Entrie : Entries)
     {
         if (Entrie.mincountOrRef < 0)                           // References processing
         {
@@ -2687,7 +2687,7 @@ bool LootTemplate::HasQuestDropForPlayer(LootTemplateMap const& store, Player co
     }
 
     // Now checking groups
-    for (const auto& Group : Groups)
+    for (auto const& Group : Groups)
         if (Group.HasQuestDropForPlayer(player))
             return true;
 

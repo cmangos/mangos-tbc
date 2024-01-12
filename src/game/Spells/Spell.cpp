@@ -444,6 +444,8 @@ Spell::Spell(WorldObject* caster, SpellEntry const* info, uint32 triggeredFlags,
     m_updated = false;
     m_duration = 0;
     m_maxRange = 0.f;
+    m_guaranteedCrit = false;
+    m_usableWhileStunned = m_spellInfo->HasAttribute(SPELL_ATTR_EX5_ALLOW_WHILE_STUNNED);
 
     m_needAliveTargetMask = 0;
 
@@ -1649,6 +1651,7 @@ void Spell::HandleImmediateEffectExecution(TargetInfo* target)
     m_damage = 0;
     m_absorb = 0;
     m_healing = 0; // healing maybe not needed at this point
+    m_guaranteedCrit = false;
 
     // keep damage amount for reflected spells
     if (missInfo == SPELL_MISS_NONE || (missInfo == SPELL_MISS_REFLECT && target->reflectResult == SPELL_MISS_NONE))
@@ -1664,7 +1667,7 @@ void Spell::HandleImmediateEffectExecution(TargetInfo* target)
     target->HitInfo = 0;
     target->effectMaskProcessed = mask;
     if (m_damage > 0 || m_healing > 0)
-        target->isCrit = Unit::RollSpellCritOutcome(affectiveCaster, unit, m_spellSchoolMask, m_spellInfo);
+        target->isCrit = m_guaranteedCrit ? true : Unit::RollSpellCritOutcome(affectiveCaster, unit, m_spellSchoolMask, m_spellInfo);
 }
 
 bool Spell::CanSpellDiminish() const
@@ -6288,10 +6291,7 @@ SpellCastResult Spell::CheckCasterAuras(uint32& param1) const
         return SPELL_CAST_OK;
 
     // these attributes only show the spell as usable on the client when it has related aura applied
-     // still they need to be checked against certain mechanics
-
-     // SPELL_ATTR5_USABLE_WHILE_STUNNED by default only MECHANIC_STUN (ie no sleep, knockout, freeze, etc.)
-    bool usableWhileStunned = m_spellInfo->HasAttribute(SPELL_ATTR_EX5_ALLOW_WHILE_STUNNED);
+    // still they need to be checked against certain mechanics
 
     // SPELL_ATTR5_USABLE_WHILE_FEARED by default only fear (ie no horror)
     bool usableWhileFeared = m_spellInfo->HasAttribute(SPELL_ATTR_EX5_ALLOW_WHILE_FLEEING);
@@ -6352,7 +6352,7 @@ SpellCastResult Spell::CheckCasterAuras(uint32& param1) const
         return SPELL_CAST_OK;
     };
 
-    if (unitflag & UNIT_FLAG_STUNNED && !usableWhileStunned && !CheckSpellCancelsStun(param1))
+    if (unitflag & UNIT_FLAG_STUNNED && !m_usableWhileStunned && !CheckSpellCancelsStun(param1))
         result = SPELL_FAILED_STUNNED;
     else if (unitflag & UNIT_FLAG_SILENCED && m_spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE && !CheckSpellCancelsSilence(param1))
         result = SPELL_FAILED_SILENCED;

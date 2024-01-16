@@ -78,12 +78,6 @@ enum
     NPC_SHATTERED_HAND_SAVAGE       = 16523,
     STRING_ID_ENTRANCE_GROUP        = 5400002,
     
-    // Used for Hall of Fathers intro
-    WORLD_STATE_LEGIONNAIRE_001     = 5400001,              // Prevents that shattered hand savage/heathen can respawn when legionnaire 01 is dead
-    WORLD_STATE_LEGIONNAIRE_002     = 5400002,              // Spawns Legionnaire 03 group
-    WORLD_STATE_LEGIONNAIRE_003     = 5400003,              // Spawns Legionnaire 04 and 05 groups
-    WORLD_STATE_CUSTOM_SPAWN_WAVES  = 5400004,              // Spawns initial waves at gauntlet of flame
-
     // Legionnaire StringID
     FIRST_LEGIONNAIRE_STRING        = 5400001,
     SECOND_LEGIONNAIRE_STRING       = 5400007,

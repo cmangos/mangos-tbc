@@ -424,8 +424,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             {
                 DoBroadcastText(aRandomReinfSleeping[urand(0, 6)], m_creature);
                 closest->RemoveAurasDueToSpell(AURA_SLEEPING);
-                closest->SetIgnoreMMAP(true); // hackfix
-                closest->GetMotionMaster()->MovePoint(100, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN);
+                closest->GetMotionMaster()->MovePoint(100, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN, false);
             }
         }
         else if (m_creature->HasStringId(SEVENTH_LEGIONNAIRE_STRING))
@@ -478,7 +477,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         }
 
         // Buff can only get casted when legionnaire is infight and doesnt already have the buff
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+        if (!m_creature->IsInCombat() || !m_creature->GetVictim())
             return;
 
         if (!m_creature->HasAura(SPELL_ENRAGE))

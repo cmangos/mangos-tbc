@@ -5,6 +5,8 @@
 #ifndef DEF_SHATTERED_H
 #define DEF_SHATTERED_H
 
+#include "World/WorldStateDefines.h"
+
 enum
 {
     MAX_ENCOUNTER               = 5,
@@ -75,29 +77,32 @@ enum
     
     // First Group in Dungeon should not drop any loot/give any rep
     NPC_SHATTERED_HAND_HEATHEN      = 17420,
-    NPC_SHATTERED_HAND_SAVAGE       = 16523,
-    STRING_ID_ENTRANCE_GROUP        = 5400002,
+    NPC_SHATTERED_HAND_SAVAGE       = 16523,    
     
-    // Legionnaire StringID
-    FIRST_LEGIONNAIRE_STRING        = 5400001,
-    SECOND_LEGIONNAIRE_STRING       = 5400007,
-    THIRD_LEGIONNAIRE_STRING        = 5400008,
-    FOURTH_LEGIONNAIRE_STRING       = 5400009,
-    FIFTH_LEGIONNAIRE_STRING        = 5400010,
-    SIX_LEGIONNAIRE_STRING          = 5400011,
-    SEVENTH_LEGIONNAIRE_STRING      = 5400012,
-    EIGTH_LEGIONNAIRE_STRING        = 5400013,
-
-    // Reinforcement String IDs 
-    SLEEPING_REINF_STRING           = 5400014,      // StringID assigned to sleeping mobs
-    DUMMY_REINF_STRING_1            = 5400015,      // StringID assigned to Dummy Group nr 1
-    DUMMY_REINF_STRING_2            = 5400016,      // StringID assigned to Dummy Group nr 2
     AURA_SLEEPING                   = 16093,
 
     SPAWN_GROUP_SENTRY              = 5400013,              // SpawnGroup that triggers spawning of Legionnaire Group 03
 
     STRING_ID_LEGIONNAIRE_06_GROUP  = 5400017               // Legionnaire Group 06 StringID
 };
+
+// Legionnaire StringID  
+const std::string FIRST_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_01";
+const std::string SECOND_LEGIONNAIRE_STRING       = "SHH_LEGIONNAIRE_02";
+const std::string THIRD_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_03";
+const std::string FOURTH_LEGIONNAIRE_STRING       = "SHH_LEGIONNAIRE_04";
+const std::string FIFTH_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_05";
+const std::string SIX_LEGIONNAIRE_STRING          = "SHH_LEGIONNAIRE_06";
+const std::string SEVENTH_LEGIONNAIRE_STRING      = "SHH_LEGIONNAIRE_07";
+const std::string EIGTH_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_08";
+
+// Reinforcement String IDs 
+const std::string SLEEPING_REINF_STRING           = "SHH_SLEEPING_REINF";     // StringID assigned to sleeping mobs
+const std::string DUMMY_REINF_STRING_1            = "SHH_DUMMY_REINF_01";     // StringID assigned to Dummy Group nr 1
+const std::string DUMMY_REINF_STRING_2            = "SHH_DUMMY_REINF_02";     // StringID assigned to Dummy Group nr 2
+
+const std::string STRING_ID_ENTRANCE_GROUP        = "SHH_ENTRANCE_GROUP";     // StringID assigned to entrance group to prevent rep/xp farm abuse
+const std::string STRING_ID_FEL_ORC               = "SHH_FEL_ORC_CONVERT";    // StringID assigned to FelOrcConvert npcs that can call legionnaire for reinf
 
 struct SpawnLocation
 {

@@ -313,7 +313,7 @@ struct mob_fel_orc_convertAI : public ScriptedAI
     {
         if (m_instance)
         {
-            if (m_creature->HasStringId(STRING_ID_LEGIONNAIRE_06_GROUP))
+            if (m_creature->HasStringId(STRING_ID_FEL_ORC))
             {
                 auto m_sleepingReinf = m_creature->GetMap()->GetCreatures(SIX_LEGIONNAIRE_STRING);
                 for (Creature* legionnaire : *m_sleepingReinf)

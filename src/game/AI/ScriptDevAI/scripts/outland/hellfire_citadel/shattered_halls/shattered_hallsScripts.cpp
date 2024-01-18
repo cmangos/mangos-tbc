@@ -429,7 +429,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
         else if (m_creature->HasStringId(SEVENTH_LEGIONNAIRE_STRING))
         {
             // For the legionnaire 07, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
-            // all 3 npc at dummys have StringID 5400015 assigned
+            // all 3 npc at dummys have StringID assigned
             auto m_dummyReinf = m_creature->GetMap()->GetCreatures(DUMMY_REINF_STRING_1);
             Creature* closest = nullptr;
             for (Creature* creature : *m_dummyReinf)
@@ -446,16 +446,20 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             }
             if (closest)
             {
-                closest->GetMotionMaster()->MovePoint(100, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), FORCED_MOVEMENT_RUN);
-                DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                Unit* target = m_creature->GetVictim();
+                if (target)
+                {
+                    closest->AI()->AttackStart(target);
+                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                }
             }
         }
         else if (m_creature->HasStringId(EIGTH_LEGIONNAIRE_STRING))
         {
             // For the legionnaire 08, if one of his group members dies he will inform the nearest npc staying at the dummys behind him
-            // all 3 npc at dummys have StringID 5400016 assigned
+            // all 3 npc at dummys have StringID assigned
             auto m_dummyReinf = m_creature->GetMap()->GetCreatures(DUMMY_REINF_STRING_2);
-            WorldObject* closest = nullptr;
+            Creature* closest = nullptr;
             for (Creature* creature : *m_dummyReinf)
             {
                 // Only call alive creatures
@@ -470,8 +474,12 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             }
             if (closest)
             {
-                static_cast<Creature*>(closest)->GetMotionMaster()->MovePoint(100, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), FORCED_MOVEMENT_RUN);
-                DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                Unit* target = m_creature->GetVictim();
+                if (target)
+                {
+                    closest->AI()->AttackStart(target);
+                    DoBroadcastText(aRandomReinf[urand(0, 6)], m_creature);
+                }
             }
         }
 

@@ -422,7 +422,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             }
             if (closest)
             {
-                DoBroadcastText(aRandomReinfSleeping[urand(0, 5)], m_creature);
+                DoBroadcastText(aRandomReinfSleeping[urand(0, 4)], m_creature);
                 closest->RemoveAurasDueToSpell(AURA_SLEEPING);
             }
         }

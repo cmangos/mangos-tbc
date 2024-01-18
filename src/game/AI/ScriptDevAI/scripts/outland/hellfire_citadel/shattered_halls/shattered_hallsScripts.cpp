@@ -360,16 +360,16 @@ struct npc_shattered_hand_legionnaire : public CombatAI
 
     void SummonedCreatureJustDied(Creature* summoned) override
     {
-        // There can always be just one reinforcement up, when summoned dies legionnaire can spawn a new one after ~5 seconds cooldown
+        // There can always be just one reinforcement up, when summoned dies legionnaire can spawn a new one after ~5-15 seconds cooldown
         if (m_reinfCD)
-            ResetTimer(LEGIONNAIRE_REINF_CD, urand(10000, 15000));
+            ResetTimer(LEGIONNAIRE_REINF_CD, urand(5000, 15000));
     }
 
     // also reset timer when summoned despawns 
     void SummonedCreatureDespawn(Creature* /*summoned*/) override
     {
         if (m_reinfCD)
-            ResetTimer(LEGIONNAIRE_REINF_CD, urand(10000, 15000));
+            ResetTimer(LEGIONNAIRE_REINF_CD, urand(5000, 15000));
     }
 
     void SummonedMovementInform(Creature* summoned, uint32 /*motionType*/, uint32 pointId) override
@@ -424,7 +424,7 @@ struct npc_shattered_hand_legionnaire : public CombatAI
             {
                 DoBroadcastText(aRandomReinfSleeping[urand(0, 6)], m_creature);
                 closest->RemoveAurasDueToSpell(AURA_SLEEPING);
-                closest->GetMotionMaster()->MovePoint(100, FelOrcSpawnCoords[legionnaireGuid][0], FelOrcSpawnCoords[legionnaireGuid][1], FelOrcSpawnCoords[legionnaireGuid][2], FORCED_MOVEMENT_RUN, false);
+                closest->SetWalk(false, true);
             }
         }
         else if (m_creature->HasStringId(SEVENTH_LEGIONNAIRE_STRING))

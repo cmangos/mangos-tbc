@@ -931,8 +931,8 @@ class WorldSession
 
         uint32 m_GUIDLow;                                   // set logged or recently logout player (while m_playerRecentlyLogout set)
         Player* _player;
-        std::shared_ptr<WorldSocket> m_Socket;              // socket pointer is owned by the network thread which created it
-        std::shared_ptr<WorldSocket> m_requestSocket;       // a new socket for this session is requested (double connection)
+        boost::shared_ptr<WorldSocket> m_Socket;              // socket pointer is owned by the network thread which created it
+        boost::shared_ptr<WorldSocket> m_requestSocket;       // a new socket for this session is requested (double connection)
         std::string m_localAddress;
         WorldSessionState m_sessionState;                   // this session state
 

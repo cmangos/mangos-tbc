@@ -318,6 +318,8 @@ int main(int argc, char* argv[])
 #endif
     }
 
+    service.stop();
+
     threads.join_all();
 
 

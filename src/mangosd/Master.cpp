@@ -252,8 +252,13 @@ int Master::Run()
 
         world_thread.wait();
 
+        m_service.stop();
+
         if (raEnable)
+        {
+            m_raService.stop();
             m_raThread.join();
+        }
 
         threads.join_all();
     }

@@ -588,7 +588,7 @@ bool AuthSocket::_HandleLogonProof()
                         auto clientToken = atoi((const char*)keys->data());
                         if (ServerToken != clientToken)
                         {
-                            BASIC_LOG("[AuthChallenge] Account %s tried to login with wrong pincode! Given %u Expected %u Pin Count: %u", self->_login.c_str(), clientToken, ServerToken, pinCount);
+                            BASIC_LOG("[AuthChallenge] Account %s tried to login with wrong pincode! Given %u Expected %u Pin Count: %u", self->_login.c_str(), clientToken, ServerToken, *pinCount);
                             self->Write(logonProofUnknownAccount, sizeof(logonProofUnknownAccount), [self](const boost::system::error_code& error, std::size_t read) {});
                             return;
                         }

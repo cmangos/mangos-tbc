@@ -24,14 +24,14 @@
 #include "Grids/CellImpl.h"
 #include "Maps/Map.h"
 #include "Maps/MapManager.h"
-#include "Timer.h"
+#include "Util/Timer.h"
 #include "Grids/GridNotifiersImpl.h"
 #include "Globals/ObjectMgr.h"
 #include "GameEvents/GameEventMgr.h"
 #include "World/World.h"
 #include "Groups/Group.h"
 #include "Maps/InstanceData.h"
-#include "ProgressBar.h"
+#include "Util/ProgressBar.h"
 
 #include <list>
 #include <cstdarg>
@@ -306,19 +306,24 @@ void DungeonPersistentState::UpdateEncounterState(EncounterCreditType type, uint
 
     for (DungeonEncounterMap::const_iterator iter = bounds.first; iter != bounds.second; ++iter)
     {
-        DungeonEncounterEntry const* dbcEntry = iter->second->dbcEntry;
+        DungeonEncounterEntry const* dbcEntry = iter->second.dbcEntry;
 
-        if (iter->second->creditType == type && Difficulty(dbcEntry->Difficulty) == GetDifficulty() && dbcEntry->mapId == GetMapId())
+        if (iter->second.creditType == type && Difficulty(dbcEntry->Difficulty) == GetDifficulty() && dbcEntry->mapId == GetMapId())
         {
             m_completedEncountersMask |= 1 << dbcEntry->encounterIndex;
 
             if (Map* map = GetMap())
-                map->GetVariableManager().SetEncounterVariable(dbcEntry->Id, true);
+            {
+                if (dbcEntry->CompleteWorldStateID) // use official data whenever available
+                    map->GetVariableManager().SetVariable(dbcEntry->CompleteWorldStateID, true);
+                else // phase this out eventually
+                    map->GetVariableManager().SetEncounterVariable(dbcEntry->Id, true);
+            }                
 
             CharacterDatabase.PExecute("UPDATE instance SET encountersMask = '%u' WHERE id = '%u'", m_completedEncountersMask, GetInstanceId());
 
             DEBUG_LOG("DungeonPersistentState: Dungeon %s (Id %u) completed encounter %s", GetMap()->GetMapName(), GetInstanceId(), dbcEntry->encounterName[sWorld.GetDefaultDbcLocale()]);
-            if (/*uint32 dungeonId =*/ iter->second->lastEncounterDungeon)
+            if (/*uint32 dungeonId =*/ iter->second.lastEncounterDungeon)
             {
                 DEBUG_LOG("DungeonPersistentState:: Dungeon %s (Instance-Id %u) completed last encounter %s", GetMap()->GetMapName(), GetInstanceId(), dbcEntry->encounterName[sWorld.GetDefaultDbcLocale()]);
                 // Place LFG reward here
@@ -368,15 +373,15 @@ void DungeonResetScheduler::LoadResetTimes()
     typedef std::map<uint32, std::pair<uint32, time_t> > ResetTimeMapType;
     ResetTimeMapType InstResetTime;
 
-    QueryResult* result = CharacterDatabase.Query("SELECT id, map, resettime FROM instance WHERE resettime > 0");
-    if (result)
+    auto queryResult = CharacterDatabase.Query("SELECT id, map, resettime FROM instance WHERE resettime > 0");
+    if (queryResult)
     {
         do
         {
-            if (time_t resettime = time_t((*result)[2].GetUInt64()))
+            if (time_t resettime = time_t((*queryResult)[2].GetUInt64()))
             {
-                uint32 id = (*result)[0].GetUInt32();
-                uint32 mapid = (*result)[1].GetUInt32();
+                uint32 id = (*queryResult)[0].GetUInt32();
+                uint32 mapid = (*queryResult)[1].GetUInt32();
 
                 MapEntry const* mapEntry = sMapStore.LookupEntry(mapid);
 
@@ -389,16 +394,15 @@ void DungeonResetScheduler::LoadResetTimes()
                 InstResetTime[id] = std::pair<uint32, uint64>(mapid, resettime);
             }
         }
-        while (result->NextRow());
-        delete result;
+        while (queryResult->NextRow());
 
         // update reset time for normal instances with the max creature respawn time + X hours
-        result = CharacterDatabase.Query("SELECT MAX(respawntime), instance FROM creature_respawn WHERE instance > 0 GROUP BY instance");
-        if (result)
+        queryResult = CharacterDatabase.Query("SELECT MAX(respawntime), instance FROM creature_respawn WHERE instance > 0 GROUP BY instance");
+        if (queryResult)
         {
             do
             {
-                Field* fields = result->Fetch();
+                Field* fields = queryResult->Fetch();
 
                 time_t resettime    = time_t(fields[0].GetUInt64() + 2 * HOUR);
                 uint32 instance     = fields[1].GetUInt32();
@@ -410,8 +414,7 @@ void DungeonResetScheduler::LoadResetTimes()
                     itr->second.second = resettime;
                 }
             }
-            while (result->NextRow());
-            delete result;
+            while (queryResult->NextRow());
         }
 
         // schedule the reset times
@@ -423,12 +426,12 @@ void DungeonResetScheduler::LoadResetTimes()
     // load the global respawn times for raid/heroic instances
     uint32 diff = sWorld.getConfig(CONFIG_UINT32_INSTANCE_RESET_TIME_HOUR) * HOUR;
     m_resetTimeByMapId.resize(sMapStore.GetNumRows() + 1);
-    result = CharacterDatabase.Query("SELECT mapid, resettime FROM instance_reset");
-    if (result)
+    queryResult = CharacterDatabase.Query("SELECT mapid, resettime FROM instance_reset");
+    if (queryResult)
     {
         do
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
 
             uint32 mapid            = fields[0].GetUInt32();
 
@@ -449,8 +452,7 @@ void DungeonResetScheduler::LoadResetTimes()
 
             SetResetTimeFor(mapid, newresettime);
         }
-        while (result->NextRow());
-        delete result;
+        while (queryResult->NextRow());
     }
 
     // clean expired instances, references to them will be deleted in CleanupInstances
@@ -751,12 +753,12 @@ void MapPersistentStateManager::_DelHelper(DatabaseType& db, const char* fields,
     vsnprintf(szQueryTail, MAX_QUERY_LEN, queryTail, ap);
     va_end(ap);
 
-    QueryResult* result = db.PQuery("SELECT %s FROM %s %s", fields, table, szQueryTail);
-    if (result)
+    auto queryResult = db.PQuery("SELECT %s FROM %s %s", fields, table, szQueryTail);
+    if (queryResult)
     {
         do
         {
-            Field* resultFields = result->Fetch();
+            Field* resultFields = queryResult->Fetch();
             std::ostringstream ss;
             for (size_t i = 0; i < fieldTokens.size(); ++i)
             {
@@ -766,8 +768,7 @@ void MapPersistentStateManager::_DelHelper(DatabaseType& db, const char* fields,
             }
             db.PExecute("DELETE FROM %s WHERE %s", table, ss.str().c_str());
         }
-        while (result->NextRow());
-        delete result;
+        while (queryResult->NextRow());
     }
 }
 
@@ -814,16 +815,15 @@ void MapPersistentStateManager::PackInstances() const
     // all valid ids are in the instance table
     // any associations to ids not in this table are assumed to be
     // cleaned already in CleanupInstances
-    QueryResult* result = CharacterDatabase.Query("SELECT id FROM instance");
-    if (result)
+    auto queryResult = CharacterDatabase.Query("SELECT id FROM instance");
+    if (queryResult)
     {
         do
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
             InstanceSet.insert(fields[0].GetUInt32());
         }
-        while (result->NextRow());
-        delete result;
+        while (queryResult->NextRow());
     }
 
     BarGoLink bar(InstanceSet.size() + 1);
@@ -1001,13 +1001,13 @@ void MapPersistentStateManager::InitWorldMaps()
 void MapPersistentStateManager::LoadCreatureRespawnTimes()
 {
     // remove outdated data
-    CharacterDatabase.DirectExecute("DELETE FROM creature_respawn WHERE respawntime <= UNIX_TIMESTAMP(NOW())");
+    CharacterDatabase.DirectExecute("DELETE FROM creature_respawn WHERE respawntime <= " _UNIXNOW_);
 
     uint32 count = 0;
 
-    //                                                    0     1            2    3         4           5          6
-    QueryResult* result = CharacterDatabase.Query("SELECT guid, respawntime, map, instance, difficulty, resettime, encountersMask FROM creature_respawn LEFT JOIN instance ON instance = id");
-    if (!result)
+    //                                                 0     1            2    3         4           5          6
+    auto queryResult = CharacterDatabase.Query("SELECT guid, respawntime, map, instance, difficulty, resettime, encountersMask FROM creature_respawn LEFT JOIN instance ON instance = id");
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -1016,14 +1016,14 @@ void MapPersistentStateManager::LoadCreatureRespawnTimes()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         bar.step();
 
-        uint32 loguid               = fields[0].GetUInt32();
+        uint32 dbGuid               = fields[0].GetUInt32();
         uint64 respawn_time         = fields[1].GetUInt64();
         uint32 mapId                = fields[2].GetUInt32();
         uint32 instanceId           = fields[3].GetUInt32();
@@ -1031,7 +1031,7 @@ void MapPersistentStateManager::LoadCreatureRespawnTimes()
         time_t resetTime            = (time_t)fields[5].GetUInt64();
         uint32 completedEncounters = fields[6].GetUInt32();
 
-        CreatureData const* data = sObjectMgr.GetCreatureData(loguid);
+        CreatureData const* data = sObjectMgr.GetCreatureData(dbGuid);
         if (!data)
             continue;
 
@@ -1057,13 +1057,11 @@ void MapPersistentStateManager::LoadCreatureRespawnTimes()
         if (!state)
             continue;
 
-        state->SetCreatureRespawnTime(loguid, time_t(respawn_time));
+        state->SetCreatureRespawnTime(dbGuid, time_t(respawn_time));
 
         ++count;
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u creature respawn times", count);
     sLog.outString();
@@ -1072,14 +1070,14 @@ void MapPersistentStateManager::LoadCreatureRespawnTimes()
 void MapPersistentStateManager::LoadGameobjectRespawnTimes()
 {
     // remove outdated data
-    CharacterDatabase.DirectExecute("DELETE FROM gameobject_respawn WHERE respawntime <= UNIX_TIMESTAMP(NOW())");
+    CharacterDatabase.DirectExecute("DELETE FROM gameobject_respawn WHERE respawntime <= " _UNIXNOW_);
 
     uint32 count = 0;
 
-    //                                                    0     1            2    3         4           5          6
-    QueryResult* result = CharacterDatabase.Query("SELECT guid, respawntime, map, instance, difficulty, resettime, encountersMask FROM gameobject_respawn LEFT JOIN instance ON instance = id");
+    //                                                 0     1            2    3         4           5          6
+    auto queryResult = CharacterDatabase.Query("SELECT guid, respawntime, map, instance, difficulty, resettime, encountersMask FROM gameobject_respawn LEFT JOIN instance ON instance = id");
 
-    if (!result)
+    if (!queryResult)
     {
         BarGoLink bar(1);
         bar.step();
@@ -1088,14 +1086,14 @@ void MapPersistentStateManager::LoadGameobjectRespawnTimes()
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     do
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         bar.step();
 
-        uint32 loguid               = fields[0].GetUInt32();
+        uint32 dbGuid               = fields[0].GetUInt32();
         uint64 respawn_time         = fields[1].GetUInt64();
         uint32 mapId                = fields[2].GetUInt32();
         uint32 instanceId           = fields[3].GetUInt32();
@@ -1103,7 +1101,7 @@ void MapPersistentStateManager::LoadGameobjectRespawnTimes()
         time_t resetTime            = (time_t)fields[5].GetUInt64();
         uint32 completedEncounters = fields[6].GetUInt32();
 
-        GameObjectData const* data = sObjectMgr.GetGOData(loguid);
+        GameObjectData const* data = sObjectMgr.GetGOData(dbGuid);
         if (!data)
             continue;
 
@@ -1129,13 +1127,11 @@ void MapPersistentStateManager::LoadGameobjectRespawnTimes()
         if (!state)
             continue;
 
-        state->SetGORespawnTime(loguid, time_t(respawn_time));
+        state->SetGORespawnTime(dbGuid, time_t(respawn_time));
 
         ++count;
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     sLog.outString(">> Loaded %u gameobject respawn times", count);
     sLog.outString();

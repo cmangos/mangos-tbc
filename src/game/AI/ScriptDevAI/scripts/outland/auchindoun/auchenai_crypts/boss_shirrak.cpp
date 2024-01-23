@@ -28,7 +28,7 @@ EndScriptData */
 
 enum
 {
-    EMOTE_FOCUS                     = -1558010,
+    EMOTE_FOCUS                     = 19321,
 
     SPELL_CARNIVOROUS_BITE          = 36383,
     SPELL_CARNIVOROUS_BITE_H        = 39382,
@@ -39,38 +39,28 @@ enum
     SPELL_FOCUS_TARGET_VISUAL       = 32286,
     SPELL_BIRTH                     = 26262,
     SPELL_FOCUS_FIRE_SUMMON         = 32283,
+    SPELL_FOCUS_FIRE_CALLBACK       = 32300,
+    SPELL_FOCUS_FIRE_AURA           = 32291,
     NPC_FOCUS_FIRE                  = 18374  // summoned by 32283 
 };
 
 enum ShirrakActions
 {
-    SHIRRAK_FOCUS_FIRE,
-    SHIRRAK_CARNIVOROUS_BITE,
-    SHIRRAK_ATTRACT_MAGIC,
     SHIRRAK_ACTION_MAX,
 };
 
 struct boss_shirrakAI : public CombatAI
 {
     boss_shirrakAI(Creature* creature) : CombatAI(creature, SHIRRAK_ACTION_MAX), m_bIsRegularMode(creature->GetMap()->IsRegularDifficulty())
-    {
-        AddCombatAction(SHIRRAK_CARNIVOROUS_BITE, 4000, 7000);
-        AddCombatAction(SHIRRAK_FOCUS_FIRE, 15000u);
-        AddCombatAction(SHIRRAK_ATTRACT_MAGIC, 20000, 24000);
-    }
+    {}
 
     bool m_bIsRegularMode;
-
-    uint8 m_uiFocusFireCount;
-
-    ObjectGuid m_focusTargetGuid;
 
     void Reset() override
     {
         CombatAI::Reset();
-        m_uiFocusFireCount          = 0;
 
-        DoCastSpellIfCan(m_creature, SPELL_INHIBIT_MAGIC_TRIGGER, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        DoCastSpellIfCan(nullptr, SPELL_INHIBIT_MAGIC_TRIGGER, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -78,57 +68,10 @@ struct boss_shirrakAI : public CombatAI
         m_creature->RemoveAurasDueToSpell(SPELL_INHIBIT_MAGIC_TRIGGER); // TODO: Investigate passive spell removal on death
     }
 
-    void ExecuteAction(uint32 action) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* target) override
     {
-        switch (action)
-        {
-            case SHIRRAK_CARNIVOROUS_BITE:
-                if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_CARNIVOROUS_BITE : SPELL_CARNIVOROUS_BITE_H) == CAST_OK)
-                    ResetCombatAction(action, urand(4000, 10000));
-                break;
-            case SHIRRAK_FOCUS_FIRE:
-            {
-                ++m_uiFocusFireCount;
-                Unit* target = nullptr;
-
-                switch (m_uiFocusFireCount)
-                {
-                    case 1:
-                    {
-                        // engage the target
-                        target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER);
-
-                        if (!target)
-                            target = m_creature->GetVictim();
-
-                        DoScriptText(EMOTE_FOCUS, m_creature, target);
-                        m_focusTargetGuid = target->GetObjectGuid();
-                        // no break;
-                    }
-                    case 2:
-                        // we have a delay of 1 sec between the summons
-                        ResetCombatAction(action, 1000);
-                        break;
-                    case 3:
-                        // reset the timers and the summon count
-                        m_uiFocusFireCount = 0;
-                        ResetCombatAction(action, 15000);
-                        break;
-                }
-
-                if (!target)
-                    target = m_creature->GetMap()->GetUnit(m_focusTargetGuid);
-
-                // Summon focus fire at target location
-                if (target)
-                    target->CastSpell(nullptr, SPELL_FOCUS_FIRE_SUMMON, TRIGGERED_OLD_TRIGGERED);
-                break;
-            }
-            case SHIRRAK_ATTRACT_MAGIC:
-                if (DoCastSpellIfCan(m_creature, SPELL_ATTRACT_MAGIC) == CAST_OK)
-                    ResetCombatAction(action, urand(25000, 38000));
-                break;
-        }
+        if (spellInfo->Id == SPELL_FOCUS_FIRE_AURA)
+            DoBroadcastText(EMOTE_FOCUS, m_creature, target);
     }
 };
 
@@ -162,6 +105,19 @@ struct FocusTargetVisual : public AuraScript
     }
 };
 
+struct PingShirrak : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (!target)
+            return;
+
+        // Cast Focus fire on caster
+        target->CastSpell(spell->GetCaster(), SPELL_FOCUS_FIRE_CALLBACK, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void AddSC_boss_shirrak()
 {
     Script* pNewScript = new Script;
@@ -171,4 +127,5 @@ void AddSC_boss_shirrak()
 
     RegisterSpellScript<InhibitMagic>("spell_shirrak_inhibit_magic");
     RegisterSpellScript<FocusTargetVisual>("spell_focus_target_visual");
+    RegisterSpellScript<PingShirrak>("spell_ping_shirrak");
 }

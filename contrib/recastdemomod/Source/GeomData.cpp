@@ -610,12 +610,61 @@ bool GeomData::RaycastMesh(MeshDetails const* mesh, float* src, float* dst, floa
     return hit;
 }
 
+// check hit on either map mesh and liquid mesh
+bool GeomData::MeshHitTest(MeshInfos const* mesh, float* src, float* dst, float& dist) const
+{
+    bool result = false;
+    if (mesh)
+    {
+        bool mHit = false;
+        bool lHit = false;
+        float mDist = FLT_MAX;
+        float lDist = FLT_MAX;
+        if (mesh->GetSolidMesh())
+        {
+            mHit = RaycastMesh(mesh->GetSolidMesh(), src, dst, mDist);
+        }
+
+        if (mesh->GetLiquidMesh())
+        {
+            lHit = RaycastMesh(mesh->GetLiquidMesh(), src, dst, lDist);
+        }
+
+        if (mHit || lHit)
+        {
+            if (mHit && lHit)
+            {
+                if (mDist > lDist)
+                {
+                    dist = lDist;
+                }
+                else
+                {
+                    dist = mDist;
+                }
+            }
+            else if (mHit)
+                dist = mDist;
+            else
+                dist = lDist;
+
+            result = true;
+        }
+
+    }
+
+    return result;
+}
+
 bool GeomData::RaycastMesh(float* src, float* dst, float& tmin) const
 {
     if (m_MeshObjectsMap.empty())
         return false;
 
-    bool hit = false;
+    bool mapHit = false;
+    bool vmapHit = false;
+    float mapDist = FLT_MAX;
+    float vmapDist = FLT_MAX;
     MeshObjectsMap::const_iterator itr = m_MeshObjectsMap.begin();
     while (itr != m_MeshObjectsMap.end())
     {
@@ -623,17 +672,37 @@ bool GeomData::RaycastMesh(float* src, float* dst, float& tmin) const
         MeshInfos const* mmi = mo->GetMap();
         MeshInfos const* vmmi = mo->GetVMap();
 
-        if (mmi && mmi->GetSolidMesh())
-            hit = RaycastMesh(mmi->GetSolidMesh(), src, dst, tmin);
+        // test hit on map data if any
+        if (mmi)
+            mapHit = MeshHitTest(mmi, src, dst, mapDist);
 
-        if (!hit && vmmi && vmmi->GetSolidMesh())
-                    hit = RaycastMesh(vmmi->GetSolidMesh(), src, dst, tmin);
+        // test hit on vmap data if any
+        if (vmmi)
+            vmapHit = MeshHitTest(vmmi, src, dst, vmapDist);
 
-        if (hit)
-                break;
+        // take the most near hit we have
+        if (mapHit || vmapHit)
+        {
+            if (mapHit && vmapHit)
+            {
+                if (mapDist < vmapDist)
+                    tmin = mapDist;
+                else
+                    tmin = vmapDist;
+            }
+            else if (mapHit)
+            {
+                tmin = mapDist;
+            }
+            else
+                tmin = vmapDist;
+
+            // break out of the while loop
+            break;
+        }
 
         ++itr;
     }
 
-    return hit;
+    return mapHit || vmapHit;
 }

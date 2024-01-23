@@ -24,28 +24,29 @@ EndScriptData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "arcatraz.h"
 #include "Spells/Scripts/SpellScript.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 
 enum
 {
     // Intro yells
-    SAY_SOCCOTHRATES_INTRO_1        = -1552049,
-    SAY_DALLIAH_INTRO_2             = -1552050,
-    SAY_SOCCOTHRATES_INTRO_3        = -1552051,
-    SAY_DALLIAH_INTRO_4             = -1552052,
-    SAY_SOCCOTHRATES_INTRO_5        = -1552053,
-    SAY_DALLIAH_INTRO_6             = -1552054,
-    SAY_SOCCOTHRATES_INTRO_7        = -1552055,
+    SAY_SOCCOTHRATES_INTRO_1        = 20051,
+    SAY_DALLIAH_INTRO_2             = 20055,
+    SAY_SOCCOTHRATES_INTRO_3        = 20052,
+    SAY_DALLIAH_INTRO_4             = 20056,
+    SAY_SOCCOTHRATES_INTRO_5        = 20053,
+    SAY_DALLIAH_INTRO_6             = 20057,
+    SAY_SOCCOTHRATES_INTRO_7        = 20054,
 
-    SAY_AGGRO                       = -1552048,
-    SAY_KILL                        = -1552047,
-    SAY_DEATH                       = -1552046,
-    SAY_CHARGE_1                    = -1552044,
-    SAY_CHARGE_2                    = -1552045,
+    SAY_AGGRO                       = 19967,
+    SAY_KILL                        = 19969,
+    SAY_DEATH                       = 19973,
+    SAY_CHARGE_1                    = 19971,
+    SAY_CHARGE_2                    = 19972,
 
     SPELL_IMMOLATION                = 36051,
     SPELL_IMMOLATION_H              = 39007,
     SPELL_KNOCK_AWAY                = 36512,
-    SPELL_FELFIRE_LINE_UP           = 35770,                // dummy spell - moves prespawned NPCs into a line
+    SPELL_FELFIRE_LINE_UP           = 35770,                // dummy spellInfo - moves prespawned NPCs into a line
     SPELL_FELFIRE                   = 35769,
     SPELL_CHARGE_TARGETING          = 36038,                // summons 21030 on target
     SPELL_CHARGE                    = 35754,                // script target on 21030; also dummy effect area effect target on 20978 - makes the target cast 35769
@@ -67,47 +68,45 @@ static const DialogueEntry aIntroDialogue[] =
     {0, 0, 0},
 };
 
-struct boss_soccothratesAI : public ScriptedAI, private DialogueHelper
+enum SoccothratesActions
 {
-    boss_soccothratesAI(Creature* pCreature) : ScriptedAI(pCreature),
-        DialogueHelper(aIntroDialogue)
+    SOCCOTHRATES_ACTION_MAX,
+    SOCCOTHRATES_FELFIRE_LINEUP,
+};
+
+struct boss_soccothratesAI : public CombatAI, private DialogueHelper
+{
+    boss_soccothratesAI(Creature* creature) : CombatAI(creature, SOCCOTHRATES_ACTION_MAX),
+        DialogueHelper(aIntroDialogue),
+        m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_isRegularMode(creature->GetMap()->IsRegularDifficulty()),
+        m_hasYelledIntro(false)
     {
-        m_pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        InitializeDialogueHelper(m_pInstance);
-        m_bHasYelledIntro = false;
-        Reset();
+        AddOnKillText(SAY_KILL);
+        InitializeDialogueHelper(m_instance);
+        AddCustomAction(SOCCOTHRATES_FELFIRE_LINEUP, true, [&]() { HandleFelfireLineup(); });
     }
 
-    ScriptedInstance* m_pInstance;
-    bool m_bIsRegularMode;
-
-    uint32 m_uiKnockAwayTimer;
-    uint32 m_uiFelfireShockTimer;
-    uint32 m_uiFelfireLineupTimer;
-    uint32 m_uiChargeTimer;
+    ScriptedInstance* m_instance;
+    bool m_isRegularMode;
 
     float m_x, m_y, m_z; // last charge target location
     uint8 m_lineUpCounter;
 
-    bool m_bHasYelledIntro;
+    bool m_hasYelledIntro;
 
     void Reset() override
     {
-        m_uiFelfireShockTimer   = urand(10000, 13000);
-        m_uiKnockAwayTimer      = urand(22000, 25000);
-        m_uiFelfireLineupTimer  = 0;
-        m_uiChargeTimer         = 0;
+        CombatAI::Reset();
 
-        DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_IMMOLATION : SPELL_IMMOLATION_H);
+        DoCastSpellIfCan(nullptr, m_isRegularMode ? SPELL_IMMOLATION : SPELL_IMMOLATION_H);
     }
 
-    void Aggro(Unit* /*pWho*/) override
+    void Aggro(Unit* /*who*/) override
     {
-        DoScriptText(SAY_AGGRO, m_creature);
+        DoBroadcastText(SAY_AGGRO, m_creature);
 
         GuidVector felfireVector; // at aggro felfire mobs always teleport to respawn location
-        m_pInstance->GetCreatureGuidVectorFromStorage(NPC_WRATH_SCRYER_FELFIRE, felfireVector);
+        m_instance->GetCreatureGuidVectorFromStorage(NPC_WRATH_SCRYER_FELFIRE, felfireVector);
         for (ObjectGuid& guid : felfireVector)
         {
             if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
@@ -118,32 +117,27 @@ struct boss_soccothratesAI : public ScriptedAI, private DialogueHelper
             }
         }
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_SOCCOTHRATES, IN_PROGRESS);
+        if (m_instance)
+            m_instance->SetData(TYPE_SOCCOTHRATES, IN_PROGRESS);
     }
 
-    void MoveInLineOfSight(Unit* pWho) override
+    void MoveInLineOfSight(Unit* who) override
     {
-        if (!m_bHasYelledIntro && pWho->GetTypeId() == TYPEID_PLAYER && m_creature->IsWithinDistInMap(pWho, 75.0f) && m_creature->IsWithinLOSInMap(pWho))
+        if (!m_hasYelledIntro && who->IsPlayer() && !static_cast<Player*>(who)->IsGameMaster() && m_creature->IsWithinDistInMap(who, 75.0f) && m_creature->IsWithinLOSInMap(who))
         {
             StartNextDialogueText(SAY_SOCCOTHRATES_INTRO_1);
-            m_bHasYelledIntro = true;
+            m_hasYelledIntro = true;
         }
 
-        ScriptedAI::MoveInLineOfSight(pWho);
+        ScriptedAI::MoveInLineOfSight(who);
     }
 
-    void KilledUnit(Unit* /*pVictim*/) override
+    void JustDied(Unit* /*who*/) override
     {
-        DoScriptText(SAY_KILL, m_creature);
-    }
+        DoBroadcastText(SAY_DEATH, m_creature);
 
-    void JustDied(Unit* /*pWho*/) override
-    {
-        DoScriptText(SAY_DEATH, m_creature);
-
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_SOCCOTHRATES, DONE);
+        if (m_instance)
+            m_instance->SetData(TYPE_SOCCOTHRATES, DONE);
     }
 
     void EnterEvadeMode() override
@@ -156,21 +150,21 @@ struct boss_soccothratesAI : public ScriptedAI, private DialogueHelper
         if (m_creature->IsAlive())
             m_creature->GetMotionMaster()->MovePoint(1, aSoccotharesStartPos[0], aSoccotharesStartPos[1], aSoccotharesStartPos[2]);
 
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_SOCCOTHRATES, FAIL);
+        if (m_instance)
+            m_instance->SetData(TYPE_SOCCOTHRATES, FAIL);
 
         m_creature->SetLootRecipient(nullptr);
 
         Reset();
     }
 
-    void MovementInform(uint32 uiMoveType, uint32 uiPointId) override
+    void MovementInform(uint32 moveType, uint32 pointId) override
     {
-        if (uiMoveType != POINT_MOTION_TYPE)
+        if (moveType != POINT_MOTION_TYPE)
             return;
 
         // Adjust orientation
-        if (uiPointId)
+        if (pointId)
             m_creature->SetFacingTo(aSoccotharesStartPos[3]);
     }
 
@@ -183,9 +177,9 @@ struct boss_soccothratesAI : public ScriptedAI, private DialogueHelper
         }
     }
 
-    void SpellHitTarget(Unit* target, const SpellEntry* spell) override
+    void SpellHitTarget(Unit* target, const SpellEntry* spellInfo) override
     {
-        if (spell->Id == SPELL_FELFIRE_LINE_UP)
+        if (spellInfo->Id == SPELL_FELFIRE_LINE_UP)
         {
             // need to get even points between caster and target to reposition felfire evenly
             float sX = m_creature->GetPositionX(), sY = m_creature->GetPositionY(); // source coords
@@ -195,92 +189,51 @@ struct boss_soccothratesAI : public ScriptedAI, private DialogueHelper
             target->NearTeleportTo(fX, fY, m_creature->GetPositionZ(), m_creature->GetOrientation());
             m_lineUpCounter++;
         }
-        else if (spell->Id == SPELL_CHARGE && target->GetEntry() == NPC_WRATH_SCRYER_CHARGE_TARGET)
+        else if (spellInfo->Id == SPELL_CHARGE && target->GetEntry() == NPC_WRATH_SCRYER_CHARGE_TARGET)
             SetCombatMovement(true);
     }
 
-    void JustDidDialogueStep(int32 iEntry) override
+    void JustDidDialogueStep(int32 textEntry) override
     {
         // Move each of them to their places
-        if (iEntry == SAY_SOCCOTHRATES_INTRO_7)
+        if (textEntry == SAY_SOCCOTHRATES_INTRO_7)
         {
             m_creature->GetMotionMaster()->MovePoint(1, aSoccotharesStartPos[0], aSoccotharesStartPos[1], aSoccotharesStartPos[2]);
 
-            if (m_pInstance)
+            if (m_instance)
             {
-                if (Creature* pDalliah = m_pInstance->GetSingleCreatureFromStorage(NPC_DALLIAH))
-                    pDalliah->GetMotionMaster()->MovePoint(1, aDalliahStartPos[0], aDalliahStartPos[1], aDalliahStartPos[2]);
+                if (Creature* dalliah = m_instance->GetSingleCreatureFromStorage(NPC_DALLIAH))
+                    dalliah->GetMotionMaster()->MovePoint(1, aDalliahStartPos[0], aDalliahStartPos[1], aDalliahStartPos[2]);
             }
         }
+    }
+
+    void HandleFelfireLineup()
+    {
+        if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
+        {
+            if (DoCastSpellIfCan(target, SPELL_CHARGE_TARGETING) == CAST_OK)
+            {
+                m_creature->CastSpell(nullptr, SPELL_FELFIRE_LINE_UP, TRIGGERED_OLD_TRIGGERED);
+                DoBroadcastText(urand(0, 1) ? SAY_CHARGE_1 : SAY_CHARGE_2, m_creature, target);
+            }
+        }
+    }
+
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
+    {
+        if (spellInfo->Id == SPELL_KNOCK_AWAY)
+            ResetTimer(SOCCOTHRATES_FELFIRE_LINEUP, 2000);
     }
 
     void UpdateAI(const uint32 uiDiff) override
     {
         DialogueUpdate(uiDiff);
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_uiFelfireShockTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), m_bIsRegularMode ? SPELL_FELFIRE_SHOCK : SPELL_FELFIRE_SHOCK_H) == CAST_OK)
-                m_uiFelfireShockTimer = urand(35000, 45000);
-        }
-        else
-            m_uiFelfireShockTimer -= uiDiff;
-
-        if (m_uiKnockAwayTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_KNOCK_AWAY) == CAST_OK)
-            {
-                m_uiKnockAwayTimer = urand(30000, 35000);
-                m_uiFelfireLineupTimer = 2000;
-            }
-        }
-        else
-            m_uiKnockAwayTimer -= uiDiff;
-
-        // Prepare the boss for charging
-        if (m_uiFelfireLineupTimer)
-        {
-            if (m_uiFelfireLineupTimer <= uiDiff)
-            {
-                if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-                {
-                    if (DoCastSpellIfCan(pTarget, SPELL_CHARGE_TARGETING) == CAST_OK)
-                    {
-                        // ToDo: the Wrath-Scryer's Felfire npcs should be summoned at this point and aligned to the chosen target!
-                        m_creature->CastSpell(m_creature, SPELL_FELFIRE_LINE_UP, TRIGGERED_OLD_TRIGGERED);
-                        DoScriptText(urand(0, 1) ? SAY_CHARGE_1 : SAY_CHARGE_2, m_creature, pTarget);
-
-                        m_uiChargeTimer        = 2500;
-                        m_uiFelfireLineupTimer = 0;
-                    }
-                }
-            }
-            else
-                m_uiFelfireLineupTimer -= uiDiff;
-        }
-
-        // Charge the target
-        if (m_uiChargeTimer)
-        {
-            if (m_uiChargeTimer <= uiDiff)
-            {
-                m_creature->RemoveAurasDueToSpell(SPELL_KNOCK_AWAY);
-                SetCombatMovement(false); // prevents interrupting charge
-                // Note: this spell will also light up the Wrath-Scryer's Felfire npcs
-                if (DoCastSpellIfCan(m_creature, SPELL_CHARGE) == CAST_OK)
-                    m_uiChargeTimer = 0;
-            }
-            else
-                m_uiChargeTimer -= uiDiff;
-        }
-
-        DoMeleeAttackIfReady();
+        CombatAI::UpdateAI(uiDiff);
     }
 };
 
+// 35754 - Charge
 struct SoccothratesCharge : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const
@@ -293,6 +246,24 @@ struct SoccothratesCharge : public SpellScript
     }
 };
 
+// 36512 - Knock Away
+struct KnockAwaySoccothrates : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+        {
+            Unit* target = aura->GetTarget();
+            if (target->AI())
+            {
+                target->AI()->SetCombatMovement(false); // prevents interrupting charge
+                // Note: this spellInfo will also light up the Wrath-Scryer's Felfire npcs
+                target->AI()->DoCastSpellIfCan(nullptr, SPELL_CHARGE);
+            }
+        }
+    }
+};
+
 void AddSC_boss_soccothrates()
 {
     Script* pNewScript = new Script;
@@ -301,4 +272,5 @@ void AddSC_boss_soccothrates()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<SoccothratesCharge>("spell_soccothrates_charge");
+    RegisterSpellScript<KnockAwaySoccothrates>("spell_soccothrates_knock_away");
 }

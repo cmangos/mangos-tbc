@@ -124,7 +124,7 @@ Unit* DynamicObject::GetCaster() const
     return ObjectAccessor::GetUnit(*this, GetCasterGuid());
 }
 
-void DynamicObject::Update(const uint32 diff)
+void DynamicObject::Update(const uint32 /*diff*/)
 {
     // caster can be not in world at time dynamic object update, but dynamic object not yet deleted in Unit destructor
     Unit* caster = GetCaster();
@@ -219,3 +219,9 @@ void DynamicObject::OnPersistentAreaAuraEnd()
         m_auraScript->OnPersistentAreaAuraEnd(this);
 }
 
+bool DynamicObject::OnPersistentAreaAuraCheckTarget(Unit* target)
+{
+    if (m_auraScript)
+        return m_auraScript->OnPersistentAreaAuraCheckTarget(this, target);
+    return true;
+}

@@ -20,8 +20,8 @@
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
 #include "Globals/ObjectMgr.h"
-#include "ProgressBar.h"
-#include "Util.h"
+#include "Util/ProgressBar.h"
+#include "Util/Util.h"
 
 #include <list>
 #include <vector>
@@ -48,15 +48,15 @@ void LoadRandomEnchantmentsTable()
     RandomItemEnch.clear();                                 // for reload case
 
     uint32 count = 0;
-    QueryResult* result = WorldDatabase.Query("SELECT entry, ench, chance FROM item_enchantment_template");
+    auto queryResult = WorldDatabase.Query("SELECT entry, ench, chance FROM item_enchantment_template");
 
-    if (result)
+    if (queryResult)
     {
-        BarGoLink bar(result->GetRowCount());
+        BarGoLink bar(queryResult->GetRowCount());
 
         do
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
             bar.step();
 
             uint32 entry = fields[0].GetUInt32();
@@ -68,9 +68,7 @@ void LoadRandomEnchantmentsTable()
 
             ++count;
         }
-        while (result->NextRow());
-
-        delete result;
+        while (queryResult->NextRow());
 
         sLog.outString(">> Loaded %u Item Enchantment definitions", count);
     }

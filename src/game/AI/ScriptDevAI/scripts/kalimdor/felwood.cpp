@@ -162,277 +162,29 @@ bool GossipSelect_npc_corrupt_saber(Player* pPlayer, Creature* pCreature, uint32
     return true;
 }
 
-/*######
-## npc_niby_the_almighty (summons el pollo grande)
-######*/
-
-enum
-{
-    QUEST_KROSHIUS     = 7603,
-
-    NPC_IMPSY          = 14470,
-
-    SPELL_SUMMON_POLLO = 23056,
-
-    SAY_NIBY_1         = -1000566,
-    SAY_NIBY_2         = -1000567,
-    EMOTE_IMPSY_1      = -1000568,
-    SAY_IMPSY_1        = -1000569,
-    SAY_NIBY_3         = -1000570
-};
-
-struct npc_niby_the_almightyAI : public ScriptedAI
-{
-    npc_niby_the_almightyAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
-
-    uint32 m_uiSummonTimer;
-    uint8  m_uiSpeech;
-
-    bool m_bEventStarted;
-
-    void Reset() override
-    {
-        m_uiSummonTimer = 500;
-        m_uiSpeech = 0;
-
-        m_bEventStarted = false;
-    }
-
-    void StartEvent()
-    {
-        Reset();
-        m_bEventStarted = true;
-        m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        if (m_bEventStarted)
-        {
-            if (m_uiSummonTimer <= uiDiff)
-            {
-                switch (m_uiSpeech)
-                {
-                    case 1:
-                        m_creature->GetMotionMaster()->Clear();
-                        m_creature->GetMotionMaster()->MovePoint(0, 5407.19f, -753.00f, 350.82f);
-                        m_uiSummonTimer = 6200;
-                        break;
-                    case 2:
-                        m_creature->SetFacingTo(1.2f);
-                        DoScriptText(SAY_NIBY_1, m_creature);
-                        m_uiSummonTimer = 3000;
-                        break;
-                    case 3:
-                        DoScriptText(SAY_NIBY_2, m_creature);
-                        DoCastSpellIfCan(m_creature, SPELL_SUMMON_POLLO);
-                        m_uiSummonTimer = 2000;
-                        break;
-                    case 4:
-                        if (Creature* pImpsy = GetClosestCreatureWithEntry(m_creature, NPC_IMPSY, 20.0))
-                        {
-                            DoScriptText(EMOTE_IMPSY_1, pImpsy);
-                            DoScriptText(SAY_IMPSY_1, pImpsy);
-                            m_uiSummonTimer = 2500;
-                        }
-                        else
-                        {
-                            // Skip Speech 5
-                            m_uiSummonTimer = 40000;
-                            ++m_uiSpeech;
-                        }
-                        break;
-                    case 5:
-                        DoScriptText(SAY_NIBY_3, m_creature);
-                        m_uiSummonTimer = 40000;
-                        break;
-                    case 6:
-                        m_creature->GetMotionMaster()->MoveTargetedHome();
-                        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-                        m_bEventStarted = false;
-                        break;
-                }
-                ++m_uiSpeech;
-            }
-            else
-                m_uiSummonTimer -= uiDiff;
-        }
-    }
-};
-
-UnitAI* GetAI_npc_niby_the_almighty(Creature* pCreature)
-{
-    return new npc_niby_the_almightyAI(pCreature);
-}
-
-bool QuestRewarded_npc_niby_the_almighty(Player* /*pPlayer*/, Creature* pCreature, Quest const* pQuest)
-{
-    if (pQuest->GetQuestId() == QUEST_KROSHIUS)
-    {
-        if (npc_niby_the_almightyAI* pNibyAI = dynamic_cast<npc_niby_the_almightyAI*>(pCreature->AI()))
-        {
-            pNibyAI->StartEvent();
-        }
-    }
-    return true;
-}
-
-/*######
-## npc_kroshius
-######*/
-
-enum
-{
-    NPC_KROSHIUS            = 14467,
-    SPELL_KNOCKBACK         = 10101,
-    SAY_KROSHIUS_REVIVE     = -1000589,
-    EVENT_KROSHIUS_REVIVE   = 8328,
-    FACTION_HOSTILE         = 16,
-};
-
-struct npc_kroshiusAI : public ScriptedAI
-{
-    npc_kroshiusAI(Creature* pCreature) : ScriptedAI(pCreature)
-    {
-        m_uiPhase = 0;
-        Reset();
-    }
-
-    ObjectGuid m_playerGuid;
-    uint32 m_uiKnockBackTimer;
-    uint32 m_uiPhaseTimer;
-
-    uint8 m_uiPhase;
-
-    void Reset() override
-    {
-        m_uiKnockBackTimer = urand(5000, 8000);
-        m_playerGuid.Clear();
-
-        if (!m_uiPhase)
-            m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-    }
-
-    void DoRevive(Player* pSource)
-    {
-        if (m_uiPhase)
-            return;
-
-        m_uiPhase = 1;
-        m_uiPhaseTimer = 2500;
-        m_playerGuid = pSource->GetObjectGuid();
-
-        // TODO: A visual Flame Circle around the mob still missing
-    }
-
-    void JustDied(Unit* /*pKiller*/) override
-    {
-        m_uiPhase = 0;
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        if (!m_uiPhase)
-            return;
-
-        if (m_uiPhase < 4)
-        {
-            if (m_uiPhaseTimer < uiDiff)
-            {
-                switch (m_uiPhase)
-                {
-                    case 1:                                 // Revived
-                        m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                        m_uiPhaseTimer = 1000;
-                        break;
-                    case 2:
-                        DoScriptText(SAY_KROSHIUS_REVIVE, m_creature);
-                        m_uiPhaseTimer = 3500;
-                        break;
-                    case 3:                                 // Attack
-                        m_creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_COMBAT_STOP | TEMPFACTION_RESTORE_RESPAWN |  TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
-                        if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
-                        {
-                            if (m_creature->IsWithinDistInMap(pPlayer, 30.0f))
-                                AttackStart(pPlayer);
-                        }
-                        break;
-                }
-                ++m_uiPhase;
-            }
-            else
-                m_uiPhaseTimer -= uiDiff;
-        }
-        else
-        {
-            if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-                return;
-
-            if (m_uiKnockBackTimer < uiDiff)
-            {
-                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KNOCKBACK);
-                m_uiKnockBackTimer = urand(9000, 12000);
-            }
-            else
-                m_uiKnockBackTimer -= uiDiff;
-
-            DoMeleeAttackIfReady();
-        }
-    }
-};
-
-UnitAI* GetAI_npc_kroshius(Creature* pCreature)
-{
-    return new npc_kroshiusAI(pCreature);
-}
-
-bool ProcessEventId_npc_kroshius(uint32 uiEventId, Object* pSource, Object* /*pTarget*/, bool /*bIsStart*/)
-{
-    if (uiEventId == EVENT_KROSHIUS_REVIVE)
-    {
-        if (pSource->GetTypeId() == TYPEID_PLAYER)
-        {
-            if (Creature* pKroshius = GetClosestCreatureWithEntry((Player*)pSource, NPC_KROSHIUS, 20.0f))
-            {
-                if (npc_kroshiusAI* pKroshiusAI = dynamic_cast<npc_kroshiusAI*>(pKroshius->AI()))
-                    pKroshiusAI->DoRevive((Player*)pSource);
-            }
-        }
-
-        return true;
-    }
-    return false;
-}
-
 /*####
 # npc_captured_arkonarin
 ####*/
 
 enum
 {
-    SAY_ESCORT_START                = -1001148,
-    SAY_FIRST_STOP                  = -1001149,
-    SAY_SECOND_STOP                 = -1001150,
-    SAY_AGGRO                       = -1001151,
-    SAY_FOUND_EQUIPMENT             = -1001152,
-    SAY_ESCAPE_DEMONS               = -1001153,
-    SAY_FRESH_AIR                   = -1001154,
-    SAY_TREY_BETRAYER               = -1001155,
-    SAY_TREY                        = -1001156,
-    SAY_TREY_ATTACK                 = -1001157,
-    SAY_ESCORT_COMPLETE             = -1001158,
+    SAY_ESCORT_START                = 6433,
 
-    SPELL_STRENGTH_ARKONARIN        = 18163,
     SPELL_MORTAL_STRIKE             = 16856,
     SPELL_CLEAVE                    = 15496,
 
     QUEST_ID_RESCUE_JAEDENAR        = 5203,
     NPC_JAEDENAR_LEGIONNAIRE        = 9862,
     NPC_SPIRT_TREY                  = 11141,
-    NPC_ARKONARIN                   = 11018,
-    GO_ARKONARIN_CHEST              = 176225,
     GO_ARKONARIN_CAGE               = 176306,
+
+
+
+    PATH_ID                         = 11016,                      // Sniffed Waypoints for Escort Event
 };
+
+// RND Aggro Texts
+static const int32 aRandomAggro[] = { 6801, 6802, 6803 };
 
 struct npc_captured_arkonarinAI : public npc_escortAI
 {
@@ -460,21 +212,14 @@ struct npc_captured_arkonarinAI : public npc_escortAI
 
     void Aggro(Unit* pWho) override
     {
-        if (pWho->GetEntry() == NPC_SPIRT_TREY)
-            DoScriptText(SAY_TREY_ATTACK, m_creature);
-        else if (roll_chance_i(25))
-            DoScriptText(SAY_AGGRO, m_creature, pWho);
+        if (roll_chance_i(80))
+            DoBroadcastText(aRandomAggro[urand(0, 2)], m_creature, pWho);
     }
 
-    void JustSummoned(Creature* pSummoned) override
-    {
-        if (pSummoned->GetEntry() == NPC_JAEDENAR_LEGIONNAIRE)
-            pSummoned->AI()->AttackStart(m_creature);
-        else if (pSummoned->GetEntry() == NPC_SPIRT_TREY)
-        {
-            DoScriptText(SAY_TREY_BETRAYER, pSummoned);
-            m_treyGuid = pSummoned->GetObjectGuid();
-        }
+    void SummonedCreatureJustDied(Creature* pSummoned) override
+    {       
+        if (pSummoned->GetEntry() == NPC_SPIRT_TREY)
+            SetEscortPaused(false);
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
@@ -482,8 +227,8 @@ struct npc_captured_arkonarinAI : public npc_escortAI
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
             m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-            m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_PASSIVE, TEMPFACTION_RESTORE_RESPAWN + TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
-            Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue));
+            m_creature->SetFactionTemporary(FACTION_ESCORT_N_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN + TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
+            Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue), false, false, PATH_ID);
 
             if (GameObject* pCage = GetClosestGameObjectWithEntry(m_creature, GO_ARKONARIN_CAGE, 5.0f))
                 pCage->Use(m_creature);
@@ -496,61 +241,26 @@ struct npc_captured_arkonarinAI : public npc_escortAI
         {
             case 1:
                 if (Player* pPlayer = GetPlayerForEscort())
-                    DoScriptText(SAY_ESCORT_START, m_creature, pPlayer);
-                break;
-            case 15:
-                DoScriptText(SAY_FIRST_STOP, m_creature);
-                break;
-            case 35:
-                DoScriptText(SAY_SECOND_STOP, m_creature);
-                SetRun();
-                break;
-            case 39:
-                if (GameObject* pChest = GetClosestGameObjectWithEntry(m_creature, GO_ARKONARIN_CHEST, 5.0f))
-                    pChest->Use(m_creature);
-                m_creature->HandleEmote(EMOTE_ONESHOT_KNEEL);
-                break;
-            case 40:
-                DoCastSpellIfCan(m_creature, SPELL_STRENGTH_ARKONARIN);
-                break;
-            case 41:
-                m_creature->UpdateEntry(NPC_ARKONARIN);
-                if (Player* pPlayer = GetPlayerForEscort())
-                    m_creature->SetFacingToObject(pPlayer);
+                {
+                    DoBroadcastText(SAY_ESCORT_START, m_creature, pPlayer);
+                    m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
+                }
+                break;    
+            case 37:
                 m_bCanAttack = true;
-                DoScriptText(SAY_FOUND_EQUIPMENT, m_creature);
                 break;
-            case 42:
-                DoScriptText(SAY_ESCAPE_DEMONS, m_creature);
-                m_creature->SummonCreature(NPC_JAEDENAR_LEGIONNAIRE, 5082.068f, -490.084f, 296.856f, 5.15f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
-                m_creature->SummonCreature(NPC_JAEDENAR_LEGIONNAIRE, 5084.135f, -489.187f, 296.832f, 5.15f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
-                m_creature->SummonCreature(NPC_JAEDENAR_LEGIONNAIRE, 5085.676f, -488.518f, 296.824f, 5.15f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
+            case 83:
+                SetEscortPaused(true);
                 break;
-            case 44:
-                SetRun(false);
-                break;
-            case 105:
-                DoScriptText(SAY_FRESH_AIR, m_creature);
-                break;
-            case 106:
-                m_creature->SummonCreature(NPC_SPIRT_TREY, 4844.839f, -395.763f, 350.603f, 6.25f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 60000);
-                break;
-            case 107:
-                DoScriptText(SAY_TREY, m_creature);
-                break;
-            case 108:
-                if (Creature* pTrey = m_creature->GetMap()->GetCreature(m_treyGuid))
-                    AttackStart(pTrey);
-                break;
-            case 109:
+            case 85:
                 if (Player* pPlayer = GetPlayerForEscort())
+                {
                     m_creature->SetFacingToObject(pPlayer);
-                DoScriptText(SAY_ESCORT_COMPLETE, m_creature);
-                break;
-            case 110:
-                if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ID_RESCUE_JAEDENAR, m_creature);
-                SetRun();
+                }
+                
+                m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+                QuestEnd();
                 break;
         }
     }
@@ -793,18 +503,6 @@ void AddSC_felwood()
     pNewScript->Name = "npc_corrupt_saber";
     pNewScript->pGossipHello = &GossipHello_npc_corrupt_saber;
     pNewScript->pGossipSelect = &GossipSelect_npc_corrupt_saber;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_niby_the_almighty";
-    pNewScript->GetAI = &GetAI_npc_niby_the_almighty;
-    pNewScript->pQuestRewardedNPC = &QuestRewarded_npc_niby_the_almighty;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_kroshius";
-    pNewScript->GetAI = &GetAI_npc_kroshius;
-    pNewScript->pProcessEventId = &ProcessEventId_npc_kroshius;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

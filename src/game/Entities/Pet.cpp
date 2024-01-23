@@ -19,7 +19,7 @@
 #include "Entities/Pet.h"
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Globals/ObjectMgr.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Tools/Formulas.h"
@@ -54,7 +54,7 @@ Pet::Pet(PetType type) :
     m_removed(false), m_happinessTimer(7500), m_loyaltyTimer(12000), m_petType(type), m_duration(0),
     m_loyaltyPoints(0), m_loading(false),
     m_xpRequiredForNextLoyaltyLevel(0), m_declinedname(nullptr),
-    m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr), m_inStatsUpdate(false), m_imposedCooldown(false)
+    m_petModeFlags(PET_MODE_DEFAULT), m_originalCharminfo(nullptr), m_inStatsUpdate(false)
 {
     m_name = "Pet";
 
@@ -108,19 +108,17 @@ SpellCastResult Pet::TryLoadFromDB(Unit* owner, uint32 petentry /*= 0*/, uint32 
         // any current or other non-stabled pet (for hunter "call pet")
         request << "FROM character_pet WHERE owner = '" << ownerid << "' AND (slot = '" << uint32(PET_SAVE_AS_CURRENT) << "' OR slot > '" << uint32(PET_SAVE_LAST_STABLE_SLOT) << "')";
 
-    QueryResult* result = CharacterDatabase.PQuery("%s", request.str().c_str());
+    auto queryResult = CharacterDatabase.PQuery("%s", request.str().c_str());
 
-    if (!result)
+    if (!queryResult)
         return SPELL_FAILED_NO_PET;
 
-    Field* fields = result->Fetch();
+    Field* fields = queryResult->Fetch();
 
     petentry                    = fields[0].GetUInt32();
     uint32 savedHealth          = fields[1].GetUInt32();
     uint32 summon_spell_id      = fields[2].GetUInt32();
     PetType petType             = PetType(fields[3].GetUInt8());
-
-    delete result;
 
     // update for case of current pet "slot = 0"
     if (!petentry)
@@ -159,41 +157,40 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
 
     uint32 ownerid = owner->GetGUIDLow();
 
-    QueryResult* result;
+    std::unique_ptr<QueryResult> queryResult;
 
     if (petnumber)
-        // known petnumber entry                  0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+        // known petnumber entry                       0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        queryResult = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND id = '%u'",
                                           ownerid, petnumber);
     else if (current)
-        // current pet (slot 0)                   0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+        // current pet (slot 0)                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        queryResult = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND slot = '%u'",
                                           ownerid, PET_SAVE_AS_CURRENT);
     else if (petentry)
         // known petentry entry (unique for summoned pet, but non unique for hunter pet (only from current or not stabled pets)
-        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+        //                                             0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        queryResult = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND entry = '%u' AND (slot = '%u' OR slot > '%u') ",
                                           ownerid, petentry, PET_SAVE_AS_CURRENT, PET_SAVE_LAST_STABLE_SLOT);
     else
         // any current or other non-stabled pet (for hunter "call pet")
-        //                                        0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
-        result = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
+        //                                             0   1      2      3        4      5    6           7              8        9           10    11    12       13         14       15            16      17              18        19                 20                 21              22       23
+        queryResult = CharacterDatabase.PQuery("SELECT id, entry, owner, modelid, level, exp, Reactstate, loyaltypoints, loyalty, trainpoint, slot, name, renamed, curhealth, curmana, curhappiness, abdata, TeachSpelldata, savetime, resettalents_cost, resettalents_time, CreatedBySpell, PetType, xpForNextLoyalty "
                                           "FROM character_pet WHERE owner = '%u' AND (slot = '%u' OR slot > '%u') ",
                                           ownerid, PET_SAVE_AS_CURRENT, PET_SAVE_LAST_STABLE_SLOT);
 
-    if (!result)
+    if (!queryResult)
         return false;
 
-    Field* fields = result->Fetch();
+    Field* fields = queryResult->Fetch();
 
     // update for case of current pet "slot = 0"
     petentry = fields[1].GetUInt32();
     if (!petentry)
     {
-        delete result;
         return false;
     }
 
@@ -201,7 +198,6 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
     if (!creatureInfo)
     {
         sLog.outError("Pet entry %u does not exist but used at pet load (owner: %s).", petentry, owner->GetGuidStr().c_str());
-        delete result;
         return false;
     }
 
@@ -210,7 +206,6 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
 
     if (permanentOnly && spellInfo && GetSpellDuration(spellInfo) > 0)
     {
-        delete result;
         return false;
     }
 
@@ -219,7 +214,6 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
     {
         if (!creatureInfo->isTameable())
         {
-            delete result;
             return false;
         }
     }
@@ -240,7 +234,6 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
         ChangePetSlot.PExecute(uint32(PET_SAVE_AS_CURRENT), pet_number);
         CharacterDatabase.CommitTransaction();
 
-        delete result;
         return false;
     }
     owner->SetTemporaryUnsummonedPetNumber(0);
@@ -252,7 +245,6 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
     uint32 guid = pos.GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
     if (!Create(guid, pos, creatureInfo, pet_number))
     {
-        delete result;
         return false;
     }
 
@@ -266,7 +258,6 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
     {
         pos.GetMap()->Add((Creature*)this);
         AIM_Initialize();
-        delete result;
         return true;
     }
 
@@ -399,18 +390,16 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
 
     if (getPetType() == HUNTER_PET)
     {
-        result = CharacterDatabase.PQuery("SELECT genitive, dative, accusative, instrumental, prepositional FROM character_pet_declinedname WHERE owner = '%u' AND id = '%u'", owner->GetGUIDLow(), GetCharmInfo()->GetPetNumber());
+        queryResult = CharacterDatabase.PQuery("SELECT genitive, dative, accusative, instrumental, prepositional FROM character_pet_declinedname WHERE owner = '%u' AND id = '%u'", owner->GetGUIDLow(), GetCharmInfo()->GetPetNumber());
 
-        if (result)
+        if (queryResult)
         {
             delete m_declinedname;
             m_declinedname = new DeclinedName;
 
-            Field* fields2 = result->Fetch();
+            Field* fields2 = queryResult->Fetch();
             for (int i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
                 m_declinedname->name[i] = fields2[i].GetCppString();
-
-            delete result;
         }
     }
 
@@ -609,16 +598,14 @@ void Pet::DeleteFromDB(uint32 guidlow, bool separate_transaction)
 
 void Pet::DeleteFromDB(Unit* owner, PetSaveMode slot)
 {
-    QueryResult* result = CharacterDatabase.PQuery("SELECT id FROM character_pet WHERE owner = '%u'  AND slot = '%u' ", owner->GetGUIDLow(), uint32(slot));
-    if (result)
+    auto queryResult = CharacterDatabase.PQuery("SELECT id FROM character_pet WHERE owner = '%u'  AND slot = '%u' ", owner->GetGUIDLow(), uint32(slot));
+    if (queryResult)
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         uint32 petNumber = fields[0].GetUInt32();
 
         if (petNumber)
             DeleteFromDB(petNumber);
-
-        delete result;
     }
 }
 
@@ -663,7 +650,6 @@ void Pet::SetDeathState(DeathState s)                       // overwrite virtual
 
         if (Unit* owner = GetOwner())
         {
-            StartCooldown(owner);
             if (getPetType() == GUARDIAN_PET)
                 owner->RemoveGuardian(this);
         }
@@ -1033,6 +1019,8 @@ int32 Pet::GetDispTP() const
 
 void Pet::Unsummon(PetSaveMode mode, Unit* owner /*= nullptr*/)
 {
+    MANGOS_ASSERT(!m_removed);
+
     if (!owner)
         owner = GetOwner();
 
@@ -1473,7 +1461,7 @@ void Pet::InitPetScalingAuras()
             case 30146: // Felguard
                 scalingAuras.insert(scalingAuras.end(), { 34947, 34956, 34957, 34958 });
                 break;
-            case 12740: // Infernal - Warlock - unique - isnt updated on stat changes
+            case 1122: // Infernal - Warlock - unique - isnt updated on stat changes
             case 18541: // Doomguard - Ritual of Doom
             case 18662: // Doomguard - Curse of Doom
                 scalingAuras.insert(scalingAuras.end(), { 36186, 36188, 36189, 36190 });
@@ -1565,16 +1553,16 @@ uint32 Pet::GetCurrentFoodBenefitLevel(uint32 itemlevel) const
 
 void Pet::_LoadSpellCooldowns()
 {
-    QueryResult* result = CharacterDatabase.PQuery("SELECT spell,time FROM pet_spell_cooldown WHERE guid = '%u'", m_charmInfo->GetPetNumber());
+    auto queryResult = CharacterDatabase.PQuery("SELECT spell,time FROM pet_spell_cooldown WHERE guid = '%u'", m_charmInfo->GetPetNumber());
     ByteBuffer cdData;
     uint32 cdCount = 0;
 
-    if (result)
+    if (queryResult)
     {
         auto curTime = GetMap()->GetCurrentClockTime();
         do
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
 
             uint32 spell_id = fields[0].GetUInt32();
             uint64 spell_time = fields[1].GetUInt64();
@@ -1605,9 +1593,7 @@ void Pet::_LoadSpellCooldowns()
             sLog.outDebug("Adding spell cooldown to %s, SpellID(%u), recDuration(%us).", GetGuidStr().c_str(), spell_id, spellCDDuration);
 #endif
         }
-        while (result->NextRow());
-
-        delete result;
+        while (queryResult->NextRow());
 
         if (cdCount && GetOwner() && GetOwner()->GetTypeId() == TYPEID_PLAYER)
         {
@@ -1647,19 +1633,17 @@ void Pet::_SaveSpellCooldowns()
 
 void Pet::_LoadSpells()
 {
-    QueryResult* result = CharacterDatabase.PQuery("SELECT spell,active FROM pet_spell WHERE guid = '%u'", m_charmInfo->GetPetNumber());
+    auto queryResult = CharacterDatabase.PQuery("SELECT spell,active FROM pet_spell WHERE guid = '%u'", m_charmInfo->GetPetNumber());
 
-    if (result)
+    if (queryResult)
     {
         do
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
 
             addSpell(fields[0].GetUInt32(), ActiveStates(fields[1].GetUInt8()), PETSPELL_UNCHANGED);
         }
-        while (result->NextRow());
-
-        delete result;
+        while (queryResult->NextRow());
     }
 }
 
@@ -1710,13 +1694,13 @@ void Pet::_SaveSpells()
 
 void Pet::_LoadAuras(uint32 timediff)
 {
-    QueryResult* result = CharacterDatabase.PQuery("SELECT caster_guid,item_guid,spell,stackcount,remaincharges,basepoints0,basepoints1,basepoints2,periodictime0,periodictime1,periodictime2,maxduration,remaintime,effIndexMask FROM pet_aura WHERE guid = '%u'", m_charmInfo->GetPetNumber());
+    auto queryResult = CharacterDatabase.PQuery("SELECT caster_guid,item_guid,spell,stackcount,remaincharges,basepoints0,basepoints1,basepoints2,periodictime0,periodictime1,periodictime2,maxduration,remaintime,effIndexMask FROM pet_aura WHERE guid = '%u'", m_charmInfo->GetPetNumber());
 
-    if (result)
+    if (queryResult)
     {
         do
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
             ObjectGuid casterGuid = ObjectGuid(fields[0].GetUInt64());
             uint32 item_lowguid = fields[1].GetUInt32();
             uint32 spellid = fields[2].GetUInt32();
@@ -1799,9 +1783,7 @@ void Pet::_LoadAuras(uint32 timediff)
             else
                 delete holder;
         }
-        while (result->NextRow());
-
-        delete result;
+        while (queryResult->NextRow());
     }
 }
 
@@ -2424,18 +2406,6 @@ void Pet::ForcedDespawn(uint32 timeMSToDespawn, bool onlyAlive)
     Unsummon(PET_SAVE_NOT_IN_SLOT, owner);
 }
 
-void Pet::StartCooldown(Unit* owner)
-{
-    if (!m_imposedCooldown)
-    {
-        m_imposedCooldown = true;
-        SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(GetUInt32Value(UNIT_CREATED_BY_SPELL));
-        // Remove infinity cooldown
-        if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_COOLDOWN_ON_EVENT))
-            owner->AddCooldown(*spellInfo);
-    }
-}
-
 bool Pet::IgnoresOwnersDeath() const
 {
     if (IsGuardian())
@@ -2447,7 +2417,6 @@ bool Pet::IgnoresOwnersDeath() const
             if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_EX_IGNORE_OWNERS_DEATH))
                 return true;
         }
-        return false;
     }
-    return true;
+    return false;
 }

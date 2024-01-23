@@ -545,7 +545,7 @@ struct WrathOfTheTitansStacker : public SpellScript
 
 struct WrathOfTheTitansProcAura : public AuraScript
 {
-    bool OnCheckProc(Aura* aura, ProcExecutionData& data) const override
+    bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
     {
         std::set<uint32> spells = { 30605, 30606, 30607, 30609, 30608 };
         if (spells.find(data.spellInfo->Id) != spells.end())
@@ -569,6 +569,24 @@ struct WrathOfTheTitansProcAura : public AuraScript
         procData.attacker->RemoveAuraHolderFromStack(30554);
         procData.triggerTarget = procData.victim;
         return SPELL_AURA_PROC_OK;
+    }
+};
+
+// 29339 - Healing Touch
+struct HealingTouchHorses : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        return target->GetHealthPercent() <= 50;
+    }
+};
+
+// 29340 - Whip Frenzy
+struct WhipFrenzyHorses : public SpellScript
+{
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        return !target->HasAura(spell->m_spellInfo->Id);
     }
 };
 
@@ -599,4 +617,6 @@ void AddSC_karazhan()
     RegisterSpellScript<BlinkArcaneAnomaly>("spell_blink_arcane_anomaly");
     RegisterSpellScript<WrathOfTheTitansStacker>("spell_wrath_of_the_titans_stacker");
     RegisterSpellScript<WrathOfTheTitansProcAura>("spell_wrath_of_the_titans_proc_aura");
+    RegisterSpellScript<HealingTouchHorses>("spell_healing_touch_horses");
+    RegisterSpellScript<WhipFrenzyHorses>("spell_whip_frenzy_horses");
 }

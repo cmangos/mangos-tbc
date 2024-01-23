@@ -27,7 +27,7 @@
 #include "Entities/Totem.h"
 #include "Entities/Creature.h"
 #include "DBScripts/ScriptMgr.h"
-#include "Util.h"
+#include "Util/Util.h"
 
 pAuraProcHandler AuraProcHandler[TOTAL_AURAS] =
 {
@@ -472,7 +472,7 @@ void Unit::ProcDamageAndSpell(ProcSystemArguments&& data)
 }
 
 ProcExecutionData::ProcExecutionData(ProcSystemArguments& data, bool isVictim) : attacker(data.attacker), victim(data.victim),
-    isVictim(isVictim), procExtra(data.procExtra), attType(data.attType), damage(data.damage), spellInfo(data.spellInfo), spell(data.spell), healthGain(data.healthGain), isHeal(data.isHeal),
+    isVictim(isVictim), procExtra(data.procExtra), attType(data.attType), damage(data.damage), absorb(data.absorb), spellInfo(data.spellInfo), spell(data.spell), healthGain(data.healthGain), isHeal(data.isHeal),
     triggeredByAura(nullptr), cooldown(0), triggeredSpellId(0), procOnce(false), triggerTarget(nullptr)
 {
     if (isVictim)
@@ -515,7 +515,7 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
             if (spellProcEvent && spellProcEvent->cooldown)
                 cooldown = spellProcEvent->cooldown;
             if (cooldown)
-                AddCooldown(*holder->GetSpellProto(), nullptr, false, cooldown * IN_MILLISECONDS);
+                holder->SetProcCooldown(std::chrono::seconds(cooldown), GetMap()->GetCurrentClockTime());
         }
 
         if (result != SpellProcEventTriggerCheck::SPELL_PROC_TRIGGER_OK)
@@ -577,10 +577,10 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
                             continue;
                     }
                     // don't check dbc FamilyFlags if schoolMask exists
-                    else if (!execData.triggeredByAura->CanProcFrom(execData.spellInfo, spellProcEvent->procEx, execData.procExtra, execData.damage != 0, !spellProcEvent->schoolMask))
+                    else if (!execData.triggeredByAura->CanProcFrom(execData.spellInfo, spellProcEvent->procEx, execData.procExtra, execData.damage != 0, execData.absorb != 0, !spellProcEvent->schoolMask))
                         continue;
                 }
-                else if (!execData.triggeredByAura->CanProcFrom(execData.spellInfo, PROC_EX_NONE, execData.procExtra, execData.damage != 0, true))
+                else if (!execData.triggeredByAura->CanProcFrom(execData.spellInfo, PROC_EX_NONE, execData.procExtra, execData.damage != 0, execData.absorb != 0, true))
                     continue;
             }
 
@@ -606,6 +606,9 @@ void Unit::ProcDamageAndSpellFor(ProcSystemArguments& argData, bool isVictim)
 
             anyAuraProc = true;
         }
+
+        if (procSuccess && execData.cooldown)
+            triggeredByHolder->SetProcCooldown(std::chrono::seconds(execData.cooldown), GetMap()->GetCurrentClockTime());
 
         // Remove charge (aura can be removed by triggers)
         if (useCharges && procSuccess && anyAuraProc && !triggeredByHolder->IsDeleted())
@@ -766,7 +769,7 @@ SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MA
     if (target && (target != this && !target->IsAlive()))
         return SPELL_AURA_PROC_FAILED;
 
-    if (!IsSpellReady(*spellInfo))
+    if (!triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
         return SPELL_AURA_PROC_FAILED;
 
     if (basepoints[EFFECT_INDEX_0] || basepoints[EFFECT_INDEX_1] || basepoints[EFFECT_INDEX_2])
@@ -779,7 +782,7 @@ SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MA
         CastSpell(target, spellInfo, TRIGGERED_OLD_TRIGGERED | TRIGGERED_INSTANT_CAST | TRIGGERED_DO_NOT_RESET_LEASH, castItem, triggeredByAura, originalCaster);
 
     if (cooldown)
-        AddCooldown(*spellInfo, nullptr, false, cooldown * IN_MILLISECONDS);
+        triggeredByAura->GetHolder()->SetProcCooldown(std::chrono::seconds(cooldown), GetMap()->GetCurrentClockTime());
 
     return SPELL_AURA_PROC_OK;
 }
@@ -860,8 +863,8 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     if (!spellInfo || spellInfo->DmgClass != SPELL_DAMAGE_CLASS_MAGIC)
                         return SPELL_AURA_PROC_FAILED;
 
-                    // return damage % to attacker but < 50% own total health
-                    basepoints[0] = triggerAmount * int32(damage) / 100;
+                    // return absorb included damage % to attacker but < 50% own total health
+                    basepoints[0] = triggerAmount * int32(data.damage + data.absorb) / 100;
                     if (basepoints[0] > (int32)GetMaxHealth() / 2)
                         basepoints[0] = (int32)GetMaxHealth() / 2;
 
@@ -902,10 +905,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         basepoints[0] = damage;
                     break;
                 }
-                // Twisted Reflection (boss spell)
-                case 21063:
-                    triggered_spell_id = 21064;
-                    break;
                 // Unstable Power
                 case 24658:
                 {
@@ -1534,13 +1533,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
         {
             switch (dummySpell->Id)
             {
-                // Clean Escape
-                case 23582:
-                    // triggered spell have same masks and etc with main Vanish spell
-                    if (!spellInfo || spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_NONE)
-                        return SPELL_AURA_PROC_FAILED;
-                    triggered_spell_id = 23583;
-                    break;
                 // Deadly Throw Interrupt
                 case 32748:
                 {
@@ -1782,8 +1774,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     if (castItem->GetSlot() == EQUIPMENT_SLOT_OFFHAND && procFlags & PROC_FLAG_MAIN_HAND_WEAPON_SWING)
                         return SPELL_AURA_PROC_FAILED;
 
-                    // custom cooldown processing case
-                    if (cooldown && !IsSpellReady(*dummySpell))
+                    if (cooldown && !triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
                         return SPELL_AURA_PROC_FAILED;
 
                     uint32 spellId;
@@ -1830,13 +1821,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                         basepoints[0] = int32(extra_attack_power / 14.0f * GetAttackTime(BASE_ATTACK) / 1000);
                         triggered_spell_id = 25504;
                     }
-
-                    if (cooldown && !IsSpellReady(triggered_spell_id))
-                        return SPELL_AURA_PROC_FAILED;
-
-                    // apply cooldown before cast to prevent processing itself
-                    if (cooldown)
-                        AddCooldown(*dummySpell, nullptr, false, cooldown * IN_MILLISECONDS);
 
                     // Attack Twice
                     for (uint32 i = 0; i < 2; ++i)
@@ -1901,16 +1885,6 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                 }
                 break;
             }
-            // Earth Shield
-            if (dummySpell->SpellFamilyFlags & uint64(0x0000040000000000))
-            {
-                // heal
-                basepoints[0] = triggerAmount;
-                target = this;
-                triggered_spell_id = 379;
-                triggeredByAura = nullptr;
-                break;
-            }
             // Lightning Overload
             if (dummySpell->SpellIconID == 2018)            // only this spell have SpellFamily Shaman SpellIconID == 2018 and dummy aura
             {
@@ -1918,7 +1892,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     return SPELL_AURA_PROC_FAILED;
 
                 // custom cooldown processing case
-                if (cooldown && !IsSpellReady(*dummySpell))
+                if (cooldown && !triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
                     return SPELL_AURA_PROC_FAILED;
 
                 uint32 spellId;
@@ -1958,13 +1932,7 @@ SpellAuraProcResult Unit::HandleDummyAuraProc(ProcExecutionData& data)
                     return SPELL_AURA_PROC_FAILED;
                 }
 
-                if (spellInfo->SpellFamilyFlags & uint64(0x0000000000000002))
-                    RemoveSpellCooldown(*procSpellEntry);
-
                 CastSpell(pVictim, procSpellEntry, TRIGGERED_OLD_TRIGGERED, castItem, triggeredByAura);
-
-                if (cooldown)
-                    AddCooldown(*dummySpell, nullptr, false, cooldown * IN_MILLISECONDS);
 
                 return SPELL_AURA_PROC_OK;
             }
@@ -2352,31 +2320,7 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
                 }
             }
             */
-            // Judgement of Light and Judgement of Wisdom
-            if (auraSpellInfo->SpellFamilyFlags & uint64(0x0000000000080000))
-            {
-                switch (auraSpellInfo->Id)
-                {
-                    // Judgement of Light
-                    case 20185: trigger_spell_id = 20267; break; // Rank 1
-                    case 20344: trigger_spell_id = 20341; break; // Rank 2
-                    case 20345: trigger_spell_id = 20342; break; // Rank 3
-                    case 20346: trigger_spell_id = 20343; break; // Rank 4
-                    case 27162: trigger_spell_id = 27163; break; // Rank 5
-                    // Judgement of Wisdom
-                    case 20186: trigger_spell_id = 20268; break; // Rank 1
-                    case 20354: trigger_spell_id = 20352; break; // Rank 2
-                    case 20355: trigger_spell_id = 20353; break; // Rank 3
-                    case 27164: trigger_spell_id = 27165; break; // Rank 4
-                    default:
-                        sLog.outError("Unit::HandleProcTriggerSpellAuraProc: Spell %u miss posibly Judgement of Light/Wisdom", auraSpellInfo->Id);
-                        return SPELL_AURA_PROC_FAILED;
-                }
-                pVictim->CastSpell(nullptr, trigger_spell_id, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
-                return SPELL_AURA_PROC_OK;                  // no hidden cooldown
-            }
-            // Illumination
-            else if (auraSpellInfo->SpellIconID == 241)
+            if (auraSpellInfo->SpellIconID == 241)
             {
                 if (!spellInfo)
                     return SPELL_AURA_PROC_FAILED;
@@ -2580,16 +2524,24 @@ SpellAuraProcResult Unit::HandleProcTriggerSpellAuraProc(ProcExecutionData& data
 
 SpellAuraProcResult Unit::HandleProcTriggerDamageAuraProc(ProcExecutionData& data)
 {
-    Unit* victim = data.target; Aura* triggeredByAura = data.triggeredByAura;
+    Unit* victim = data.target; Aura* triggeredByAura = data.triggeredByAura; uint32 cooldown = data.cooldown;
     SpellEntry const* spellInfo = triggeredByAura->GetSpellProto();
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "ProcDamageAndSpell: doing %u damage from spell id %u (triggered by auratype %u of spell %u)",
                      triggeredByAura->GetModifier()->m_amount, spellInfo->Id, triggeredByAura->GetModifier()->m_auraname, triggeredByAura->GetId());
+
+    if (!triggeredByAura->GetHolder()->IsProcReady(GetMap()->GetCurrentClockTime()))
+        return SPELL_AURA_PROC_FAILED;
+
     // Trigger damage can be resisted...
     if (SpellMissInfo missInfo = SpellHitResult(this, victim, spellInfo, uint8(1 << triggeredByAura->GetEffIndex()), false))
     {
         SendSpellDamageResist(victim, spellInfo->Id);
         return SPELL_AURA_PROC_OK;
     }
+
+    if (cooldown)
+        triggeredByAura->GetHolder()->SetProcCooldown(std::chrono::seconds(cooldown), GetMap()->GetCurrentClockTime());
+
     SpellNonMeleeDamage spellDamageInfo(this, victim, spellInfo->Id, SpellSchoolMask(spellInfo->SchoolMask));
     CalculateSpellDamage(&spellDamageInfo, triggeredByAura->GetModifier()->m_amount, spellInfo);
     spellDamageInfo.target->CalculateAbsorbResistBlock(this, &spellDamageInfo, spellInfo);

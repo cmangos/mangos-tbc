@@ -133,7 +133,7 @@ void instance_serpentshrine_cavern::OnPlayerResurrect(Player * player)
     }
 }
 
-static const float afLurkerSpawnPos[4] = { 40.4058f, -417.108f, -21.5911f, 3.03312f };
+static const float afLurkerSpawnPos[4] = { 38.4567f, -417.324f, -18.916666f, 2.94960641860961914f };
 
 void instance_serpentshrine_cavern::SetData(uint32 uiType, uint32 uiData)
 {

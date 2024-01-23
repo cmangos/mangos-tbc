@@ -17,6 +17,7 @@
  */
 
 #ifndef DO_POSTGRESQL
+#ifndef DO_SQLITE
 
 #if !defined(QUERYRESULTMYSQL_H)
 #define QUERYRESULTMYSQL_H
@@ -44,5 +45,6 @@ class QueryResultMysql : public QueryResult
 
         MYSQL_RES* mResult;
 };
+#endif
 #endif
 #endif

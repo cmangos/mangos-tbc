@@ -17,7 +17,7 @@
  */
 
 #include "Grids/GridNotifiers.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "Entities/UpdateData.h"
 #include "Maps/MapPersistentStateMgr.h"
@@ -235,10 +235,13 @@ void MaNGOS::RespawnDo::operator()(Creature* u) const
 
     if (u->IsUsingNewSpawningSystem())
     {
-        if (u->GetMap()->GetMapDataContainer().GetSpawnGroupByGuid(u->GetDbGuid(), TYPEID_UNIT))
-            u->GetMap()->GetPersistentState()->SaveCreatureRespawnTime(u->GetDbGuid(), time(nullptr));
-        else
-            u->GetMap()->GetSpawnManager().RespawnCreature(u->GetDbGuid(), 0);
+        if (u->IsDead() && !u->GetCreatureGroup())
+        {
+            if (u->GetMap()->GetMapDataContainer().GetSpawnGroupByGuid(u->GetDbGuid(), TYPEID_UNIT))
+                u->GetMap()->GetPersistentState()->SaveCreatureRespawnTime(u->GetDbGuid(), time(nullptr));
+            else
+                u->GetMap()->GetSpawnManager().RespawnCreature(u->GetDbGuid(), 0);
+        }
     }
     else
         u->Respawn();
@@ -275,7 +278,7 @@ void MaNGOS::CallOfHelpCreatureInRangeDo::operator()(Creature* u)
         return;
 
     if (u->AI())
-        u->AI()->OnCallForHelp(i_funit, i_enemy);
+        u->AI()->OnCallForHelp(i_enemy);
 }
 
 bool MaNGOS::AnyAssistCreatureInRangeCheck::operator()(Creature* u)

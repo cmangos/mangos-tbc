@@ -36,8 +36,8 @@ enum
     SAY_TOBEAR_EMOTE        = -1568172,
     SAY_TOTROLL             = -1568019,
     SAY_BERSERK             = -1568020,
-    SAY_SLAY1               = -1568021,
-    SAY_SLAY2               = -1568022,
+    SAY_SLAY1               = 23171,
+    SAY_SLAY2               = 23172,
     SAY_DEATH               = -1568023,
 
     SPELL_BERSERK           = 45078,                        // unsure, this increases damage, size and speed
@@ -80,7 +80,7 @@ struct boss_nalorakkAI : public CombatAI
         AddCombatAction(NALORAKK_ACTION_SLASH, true);
         AddCombatAction(NALORAKK_ACTION_REND, true);
         AddCombatAction(NALORAKK_ACTION_ROAR, true);
-        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float /*x*/, float y, float /*z*/)
         {
             return y > 1378.009f;
         });

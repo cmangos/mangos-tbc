@@ -35,8 +35,8 @@ enum
     SAY_DRAGONHAWK_TRANSFORM        = -1568061,
     SAY_FIRE_BREATH                 = -1568062,
     SAY_BERSERK                     = -1568053,
-    SAY_KILL1                       = -1568064,
-    SAY_KILL2                       = -1568065,
+    SAY_KILL1                       = 23181,
+    SAY_KILL2                       = 23182,
     SAY_DEATH                       = -1568066,
 
     EMOTE_BEAR_SPIRIT               = -1568082,
@@ -165,7 +165,7 @@ struct boss_zuljinAI : public CombatAI
                 m_instance->DoUseDoorOrButton(GO_FIRE_DOOR);
         });
         m_creature->SetWalk(true);
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float /*x*/, float y, float /*z*/)
             {
                 return y > 734.0f;
             });

@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.5)
 set(EXECUTABLE_NAME "vmap_extractor")
 project (${EXECUTABLE_NAME})
 
@@ -37,5 +37,5 @@ if(MSVC)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different \"${CMAKE_SOURCE_DIR}/contrib/extractor_scripts/ExtractResources.sh\" \"$<TARGET_FILE_DIR:${EXECUTABLE_NAME}>\")
 endif()
 
-install(FILES "${CMAKE_SOURCE_DIR}/contrib/extractor_scripts/ExtractResources.sh" DESTINATION ${BIN_DIR}/tools)
+install(PROGRAMS "${CMAKE_SOURCE_DIR}/contrib/extractor_scripts/ExtractResources.sh" DESTINATION ${BIN_DIR}/tools)
 install(TARGETS ${EXECUTABLE_NAME} DESTINATION ${BIN_DIR}/tools)

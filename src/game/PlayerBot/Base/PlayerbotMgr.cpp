@@ -17,7 +17,7 @@
  */
 
 #include "Config/Config.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "PlayerbotAI.h"
 #include "PlayerbotMgr.h"
 #include "../config.h"
@@ -108,12 +108,11 @@ void PlayerbotMgr::HandleMasterIncomingPacket(const WorldPacket& packet)
 
             uint32 petitionLowGuid = petitionGuid.GetCounter();
 
-            QueryResult* result = CharacterDatabase.PQuery("SELECT * FROM petition_sign WHERE playerguid = '%u' AND petitionguid = '%u'", player->GetGUIDLow(), petitionLowGuid);
+            auto queryResult = CharacterDatabase.PQuery("SELECT * FROM petition_sign WHERE playerguid = '%u' AND petitionguid = '%u'", player->GetGUIDLow(), petitionLowGuid);
 
-            if (result)
+            if (queryResult)
             {
                 ChatHandler(m_master).PSendSysMessage("%s has already signed the petition", player->GetName());
-                delete result;
                 return;
             }
 
@@ -895,11 +894,11 @@ void PlayerbotMgr::OnBotLogin(Player* const bot)
     // simulate client taking control
     WorldPacket* const pCMSG_SET_ACTIVE_MOVER = new WorldPacket(CMSG_SET_ACTIVE_MOVER, 8);
     *pCMSG_SET_ACTIVE_MOVER << bot->GetObjectGuid();
-    bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(pCMSG_SET_ACTIVE_MOVER)));
+    bot->GetSession()->QueuePacket(std::unique_ptr<WorldPacket>(pCMSG_SET_ACTIVE_MOVER));
 
     WorldPacket* const pMSG_MOVE_FALL_LAND = new WorldPacket(MSG_MOVE_FALL_LAND, 28);
     *pMSG_MOVE_FALL_LAND << bot->GetMover()->m_movementInfo;
-    bot->GetSession()->QueuePacket(std::move(std::unique_ptr<WorldPacket>(pMSG_MOVE_FALL_LAND)));
+    bot->GetSession()->QueuePacket(std::unique_ptr<WorldPacket>(pMSG_MOVE_FALL_LAND));
 
     // give the bot some AI, object is owned by the player class
     PlayerbotAI* ai = new PlayerbotAI(*this, bot, m_confDebugWhisper);
@@ -949,10 +948,10 @@ void Creature::LoadBotMenu(Player* pPlayer)
     if (pPlayer->GetPlayerbotAI()) return;
     ObjectGuid guid = pPlayer->GetObjectGuid();
     uint32 accountId = sObjectMgr.GetPlayerAccountIdByGUID(guid);
-    QueryResult* result = CharacterDatabase.PQuery("SELECT guid, name FROM characters WHERE account='%d'", accountId);
+    auto queryResult = CharacterDatabase.PQuery("SELECT guid, name FROM characters WHERE account='%d'", accountId);
     do
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         ObjectGuid guidlo = ObjectGuid(fields[0].GetUInt64());
         std::string name = fields[1].GetString();
         std::string word = "";
@@ -983,8 +982,7 @@ void Creature::LoadBotMenu(Player* pPlayer)
             }
         }
     }
-    while (result->NextRow());
-    delete result;
+    while (queryResult->NextRow());
 }
 
 void Player::skill(std::list<uint32>& m_spellsToLearn)
@@ -1113,7 +1111,7 @@ uint32 Player::GetSpec()
 
 bool ChatHandler::HandlePlayerbotCommand(char* args)
 {
-    if (!(m_session->GetSecurity() > SEC_PLAYER))
+    if (m_session && !(m_session->GetSecurity() > SEC_PLAYER))
     {
         if (botConfig.GetBoolDefault("PlayerbotAI.DisableBots", false))
         {
@@ -1176,7 +1174,7 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
         m_session->GetPlayer()->SetPlayerbotMgr(mgr);
     }
 
-    QueryResult* resultchar = CharacterDatabase.PQuery("SELECT COUNT(*) FROM characters WHERE online = '1' AND account = '%u'", m_session->GetAccountId());
+    auto resultchar = CharacterDatabase.PQuery("SELECT COUNT(*) FROM characters WHERE online = '1' AND account = '%u'", m_session->GetAccountId());
     if (resultchar)
     {
         Field* fields = resultchar->Fetch();
@@ -1187,13 +1185,11 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
             {
                 PSendSysMessage("|cffff0000You cannot summon anymore bots.(Current Max: |cffffffff%u)", maxnum);
                 SetSentErrorMessage(true);
-                delete resultchar;
                 return false;
             }
-        delete resultchar;
     }
 
-    QueryResult* resultlvl = CharacterDatabase.PQuery("SELECT level, name, race FROM characters WHERE guid = '%u'", guid.GetCounter());
+    auto resultlvl = CharacterDatabase.PQuery("SELECT level, name, race FROM characters WHERE guid = '%u'", guid.GetCounter());
     if (resultlvl)
     {
         Field* fields = resultlvl->Fetch();
@@ -1210,7 +1206,6 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
             {
                 PSendSysMessage("|cffff0000You cannot summon |cffffffff[%s]|cffff0000, it's level is too high.(Current Max:lvl |cffffffff%u)", fields[1].GetString(), maxlvl);
                 SetSentErrorMessage(true);
-                delete resultlvl;
                 return false;
             }
 
@@ -1219,11 +1214,9 @@ bool ChatHandler::HandlePlayerbotCommand(char* args)
             {
                 PSendSysMessage("|cffff0000You cannot summon |cffffffff[%s]|cffff0000, a member of the enemy side", fields[1].GetString());
                 SetSentErrorMessage(true);
-                delete resultlvl;
                 return false;
             }
         }
-        delete resultlvl;
     }
     // end of gmconfig patch
     if (cmdStr == "add" || cmdStr == "login")

@@ -22,7 +22,7 @@
 #include "Common.h"
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "AI/BaseAI/GameObjectAI.h"
 #include "Spells/SpellDefines.h"
 
@@ -393,6 +393,7 @@ struct GameObjectInfo
 
     uint32 MinMoneyLoot;
     uint32 MaxMoneyLoot;
+    uint32 StringId;
     uint32 ScriptId;
 
     // helpers
@@ -605,7 +606,8 @@ struct GameObjectData
     int32 spawntimesecsmin;
     int32 spawntimesecsmax;
     uint32 animprogress;
-    GOState go_state;
+    int32 goState;
+    uint32 StringId;
     uint8 spawnMask;
     uint16 gameEvent;
     uint16 GuidPoolId;
@@ -790,12 +792,9 @@ class GameObject : public WorldObject
         uint32 GetRespawnDelay() const { return m_respawnDelay; }
         void SetRespawnDelay(uint32 delay, bool once = false) { m_respawnDelay = delay; m_respawnOverriden = true; m_respawnOverrideOnce = once; }
         void SetForcedDespawn() { m_forcedDespawn = true; };
+        void SetChestDespawn();
         void Refresh();
         void Delete();
-
-        // Functions spawn/remove gameobject with DB guid in all loaded map copies (if point grid loaded in map)
-        static void AddToRemoveListInMaps(uint32 db_guid, GameObjectData const* data);
-        static void SpawnInMaps(uint32 db_guid, GameObjectData const* data);
 
         GameobjectTypes GetGoType() const { return GameobjectTypes(GetUInt32Value(GAMEOBJECT_TYPE_ID)); }
         void SetGoType(GameobjectTypes type) { SetUInt32Value(GAMEOBJECT_TYPE_ID, type); }
@@ -906,6 +905,8 @@ class GameObject : public WorldObject
         float GetStationaryZ() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionZ(); return 0.f; }
         float GetStationaryO() const { if (GetGOInfo()->type != GAMEOBJECT_TYPE_MO_TRANSPORT) return m_stationaryPosition.GetPositionO(); return GetOrientation(); }
 
+        std::pair<float, float> GetClosestChairSlotPosition(Unit* user) const;
+
         SpellCastResult CastSpell(Unit* temporaryCaster, Unit* Victim, uint32 spellId, uint32 triggeredFlags, Item* castItem = nullptr, Aura* triggeredByAura = nullptr, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
 
         SpellCastResult CastSpell(Unit* temporaryCaster, Unit* Victim, uint32 spellId, TriggerCastFlags triggeredFlags, Item* castItem = nullptr, Aura* triggeredByAura = nullptr, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
@@ -964,7 +965,7 @@ class GameObject : public WorldObject
         // Used for chest type
         bool m_isInUse;                                     // only one player at time are allowed to open chest
         time_t m_reStockTimer;                              // timer to refill the chest
-        time_t m_despawnTimer;                              // timer to despawn the chest if something changed in it
+        TimePoint m_despawnTimer;                           // timer to despawn the chest if something changed in it
 
         void TriggerSummoningRitual();
         void TriggerDelayedAction();

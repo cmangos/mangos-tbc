@@ -302,7 +302,7 @@ bool GossipSelect_npc_orphan_matron(Player* player, Creature* creature, uint32 /
     return true;
 }
 
-bool QuestAccept_npc_orphan_matron(Player* player, Creature* creature, const Quest* quest)
+bool QuestAccept_npc_orphan_matron(Player* /*player*/, Creature* creature, const Quest* quest)
 {
     switch (quest->GetQuestId())
     {
@@ -387,8 +387,9 @@ bool GossipHello_npc_orphan(Player* player, Creature* creature)
 
 struct npc_shade_of_the_horsemanAI : public ScriptedAI
 {
-    npc_shade_of_the_horsemanAI(Creature* creature) : ScriptedAI(creature), m_performedDoubleLaugh(false), m_stopPeriodicFireTimer(30000), m_bombingRunTimer(148000), m_finalWarningTimer(268000), m_failTimer(388000), m_landing(false), m_startedFires(false), m_allFiresOutTestTimer(0),
-        m_instance(creature->GetInstanceData())
+    npc_shade_of_the_horsemanAI(Creature* creature) : ScriptedAI(creature), m_stopPeriodicFireTimer(30000), m_failTimer(388000),
+        m_bombingRunTimer(148000), m_finalWarningTimer(268000), m_allFiresOutTestTimer(0), m_landing(false), m_startedFires(false),
+        m_performedDoubleLaugh(false), m_instance(creature->GetInstanceData())
     {
         DoCastSpellIfCan(creature, SPELL_CLIMAX_GHOST_VISUAL);
         DoCastSpellIfCan(creature, SPELL_SHADE_DURATION);
@@ -756,7 +757,7 @@ bool GossipSelect_go_large_jack_o_lantern(Player* player, GameObject* go, uint32
     return true;
 }
 
-bool GOUse_go_large_jack_o_lantern(Player* /*player*/, GameObject* go)
+bool GOUse_go_large_jack_o_lantern(Player* /*player*/, GameObject* /*go*/)
 {
     return false;
 };
@@ -764,7 +765,7 @@ bool GOUse_go_large_jack_o_lantern(Player* /*player*/, GameObject* go)
 // 42144 Headless Horseman - Create Water Bucket
 struct HorsemanCreateWaterBucket : public SpellScript
 {
-    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         if (target->HasAura(SPELL_HAS_WATER_BUCKET))
             return false;
@@ -842,7 +843,7 @@ struct HorsemanStartFireTargetTest : public SpellScript
         return true;
     }
 
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* unitTarget = spell->GetUnitTarget())
         {
@@ -918,7 +919,7 @@ struct HorsemanConflagratePeriodic : public AuraScript
 // 42151 Headless Horseman - All Fires Out Test
 struct AllFiresOutTest : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* unitTarget = spell->GetUnitTarget())
             if (unitTarget->HasAura(SPELL_FIRE))
@@ -962,7 +963,7 @@ struct HorsemanConflagrateTargetTest : public SpellScript
 // 42339 Bucket Lands - may target either player or fire npc
 struct BucketLands : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* unitTarget = spell->GetUnitTarget())
         {
@@ -1019,7 +1020,7 @@ struct FireExtinguish : public SpellScript
 // 42178 Headless Horseman - Invisible Campfire, Remove
 struct InvisibleCampfireRemove : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (GameObject* target = spell->GetGOTarget())
             target->SetForcedDespawn();
@@ -1029,7 +1030,7 @@ struct InvisibleCampfireRemove : public SpellScript
 // 43321 Human Child's Laughter
 struct HumanChildLaughter : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* caster = spell->GetCaster())
             caster->PlayDistanceSound(caster->getGender() == GENDER_MALE ? SOUND_ID_HUMAN_MALE_KID_LAUGH : SOUND_ID_HUMAN_FEMALE_KID_LAUGH);
@@ -1039,7 +1040,7 @@ struct HumanChildLaughter : public SpellScript
 // 43323 Human Child's Crying (also used to make Orcish children cry due to lack of spell 64894 in TBC)
 struct HumanChildCrying : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* caster = spell->GetCaster())
         {
@@ -1054,7 +1055,7 @@ struct HumanChildCrying : public SpellScript
 // 43324 Orc Child's Laughter
 struct OrcChildLaughter : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         if (Unit* caster = spell->GetCaster())
             caster->PlayDistanceSound(caster->getGender() == GENDER_MALE ? SOUND_ID_ORC_MALE_KID_LAUGH : SOUND_ID_ORC_FEMALE_KID_LAUGH);
@@ -1064,7 +1065,6 @@ struct OrcChildLaughter : public SpellScript
 void AddSC_shade_of_the_horseman()
 {
     Script* pNewScript = new Script;
-    pNewScript = new Script;
     pNewScript->Name = "npc_shade_of_the_horseman";
     pNewScript->GetAI = GetNewAIInstance<npc_shade_of_the_horsemanAI>;
     pNewScript->RegisterSelf();

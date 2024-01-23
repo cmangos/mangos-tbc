@@ -19,7 +19,7 @@
 #include "Reputation/ReputationMgr.h"
 #include "Server/DBCStores.h"
 #include "Entities/Player.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Globals/ObjectMgr.h"
 
 const int32 ReputationMgr::PointsInRank[MAX_REPUTATION_RANK] = {36000, 3000, 3000, 3000, 6000, 12000, 21000, 1000};
@@ -496,18 +496,18 @@ void ReputationMgr::SetInactive(FactionState* faction, bool inactive)
     faction->needSave = true;
 }
 
-void ReputationMgr::LoadFromDB(QueryResult* result)
+void ReputationMgr::LoadFromDB(std::unique_ptr<QueryResult> queryResult)
 {
     // Set initial reputations (so everything is nifty before DB data load)
     Initialize();
 
     // QueryResult *result = CharacterDatabase.PQuery("SELECT faction,standing,flags FROM character_reputation WHERE guid = '%u'",GetGUIDLow());
 
-    if (result)
+    if (queryResult)
     {
         do
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
 
             FactionEntry const* factionEntry = sFactionStore.LookupEntry<FactionEntry>(fields[0].GetUInt32());
             if (factionEntry && factionEntry->HasReputation())
@@ -552,9 +552,7 @@ void ReputationMgr::LoadFromDB(QueryResult* result)
                 }
             }
         }
-        while (result->NextRow());
-
-        delete result;
+        while (queryResult->NextRow());
     }
 }
 

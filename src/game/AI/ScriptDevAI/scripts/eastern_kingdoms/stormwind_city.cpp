@@ -32,6 +32,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "world_eastern_kingdoms.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 
 /*######
 ## npc_bartleby
@@ -88,122 +89,120 @@ UnitAI* GetAI_npc_bartleby(Creature* pCreature)
 enum
 {
     QUEST_MISSING_DIPLO_PT8     = 1447,
-    FACTION_HOSTILE             = 168,
+    FACTION_HOSTILE             = 7,
     NPC_OLD_TOWN_THUG           = 4969,
+
+    SPELL_UNKILLABLE_OFF        = 13835,
 
     SAY_STONEFIST_1             = -1001274,
     SAY_STONEFIST_2             = -1001275,
     SAY_STONEFIST_3             = -1001276,
 };
 
-struct npc_dashel_stonefistAI : public ScriptedAI
+enum DashelStonefistActions
 {
-    npc_dashel_stonefistAI(Creature* pCreature) : ScriptedAI(pCreature)
+    DASHEL_LOW_HP,
+    DASHEL_ACTION_MAX,
+    DASHEL_START_EVENT,
+    DASHEL_END_EVENT,
+};
+
+struct npc_dashel_stonefistAI : public CombatAI
+{
+    npc_dashel_stonefistAI(Creature* creature) : CombatAI(creature, DASHEL_ACTION_MAX)
     {
-        m_uiStartEventTimer = 0;
-        m_uiEndEventTimer = 0;
-        Reset();
+        AddTimerlessCombatAction(DASHEL_LOW_HP, true);
+        AddCustomAction(DASHEL_START_EVENT, true, [&]() { HandleStartEvent(); });
+        AddCustomAction(DASHEL_END_EVENT, true, [&]() { HandleEndEvent(); });
     }
 
-    uint32 m_uiStartEventTimer;
-    uint32 m_uiEndEventTimer;
     ObjectGuid m_playerGuid;
 
     void Reset() override
    {
+        CombatAI::Reset();
         SetReactState(REACT_PASSIVE);
+    }
+
+    void JustRespawned() override
+    {
+        CombatAI::Reset();
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
         m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
     }
 
-    void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
+    void StartEvent(ObjectGuid guid)
     {
-        if (damage > m_creature->GetHealth() || ((m_creature->GetHealth() - damage) * 100 / m_creature->GetMaxHealth() < 15))
+        m_playerGuid = guid;
+        ResetTimer(DASHEL_START_EVENT, 3000);
+    }
+
+    void HandleStartEvent()
+    {
+        if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
         {
-            damage = std::min(damage, m_creature->GetHealth() - 1);
+            SetDeathPrevention(true);
+            AttackStart(player);
+
+            if (Creature* thug = m_creature->SummonCreature(NPC_OLD_TOWN_THUG, -8672.33f, 442.88f, 99.98f, 3.5f, TEMPSPAWN_DEAD_DESPAWN, 300000))
+                thug->AI()->AttackStart(player);
+
+            if (Creature* thug = m_creature->SummonCreature(NPC_OLD_TOWN_THUG, -8691.59f, 441.66f, 99.41f, 6.1f, TEMPSPAWN_DEAD_DESPAWN, 300000))
+                thug->AI()->AttackStart(player);
+        }
+    }
+
+    void HandleEndEvent()
+    {
+        SetDeathPrevention(false);
+        DoScriptText(SAY_STONEFIST_3, m_creature);
+        m_creature->CastSpell(nullptr, SPELL_UNKILLABLE_OFF, TRIGGERED_OLD_TRIGGERED);
+
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+
+        if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
+            player->AreaExploredOrEventHappens(QUEST_MISSING_DIPLO_PT8);
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        if (action == DASHEL_LOW_HP && m_creature->GetHealthPercent() <= 15.f)
+        {
             DoScriptText(SAY_STONEFIST_2, m_creature);
-            m_uiEndEventTimer = 5000;
+            ResetTimer(DASHEL_END_EVENT, 5000);
             EnterEvadeMode();
         }
     }
-
-    void StartEvent(ObjectGuid pGuid)
-    {
-        m_playerGuid = pGuid;
-        m_uiStartEventTimer = 3000;
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        if (m_uiStartEventTimer)
-        {
-            if (m_uiStartEventTimer <= uiDiff)
-            {
-                if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
-                {
-                    AttackStart(pPlayer);
-
-                    if (Creature* pThug = m_creature->SummonCreature(NPC_OLD_TOWN_THUG, -8672.33f, 442.88f, 99.98f, 3.5f, TEMPSPAWN_DEAD_DESPAWN, 300000))
-                        pThug->AI()->AttackStart(pPlayer);
-
-                    if (Creature* pThug = m_creature->SummonCreature(NPC_OLD_TOWN_THUG, -8691.59f, 441.66f, 99.41f, 6.1f, TEMPSPAWN_DEAD_DESPAWN, 300000))
-                        pThug->AI()->AttackStart(pPlayer);
-                }
-
-                m_uiStartEventTimer = 0;
-            }
-            else
-                m_uiStartEventTimer -= uiDiff;
-        }
-
-        if (m_uiEndEventTimer)
-        {
-            if (m_uiEndEventTimer <= uiDiff)
-            {
-                DoScriptText(SAY_STONEFIST_3, m_creature);
-
-                if (Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid))
-                    pPlayer->AreaExploredOrEventHappens(QUEST_MISSING_DIPLO_PT8);
-
-                m_uiEndEventTimer = 0;
-            }
-            else
-                m_uiEndEventTimer -= uiDiff;
-        }
-
-        DoMeleeAttackIfReady();
-    }
 };
 
-bool QuestAccept_npc_dashel_stonefist(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+bool QuestAccept_npc_dashel_stonefist(Player* player, Creature* creature, const Quest* quest)
 {
-    if (pQuest->GetQuestId() == QUEST_MISSING_DIPLO_PT8)
+    if (quest->GetQuestId() == QUEST_MISSING_DIPLO_PT8)
     {
-        pCreature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_COMBAT_STOP | TEMPFACTION_RESTORE_RESPAWN);
-        pCreature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-        pCreature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-        pCreature->AI()->SetReactState(REACT_AGGRESSIVE);
-        DoScriptText(SAY_STONEFIST_1, pCreature, pPlayer);
+        creature->SetFactionTemporary(FACTION_HOSTILE, TEMPFACTION_RESTORE_COMBAT_STOP | TEMPFACTION_RESTORE_RESPAWN);
+        creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+        creature->AI()->SetReactState(REACT_AGGRESSIVE);
+        DoScriptText(SAY_STONEFIST_1, creature, player);
 
-        if (npc_dashel_stonefistAI* pStonefistAI = dynamic_cast<npc_dashel_stonefistAI*>(pCreature->AI()))
-           pStonefistAI->StartEvent(pPlayer->GetObjectGuid());
+        if (npc_dashel_stonefistAI* stonefistAI = dynamic_cast<npc_dashel_stonefistAI*>(creature->AI()))
+           stonefistAI->StartEvent(player->GetObjectGuid());
     }
     return true;
-}
-
-UnitAI* GetAI_npc_dashel_stonefist(Creature* pCreature)
-{
-    return new npc_dashel_stonefistAI(pCreature);
 }
 
 /*######
 ## npc_lady_katrana_prestor
 ######*/
 
-#define GOSSIP_ITEM_KAT_1 "Pardon the intrusion, Lady Prestor, but Highlord Bolvar suggested that I seek your advice."
-#define GOSSIP_ITEM_KAT_2 "My apologies, Lady Prestor."
-#define GOSSIP_ITEM_KAT_3 "Begging your pardon, Lady Prestor. That was not my intent."
-#define GOSSIP_ITEM_KAT_4 "Thank you for your time, Lady Prestor."
+enum
+{
+    GOSSIP_ITEM_KAT_1 = -3000120,
+    GOSSIP_ITEM_KAT_2 = -3000121,
+    GOSSIP_ITEM_KAT_3 = -3000122,
+    GOSSIP_ITEM_KAT_4 = -3000123,
+};
 
 bool GossipHello_npc_lady_katrana_prestor(Player* player, Creature* creature)
 {
@@ -211,7 +210,7 @@ bool GossipHello_npc_lady_katrana_prestor(Player* player, Creature* creature)
         player->PrepareQuestMenu(creature->GetObjectGuid());
 
     if (player->GetQuestStatus(4185) == QUEST_STATUS_INCOMPLETE)
-        player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
+        player->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
 
     player->SEND_GOSSIP_MENU(2693, creature->GetObjectGuid());
 
@@ -223,15 +222,15 @@ bool GossipSelect_npc_lady_katrana_prestor(Player* player, Creature* creature, u
     switch (action)
     {
         case GOSSIP_ACTION_INFO_DEF:
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+            player->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
             player->SEND_GOSSIP_MENU(2694, creature->GetObjectGuid());
             break;
         case GOSSIP_ACTION_INFO_DEF+1:
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+            player->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_3, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
             player->SEND_GOSSIP_MENU(2695, creature->GetObjectGuid());
             break;
         case GOSSIP_ACTION_INFO_DEF+2:
-            player->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_4, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
+            player->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_KAT_4, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
             player->SEND_GOSSIP_MENU(2696, creature->GetObjectGuid());
             break;
         case GOSSIP_ACTION_INFO_DEF+3:
@@ -606,14 +605,12 @@ static const DialogueEntry aMasqueradeDialogue[] =
 
 struct npc_reginald_windsorAI : public npc_escortAI, private DialogueHelper
 {
-    npc_reginald_windsorAI(Creature* m_creature) : npc_escortAI(m_creature),
-        DialogueHelper(aMasqueradeDialogue)
+    npc_reginald_windsorAI(Creature* creature) : npc_escortAI(creature),
+        DialogueHelper(aMasqueradeDialogue), m_scriptedMap(static_cast<ScriptedMap*>(creature->GetInstanceData())), m_guardCheckTimer(0), m_isKeepReady(false)
     {
-        m_scriptedMap = (ScriptedMap*)m_creature->GetInstanceData();
         // Npc flag is controlled by script
         m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
         InitializeDialogueHelper(m_scriptedMap);
-        Reset();
     }
 
     ScriptedMap* m_scriptedMap;
@@ -632,8 +629,7 @@ struct npc_reginald_windsorAI : public npc_escortAI, private DialogueHelper
 
     void Reset() override
     {
-        m_guardCheckTimer  = 0;
-        m_isKeepReady       = false;
+    	npc_escortAI::Reset();
 
         m_hammerTimer      = urand(0, 1000);
         m_cleaveTimer      = urand(1000, 3000);
@@ -1017,11 +1013,6 @@ struct npc_reginald_windsorAI : public npc_escortAI, private DialogueHelper
     }
 };
 
-UnitAI* GetAI_npc_reginald_windsor(Creature* creature)
-{
-    return new npc_reginald_windsorAI(creature);
-}
-
 bool QuestAccept_npc_reginald_windsor(Player* player, Creature* creature, const Quest* quest)
 {
     if (quest->GetQuestId() == QUEST_THE_GREAT_MASQUERADE)
@@ -1113,7 +1104,7 @@ void AddSC_stormwind_city()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_dashel_stonefist";
-    pNewScript->GetAI = &GetAI_npc_dashel_stonefist;
+    pNewScript->GetAI = &GetNewAIInstance<npc_dashel_stonefistAI>;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_dashel_stonefist;
     pNewScript->RegisterSelf();
 
@@ -1132,7 +1123,7 @@ void AddSC_stormwind_city()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_reginald_windsor";
-    pNewScript->GetAI = &GetAI_npc_reginald_windsor;
+    pNewScript->GetAI = &GetNewAIInstance<npc_reginald_windsorAI>;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_reginald_windsor;
     pNewScript->pGossipHello = &GossipHello_npc_reginald_windsor;
     pNewScript->pGossipSelect = &GossipSelect_npc_reginald_windsor;

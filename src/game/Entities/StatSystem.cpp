@@ -125,6 +125,9 @@ bool Player::UpdateAllStats()
     UpdateManaRegen();
     UpdateExpertise(BASE_ATTACK);
     UpdateExpertise(OFF_ATTACK);
+    UpdateWeaponHitChances(BASE_ATTACK);
+    UpdateWeaponHitChances(OFF_ATTACK);
+    UpdateWeaponHitChances(RANGED_ATTACK);
     for (int i = SPELL_SCHOOL_NORMAL; i < MAX_SPELL_SCHOOL; ++i)
         UpdateResistances(i);
 
@@ -365,7 +368,7 @@ void Player::CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, fl
     float weapon_mindamage = GetBaseWeaponDamage(attType, MINDAMAGE, index);
     float weapon_maxdamage = GetBaseWeaponDamage(attType, MAXDAMAGE, index);
 
-    if (IsNoWeaponShapeShift())                             // check if player is in shapeshift which doesnt use weapon
+    if (IsAttackSpeedOverridenShapeShift()) // forms with no override on attack speed use normal weapon damage
     {
         uint32 lvl = GetLevel();
         if (lvl > 60)
@@ -570,16 +573,23 @@ void Player::UpdateSpellCritChance(uint32 school)
     SetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1 + school, std::max(0.0f, std::min(crit, 100.0f)));
 }
 
-void Player::UpdateMeleeHitChances()
+void Player::UpdateWeaponHitChances(WeaponAttackType attType)
 {
-    m_modMeleeHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_HIT_CHANCE);
-    m_modMeleeHitChance +=  GetRatingBonusValue(CR_HIT_MELEE);
-}
+    int32 weaponHitChance = 0;
+    Item* weapon = GetWeaponForAttack(attType);
 
-void Player::UpdateRangedHitChances()
-{
-    m_modRangedHitChance = GetTotalAuraModifier(SPELL_AURA_MOD_HIT_CHANCE);
-    m_modRangedHitChance += GetRatingBonusValue(CR_HIT_RANGED);
+    AuraList const& hitAura = GetAurasByType(SPELL_AURA_MOD_HIT_CHANCE);
+    for (auto hitAura : hitAura)
+    {
+        // item neutral spell
+        if (hitAura->GetSpellProto()->EquippedItemClass == -1)
+            weaponHitChance += hitAura->GetModifier()->m_amount;
+        // item dependent spell
+        else if (weapon && weapon->IsFitToSpellRequirements(hitAura->GetSpellProto()))
+            weaponHitChance += hitAura->GetModifier()->m_amount;
+    }
+    m_modWeaponHitChance[attType] = weaponHitChance;
+    m_modWeaponHitChance[attType] += attType == RANGED_ATTACK ? GetRatingBonusValue(CR_HIT_RANGED) : GetRatingBonusValue(CR_HIT_MELEE);
 }
 
 void Player::UpdateSpellHitChances()
@@ -670,6 +680,24 @@ void Player::UpdateEnergyRegen()
         RegenerateAll(std::min(uint32(REGEN_TIME_FULL), m_regenTimer));
 
     m_energyRegenRate = GetTotalAuraMultiplierByMiscValue(SPELL_AURA_MOD_POWER_REGEN_PERCENT, POWER_ENERGY);
+}
+
+void Player::UpdateWeaponDependantStats(WeaponAttackType attType)
+{
+    switch (attType)
+    {
+        case BASE_ATTACK:
+            UpdateWeaponHitChances(attType);
+            UpdateExpertise(attType);
+            break;
+        case OFF_ATTACK:
+            UpdateWeaponHitChances(attType);
+            UpdateExpertise(attType);
+            break;
+        case RANGED_ATTACK:
+            UpdateWeaponHitChances(attType);
+            break;
+    }
 }
 
 void Player::_ApplyAllStatBonuses()

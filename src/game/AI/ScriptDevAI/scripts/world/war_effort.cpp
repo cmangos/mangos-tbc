@@ -17,6 +17,10 @@
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "World/WorldState.h"
 #include "AI/ScriptDevAI/scripts/kalimdor/world_kalimdor.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
+#include "Grids/GridNotifiers.h"
+#include "Grids/GridNotifiersImpl.h"
+#include "OutdoorPvP/OutdoorPvP.h"
 
 enum Quests
 {
@@ -106,6 +110,9 @@ enum Quests
     QUEST_HORDE_MAGEWEAVE_BANDAGE_2 = 8608,
 
     QUEST_BANG_A_GONG               = 8743,
+
+    SAY_BANG_GONG                   = 11427,
+    SAY_QIRAJI_BREAK                = 11432,
 };
 
 bool QuestRewarded_war_effort(Player* /*player*/, Creature* /*creature*/, Quest const* quest)
@@ -184,17 +191,80 @@ bool QuestRewarded_war_effort(Player* /*player*/, Creature* /*creature*/, Quest 
     return true;
 }
 
-bool QuestRewarded_war_effort(Player* /*player*/, GameObject* go, Quest const* quest)
+// dont ask me why - dont want to pollute header file with this for now - if we move it from bg to map it might be a good thing
+class BattleGroundBroadcastBuilder
+{
+    public:
+        BattleGroundBroadcastBuilder(BroadcastText const* bcd, ChatMsg msgtype, Creature const* source, Unit const* target)
+            : i_msgtype(msgtype), i_source(source), i_bcd(bcd), i_target(target) {}
+        void operator()(WorldPacket& data, int32 loc_idx)
+        {
+            ChatHandler::BuildChatPacket(data, i_msgtype, i_bcd->GetText(loc_idx, i_source ? i_source->getGender() : GENDER_NONE).c_str(), i_bcd->languageId, CHAT_TAG_NONE, i_source ? i_source->GetObjectGuid() : ObjectGuid(), i_source ? i_source->GetName() : "", i_target ? i_target->GetObjectGuid() : ObjectGuid());
+        }
+    private:
+        ChatMsg i_msgtype;
+        Creature const* i_source;
+        BroadcastText const* i_bcd;
+        Unit const* i_target;
+};
+
+void SendBgNeutralToPlayer(int32 bcdEntry, Unit* target)
+{
+    BattleGroundBroadcastBuilder bg_builder(sObjectMgr.GetBroadcastText(bcdEntry), CHAT_MSG_BG_SYSTEM_NEUTRAL, nullptr, target);
+    MaNGOS::LocalizedPacketDo<BattleGroundBroadcastBuilder> bg_do(bg_builder);
+    target->GetMap()->ExecuteMapWorkerZone(ZONE_ID_SILITHUS, [&](Player* player)
+    {
+        bg_do(player);
+    });
+}
+
+bool QuestRewarded_war_effort(Player* player, GameObject* go, Quest const* quest)
 {
     if (quest->GetQuestId() == QUEST_BANG_A_GONG)
     {
         if (sWorldState.GetAqPhase() == PHASE_3_GONG_TIME)
+        {
+            SendBgNeutralToPlayer(SAY_BANG_GONG, player);
+            SendBgNeutralToPlayer(SAY_QIRAJI_BREAK, player);
             if (InstanceData* data = go->GetInstanceData())
                 data->SetData(TYPE_GONG_TIME, 0);
-        sWorldState.HandleWarEffortPhaseTransition(PHASE_4_10_HOUR_WAR);
+            sWorldState.HandleWarEffortPhaseTransition(PHASE_4_10_HOUR_WAR);
+        }
     }
     return true;
 }
+
+struct SilithusBossAI : public CombatAI
+{
+    SilithusBossAI(Creature* creature) : CombatAI(creature, 0) {}
+
+    void JustRespawned() override
+    {
+        CombatAI::JustRespawned();
+        int32 textId = 0;
+        switch (m_creature->GetEntry())
+        {
+            case NPC_COLOSSUS_OF_ASHI: textId = 11426; break;
+            case NPC_COLOSSUS_OF_REGAL: textId = 11424; break;
+            case NPC_COLOSSUS_OF_ZORA: textId = 11425; break;
+            default: break;
+        }
+        DoBroadcastText(textId, m_creature);
+    }
+
+    void JustDied(Unit* /*killer*/) override
+    {
+        AQSilithusBoss boss;
+        switch (m_creature->GetEntry())
+        {
+            default:
+            case NPC_COLOSSUS_OF_ASHI: boss = AQ_SILITHUS_BOSS_ASHI; break;
+            case NPC_COLOSSUS_OF_REGAL: boss = AQ_SILITHUS_BOSS_REGAL; break;
+            case NPC_COLOSSUS_OF_ZORA: boss = AQ_SILITHUS_BOSS_ZORA; break;
+        }
+        sWorldState.SetSilithusBossKilled(boss);
+    }
+};
 
 void AddSC_war_effort()
 {
@@ -206,5 +276,10 @@ void AddSC_war_effort()
     pNewScript = new Script;
     pNewScript->Name = "go_scarab_gong";
     pNewScript->pQuestRewardedGO = &QuestRewarded_war_effort;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_silithus_boss";
+    pNewScript->GetAI = &GetNewAIInstance<SilithusBossAI>;
     pNewScript->RegisterSelf();
 }

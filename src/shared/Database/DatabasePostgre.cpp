@@ -18,13 +18,13 @@
 
 #ifdef DO_POSTGRESQL
 
-#include "Util.h"
+#include "Util/Util.h"
 #include "Policies/Singleton.h"
 #include "Platform/Define.h"
-#include "Threading.h"
+#include "Multithreading/Threading.h"
 #include "DatabaseEnv.h"
 #include "Database/SqlOperations.h"
-#include "Timer.h"
+#include "Util/Timer.h"
 
 size_t DatabasePostgre::db_count = 0;
 
@@ -132,10 +132,10 @@ bool PostgreSQLConnection::_Query(const char* sql, PGresult** pResult, uint64* p
     return true;
 }
 
-QueryResult* PostgreSQLConnection::Query(const char* sql)
+std::unique_ptr<QueryResult> PostgreSQLConnection::Query(const char* sql)
 {
     if (!mPGconn)
-        return nullptr;
+        return {};
 
     PGresult* result = nullptr;
     uint64 rowCount = 0;
@@ -144,7 +144,7 @@ QueryResult* PostgreSQLConnection::Query(const char* sql)
     if (!_Query(sql, &result, &rowCount, &fieldCount))
         return nullptr;
 
-    QueryResultPostgre* queryResult = new QueryResultPostgre(result, rowCount, fieldCount);
+    auto queryResult = std::make_unique<QueryResultPostgre>(result, rowCount, fieldCount);
 
     queryResult->NextRow();
     return queryResult;

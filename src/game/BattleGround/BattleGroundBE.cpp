@@ -20,7 +20,7 @@
 #include "Entities/Player.h"
 #include "BattleGround.h"
 #include "BattleGroundBE.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Tools/Language.h"
 #include "World/WorldStateDefines.h"
 #include "World/WorldStateVariableManager.h"
@@ -41,6 +41,9 @@ BattleGroundBE::BattleGroundBE()
 
 void BattleGroundBE::Reset()
 {
+    // call parent's class reset
+    BattleGround::Reset();
+
     GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_BE_HUD_ENABLED, 1);
     GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_BE_HUD_ENABLED, true, 0, 0);
     GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_BE_ALLIANCE_ALIVE, true, 0, 0);

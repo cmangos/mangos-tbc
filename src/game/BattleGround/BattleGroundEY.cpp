@@ -24,8 +24,8 @@
 #include "Globals/ObjectMgr.h"
 #include "BattleGroundMgr.h"
 #include "Tools/Language.h"
-#include "WorldPacket.h"
-#include "Util.h"
+#include "Server/WorldPacket.h"
+#include "Util/Util.h"
 #include "Maps/MapManager.h"
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 
@@ -259,7 +259,8 @@ bool BattleGroundEY::HandleEvent(uint32 eventId, Object* source, Object* target)
     }
 
     GameObject* go = dynamic_cast<GameObject*>(source);
-    MANGOS_ASSERT(go); // if not go, blow up so we can check why
+    if (!go) // people can misuse various effects in bgs, need a whitelist not a blacklist - this fits the bill nicely
+        return true;
 
     // events called from the capture points
     for (uint8 i = 0; i < EY_MAX_NODES; ++i)
@@ -285,7 +286,7 @@ bool BattleGroundEY::HandleEvent(uint32 eventId, Object* source, Object* target)
 }
 
 // Method that handles the capture point capture events
-void BattleGroundEY::ProcessCaptureEvent(GameObject* go, uint32 towerId, Team team, uint32 newWorldState, uint32 message)
+void BattleGroundEY::ProcessCaptureEvent(GameObject* go, uint32 towerId, Team team, uint32 /*newWorldState*/, uint32 message)
 {
     DEBUG_LOG("BattleGroundEY: Process capture point event from gameobject entry %u, captured by team %u", go->GetEntry(), team);
 

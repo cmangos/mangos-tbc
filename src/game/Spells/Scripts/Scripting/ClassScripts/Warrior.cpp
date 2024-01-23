@@ -20,6 +20,7 @@
 #include "Spells/SpellAuras.h"
 #include "Spells/SpellMgr.h"
 
+// 5308 - Execute
 struct WarriorExecute : public SpellScript
 {
     void OnCast(Spell* spell) const override // confirmed main spell can not hit and child still hits
@@ -30,6 +31,7 @@ struct WarriorExecute : public SpellScript
     }
 };
 
+// 20647 - Execute
 struct WarriorExecuteDamage : public SpellScript
 {
     void OnHit(Spell* spell, SpellMissInfo missInfo) const override
@@ -39,6 +41,7 @@ struct WarriorExecuteDamage : public SpellScript
     }
 };
 
+// 34428 - Victory Rush
 struct VictoryRush : public SpellScript
 {
     void OnCast(Spell* spell) const override
@@ -52,6 +55,7 @@ struct VictoryRush : public SpellScript
     }
 };
 
+// 20243 - Devastate
 struct Devastate : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
@@ -87,9 +91,10 @@ struct Devastate : public SpellScript
     }
 };
 
+// 20230 - Retaliation
 struct RetaliationWarrior : public AuraScript
 {
-    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    SpellAuraProcResult OnProc(Aura* /*aura*/, ProcExecutionData& procData) const override
     {
         // check attack comes not from behind
         if (procData.victim->IsFacingTargetsBack(procData.attacker))
@@ -100,6 +105,7 @@ struct RetaliationWarrior : public AuraScript
     }
 };
 
+// 29707 - Heroic Strike
 struct HeroicStrike : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override

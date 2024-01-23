@@ -32,6 +32,7 @@
 #include "WorldSocket.h"
 #include "Multithreading/Messager.h"
 
+#include <atomic>
 #include <map>
 #include <deque>
 #include <mutex>
@@ -91,6 +92,13 @@ enum ClientOSType
     CLIENT_OS_UNKNOWN,
     CLIENT_OS_WIN,
     CLIENT_OS_MAC
+};
+
+enum ClientPlatformType
+{
+    CLIENT_PLATFORM_UNKNOWN,
+    CLIENT_PLATFORM_X86,
+    CLIENT_PLATFORM_PPC
 };
 
 enum PartyOperation
@@ -341,7 +349,7 @@ class WorldSession
 
         void SendTradeStatus(const TradeStatusInfo& status) const;
         void SendUpdateTrade(bool trader_state = true) const;
-        void SendCancelTrade();
+        void SendCancelTrade(TradeStatus status) const;
 
         void SendPetitionQueryOpcode(ObjectGuid petitionguid) const;
 
@@ -354,9 +362,9 @@ class WorldSession
         // Account Data
         AccountData* GetAccountData(AccountDataType type) { return &m_accountData[type]; }
         void SetAccountData(AccountDataType type, time_t time_, const std::string& data);
-        void SendAccountDataTimes(uint32 mask);
+        void SendAccountDataTimes();
         void LoadGlobalAccountData();
-        void LoadAccountData(QueryResult* result, uint32 mask);
+        void LoadAccountData(std::unique_ptr<QueryResult> queryResult, uint32 mask);
         void LoadTutorialsData();
         void SendTutorialsData();
         void SaveTutorialsData();
@@ -434,6 +442,8 @@ class WorldSession
         uint32 getDialogStatus(const Player* pPlayer, const Object* questgiver, uint32 defstatus) const;
         ClientOSType GetOS() const { return m_clientOS; }
         void SetOS(ClientOSType os) { m_clientOS = os; }
+        ClientPlatformType GetPlatform() const { return m_clientPlatform; }
+        void SetPlatform(ClientPlatformType platform) { m_clientPlatform = platform; }
         uint32 GetGameBuild() const { return m_gameBuild; }
         void SetGameBuild(uint32 version) { m_gameBuild = version; }
         uint32 GetAccountMaxLevel() const { return m_accountMaxLevel; }
@@ -934,6 +944,7 @@ class WorldSession
 
         // anticheat
         ClientOSType m_clientOS;
+        ClientPlatformType m_clientPlatform;
         uint32 m_gameBuild;
         uint32 m_accountMaxLevel;
         uint32 m_orderCounter;
@@ -953,7 +964,7 @@ class WorldSession
         bool m_playerRecentlyLogout;
         LocaleConstant m_sessionDbcLocale;
         int m_sessionDbLocaleIndex;
-        uint32 m_latency;
+        std::atomic<uint32> m_latency;
         AccountData m_accountData[NUM_ACCOUNT_DATA_TYPES];
         uint32 m_Tutorials[8];
         TutorialDataState m_tutorialState;
@@ -966,7 +977,7 @@ class WorldSession
         uint32 m_timeSyncNextCounter;
         uint32 m_timeSyncTimer;
 
-        std::set<ObjectGuid> m_offlineNameQueries; // for name queires made when not logged in (character selection screen)
+        std::set<ObjectGuid> m_offlineNameQueries; // for name queries made when not logged in (character selection screen)
         std::deque<CharacterNameQueryResponse> m_offlineNameResponses; // for responses to name queries made when not logged in
 
         bool m_initialZoneUpdated = false;

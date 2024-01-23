@@ -19,7 +19,7 @@
 #ifndef MANGOS_LOOTMGR_H
 #define MANGOS_LOOTMGR_H
 
-#include "ByteBuffer.h"
+#include "Util/ByteBuffer.h"
 #include "Entities/ObjectGuid.h"
 #include "Globals/SharedDefines.h"
 
@@ -230,7 +230,8 @@ class LootStore
         void Verify() const;
 
         void LoadAndCollectLootIds(LootIdSet& ids_set);
-        void CheckLootRefs(LootIdSet* ref_set = nullptr) const; // check existence reference and remove it from ref_set
+        void LoadAndCheckReferenceNames();
+        bool CheckLootRefs(LootIdSet* ref_set = nullptr); // check existence reference and remove it from ref_set
         void ReportUnusedIds(LootIdSet const& ids_set) const;
         void ReportNotExistedId(uint32 id) const;
 
@@ -273,7 +274,7 @@ class LootTemplate
 
         // Checks integrity of the template
         void Verify(LootStore const& lootstore, uint32 id) const;
-        void CheckLootRefs(LootIdSet* ref_set) const;
+        bool CheckLootRefs(LootIdSet* ref_set, LootIdSet& prevRefs);
     private:
         LootStoreItemList Entries;                          // not grouped only
         LootGroups        Groups;                           // groups have own (optimized) processing, grouped entries go there
@@ -400,9 +401,11 @@ void LoadLootTemplates_Skinning();
 void LoadLootTemplates_Disenchant();
 void LoadLootTemplates_Prospecting();
 
-void LoadLootTemplates_Reference();
+void LoadLootTemplates_Reference(LootIdSet& ids_set);
 
-inline void LoadLootTables()
+void CheckLootTemplates_Reference(LootIdSet& ids_set); // has to be split due to bg usage
+
+inline void LoadLootTables(LootIdSet& ids_set)
 {
     LoadLootTemplates_Creature();
     LoadLootTemplates_Fishing();
@@ -414,7 +417,7 @@ inline void LoadLootTables()
     LoadLootTemplates_Disenchant();
     LoadLootTemplates_Prospecting();
 
-    LoadLootTemplates_Reference();
+    LoadLootTemplates_Reference(ids_set);
 }
 
 class LootMgr
@@ -423,6 +426,7 @@ class LootMgr
         void PlayerVote(Player* player, ObjectGuid const& lootTargetGuid, uint32 itemSlot, RollVote vote);
         Loot* GetLoot(Player* player, ObjectGuid const& targetGuid = ObjectGuid()) const;
         void CheckDropStats(ChatHandler& chat, uint32 amountOfCheck, uint32 lootId, std::string lootStore) const;
+        bool ExistsRefLootTemplate(uint32 refLootId) const;
 };
 
 #define sLootMgr MaNGOS::Singleton<LootMgr>::Instance()

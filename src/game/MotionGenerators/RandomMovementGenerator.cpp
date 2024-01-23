@@ -26,6 +26,8 @@ void AbstractRandomMovementGenerator::Initialize(Unit& owner)
 {
     owner.addUnitState(i_stateActive);
 
+    m_pathFinder = std::make_unique<PathFinder>(&owner);
+
     // Client-controlled unit should have control removed
     if (const Player* controllingClientPlayer = owner.GetClientControlling())
         controllingClientPlayer->UpdateClientControl(&owner, false);
@@ -114,32 +116,25 @@ bool AbstractRandomMovementGenerator::Update(Unit& owner, const uint32& diff)
     return true;
 }
 
-bool AbstractRandomMovementGenerator::_getLocation(Unit& owner, float& x, float& y, float& z)
-{
-    return owner.GetMap()->GetReachableRandomPosition(&owner, x, y, z, i_radius);
-}
-
 int32 AbstractRandomMovementGenerator::_setLocation(Unit& owner)
 {
     // Look for a random location within certain radius of initial position
     float x = i_x, y = i_y, z = i_z;
 
-    if (!_getLocation(owner, x, y, z))
-        return 0;
-
-    PathFinder pf(&owner);
-
     if (i_pathLength != 0.0f)
-        pf.setPathLengthLimit(i_pathLength);
+        m_pathFinder->setPathLengthLimit(i_pathLength);
 
-    pf.calculate(x, y, z);
+    m_pathFinder->ComputePathToRandomPoint(Vector3(x, y, z), i_radius);
 
-    if (pf.getPathType() & PATHFIND_NOPATH)
+    if ((m_pathFinder->getPathType() & PATHFIND_NOPATH) != 0)
         return 0;
 
     Movement::MoveSplineInit init(owner);
-    init.MovebyPath(pf.getPath());
+    init.MovebyPath(m_pathFinder->getPath());
     init.SetWalk(i_walk);
+
+    if (owner.IsSlowedInCombat())
+        init.SetCombatSlowed(std::min(owner.GetHealthPercent(), 20.f) * 0.02 + 0.4f);
 
     int32 duration = init.Launch();
 
@@ -195,6 +190,19 @@ void WanderMovementGenerator::Interrupt(Unit& owner)
         static_cast<Creature&>(owner).SetWalk(!owner.hasUnitState(UNIT_STAT_RUNNING_STATE), false);
 }
 
+void WanderMovementGenerator::AddToRandomPauseTime(int32 waitTimeDiff, bool force)
+{
+    if (force)
+        i_nextMoveTimer.Reset(waitTimeDiff);
+    else if (!i_nextMoveTimer.Passed())
+    {
+        // creature is stopped already
+        // Prevent <= 0, the code in Update requires to catch the change from moving to not moving
+        int32 newWaitTime = i_nextMoveTimer.GetExpiry() + waitTimeDiff;
+        i_nextMoveTimer.Reset(newWaitTime > 0 ? newWaitTime : 1);
+    }
+}
+
 TimedWanderMovementGenerator::TimedWanderMovementGenerator(Creature const& npc, uint32 timer, float radius, float verticalZ)
     : TimedWanderMovementGenerator(timer, npc.GetPositionX(), npc.GetPositionY(), npc.GetPositionZ(), radius, verticalZ)
 {
@@ -220,7 +228,7 @@ FleeingMovementGenerator::FleeingMovementGenerator(Unit const& source) :
 #define MIN_QUIET_DISTANCE 28.0f
 #define MAX_QUIET_DISTANCE 43.0f
 
-bool FleeingMovementGenerator::_getLocation(Unit& owner, float& x, float& y, float& z)
+int32 FleeingMovementGenerator::_setLocation(Unit& owner)
 {
     float dist_from_source = owner.GetDistance(i_x, i_y, i_z);
 
@@ -231,14 +239,7 @@ bool FleeingMovementGenerator::_getLocation(Unit& owner, float& x, float& y, flo
     else    // we are inside quiet range
         i_radius = frand(0.6f, 1.2f) * (MAX_QUIET_DISTANCE - MIN_QUIET_DISTANCE);
 
-    owner.GetPosition(x, y, z);
-
-    float angle = 2.0f * M_PI_F * rand_norm_f();
-    Position pos = owner.GetFirstRandomAngleCollisionPosition(i_radius, angle);
-    x = pos.x;
-    y = pos.y;
-    z = pos.z + 1;
-    return true;
+    return AbstractRandomMovementGenerator::_setLocation(owner);
 }
 
 void PanicMovementGenerator::Initialize(Unit& owner)

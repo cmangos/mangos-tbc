@@ -41,7 +41,7 @@ enum ConditionType
     CONDITION_QUESTREWARDED         = 8,                    // quest_id     0
     CONDITION_QUESTTAKEN            = 9,                    // quest_id     0,1,2   for condition true while quest active (0 any state, 1 if quest incomplete, 2 if quest completed).
     CONDITION_AD_COMMISSION_AURA    = 10,                   // 0            0,      for condition true while one from AD commission aura active
-    CONDITION_UNUSED_1              = 11,
+    CONDITION_PVP_RANK              = 11,                   // reserved - used only in vanilla
     CONDITION_ACTIVE_GAME_EVENT     = 12,                   // event_id     0
     CONDITION_AREA_FLAG             = 13,                   // area_flag    area_flag_not
     CONDITION_RACE_CLASS            = 14,                   // race_mask    class_mask
@@ -111,8 +111,10 @@ enum ConditionRequirement
     CONDITION_REQ_TARGET_WORLDOBJECT,
     CONDITION_REQ_TARGET_GAMEOBJECT,
     CONDITION_REQ_TARGET_UNIT,
+    CONDITION_REQ_TARGET_UNIT_OR_CORPSE,
     CONDITION_REQ_TARGET_CREATURE,
     CONDITION_REQ_TARGET_PLAYER,
+    CONDITION_REQ_TARGET_PLAYER_OR_CORPSE,
     CONDITION_REQ_SOURCE_WORLDOBJECT,
     CONDITION_REQ_SOURCE_GAMEOBJECT,
     CONDITION_REQ_SOURCE_UNIT,
@@ -126,14 +128,26 @@ enum ConditionRequirement
     CONDITION_REQ_BOTH_PLAYERS,
 };
 
-enum WorldStateConditionSign
+// DO NOT ALTER - db2 op struct
+enum class ConditionOperation : uint8
 {
-    WORLDSTATE_EQUALS           = 0,
-    WORLDSTATE_GREATER          = 1,
-    WORLDSTATE_GREATER_EQUAL    = 2,
-    WORLDSTATE_LESS             = 3,
-    WORLDSTATE_LESS_EQUAL       = 4,
-    WORLDSTATE_SIGN_MAX         = 5,
+    NONE                        = 0,
+    EQUAL_TO                    = 1,
+    NOT_EQUAL_TO                = 2,
+    LESS_THAN                   = 3,
+    LESS_THAN_OR_EQUAL_TO       = 4,
+    GREATER_THAN                = 5,
+    GREATER_THAN_OR_EQUAL_TO    = 6,
+    MAX
+};
+
+// DO NOT ALTER - db2 logic struct
+enum class ConditionLogic : uint8
+{
+    NONE = 0, // only execute cond 0
+    AND  = 1, // both conditions must be true
+    OR   = 2, // one condition must be true
+    XOR  = 3, // condition results must not be equal
 };
 
 class ConditionEntry
@@ -151,6 +165,8 @@ class ConditionEntry
 
         // Checks if the condition is met
         bool Meets(WorldObject const* target, Map const* map, WorldObject const* source, ConditionSource conditionSourceType) const;
+
+        static bool CheckOp(ConditionOperation op, int32 value, int32 operand);
     private:
         void DisableCondition() { m_condition = CONDITION_NONE; m_flags ^= CONDITION_FLAG_REVERSE_RESULT; }
         bool CheckParamRequirements(WorldObject const* target, Map const* map, WorldObject const* source) const;

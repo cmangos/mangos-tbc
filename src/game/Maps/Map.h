@@ -228,6 +228,7 @@ class Map : public GridRefManager<NGridType>
         bool IsBattleGroundOrArena() const { return i_mapEntry && i_mapEntry->IsBattleGroundOrArena(); }
         bool IsContinent() const { return i_mapEntry && i_mapEntry->IsContinent(); }
         bool IsMountAllowed() const;
+        bool IsDynguidForced() const;
 
         // can't be nullptr for loaded map
         MapPersistentState* GetPersistentState() const { return m_persistentState; }
@@ -260,7 +261,7 @@ class Map : public GridRefManager<NGridType>
             SCRIPT_EXEC_PARAM_UNIQUE_BY_TARGET        = 0x02,   // Start Script only if not yet started (uniqueness identified by id and target)
             SCRIPT_EXEC_PARAM_UNIQUE_BY_SOURCE_TARGET = 0x03,   // Start Script only if not yet started (uniqueness identified by id, source and target)
         };
-        bool ScriptsStart(ScriptMapMapName const& scripts, uint32 id, Object* source, Object* target, ScriptExecutionParam execParams = SCRIPT_EXEC_PARAM_NONE);
+        bool ScriptsStart(ScriptMapType scriptType, uint32 id, Object* source, Object* target, ScriptExecutionParam execParams = SCRIPT_EXEC_PARAM_NONE);
         void ScriptCommandStart(ScriptInfo const& script, uint32 delay, Object* source, Object* target);
 
         // must called with AddToWorld
@@ -284,13 +285,23 @@ class Map : public GridRefManager<NGridType>
         Unit* GetUnit(ObjectGuid guid);                     // only use if sure that need objects at current map, specially for player case
         WorldObject* GetWorldObject(ObjectGuid guid);       // only use if sure that need objects at current map, specially for player case
         // dbguid methods
-        Creature* GetCreature(uint32 dbguid);
-        std::vector<Creature*> GetCreatures(uint32 dbguid);
-        GameObject* GetGameObject(uint32 dbguid);
-        std::vector<GameObject*> GetGameObjects(uint32 dbguid);
+        Creature* GetCreature(uint32 dbguid) const;
+        GameObject* GetGameObject(uint32 dbguid) const;
+        std::vector<WorldObject*> const* GetWorldObjects(std::string stringId) const;
+        std::vector<Creature*> const* GetCreatures(std::string stringId) const;
+        std::vector<GameObject*> const* GetGameObjects(std::string stringId) const;
+        std::vector<WorldObject*> const* GetWorldObjects(uint32 stringId) const;
+        std::vector<Creature*> const* GetCreatures(uint32 stringId) const;
+        std::vector<GameObject*> const* GetGameObjects(uint32 stringId) const;
+        WorldObject* GetWorldObject(std::string stringId) const;
+        Creature* GetCreature(std::string stringId) const;
+        GameObject* GetGameObject(std::string stringId) const;
 
         void AddDbGuidObject(WorldObject* obj);
         void RemoveDbGuidObject(WorldObject* obj);
+
+        void AddStringIdObject(uint32 stringId, WorldObject* obj);
+        void RemoveStringIdObject(uint32 stringId, WorldObject* obj);
 
         typedef TypeUnorderedMapContainer<AllMapStoredObjectTypes, ObjectGuid> MapStoredObjectTypesContainer;
         MapStoredObjectTypesContainer& GetObjectsStore() { return m_objectsStore; }
@@ -361,11 +372,13 @@ class Map : public GridRefManager<NGridType>
         uint32 GetCurrentMSTime() const;
         TimePoint GetCurrentClockTime() const;
         uint32 GetCurrentDiff() const;
+        time_t GetCurrentTime_t() const;
+        tm GetCurrentTime_tm() const;
 
-        void SetZoneMusic(uint32 zoneId, uint32 musicId);
-        void SetZoneWeather(uint32 zoneId, uint32 weatherId, float weatherGrade);
-        void SetZoneOverrideLight(uint32 zoneId, uint32 lightId, uint32 fadeInTime);
-        void SendZoneDynamicInfo(Player* player) const;
+        void SetZoneMusic(uint32 zoneId, uint32 areaId, uint32 musicId);
+        void SetZoneWeather(uint32 zoneId, uint32 areaId, uint32 weatherId, float weatherGrade);
+        void SetZoneOverrideLight(uint32 zoneId, uint32 areaId, uint32 lightId, uint32 fadeInTime);
+        void SendZoneDynamicInfo(Player* player, bool zoneUpdated, bool areaUpdated) const;
 
         void CreatePlayerOnClient(Player* player);
 
@@ -458,6 +471,8 @@ class Map : public GridRefManager<NGridType>
         GraveyardManager m_graveyardManager;
     private:
         time_t i_gridExpiry;
+        time_t m_curTime;
+        tm m_curTimeTm;
 
         NGridType* i_grids[MAX_NUMBER_OF_GRIDS][MAX_NUMBER_OF_GRIDS];
 
@@ -506,12 +521,22 @@ class Map : public GridRefManager<NGridType>
         // spawning
         SpawnManager m_spawnManager;
 
+        struct StringIdMapStorage
+        {
+            std::vector<WorldObject*> worldObjects;
+            std::vector<Creature*> creatures;
+            std::vector<GameObject*> gameobjects;
+        };
+
+        std::unordered_map<uint32, StringIdMapStorage> m_objectsPerStringId;
+
         MapDataContainer m_dataContainer;
         std::shared_ptr<CreatureSpellListContainer> m_spellListContainer;
 
         WorldStateVariableManager m_variableManager;
 
         ZoneDynamicInfoMap m_zoneDynamicInfo;
+        ZoneDynamicInfoMap m_areaDynamicInfo;
         uint32 m_defaultLight;
 };
 
@@ -520,7 +545,7 @@ class WorldMap : public Map
     private:
         using Map::GetPersistentState;                      // hide in subclass for overwrite
     public:
-        WorldMap(uint32 id, time_t expiry) : Map(id, expiry, 0, REGULAR_DIFFICULTY) {}
+        WorldMap(uint32 id, time_t expiry, uint32 InstanceId) : Map(id, expiry, InstanceId, REGULAR_DIFFICULTY) {}
         ~WorldMap() {}
 
         // can't be nullptr for loaded map

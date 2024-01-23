@@ -663,10 +663,15 @@ LogColors = ""
 #        Default: 1800000 (miliseconds, i.e 30 minutes)
 #                 0 (instance maps are kept in memory until they are reset)
 #
+#    Instance.DisableRelocate
+#        Disables relocation of player upon entering instance after 15 minutes or instance reset
+#        Default: 0 - false - relocates player after being logged out in instance for more than 15 minutes or instance reset
+#                 1 - true - location is kept
+#
 #    Quests.LowLevelHideDiff
 #        Quest level difference to hide for player low level quests:
 #        if player_level > quest_level + LowLevelQuestsHideDiff then quest "!" mark not show for quest giver
-#        Default: 4
+#        Default: 5
 #                -1 (show all available quests marks)
 #
 #    Quests.HighLevelHideDiff
@@ -851,7 +856,8 @@ Instance.IgnoreRaid = 0
 Instance.StrictCombatLockdown = 1
 Instance.ResetTimeHour = 4
 Instance.UnloadDelay = 1800000
-Quests.LowLevelHideDiff = 4
+Instance.DisableRelocate = 0
+Quests.LowLevelHideDiff = 5
 Quests.HighLevelHideDiff = 7
 Quests.Daily.ResetHour = 6
 Quests.IgnoreRaid = 0
@@ -1092,8 +1098,8 @@ Rate.Creature.Elite.RARE.HP = 1
 ListenRange.Say = 25
 ListenRange.TextEmote = 25
 ListenRange.Yell = 300
-GuidReserveSize.Creature = 100
-GuidReserveSize.GameObject = 100
+GuidReserveSize.Creature = 10000
+GuidReserveSize.GameObject = 10000
 CreaturePickpocketRestockDelay = 600
 
 ###################################################################################################################

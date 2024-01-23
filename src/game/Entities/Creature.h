@@ -23,11 +23,13 @@
 #include "Entities/Unit.h"
 #include "Globals/SharedDefines.h"
 #include "Server/DBCEnums.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "Entities/CreatureSpellList.h"
+#include "Entities/CreatureSettings.h"
 
 #include <list>
 #include <memory>
+#include <optional>
 
 struct SpellEntry;
 
@@ -48,10 +50,10 @@ enum CreatureExtraFlags
     CREATURE_EXTRA_FLAG_NO_PARRY               = 0x00000004,       // 4 creature can't parry
     CREATURE_EXTRA_FLAG_NO_PARRY_HASTEN        = 0x00000008,       // 8 creature can't counter-attack at parry
     CREATURE_EXTRA_FLAG_NO_BLOCK               = 0x00000010,       // 16 creature can't block
-    CREATURE_EXTRA_FLAG_NO_CRUSH               = 0x00000020,       // 32 creature can't do crush attacks
-    CREATURE_EXTRA_FLAG_NO_XP_AT_KILL          = 0x00000040,       // 64 creature kill not provide XP
+    CREATURE_EXTRA_FLAG_UNUSED                 = 0x00000020,       // 32
+    CREATURE_EXTRA_FLAG_UNUSED2                = 0x00000040,       // 64
     CREATURE_EXTRA_FLAG_INVISIBLE              = 0x00000080,       // 128 creature is always invisible for player (mostly trigger creatures)
-    // CREATURE_EXTRA_FLAG_REUSE               = 0x00000100,       // 256
+    CREATURE_EXTRA_FLAG_UNUSED3                = 0x00000100,       // 256
     CREATURE_EXTRA_FLAG_AGGRO_ZONE             = 0x00000200,       // 512 creature sets itself in combat with zone on aggro
     CREATURE_EXTRA_FLAG_GUARD                  = 0x00000400,       // 1024 creature is a guard
     CREATURE_EXTRA_FLAG_NO_CALL_ASSIST         = 0x00000800,       // 2048 creature shouldn't call for assistance on aggro
@@ -64,9 +66,9 @@ enum CreatureExtraFlags
     CREATURE_EXTRA_FLAG_FORCE_ATTACKING_CAPABILITY = 0x00080000,   // 524288 SetForceAttackingCapability(true); for nonattackable, nontargetable creatures that should be able to attack nontheless
     CREATURE_EXTRA_FLAG_DYNGUID                = 0x00100000,       // 1048576 Temporary transition flag - spawns of this entry use dynguid system
     CREATURE_EXTRA_FLAG_COUNT_SPAWNS           = 0x00200000,       // 2097152 count creature spawns in Map*
-    CREATURE_EXTRA_FLAG_IGNORE_FEIGN_DEATH     = 0x00400000,       // 4194304 Ignores Feign Death
+    CREATURE_EXTRA_FLAG_UNUSED4                = 0x00400000,       // 4194304
     CREATURE_EXTRA_FLAG_DUAL_WIELD_FORCED      = 0x00800000,       // 8388606 creature is alwyas dual wielding (even if unarmed)
-    CREATURE_EXTRA_FLAG_NO_SKILL_GAINS         = 0x01000000,       // 16777216 Does not give weapon skill gains to attacker
+    CREATURE_EXTRA_FLAG_UNUSED5                = 0x01000000,       // 16777216
 };
 
 // GCC have alternative #pragma pack(N) syntax and old gcc version not support pack(push,N), also any gcc version not support it at some platform
@@ -104,6 +106,10 @@ struct CreatureInfo
     uint32  DynamicFlags;
     uint32  ExtraFlags;
     uint32  CreatureTypeFlags;                             // enum CreatureTypeFlags mask values
+    uint32  StaticFlags;
+    uint32  StaticFlags2;
+    uint32  StaticFlags3;
+    uint32  StaticFlags4;
     float   SpeedWalk;
     float   SpeedRun;
     uint32  Detection;                                     // Detection Range for Line of Sight aggro
@@ -159,9 +165,10 @@ struct CreatureInfo
     uint32  EquipmentTemplateId;
     uint32  GossipMenuId;
     uint32  InteractionPauseTimer;
-    VisibilityDistanceType visibilityDistanceType;
     uint32  CorpseDelay;
     uint32  SpellList;
+    uint32  StringID1;
+    uint32  StringID2;
     char const* AIName;
     uint32  ScriptID;
 
@@ -230,6 +237,7 @@ struct CreatureSpawnTemplate
     uint32 curMana;
     uint32 spawnFlags;
     uint32 relayId;
+    uint32 stringId;
 
     bool IsRunning() const { return (spawnFlags & SPAWN_FLAG_RUN_ON_SPAWN) != 0; }
     bool IsHovering() const { return (spawnFlags & SPAWN_FLAG_HOVER) != 0; }
@@ -240,8 +248,6 @@ struct CreatureData
 {
     uint32 id;                                              // entry in creature_template
     uint16 mapid;
-    uint32 modelid_override;                                // overrides any model defined in creature_template
-    int32 equipmentId;
     float posX;
     float posY;
     float posZ;
@@ -249,10 +255,6 @@ struct CreatureData
     uint32 spawntimesecsmin;
     uint32 spawntimesecsmax;
     float spawndist;
-    uint32 currentwaypoint;
-    uint32 curhealth;
-    uint32 curmana;
-    bool  is_dead;
     uint8 movementType;
     uint8 spawnMask;
     int16 gameEvent;
@@ -280,9 +282,8 @@ struct CreatureDataAddon
 {
     uint32 guidOrEntry;
     uint32 mount;
-    uint32 bytes1;
+    uint8  standState;
     uint8  sheath_state;                                    // SheathState
-    uint8  flags;                                           // UnitBytes2_Flags
     uint32 emote;
     uint32 move_flags;
     uint32 const* auras;                                    // loaded as char* "spell1 spell2 ... "
@@ -453,6 +454,7 @@ struct TrainerSpell
     uint32 reqSkillValue;
     uint32 reqLevel;
     uint32 learnedSpell;
+    std::array<std::optional<uint32>, 3> reqAbility;
     uint32 conditionId;
     bool isProvidedReqLevel;
 
@@ -538,8 +540,8 @@ enum TemporaryFactionFlags                                  // Used at real fact
     TEMPFACTION_RESTORE_COMBAT_STOP     = 0x02,             // ... at CombatStop() (happens at creature death, at evade or custom scripte among others)
     TEMPFACTION_RESTORE_REACH_HOME      = 0x04,             // ... at reaching home in home movement (evade), if not already done at CombatStop()
     TEMPFACTION_TOGGLE_NON_ATTACKABLE   = 0x08,             // Remove UNIT_FLAG_SPAWNING(0x02) when faction is changed (reapply when temp-faction is removed)
-    TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER = 0x10,             // Remove UNIT_FLAG_IMMUNE_TO_PLAYER(0x100) when faction is changed (reapply when temp-faction is removed)
-    TEMPFACTION_TOGGLE_IMMUNE_TO_NPC    = 0x20,             // Remove UNIT_FLAG_IMMUNE_TO_NPC(0x200) when faction is changed (reapply when temp-faction is removed)
+    TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER = 0x10,             // Remove UNIT_FLAG_IMMUNE_TO_PLAYER(0x100, 256) when faction is changed (reapply when temp-faction is removed)
+    TEMPFACTION_TOGGLE_IMMUNE_TO_NPC    = 0x20,             // Remove UNIT_FLAG_IMMUNE_TO_NPC(0x200, 512) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_TOGGLE_PACIFIED         = 0x40,             // Remove UNIT_FLAG_PACIFIED(0x20000) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_TOGGLE_NOT_SELECTABLE   = 0x80,             // Remove UNIT_FLAG_UNINTERACTIBLE(0x2000000) when faction is changed (reapply when temp-faction is removed)
     TEMPFACTION_ALL,
@@ -606,7 +608,7 @@ class Creature : public Unit
 
         void FillGuidsListFromThreatList(GuidVector& guids, uint32 maxamount = 0);
 
-        bool IsImmuneToSpell(SpellEntry const* spellInfo, bool castOnSelf, uint8 effectMask) override;
+        bool IsImmuneToSpell(SpellEntry const* spellInfo, bool castOnSelf, uint8 effectMask, WorldObject const* caster) override;
         bool IsImmuneToDamage(SpellSchoolMask meleeSchoolMask) override;
         bool IsImmuneToSpellEffect(SpellEntry const* spellInfo, SpellEffectIndex index, bool castOnSelf) const override;
 
@@ -637,9 +639,17 @@ class Creature : public Unit
             return m_ai.get();
         }
 
-        virtual CombatData* GetCombatData() override
+        CombatData* GetCombatData() override
         {
-            if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData();
+            if (m_charmInfo && m_charmInfo->GetCombatData())
+                return m_charmInfo->GetCombatData();
+            return m_combatData;
+        }
+
+        CombatData const* GetCombatData() const override
+        {
+            if (m_charmInfo && m_charmInfo->GetCombatData())
+                return m_charmInfo->GetCombatData();
             return m_combatData;
         }
 
@@ -735,7 +745,6 @@ class Creature : public Unit
         bool IsVisibleInGridForPlayer(Player* pl) const override;
 
         void RemoveCorpse(bool inPlace = false);
-        bool IsDeadByDefault() const { return m_isDeadByDefault; };
 
         virtual void ForcedDespawn(uint32 timeMSToDespawn = 0, bool onlyAlive = false);
 
@@ -750,10 +759,6 @@ class Creature : public Unit
 
         float GetRespawnRadius() const { return m_respawnradius; }
         void SetRespawnRadius(float dist) { m_respawnradius = dist; }
-
-        // Functions spawn/remove creature with DB guid in all loaded map copies (if point grid loaded in map)
-        static void AddToRemoveListInMaps(uint32 db_guid, CreatureData const* data);
-        static void SpawnInMaps(uint32 db_guid, CreatureData const* data);
 
         void SendZoneUnderAttackMessage(Player* attacker) const;
 
@@ -780,14 +785,13 @@ class Creature : public Unit
         void SetCombatStartPosition(Position const& pos) { m_combatStartPos = pos; }
         void GetCombatStartPosition(Position& pos) const { pos = m_combatStartPos; }
         Position const& GetCombatStartPosition() const { return m_combatStartPos; }
+        uint32 GetPursuit() const override { return GetCreatureInfo()->Pursuit; }
 
         void SetRespawnCoord(CreatureCreatePos const& pos) { m_respawnPos = pos.m_pos; }
         void SetRespawnCoord(float x, float y, float z, float ori) { m_respawnPos.x = x; m_respawnPos.y = y; m_respawnPos.z = z; m_respawnPos.o = ori; }
         void GetRespawnCoord(float& x, float& y, float& z, float* ori = nullptr, float* dist = nullptr) const;
         Position const& GetRespawnPosition() const { return m_respawnPos; }
         void ResetRespawnCoord();
-
-        void SetDeadByDefault(bool death_state) { m_isDeadByDefault = death_state; }
 
         void SetFactionTemporary(uint32 factionId, uint32 tempFactionFlags = TEMPFACTION_ALL);
         void ClearTemporaryFaction();
@@ -829,17 +833,26 @@ class Creature : public Unit
         bool CanCheckForHelp() const override { return m_checkForHelp; }
         void SetCanCheckForHelp(bool state) { m_checkForHelp = state; }
 
-        void SetNoRewards() { m_noXP = true; m_noLoot = true; m_noReputation = true; }
-        bool IsNoXp() { return m_noXP; }
-        void SetNoXP(bool state) { m_noXP = state; }
-        bool IsNoLoot() { return m_noLoot; }
-        void SetNoLoot(bool state) { m_noLoot = state; }
+        void SetNoRewards();
+        bool IsNoXp();
+        void SetNoXP(bool state);
+        bool IsNoLoot();
+        void SetNoLoot(bool state);
         bool IsNoReputation() { return m_noReputation; }
         void SetNoReputation(bool state) { m_noReputation = state; }
-        bool IsIgnoringFeignDeath() const { return m_ignoringFeignDeath; }
-        void SetIgnoreFeignDeath(bool state) { m_ignoringFeignDeath = state; }
+        bool IsIgnoringFeignDeath() const;
+        void SetIgnoreFeignDeath(bool state);
 
-        virtual void AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr, bool permanent = false, uint32 forcedDuration = 0) override;
+        void SetNoWoundedSlowdown(bool state);
+        bool IsNoWoundedSlowdown() const;
+        bool IsSlowedInCombat() const override;
+
+        void SetNoWeaponSkillGain(bool state);
+        bool IsNoWeaponSkillGain() const override;
+
+        bool IsPreventingDeath() const override;
+
+        virtual void AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr, bool permanent = false, uint32 forcedDuration = 0, bool ignoreCat = false) override;
 
         // spell scripting persistency
         bool HasBeenHitBySpell(uint32 spellId);
@@ -849,20 +862,30 @@ class Creature : public Unit
 
         HighGuid GetParentHigh() const override { return HIGHGUID_UNIT; }
 
+        void Heartbeat() override;
+
         // Spell Lists
         CreatureSpellList const& GetSpellList() const { return m_spellList; }
         std::vector<uint32> GetCharmSpells() const;
-        bool GetSpellCooldown(uint32 spellId, uint32& cooldown) const;
+        enum CooldownResult
+        {
+            COOLDOWN_RESULT_NOT_FOUND       = 0,
+            COOLDOWN_RESULT_FOUND           = 1,
+            COOLDOWN_RESULT_CATEGORY_FOUND  = 2,
+        };
+        CooldownResult GetSpellCooldown(uint32 spellId, uint32& cooldown) const;
 
         void SetCreatureGroup(CreatureGroup* group);
         void ClearCreatureGroup();
         CreatureGroup* GetCreatureGroup() const { return m_creatureGroup; }
 
+        CreatureSettings const& GetSettings() const { return m_settings; }
+        CreatureSettings& GetSettings() { return m_settings; }
+
+        void StartCooldown(Unit* owner);
+
         ObjectGuid GetKillerGuid() const { return m_killer; }
         void SetKillerGuid(ObjectGuid guid) { m_killer = guid; }
-
-        void SetNoWeaponSkillGain(bool state) { m_noWeaponSkillGain = state; }
-        bool IsNoWeaponSkillGain() const override { return m_noWeaponSkillGain; }
 
     protected:
         bool CreateFromProto(uint32 dbGuid, uint32 guidlow, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
@@ -907,7 +930,6 @@ class Creature : public Unit
         // below fields has potential for optimization
         bool m_AlreadyCallAssistance;
         bool m_canCallForAssistance;
-        bool m_isDeadByDefault;
         uint32 m_temporaryFactionFlags;                     // used for real faction changes (not auras etc)
 
         uint32 m_originalEntry;
@@ -923,11 +945,9 @@ class Creature : public Unit
         bool m_isInvisible;
         bool m_ignoreMMAP;
         bool m_forceAttackingCapability;                    // can attack even if not selectable/not attackable
-        bool m_noXP;
-        bool m_noLoot;
         bool m_noReputation;
-        bool m_ignoringFeignDeath;
-        bool m_noWeaponSkillGain;
+
+        CreatureSettings m_settings;
 
         // Script logic
         bool m_countSpawns;
@@ -941,6 +961,8 @@ class Creature : public Unit
         CreatureGroup* m_creatureGroup;
 
         ObjectGuid m_killer;
+
+        bool m_imposedCooldown;
 
     private:
         GridReference<Creature> m_gridRef;

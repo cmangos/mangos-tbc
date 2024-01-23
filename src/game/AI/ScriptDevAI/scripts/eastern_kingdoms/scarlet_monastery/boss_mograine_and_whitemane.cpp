@@ -206,7 +206,7 @@ struct boss_scarlet_commander_mograineAI : public CombatAI
         {
             if (m_instance->GetData(TYPE_ASHBRINGER_EVENT) == IN_PROGRESS)
             {
-                pWho->GetMap()->ScriptsStart(sRelayScripts, ASHBRINGER_RELAY_SCRIPT_ID, m_creature, pWho);
+                pWho->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, ASHBRINGER_RELAY_SCRIPT_ID, m_creature, pWho);
                 m_instance->SetData(TYPE_ASHBRINGER_EVENT, DONE);
             }
         }
@@ -360,6 +360,12 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
     }
     instance_scarlet_monastery* m_instance;
 
+    void JustRespawned() override
+    {
+        CombatAI::JustRespawned();
+        SetDeathPrevention(true);
+    }
+
     void EnterEvadeMode() override
     {
         SetCombatScriptStatus(false);
@@ -431,6 +437,7 @@ struct boss_high_inquisitor_whitemaneAI : public CombatAI
         SetCombatScriptStatus(false);
         SetCombatMovement(true, true);
         SetMeleeEnabled(true);
+        SetDeathPrevention(false);
     }
 
     void HandleSalute()

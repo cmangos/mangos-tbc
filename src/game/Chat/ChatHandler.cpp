@@ -18,7 +18,7 @@
 
 #include "Common.h"
 #include "Log.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "World/World.h"
 #include "Server/Opcodes.h"
@@ -31,7 +31,7 @@
 #include "Entities/Player.h"
 #include "Spells/SpellAuras.h"
 #include "Tools/Language.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "Grids/GridNotifiersImpl.h"
 #include "Grids/CellImpl.h"
 #include "GMTickets/GMTicketMgr.h"
@@ -265,6 +265,15 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
                 if (GetPlayer()->GetTeam() != player->GetTeam())
                 {
                     SendWrongFactionNotice();
+                    return;
+                }
+            }
+
+            if (player->isEnabledWhisperRestriction())
+            {
+                if (!GetPlayer()->IsGameMaster() && !player->isAllowedWhisperFrom(this->GetPlayer()->GetObjectGuid()))
+                {
+                    ChatHandler(this).PSendSysMessage("%s did not receive your message because they are currently restricting whispers to their friends, guild, and group.", player->GetName());
                     return;
                 }
             }

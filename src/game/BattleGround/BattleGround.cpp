@@ -29,7 +29,7 @@
 #include "Entities/ObjectGuid.h"
 #include "Globals/ObjectMgr.h"
 #include "Mails/Mail.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Tools/Formulas.h"
 #include "Grids/GridNotifiersImpl.h"
 #include "Chat/Chat.h"
@@ -106,15 +106,17 @@ namespace MaNGOS
     class BattleGroundBroadcastBuilder
     {
         public:
-            BattleGroundBroadcastBuilder(BroadcastText const* bcd, Creature const* source)
-                : i_source(source), i_bcd(bcd) {}
+            BattleGroundBroadcastBuilder(BroadcastText const* bcd, ChatMsg msgtype, Creature const* source, Unit const* target)
+                : i_msgtype(msgtype), i_source(source), i_bcd(bcd), i_target(target) {}
             void operator()(WorldPacket& data, int32 loc_idx)
             {
-                ChatHandler::BuildChatPacket(data, CHAT_MSG_MONSTER_YELL, i_bcd->GetText(loc_idx, i_source->getGender()).c_str(), i_bcd->languageId, CHAT_TAG_NONE, i_source->GetObjectGuid(), i_source->GetName());
+                ChatHandler::BuildChatPacket(data, i_msgtype, i_bcd->GetText(loc_idx, i_source ? i_source->getGender() : GENDER_NONE).c_str(), i_bcd->languageId, CHAT_TAG_NONE, i_source ? i_source->GetObjectGuid() : ObjectGuid(), i_source ? i_source->GetName() : "", i_target ? i_target->GetObjectGuid() : ObjectGuid());
             }
         private:
+            ChatMsg i_msgtype;
             Creature const* i_source;
             BroadcastText const* i_bcd;
+            Unit const* i_target;
     };
 
 
@@ -183,10 +185,7 @@ void BattleGround::BroadcastWorker(Do& _do)
             _do(plr);
 }
 
-/**
-  Constructor
-*/
-BattleGround::BattleGround(): m_buffChange(false), m_startDelayTime(0), m_arenaBuffSpawned(false), m_startMaxDist(0)
+BattleGround::BattleGround(): m_buffChange(false), m_startDelayTime(0), m_arenaBuffSpawned(false), m_startMaxDist(0), m_playerSkinReflootId(0)
 {
     m_typeId            = BATTLEGROUND_TYPE_NONE;
     m_status            = STATUS_NONE;
@@ -286,24 +285,6 @@ BattleGround::~BattleGround()
 */
 void BattleGround::Update(uint32 diff)
 {
-    if (!GetPlayersSize())
-    {
-        // BG is empty
-        // if there are no players invited, delete BG
-        // this will delete arena or bg object, where any player entered
-        // [[   but if you use battleground object again (more battles possible to be played on 1 instance)
-        //      then this condition should be removed and code:
-        //      if (!GetInvitedCount(HORDE) && !GetInvitedCount(ALLIANCE))
-        //          this->AddToFreeBGObjectsQueue(); // not yet implemented
-        //      should be used instead of current
-        // ]]
-        // BattleGround Template instance cannot be updated, because it would be deleted
-        if (!GetInvitedCount(HORDE) && !GetInvitedCount(ALLIANCE))
-            delete this;
-
-        return;
-    }
-
     // remove offline players from bg after 5 minutes
     if (!m_offlineQueue.empty())
     {
@@ -794,18 +775,17 @@ void BattleGround::EndBattleGround(Team winner)
     {
         static SqlStatementID insPvPstatsBattleground;
 
-        SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsBattleground, "INSERT INTO pvpstats_battlegrounds (id, winner_team, bracket_id, type, date) VALUES (?, ?, ?, ?, NOW())");
+        SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsBattleground, "INSERT INTO pvpstats_battlegrounds (id, winner_team, bracket_id, type, date) VALUES (?, ?, ?, ?, " _NOW_ ")");
 
         uint8 battleground_bracket = GetMinLevel() / 10;
         uint8 battleground_type = (uint8)GetTypeId();
 
         // query next id
-        QueryResult* result = CharacterDatabase.Query("SELECT MAX(id) FROM pvpstats_battlegrounds");
-        if (result)
+        auto queryResult = CharacterDatabase.Query("SELECT MAX(id) FROM pvpstats_battlegrounds");
+        if (queryResult)
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
             battleground_id = fields[0].GetUInt64() + 1;
-            delete result;
         }
 
         stmt.PExecute(battleground_id, bgScoresWinner, battleground_bracket, battleground_type);
@@ -967,7 +947,7 @@ void BattleGround::EndBattleGround(Team winner)
     }
 
     // AV message is different - TODO: check if others are also wrong
-    if (winmsg_id && GetTypeId() != BATTLEGROUND_QUEUE_AV)
+    if (winmsg_id && GetTypeId() != BATTLEGROUND_AV)
         SendMessageToAll(winmsg_id, CHAT_MSG_BG_SYSTEM_NEUTRAL);
 }
 
@@ -1943,16 +1923,16 @@ void BattleGround::SendYell2ToAll(int32 entry, uint32 language, Creature const* 
     BroadcastWorker(bg_do);
 }
 
-void BattleGround::SendBcdToAll(int32 bcdEntry, Creature const* source)
+void BattleGround::SendBcdToAll(int32 bcdEntry, ChatMsg msgtype, Creature const* source)
 {
-    MaNGOS::BattleGroundBroadcastBuilder bg_builder(sObjectMgr.GetBroadcastText(bcdEntry), source);
+    MaNGOS::BattleGroundBroadcastBuilder bg_builder(sObjectMgr.GetBroadcastText(bcdEntry), msgtype, source, nullptr);
     MaNGOS::LocalizedPacketDo<MaNGOS::BattleGroundBroadcastBuilder> bg_do(bg_builder);
     BroadcastWorker(bg_do);
 }
 
-void BattleGround::SendBcdToTeam(int32 bcdEntry, Creature const* source, Team team)
+void BattleGround::SendBcdToTeam(int32 bcdEntry, ChatMsg msgtype, Creature const* source, Team team)
 {
-    MaNGOS::BattleGroundBroadcastBuilder bg_builder(sObjectMgr.GetBroadcastText(bcdEntry), source);
+    MaNGOS::BattleGroundBroadcastBuilder bg_builder(sObjectMgr.GetBroadcastText(bcdEntry), msgtype, source, nullptr);
     MaNGOS::LocalizedPacketDo<MaNGOS::BattleGroundBroadcastBuilder> bg_do(bg_builder);
     auto lambda = [&](Player* player)
     {

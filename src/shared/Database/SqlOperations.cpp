@@ -145,7 +145,7 @@ bool SqlQueryHolder::SetQuery(size_t index, const char* sql)
     }
 
     /// not executed yet, just stored (it's not called a holder for nothing)
-    m_queries[index] = SqlResultPair(mangos_strdup(sql), (QueryResult*)nullptr);
+    m_queries[index] = SqlResultPair(mangos_strdup(sql), std::unique_ptr<QueryResult>{});
     return true;
 }
 
@@ -172,7 +172,7 @@ bool SqlQueryHolder::SetPQuery(size_t index, const char* format, ...)
     return SetQuery(index, szQuery);
 }
 
-QueryResult* SqlQueryHolder::GetResult(size_t index)
+std::unique_ptr<QueryResult> SqlQueryHolder::GetResult(size_t index)
 {
     if (index < m_queries.size())
     {
@@ -182,17 +182,17 @@ QueryResult* SqlQueryHolder::GetResult(size_t index)
             delete[](const_cast<char*>(m_queries[index].first));
             m_queries[index].first = nullptr;
         }
-        /// when you get a result aways remember to delete it!
-        return m_queries[index].second;
+
+        return std::move(m_queries[index].second);
     }
-    return nullptr;
+    return {};
 }
 
-void SqlQueryHolder::SetResult(size_t index, QueryResult* result)
+void SqlQueryHolder::SetResult(size_t index, std::unique_ptr<QueryResult> queryResult)
 {
     /// store the result in the holder
     if (index < m_queries.size())
-        m_queries[index].second = result;
+        m_queries[index].second = std::move(queryResult);
 }
 
 SqlQueryHolder::~SqlQueryHolder()
@@ -204,7 +204,6 @@ SqlQueryHolder::~SqlQueryHolder()
         if (m_querie.first != nullptr)
         {
             delete[](const_cast<char*>(m_querie.first));
-            delete m_querie.second;
         }
     }
 }

@@ -24,7 +24,7 @@
 #define __WORLD_H
 
 #include "Common.h"
-#include "Timer.h"
+#include "Util/Timer.h"
 #include "Globals/Locales.h"
 #include "Globals/SharedDefines.h"
 #include "Entities/Object.h"
@@ -376,7 +376,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_AUTOLOAD_ACTIVE,
     CONFIG_BOOL_PATH_FIND_OPTIMIZE,
     CONFIG_BOOL_PATH_FIND_NORMALIZE_Z,
-    CONFIG_BOOL_ACCOUNT_DATA,
+    CONFIG_BOOL_DISABLE_INSTANCE_RELOCATE,
     CONFIG_BOOL_VALUE_COUNT
 };
 
@@ -648,7 +648,7 @@ class World
         static uint32 GetCurrentDiff() { return m_currentDiff; }
 
         template<typename T>
-        void ExecuteForAllSessions(T executor)
+        void ExecuteForAllSessions(T executor) const
         {
             for (auto& data : m_sessions)
                 executor(*data.second);

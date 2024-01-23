@@ -14,6 +14,8 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include "AI/ScriptDevAI/include/sc_creature.h"
+#include "AI/ScriptDevAI/include/sc_instance.h"
 #include "Entities/Creature.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "Spells/Spell.h"
@@ -39,7 +41,7 @@ void CombatAI::Reset()
     m_storedTarget = ObjectGuid();
 }
 
-void CombatAI::HandleDelayedInstantAnimation(SpellEntry const* spellInfo)
+void CombatAI::HandleDelayedInstantAnimation(SpellEntry const* /*spellInfo*/)
 {
     m_storedTarget = m_creature->GetTarget() ? m_creature->GetTarget()->GetObjectGuid() : ObjectGuid();
     if (m_storedTarget)
@@ -76,7 +78,12 @@ void CombatAI::OnTaunt()
 
 void CombatAI::AddOnKillText(int32 text)
 {
-    m_onDeathTexts.push_back(text);
+    m_onDeathReactions.emplace_back(text, false);
+}
+
+void CombatAI::AddOnKillSound(int32 soundId)
+{
+    m_onDeathReactions.emplace_back(soundId, true);
 }
 
 void CombatAI::KilledUnit(Unit* victim)
@@ -84,11 +91,14 @@ void CombatAI::KilledUnit(Unit* victim)
     if (!m_creature->IsAlive() || !victim->IsPlayer())
         return;
 
-    if (!m_onKillCooldown && m_onDeathTexts.size() > 0)
+    if (!m_onKillCooldown && m_onDeathReactions.size() > 0)
     {
         m_onKillCooldown = true;
-        DoScriptText(m_onDeathTexts[urand(0, m_onDeathTexts.size() - 1)], m_creature, victim);
+        auto selected = m_onDeathReactions[urand(0, m_onDeathReactions.size() - 1)];
+        if (selected.second)
+            m_creature->PlayDirectSound(selected.first);
+        else
+            DoBroadcastText(selected.first, m_creature, victim);
         ResetTimer(ACTION_ON_KILL_COOLDOWN, 10000);
     }
 }
-

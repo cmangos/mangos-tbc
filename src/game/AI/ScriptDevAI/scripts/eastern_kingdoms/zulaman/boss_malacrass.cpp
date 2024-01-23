@@ -29,8 +29,8 @@ enum
 {
     SAY_AGGRO                   = -1568045,
     SAY_ENRAGE                  = -1568046,
-    SAY_KILL1                   = -1568047,
-    SAY_KILL2                   = -1568048,
+    SAY_KILL1                   = 23593,
+    SAY_KILL2                   = 23594,
     SAY_SOUL_SIPHON             = -1568049,
     SAY_DRAIN_POWER             = -1568050,
     SAY_SPIRIT_BOLTS            = -1568051,
@@ -232,7 +232,7 @@ struct boss_malacrassAI : public CombatAI
         AddCombatAction(MALACRASS_PLAYER_ABILITY_2, true);
         AddCombatAction(MALACRASS_PLAYER_ABILITY_3, true);
         AddCombatAction(MALACRASS_PLAYER_ABILITY_4, true);
-        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float /*x*/, float y, float /*z*/)
         {
             return y > 1025.f;
         });

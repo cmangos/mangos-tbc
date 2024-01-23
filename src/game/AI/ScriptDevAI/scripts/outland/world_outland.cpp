@@ -836,7 +836,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     {
         if (GameObject* go = GetSingleGameObjectFromStorage(GO_BASHIR_CRYSTALFORGE, true))
             if (Creature* controller = GetClosestCreatureWithEntry(go, CRYSTALFORGE_SLAVE_EVENT_CONTROLLER_ENTRY, 10.f))
-                instance->ScriptsStart(sRelayScripts, CRYSTALFORGE_SLAVE_EVENT_RELAY_ID, controller, controller);
+                instance->ScriptsStart(SCRIPT_TYPE_RELAY, CRYSTALFORGE_SLAVE_EVENT_RELAY_ID, controller, controller);
     }
 
     void HandleBashirSpawnEnemy()
@@ -1766,6 +1766,16 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case GO_WARP_GATE_FIRE_SMALL:
             case GO_WARP_GATE_FIRE_BIG:
                 m_fires.push_back(go->GetObjectGuid());
+                break;
+        }
+    }
+
+    void OnObjectDespawn(GameObject* go) override
+    {
+        switch (go->GetEntry())
+        {
+            case GO_MAGTHERIDONS_HEAD:
+                sWorldState.DispelMagtheridonTeam(go->GetPositionX() > 0.f ? HORDE : ALLIANCE);
                 break;
         }
     }

@@ -2929,7 +2929,7 @@ struct npc_scrap_reaverAI : ScriptedPetAI
 
 struct ScrapReaverSpell : public SpellScript, public AuraScript
 {
-    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const
     {
         // Only one player can control the scrap reaver
         if (target->HasAura(SPELL_SCRAP_REAVER))
@@ -4111,11 +4111,6 @@ void AddSC_netherstorm()
     pNewScript->Name = "npc_saeed";
     pNewScript->GetAI = &GetAI_npc_saeed;
     pNewScript->pGossipSelect = &GossipSelect_npc_saeed;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_manaforge_spawn";
-    pNewScript->GetAI = &GetAI_npc_manaforge_spawnAI;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

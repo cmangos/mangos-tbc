@@ -31,8 +31,8 @@ enum
     // Speech'n'sound
     SAY_INTRO                = -1564037,
     SAY_AGGRO                = -1564038,
-    SAY_SLAY1                = -1564039,
-    SAY_SLAY2                = -1564040,
+    SAY_SLAY1                = 21099,
+    SAY_SLAY2                = 21100,
     SAY_SPELL1               = -1564041,
     SAY_SPELL2               = -1564042,
     SAY_SPECIAL1             = -1564043,
@@ -94,7 +94,7 @@ struct boss_teron_gorefiendAI : public CombatAI
         AddCombatAction(GOREFIEND_ACTION_SHADOW_OF_DEATH, GetInitialActionTimer(GOREFIEND_ACTION_SHADOW_OF_DEATH));
         AddCombatAction(GOREFIEND_ACTION_CRUSHING_SHADOWS, GetInitialActionTimer(GOREFIEND_ACTION_CRUSHING_SHADOWS));
         AddCombatAction(GOREFIEND_ACTION_BERSERK, GetInitialActionTimer(GOREFIEND_ACTION_BERSERK));
-        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float /*z*/)
             {
                 return x < 512.8f && y > 402.8f;
             });
@@ -374,7 +374,7 @@ bool AreaTrigger_at_teron_gorefiend(Player* player, AreaTriggerEntry const* /*at
 
 struct ShadowOfDeath : public AuraScript
 {
-    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, int32& /*remainingDamage*/, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& preventedDeath) const override
+    void OnAbsorb(Aura* /*aura*/, int32& currentAbsorb, int32& /*remainingDamage*/, uint32& /*reflectedSpellId*/, int32& /*reflectDamage*/, bool& preventedDeath, bool& /*dropCharge*/, DamageEffectType /*damageType*/) const override
     {
         preventedDeath = true;
         currentAbsorb = 0;

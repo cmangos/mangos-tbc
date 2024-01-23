@@ -20,13 +20,15 @@
 #define DATABASE_H
 
 #include "Common.h"
-#include "Threading.h"
+#include "Multithreading/Threading.h"
 #include "Database/SqlDelayThread.h"
 #include "Policies/ThreadingModel.h"
 #include "SqlPreparedStatement.h"
+#include "QueryResult.h"
 
 #include <boost/thread/tss.hpp>
 #include <atomic>
+#include <memory>
 
 class SqlTransaction;
 class SqlResultQueue;
@@ -46,7 +48,7 @@ class SqlConnection
         // method for initializing DB connection
         virtual bool Initialize(const char* infoString) = 0;
         // public methods for making queries
-        virtual QueryResult* Query(const char* sql) = 0;
+        virtual std::unique_ptr<QueryResult> Query(const char* sql) = 0;
         virtual QueryNamedResult* QueryNamed(const char* sql) = 0;
 
         // public methods for making requests
@@ -111,7 +113,7 @@ class Database
         virtual void HaltDelayThread();
 
         /// Synchronous DB queries
-        inline QueryResult* Query(const char* sql)
+        inline std::unique_ptr<QueryResult> Query(const char* sql)
         {
             SqlConnection::Lock guard(getQueryConnection());
             return guard->Query(sql);
@@ -123,7 +125,7 @@ class Database
             return guard->QueryNamed(sql);
         }
 
-        QueryResult* PQuery(const char* format, ...) ATTR_PRINTF(2, 3);
+        std::unique_ptr<QueryResult> PQuery(const char* format, ...) ATTR_PRINTF(2, 3);
         QueryNamedResult* PQueryNamed(const char* format, ...) ATTR_PRINTF(2, 3);
 
         bool DirectExecute(const char* sql) const

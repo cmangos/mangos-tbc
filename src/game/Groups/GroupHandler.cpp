@@ -20,14 +20,14 @@
 #include "Database/DatabaseEnv.h"
 #include "Server/Opcodes.h"
 #include "Log.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "World/World.h"
 #include "Globals/ObjectMgr.h"
 #include "Entities/Player.h"
 #include "Groups/Group.h"
 #include "Social/SocialMgr.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "Anticheat/Anticheat.hpp"
 
 /* differeces from off:

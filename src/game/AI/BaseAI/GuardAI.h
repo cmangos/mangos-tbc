@@ -21,7 +21,7 @@
 
 #include "CreatureAI.h"
 #include "Entities/ObjectGuid.h"
-#include "Timer.h"
+#include "Util/Timer.h"
 
 class Creature;
 
@@ -38,7 +38,6 @@ class GuardAI : public CreatureAI
 
         void MoveInLineOfSight(Unit* who) override;
 
-        void UpdateAI(const uint32 diff) override;
         static int Permissible(const Creature* creature);
     protected:
         std::string GetAIName() override { return "GuardAI"; }

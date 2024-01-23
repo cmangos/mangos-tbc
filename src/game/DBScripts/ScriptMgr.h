@@ -22,8 +22,9 @@
 #include "Common.h"
 #include "Entities/ObjectGuid.h"
 #include "Server/DBCEnums.h"
+#include "DBScripts/ScriptMgrDefines.h"
 
-#include <atomic>
+#include <memory>
 
 class Map;
 class Object;
@@ -58,11 +59,11 @@ enum ScriptCommand                                          // resSource, resTar
     // datalong=spellid
     // datalong2=castFlags, enum TriggerCastFlags
     // dataint1-4 optional for random selected spell
-    SCRIPT_COMMAND_PLAY_SOUND               = 16,           // resSource = WorldObject, target=any/player, datalong (sound_id), datalong2 (bitmask: 0/1=target-player, 0/2=with distance dependent, 0/4=map wide, 0/8=zone wide; so 1|2 = 3 is target with distance dependent)
+    SCRIPT_COMMAND_PLAY_SOUND               = 16,           // resSource = WorldObject, target=any/player, datalong (sound_id), datalong2 (bitmask: 0/1=target-player, 0/2=with distance dependent, 0/4=map wide, 0/8=zone wide, 0/16=area wide; so 1|2 = 3 is target with distance dependent), 8+16 does not work together
     SCRIPT_COMMAND_CREATE_ITEM              = 17,           // source or target must be player, datalong = item entry, datalong2 = amount
     SCRIPT_COMMAND_DESPAWN_SELF             = 18,           // resSource = Creature, datalong = despawn delay
     SCRIPT_COMMAND_PLAY_MOVIE               = 19,           // target can only be a player, datalog = movie id
-    SCRIPT_COMMAND_MOVEMENT                 = 20,           // resSource = Creature. datalong = MovementType (0:idle, 1:random or 2:waypoint), datalong2 = wander-distance/pathId, datalong3 = timer/passTarget, dataint1 = forcedMovement
+    SCRIPT_COMMAND_MOVEMENT                 = 20,           // resSource = Creature. datalong = MovementType (0:idle, 1:random, 2:waypoint, 3:path, 18:fall), datalong2 = wander-distance/pathId/relayId, datalong3 = timer/passTarget, dataint1 = forcedMovement
     // data_flags &  SCRIPT_FLAG_COMMAND_ADDITIONAL = Random-movement around current position
     SCRIPT_COMMAND_SET_ACTIVEOBJECT         = 21,           // resSource = WorldObject
     // datalong=bool 0=off, 1=on
@@ -108,6 +109,7 @@ enum ScriptCommand                                          // resSource, resTar
     SCRIPT_COMMAND_SEND_MAIL                = 38,           // resSource WorldObject, can be nullptr, resTarget Player
     // datalong: Send mailTemplateId from resSource (if provided) to player resTarget
     // datalong2: AlternativeSenderEntry. Use as sender-Entry
+    // datalong3: Money
     // dataint1: Delay (>= 0) in Seconds
     SCRIPT_COMMAND_SET_HOVER                  = 39,           // resSource = Creature
     // datalong = bool 0=off, 1=on
@@ -135,7 +137,8 @@ enum ScriptCommand                                          // resSource, resTar
     SCRIPT_COMMAND_SPAWN_GROUP              = 51,           // dalalong = command
     SCRIPT_COMMAND_SET_GOSSIP_MENU          = 52,           // datalong = gossip_menu_id
     SCRIPT_COMMAND_SET_WORLDSTATE           = 53,           // dataint = worldstate id, dataint2 = new value, 
-    SCRIPT_COMMAND_SET_SHEATHE              = 54,           // dataint = worldstate id, dataint2 = new value, 
+    SCRIPT_COMMAND_SET_SHEATHE              = 54,           // dataint = worldstate id, dataint2 = new value,
+    SCRIPT_COMMAND_SET_STRING_ID            = 55,           // datalong = string_id id, datalong2 = 0 unapply, 1 apply
 };
 
 #define MAX_TEXT_ID 4                                       // used for SCRIPT_COMMAND_TALK, SCRIPT_COMMAND_EMOTE, SCRIPT_COMMAND_CAST_SPELL, SCRIPT_COMMAND_TERMINATE_SCRIPT
@@ -154,8 +157,9 @@ enum ScriptInfoDataFlags
     SCRIPT_FLAG_BUDDY_BY_SPAWN_GROUP        = 0x100,        // buddy is from spawn group
     SCRIPT_FLAG_ALL_ELIGIBLE_BUDDIES        = 0x200,        // multisource/multitarget - will execute for each eligible
     SCRIPT_FLAG_BUDDY_BY_GO                 = 0x400,        // take the buddy by GO (for commands which can target both creature and GO)
+    SCRIPT_FLAG_BUDDY_BY_STRING_ID          = 0x800,        // takes buddy from string id - creature or go
 };
-#define MAX_SCRIPT_FLAG_VALID               (2 * SCRIPT_FLAG_BUDDY_BY_GO - 1)
+#define MAX_SCRIPT_FLAG_VALID               (2 * SCRIPT_FLAG_BUDDY_BY_STRING_ID - 1)
 
 struct ScriptInfo
 {
@@ -264,6 +268,7 @@ struct ScriptInfo
         {
             uint32 soundId;                                 // datalong
             uint32 flags;                                   // datalong2
+            uint32 playParameter;                           // datalong3
         } playSound;
 
         struct                                              // SCRIPT_COMMAND_CREATE_ITEM (17)
@@ -391,6 +396,7 @@ struct ScriptInfo
         {
             uint32 mailTemplateId;                          // datalong
             uint32 altSender;                               // datalong2;
+            uint32 money;                                   // datalong3;
         } sendMail;
 
         struct                                              // SCRIPT_COMMAND_SET_HOVER (39)
@@ -464,6 +470,12 @@ struct ScriptInfo
         {
             uint32 sheatheState;                            // datalong
         } setSheathe;
+
+        struct                                              // SCRIPT_COMMAND_SET_STRING_ID (55)
+        {
+            uint32 stringId;                                // datalong
+            uint32 apply;                                   // datalong2
+        } stringId;
 
         struct
         {
@@ -585,12 +597,10 @@ struct ScriptInfo
 class ScriptAction
 {
     public:
-        ScriptAction(const char* _table, Map* _map, ObjectGuid _sourceGuid, ObjectGuid _targetGuid, ObjectGuid _ownerGuid, ScriptInfo const* _script) :
-            m_table(_table), m_map(_map), m_sourceGuid(_sourceGuid), m_targetGuid(_targetGuid), m_ownerGuid(_ownerGuid), m_script(_script)
-        {}
+        ScriptAction(ScriptMapType scriptType, Map* _map, ObjectGuid _sourceGuid, ObjectGuid _targetGuid, ObjectGuid _ownerGuid, std::shared_ptr<ScriptInfo> _script);
 
         bool HandleScriptStep();                            // return true IF AND ONLY IF the script should be terminated
-        bool ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTarget, Object* pSourceOrItem);
+        bool ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTarget, Object* pSourceOrItem, bool buddyFound);
 
         const char* GetTableName() const { return m_table; }
         uint32 GetId() const { return m_script->id; }
@@ -607,16 +617,17 @@ class ScriptAction
         }
 
     private:
+        ScriptMapType m_scriptType;
         const char* m_table;                                // of which table the script was started
         Map* m_map;                                         // Map on which the action will be executed
         ObjectGuid m_sourceGuid;
         ObjectGuid m_targetGuid;
         ObjectGuid m_ownerGuid;                             // owner of source if source is item
-        ScriptInfo const* m_script;                         // pointer to static script data
+        std::shared_ptr<ScriptInfo> m_script;               // pointer to script data
 
         // Helper functions
         bool GetScriptCommandObject(const ObjectGuid guid, bool includeItem, Object*& resultObject) const;
-        bool GetScriptProcessTargets(WorldObject* originalSource, WorldObject* originalTarget, std::vector<WorldObject*>& finalSources, std::vector<WorldObject*>& finalTargets) const;
+        std::pair<bool, bool> GetScriptProcessTargets(WorldObject* originalSource, WorldObject* originalTarget, std::vector<WorldObject*>& finalSources, std::vector<WorldObject*>& finalTargets) const;
         bool LogIfNotCreature(WorldObject* pWorldObject) const;
         bool LogIfNotUnit(WorldObject* pWorldObject) const;
         bool LogIfNotGameObject(WorldObject* pWorldObject) const;
@@ -624,20 +635,9 @@ class ScriptAction
         Player* GetPlayerTargetOrSourceAndLog(WorldObject* pSource, WorldObject* pTarget) const;
 };
 
-typedef std::multimap < uint32 /*delay*/, ScriptInfo > ScriptMap;
+typedef std::multimap < uint32 /*delay*/, std::shared_ptr<ScriptInfo>> ScriptMap;
 typedef std::map < uint32 /*id*/, ScriptMap > ScriptMapMap;
 typedef std::pair<const char*, ScriptMapMap> ScriptMapMapName;
-
-extern ScriptMapMapName sQuestEndScripts;
-extern ScriptMapMapName sQuestStartScripts;
-extern ScriptMapMapName sSpellScripts;
-extern ScriptMapMapName sGameObjectScripts;
-extern ScriptMapMapName sGameObjectTemplateScripts;
-extern ScriptMapMapName sEventScripts;
-extern ScriptMapMapName sGossipScripts;
-extern ScriptMapMapName sCreatureDeathScripts;
-extern ScriptMapMapName sCreatureMovementScripts;
-extern ScriptMapMapName sRelayScripts;
 
 class ScriptMgr
 {
@@ -652,16 +652,9 @@ class ScriptMgr
         ScriptMgr();
         ~ScriptMgr() {};
 
-        void LoadGameObjectScripts();
-        void LoadGameObjectTemplateScripts();
-        void LoadQuestEndScripts();
-        void LoadQuestStartScripts();
-        void LoadEventScripts();
-        void LoadSpellScripts();
-        void LoadGossipScripts();
-        void LoadCreatureDeathScripts();
-        void LoadCreatureMovementScripts();
-        void LoadRelayScripts();
+        void LoadScriptMap(ScriptMapType scriptType, bool reload = false);
+
+        void LoadStringIds(bool reload = false);
 
         void LoadDbScriptStrings();
         void LoadDbScriptRandomTemplates();
@@ -678,16 +671,17 @@ class ScriptMgr
         int32 GetRandomScriptStringFromTemplate(uint32 id);
         int32 GetRandomRelayDbscriptFromTemplate(uint32 id);
 
-        uint32 IncreaseScheduledScriptsCount() { return (uint32)++m_scheduledScripts; }
-        uint32 DecreaseScheduledScriptCount() { return (uint32)--m_scheduledScripts; }
-        uint32 DecreaseScheduledScriptCount(size_t count) { return (uint32)(m_scheduledScripts -= count); }
-        bool IsScriptScheduled() const { return m_scheduledScripts > 0; }
         static bool CanSpellEffectStartDBScript(SpellEntry const* spellinfo, SpellEffectIndex effIdx);
         static void CollectPossibleEventIds(std::set<uint32>& eventIds);
 
+        std::shared_ptr<ScriptMapMapName> GetScriptMap(ScriptMapType scriptMapType);
+
+        bool ExistsStringId(uint32 stringId);
+        std::shared_ptr<StringIdMap> GetStringIdMap() { return m_stringIds; }
+        std::shared_ptr<StringIdMapByString> GetStringIdByStringMap() { return m_stringIdsByString; }
     private:
-        void LoadScripts(ScriptMapMapName& scripts, const char* tablename);
-        void CheckScriptTexts(ScriptMapMapName const& scripts);
+        void LoadScripts(ScriptMapType scriptType);
+        void CheckScriptTexts(ScriptMapType scriptType);
 
         typedef std::vector<std::string> ScriptNameMap;
         typedef std::unordered_map<uint32, uint32> AreaTriggerScriptMap;
@@ -702,8 +696,11 @@ class ScriptMgr
         ScriptTemplateMap       m_scriptTemplatesExplicitlyChanced[MAX_TYPE];
         ScriptNameMap           m_scriptNames;
 
-        // atomic op counter for active scripts amount
-        std::atomic_long m_scheduledScripts;
+        std::shared_ptr<ScriptMapMapName> m_scriptMaps[SCRIPT_TYPE_MAX];
+
+        // SCRIPT_ID
+        std::shared_ptr<StringIdMap> m_stringIds;
+        std::shared_ptr<StringIdMapByString> m_stringIdsByString;
 };
 
 // Starters for events

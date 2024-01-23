@@ -17,7 +17,7 @@
  */
 
 #include "Common.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "Server/Opcodes.h"
 #include "Log.h"
@@ -578,6 +578,7 @@ void WorldSession::HandleSellItemOpcode(WorldPacket& recv_data)
             return;
         }
 
+        _player->InterruptNonMeleeSpells(false);
         pItem->SetCount(pItem->GetCount() - count);
         _player->ItemRemovedQuestCheck(pItem->GetEntry(), count);
         if (_player->IsInWorld())
@@ -590,6 +591,7 @@ void WorldSession::HandleSellItemOpcode(WorldPacket& recv_data)
     }
     else
     {
+        _player->InterruptNonMeleeSpells(false);
         _player->ItemRemovedQuestCheck(pItem->GetEntry(), pItem->GetCount());
         _player->RemoveItem(pItem->GetBagSlot(), pItem->GetSlot(), true);
         pItem->RemoveFromUpdateQueueOf(_player);

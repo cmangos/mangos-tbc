@@ -27,12 +27,12 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO                       = -1554005,
-    SAY_DEATH                       = -1554002,
-    SAY_ABILITY_USE_1               = -1554000,
-    SAY_ABILITY_USE_2               = -1554001,
-    SAY_PLAYER_KILL_1               = -1554003,
-    SAY_PLAYER_KILL_2               = -1554004,
+    SAY_AGGRO                       = 19952,
+    SAY_DEATH                       = 19957,
+    SAY_ABILITY_USE_1               = 19955,
+    SAY_ABILITY_USE_2               = 19956,
+    SAY_PLAYER_KILL_1               = 19953,
+    SAY_PLAYER_KILL_2               = 19954,
 
     SPELL_SUMMON_NETHER_CHARGE_NE   = 35153,
     SPELL_SUMMON_NETHER_CHARGE_NW   = 35904,
@@ -50,159 +50,73 @@ enum
     SPELL_NETHER_CHARGE_TIMER       = 37670,
 };
 
-struct boss_mechano_lord_capacitusAI : public ScriptedAI
+enum CapacitusActions
 {
-    boss_mechano_lord_capacitusAI(Creature* creature) : ScriptedAI(creature), m_isRegularMode(creature->GetMap()->IsRegularDifficulty())
+    CAPACITUS_ACTIONS_MAX,
+    CAPACITUS_NETHER_CHARGE
+};
+
+struct boss_mechano_lord_capacitusAI : public CombatAI
+{
+    boss_mechano_lord_capacitusAI(Creature* creature) : CombatAI(creature, CAPACITUS_ACTIONS_MAX), m_isRegularMode(creature->GetMap()->IsRegularDifficulty())
     {
-        Reset();
+        AddOnKillText(SAY_PLAYER_KILL_1, SAY_PLAYER_KILL_2);
+        if (m_isRegularMode)
+            AddCustomAction(CAPACITUS_NETHER_CHARGE, 2000, 5000, [&]() { HandleSummonCharge(); }, TIMER_COMBAT_COMBAT);
+        else
+            AddCustomAction(CAPACITUS_NETHER_CHARGE, 9000, 11000, [&]() { HandleSummonCharge(); }, TIMER_COMBAT_COMBAT);
     }
 
     bool m_isRegularMode;
-    uint32 m_berserkTimer;
-    uint32 m_polarityShiftTimer;
-    uint32 m_headCrackTimer;
-    uint32 m_netherChargeTimer;
-    uint32 m_reflectiveShieldTimer;
-    bool m_reflectiveShield;
     std::vector<ObjectGuid> m_summons;
 
     void Reset() override
     {
-        m_reflectiveShield  = true;
-        m_berserkTimer      = 180000;
-        m_polarityShiftTimer = 30000;
-        m_headCrackTimer = urand(16100, 18600);
-        m_netherChargeTimer = m_isRegularMode ? urand(2000, 5000) : urand(9000, 11000);
-        m_reflectiveShieldTimer = 15000;
+        CombatAI::Reset();
 
-        DespawnNetherCharges();
+        DespawnGuids(m_summons);
     }
 
-    void Aggro(Unit* /*pWho*/) override
+    void Aggro(Unit* /*who*/) override
     {
-        DoScriptText(SAY_AGGRO, m_creature);
+        DoBroadcastText(SAY_AGGRO, m_creature);
     }
 
-    void KilledUnit(Unit* pVictim) override
+    void JustDied(Unit* /*killer*/) override
     {
-        if (pVictim->GetTypeId() == TYPEID_PLAYER)
-            DoScriptText(urand(0, 1) ? SAY_PLAYER_KILL_1 : SAY_PLAYER_KILL_2, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
+        DespawnGuids(m_summons);
     }
 
-    void JustDied(Unit* /*pKiller*/) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
     {
-        DoScriptText(SAY_DEATH, m_creature);
-        DespawnNetherCharges();
+        switch (spellInfo->Id)
+        {
+            case SPELL_REFLECTIVE_DAMAGE_SHIELD:
+            case SPELL_REFLECTIVE_MAGIC_SHIELD:
+                DoBroadcastText(urand(0, 1) ? SAY_ABILITY_USE_1 : SAY_ABILITY_USE_2, m_creature);
+                break;
+        }
     }
 
-    void DespawnNetherCharges()
+    void HandleSummonCharge()
     {
-        for (ObjectGuid& guid : m_summons)
-            if (Creature* charge = m_creature->GetMap()->GetCreature(guid))
-                charge->ForcedDespawn();
-
-        m_summons.clear();
-    }
-
-    void UpdateAI(const uint32 diff) override
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_isRegularMode)
+        uint32 spellId;
+        switch (urand(0, 3))
         {
-            // Damage Shields
-            if (m_reflectiveShieldTimer < diff)
-            {
-                if (m_reflectiveShield)
-                {
-                    if (DoCastSpellIfCan(m_creature, SPELL_REFLECTIVE_DAMAGE_SHIELD) == CAST_OK)
-                    {
-                        m_reflectiveShieldTimer = 20000;
-                        m_reflectiveShield = false;
-                    }
-                }
-                else
-                {
-                    if (DoCastSpellIfCan(m_creature, SPELL_REFLECTIVE_MAGIC_SHIELD) == CAST_OK)
-                    {
-                        m_reflectiveShieldTimer = 20000;
-                        m_reflectiveShield = true;
-                    }
-                }
-            }
-            else
-                m_reflectiveShieldTimer -= diff;
+            case 0: spellId = SPELL_SUMMON_NETHER_CHARGE_NE; break;
+            case 1: spellId = SPELL_SUMMON_NETHER_CHARGE_NW; break;
+            case 2: spellId = SPELL_SUMMON_NETHER_CHARGE_SE; break;
+            case 3: spellId = SPELL_SUMMON_NETHER_CHARGE_SW; break;
         }
-        else
-        {
-            // Polarity Shift
-            if (m_polarityShiftTimer < diff)
-            {
-                if (DoCastSpellIfCan(m_creature, SPELL_POLARITY_SHIFT) == CAST_OK)
-                    m_polarityShiftTimer = urand(27000, 34000);
-
-                switch (urand(0, 3))
-                {
-                    case 0: DoScriptText(SAY_ABILITY_USE_1, m_creature); break;
-                    case 1: DoScriptText(SAY_ABILITY_USE_2, m_creature); break;
-                    default: break;
-                }
-            }
-            else
-                m_polarityShiftTimer -= diff;
-        }
-
-        // Berserk
-        if (m_netherChargeTimer < diff)
-        {
-            uint32 spellId;
-            switch (urand(0, 3))
-            {
-                case 0: spellId = SPELL_SUMMON_NETHER_CHARGE_NE; break;
-                case 1: spellId = SPELL_SUMMON_NETHER_CHARGE_NW; break;
-                case 2: spellId = SPELL_SUMMON_NETHER_CHARGE_SE; break;
-                default:
-                case 3: spellId = SPELL_SUMMON_NETHER_CHARGE_SW; break;
-            }
-            m_creature->CastSpell(m_creature, spellId, TRIGGERED_NONE);
-            m_netherChargeTimer = m_isRegularMode ? urand(2000, 15000) : urand(2000, 20000);
-
-            switch (urand(0, 3))
-            {
-                case 0: DoScriptText(SAY_ABILITY_USE_1, m_creature); break;
-                case 1: DoScriptText(SAY_ABILITY_USE_2, m_creature); break;
-                default: break;
-            }
-        }
-        else
-            m_netherChargeTimer -= diff;
-
-        // Head Crack
-        if (m_headCrackTimer < diff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_HEAD_CRACK) == CAST_OK)
-                m_headCrackTimer = urand(19500, 33500);
-        }
-        else
-            m_headCrackTimer -= diff;
-
-        // Berserk
-        if (m_berserkTimer < diff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
-                m_berserkTimer = 300000;
-        }
-        else
-            m_berserkTimer -= diff;
-
-        DoMeleeAttackIfReady();
+        m_creature->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED); // packets not sent
+        ResetTimer(CAPACITUS_NETHER_CHARGE, m_isRegularMode ? urand(2000, 15000) : urand(2000, 20000));
     }
 };
 
-struct NetherCharge : public ScriptedAI
+struct NetherChargeAI : public ScriptedAI
 {
-    NetherCharge(Creature* creature) : ScriptedAI(creature), m_stopMoving(false)
+    NetherChargeAI(Creature* creature) : ScriptedAI(creature), m_stopMoving(false)
     {
         AddCustomAction(1, true, [&]()
         {
@@ -276,6 +190,41 @@ struct NetherChargeTimer : public AuraScript
     }
 };
 
+// 39096 - Polarity Shift
+struct PolarityShiftCapacitus : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        if (!unitTarget)
+            return;
+
+        unitTarget->RemoveAurasDueToSpell(39088);
+        unitTarget->RemoveAurasDueToSpell(39091);
+        uint64 scriptValue = 0;
+
+        // 39088 39091
+        switch (spell->GetScriptValue())
+        {
+            case 0: // first target random
+                scriptValue = urand(0, 1) ? 39088 : 39091;
+                spell->SetScriptValue(scriptValue);
+                unitTarget->CastSpell(unitTarget, scriptValue, TRIGGERED_OLD_TRIGGERED);
+                break;
+            case 39088: // second target the other
+                spell->SetScriptValue(0);
+                unitTarget->CastSpell(unitTarget, 39091, TRIGGERED_OLD_TRIGGERED);
+                break;
+            case 39091: // second target the other
+                spell->SetScriptValue(0);
+                unitTarget->CastSpell(unitTarget, 39088, TRIGGERED_OLD_TRIGGERED);
+                break;
+            default:
+                break;
+        }
+    }
+};
+
 void AddSC_boss_mechano_lord_capacitus()
 {
     Script* pNewScript = new Script;
@@ -285,9 +234,10 @@ void AddSC_boss_mechano_lord_capacitus()
 
     pNewScript = new Script;
     pNewScript->Name = "mob_nether_charge";
-    pNewScript->GetAI = &GetNewAIInstance<NetherCharge>;
+    pNewScript->GetAI = &GetNewAIInstance<NetherChargeAI>;
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<NetherChargePassive>("spell_nether_charge_passive");
     RegisterSpellScript<NetherChargeTimer>("spell_nether_charge_timer");
+    RegisterSpellScript<PolarityShiftCapacitus>("spell_polarity_shift_capacitus");
 }

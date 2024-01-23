@@ -20,7 +20,7 @@
 #include "Database/DatabaseEnv.h"
 #include "Maps/GridDefines.h"
 #include "Policies/Singleton.h"
-#include "ProgressBar.h"
+#include "Util/ProgressBar.h"
 #include "Maps/MapManager.h"
 #include "Globals/ObjectMgr.h"
 
@@ -46,8 +46,10 @@ char const* waypointKeyColumn[] =
 
 void CheckDbscript(WaypointNode& node, uint32 entry, uint32 point, std::set<uint32>& movementScriptSet, std::string const& tablename)
 {
-    auto iter = sCreatureMovementScripts.second.find(node.script_id);
-    if (iter == sCreatureMovementScripts.second.end())
+    auto creatureMovementScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_CREATURE_MOVEMENT);
+    auto relayScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_RELAY);
+    auto iter = creatureMovementScripts->second.find(node.script_id);
+    if (iter == creatureMovementScripts->second.end())
     {
         sLog.outErrorDb("Table %s for entry %u, point %u have script_id %u that does not exist in `dbscripts_on_creature_movement`, ignoring", tablename.data(), entry, point, node.script_id);
         return;
@@ -58,47 +60,54 @@ void CheckDbscript(WaypointNode& node, uint32 entry, uint32 point, std::set<uint
         bool delay = false;
         for (auto& item : data.second)
         {
-            if (item.second.delay != 0)
+            ScriptInfo const& scriptInfo = *item.second.get();
+            if (scriptInfo.delay != 0)
                 break;
 
-            if (item.second.command == SCRIPT_COMMAND_DESPAWN_SELF && item.second.delay == 0 && item.second.despawn.despawnDelay == 0)
+            if (scriptInfo.command == SCRIPT_COMMAND_DESPAWN_SELF && scriptInfo.delay == 0 && scriptInfo.despawn.despawnDelay == 0)
             {
                 delay = true;
                 sLog.outErrorDb("Table %s entry %u point %u has no delay and no delay despawn script. Adding delay to point.", tablename.data(), entry, point);
                 break;
             }
-            else if (item.second.command == SCRIPT_COMMAND_MOVEMENT)
+            else if (scriptInfo.command == SCRIPT_COMMAND_MOVEMENT)
             {
                 delay = true;
                 sLog.outErrorDb("Table %s entry %u point %u has no delay but changes movegen. Adding delay to point.", tablename.data(), entry, point);
                 break;
             }
-            else if (item.second.command == SCRIPT_COMMAND_START_RELAY_SCRIPT)
+            else if (scriptInfo.command == SCRIPT_COMMAND_SET_RUN)
             {
-                auto iter = sRelayScripts.second.find(item.second.relayScript.relayId);
-                if (iter == sRelayScripts.second.end())
+                delay = true;
+                sLog.outErrorDb("Table %s entry %u point %u has no delay but changes run state. Adding delay to point.", tablename.data(), entry, point);
+                break;
+            }
+            else if (scriptInfo.command == SCRIPT_COMMAND_START_RELAY_SCRIPT)
+            {
+                auto iter = relayScripts->second.find(scriptInfo.relayScript.relayId);
+                if (iter == relayScripts->second.end())
                 {
-                    if (item.second.relayScript.templateId)
+                    if (scriptInfo.relayScript.templateId)
                     {
                         ScriptMgr::ScriptTemplateVector scriptTemplate;
-                        sScriptMgr.GetScriptRelayTemplate(item.second.relayScript.templateId, scriptTemplate);
+                        sScriptMgr.GetScriptRelayTemplate(scriptInfo.relayScript.templateId, scriptTemplate);
                         for (auto& item : scriptTemplate)
                         {
-                            auto iter = sRelayScripts.second.find(item.first);
-                            if (iter != sRelayScripts.second.end())
+                            auto iter = relayScripts->second.find(item.first);
+                            if (iter != relayScripts->second.end())
                             {
                                 auto& data = *iter;
                                 for (auto& item : data.second)
                                 {
-                                    if (item.second.delay != 0)
+                                    if (scriptInfo.delay != 0)
                                         break;
-                                    if (item.second.command == SCRIPT_COMMAND_DESPAWN_SELF && item.second.delay == 0 && item.second.despawn.despawnDelay == 0)
+                                    if (scriptInfo.command == SCRIPT_COMMAND_DESPAWN_SELF && scriptInfo.delay == 0 && scriptInfo.despawn.despawnDelay == 0)
                                     {
                                         delay = true;
                                         sLog.outErrorDb("Table %s entry %u point %u has no delay and no delay despawn script. Adding delay to point.", tablename.data(), entry, point);
                                         break;
                                     }
-                                    else if (item.second.command == SCRIPT_COMMAND_MOVEMENT)
+                                    else if (scriptInfo.command == SCRIPT_COMMAND_MOVEMENT)
                                     {
                                         delay = true;
                                         sLog.outErrorDb("Table %s entry %u point %u has no delay but changes movegen. Adding delay to point.", tablename.data(), entry, point);
@@ -118,15 +127,15 @@ void CheckDbscript(WaypointNode& node, uint32 entry, uint32 point, std::set<uint
                     auto& data = *iter;
                     for (auto& item : data.second)
                     {
-                        if (item.second.delay != 0)
+                        if (scriptInfo.delay != 0)
                             break;
-                        if (item.second.command == SCRIPT_COMMAND_DESPAWN_SELF && item.second.delay == 0 && item.second.despawn.despawnDelay == 0)
+                        if (scriptInfo.command == SCRIPT_COMMAND_DESPAWN_SELF && scriptInfo.delay == 0 && scriptInfo.despawn.despawnDelay == 0)
                         {
                             delay = true;
                             sLog.outErrorDb("Table %s entry %u point %u has no delay and no delay despawn script. Adding delay to point.", tablename.data(), entry, point);
                             break;
                         }
-                        else if (item.second.command == SCRIPT_COMMAND_MOVEMENT)
+                        else if (scriptInfo.command == SCRIPT_COMMAND_MOVEMENT)
                         {
                             delay = true;
                             sLog.outErrorDb("Table %s entry %u point %u has no delay but changes movegen. Adding delay to point.", tablename.data(), entry, point);
@@ -153,7 +162,8 @@ void WaypointManager::Load()
 
     std::set<uint32> movementScriptSet;
 
-    for (ScriptMapMap::const_iterator itr = sCreatureMovementScripts.second.begin(); itr != sCreatureMovementScripts.second.end(); ++itr)
+    auto creatureMovementScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_CREATURE_MOVEMENT);
+    for (auto itr = creatureMovementScripts->second.begin(); itr != creatureMovementScripts->second.end(); ++itr)
         movementScriptSet.insert(itr->first);
 
     // /////////////////////////////////////////////////////
@@ -184,8 +194,8 @@ void WaypointManager::Load()
         }
         while (result->NextRow());
 
-        //                                       0   1      2          3          4          5            6         7
-        result.reset(WorldDatabase.Query("SELECT Id, Point, PositionX, PositionY, PositionZ, Orientation, WaitTime, ScriptId FROM creature_movement"));
+        //                                   0   1      2          3          4          5            6         7
+        result = WorldDatabase.Query("SELECT Id, Point, PositionX, PositionY, PositionZ, Orientation, WaitTime, ScriptId FROM creature_movement");
 
         BarGoLink bar(result->GetRowCount());
 
@@ -232,10 +242,10 @@ void WaypointManager::Load()
             // prevent using invalid coordinates
             if (!MaNGOS::IsValidMapCoord(node.x, node.y, node.z, node.orientation))
             {
-                QueryResult* result1 = WorldDatabase.PQuery("SELECT id, map FROM creature WHERE guid = '%u'", id);
-                if (result1)
+                auto queryResult1 = WorldDatabase.PQuery("SELECT id, map FROM creature WHERE guid = '%u'", id);
+                if (queryResult1)
                     sLog.outErrorDb("Creature (guidlow %d, entry %d) have invalid coordinates in his waypoint %d (X: %f, Y: %f).",
-                                    id, result1->Fetch()[0].GetUInt32(), point, node.x, node.y);
+                                    id, queryResult1->Fetch()[0].GetUInt32(), point, node.x, node.y);
                 else
                     sLog.outErrorDb("Waypoint path %d, have invalid coordinates in his waypoint %d (X: %f, Y: %f).",
                                     id, point, node.x, node.y);
@@ -243,10 +253,9 @@ void WaypointManager::Load()
                 MaNGOS::NormalizeMapCoord(node.x);
                 MaNGOS::NormalizeMapCoord(node.y);
 
-                if (result1)
+                if (queryResult1)
                 {
-                    node.z = sTerrainMgr.LoadTerrain(result1->Fetch()[1].GetUInt32())->GetHeightStatic(node.x, node.y, node.z);
-                    delete result1;
+                    node.z = sTerrainMgr.LoadTerrain(queryResult1->Fetch()[1].GetUInt32())->GetHeightStatic(node.x, node.y, node.z);
                 }
 
                 WorldDatabase.PExecute("UPDATE creature_movement SET PositionX = '%f', PositionY = '%f', PositionZ = '%f' WHERE Id = '%u' AND Point = '%u'", node.x, node.y, node.z, id, point);
@@ -289,7 +298,7 @@ void WaypointManager::Load()
     // creature_movement_template
     // /////////////////////////////////////////////////////
 
-    result.reset(WorldDatabase.Query("SELECT Entry, COUNT(Point) FROM creature_movement_template GROUP BY Entry"));
+    result = WorldDatabase.Query("SELECT Entry, COUNT(Point) FROM creature_movement_template GROUP BY Entry");
 
     if (!result)
     {
@@ -315,8 +324,8 @@ void WaypointManager::Load()
         }
         while (result->NextRow());
 
-        //                                       0      1       2      3          4          5          6            7         8
-        result.reset(WorldDatabase.Query("SELECT Entry, PathId, Point, PositionX, PositionY, PositionZ, Orientation, WaitTime, ScriptId FROM creature_movement_template"));
+        //                                   0      1       2      3          4          5          6            7         8
+        result = WorldDatabase.Query("SELECT Entry, PathId, Point, PositionX, PositionY, PositionZ, Orientation, WaitTime, ScriptId FROM creature_movement_template");
 
         BarGoLink bar(result->GetRowCount());
         std::set<uint32> blacklistWaypoints;
@@ -386,7 +395,7 @@ void WaypointManager::Load()
     // waypoint_path
     // /////////////////////////////////////////////////////
 
-    result.reset(WorldDatabase.Query("SELECT PathId, COUNT(Point) FROM waypoint_path GROUP BY PathId"));
+    result = WorldDatabase.Query("SELECT PathId, COUNT(Point) FROM waypoint_path GROUP BY PathId");
 
     if (!result)
     {
@@ -413,7 +422,7 @@ void WaypointManager::Load()
 
         std::set<uint32> foundNames;
 
-        result.reset(WorldDatabase.Query("SELECT PathId FROM waypoint_path_name"));
+        result = WorldDatabase.Query("SELECT PathId FROM waypoint_path_name");
         if (result)
         {
             do
@@ -426,8 +435,8 @@ void WaypointManager::Load()
             } while (result->NextRow());
         }
 
-        //                                       0       1      2          3          4          5            6         7
-        result.reset(WorldDatabase.Query("SELECT PathId, Point, PositionX, PositionY, PositionZ, Orientation, WaitTime, ScriptId FROM waypoint_path"));
+        //                                   0       1      2          3          4          5            6         7
+        result = WorldDatabase.Query("SELECT PathId, Point, PositionX, PositionY, PositionZ, Orientation, WaitTime, ScriptId FROM waypoint_path");
 
         BarGoLink bar(result->GetRowCount());
         std::set<uint32> blacklistWaypoints;
@@ -735,5 +744,6 @@ bool WaypointManager::SetNodeScriptId(uint32 entry, uint32 dbGuid, uint32 point,
     if (find != path->end())
         find->second.script_id = scriptId;
 
-    return sCreatureMovementScripts.second.find(scriptId) != sCreatureMovementScripts.second.end();
+    auto creatureMovementScripts = sScriptMgr.GetScriptMap(SCRIPT_TYPE_CREATURE_MOVEMENT);
+    return creatureMovementScripts->second.find(scriptId) != creatureMovementScripts->second.end();
 }

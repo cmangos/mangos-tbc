@@ -17,6 +17,7 @@
  */
 
 #ifndef DO_POSTGRESQL
+#ifndef DO_SQLITE
 
 #ifndef _DATABASEMYSQL_H
 #define _DATABASEMYSQL_H
@@ -69,7 +70,7 @@ class MySQLConnection : public SqlConnection
         /*! infoString should be formated like hostname;username;password;database. */
         bool Initialize(const char* infoString) override;
 
-        QueryResult* Query(const char* sql) override;
+        std::unique_ptr<QueryResult> Query(const char* sql) override;
         QueryNamedResult* QueryNamed(const char* sql) override;
         bool Execute(const char* sql) override;
 
@@ -109,5 +110,6 @@ class DatabaseMysql : public Database
         static size_t db_count;
 };
 
+#endif
 #endif
 #endif

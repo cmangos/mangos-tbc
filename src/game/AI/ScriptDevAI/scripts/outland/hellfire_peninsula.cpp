@@ -39,6 +39,8 @@ EndContentData */
 #include "AI/BaseAI/PetAI.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
 #include "Entities/TemporarySpawn.h"
+#include "AI/ScriptDevAI/scripts/outland/world_outland.h"
+#include "World/WorldState.h"
 
 /*######
 ## npc_aeranas
@@ -196,6 +198,7 @@ enum
 
     SPELL_SUMMONED_DEMON            = 7741,                 // visual spawn-in for demon
     SPELL_DEMONIAC_VISITATION       = 38708,                // create item
+    SAY_DEMONIAC_VISITATION_END     = 20154,
 
     SPELL_BUTTRESS_APPERANCE        = 38719,                // visual on 4x bunnies + the flying ones
     SPELL_SUCKER_CHANNEL            = 38721,                // channel to the 4x nodes
@@ -348,6 +351,14 @@ bool GossipSelect_npc_demoniac_scryer(Player* pPlayer, Creature* pCreature, uint
     return true;
 }
 
+struct DemoniacVisitation : public AuraScript
+{
+    void OnApply(Aura* aura, bool /*apply*/) const override
+    {
+        DoBroadcastText(SAY_DEMONIAC_VISITATION_END, aura->GetCaster(), aura->GetTarget());
+    }
+};
+
 /*######
 ## npc_wounded_blood_elf
 ######*/
@@ -414,7 +425,7 @@ struct npc_wounded_blood_elfAI : public npc_escortAI
                 break;
             case 41:
                 pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ROAD_TO_FALCON_WATCH, m_creature);
-                pPlayer->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_END_TALERIS_INT, m_creature, m_creature);
+                pPlayer->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, DBSCRIPT_END_TALERIS_INT, m_creature, m_creature);
                 break;
         }
     }
@@ -1394,12 +1405,7 @@ enum
     YELL_NAZGREL_1 = -1000592,
     YELL_NAZGREL_2 = -1000593,
 
-    SPELL_TROLLBANES_COMMAND = 39911,
-    SPELL_NAZGRELS_FAVOR = 39913,
-
     MAX_SEARCH_DIST = 2170,
-
-    OBJECT_MAGTHERIDONS_HEAD = 184640
 
     //	NPC_DANATH_TROLLBANE = 16819,
     //	NPC_NAZGREL = 3230
@@ -1448,9 +1454,11 @@ struct npc_danath_trollbaneAI : public ScriptedAI
                 m_bOnYell2 = false;
 
                 // Mount Magtheridon's Head (update object)
-                if (GameObject* goHead = GetClosestGameObjectWithEntry(m_creature, OBJECT_MAGTHERIDONS_HEAD, 120.0f))
-                    if (Unit* invoker = m_creature->GetMap()->GetUnit(m_guidInvoker))
-                        goHead->Use(invoker);
+                if (ScriptedInstance* instance = dynamic_cast<ScriptedInstance*>(m_creature->GetInstanceData()))
+                    if (GameObject* goHead = GetClosestGameObjectWithEntry(m_creature, GO_MAGTHERIDONS_HEAD, 120.0f))
+                        instance->DoRespawnGameObject(goHead->GetObjectGuid(), 120 * MINUTE);
+
+                sWorldState.BuffMagtheridonTeam(ALLIANCE);
             }
             else
                 m_uiYell2DelayRemaining -= uiDiff;
@@ -1532,9 +1540,11 @@ struct npc_nazgrelAI : public ScriptedAI
                 m_bOnYell2 = false;
 
                 // Mount Magtheridon's Head (update object)
-                if (GameObject* goHead = GetClosestGameObjectWithEntry(m_creature, OBJECT_MAGTHERIDONS_HEAD, 120.0f))
-                    if (Unit* invoker = m_creature->GetMap()->GetUnit(m_guidInvoker))
-                        goHead->Use(invoker);
+                if (ScriptedInstance* instance = dynamic_cast<ScriptedInstance*>(m_creature->GetInstanceData()))
+                    if (GameObject* goHead = GetClosestGameObjectWithEntry(m_creature, GO_MAGTHERIDONS_HEAD, 120.0f))
+                        instance->DoRespawnGameObject(goHead->GetObjectGuid(), 120 * MINUTE);
+
+                sWorldState.BuffMagtheridonTeam(HORDE);
             }
             else
                 m_uiYell2DelayRemaining -= uiDiff;
@@ -2209,7 +2219,7 @@ enum
 
 struct ExposeRazorthornRoot : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         Unit* target = spell->GetUnitTarget();
         if (!target || !target->AI())
@@ -2462,4 +2472,5 @@ void AddSC_hellfire_peninsula()
     RegisterSpellScript<LivingFlareDetonator>("spell_living_flare_detonator");
     RegisterSpellScript<LivingFlareMaster>("spell_living_flare_master");
     RegisterSpellScript<LivingFlareUnstable>("spell_living_flare_unstable");
+    RegisterSpellScript<DemoniacVisitation>("spell_demoniac_visitation");
 }

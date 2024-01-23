@@ -22,7 +22,7 @@
 #include "Common.h"
 #include "Globals/SharedDefines.h"
 #include "Maps/Map.h"
-#include "ByteBuffer.h"
+#include "Util/ByteBuffer.h"
 #include "Entities/ObjectGuid.h"
 
 // magic event-numbers
@@ -477,8 +477,8 @@ class BattleGround
         void SendYellToAll(int32 /*entry*/, uint32 /*language*/, Creature const* /*source*/);
         void SendYell2ToAll(int32 /*entry*/, uint32 /*language*/, Creature const* /*source*/, int32 /*arg1*/, int32 /*arg2*/);
 
-        void SendBcdToAll(int32 bcdEntry, Creature const* source);
-        void SendBcdToTeam(int32 bcdEntry, Creature const* source, Team team);
+        void SendBcdToAll(int32 bcdEntry, ChatMsg msgtype, Creature const* source);
+        void SendBcdToTeam(int32 bcdEntry, ChatMsg msgtype, Creature const* source, Team team);
 
         // Handle raid groups
         Group* GetBgRaid(Team team) const { return m_bgRaids[GetTeamIndexByTeamId(team)]; }
@@ -612,7 +612,8 @@ class BattleGround
         // door-events are automaticly added - but _ALL_ other must be in this vector
         std::map<uint8, uint8> m_activeEvents;
 
-
+        uint32 GetPlayerSkinRefLootId() const { return m_playerSkinReflootId; }
+        void SetPlayerSkinRefLootId(uint32 reflootId) { m_playerSkinReflootId = reflootId; }
     protected:
         // this method is called, when BG cannot spawn its own spirit guide, or something is wrong, It correctly ends BattleGround
         void EndNow();
@@ -701,6 +702,8 @@ class BattleGround
         float m_teamStartLocZ[PVP_TEAM_COUNT];
         float m_teamStartLocO[PVP_TEAM_COUNT];
         float m_startMaxDist;
+
+        uint32 m_playerSkinReflootId;
 };
 
 // helper functions for world state list fill

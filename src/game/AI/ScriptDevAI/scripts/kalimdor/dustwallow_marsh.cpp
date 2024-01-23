@@ -1291,11 +1291,6 @@ struct boss_tethyrAI : public Scripted_NoMovementAI
     }
 };
 
-UnitAI* GetAI_boss_tethyr(Creature* pCreature)
-{
-    return new boss_tethyrAI(pCreature);
-}
-
 /*######
 ## npc_major_mills
 ######*/
@@ -1339,7 +1334,7 @@ bool QuestAccept_npc_major_mills(Player* player, Creature* creature, const Quest
         {
             if (npc_major_mills* ai = static_cast<npc_major_mills*>(creature->AI()))
                 ai->m_playerGuid = player->GetObjectGuid();
-            creature->GetMap()->ScriptsStart(sRelayScripts, DBSCRIPT_RELAY_TAKE_DOWN_TETHYR, creature, player);
+            creature->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, DBSCRIPT_RELAY_TAKE_DOWN_TETHYR, creature, player);
         }
     }
 
@@ -1981,7 +1976,7 @@ void AddSC_dustwallow_marsh()
 
     pNewScript = new Script;
     pNewScript->Name = "boss_tethyr";
-    pNewScript->GetAI = &GetAI_boss_tethyr;
+    pNewScript->GetAI = &GetNewAIInstance<boss_tethyrAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

@@ -18,7 +18,7 @@
 
 #include "Common.h"
 #include "Database/DatabaseEnv.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Globals/SharedDefines.h"
 #include "Server/WorldSession.h"
 #include "Server/Opcodes.h"
@@ -29,14 +29,13 @@
 #include "Guilds/Guild.h"
 #include "Guilds/GuildMgr.h"
 #include "UpdateMask.h"
-#include "Auth/md5.h"
 #include "Globals/ObjectAccessor.h"
 #include "Groups/Group.h"
 #include "Database/DatabaseImpl.h"
 #include "Tools/PlayerDump.h"
 #include "Social/SocialMgr.h"
 #include "GMTickets/GMTicketMgr.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "Tools/Language.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Anticheat/Anticheat.hpp"
@@ -318,12 +317,11 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
         return;
     }
 
-    QueryResult* resultacct = LoginDatabase.PQuery("SELECT SUM(numchars) FROM realmcharacters WHERE acctid = '%u'", GetAccountId());
+    auto resultacct = LoginDatabase.PQuery("SELECT SUM(numchars) FROM realmcharacters WHERE acctid = '%u'", GetAccountId());
     if (resultacct)
     {
         Field* fields = resultacct->Fetch();
         uint32 acctcharcount = fields[0].GetUInt32();
-        delete resultacct;
 
         if (acctcharcount >= sWorld.getConfig(CONFIG_UINT32_CHARACTERS_PER_ACCOUNT))
         {
@@ -333,13 +331,12 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
         }
     }
 
-    QueryResult* result = CharacterDatabase.PQuery("SELECT COUNT(guid) FROM characters WHERE account = '%u'", GetAccountId());
+    auto queryResult = CharacterDatabase.PQuery("SELECT COUNT(guid) FROM characters WHERE account = '%u'", GetAccountId());
     uint8 charcount = 0;
-    if (result)
+    if (queryResult)
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         charcount = fields[0].GetUInt8();
-        delete result;
 
         if (charcount >= sWorld.getConfig(CONFIG_UINT32_CHARACTERS_PER_REALM))
         {
@@ -355,13 +352,13 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
     bool have_same_race = false;
     if (!AllowTwoSideAccounts || skipCinematics == CINEMATICS_SKIP_SAME_RACE)
     {
-        QueryResult* result2 = CharacterDatabase.PQuery("SELECT race FROM characters WHERE account = '%u' %s",
+        auto queryResult2 = CharacterDatabase.PQuery("SELECT race FROM characters WHERE account = '%u' %s",
                                GetAccountId(), (skipCinematics == CINEMATICS_SKIP_SAME_RACE) ? "" : "LIMIT 1");
-        if (result2)
+        if (queryResult2)
         {
             Team team_ = Player::TeamForRace(race_);
 
-            Field* field = result2->Fetch();
+            Field* field = queryResult2->Fetch();
             uint8 acc_race  = field[0].GetUInt32();
 
             // need to check team only for first character
@@ -372,7 +369,6 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
                 {
                     data << (uint8)CHAR_CREATE_PVP_TEAMS_VIOLATION;
                     SendPacket(data, true);
-                    delete result2;
                     return;
                 }
             }
@@ -381,15 +377,14 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
             // TODO: check if cinematic already shown? (already logged in?; cinematic field)
             while (skipCinematics == CINEMATICS_SKIP_SAME_RACE && !have_same_race)
             {
-                if (!result2->NextRow())
+                if (!queryResult2->NextRow())
                     break;
 
-                field = result2->Fetch();
+                field = queryResult2->Fetch();
                 acc_race = field[0].GetUInt32();
 
                 have_same_race = race_ == acc_race;
             }
-            delete result2;
         }
     }
 
@@ -459,13 +454,12 @@ void WorldSession::HandleCharDeleteOpcode(WorldPacket& recv_data)
 
     uint32 lowguid = guid.GetCounter();
 
-    QueryResult* result = CharacterDatabase.PQuery("SELECT account,name FROM characters WHERE guid='%u'", lowguid);
-    if (result)
+    auto queryResult = CharacterDatabase.PQuery("SELECT account,name FROM characters WHERE guid='%u'", lowguid);
+    if (queryResult)
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         accountId = fields[0].GetUInt32();
         name = fields[1].GetCppString();
-        delete result;
     }
 
     // prevent deleting other players' characters using cheating tools
@@ -633,7 +627,7 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     // load player specific part before send times
     LoadAccountData(holder->GetResult(PLAYER_LOGIN_QUERY_LOADACCOUNTDATA), PER_CHARACTER_CACHE_MASK);
-    SendAccountDataTimes(PER_CHARACTER_CACHE_MASK);
+    SendAccountDataTimes();
 
     data.Initialize(SMSG_FEATURE_SYSTEM_STATUS, 2);         // added in 2.2.0
     data << uint8(2);                                       // Can complain (0 = disabled, 1 = enabled, don't auto ignore, 2 = enabled, auto ignore)
@@ -647,14 +641,13 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     SendOfflineNameQueryResponses();
 
     // QueryResult *result = CharacterDatabase.PQuery("SELECT guildid,rank FROM guild_member WHERE guid = '%u'",pCurrChar->GetGUIDLow());
-    QueryResult* resultGuild = holder->GetResult(PLAYER_LOGIN_QUERY_LOADGUILD);
+    auto resultGuild = holder->GetResult(PLAYER_LOGIN_QUERY_LOADGUILD);
 
     if (resultGuild)
     {
         Field* fields = resultGuild->Fetch();
         pCurrChar->SetInGuild(fields[0].GetUInt32());
         pCurrChar->SetRank(fields[1].GetUInt32());
-        delete resultGuild;
     }
     else if (pCurrChar->GetGuildId())                       // clear guild related fields in case wrong data about nonexistent membership
     {
@@ -847,6 +840,10 @@ void WorldSession::HandlePlayerReconnect()
     // stop logout timer if need
     LogoutRequest(0);
 
+    // if DC during cinematic - just stop it
+    if (_player->getCinematic() != 0)
+        _player->StopCinematic();
+
     // silently kick from chat channels player lists to allow reconnect correctly
     _player->CleanupChannels();
 
@@ -878,10 +875,7 @@ void WorldSession::HandlePlayerReconnect()
     data << _player->GetOrientation();
     SendPacket(data);
 
-    data.Initialize(SMSG_ACCOUNT_DATA_TIMES, 128);
-    for (int i = 0; i < 32; ++i)
-        data << uint32(0);
-    SendPacket(data);
+    SendAccountDataTimes();
 
     data.Initialize(SMSG_FEATURE_SYSTEM_STATUS, 2);         // added in 2.2.0
     data << uint8(2);                                       // Can complain (0 = disabled, 1 = enabled, don't auto ignore, 2 = enabled, auto ignore)

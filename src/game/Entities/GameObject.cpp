@@ -23,7 +23,7 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Spells/Spell.h"
 #include "Server/Opcodes.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "World/World.h"
 #include "Database/DatabaseEnv.h"
 #include "Loot/LootMgr.h"
@@ -35,7 +35,7 @@
 #include "Maps/MapPersistentStateMgr.h"
 #include "BattleGround/BattleGround.h"
 #include "OutdoorPvP/OutdoorPvP.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "vmap/GameObjectModel.h"
 #include "Server/SQLStorages.h"
@@ -95,7 +95,7 @@ GameObject::GameObject() : WorldObject(),
     m_isInUse = false;
     m_reStockTimer = 0;
     m_rearmTimer = 0;
-    m_despawnTimer = 0;
+    m_despawnTimer = TimePoint::max();
 
     m_delayedActionTimer = 0;
 
@@ -178,7 +178,7 @@ void GameObject::RemoveFromWorld()
     WorldObject::RemoveFromWorld();
 }
 
-bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState go_state)
+bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map, float x, float y, float z, float ang, float rotation0, float rotation1, float rotation2, float rotation3, uint32 animprogress, GOState goState)
 {
     MANGOS_ASSERT(map);
     Relocate(x, y, z, ang);
@@ -232,7 +232,7 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
     SetEntry(goinfo->id);
     SetDisplayId(goinfo->displayId);
 
-    SetGoState(go_state);
+    SetGoState(goState);
     SetGoType(GameobjectTypes(goinfo->type));
 
     SetGoAnimProgress(animprogress);
@@ -244,7 +244,7 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
             // safe to use door cos both have startOpen on same spot
             SetGoState(goinfo->door.startOpen ? GO_STATE_ACTIVE : GO_STATE_READY);
             if (goinfo->door.startOpen)
-                m_lootState = GO_NOT_READY;
+                m_lootState = GO_ACTIVATED;
             break;
         case GAMEOBJECT_TYPE_TRAP:
             // values from rogue detect traps aura
@@ -276,9 +276,15 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
         case GAMEOBJECT_TYPE_QUESTGIVER:
             SetUInt32Value(GAMEOBJECT_DYN_FLAGS, GO_DYNFLAG_LO_ACTIVATE);
             break;
+        case GAMEOBJECT_TYPE_AURA_GENERATOR:
+            SetGoState(goinfo->auraGenerator.startOpen ? GO_STATE_ACTIVE : GO_STATE_READY);
+            break;
         default:
             break;
     }
+
+    if (goinfo->StringId)
+        SetStringId(goinfo->StringId, true);
 
     // Notify the battleground or outdoor pvp script
     if (map->IsBattleGroundOrArena())
@@ -292,8 +298,8 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
     if (InstanceData* iData = map->GetInstanceData())
         iData->OnObjectCreate(this);
 
-    // Check if GameObject is Large
-    if (GetGOInfo()->IsLargeGameObject())
+    // Check if GameObject is Large, skip if map has same or better visibility (e.g. Battleground)
+    if (GetGOInfo()->IsLargeGameObject() && GetVisibilityData().GetVisibilityDistance() < VISIBILITY_DISTANCE_LARGE)
         GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
 
     if (GetEntry() == 187039) // Smuggled Mana Cell - only GO in phase in TBC
@@ -477,8 +483,8 @@ void GameObject::Update(const uint32 diff)
                                 {
                                     case 1: // friendly
                                     {
-                                        MaNGOS::AnyFriendlyUnitInObjectRangeCheck u_check(this, nullptr, radius);
-                                        MaNGOS::UnitSearcher<MaNGOS::AnyFriendlyUnitInObjectRangeCheck> checker(target, u_check);
+                                        MaNGOS::AnySpellAssistableUnitInObjectRangeCheck u_check(this, nullptr, radius);
+                                        MaNGOS::UnitSearcher<MaNGOS::AnySpellAssistableUnitInObjectRangeCheck> checker(target, u_check);
                                         Cell::VisitAllObjects(this, checker, radius);
                                         break;
                                     }
@@ -526,9 +532,7 @@ void GameObject::Update(const uint32 diff)
                 case GAMEOBJECT_TYPE_CHEST:
                     if (m_loot)
                     {
-                        if (m_loot->IsChanged())
-                            m_despawnTimer = time(nullptr) + 5 * MINUTE; // TODO:: need to add a define?
-                        else if (m_despawnTimer != 0 && m_despawnTimer <= time(nullptr))
+                        if (m_despawnTimer <= GetMap()->GetCurrentClockTime())
                             m_lootState = GO_JUST_DEACTIVATED;
 
                         m_loot->Update();
@@ -581,8 +585,16 @@ void GameObject::Update(const uint32 diff)
                 linkedTrap->Delete();
             }
 
+            bool preventDespawn = false;
             switch (GetGoType())
             {
+                case GAMEOBJECT_TYPE_TRAP:
+                    if (m_events.GetEvents().size() > 0)
+                    {
+                        preventDespawn = true;
+                        break;
+                    }
+                    break;
                 case GAMEOBJECT_TYPE_GOOBER:
                     // if gameobject should cast spell, then this, but some GOs (type = 10) should be destroyed
                     if (uint32 spellId = GetGOInfo()->goober.spellId)
@@ -617,7 +629,7 @@ void GameObject::Update(const uint32 diff)
                     SetLootState(GO_READY);
                     return; // SetLootState and return because go is treated as "burning flag" due to GetGoAnimProgress() being 100 and would be removed on the client
                 case GAMEOBJECT_TYPE_CHEST:
-                    m_despawnTimer = 0;
+                    m_despawnTimer = TimePoint::max();
                     // consumable confirmed to override chest restock
                     if (!m_goInfo->chest.consumable && m_goInfo->chest.chestRestockTime)
                     {
@@ -630,6 +642,9 @@ void GameObject::Update(const uint32 diff)
                 default:
                     break;
             }
+
+            if (preventDespawn) // mainly serves to prevent casting traps from despawning
+                break;
 
             // Remove wild summoned after use
             if (!HasStaticDBSpawnData() && (!GetSpellId() || GetGOInfo()->GetDespawnPossibility() || GetGOInfo()->IsDespawnAtAction() || m_forcedDespawn))
@@ -670,6 +685,9 @@ void GameObject::Update(const uint32 diff)
             if (AI())
                 AI()->JustDespawned();
 
+            if (InstanceData* iData = GetMap()->GetInstanceData())
+                iData->OnObjectDespawn(this);
+
             if (!m_respawnOverriden)
             {
                 // since pool system can fail to roll unspawned object, this one can remain spawned, so must set respawn nevertheless
@@ -690,7 +708,7 @@ void GameObject::Update(const uint32 diff)
             {
                 m_respawnTime = std::numeric_limits<time_t>::max();
                 if (m_respawnDelay && !GetGameObjectGroup())
-                    GetMap()->GetSpawnManager().AddGameObject(m_respawnDelay, GetDbGuid());
+                    GetMap()->GetSpawnManager().AddGameObject(GetDbGuid());
 
                 if (m_respawnDelay || !m_spawnedByDefault || m_forcedDespawn)
                     AddObjectToRemoveList();
@@ -735,6 +753,11 @@ void GameObject::Heartbeat()
         AI()->OnHeartbeat();
 }
 
+void GameObject::SetChestDespawn()
+{
+    m_despawnTimer = GetMap()->GetCurrentClockTime() + std::chrono::minutes(5);
+}
+
 void GameObject::Refresh()
 {
     // not refresh despawned not casted GO (despawned casted GO destroyed in all cases anyway)
@@ -767,6 +790,9 @@ void GameObject::Delete()
 
     if (AI())
         AI()->JustDespawned();
+
+    if (InstanceData* iData = GetMap()->GetInstanceData())
+        iData->OnObjectDespawn(this);
 
     if (uint16 poolid = sPoolMgr.IsPartOfAPool<GameObject>(GetDbGuid()))
         sPoolMgr.UpdatePool<GameObject>(*GetMap()->GetPersistentState(), poolid, GetDbGuid());
@@ -817,8 +843,6 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask) const
     data.rotation3 = GetFloatValue(GAMEOBJECT_ROTATION + 3);
     data.spawntimesecsmin = m_spawnedByDefault ? (int32)m_respawnDelay : -(int32)m_respawnDelay;
     data.spawntimesecsmax = m_spawnedByDefault ? (int32)m_respawnDelay : -(int32)m_respawnDelay;
-    data.animprogress = GetGoAnimProgress();
-    data.go_state = GetGoState();
     data.spawnMask = spawnMask;
 
     // updated in DB
@@ -837,9 +861,7 @@ void GameObject::SaveToDB(uint32 mapid, uint8 spawnMask) const
        << GetFloatValue(GAMEOBJECT_ROTATION + 2) << ", "
        << GetFloatValue(GAMEOBJECT_ROTATION + 3) << ", "
        << m_respawnDelay << ", "
-       << m_respawnDelay << ", " // TODO: Add variance
-       << uint32(GetGoAnimProgress()) << ", "
-       << uint32(GetGoState()) << ")";
+       << m_respawnDelay << ")";
 
     WorldDatabase.BeginTransaction();
     WorldDatabase.PExecuteLog("DELETE FROM gameobject WHERE guid = '%u'", GetGUIDLow());
@@ -857,6 +879,10 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forc
         return false;
     }
 
+    // Gameobject can be loaded already in map if grid has been unloaded while gameobject moves to another grid
+    if (map->GetGameObject(dbGuid))
+        return false;
+
     uint32 entry = forcedEntry ? forcedEntry : data->id;
     // uint32 map_id = data->mapid;                         // already used before call
     float x = data->posX;
@@ -870,7 +896,6 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forc
     float rotation3 = data->rotation3;
 
     uint32 animprogress = data->animprogress;
-    GOState go_state = data->go_state;
 
     SpawnGroupEntry* groupEntry = map->GetMapDataContainer().GetSpawnGroupByGuid(dbGuid, TYPEID_GAMEOBJECT); // use dynguid by default \o/
     GameObjectGroup* group = nullptr;
@@ -881,18 +906,33 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forc
             entry = group->GetGuidEntry(dbGuid);
     }
 
-    GameObjectInfo const* goinfo = ObjectMgr::GetGameObjectInfo(entry);
-    if ((goinfo && (goinfo->ExtraFlags & GAMEOBJECT_EXTRA_FLAG_DYNGUID) != 0 || groupEntry) && dbGuid == newGuid)
+    bool dynguid = false;
+    if (map->IsDynguidForced())
+        dynguid = true;
+    if (!dynguid)
+    {
+        GameObjectInfo const* goinfo = ObjectMgr::GetGameObjectInfo(entry);
+        if ((goinfo && (goinfo->ExtraFlags & GAMEOBJECT_EXTRA_FLAG_DYNGUID) != 0 || groupEntry) && dbGuid == newGuid)
+            dynguid = true;
+    }
+
+    if (dynguid || newGuid == 0)
         newGuid = map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT);
 
     if (uint32 randomEntry = sObjectMgr.GetRandomGameObjectEntry(dbGuid))
         entry = randomEntry;
 
-    if (!Create(dbGuid, newGuid, entry, map, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, go_state))
+    if (!Create(dbGuid, newGuid, entry, map, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, GO_STATE_READY))
         return false;
+
+    if (data->goState != -1)
+        SetGoState(GOState(data->goState));
 
     if (group)
         SetGameObjectGroup(group);
+
+    if (groupEntry && groupEntry->StringId)
+        SetStringId(groupEntry->StringId, true);
 
     if (!GetGOInfo()->GetDespawnPossibility() && !GetGOInfo()->IsDespawnAtAction() && data->spawntimesecsmin >= 0)
     {
@@ -1388,7 +1428,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 
     bool scriptReturnValue = user->GetTypeId() == TYPEID_PLAYER && sScriptDevAIMgr.OnGameObjectUse((Player*)user, this);
     if (!scriptReturnValue)
-        GetMap()->ScriptsStart(sGameObjectTemplateScripts, GetEntry(), spellCaster, this);
+        GetMap()->ScriptsStart(SCRIPT_TYPE_GAMEOBJECT_TEMPLATE, GetEntry(), spellCaster, this);
 
     if (AI())
         AI()->OnUse(user, spellInfo);
@@ -1404,7 +1444,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 
             // activate script
             if (!scriptReturnValue)
-                GetMap()->ScriptsStart(sGameObjectScripts, GetDbGuid(), spellCaster, this);
+                GetMap()->ScriptsStart(SCRIPT_TYPE_GAMEOBJECT, GetDbGuid(), spellCaster, this);
             return;
         }
         case GAMEOBJECT_TYPE_BUTTON:                        // 1
@@ -1427,7 +1467,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 
             // activate script
             if (!scriptReturnValue)
-                GetMap()->ScriptsStart(sGameObjectScripts, GetDbGuid(), spellCaster, this);
+                GetMap()->ScriptsStart(SCRIPT_TYPE_GAMEOBJECT, GetDbGuid(), spellCaster, this);
 
             return;
         }
@@ -1462,14 +1502,6 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 
             if (!GetGOInfo()->chest.lockId)
                 SetLootState(GO_JUST_DEACTIVATED);
-
-            UnitList targets;
-            MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck check(user, 5.f);
-            MaNGOS::UnitListSearcher<MaNGOS::AnyUnfriendlyUnitInObjectRangeCheck> searcher(targets, check);
-            Cell::VisitAllObjects(this, searcher, 5.f);
-            for (Unit* attacker : targets)
-                if (attacker->IsCreature() && !static_cast<Creature*>(attacker)->IsCritter() && attacker->AI())
-                    attacker->AI()->AttackStart(user);
 
             return;
         }
@@ -1536,52 +1568,10 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
             Player* player = (Player*)user;
 
             // a chair may have n slots. we have to calculate their positions and teleport the player to the nearest one
-
-            // check if the db is sane
-            if (info->chair.slots > 0)
-            {
-                float lowestDist = DEFAULT_VISIBILITY_DISTANCE;
-
-                float x_lowest = GetPositionX();
-                float y_lowest = GetPositionY();
-
-                // the object orientation + 1/2 pi
-                // every slot will be on that straight line
-                float orthogonalOrientation = GetOrientation() + M_PI_F * 0.5f;
-                // find nearest slot
-                for (uint32 i = 0; i < info->chair.slots; ++i)
-                {
-                    // the distance between this slot and the center of the go - imagine a 1D space
-                    float relativeDistance = (info->size * i) - (info->size * (info->chair.slots - 1) / 2.0f);
-
-                    float x_i = GetPositionX() + relativeDistance * cos(orthogonalOrientation);
-                    float y_i = GetPositionY() + relativeDistance * sin(orthogonalOrientation);
-
-                    // calculate the distance between the player and this slot
-                    float thisDistance = player->GetDistance2d(x_i, y_i);
-
-                    /* debug code. It will spawn a npc on each slot to visualize them.
-                    Creature* helper = player->SummonCreature(14496, x_i, y_i, GetPositionZ(), GetOrientation(), TEMPSPAWN_TIMED_OR_DEAD_DESPAWN, 10000);
-                    std::ostringstream output;
-                    output << i << ": thisDist: " << thisDistance;
-                    helper->MonsterSay(output.str().c_str(), LANG_UNIVERSAL);
-                    */
-
-                    if (thisDistance <= lowestDist)
-                    {
-                        lowestDist = thisDistance;
-                        x_lowest = x_i;
-                        y_lowest = y_i;
-                    }
-                }
-                player->TeleportTo(GetMapId(), x_lowest, y_lowest, GetPositionZ(), GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
-            }
-            else
-            {
-                // fallback, will always work
-                player->TeleportTo(GetMapId(), GetPositionX(), GetPositionY(), GetPositionZ(), GetOrientation(), TELE_TO_NOT_LEAVE_TRANSPORT | TELE_TO_NOT_LEAVE_COMBAT | TELE_TO_NOT_UNSUMMON_PET);
-            }
-            player->SetStandState(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->chair.height);
+            float slotX, slotY;
+            std::tie(slotX, slotY) = GetClosestChairSlotPosition(user);
+            user->NearTeleportTo(slotX, slotY, GetPositionZ(), GetOrientation());
+            user->SetStandState(UNIT_STAND_STATE_SIT_LOW_CHAIR + info->chair.height);
             return;
         }
         case GAMEOBJECT_TYPE_SPELL_FOCUS:                   // 8
@@ -1654,7 +1644,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 
             // activate script
             if (!scriptReturnValue)
-                GetMap()->ScriptsStart(sGameObjectScripts, GetDbGuid(), spellCaster, this);
+                GetMap()->ScriptsStart(SCRIPT_TYPE_GAMEOBJECT, GetDbGuid(), spellCaster, this);
             else
                 return;
 
@@ -2170,56 +2160,6 @@ void GameObject::AddToSkillupList(Player* player)
     m_SkillupSet.insert(player->GetObjectGuid());
 }
 
-struct AddGameObjectToRemoveListInMapsWorker
-{
-    AddGameObjectToRemoveListInMapsWorker(ObjectGuid guid) : i_guid(guid) {}
-
-    void operator()(Map* map)
-    {
-        if (GameObject* pGameobject = map->GetGameObject(i_guid))
-            pGameobject->AddObjectToRemoveList();
-    }
-
-    ObjectGuid i_guid;
-};
-
-void GameObject::AddToRemoveListInMaps(uint32 db_guid, GameObjectData const* data)
-{
-    AddGameObjectToRemoveListInMapsWorker worker(ObjectGuid(HIGHGUID_GAMEOBJECT, data->id, db_guid));
-    sMapMgr.DoForAllMapsWithMapId(data->mapid, worker);
-}
-
-struct SpawnGameObjectInMapsWorker
-{
-    SpawnGameObjectInMapsWorker(uint32 guid, GameObjectData const* data)
-        : i_guid(guid), i_data(data) {}
-
-    void operator()(Map* map)
-    {
-        // Spawn if necessary (loaded grids only)
-        if (map->IsLoaded(i_data->posX, i_data->posY))
-        {
-            GameObjectData const* data = sObjectMgr.GetGOData(i_guid);
-            MANGOS_ASSERT(data);
-            GameObject* pGameobject = GameObject::CreateGameObject(data->id);
-            // DEBUG_LOG("Spawning gameobject %u", *itr);
-            if (!pGameobject->LoadFromDB(i_guid, map, i_guid, 0))
-            {
-                delete pGameobject;
-            }
-        }
-    }
-
-    uint32 i_guid;
-    GameObjectData const* i_data;
-};
-
-void GameObject::SpawnInMaps(uint32 db_guid, GameObjectData const* data)
-{
-    SpawnGameObjectInMapsWorker worker(db_guid, data);
-    sMapMgr.DoForAllMapsWithMapId(data->mapid, worker);
-}
-
 bool GameObject::HasStaticDBSpawnData() const
 {
     return sObjectMgr.GetGOData(GetDbGuid()) != nullptr;
@@ -2603,6 +2543,7 @@ bool GameObject::IsAtInteractDistance(Position const& pos, float radius, bool is
             .contains({ pos.GetPositionX(), pos.GetPositionY(), is3D ? pos.GetPositionZ() : GetPositionZ() });
     }
 
+    // else case is incorrect - meant to reverse lookup M2 model - however this case should never happen because we do not allow m_displayInfo to be nullptr
     return GetDistance(pos.GetPositionX(), pos.GetPositionY(), pos.GetPositionZ(), DIST_CALC_NONE) <= (radius * radius);
 }
 
@@ -2640,6 +2581,51 @@ SpellEntry const* GameObject::GetSpellForLock(Player const* player) const
     }
 
     return nullptr;
+}
+
+std::pair<float, float> GameObject::GetClosestChairSlotPosition(Unit* user) const
+{
+    float outX, outY;
+    // check if the db is sane
+    if (GetGOInfo()->chair.slots > 0)
+    {
+        float lowestDist = DEFAULT_VISIBILITY_DISTANCE;
+
+        float x_lowest = GetPositionX();
+        float y_lowest = GetPositionY();
+
+        // the object orientation + 1/2 pi
+        // every slot will be on that straight line
+        float orthogonalOrientation = GetOrientation() + M_PI_F * 0.5f;
+        // find nearest slot
+        for (uint32 i = 0; i < GetGOInfo()->chair.slots; ++i)
+        {
+            // the distance between this slot and the center of the go - imagine a 1D space
+            float relativeDistance = (GetGOInfo()->size * i) - (GetGOInfo()->size * (GetGOInfo()->chair.slots - 1) / 2.0f);
+
+            float slotX = GetPositionX() + relativeDistance * cos(orthogonalOrientation);
+            float slotY = GetPositionY() + relativeDistance * sin(orthogonalOrientation);
+
+            // calculate the distance between the user and this slot
+            float thisDistance = user->GetDistance2d(slotX, slotY, DIST_CALC_NONE);
+
+            if (thisDistance <= lowestDist)
+            {
+                lowestDist = thisDistance;
+                x_lowest = slotX;
+                y_lowest = slotY;
+            }
+        }
+        outX = x_lowest;
+        outY = y_lowest;
+    }
+    else
+    {
+        outX = GetPositionX();
+        outY = GetPositionY();
+    }
+
+    return {outX, outY};
 }
 
 SpellCastResult GameObject::CastSpell(Unit* temporaryCaster, Unit* Victim, uint32 spellId, uint32 triggeredFlags, Item* castItem, Aura* triggeredByAura, ObjectGuid originalCaster, SpellEntry const* triggeredBy)

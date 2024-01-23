@@ -30,8 +30,8 @@ EndScriptData */
 enum
 {
     SAY_EMERGE                  = -1580069,
-    SAY_SLAY_1                  = -1580070,
-    SAY_SLAY_2                  = -1580071,
+    SAY_SLAY_1                  = 25549,
+    SAY_SLAY_2                  = 25550,
     SAY_REFLECTION_1            = -1580072,
     SAY_REFLECTION_2            = -1580073,
     SAY_DARKNESS_1              = -1580074,
@@ -552,10 +552,10 @@ struct boss_kiljaedenAI : public CombatAI, private DialogueHelper
         AddOnKillText(SAY_SLAY_1, SAY_SLAY_2);
         AddMainSpell(SPELL_SOUL_FLAY);
         SetRangedMode(true, 100.f, TYPE_FULL_CASTER);
-        SetRootSelf(true);
+        SetAIImmobilizedState(true);
         if (m_instance)
         {
-            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float z)
+            m_creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
             {
                 return static_cast<ScriptedInstance*>(unit->GetInstanceData())->GetPlayerInMap(true, false) == nullptr;
             });
@@ -788,7 +788,7 @@ struct boss_kiljaedenAI : public CombatAI, private DialogueHelper
     }
 
     // Hack for simulating spell list
-    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 /*miscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
     {
         if (eventType == AI_EVENT_CUSTOM_A)
         {
@@ -1206,7 +1206,7 @@ struct DarknessOfSouls : public AuraScript
 
 struct SinisterReflection : public SpellScript
 {
-    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         Unit* unitTarget = spell->GetUnitTarget();
         if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)

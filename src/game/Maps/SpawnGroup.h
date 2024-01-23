@@ -47,7 +47,7 @@ class SpawnGroup
         virtual void Update();
         uint32 GetEligibleEntry(std::map<uint32, uint32>& existingEntries, std::map<uint32, uint32>& minEntries);
         virtual void Spawn(bool force);
-        virtual void Despawn(uint32 timeMSToDespawn = 0) = 0;
+        virtual void Despawn(uint32 timeMSToDespawn = 0, uint32 forcedDespawnTime = 0) = 0;
         std::string to_string() const;
         uint32 GetObjectTypeId() const { return m_objectTypeId; }
         void SetEnabled(bool enabled) { m_enabled = enabled; }
@@ -89,17 +89,18 @@ class CreatureGroup : public SpawnGroup
 
         void MoveHome();
 
-        void Despawn(uint32 timeMSToDespawn = 0) override { Despawn(timeMSToDespawn, true); };
-        void Despawn(uint32 timeMSToDespawn, bool onlyAlive);
+        void Despawn(uint32 timeMSToDespawn = 0, uint32 forcedDespawnTime = 0) override { Despawn(timeMSToDespawn, true, forcedDespawnTime); };
+        void Despawn(uint32 timeMSToDespawn, bool onlyAlive, uint32 forcedDespawnTime);
 
         bool IsOutOfCombat();
+        bool IsEvading();
 
     private:
         void ClearRespawnTimes();
         FormationDataSPtr m_formationData;
 };
 
-struct RespawnPosistion
+struct RespawnPosition
 {
     float x, y, z, radius;
 };
@@ -110,17 +111,17 @@ class GameObjectGroup : public SpawnGroup
         GameObjectGroup(SpawnGroupEntry const& entry, Map& map);
         void RemoveObject(WorldObject* wo) override;
 
-        void Despawn(uint32 timeMSToDespawn = 0) override;
+        void Despawn(uint32 timeMSToDespawn = 0, uint32 forcedDespawnTime = 0) override;
 };
 
 class FormationSlotData
 {
     public:
         FormationSlotData(uint32 slotId, uint32 _ownerDBGuid, CreatureGroup* creatureGrp, SpawnGroupFormationSlotType type = SpawnGroupFormationSlotType::SPAWN_GROUP_FORMATION_SLOT_TYPE_STATIC)
-            : m_slotId(slotId), m_realOwnerGuid(_ownerDBGuid), m_creatureGroup(creatureGrp), m_slotType(type), m_owner(nullptr),
-            m_realAngle(0), m_realDistance(1), m_recomputePosition(true), m_angleVariation(0), m_distanceVariation(0),
-            m_maxAngleVariation(0), m_maxDistanceVariation(0), m_angleVariationDest(0), m_distanceVariationDest(0),
-            m_canFollow(true)
+            : m_slotId(slotId), m_realOwnerGuid(_ownerDBGuid), m_creatureGroup(creatureGrp), m_owner(nullptr),
+            m_realAngle(0), m_realDistance(1), m_angleVariation(0), m_distanceVariation(0), m_maxAngleVariation(0),
+            m_maxDistanceVariation(0), m_angleVariationDest(0), m_distanceVariationDest(0), m_recomputePosition(true),
+            m_canFollow(true), m_slotType(type)
         {}
 
         uint32 GetSlotId() const { return m_slotId; }
@@ -198,6 +199,7 @@ class FormationData
         void Reset();
         void Disband();
         void OnDeath(Creature* creature);
+        void OnHome();
         void OnDelete(Creature* creature);
         void OnWPStartNode() { m_mirrorState = false; };
         void OnWPEndNode() { m_mirrorState = true; };
@@ -215,6 +217,8 @@ class FormationData
 
         FormationEntrySPtr GetFormationEntry() const { return m_fEntry; }
         void SetMovementInfo(MovementGeneratorType moveType, uint32 pahtId);
+
+        void ResetLastWP() { m_lastWP = 0; }
 
     private:
         void SetMasterMovement();
@@ -239,10 +243,11 @@ class FormationData
         SpawnGroupFormationType m_currentFormationShape;
         FormationSlotMap m_slotsMap;
         MovementGeneratorType m_masterMotionType;
-        RespawnPosistion m_spawnPos;
+        RespawnPosition m_spawnPos;
 
         bool m_mirrorState;
         bool m_followerStopped;
+        bool m_masterDied;
 
         uint32 m_realMasterDBGuid;
         uint32 m_slotGuid;

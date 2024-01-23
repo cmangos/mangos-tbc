@@ -23,7 +23,7 @@
 #include "Common.h"
 #include "World/World.h"
 #include "WorldRunnable.h"
-#include "Timer.h"
+#include "Util/Timer.h"
 #include "Maps/MapManager.h"
 
 #include "Database/DatabaseEnv.h"
@@ -31,7 +31,7 @@
 #define WORLD_SLEEP_CONST 50
 
 #ifdef _WIN32
-#include "ServiceWin32.h"
+#include "Platform/ServiceWin32.h"
 extern int m_ServiceStatus;
 #endif
 

@@ -89,6 +89,9 @@ namespace Movement
             void SetVelocity(float vel);
 
             PointsArray& Path() { return args.path; }
+
+            void SetCombatSlowed(float slowed) { args.slowed = slowed; }
+            bool CheckBounds() const { return args._checkPathBounds(); }
         protected:
 
             MoveSplineInitArgs args;

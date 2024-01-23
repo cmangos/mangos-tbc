@@ -18,11 +18,11 @@
 
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
-#include "ProgressBar.h"
+#include "Util/ProgressBar.h"
 #include "Policies/Singleton.h"
 #include "Entities/Player.h"
 #include "World/World.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "Skills/SkillDiscovery.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Entities/Player.h"
@@ -53,23 +53,23 @@ void LoadSkillDiscoveryTable()
     uint32 count = 0;
 
     //                                                0        1         2
-    QueryResult* result = WorldDatabase.Query("SELECT spellId, reqSpell, chance FROM skill_discovery_template");
+    auto queryResult = WorldDatabase.Query("SELECT spellId, reqSpell, chance FROM skill_discovery_template");
 
-    if (!result)
+    if (!queryResult)
     {
         sLog.outString(">> Loaded 0 skill discovery definitions. DB table `skill_discovery_template` is empty.");
         sLog.outString();
         return;
     }
 
-    BarGoLink bar(result->GetRowCount());
+    BarGoLink bar(queryResult->GetRowCount());
 
     std::ostringstream ssNonDiscoverableEntries;
     std::set<uint32> reportedReqSpells;
 
     do
     {
-        Field* fields = result->Fetch();
+        Field* fields = queryResult->Fetch();
         bar.step();
 
         uint32 spellId         = fields[0].GetUInt32();
@@ -129,9 +129,7 @@ void LoadSkillDiscoveryTable()
 
         ++count;
     }
-    while (result->NextRow());
-
-    delete result;
+    while (queryResult->NextRow());
 
     if (!ssNonDiscoverableEntries.str().empty())
         sLog.outErrorDb("Some items can't be successfully discovered: have in chance field value < 0.000001 in `skill_discovery_template` DB table . List:\n%s", ssNonDiscoverableEntries.str().c_str());

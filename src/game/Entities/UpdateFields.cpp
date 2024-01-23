@@ -378,7 +378,7 @@ static std::array<UpdateFieldData, 399> const g_updateFieldsData =
     { TYPEMASK_PLAYER       , "PLAYER_FIELD_KILLS"                              , 0x5EA, 1  , UF_TYPE_TWO_SHORT, UF_FLAG_PRIVATE },
     { TYPEMASK_PLAYER       , "PLAYER_FIELD_TODAY_CONTRIBUTION"                 , 0x5EB, 1  , UF_TYPE_INT      , UF_FLAG_PRIVATE },
     { TYPEMASK_PLAYER       , "PLAYER_FIELD_YESTERDAY_CONTRIBUTION"             , 0x5EC, 1  , UF_TYPE_INT      , UF_FLAG_PRIVATE },
-    { TYPEMASK_PLAYER       , "PLAYER_FIELD_LIFETIME_HONORBALE_KILLS"           , 0x5ED, 1  , UF_TYPE_INT      , UF_FLAG_PRIVATE },
+    { TYPEMASK_PLAYER       , "PLAYER_FIELD_LIFETIME_HONORABLE_KILLS"           , 0x5ED, 1  , UF_TYPE_INT      , UF_FLAG_PRIVATE },
     { TYPEMASK_PLAYER       , "PLAYER_FIELD_BYTES2"                             , 0x5EE, 1  , UF_TYPE_BYTES    , UF_FLAG_PRIVATE },
     { TYPEMASK_PLAYER       , "PLAYER_FIELD_WATCHED_FACTION_INDEX"              , 0x5EF, 1  , UF_TYPE_INT      , UF_FLAG_PRIVATE },
     { TYPEMASK_PLAYER       , "PLAYER_FIELD_COMBAT_RATING_1"                    , 0x5F0, 24 , UF_TYPE_INT      , UF_FLAG_PRIVATE },

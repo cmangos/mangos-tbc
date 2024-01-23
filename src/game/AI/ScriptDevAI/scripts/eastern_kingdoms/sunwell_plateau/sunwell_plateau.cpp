@@ -45,14 +45,14 @@ static const DialogueEntry aFelmystOutroDialogue[] =
 };
 
 instance_sunwell_plateau::instance_sunwell_plateau(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(aFelmystOutroDialogue),
+    m_brutallusIntroStarted(false),
     m_firstEnter(true),
+    m_impsStarted(false),
+    m_miniAttackEvent(false),
     m_uiDeceiversKilled(0),
     m_uiSpectralRealmTimer(5000),
     m_uiMuruBerserkTimer(0),
-    m_uiKiljaedenYellTimer(90000),
-    m_impsStarted(false),
-    m_miniAttackEvent(false),
-    m_brutallusIntroStarted(false)
+    m_uiKiljaedenYellTimer(90000)
 {
     Initialize();
 }
@@ -91,7 +91,7 @@ bool instance_sunwell_plateau::IsEncounterInProgress() const
     return false;
 }
 
-void instance_sunwell_plateau::OnPlayerEnter(Player* pPlayer)
+void instance_sunwell_plateau::OnPlayerEnter(Player* /*pPlayer*/)
 {
     if (m_firstEnter)
     {
@@ -377,8 +377,12 @@ void instance_sunwell_plateau::SetData(uint32 type, uint32 data)
                 for (uint32 i = 0; i < entries.size(); ++i)
                 {
                     if (Creature* bossNpc = GetSingleCreatureFromStorage(entries[i]))
+                    {
+                        bossNpc->SetRespawnDelay(30, true);
                         bossNpc->ForcedDespawn();
-                    instance->GetSpawnManager().AddCreature(30, guids[i]);
+                    }
+                    else
+                        instance->GetSpawnManager().RespawnCreature(guids[i], 30);
                 }
                 DespawnGuids(m_twinsSpawns);
             }

@@ -33,7 +33,7 @@
 #include "Entities/Item.h"
 #include "Entities/Player.h"
 #include "World/World.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "Server/Opcodes.h"
 #include "Chat/Chat.h"
@@ -169,11 +169,10 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
     else
     {
         rc_team = sObjectMgr.GetPlayerTeamByGUID(rc);
-        if (QueryResult* result = CharacterDatabase.PQuery("SELECT COUNT(*) FROM mail WHERE receiver = '%u'", rc.GetCounter()))
+        if (auto queryResult = CharacterDatabase.PQuery("SELECT COUNT(*) FROM mail WHERE receiver = '%u'", rc.GetCounter()))
         {
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
             mails_count = fields[0].GetUInt32();
-            delete result;
         }
     }
 

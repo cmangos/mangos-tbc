@@ -33,8 +33,8 @@ enum
     SAY_SABERLASH1                  = -1568037,
     SAY_SABERLASH2                  = -1568038,
     SAY_BERSERK                     = -1568039,
-    SAY_KILL1                       = -1568040,
-    SAY_KILL2                       = -1568041,
+    SAY_KILL1                       = 23613,
+    SAY_KILL2                       = 23614,
     SAY_DEATH                       = -1568042,
     SAY_EVENT1                      = -1568043,
     SAY_EVENT2                      = -1568044,
@@ -100,7 +100,7 @@ struct boss_halazziAI : public CombatAI
         AddCombatAction(HALAZZI_ACTION_SABER_LASH, 20000u);
         AddCombatAction(HALAZZI_ACTION_SHOCK, true);
         AddCombatAction(HALAZZI_ACTION_TOTEM, true);
-        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float /*z*/)
             {
                 return x < 307.f || y < 1055.f;
             });

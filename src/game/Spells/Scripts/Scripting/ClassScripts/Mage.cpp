@@ -19,6 +19,7 @@
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellMgr.h"
 
+// 11213 - Arcane Concentration
 struct ArcaneConcentration : public AuraScript
 {
     bool OnCheckProc(Aura* aura, ProcExecutionData& procData) const override
@@ -46,6 +47,64 @@ struct ArcaneConcentration : public AuraScript
     }
 };
 
+// 11170 - Shatter
+struct ShatterMage : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_CRIT_CHANCE, apply);
+    }
+
+    void OnCritChanceCalculate(Aura* aura, Unit const* target, float& chance, SpellEntry const* /*spellInfo*/) const override
+    {
+        switch (aura->GetModifier()->m_miscvalue)
+        {
+            // Shatter
+            case 849: if (target->isFrozen()) chance += 10.0f; break;
+            case 910: if (target->isFrozen()) chance += 20.0f; break;
+            case 911: if (target->isFrozen()) chance += 30.0f; break;
+            case 912: if (target->isFrozen()) chance += 40.0f; break;
+            case 913: if (target->isFrozen()) chance += 50.0f; break;
+            default:
+                break;
+        }
+    }
+};
+
+// 543 - Fire Ward
+struct FireWardMage : public AuraScript
+{
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
+    {
+        if (data.caster)
+        {
+            if (data.caster->HasSpell(13043)) // Molten Shields
+                value += data.caster->CalculateSpellEffectValue(data.target, sSpellTemplate.LookupEntry<SpellEntry>(13043), EFFECT_INDEX_0);
+            else if (data.caster->HasSpell(11094)) // Molten Shields
+                value += data.caster->CalculateSpellEffectValue(data.target, sSpellTemplate.LookupEntry<SpellEntry>(11094), EFFECT_INDEX_0);
+            
+        }
+        return value;
+    }
+};
+
+// 6143 - Frost Ward
+struct FrostWardMage : public AuraScript
+{
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
+    {
+        if (data.caster)
+        {
+            if (data.caster->HasAura(11189)) // Frost Warding
+                value += data.caster->CalculateSpellEffectValue(data.target, sSpellTemplate.LookupEntry<SpellEntry>(11189), EFFECT_INDEX_1);
+            else if (data.caster->HasAura(28332)) // Frost Warding
+                value += data.caster->CalculateSpellEffectValue(data.target, sSpellTemplate.LookupEntry<SpellEntry>(28332), EFFECT_INDEX_1);
+
+        }
+        return value;
+    }
+};
+
 // 42208 - Blizzard
 struct Blizzard : public SpellScript
 {
@@ -60,8 +119,37 @@ struct Blizzard : public SpellScript
     }
 };
 
+// 31679 - Molten Fury
+struct MoltenFury : public AuraScript
+{
+    void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* victim, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        if (victim->HasAuraState(AURA_STATE_HEALTHLESS_20_PERCENT))
+            totalMod *= (100.0f + aura->GetModifier()->m_amount) / 100.0f;
+    }
+};
+
+// 30455 - Ice Lance
+struct IceLance : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        Unit* target = spell->GetUnitTarget();
+        if (target->isFrozen()) // does not affect damage taken modifiers per research
+            spell->SetDamageDoneModifier(3.f, EFFECT_INDEX_0);
+    }
+};
+
 void LoadMageScripts()
 {
     RegisterSpellScript<ArcaneConcentration>("spell_arcane_concentration");
+    RegisterSpellScript<ShatterMage>("spell_shatter_mage");
+    RegisterSpellScript<FireWardMage>("spell_fire_ward_mage");
+    RegisterSpellScript<FrostWardMage>("spell_frost_ward_mage");
     RegisterSpellScript<Blizzard>("spell_blizzard");
+    RegisterSpellScript<MoltenFury>("spell_molten_fury");
+    RegisterSpellScript<IceLance>("spell_ice_lance");
 }

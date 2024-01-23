@@ -19,6 +19,7 @@
 #include "Spells/Scripts/SpellScript.h"
 #include "Spells/SpellAuras.h"
 
+// 1130 - Hunter's Mark
 struct HuntersMark : public AuraScript
 {
     int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
@@ -68,6 +69,7 @@ struct HuntersMark : public AuraScript
     }
 };
 
+// 34026 - Kill Command
 struct KillCommand : public SpellScript
 {
     void OnHit(Spell* spell, SpellMissInfo /*missInfo*/) const override
@@ -101,6 +103,7 @@ struct KillCommand : public SpellScript
     }
 };
 
+// 34477 - Misdirection
 struct Misdirection : public SpellScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool/* strict*/) const override
@@ -119,6 +122,7 @@ struct Misdirection : public SpellScript
     }
 };
 
+// 34501 - Expose Weakness
 struct ExposeWeakness : public AuraScript
 {
     int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override

@@ -30,6 +30,7 @@
 #include "Maps/TransportSystem.h"
 #include "Entities/Unit.h"
 #include "Maps/MapManager.h"
+#include "Entities/Transports.h"
 
 /* **************************************** TransportBase ****************************************/
 
@@ -90,17 +91,17 @@ void TransportBase::UpdateGlobalPositions()
 // Update the global position of a passenger
 void TransportBase::UpdateGlobalPositionOf(WorldObject* passenger, float lx, float ly, float lz, float lo) const
 {
-    float gx, gy, gz, go;
-    CalculateGlobalPositionOf(lx, ly, lz, lo, gx, gy, gz, go);
+    Position transportPos = m_owner->GetPosition();
+    GenericTransport::CalculatePassengerPosition(lx, ly, lz, &lo, transportPos.x, transportPos.y, transportPos.z, transportPos.o);
 
     if (passenger->GetTypeId() == TYPEID_PLAYER || passenger->GetTypeId() == TYPEID_UNIT)
     {
         if (passenger->GetTypeId() == TYPEID_PLAYER)
         {
-            m_owner->GetMap()->PlayerRelocation((Player*)passenger, gx, gy, gz, go);
+            m_owner->GetMap()->PlayerRelocation((Player*)passenger, lx, ly, lz, lo);
         }
         else
-            m_owner->GetMap()->CreatureRelocation((Creature*)passenger, gx, gy, gz, go);
+            m_owner->GetMap()->CreatureRelocation((Creature*)passenger, lx, ly, lz, lo);
     }
     // ToDo: Add gameobject relocation
     // ToDo: Add passenger relocation for MO transports
@@ -120,15 +121,14 @@ void TransportBase::NormalizeRotatedPosition(float rx, float ry, float& lx, floa
     ly = rx * -m_sinO + ry * -m_cosO;
 }
 
-// Calculate a global position of local positions based on this transporter
-void TransportBase::CalculateGlobalPositionOf(float lx, float ly, float lz, float lo, float& gx, float& gy, float& gz, float& go) const
+void TransportBase::CalculatePassengerPosition(float& x, float& y, float& z, float* o) const
 {
-    RotateLocalPosition(lx, ly, gx, gy);
-    gx += m_owner->GetPositionX();
-    gy += m_owner->GetPositionY();
+    GenericTransport::CalculatePassengerPosition(x, y, z, o, m_owner->GetPositionX(), m_owner->GetPositionY(), m_owner->GetPositionZ(), m_owner->GetOrientation());
+}
 
-    gz = lz + m_owner->GetPositionZ();
-    go = MapManager::NormalizeOrientation(lo + m_owner->GetOrientation());
+void TransportBase::CalculatePassengerOffset(float& x, float& y, float& z, float* o) const
+{
+    GenericTransport::CalculatePassengerOffset(x, y, z, o, m_owner->GetPositionX(), m_owner->GetPositionY(), m_owner->GetPositionZ(), m_owner->GetOrientation());
 }
 
 void TransportBase::BoardPassenger(WorldObject* passenger, float lx, float ly, float lz, float lo)

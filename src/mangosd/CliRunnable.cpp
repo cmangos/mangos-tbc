@@ -27,7 +27,7 @@
 #include "Globals/ObjectMgr.h"
 #include "Server/WorldSession.h"
 #include "Config/Config.h"
-#include "Util.h"
+#include "Util/Util.h"
 #include "Accounts/AccountMgr.h"
 #include "CliRunnable.h"
 #include "Maps/MapManager.h"
@@ -113,7 +113,7 @@ bool ChatHandler::HandleAccountDeleteCommand(char* args)
  */
 bool ChatHandler::GetDeletedCharacterInfoList(DeletedInfoList& foundList, std::string searchString)
 {
-    QueryResult* resultChar;
+    std::unique_ptr<QueryResult> resultChar;
     if (!searchString.empty())
     {
         // search by GUID
@@ -137,7 +137,6 @@ bool ChatHandler::GetDeletedCharacterInfoList(DeletedInfoList& foundList, std::s
         {
             PSendSysMessage("Too many results %u. Narrow it down.", (uint32)resultChar->GetRowCount());
             SetSentErrorMessage(true);
-            delete resultChar;
             return false;
         }
 
@@ -159,8 +158,6 @@ bool ChatHandler::GetDeletedCharacterInfoList(DeletedInfoList& foundList, std::s
             foundList.push_back(info);
         }
         while (resultChar->NextRow());
-
-        delete resultChar;
     }
 
     return true;
@@ -476,10 +473,10 @@ bool ChatHandler::HandleAccountOnlineListCommand(char* args)
         return false;
 
     ///- Get the list of accounts ID logged to the realm
-    //                                                 0            1         2        3        4
-    QueryResult* result = LoginDatabase.PQuery("SELECT distinct a.id, username, ip, gmlevel, expansion FROM account a join account_logons b on(a.id=b.accountId) WHERE active_realm_id = %u", realmID);
+    //                                              0            1         2        3        4
+    auto queryResult = LoginDatabase.PQuery("SELECT distinct a.id, username, ip, gmlevel, expansion FROM account a join account_logons b on(a.id=b.accountId) WHERE active_realm_id = %u", realmID);
 
-    return ShowAccountListHelper(result, &limit);
+    return ShowAccountListHelper(std::move(queryResult), &limit);
 }
 
 /// Create an account

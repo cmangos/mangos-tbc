@@ -59,6 +59,7 @@ void RemoveShadowEmbraceIfNecessary(Aura* aura)
     }
 }
 
+// 30108 - Unstable Affliction
 struct UnstableAffliction : public AuraScript
 {
     void OnDispel(SpellAuraHolder* holder, Unit* dispeller, uint32 /*dispellingSpellId*/, uint32 /*originalStacks*/) const override
@@ -72,6 +73,7 @@ struct UnstableAffliction : public AuraScript
     }
 };
 
+// 980 - Curse of Agony
 struct CurseOfAgony : public AuraScript
 {
     void OnPeriodicCalculateAmount(Aura* aura, uint32& amount) const override
@@ -92,6 +94,7 @@ struct CurseOfAgony : public AuraScript
     }
 };
 
+// 1454 - Life Tap
 struct LifeTap : public SpellScript
 {
     void OnInit(Spell* spell) const override
@@ -152,6 +155,82 @@ struct LifeTap : public SpellScript
     }
 };
 
+// 5699 - Create Healthstone
+struct CreateHealthStoneWarlock : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        // check if we already have a healthstone
+        uint32 itemType = GetUsableHealthStoneItemType(caster, spell->m_spellInfo);
+        if (itemType && caster->IsPlayer() && static_cast<Player*>(caster)->GetItemCount(itemType) > 0)
+            return SPELL_FAILED_TOO_MANY_OF_ITEM;
+        return SPELL_CAST_OK;
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (!target)
+            return;
+
+        uint32 itemType = GetUsableHealthStoneItemType(target, spell->m_spellInfo);
+        if (itemType)
+            spell->DoCreateItem(effIdx, itemType);
+    }
+
+    uint32 GetUsableHealthStoneItemType(Unit* target, SpellEntry const* spellInfo) const
+    {
+        if (!target || !target->IsPlayer())
+            return 0;
+
+        uint32 itemtype = 0;
+        uint32 rank = 0;
+        Unit::AuraList const& mDummyAuras = target->GetAurasByType(SPELL_AURA_DUMMY);
+        for (auto mDummyAura : mDummyAuras)
+        {
+            if (mDummyAura->GetId() == 18692)
+            {
+                rank = 1;
+                break;
+            }
+            if (mDummyAura->GetId() == 18693)
+            {
+                rank = 2;
+                break;
+            }
+        }
+
+        static uint32 const itypes[6][3] =
+        {
+            { 5512, 19004, 19005},              // Minor Healthstone
+            { 5511, 19006, 19007},              // Lesser Healthstone
+            { 5509, 19008, 19009},              // Healthstone
+            { 5510, 19010, 19011},              // Greater Healthstone
+            { 9421, 19012, 19013},              // Major Healthstone
+            {22103, 22104, 22105}               // Master Healthstone
+        };
+
+        switch (spellInfo->Id)
+        {
+            case  6201:
+                itemtype = itypes[0][rank]; break; // Minor Healthstone
+            case  6202:
+                itemtype = itypes[1][rank]; break; // Lesser Healthstone
+            case  5699:
+                itemtype = itypes[2][rank]; break; // Healthstone
+            case 11729:
+                itemtype = itypes[3][rank]; break; // Greater Healthstone
+            case 11730:
+                itemtype = itypes[4][rank]; break; // Major Healthstone
+            case 27230:
+                itemtype = itypes[5][rank]; break; // Master Healthstone
+        }
+        return itemtype;
+    }
+};
+
+// 35696 - Demonic Knowledge
 struct DemonicKnowledge : public AuraScript
 {
     int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
@@ -169,6 +248,7 @@ struct DemonicKnowledge : public AuraScript
     }
 };
 
+// 25228 - Soul Link
 struct SoulLink : public AuraScript
 {
     void OnAuraInit(Aura* aura) const override
@@ -178,6 +258,7 @@ struct SoulLink : public AuraScript
     }
 };
 
+// 18265 - Siphon Life
 struct SiphonLife : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -187,6 +268,7 @@ struct SiphonLife : public AuraScript
     }
 };
 
+// 172 - Corruption
 struct Corruption : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -196,15 +278,17 @@ struct Corruption : public AuraScript
     }
 };
 
+// 126 - Eye of Kilrogg (Summon)
 struct EyeOfKilrogg : public SpellScript
 {
-    void OnSummon(Spell* spell, Creature* summon) const override
+    void OnSummon(Spell* /*spell*/, Creature* summon) const override
     {
         summon->CastSpell(nullptr, 2585, TRIGGERED_OLD_TRIGGERED);
         summon->DisableThreatPropagationToOwner();
     }
 };
 
+// 603 - Curse of Doom
 struct CurseOfDoom : public SpellScript, public AuraScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
@@ -224,17 +308,19 @@ struct CurseOfDoom : public SpellScript, public AuraScript
     }
 };
 
+// 18662 - Curse of Doom Effect
 struct CurseOfDoomEffect : public SpellScript
 {
-    void OnSummon(Spell* spell, Creature* summon) const override
+    void OnSummon(Spell* /*spell*/, Creature* summon) const override
     {
         summon->CastSpell(nullptr, 42010, TRIGGERED_OLD_TRIGGERED);
     }
 };
 
+// 19505 - Devour Magic
 struct DevourMagic : public SpellScript
 {
-    SpellCastResult OnCheckCast(Spell* spell, bool strict) const override
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
     {
         Unit* target = spell->m_targets.getUnitTarget();
         Unit* caster = spell->GetCaster();
@@ -244,7 +330,7 @@ struct DevourMagic : public SpellScript
             for (auto itr : auras)
             {
                 SpellEntry const* spell = itr.second->GetSpellProto();
-                if (itr.second->GetTarget()->GetObjectGuid() != caster->GetObjectGuid() && spell->Dispel == DISPEL_MAGIC && IsPositiveSpell(spell) && !IsPassiveSpell(spell))
+                if (itr.second->GetTarget()->GetObjectGuid() != caster->GetObjectGuid() && spell->Dispel == DISPEL_MAGIC && (caster->CanAssist(target) ? !IsPositiveSpell(spell) : IsPositiveSpell(spell)) && !IsPassiveSpell(spell))
                     return SPELL_CAST_OK;
             }
         }
@@ -257,6 +343,7 @@ enum
     SPELL_SEED_DAMAGE = 27285,
 };
 
+// 27243 - Seed of Corruption
 struct SeedOfCorruption : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -270,7 +357,7 @@ struct SeedOfCorruption : public AuraScript
         }
         if (aura->GetRemoveMode() == AURA_REMOVE_BY_DEATH)
             if (Unit* caster = aura->GetCaster())
-                caster->CastSpell(aura->GetTarget(), SPELL_SEED_DAMAGE, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+                caster->CastSpell(aura->GetTarget(), SPELL_SEED_DAMAGE, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_IGNORE_CASTER_AURA_STATE | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
     }
 
     SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
@@ -289,7 +376,7 @@ struct SeedOfCorruption : public AuraScript
 
             // Cast finish spell (triggeredByAura already not exist!)
             if (Unit* caster = procData.triggeredByAura->GetCaster())
-                caster->CastSpell(procData.victim, SPELL_SEED_DAMAGE, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
+                caster->CastSpell(procData.victim, SPELL_SEED_DAMAGE, TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CURRENT_CASTED_SPELL | TRIGGERED_IGNORE_CASTER_AURA_STATE | TRIGGERED_HIDE_CAST_IN_COMBAT_LOG);
             return SPELL_AURA_PROC_OK;              // no hidden cooldown
         }
 
@@ -299,12 +386,13 @@ struct SeedOfCorruption : public AuraScript
     }
 };
 
+// 27285 - Seed of Corruption
 struct SeedOfCorruptionDamage : public SpellScript
 {
     bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         if (target->GetObjectGuid() == spell->m_targets.getUnitTargetGuid()) // in TBC skip target of initial aura
-            return false;
+            return true; // in WotLK Seed of Corruption also damages the initial target
         return true;
     }
 };
@@ -321,11 +409,87 @@ struct SoulLeech : public AuraScript
     }
 };
 
+struct CurseDiminishingDuration : public AuraScript
+{
+    int32 OnDurationCalculate(WorldObject const* caster, Unit const* target, int32 duration) const override
+    {
+        if (caster->IsControlledByPlayer() && target && target->IsPlayerControlled())
+            return 12000;
+        return duration;
+    }
+};
+
+// 17804 - Soul Siphon
+struct SoulSiphon : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (aura->GetEffIndex() == EFFECT_INDEX_1)
+            aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_DAMAGE_DONE, apply);
+    }
+
+    void OnDamageCalculate(Aura* aura, Unit* attacker, Unit* victim, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        // effect 1 m_amount
+        int32 maxPercent = aura->GetModifier()->m_amount;
+        // effect 0 m_amount
+        int32 stepPercent = attacker->CalculateSpellEffectValue(attacker, aura->GetSpellProto(), EFFECT_INDEX_0);
+        // count affliction effects and calc additional damage in percentage
+        int32 modPercent = 0;
+        Unit::SpellAuraHolderMap const& victimAuras = victim->GetSpellAuraHolderMap();
+        for (const auto& victimAura : victimAuras)
+        {
+            SpellEntry const* m_spell = victimAura.second->GetSpellProto();
+            if (m_spell->SpellFamilyName != SPELLFAMILY_WARLOCK || !(m_spell->SpellFamilyFlags & uint64(0x0000871B804CC41A)))
+                continue;
+            modPercent += stepPercent * victimAura.second->GetStackAmount();
+            if (modPercent >= maxPercent)
+            {
+                modPercent = maxPercent;
+                break;
+            }
+        }
+        totalMod *= (modPercent + 100.0f) / 100.0f;
+    }
+};
+
+// 37384 - Improved Corruption and Immolate
+struct ImprovedCorruptionAndImmolate : public AuraScript
+{
+    SpellAuraProcResult OnProc(Aura* /*aura*/, ProcExecutionData& procData) const override
+    {
+        if (procData.spell)
+        {
+            procData.triggerTarget = procData.victim;
+            if (procData.spellInfo->SchoolMask & SPELL_SCHOOL_MASK_SHADOW)
+                procData.triggeredSpellId = 37401; // corruption
+            else
+                procData.triggeredSpellId = 37402; // immolate
+        }
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
+// 37401, 37402 - Improved Corruption and Immolate
+struct IncreasedSpellDamageTakenWarlock : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_DAMAGE_TAKEN, apply);
+    }
+
+    void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        totalMod *= (100.0f + aura->GetModifier()->m_amount) / 100.0f;
+    }
+};
+
 void LoadWarlockScripts()
 {
     RegisterSpellScript<UnstableAffliction>("spell_unstable_affliction");
     RegisterSpellScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<LifeTap>("spell_life_tap");
+    RegisterSpellScript<CreateHealthStoneWarlock>("spell_create_health_stone_warlock");
     RegisterSpellScript<DemonicKnowledge>("spell_demonic_knowledge");
     RegisterSpellScript<SoulLink>("spell_soul_link");
     RegisterSpellScript<SeedOfCorruption>("spell_seed_of_corruption");
@@ -338,4 +502,8 @@ void LoadWarlockScripts()
     RegisterSpellScript<SeedOfCorruptionDamage>("spell_seed_of_corruption_damage");
     RegisterSpellScript<CurseOfDoom>("spell_curse_of_doom");
     RegisterSpellScript<CurseOfDoomEffect>("spell_curse_of_doom_effect");
+    RegisterSpellScript<CurseDiminishingDuration>("spell_curse_diminishing_duration");
+    RegisterSpellScript<SoulSiphon>("spell_soul_siphon");
+    RegisterSpellScript<ImprovedCorruptionAndImmolate>("spell_improved_corruption_and_immolate");
+    RegisterSpellScript<IncreasedSpellDamageTakenWarlock>("spell_increased_spell_damage_taken_dummy");
 }

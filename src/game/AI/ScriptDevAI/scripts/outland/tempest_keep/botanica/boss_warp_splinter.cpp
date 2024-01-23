@@ -22,6 +22,7 @@ SDCategory: Tempest Keep, The Botanica
 EndScriptData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/base/CombatAI.h"
 
 /*#####
 # boss_warp_splinter
@@ -29,12 +30,12 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO                   = -1553007,
-    SAY_SLAY_1                  = -1553008,
-    SAY_SLAY_2                  = -1553009,
-    SAY_SUMMON_1                = -1553010,
-    SAY_SUMMON_2                = -1553011,
-    SAY_DEATH                   = -1553012,
+    SAY_AGGRO                   = 20024,
+    SAY_SLAY_1                  = 20025,
+    SAY_SLAY_2                  = 20026,
+    SAY_SUMMON_1                = 18376,
+    SAY_SUMMON_2                = 20022,
+    SAY_DEATH                   = 20028,
 
     SPELL_WAR_STOMP             = 34716,
     SPELL_SUMMON_SAPLINGS       = 34741,            // this will leech the health from all saplings
@@ -53,44 +54,37 @@ enum
 // static const uint32 saplingsSummonSpells[10] = {34727, 34730, 34731, 34732, 34733, 34734, 34735, 34736, 34737, 34739};
 static const uint32 saplingsSummonSpells[6] = { 34727, 34731, 34733, 34734, 34736, 34739 }; // actually ones used on retail
 
-struct boss_warp_splinterAI : public ScriptedAI
+enum WarpSplinterActions
 {
-    boss_warp_splinterAI(Creature* pCreature) : ScriptedAI(pCreature)
+    WARP_SPLINTER_ACTION_MAX,
+};
+
+struct boss_warp_splinterAI : public CombatAI
+{
+    boss_warp_splinterAI(Creature* creature) : CombatAI(creature, WARP_SPLINTER_ACTION_MAX), m_isRegularMode(creature->GetMap()->IsRegularDifficulty())
     {
-        m_bIsRegularMode = pCreature->GetMap()->IsRegularDifficulty();
-        Reset();
+        AddOnKillText(SAY_SLAY_1, SAY_SLAY_2);
     }
 
-    bool m_bIsRegularMode;
-
-    uint32 m_uiWarStompTimer;
-    uint32 m_uiSummonTreantsTimer;
-    uint32 m_uiArcaneVolleyTimer;
+    bool m_isRegularMode;
 
     GuidVector m_saplings;
 
     void Reset() override
     {
-        m_uiWarStompTimer       = urand(6000, 7000);
-        m_uiSummonTreantsTimer  = urand(25000, 35000);
-        m_uiArcaneVolleyTimer   = urand(12000, 14500);
+        CombatAI::Reset();
         m_saplings.clear();
         m_creature->RemoveGuardians();
     }
 
-    void Aggro(Unit* /*pWho*/) override
+    void Aggro(Unit* /*who*/) override
     {
-        DoScriptText(SAY_AGGRO, m_creature);
+        DoBroadcastText(SAY_AGGRO, m_creature);
     }
 
-    void KilledUnit(Unit* /*pVictim*/) override
+    void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature);
-    }
-
-    void JustDied(Unit* /*pKiller*/) override
-    {
-        DoScriptText(SAY_DEATH, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
     }
 
     void JustSummoned(Creature* summoned) override
@@ -99,6 +93,7 @@ struct boss_warp_splinterAI : public ScriptedAI
         {
             m_saplings.push_back(summoned->GetObjectGuid());
             summoned->SetInCombatWithZone();
+            summoned->AI()->AttackClosestEnemy();
         }
     }
 
@@ -111,46 +106,18 @@ struct boss_warp_splinterAI : public ScriptedAI
     // Wrapper to summon all Saplings
     void SummonTreants()
     {
-        for (uint8 i = 0; i < 6; ++i)
-            DoCastSpellIfCan(m_creature, saplingsSummonSpells[i], CAST_TRIGGERED);
+        for (uint32 spellId : saplingsSummonSpells)
+            DoCastSpellIfCan(nullptr, spellId, CAST_TRIGGERED);
 
-        DoCastSpellIfCan(m_creature, SPELL_SUMMON_SAPLINGS, CAST_TRIGGERED);
-        DoScriptText(urand(0, 1) ? SAY_SUMMON_1 : SAY_SUMMON_2, m_creature);
+        DoBroadcastText(urand(0, 1) ? SAY_SUMMON_1 : SAY_SUMMON_2, m_creature);
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
     {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        // War Stomp
-        if (m_uiWarStompTimer < uiDiff)
+        switch (spellInfo->Id)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_WAR_STOMP) == CAST_OK)
-                m_uiWarStompTimer = urand(17000, 38000);
+            case SPELL_SUMMON_SAPLINGS: SummonTreants(); break;
         }
-        else
-            m_uiWarStompTimer -= uiDiff;
-
-        // Arcane Volley
-        if (m_uiArcaneVolleyTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, m_bIsRegularMode ? SPELL_ARCANE_VOLLEY : SPELL_ARCANE_VOLLEY_H) == CAST_OK)
-                m_uiArcaneVolleyTimer = urand(16000, 38000);
-        }
-        else
-            m_uiArcaneVolleyTimer -= uiDiff;
-
-        // Summon Treants
-        if (m_uiSummonTreantsTimer < uiDiff)
-        {
-            SummonTreants();
-            m_uiSummonTreantsTimer = urand(37000, 55000);
-        }
-        else
-            m_uiSummonTreantsTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 
@@ -159,13 +126,13 @@ struct boss_warp_splinterAI : public ScriptedAI
 #####*/
 struct npc_saplingAI  : public ScriptedAI
 {
-    npc_saplingAI(Creature* pCreature) : ScriptedAI(pCreature) { Reset(); }
+    npc_saplingAI(Creature* creature) : ScriptedAI(creature) { Reset(); }
 
     void Reset() override {}
 
-    void SpellHit(Unit* /*caster*/, const SpellEntry* spell) override
+    void SpellHit(Unit* /*caster*/, const SpellEntry* spellInfo) override
     {
-        if (spell->Id == SPELL_ANCESTRAL_LIFE)
+        if (spellInfo->Id == SPELL_ANCESTRAL_LIFE)
         {
             SetCombatScriptStatus(true);
             SetCombatMovement(false);
@@ -175,36 +142,17 @@ struct npc_saplingAI  : public ScriptedAI
             DoCastSpellIfCan(nullptr, SPELL_MOONFIRE_VISUAL);
         }
     }
-
-    void MoveInLineOfSight(Unit* /*pWho*/) override { }
-    void UpdateAI(const uint32 /*uiDiff*/) override
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        DoMeleeAttackIfReady();
-    }
 };
-
-UnitAI* GetAI_boss_warp_splinter(Creature* pCreature)
-{
-    return new boss_warp_splinterAI(pCreature);
-}
-
-UnitAI* GetAI_npc_sapling(Creature* pCreature)
-{
-    return new npc_saplingAI(pCreature);
-}
 
 void AddSC_boss_warp_splinter()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_warp_splinter";
-    pNewScript->GetAI = &GetAI_boss_warp_splinter;
+    pNewScript->GetAI = &GetNewAIInstance<boss_warp_splinterAI>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "mob_warp_splinter_treant";
-    pNewScript->GetAI = &GetAI_npc_sapling;
+    pNewScript->GetAI = &GetNewAIInstance<npc_saplingAI>;
     pNewScript->RegisterSelf();
 }

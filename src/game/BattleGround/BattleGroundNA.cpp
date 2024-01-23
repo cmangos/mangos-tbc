@@ -20,7 +20,7 @@
 #include "Entities/Player.h"
 #include "BattleGround.h"
 #include "BattleGroundNA.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Tools/Language.h"
 #include "World/WorldStateDefines.h"
 #include "World/WorldStateVariableManager.h"
@@ -41,6 +41,9 @@ BattleGroundNA::BattleGroundNA()
 
 void BattleGroundNA::Reset()
 {
+    // call parent's class reset
+    BattleGround::Reset();
+
     GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_NA_HUD_ENABLED, 1);
     GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_NA_HUD_ENABLED, true, 0, 0);
     GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_NA_ALLIANCE_ALIVE, true, 0, 0);

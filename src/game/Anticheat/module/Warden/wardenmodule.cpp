@@ -8,10 +8,9 @@
 #include "WardenModule.hpp"
 
 #include "Platform/Define.h"
-#include "SARC4.hpp"
+#include "Auth/CryptoHash.h"
 
 #include <zlib.h>
-#include <openssl/md5.h>
 
 #include <string>
 #include <vector>
@@ -37,15 +36,11 @@ WardenModule::WardenModule(std::string const &bin, std::string const &kf, std::s
     b.close();
 
     // compute md5 hash of encrypted/compressed data
-    {
-        // md5 hash
-        MD5_CTX ctx;
-        MD5_Init(&ctx);
-        MD5_Update(&ctx, &binary[0], binary.size());
-
-        hash.resize(MD5_DIGEST_LENGTH);
-        MD5_Final(&hash[0], &ctx);
-    }
+    MD5Hash md5;
+    md5.UpdateData(&binary[0], binary.size());
+    md5.Finalize();
+    hash.resize(md5.GetLength());
+    std::memcpy(hash.data(), md5.GetDigest(), md5.GetLength());
 
     std::ifstream k(kf, std::ios::binary | std::ios::ate);
 
@@ -86,6 +81,23 @@ WardenModule::WardenModule(std::string const &bin, std::string const &kf, std::s
 
     if (Windows())
     {
+        for (uint8 i = 0; i <= UINT8_MAX; i++)
+        {
+            if (opcodes[0] != i &&
+                opcodes[1] != i &&
+                opcodes[2] != i &&
+                opcodes[3] != i &&
+                opcodes[4] != i &&
+                opcodes[5] != i &&
+                opcodes[6] != i &&
+                opcodes[7] != i &&
+                opcodes[8] != i)
+            {
+                scanTerminator = i;
+                break;
+            }
+        }
+
         if (!memoryRead)
             throw std::runtime_error("Module data does not include memory read information");
 

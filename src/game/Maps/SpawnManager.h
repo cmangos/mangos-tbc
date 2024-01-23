@@ -51,15 +51,23 @@ bool operator<(SpawnInfo const& lhs, SpawnInfo const& rhs);
 class SpawnManager
 {
     public:
-        SpawnManager(Map& map) : m_map(map) {}
+        SpawnManager(Map& map) : m_map(map), m_updated(false) {}
         ~SpawnManager();
         void Initialize();
 
-        void AddCreature(uint32 respawnDelay, uint32 dbguid);
-        void AddGameObject(uint32 respawnDelay, uint32 dbguid);
+        void AddCreature(uint32 dbguid);
+        void AddGameObject(uint32 dbguid);
 
         void RespawnCreature(uint32 dbguid, uint32 respawnDelay = 0); // seconds
         void RespawnGameObject(uint32 dbguid, uint32 respawnDelay = 0); // seconds
+
+        void RemoveSpawns(std::vector<uint32> const& creatureDbGuids, std::vector<uint32> const& goDbGuids);
+        void RemoveSpawn(uint32 dbguid, HighGuid high);
+
+        // boilerplate methods for dynguid transition period
+        void AddEventGuid(uint32 dbguid, HighGuid high);
+        void RemoveEventGuid(uint32 dbguid, HighGuid high);
+        bool IsEventGuid(uint32 dbguid, HighGuid high) const;
 
         void RespawnAll();
 
@@ -73,8 +81,13 @@ class SpawnManager
     private:
         Map& m_map;
 
+        std::vector<SpawnInfo> m_deferredSpawns;
         std::vector<SpawnInfo> m_spawns; // must only be erased from in Update
         std::map<uint32, SpawnGroup*> m_spawnGroups;
+        bool m_updated;
+
+        std::set<uint32> m_eventCreatureDbGuids;
+        std::set<uint32> m_eventGoDbGuids;
 };
 
 #endif

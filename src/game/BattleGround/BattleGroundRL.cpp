@@ -21,7 +21,7 @@
 #include "BattleGround.h"
 #include "BattleGroundRL.h"
 #include "Tools/Language.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "World/WorldStateDefines.h"
 #include "World/WorldStateVariableManager.h"
 
@@ -41,6 +41,9 @@ BattleGroundRL::BattleGroundRL()
 
 void BattleGroundRL::Reset()
 {
+    // call parent's class reset
+    BattleGround::Reset();
+
     GetBgMap()->GetVariableManager().SetVariable(WORLD_STATE_ARENA_RL_HUD_ENABLED, 1);
     GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_RL_HUD_ENABLED, true, 0, 0);
     GetBgMap()->GetVariableManager().SetVariableData(WORLD_STATE_ARENA_RL_ALLIANCE_ALIVE, true, 0, 0);

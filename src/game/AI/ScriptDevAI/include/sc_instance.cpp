@@ -3,6 +3,7 @@
  * Please see the included DOCS/LICENSE.TXT for more information */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "Maps/MapPersistentStateMgr.h"
 
 /**
    Function that uses a door or a button
@@ -205,6 +206,7 @@ void ScriptedInstance::DespawnGuids(GuidVector& spawns)
 
 void ScriptedInstance::RespawnDbGuids(std::vector<uint32>& spawns, uint32 respawnDelay)
 {
+    time_t respawnTime = time(nullptr) + respawnDelay;
     for (uint32 spawn : spawns)
     {
         if (respawnDelay)
@@ -219,6 +221,7 @@ void ScriptedInstance::RespawnDbGuids(std::vector<uint32>& spawns, uint32 respaw
             }
         }
         instance->GetSpawnManager().RespawnCreature(spawn, respawnDelay);
+        instance->GetPersistentState()->SaveCreatureRespawnTime(spawn, respawnTime);
     }
 }
 
@@ -385,6 +388,18 @@ void DialogueHelper::DoNextDialogueStep()
 
         if (pSpeaker)
             DoScriptText(iTextEntry, pSpeaker);
+    }
+    else if (uiSpeakerEntry && iTextEntry > 0)
+    {
+        // Use Speaker if directly provided
+        Creature* speaker = GetSpeakerByEntry(uiSpeakerEntry);
+        if (m_instance && !speaker)                       // Get Speaker from instance
+        {
+            speaker = m_instance->GetSingleCreatureFromStorage(uiSpeakerEntry);
+        }
+
+        if (speaker)
+            DoBroadcastText(iTextEntry, speaker);
     }
 
     JustDidDialogueStep(m_dialogueArray ?  m_currentEntry->textEntry : m_currentEntryTwoSide->textEntry);

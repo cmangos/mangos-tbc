@@ -23,7 +23,7 @@
 #include "Entities/GameObject.h"
 #include "Globals/ObjectMgr.h"
 #include "BattleGroundMgr.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 
 BattleGroundWS::BattleGroundWS() : m_reputationCapture(0), m_honorWinKills(0), m_honorEndKills(0)
 {
@@ -79,8 +79,7 @@ void BattleGroundWS::Update(uint32 diff)
             {
                 for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
                 {
-                    Team playerTeam = GetTeamIdByTeamIndex((PvpTeamIndex)i);
-                    if (IsFlagPickedUp(playerTeam))
+                    if (IsFlagPickedUp((PvpTeamIndex)i))
                         if (Player* player = GetBgMap()->GetPlayer(GetFlagCarrierGuid((PvpTeamIndex)i)))
                             player->CastSpell(player, BG_WS_SPELL_FOCUSED_ASSAULT, TRIGGERED_OLD_TRIGGERED);
                 }
@@ -90,8 +89,7 @@ void BattleGroundWS::Update(uint32 diff)
             {
                 for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
                 {
-                    Team playerTeam = GetTeamIdByTeamIndex((PvpTeamIndex)i);
-                    if (IsFlagPickedUp(playerTeam))
+                    if (IsFlagPickedUp((PvpTeamIndex)i))
                     {
                         if (Player* player = GetBgMap()->GetPlayer(GetFlagCarrierGuid((PvpTeamIndex)i)))
                         {
@@ -221,7 +219,7 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
     ClearFlagCarrier(otherTeamIdx); // must be before aura remove to prevent 2 events (drop+capture) at the same time
 
     // Horde flag in base (but not respawned yet)
-    GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[teamIdx], BG_WS_FLAG_STATE_ON_BASE);
+    GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[otherTeamIdx], BG_WS_FLAG_STATE_ON_BASE);
     m_flagOnRespawn[otherTeamIdx] = true;
 
     // Drop Horde Flag from Player
@@ -241,6 +239,7 @@ void BattleGroundWS::ProcessPlayerFlagScoreEvent(Player* player)
     GetBgMap()->GetVariableManager().SetVariable(pointsWorldState, GetBgMap()->GetVariableManager().GetVariable(pointsWorldState) + 1);
 
     GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[teamIdx], BG_WS_FLAG_STATE_ON_BASE);
+    GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[teamIdx], BG_WS_FLAG_ICON_INVISIBLE);
 
     // despawn flags
     SpawnEvent(WS_EVENT_FLAG_A, 0, false);
@@ -298,7 +297,7 @@ void BattleGroundWS::HandlePlayerDroppedFlag(Player* player)
         player->CastSpell(player, wsgFlagData[otherTeamIdx][BG_WS_FLAG_ACTION_DROPPED].spellId, TRIGGERED_OLD_TRIGGERED);
 
         player->CastSpell(player, SPELL_RECENTLY_DROPPED_FLAG, TRIGGERED_OLD_TRIGGERED);
-        GetBgMap()->GetVariableManager().SetVariable(team == ALLIANCE ? BG_WS_STATE_FLAG_ALLIANCE : BG_WS_STATE_FLAG_HORDE, BG_WS_FLAG_ICON_INVISIBLE);
+        GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[otherTeamIdx], BG_WS_FLAG_ICON_INVISIBLE);
 
         SendMessageToAll(wsgFlagData[otherTeamIdx][BG_WS_FLAG_ACTION_DROPPED].messageId, wsgFlagData[otherTeamIdx][BG_WS_FLAG_ACTION_DROPPED].chatType, player);
 
@@ -327,6 +326,7 @@ void BattleGroundWS::ProcessFlagPickUpFromBase(Player* player, Team attackerTeam
     SpawnEvent(otherTeamIdx, 0, false);
     SetFlagCarrier(otherTeamIdx, player->GetObjectGuid());
     GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[otherTeamIdx], BG_WS_FLAG_STATE_ON_PLAYER);
+    GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[otherTeamIdx], BG_WS_FLAG_ICON_VISIBLE);
     m_flagPickupFromBaseTime[otherTeamIdx] = GetBgMap()->GetCurrentClockTime();
 
     // not meant to be a triggered cast - clears a lot during cast like stealth
@@ -360,8 +360,8 @@ void BattleGroundWS::ProcessDroppedFlagActions(Player* player, GameObject* targe
 
         actionId = BG_WS_FLAG_ACTION_RETURNED;
 
-        GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[otherTeamIdx], BG_WS_FLAG_STATE_ON_BASE);
-        m_flagOnRespawn[otherTeamIdx] = true;
+        GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[teamIdx], BG_WS_FLAG_STATE_ON_BASE);
+        GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[teamIdx], BG_WS_FLAG_ICON_INVISIBLE);
 
         RespawnFlagAtBase(team, false);
         UpdatePlayerScore(player, SCORE_FLAG_RETURNS, 1);
@@ -389,6 +389,7 @@ void BattleGroundWS::ProcessDroppedFlagActions(Player* player, GameObject* targe
             player->CastSpell(player, BG_WS_SPELL_FOCUSED_ASSAULT, TRIGGERED_OLD_TRIGGERED);
 
         GetBgMap()->GetVariableManager().SetVariable(wsFlagPickedUp[otherTeamIdx], BG_WS_FLAG_STATE_ON_PLAYER);
+        GetBgMap()->GetVariableManager().SetVariable(wsFlagHUDPickedUp[otherTeamIdx], BG_WS_FLAG_ICON_VISIBLE);
 
         // send messages and sounds
         SendMessageToAll(wsgFlagData[otherTeamIdx][actionId].messageId, wsgFlagData[teamIdx][actionId].chatType, player);
@@ -495,19 +496,45 @@ void BattleGroundWS::HandleGameObjectCreate(GameObject* go)
 // process click on dropped flag events
 bool BattleGroundWS::HandleEvent(uint32 eventId, Object* source, Object* target)
 {
-    if (!target || !target->IsGameObject())
-        return true;
-
-    GameObject* go = static_cast<GameObject*>(target);
-    if (!source->IsPlayer())
-        return true;
-
-    Player* srcPlayer = static_cast<Player*>(source);
-
     switch (eventId)
     {
+        case WS_EVENT_ALLIANCE_FLAG_DROPPED_PICKUP:
+        case WS_EVENT_HORDE_FLAG_DROPPED_PICKUP:
+        {
+            if (!source || !source->IsGameObject())
+                return true;
+
+            GameObject* go = static_cast<GameObject*>(source);
+            if (!target->IsPlayer())
+                return true;
+
+            Player* srcPlayer = static_cast<Player*>(target);
+
+            // only handles return, not pickup of dropped
+            Team team = srcPlayer->GetTeam();
+            PvpTeamIndex teamIdx = GetTeamIndexByTeamId(team);
+            PvpTeamIndex otherTeamIdx = GetOtherTeamIndex(teamIdx);
+            if (wsDroppedFlagId[teamIdx] != go->GetEntry())
+                return true;
+
+            ProcessDroppedFlagActions(srcPlayer, go);
+
+            // when clicked the flag despawns
+            go->SetLootState(GO_JUST_DEACTIVATED);
+            break;
+        }
         case WS_EVENT_ALLIANCE_FLAG_PICKUP:
         case WS_EVENT_HORDE_FLAG_PICKUP:
+        {
+            if (!target || !target->IsGameObject())
+                return true;
+
+            GameObject* go = static_cast<GameObject*>(target);
+            if (!source->IsPlayer())
+                return true;
+
+            Player* srcPlayer = static_cast<Player*>(source);
+
             if (go->GetGoType() == GAMEOBJECT_TYPE_FLAGDROP)
                 ProcessDroppedFlagActions(srcPlayer, go);
             else
@@ -516,6 +543,7 @@ bool BattleGroundWS::HandleEvent(uint32 eventId, Object* source, Object* target)
             // when clicked the flag despawns
             go->SetLootState(GO_JUST_DEACTIVATED);
             break;
+        }
     }
 
     return false;

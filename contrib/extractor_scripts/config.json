@@ -8,11 +8,16 @@
 		}
 	},
 	"530": {
-		"2029": {
-			"detailSampleDist": 1,
-			"detailSampleMaxError": 0.45
-		}
-	},
+        "2029": {
+            "detailSampleDist": 1,
+            "detailSampleMaxError": 0.45
+        },
+        "4320": {
+            "_Info": ".go c id 16209",
+            "walkableClimb": 6.0,
+            "walkableHeight": 5.0
+        }
+    },
 	"532": {
 		"3552": {
 			"maxSimplificationError": 1.0,
@@ -21,6 +26,10 @@
 			"walkableHeight": 5.0,
 			"walkableClimb": 4.0
 		}
+	},
+        "540": {
+	"_Info": "The Shattered Halls - .go c id 16809",
+	"walkableSlopeAngle": 70
 	},
         "542": {
                 "walkableSlopeAngle":50,
@@ -45,6 +54,9 @@
 			"walkableHeight": 10.0
 	},
         "554": {
+                "_Info": "The Mechanar - .go c 5540016",
+                "walkableHeight": 5.0,
+                "walkableClimb": 4.5,
                 "walkableSlopeAngle":60,
                 "minRegionArea": 30,
                 "walkableRadius": 1

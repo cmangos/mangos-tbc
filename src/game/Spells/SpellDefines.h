@@ -182,7 +182,7 @@ enum SpellAttributesEx4
     SPELL_ATTR_EX4_IGNORE_DAMAGE_TAKEN_MODIFIERS = 0x00000100,// 8
     SPELL_ATTR_EX4_COMBAT_FEEDBACK_WHEN_USABLE = 0x00000200,// 9 initially disabled / trigger activate from event (Execute, Riposte, Deep Freeze end other)
     SPELL_ATTR_EX4_WEAPON_SPEED_COST_SCALING   = 0x00000400,// 10
-    SPELL_ATTR_EX4_NO_PARTIAL_IMMUNITY         = 0x00000800,// 11
+    SPELL_ATTR_EX4_NO_PARTIAL_IMMUNITY         = 0x00000800,// 11 Curse of Tongues - 1.12.0
     SPELL_ATTR_EX4_AURA_IS_BUFF                = 0x00001000,// 12
     SPELL_ATTR_EX4_DO_NOT_LOG_CASTER           = 0x00002000,// 13
     SPELL_ATTR_EX4_REACTIVE_DAMAGE_PROC        = 0x00004000,// 14
@@ -268,6 +268,7 @@ enum SpellAttributesServerside
     SPELL_ATTR_SS_PREVENT_INVIS                = 0x00000001,
     SPELL_ATTR_SS_AOE_CAP                      = 0x00000002,
     SPELL_ATTR_SS_IGNORE_EVADE                 = 0x00000004,
+    SPELL_ATTR_SS_FACING_BACK                  = 0x00000008,
 };
 
 enum SpellCastResult : uint32
@@ -547,6 +548,7 @@ enum TriggerCastFlags : uint32
     TRIGGERED_HIDE_CAST_IN_COMBAT_LOG           = 0x00002000,   // Sends cast flag for ignoring combat log display - used for many procs - default behaviour for triggered by aura
     TRIGGERED_DO_NOT_RESET_LEASH                = 0x00004000,   // Does not reset leash on cast
     TRIGGERED_CHANNEL_ONLY                      = 0x00008000,   // Only starts channel and no effects - used for summoning portal GO anims
+    TRIGGERED_IGNORE_CASTER_AURA_STATE          = 0x00010000,   // Ignores the Aurastate of the caster
     TRIGGERED_FULL_MASK                         = 0xFFFFFFFF
 };
 

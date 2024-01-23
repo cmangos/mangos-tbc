@@ -48,6 +48,10 @@ class Unit;
 #define VERTEX_SIZE             3
 #define INVALID_POLYREF         0
 
+// bound box of poly search area
+static float NearPolySearchBound[VERTEX_SIZE] = { 5.0f, 5.0f, 5.0f };
+static float FarPolySearchBound[VERTEX_SIZE] = { 10.0f, 10.0f, 10.0f };
+
 enum PathType
 {
     PATHFIND_BLANK          = 0x0000,   // path not built yet
@@ -69,6 +73,9 @@ class PathFinder
         // return: true if new path was calculated, false otherwise (no change needed)
         bool calculate(float destX, float destY, float destZ, bool forceDest = false, bool straightLine = false); // transfers coorddinates from global to local space if on transport - use other func if coords are already in transport space
         bool calculate(Vector3 const& start, Vector3 const& dest, bool forceDest = false, bool straightLine = false);
+
+        // compute a straight path to some random point in max range
+        void ComputePathToRandomPoint(Vector3 const& startPoint, float maxRange);
 
         // option setters - use optional
         void setUseStrightPath(bool useStraightPath) { m_useStraightPath = useStraightPath; };
@@ -128,8 +135,8 @@ class PathFinder
         float dist3DSqr(const Vector3& p1, const Vector3& p2) const;
         bool inRangeYZX(const float* v1, const float* v2, float r, float h) const;
 
-        dtPolyRef getPathPolyByPosition(const dtPolyRef* polyPath, uint32 polyPathSize, const float* point, float* distance = nullptr) const;
-        dtPolyRef getPolyByLocation(const float* point, float* distance) const;
+        dtPolyRef getPathPolyByPosition(const dtPolyRef* polyPath, uint32 polyPathSize, const float* point, float* distance = nullptr, const float maxDist = 3.0f) const;
+        dtPolyRef getPolyByLocation(const float* point, float* distance);
         bool HaveTile(const Vector3& p) const;
 
         void BuildPolyPath(const Vector3& startPos, const Vector3& endPos);

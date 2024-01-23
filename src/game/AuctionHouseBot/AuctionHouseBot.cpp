@@ -20,7 +20,7 @@
 #include "Globals/ObjectMgr.h"
 #include "Log.h"
 #include "Policies/Singleton.h"
-#include "ProgressBar.h"
+#include "Util/ProgressBar.h"
 #include "SystemConfig.h"
 #include "World/World.h"
 
@@ -80,7 +80,7 @@ void AuctionHouseBot::Initialize()
 
         // gameobject loot
         ParseLootConfig("AuctionHouseBot.Loot.Gameobject", m_gameobjectLootConfig);
-        FillUintVectorFromQuery("SELECT DISTINCT entry FROM gameobject_loot_template WHERE entry IN (SELECT data1 FROM gameobject_template WHERE entry IN (SELECT id FROM gameobject WHERE state = 1 AND spawntimesecsmax > 0))", m_gameobjectLootTemplates);
+        FillUintVectorFromQuery("SELECT DISTINCT entry FROM gameobject_loot_template WHERE entry IN (SELECT data1 FROM gameobject_template WHERE entry IN (SELECT id FROM gameobject WHERE spawntimesecsmax > 0))", m_gameobjectLootTemplates);
 
         // skinning loot
         ParseLootConfig("AuctionHouseBot.Loot.Skinning", m_skinningLootConfig);
@@ -132,12 +132,12 @@ void AuctionHouseBot::Initialize()
         m_buyValue = GetMinMaxConfig("AuctionHouseBot.Buy.Value", 0, 200, 90);
 
         // overridden items
-        QueryResult* result = CharacterDatabase.PQuery("SELECT item, value, add_chance, min_amount, max_amount FROM ahbot_items");
-        if (result)
+        auto queryResult = CharacterDatabase.PQuery("SELECT item, value, add_chance, min_amount, max_amount FROM ahbot_items");
+        if (queryResult)
         {
             do
             {
-                Field* fields = result->Fetch();
+                Field* fields = queryResult->Fetch();
                 uint32 itemId = fields[0].GetUInt32();
                 AuctionHouseBotItemData itemData;
                 itemData.Value = fields[1].GetUInt32();
@@ -146,8 +146,7 @@ void AuctionHouseBot::Initialize()
                 itemData.MaxAmount = fields[4].GetUInt32();
                 m_itemData[itemId] = itemData;
             }
-            while (result->NextRow());
-            delete result;
+            while (queryResult->NextRow());
         }
     }
 }
@@ -433,19 +432,18 @@ void AuctionHouseBot::ParseLootConfig(char const* fieldname, std::vector<int32>&
 void AuctionHouseBot::FillUintVectorFromQuery(char const* query, std::vector<uint32>& lootTemplates)
 {
     lootTemplates.clear();
-    if (QueryResult* result = WorldDatabase.PQuery("%s", query))
+    if (auto queryResult = WorldDatabase.PQuery("%s", query))
     {
-        BarGoLink bar(result->GetRowCount());
+        BarGoLink bar(queryResult->GetRowCount());
         do
         {
             bar.step();
-            Field* fields = result->Fetch();
+            Field* fields = queryResult->Fetch();
             uint32 entry = fields[0].GetUInt32();
             if (!entry)
                 continue;
             lootTemplates.push_back(fields[0].GetUInt32());
-        } while (result->NextRow());
-        delete result;
+        } while (queryResult->NextRow());
     }
 }
 
@@ -473,7 +471,7 @@ void AuctionHouseBot::AddLootToItemMap(LootStore* store, std::vector<int32>& loo
         LootTemplate const* lootTable = store->GetLootFor(lootTemplates[lootTemplate]);
         if (!lootTable)
             continue;
-        std::unique_ptr<Loot> loot = std::unique_ptr<Loot>(new Loot(LOOT_DEBUG));
+        std::unique_ptr<Loot> loot = std::make_unique<Loot>(LOOT_DEBUG);
         for (uint32 repeat = urand(lootConfig[2], lootConfig[3]); repeat > 0; --repeat)
             lootTable->Process(*loot, nullptr, *store, store->IsRatesAllowed());
 

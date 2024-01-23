@@ -1,4 +1,4 @@
-name: MacOs build
+name: macOS Build
 
 on: [push]
 
@@ -7,9 +7,8 @@ env:
   BUILD_TYPE: Release
   REPO_DIR : ${{github.workspace}}
   BUILD_DIR: ${{github.workspace}}/bin/builddir
+  BOOST_VERSION: "1.83.0"
   BOOST_PLATFORM_VERSION: "11"
-  BOOST_VERSION: "1.79.0"
-  BOOST_INSTALL_DIR: "${{github.workspace}}/bin"
 
 permissions:
   contents: read
@@ -22,43 +21,34 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           path: ${{env.REPO_DIR}}
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           brew install mysql-client
           brew install openssl
           echo "OPENSSL_ROOT_DIR=$(brew --prefix --installed openssl)" >> $GITHUB_ENV
-          mkdir -p ${{env.BOOST_INSTALL_DIR}}
 
-      - name: Cache Windows boost
-        uses: actions/cache@v2
-        id: cache-boost
-        with:
-          path: "${{env.BOOST_INSTALL_DIR}}/boost"
-          key: ${{ runner.os }}-${{ hashFiles('.github/workflows/macos.yml') }}
-
-      - if: steps.cache-boost.outputs.cache-hit != 'true'
-        name: Install boost
-        uses: MarkusJx/install-boost@v2.3.0
+      - name: Install Boost
+        uses: MarkusJx/install-boost@v2.4.4
         id: install-boost
         with:
           # REQUIRED: Specify the required boost version
           # A list of supported versions can be found here:
-          # https://github.com/actions/boost-versions/blob/main/versions-manifest.json
+          # https://github.com/MarkusJx/prebuilt-boost/blob/main/versions-manifest.json
           boost_version: ${{env.BOOST_VERSION}}
           # OPTIONAL: Specify a platform version
           platform_version: ${{env.BOOST_PLATFORM_VERSION}}
-          # OPTIONAL: Specify a custom install location
-          boost_install_dir: ${{env.BOOST_INSTALL_DIR}}
           # OPTIONAL: Specify a toolset
           toolset: clang
+          # NOTE: If a boost version matching all requirements cannot be found,
+          # this build step will fail
 
       - name: Configure
         env:
-          BOOST_ROOT: "${{env.BOOST_INSTALL_DIR}}/boost/boost"
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
         run: cmake -B ${{env.BUILD_DIR}} -S ${{env.REPO_DIR}} -DBoost_ARCHITECTURE=-x64
 
       - name: Build
@@ -69,14 +59,14 @@ jobs:
   notify:
     permissions:
       contents: none
-    name: Discord Notification
+    name: Send Notification to Discord on Failure
     runs-on: ubuntu-20.04
     needs: # make sure the notification is sent AFTER the jobs you want included have completed
       - build
     if: failure()
 
     steps:
-      - name: Env
+      - name: Setup Environmental Variables
         run: |
           echo "GIT_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
           echo "GIT_SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
@@ -85,15 +75,13 @@ jobs:
         uses: rjstone/discord-webhook-notify@v1.0.4
         with:
           severity: error
-          username: ${{env.EXPENSION_NAME}}-core
           description: |
-            **MacOS buid failed**
+            **macOS Build Failed**
           details: |
             - **Branch:** ${{env.GIT_BRANCH}}
             - **Pusher:** ${{github.event.pusher.name}}
             - **Author:** ${{github.event.head_commit.author.name}}
             - **Commit:** [${{github.repository}}/${{env.GIT_SHORT_SHA}}](${{github.server_url}}/${{ github.repository }}/commit/${{github.sha}})
-            - **Build log:** [actions/runs/${{github.run_id}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
-          footer: Next time ${{github.event.pusher.name}}!
+            - **Build Log:** [actions/runs/${{github.run_id}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+          footer: CMaNGOS Developers Notified!
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-          avatarUrl: https://github.githubassets.com/images/modules/logos_page/Octocat.png

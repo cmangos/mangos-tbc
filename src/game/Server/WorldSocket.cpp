@@ -19,20 +19,20 @@
 #include "WorldSocket.h"
 #include "Common.h"
 
-#include "Util.h"
+#include "Util/Util.h"
 #include "World/World.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Globals/SharedDefines.h"
-#include "ByteBuffer.h"
+#include "Util/ByteBuffer.h"
 #include "Addons/AddonHandler.h"
 #include "Server/Opcodes.h"
 #include "Server/PacketLog.h"
 #include "Database/DatabaseEnv.h"
-#include "Auth/Sha1.h"
+#include "Auth/CryptoHash.h"
 #include "Server/WorldSession.h"
 #include "Log.h"
 #include "Server/DBCStores.h"
-#include "CommonDefines.h"
+#include "Util/CommonDefines.h"
 #include "Anticheat/Anticheat.hpp"
 
 #include <chrono>
@@ -302,7 +302,6 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     std::string account, os;
     Sha1Hash sha1;
     BigNumber v, s, g, N, K;
-    WorldPacket packet, SendAddonPacked;
 
     // Read the content of the packet
     recvPacket >> ClientBuild;
@@ -319,7 +318,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     // Check the version of client trying to connect
     if (!IsAcceptableClientBuild(ClientBuild))
     {
-        packet.Initialize(SMSG_AUTH_RESPONSE, 1);
+        WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
         packet << uint8(AUTH_VERSION_MISMATCH);
 
         SendPacket(packet);
@@ -333,7 +332,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     LoginDatabase.escape_string(safe_account);
     // No SQL injection, username escaped.
 
-    QueryResult* result =
+    auto queryResult =
         LoginDatabase.PQuery("SELECT "
                              "a.id, "                    //0
                              "gmlevel, "                 //1
@@ -346,15 +345,16 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
                              "mutetime, "                //8
                              "locale, "                  //9
                              "os, "                      //10
-                             "flags "                    //11
+                             "flags, "                   //11
+                             "platform "                 //12
                              "FROM account a "
                              "WHERE username = '%s'",
                              safe_account.c_str());
 
     // Stop if the account is not found
-    if (!result)
+    if (!queryResult)
     {
-        packet.Initialize(SMSG_AUTH_RESPONSE, 1);
+        WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
         packet << uint8(AUTH_UNKNOWN_ACCOUNT);
 
         SendPacket(packet);
@@ -363,7 +363,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
         return false;
     }
 
-    Field* fields = result->Fetch();
+    Field* fields = queryResult->Fetch();
 
     N.SetHexStr("894B645E89E1535BBDAD5B8B290650530801B18EBFBF5E8FAB3C82872A3E9BB7");
     g.SetDword(7);
@@ -387,11 +387,10 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     {
         if (strcmp(fields[3].GetString(), GetRemoteAddress().c_str()))
         {
-            packet.Initialize(SMSG_AUTH_RESPONSE, 1);
+            WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
             packet << uint8(AUTH_FAILED);
             SendPacket(packet);
 
-            delete result;
             BASIC_LOG("WorldSocket::HandleAuthSession: Sent Auth Response (Account IP differs).");
             return false;
         }
@@ -420,23 +419,20 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     os = fields[10].GetString();
 
     uint32 accountFlags = fields[11].GetUInt32();
-
-    delete result;
+	std::string platform = fields[12].GetString();
 
     // Re-check account ban (same check as in realmd)
-    QueryResult* banresult =
-        LoginDatabase.PQuery("SELECT 1 FROM account_banned WHERE account_id = %u AND active = 1 AND (expires_at > UNIX_TIMESTAMP() OR expires_at = banned_at)"
+    auto banresult =
+        LoginDatabase.PQuery("SELECT 1 FROM account_banned WHERE account_id = %u AND active = 1 AND (expires_at > " _UNIXTIME_ " OR expires_at = banned_at)"
                              "UNION "
-                             "SELECT 1 FROM ip_banned WHERE (expires_at = banned_at OR expires_at > UNIX_TIMESTAMP()) AND ip = '%s'",
+                             "SELECT 1 FROM ip_banned WHERE (expires_at = banned_at OR expires_at > " _UNIXTIME_ ") AND ip = '%s'",
                              id, GetRemoteAddress().c_str());
 
     if (banresult) // if account banned
     {
-        packet.Initialize(SMSG_AUTH_RESPONSE, 1);
+        WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
         packet << uint8(AUTH_BANNED);
         SendPacket(packet);
-
-        delete banresult;
 
         sLog.outError("WorldSocket::HandleAuthSession: Sent Auth Response (Account banned).");
         return false;
@@ -447,8 +443,8 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
 
     if (allowedAccountType > SEC_PLAYER && AccountTypes(security) < allowedAccountType)
     {
-        WorldPacket Packet(SMSG_AUTH_RESPONSE, 1);
-        Packet << uint8(AUTH_UNAVAILABLE);
+        WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
+        packet << uint8(AUTH_UNAVAILABLE);
 
         SendPacket(packet);
 
@@ -471,7 +467,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
 
     if (memcmp(sha.GetDigest(), digest, 20))
     {
-        packet.Initialize(SMSG_AUTH_RESPONSE, 1);
+        WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
         packet << uint8(AUTH_FAILED);
 
         SendPacket(packet);
@@ -501,12 +497,24 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
     // No SQL injection, username escaped.
     static SqlStatementID updAccount;
 
-    SqlStatement stmt = LoginDatabase.CreateStatement(updAccount, "INSERT INTO account_logons(accountId,ip,loginTime,loginSource) VALUES(?,?,NOW(),?)");
+    SqlStatement stmt = LoginDatabase.CreateStatement(updAccount, "INSERT INTO account_logons(accountId,ip,loginTime,loginSource) VALUES(?,?," _NOW_ ",?)");
     stmt.PExecute(id, address.c_str(), std::to_string(LOGIN_TYPE_MANGOSD).c_str());
 
     m_crypt.Init(&K);
 
     m_session = sWorld.FindSession(id);
+
+    ClientPlatformType clientPlatform;
+    if (platform == "x86")
+        clientPlatform = CLIENT_PLATFORM_X86;
+    else if (platform == "PPC" && clientOS == CLIENT_OS_MAC)
+        clientPlatform = CLIENT_PLATFORM_PPC;
+    else
+    {
+        sLog.outError("WorldSocket::HandleAuthSession: Unrecognized platform '%s' for account '%s' from %s", platform.c_str(), account.c_str(), address.c_str());
+        return false;
+    }
+
     if (m_session)
     {
         // Session exist so player is reconnecting
@@ -529,6 +537,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
 
         m_session->SetGameBuild(ClientBuild);
         m_session->SetOS(clientOS);
+        m_session->SetPlatform(clientPlatform);
 
         std::unique_ptr<SessionAnticheatInterface> anticheat = sAnticheatLib->NewSession(m_session, K);
 
@@ -577,6 +586,7 @@ bool WorldSocket::HandleAuthSession(WorldPacket& recvPacket)
         m_session->LoadTutorialsData();
         m_session->SetGameBuild(ClientBuild);
         m_session->SetOS(clientOS);
+        m_session->SetPlatform(clientPlatform);
         m_session->InitializeAnticheat(K);
 
         // when false, the client sent invalid addon data.  kick!

@@ -204,7 +204,7 @@ struct world_map_kalimdor : public ScriptedMap
         switch (pGo->GetEntry())
         {
             case GO_GHOST_MAGNET:
-                m_vGOEvents.push_back({ pGo->GetObjectGuid(), 0, 0 }); // insert new event with 0 timer
+                m_vGOEvents.push_back({ pGo->GetObjectGuid(), 0, 0, {} }); // insert new event with 0 timer
                 pGo->SetActiveObjectState(true);
                 break;
             case GO_ROCKET_CLUSTER:
@@ -401,6 +401,7 @@ struct world_map_kalimdor : public ScriptedMap
                         m_uiOmenResetTimer = 5 * MINUTE * IN_MILLISECONDS;       // Prevent another summoning of Omen for 5 minutes (based on spell duration)
                         break;
                 }
+                break;
             }
             case TYPE_TETHYR:
             {
@@ -408,6 +409,8 @@ struct world_map_kalimdor : public ScriptedMap
                 {
                     case NOT_STARTED:
                         instance->GetVariableManager().SetVariable(WORLD_STATE_TETHYR_SHOW, 0);
+                        instance->GetVariableManager().SetVariable(WORLD_STATE_TETHYR_COUNT, 0);
+                        instance->SetZoneWeather(0, AREAID_THERAMORE_ISLE, 0, 0.f);
                         break;
                     case SPECIAL: // Archer slain
                         instance->GetVariableManager().SetVariable(WORLD_STATE_TETHYR_COUNT, instance->GetVariableManager().GetVariable(WORLD_STATE_TETHYR_COUNT) - 1);
@@ -416,8 +419,10 @@ struct world_map_kalimdor : public ScriptedMap
                         if (m_encounter[uiType] != IN_PROGRESS)
                             instance->GetVariableManager().SetVariable(WORLD_STATE_TETHYR_COUNT, 12);
                         instance->GetVariableManager().SetVariable(WORLD_STATE_TETHYR_SHOW, 1);
+                        instance->SetZoneWeather(0, AREAID_THERAMORE_ISLE, 3, 0.5f);
                         break;
                 }
+                break;
             }
             case TYPE_HIVE:
             {
@@ -435,6 +440,7 @@ struct world_map_kalimdor : public ScriptedMap
                     if (m_freedSpriteDarter >= 6)
                         uiData = DONE;
                 }
+                break;
             }
             case TYPE_GONG_TIME:
                 // TODO: Handle initial first gong only
@@ -466,7 +472,7 @@ struct world_map_kalimdor : public ScriptedMap
         return m_encounter[type];
     }
 
-    void OnEventHappened(uint16 event_id, bool activate, bool resume) override
+    void OnEventHappened(uint16 event_id, bool activate, bool /*resume*/) override
     {
         if (event_id == GAME_EVENT_BREWFEST_DARK_IRON_ATTACK && activate)
             m_brewfestEvent.StartDarkIronAttackEvent();

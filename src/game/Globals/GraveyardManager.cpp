@@ -124,7 +124,7 @@ WorldSafeLocsEntry const* GraveyardManager::GetClosestGraveyardHelper(GraveYardM
     return entryFar;
 }
 
-void GraveyardManager::Init(Map* map)
+void GraveyardManager::Init(Map* /*map*/)
 {
     // TODO: Only load relevant ones for specific map - warning: for example TK needs to have netherstorm
     // For now its likely not that harmful, its not that big
@@ -141,7 +141,7 @@ WorldSafeLocsEntry const* GraveyardManager::GetClosestGraveYard(float x, float y
     const uint32 areaId = sTerrainMgr.GetAreaId(mapId, x, y, z);
 
     WorldSafeLocsEntry const* graveyard = nullptr;
-    if (zoneId != 0)
+    if (areaId != 0)
     {
         auto bounds = m_graveyardMap.equal_range(GraveyardLinkKey(areaId, GRAVEYARD_AREALINK));
         graveyard = GetClosestGraveyardHelper(bounds, x, y, z, mapId, team);

@@ -18,7 +18,7 @@
 
 #include "Common.h"
 #include "Tools/Language.h"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 #include "Server/WorldSession.h"
 #include "Globals/ObjectMgr.h"
 #include "Log.h"
@@ -67,7 +67,7 @@ void WorldSession::HandleGrantLevel(WorldPacket& recv_data)
     target->SendDirectMessage(data2);
 }
 
-void WorldSession::HandleReferAFriend(WorldPacket& recv_data)
+void WorldSession::HandleReferAFriend(WorldPacket& /*recv_data*/)
 {
 
 }

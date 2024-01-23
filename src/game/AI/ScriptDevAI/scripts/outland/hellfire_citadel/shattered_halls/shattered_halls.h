@@ -5,6 +5,8 @@
 #ifndef DEF_SHATTERED_H
 #define DEF_SHATTERED_H
 
+#include "World/WorldStateDefines.h"
+
 enum
 {
     MAX_ENCOUNTER               = 5,
@@ -68,7 +70,39 @@ enum
     // AT_NETHEKURSE               = 4524,                  // Area trigger used for the execution event
 
     NPC_FLAME_ARROW             = 17687,
+
+    NPC_HEARTHEN_GUARD          = 17621,
+    NPC_SHARPSHOOTER_GUARD      = 17622,
+    NPC_REAVER_GUARD            = 17623,
+    
+    // First Group in Dungeon should not drop any loot/give any rep
+    NPC_SHATTERED_HAND_HEATHEN      = 17420,
+    NPC_SHATTERED_HAND_SAVAGE       = 16523,    
+    
+    AURA_SLEEPING                   = 16093,
+
+    SPAWN_GROUP_SENTRY              = 5400013,              // SpawnGroup that triggers spawning of Legionnaire Group 03
+
+    STRING_ID_LEGIONNAIRE_06_GROUP  = 5400017               // Legionnaire Group 06 StringID
 };
+
+// Legionnaire StringID  
+const std::string FIRST_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_01";
+const std::string SECOND_LEGIONNAIRE_STRING       = "SHH_LEGIONNAIRE_02";
+const std::string THIRD_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_03";
+const std::string FOURTH_LEGIONNAIRE_STRING       = "SHH_LEGIONNAIRE_04";
+const std::string FIFTH_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_05";
+const std::string SIX_LEGIONNAIRE_STRING          = "SHH_LEGIONNAIRE_06";
+const std::string SEVENTH_LEGIONNAIRE_STRING      = "SHH_LEGIONNAIRE_07";
+const std::string EIGTH_LEGIONNAIRE_STRING        = "SHH_LEGIONNAIRE_08";
+
+// Reinforcement String IDs 
+const std::string SLEEPING_REINF_STRING           = "SHH_SLEEPING_REINF";     // StringID assigned to sleeping mobs
+const std::string DUMMY_REINF_STRING_1            = "SHH_DUMMY_REINF_01";     // StringID assigned to Dummy Group nr 1
+const std::string DUMMY_REINF_STRING_2            = "SHH_DUMMY_REINF_02";     // StringID assigned to Dummy Group nr 2
+
+const std::string STRING_ID_ENTRANCE_GROUP        = "SHH_ENTRANCE_GROUP";     // StringID assigned to entrance group to prevent rep/xp farm abuse
+const std::string STRING_ID_FEL_ORC               = "SHH_FEL_ORC_CONVERT";    // StringID assigned to FelOrcConvert npcs that can call legionnaire for reinf
 
 struct SpawnLocation
 {
@@ -90,13 +124,13 @@ static SpawnLocation aSoldiersLocs[] =
 class instance_shattered_halls : public ScriptedInstance
 {
     public:
-        instance_shattered_halls(Map* pMap);
+        instance_shattered_halls(Map* map);
 
         void Initialize() override;
 
-        void OnPlayerEnter(Player* pPlayer) override;
+        void OnPlayerEnter(Player* player) override;
 
-        void OnObjectCreate(GameObject* pGo) override;
+        void OnObjectCreate(GameObject* go) override;
         void OnCreatureCreate(Creature* creature) override;
         void OnCreatureRespawn(Creature* creature) override;
 
@@ -104,19 +138,19 @@ class instance_shattered_halls : public ScriptedInstance
         void OnCreatureEvade(Creature* creature) override;
         void OnCreatureEnterCombat(Creature* creature) override;
 
-        void SetData(uint32 uiType, uint32 uiData) override;
-        uint32 GetData(uint32 uiType) const override;
+        void OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* pCreature) override;
+
+        void SetData(uint32 type, uint32 data) override;
+        uint32 GetData(uint32 type) const override;
 
         const char* Save() const override { return m_strInstData.c_str(); }
         void Load(const char* chrIn) override;
 
-        bool CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const override;
+        bool CheckConditionCriteriaMeet(Player const* player, uint32 instanceConditionId, WorldObject const* conditionSource, uint32 conditionSourceType) const override;
 
         void GauntletReset();
 
         void DoInitialGets();
-
-        void DoSummonInitialWave();
 
         void DoSummonSHZealot();
 
@@ -125,7 +159,7 @@ class instance_shattered_halls : public ScriptedInstance
         void Update(const uint32 diff) override;
 
     private:
-        void DoCastGroupDebuff(uint32 uiSpellId);
+        void DoCastGroupDebuff(uint32 spellId);
         void FailGauntlet();
         void StopGauntlet();
         void EndGauntlet();
@@ -133,32 +167,33 @@ class instance_shattered_halls : public ScriptedInstance
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
 
-        uint32 m_uiExecutionTimer;
-        uint32 m_uiTeam;
-        uint8 m_uiExecutionStage;
-        uint8 m_uiPrisonersLeft;
+        uint32 m_executionTimer;
+        uint32 m_team;
+        uint8 m_executionStage;
+        uint8 m_prisonersLeft;
+        uint32 m_legionnaireIntroTimer;
 
-        std::vector<ObjectGuid> m_vGauntletPermanentGuids;
-        std::vector<ObjectGuid> m_vGauntletTemporaryGuids;
-        std::vector<ObjectGuid> m_vGauntletBossGuids;
+        std::vector<uint32> m_gauntletPermanentGuids;
+        GuidVector m_gauntletTemporaryGuids;
+        std::vector<uint32>  m_gauntletBossGuids;
 
-        std::vector<std::pair<ObjectGuid, uint32>> m_vBlazeTimers;
+        std::vector<std::pair<ObjectGuid, uint32>> m_blazeTimers;
 
-        bool m_bInitialWavesSpawned; // done spawning waves?
-        bool m_bPorungDoneYelling;	 // done yelling?
-        bool m_bZealotOneOrTwo;		 // delay is different whether spawning first or second zealot in wave
+        bool m_initialWavesSpawned;         // done spawning waves?
+        bool m_porungDoneYelling;           // done yelling?
+        bool m_zealotOneOrTwo;              // delay is different whether spawning first or second zealot in wave
         bool m_gauntletStopped;
 
-        Creature* m_porung;				   // normal or heroic this is him
-        GuidList m_lSHArchers; // the two archers
+        Creature* m_porung;                 // normal or heroic this is him
+        GuidList m_SHArchers;               // the two archers
 
-        uint8 m_uiNumInitialWaves;			 // counter for initial waves spawning
-        uint8 m_uiPorungYellNumber;			 // keeps track of porung as he yells
-        uint32 m_uiInitialWaves_Delay;		 // time between initial waves spawn
-        uint32 m_uiWaveTimer;				 // timer for periodic wave spawns
-        uint32 m_uiPorungYellDelay;			 // delay between READY, AIM, FIRE
-        uint32 m_uiShootFlamingArrowTimer_1; // timer for fire arrow ability (left archer)
-        uint32 m_uiShootFlamingArrowTimer_2; // (right archer)
+        uint8 m_numInitialWaves;            // counter for initial waves spawning
+        uint8 m_porungYellNumber;           // keeps track of porung as he yells
+        uint32 m_initialWaves_Delay;        // time between initial waves spawn
+        uint32 m_waveTimer;                 // timer for periodic wave spawns
+        uint32 m_porungYellDelay;           // delay between READY, AIM, FIRE
+        uint32 m_shootFlamingArrowTimer_1;  // timer for fire arrow ability (left archer)
+        uint32 m_shootFlamingArrowTimer_2;  // (right archer)
 };
 
 #endif

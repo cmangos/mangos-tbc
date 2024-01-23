@@ -10,7 +10,7 @@
 
 #include "warden.hpp"
 #include "WardenScan.hpp"
-#include "WorldPacket.h"
+#include "Server/WorldPacket.h"
 
 #include <openssl/md5.h>
 
@@ -45,7 +45,7 @@ class WardenMac final : public Warden
         // set pending character enum packet (to be sent once we are satisfied that Warden is loaded)
         virtual void SetCharEnumPacket(WorldPacket &&packet);
 
-        virtual void SendPlayerInfo(ChatHandler *handler, bool includeFingerprint) const {}
+        virtual void SendPlayerInfo(ChatHandler * /*handler*/, bool /*includeFingerprint*/) const {}
 };
 
 #endif /*!__WARDENMAC_HPP_*/

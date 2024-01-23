@@ -121,6 +121,9 @@ enum WSEventIds
 
     WS_EVENT_ALLIANCE_FLAG_DROP         = 8506,             // not used; events used for flag handling; triggered from spell
     WS_EVENT_HORDE_FLAG_DROP            = 8507,
+
+    WS_EVENT_ALLIANCE_FLAG_DROPPED_PICKUP = 8623,
+    WS_EVENT_HORDE_FLAG_DROPPED_PICKUP  = 8624,
 };
 
 enum WSGameObjects
@@ -147,6 +150,7 @@ enum WSScriptEvents
 };
 
 static const uint32 wsFlagPickedUp[PVP_TEAM_COUNT] = { BG_WS_STATE_FLAG_PICKED_UP_FLAG_STATE_ALLIANCE, BG_WS_STATE_FLAG_PICKED_UP_FLAG_STATE_HORDE };
+static const uint32 wsFlagHUDPickedUp[PVP_TEAM_COUNT] = { BG_WS_STATE_FLAG_ALLIANCE, BG_WS_STATE_FLAG_HORDE };
 
 static const uint32 wsDroppedFlagId[PVP_TEAM_COUNT] = { GO_WS_SILVERWING_FLAG_DROP, GO_WS_WARSONG_FLAG_DROP };
 

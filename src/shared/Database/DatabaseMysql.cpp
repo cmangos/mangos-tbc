@@ -17,13 +17,14 @@
  */
 
 #ifndef DO_POSTGRESQL
+#ifndef DO_SQLITE
 
-#include "Util.h"
+#include "Util/Util.h"
 #include "Policies/Singleton.h"
 #include "Platform/Define.h"
-#include "Threading.h"
+#include "Multithreading/Threading.h"
 #include "DatabaseEnv.h"
-#include "Timer.h"
+#include "Util/Timer.h"
 
 size_t DatabaseMysql::db_count = 0;
 
@@ -204,7 +205,7 @@ bool MySQLConnection::_Query(const char* sql, MYSQL_RES** pResult, MYSQL_FIELD**
     return true;
 }
 
-QueryResult* MySQLConnection::Query(const char* sql)
+std::unique_ptr<QueryResult> MySQLConnection::Query(const char* sql)
 {
     MYSQL_RES* result = nullptr;
     MYSQL_FIELD* fields = nullptr;
@@ -214,7 +215,7 @@ QueryResult* MySQLConnection::Query(const char* sql)
     if (!_Query(sql, &result, &fields, &rowCount, &fieldCount))
         return nullptr;
 
-    QueryResultMysql* queryResult = new QueryResultMysql(result, fields, rowCount, fieldCount);
+    auto queryResult = std::make_unique<QueryResultMysql>(result, fields, rowCount, fieldCount);
 
     queryResult->NextRow();
     return queryResult;
@@ -486,4 +487,5 @@ enum_field_types MySqlPreparedStatement::ToMySQLType(const SqlStmtFieldData& dat
 
     return dataType;
 }
+#endif
 #endif

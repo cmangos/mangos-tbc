@@ -77,6 +77,7 @@ enum
     SPELL_SUMMON_GLOBULE_2          = 37858,
     SPELL_SUMMON_GLOBULE_3          = 37860,
     SPELL_SUMMON_GLOBULE_4          = 37861,
+    SPELL_SUMMON_WATER_GLOBULES     = 37866,
 
     // Water Globule
     SPELL_WATER_GLOBULE_EXPLODE     = 37871,                // Used when the globule reaches within 5y of the players
@@ -108,7 +109,7 @@ struct boss_morogrim_tidewalkerAI : public CombatAI
         AddCombatAction(MOROGRIM_TIDAL_WAVE, 10000, 15000);
         AddCombatAction(MOROGRIM_WATERY_GRAVE, 30000u);
         AddCombatAction(MOROGRIM_WATER_GLOBULES, true);
-        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float y, float z)
+        m_creature->GetCombatManager().SetLeashingCheck([](Unit*, float x, float /*y*/, float /*z*/)
         {
             return x < 304.12f || x > 457.35f;
         });
@@ -225,15 +226,12 @@ struct boss_morogrim_tidewalkerAI : public CombatAI
             }
             case MOROGRIM_WATER_GLOBULES:
             {
-                if (!CanExecuteCombatAction())
-                    return;
-
-                for (uint8 i = 0; i < 4; ++i)
-                    m_creature->CastSpell(nullptr, m_auiSpellSummonGlobule[i], TRIGGERED_OLD_TRIGGERED);
-
-                DoScriptText(urand(0, 1) ? SAY_SUMMON_BUBL1 : SAY_SUMMON_BUBL2, m_creature);
-                DoScriptText(EMOTE_WATERY_GLOBULES, m_creature);
-                ResetCombatAction(action, 25000);
+                if (DoCastSpellIfCan(nullptr, SPELL_SUMMON_WATER_GLOBULES) == CAST_OK)
+                {
+                    DoScriptText(urand(0, 1) ? SAY_SUMMON_BUBL1 : SAY_SUMMON_BUBL2, m_creature);
+                    DoScriptText(EMOTE_WATERY_GLOBULES, m_creature);
+                    ResetCombatAction(action, 25000);
+                }
                 break;
             }
         }
@@ -249,11 +247,6 @@ struct mob_water_globuleAI : public ScriptedAI
     }
 
     bool m_initialAggro;
-
-    void Reset() override
-    {
-        ResetAllTimers();
-    }
 
     void JustRespawned() override
     {
@@ -319,6 +312,15 @@ struct WateryGrave : public SpellScript
     }
 };
 
+struct SummonWaterGlobules : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        for (uint8 i = 0; i < 4; ++i)
+            spell->GetCaster()->CastSpell(nullptr, m_auiSpellSummonGlobule[i], TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void AddSC_boss_morogrim_tidewalker()
 {
     Script* pNewScript = new Script;
@@ -332,4 +334,5 @@ void AddSC_boss_morogrim_tidewalker()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<WateryGrave>("spell_watery_grave");
+    RegisterSpellScript<SummonWaterGlobules>("spell_summon_water_globules");
 }

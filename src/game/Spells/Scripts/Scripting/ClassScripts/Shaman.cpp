@@ -22,9 +22,10 @@
 #include "AI/BaseAI/TotemAI.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 
+// 6495 - Sentry Totem
 struct SentryTotem : public SpellScript, public AuraScript
 {
-    void OnRadiusCalculate(Spell* spell, SpellEffectIndex effIdx, bool targetB, float& radius) const override
+    void OnRadiusCalculate(Spell* /*spell*/, SpellEffectIndex effIdx, bool targetB, float& radius) const override
     {
         if (!targetB && effIdx == EFFECT_INDEX_0)
             radius = 2.f;
@@ -88,6 +89,7 @@ struct SentryTotemAI : public TotemAI
     }
 };
 
+// 974 - Earth Shield
 struct EarthShield : public AuraScript
 {
     int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
@@ -98,6 +100,39 @@ struct EarthShield : public AuraScript
             value = caster->SpellHealingBonusDone(target, data.spellProto, value, SPELL_DIRECT_DAMAGE);
             value = target->SpellHealingBonusTaken(caster, data.spellProto, value, SPELL_DIRECT_DAMAGE);
         }
+        return value;
+    }
+
+    SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
+    {
+        procData.basepoints[0] = aura->GetAmount();
+        procData.triggerTarget = aura->GetTarget();
+        procData.triggeredSpellId = 379;
+        return SPELL_AURA_PROC_OK;
+    }
+};
+
+// 29203 - Healing Way
+struct HealingWay : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        aura->GetTarget()->RegisterScriptedLocationAura(aura, SCRIPT_LOCATION_SPELL_HEALING_TAKEN, apply);
+    }
+
+    void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
+    {
+        totalMod *= (aura->GetModifier()->m_amount + 100.0f) / 100.0f;
+    }
+};
+
+// 8516 - Windfury Totem
+struct WindfuryTotemAura : public AuraScript
+{
+    int32 OnAuraValueCalculate(AuraCalcData& data, int32 value) const override
+    {
+        if (data.castItem)
+            value += (value * data.castItem->GetEnchantmentModifier() / 100);
         return value;
     }
 };
@@ -111,4 +146,6 @@ void LoadShamanScripts()
 
     RegisterSpellScript<SentryTotem>("spell_sentry_totem");
     RegisterSpellScript<EarthShield>("spell_earth_shield");
+    RegisterSpellScript<HealingWay>("spell_healing_way");
+    RegisterSpellScript<WindfuryTotemAura>("spell_windfury_totem_aura");
 }

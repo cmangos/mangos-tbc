@@ -33,8 +33,8 @@ enum
     SAY_EVIL_AGGRO                  = -1580000,
     SAY_EVIL_SPELL_1                = -1580001,
     SAY_EVIL_SPELL_2                = -1580002,
-    SAY_EVIL_SLAY_1                 = -1580003,
-    SAY_EVIL_SLAY_2                 = -1580004,
+    SAY_EVIL_SLAY_1                 = 25499,
+    SAY_EVIL_SLAY_2                 = 25500,
     SAY_EVIL_ENRAGE                 = -1580005,
     SAY_EVIL_WIPE                   = -1580114,
 
@@ -50,8 +50,8 @@ enum
     SAY_SATH_DEATH                  = -1580011,
     SAY_SATH_SPELL_1                = -1580012,
     SAY_SATH_SPELL_2                = -1580013,
-    SAY_SATH_SLAY_1                 = -1580014,
-    SAY_SATH_SLAY_2                 = -1580015,
+    SAY_SATH_SLAY_1                 = 25508,
+    SAY_SATH_SLAY_2                 = 25509,
     SAY_SATH_ENRAGE                 = -1580016,
 
     // Kalecgos
@@ -643,7 +643,7 @@ struct CurseOfBoundlessAgony : public SpellScript, public AuraScript
 {
     bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex eff) const override
     {
-        if (target->IsImmuneToSpell(spell->m_spellInfo, false, (1 << eff)) || target->IsImmuneToSpellEffect(spell->m_spellInfo, eff, false))
+        if (target->IsImmuneToSpell(spell->m_spellInfo, false, (1 << eff), spell->GetCaster()) || target->IsImmuneToSpellEffect(spell->m_spellInfo, eff, false))
             return false;
 
         if (target->HasAura(SPELL_CURSE_OF_BOUNDLESS_AGONY) || target->HasAura(SPELL_CURSE_OF_BOUNDLESS_AGONY_FRIENDLY))
@@ -693,7 +693,7 @@ struct CurseOfBoundlessAgonyRemoval : public SpellScript, public AuraScript
             Remove(spell->GetUnitTarget());
     }
 
-    void OnApply(Aura* aura, bool apply) const override
+    void OnApply(Aura* aura, bool /*apply*/) const override
     {
         Remove(aura->GetTarget());
     }
@@ -706,7 +706,7 @@ struct CurseOfBoundlessAgonyRemoval : public SpellScript, public AuraScript
 
 struct CrazedRage : public SpellScript
 {
-    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         if (target->IsPlayer() || (target->GetEntry() != NPC_KALECGOS_DRAGON && target->GetEntry() != NPC_SATHROVARR) || target->HasAura(SPELL_BANISH))
             return false;

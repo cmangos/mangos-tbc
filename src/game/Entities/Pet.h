@@ -296,14 +296,13 @@ class Pet : public Creature
         }
 
         virtual CombatData* GetCombatData() override { return m_combatData; }
+        virtual CombatData const* GetCombatData() const override { return m_combatData; }
 
         virtual void RegenerateHealth() override;
 
         void ResetCorpseRespawn();
 
         void ForcedDespawn(uint32 timeMSToDespawn = 0, bool onlyAlive = false) override;
-
-        void StartCooldown(Unit* owner);
 
         bool IgnoresOwnersDeath() const;
     protected:
@@ -320,8 +319,6 @@ class Pet : public Creature
         PetModeFlags m_petModeFlags;
         CharmInfo*   m_originalCharminfo;
         bool m_inStatsUpdate;
-
-        bool m_imposedCooldown;
 
         void SaveToDB(uint32, uint8) override               // overwrited of Creature::SaveToDB     - don't must be called
         {

@@ -21,7 +21,7 @@
 
 #include "Common.h"
 #include "ObjectDefines.h"
-#include "ByteBuffer.h"
+#include "Util/ByteBuffer.h"
 #include "Entities/UpdateFields.h"
 #include "Entities/UpdateData.h"
 #include "Entities/ObjectGuid.h"
@@ -233,7 +233,7 @@ class CooldownContainer
         bool AddCooldown(TimePoint clockNow, uint32 spellId, uint32 duration, uint32 spellCategory = 0, uint32 categoryDuration = 0, uint32 itemId = 0, bool onHold = false)
         {
             RemoveBySpellId(spellId);
-            auto resultItr = m_spellIdMap.emplace(spellId, std::move(std::unique_ptr<CooldownData>(new CooldownData(clockNow, spellId, duration, spellCategory, categoryDuration, itemId, onHold))));
+            auto resultItr = m_spellIdMap.emplace(spellId, std::make_unique<CooldownData>(clockNow, spellId, duration, spellCategory, categoryDuration, itemId, onHold));
             // do not overwrite one permanent category cooldown with another permanent category cooldown
             if (resultItr.second && spellCategory && categoryDuration)
             {
@@ -328,6 +328,8 @@ struct Position
     bool IsEmpty() const { return x == 0.f && y == 0.f && z == 0.f; }
     float GetAngle(const float x, const float y) const;
     float GetDistance(Position const& other) const; // WARNING: Returns squared distance for performance reasons
+    float GetDistance2d(Position const& other) const; // WARNING: Returns squared distance for performance reasons
+    void RelocateOffset(Position const& offset);
     std::string to_string() const;
 };
 
@@ -975,6 +977,7 @@ class WorldObject : public Object
         bool IsPositionValid() const;
         void UpdateGroundPositionZ(float x, float y, float& z) const;
         virtual void UpdateAllowedPositionZ(float x, float y, float& z, Map* atMap = nullptr) const;
+        virtual void AdjustZForCollision(float /*x*/, float /*y*/, float& /*z*/, float /*halfHeight*/) const {}
 
         void MovePositionToFirstCollision(Position &pos, float dist, float angle);
         void GetFirstCollisionPosition(Position&pos, float dist, float angle)
@@ -996,7 +999,7 @@ class WorldObject : public Object
 
         uint32 GetZoneId() const;
         uint32 GetAreaId() const;
-        char const* GetAreaName(LocaleConstant locale) const;
+        AreaNameInfo GetAreaName(LocaleConstant locale) const;
         void GetZoneAndAreaId(uint32& zoneid, uint32& areaid) const;
 
         InstanceData* GetInstanceData() const;
@@ -1150,7 +1153,7 @@ class WorldObject : public Object
         virtual bool HasGCD(SpellEntry const* spellEntry) const;
         TimePoint GetGCD(SpellEntry const* spellEntry) const;
         void ResetGCD(SpellEntry const* spellEntry = nullptr);
-        virtual void AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr, bool permanent = false, uint32 forcedDuration = 0);
+        virtual void AddCooldown(SpellEntry const& spellEntry, ItemPrototype const* itemProto = nullptr, bool permanent = false, uint32 forcedDuration = 0, bool ignoreCat = false);
         virtual void RemoveSpellCooldown(SpellEntry const& spellEntry, bool updateClient = true);
         void RemoveSpellCooldown(uint32 spellId, bool updateClient = true);
         virtual void RemoveSpellCategoryCooldown(uint32 category, bool updateClient = true);
@@ -1209,6 +1212,13 @@ class WorldObject : public Object
         // Spell mod owner: static player whose spell mods apply to this unit (server-side)
         virtual Player* GetSpellModOwner() const { return nullptr; }
 
+        void AddStringId(std::string& stringId);
+        void RemoveStringId(std::string& stringId);
+        bool HasStringId(const std::string& stringId) const;
+
+        bool HasStringId(uint32 stringId) const; // not to be used in sd2
+        void SetStringId(uint32 stringId, bool apply); // not to be used outside of scriptmgr
+
     protected:
         explicit WorldObject();
 
@@ -1253,6 +1263,8 @@ class WorldObject : public Object
 
         // Spell System compliance
         uint32 m_castCounter;                               // count casts chain of triggered spells for prevent infinity cast crashes
+
+        std::set<uint32> m_stringIds;
 };
 
 #endif

@@ -27,14 +27,14 @@ EndScriptData */
 
 enum
 {
-    SAY_INTRO                   = -1556007,
-    SAY_AGGRO_1                 = -1556008,
-    SAY_AGGRO_2                 = -1556009,
-    SAY_AGGRO_3                 = -1556010,
-    SAY_SLAY_1                  = -1556011,
-    SAY_SLAY_2                  = -1556012,
-    SAY_DEATH                   = -1556013,
-    EMOTE_ARCANE_EXP            = -1556015,
+    SAY_INTRO                   = 17769,
+    SAY_AGGRO_1                 = 17765,
+    SAY_AGGRO_2                 = 17767,
+    SAY_AGGRO_3                 = 17768,
+    SAY_SLAY_1                  = 17763,
+    SAY_SLAY_2                  = 17764,
+    SAY_DEATH                   = 17762,
+    EMOTE_ARCANE_EXP            = 19738,
 
     SPELL_BLINK                 = 38194,
     SPELL_MANA_SHIELD           = 38151,
@@ -74,6 +74,7 @@ struct boss_talon_king_ikissAI : public CombatAI
         AddCombatAction(TALON_KING_IKISS_ACTION_POLYMORPH, 6000, 10000);
         AddCombatAction(TALON_KING_IKISS_ACTION_ARCANE_VOLLEY, 5000, 12000);
         AddCustomAction(TALON_KING_IKISS_BLINK, true, [&]() { HandleBlink(); });
+        AddOnKillText(SAY_SLAY_1, SAY_SLAY_2);
     }
 
     ScriptedInstance* m_instance;
@@ -112,29 +113,29 @@ struct boss_talon_king_ikissAI : public CombatAI
             if (!m_Intro && m_creature->IsWithinDistInMap(pWho, 100.0f))
             {
                 m_Intro = true;
-                DoScriptText(SAY_INTRO, m_creature);
+                DoBroadcastText(SAY_INTRO, m_creature);
             }
         }
 
         ScriptedAI::MoveInLineOfSight(pWho);
     }
 
-    void Aggro(Unit* /*pWho*/) override
+    void Aggro(Unit* /*who*/) override
     {
         switch (urand(0, 2))
         {
-            case 0: DoScriptText(SAY_AGGRO_1, m_creature); break;
-            case 1: DoScriptText(SAY_AGGRO_2, m_creature); break;
-            case 2: DoScriptText(SAY_AGGRO_3, m_creature); break;
+            case 0: DoBroadcastText(SAY_AGGRO_1, m_creature); break;
+            case 1: DoBroadcastText(SAY_AGGRO_2, m_creature); break;
+            case 2: DoBroadcastText(SAY_AGGRO_3, m_creature); break;
         }
 
         if (m_instance)
             m_instance->SetData(TYPE_IKISS, IN_PROGRESS);
     }
 
-    void JustDied(Unit* /*pKiller*/) override
+    void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(SAY_DEATH, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
 
         if (m_instance)
             m_instance->SetData(TYPE_IKISS, DONE);
@@ -144,11 +145,6 @@ struct boss_talon_king_ikissAI : public CombatAI
     {
         if (m_instance)
             m_instance->SetData(TYPE_IKISS, FAIL);
-    }
-
-    void KilledUnit(Unit* /*pVctim*/) override
-    {
-        DoScriptText(urand(0, 1) ? SAY_SLAY_1 : SAY_SLAY_2, m_creature);
     }
 
     void HandleBlink()
@@ -173,13 +169,13 @@ struct boss_talon_king_ikissAI : public CombatAI
             case TALON_KING_IKISS_BLINK_START:
                 if (m_creature->GetHealthPercent() < m_HealthPercent)
                 {
-                    if (DoCastSpellIfCan(m_creature, SPELL_BLINK, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
+                    if (DoCastSpellIfCan(m_creature, SPELL_BLINK) == CAST_OK)
                     {
                         SetMeleeEnabled(false);
                         SetCombatMovement(false);
                         SetCombatScriptStatus(true);
                         ResetTimer(TALON_KING_IKISS_BLINK, 1000);
-                        DoScriptText(EMOTE_ARCANE_EXP, m_creature);
+                        DoBroadcastText(EMOTE_ARCANE_EXP, m_creature);
 
                         // There is no relationship between the health percentages
                         switch (m_uiBlinkPhase)

@@ -1107,7 +1107,7 @@ void Aura::HandleAddModifier(bool apply, bool Real)
             priority,
             // prevent expire spell mods with (charges > 0 && m_stackAmount > 1)
             // all this spell expected expire not at use but at spell proc event check
-            spellProto->StackAmount > 1 ? 0 : GetHolder()->GetAuraCharges());
+            spellProto->StackAmount < 1 ? 0 : GetHolder()->GetAuraCharges());
     }
 
     static_cast<Player*>(GetTarget())->AddSpellMod(m_spellmod, apply);

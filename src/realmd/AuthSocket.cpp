@@ -1020,7 +1020,8 @@ void AuthSocket::verifyVersionAndFinalizeAuthentication(std::shared_ptr<sAuthLog
     ///- Update the sessionkey, current ip and login time and reset number of failed logins in the account table for this account
     // No SQL injection (escaped user input) and IP address as received by socket
     const char* K_hex = srp.GetStrongSessionKey().AsHexStr();
-    LoginDatabase.PExecute("UPDATE account SET sessionkey = '%s', locale = '%s', failed_logins = 0, os = '%s', platform = '%s' WHERE username = '%s'", K_hex, _safelocale.c_str(), m_os.c_str(), m_platform.c_str(), _safelogin.c_str());
+    // Note: In case of heavy load, this sync query will be a heavy bottleneck
+    LoginDatabase.DirectPExecute("UPDATE account SET sessionkey = '%s', locale = '%s', failed_logins = 0, os = '%s', platform = '%s' WHERE username = '%s'", K_hex, _safelocale.c_str(), m_os.c_str(), m_platform.c_str(), _safelogin.c_str());
     std::unique_ptr<QueryResult> loginfail(LoginDatabase.PQuery("SELECT id FROM account WHERE username = '%s'", _safelogin.c_str()));
     if (loginfail)
         LoginDatabase.PExecute("INSERT INTO account_logons(accountId,ip,loginTime,loginSource) VALUES('%u','%s'," _NOW_ ",'%u')", loginfail->Fetch()[0].GetUInt32(), GetRemoteAddress().c_str(), LOGIN_TYPE_REALMD);

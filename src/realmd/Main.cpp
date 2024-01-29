@@ -235,16 +235,15 @@ int main(int argc, char* argv[])
     LoginDatabase.Execute("DELETE FROM ip_banned WHERE expires_at<=" _UNIXTIME_ " AND expires_at<>banned_at");
     LoginDatabase.CommitTransaction();
 
-    int32 networkThreadCount = sConfig.GetIntDefault("ListenerThreads", 1);
+    uint32 networkThreadCount = sConfig.GetIntDefault("ListenerThreads", 1);
     MaNGOS::AsyncListener<AuthSocket> listener(service,
             sConfig.GetStringDefault("BindIP", "0.0.0.0"),
             sConfig.GetIntDefault("RealmServerPort", DEFAULT_REALMSERVER_PORT)
     );
 
-    boost::thread_group threads;
-    for (uint32 i = 0; i < networkThreadCount; ++i) {
-        threads.create_thread(boost::bind(&boost::asio::io_service::run, &service));
-    }
+    std::vector<std::thread> threads;
+    for (uint32 i = 0; i < networkThreadCount; ++i)
+        threads.emplace_back([&]() { service.run(); });
 
     ///- Catch termination signals
     HookSignals();
@@ -320,7 +319,8 @@ int main(int argc, char* argv[])
 
     service.stop();
 
-    threads.join_all();
+    for (uint32 i = 0; i < networkThreadCount; ++i)
+        threads[i].join();
 
 
     ///- Wait for the delay thread to exit

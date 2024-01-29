@@ -74,7 +74,6 @@ bool RASocket::ProcessIncomingData()
 {
     DEBUG_LOG("RASocket::ProcessIncomingData");
 
-
     std::shared_ptr<std::string> buffer = std::make_shared<std::string>();
     auto self = shared_from_this();
     ReadUntil(*buffer.get(), '\n', [self, buffer](const boost::system::error_code& error, std::size_t read)
@@ -210,6 +209,7 @@ bool RASocket::HandleInput()
 
 void RASocket::Send(const std::string& message)
 {
+    std::shared_ptr<std::string> textMessage = std::make_shared<std::string>(message);
     auto self(shared_from_this());
-    Write(message.c_str(), message.length(), [self](const boost::system::error_code& error, std::size_t read) {});
+    Write(textMessage->c_str(), textMessage->length(), [self, textMessage](const boost::system::error_code& error, std::size_t read) {});
 }

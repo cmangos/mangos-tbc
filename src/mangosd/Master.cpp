@@ -226,10 +226,9 @@ int Master::Run()
         int32 port = int32(sWorld.getConfig(CONFIG_UINT32_PORT_WORLD));
         MaNGOS::AsyncListener<WorldSocket> listener(m_service, bindIp, port);
 
-        boost::thread_group threads;
-        for (int32 i = 0; i < networkThreadCount; ++i) {
-            threads.create_thread(boost::bind(&boost::asio::io_service::run, &m_service));
-        }
+        std::vector<std::thread> threads;
+        for (int32 i = 0; i < networkThreadCount; ++i)
+            threads.emplace_back([&]() { m_service.run(); });
 
         std::unique_ptr<MaNGOS::AsyncListener<RASocket>> raListener;
         std::string raBindIp = sConfig.GetStringDefault("Ra.IP", "0.0.0.0");
@@ -260,7 +259,8 @@ int Master::Run()
             m_raThread.join();
         }
 
-        threads.join_all();
+        for (int32 i = 0; i < networkThreadCount; ++i)
+            threads[i].join();
     }
 
     ///- Stop freeze protection before shutdown tasks

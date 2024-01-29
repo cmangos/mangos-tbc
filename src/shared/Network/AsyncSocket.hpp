@@ -16,8 +16,8 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef __HIGH_VOLUME_SOCKET_HPP_
-#define __HIGH_VOLUME_SOCKET_HPP_
+#ifndef MANGOSSERVER_ASYNC_SOCKET
+#define MANGOSSERVER_ASYNC_SOCKET
 
 #include "Platform/Define.h"
 #include <boost/asio.hpp>
@@ -27,13 +27,13 @@
 
 namespace MaNGOS
 {
-    // this socket is different in that it blocks on reads
+    // this socket is different in that it does not block on reads
     template <typename SocketType>
-    class AsyncSocket : public boost::enable_shared_from_this<SocketType>
+    class AsyncSocket : public std::enable_shared_from_this<SocketType>
     {
         public:
             AsyncSocket(boost::asio::io_service& io_service);
-            ~AsyncSocket();
+            virtual ~AsyncSocket();
 
             void Read(char* buffer, size_t length, std::function<void(const boost::system::error_code&, std::size_t)>&& callback);
             void ReadUntil(std::string& buffer, char delimiter, std::function<void(const boost::system::error_code&, std::size_t)>&& callback);
@@ -51,7 +51,6 @@ namespace MaNGOS
                 m_socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
                 m_socket.close();
             }
-            boost::asio::ip::tcp::socket& GetSocket() { return m_socket; }
             boost::asio::ip::tcp::socket& GetAsioSocket() { return m_socket; }
             virtual bool Deletable() const { return IsClosed(); }
             bool IsClosed() const { return !m_socket.is_open(); }

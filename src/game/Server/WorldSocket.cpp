@@ -53,6 +53,14 @@ struct ServerPktHeader
 {
     uint16 size;
     uint16 cmd;
+
+    const char* data() const {
+        return reinterpret_cast<const char*>(this);
+}
+
+    std::size_t headerSize() const {
+        return sizeof(ServerPktHeader);
+    }
 };
 #if defined( __GNUC__ )
 #pragma pack()
@@ -122,8 +130,8 @@ void WorldSocket::SendPacket(const WorldPacket& pct, bool immediate)
 
     if (pct.size() > 0)
     {
-        std::shared_ptr<std::vector<char>> fullMessage = std::make_shared<std::vector<char>>();
-        fullMessage->resize(sizeof(header) + pct.size()); // allocate array for full message
+        // allocate array for full message
+        std::shared_ptr<std::vector<char>> fullMessage = std::make_shared<std::vector<char>>(sizeof(header) + pct.size());
         std::memcpy(fullMessage->data(), reinterpret_cast<const char*>(&header), sizeof(header)); // copy header
         std::memcpy((fullMessage->data() + sizeof(header)), reinterpret_cast<const char*>(pct.contents()), pct.size()); // copy packet
         auto self(shared_from_this());
@@ -131,10 +139,9 @@ void WorldSocket::SendPacket(const WorldPacket& pct, bool immediate)
     }
     else
     {
-        std::shared_ptr<ServerPktHeader> sharedHeader = std::make_shared<ServerPktHeader>();
-        *sharedHeader = header;
+        std::shared_ptr<ServerPktHeader> sharedHeader = std::make_shared<ServerPktHeader>(header);
         auto self(shared_from_this());
-        Write(reinterpret_cast<const char*>(sharedHeader.get()), sizeof(header), [self, sharedHeader](const boost::system::error_code& error, std::size_t read) {});
+        Write(sharedHeader->data(), sharedHeader->headerSize(), [self, sharedHeader](const boost::system::error_code& error, std::size_t read) {});
     }
 }
 
@@ -178,7 +185,7 @@ bool WorldSocket::ProcessIncomingData()
 
         self->Read(reinterpret_cast<char*>(packetBuffer->data()), packetBuffer->size(), [self, packetBuffer, opcode, packetSize](const boost::system::error_code& error, std::size_t read) -> void
         {
-            std::unique_ptr<WorldPacket> pct(new WorldPacket(opcode, packetSize));
+            std::unique_ptr<WorldPacket> pct = std::make_unique<WorldPacket>(opcode, packetSize);
             pct->append(*packetBuffer.get());
             if (sPacketLog->CanLogPacket() && self->IsLoggingPackets())
                 sPacketLog->LogPacket(*pct, CLIENT_TO_SERVER, self->GetRemoteIpAddress(), self->GetRemotePort());

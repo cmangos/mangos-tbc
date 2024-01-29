@@ -16,8 +16,8 @@
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-#ifndef __HIGH_VOLUME_LISTENER_HPP_
-#define __HIGH_VOLUME_LISTENER_HPP_
+#ifndef MANGOSSERVER_ASYNC_LISTENER
+#define MANGOSSERVER_ASYNC_LISTENER
 
 #include "Platform/Define.h"
 #include <boost/asio.hpp>
@@ -35,7 +35,7 @@ namespace MaNGOS
             {
                 startAccept();
             }
-            void HandleAccept(boost::shared_ptr<SocketType> connection, const boost::system::error_code& err)
+            void HandleAccept(std::shared_ptr<SocketType> connection, const boost::system::error_code& err)
             {
                 if (!err)
                     connection->Start();
@@ -48,10 +48,10 @@ namespace MaNGOS
             void startAccept()
             {
                 // socket
-                boost::shared_ptr<SocketType> connection(new SocketType(m_service));
+                std::shared_ptr<SocketType> connection = std::make_shared<SocketType>(m_service);
 
                 // asynchronous accept operation and wait for a new connection.
-                m_acceptor.async_accept(connection->GetSocket(), boost::bind(&AsyncListener::HandleAccept, this, connection, boost::asio::placeholders::error));
+                m_acceptor.async_accept(connection->GetAsioSocket(), boost::bind(&AsyncListener::HandleAccept, this, connection, boost::asio::placeholders::error));
             }
     };
 }

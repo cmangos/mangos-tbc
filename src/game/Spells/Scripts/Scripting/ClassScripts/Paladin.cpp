@@ -275,6 +275,16 @@ struct DivineIntervention : public SpellScript
     }
 };
 
+// 20467, 20963, 20964, 20965, 20966, 27171 - Judgement of Command
+struct JudgementOfCommand : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        if (!spell->GetUnitTarget()->IsStunned())
+            spell->SetDamage(uint32(spell->GetDamage() / 2));
+    }
+};
+
 void LoadPaladinScripts()
 {
     RegisterSpellScript<JudgementOfLightIntermediate>("spell_judgement_of_light_intermediate");
@@ -286,4 +296,5 @@ void LoadPaladinScripts()
     RegisterSpellScript<SealOfBloodSelfDamage>("spell_seal_of_blood_self_damage");
     RegisterSpellScript<PaladinTier6Trinket>("spell_paladin_tier_6_trinket");
     RegisterSpellScript<BlessingOfLight>("spell_blessing_of_light");
+    RegisterSpellScript<JudgementOfCommand>("spell_judgement_of_command");
 }

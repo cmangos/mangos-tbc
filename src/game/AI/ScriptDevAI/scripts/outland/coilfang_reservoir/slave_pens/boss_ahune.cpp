@@ -234,7 +234,7 @@ struct boss_ahuneAI : public CombatAI
         ++m_uiPhaseChangeCount;
     }
 
-    void ExecuteAction(uint32 action)
+    void ExecuteAction(uint32 action) override
     {
         switch (action)
         {

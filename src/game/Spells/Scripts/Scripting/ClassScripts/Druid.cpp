@@ -66,7 +66,7 @@ struct ForceOfNatureSummon : public SpellScript, public AuraScript
         summon->CastSpell(nullptr, 37846, TRIGGERED_NONE);
     }
 
-    void OnHolderInit(SpellAuraHolder* holder, WorldObject* /*caster*/) const
+    void OnHolderInit(SpellAuraHolder* holder, WorldObject* /*caster*/) const override
     {
         holder->SetAuraDuration(2000);
     }

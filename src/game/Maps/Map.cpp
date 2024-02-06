@@ -1206,6 +1206,7 @@ float Map::GetXPModRate(RateModType type) const
             expMod *= sWorld.getConfig(CONFIG_FLOAT_RATE_PET_XP_KILL);
             break;
         }
+        case RateModType::MAX: break;
     }
 
     return expMod;

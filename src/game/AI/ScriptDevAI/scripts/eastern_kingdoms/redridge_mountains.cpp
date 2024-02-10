@@ -35,50 +35,25 @@ enum
 {
     QUEST_MISSING_IN_ACTION = 219,
 
-    SPELL_MOCKING_BLOW      = 21008,
-    SPELL_SHIELD_BASH       = 11972,
-
-    SAY_CORPORAL_KEESHAN_1  = -1000561,
-    SAY_CORPORAL_KEESHAN_2  = -1000562,
-    SAY_CORPORAL_KEESHAN_3  = -1000563,
-    SAY_CORPORAL_KEESHAN_4  = -1000564,
-    SAY_CORPORAL_KEESHAN_5  = -1000565,
+    PATH_ID                 = 349,
+    SAY_CORPORAL_KEESHAN_1  = 25,
+    SAY_CORPORAL_KEESHAN_2  = 26,
+    SAY_CORPORAL_KEESHAN_3  = 27,
+    SAY_CORPORAL_KEESHAN_4  = 30,
 };
 
 struct npc_corporal_keeshan_escortAI : public npc_escortAI
 {
     npc_corporal_keeshan_escortAI(Creature* pCreature) : npc_escortAI(pCreature) { Reset(); }
 
-    uint32 m_uiMockingBlowTimer;
-    uint32 m_uiShieldBashTimer;
-
-    void Reset() override
-    {
-        m_uiMockingBlowTimer = 5000;
-        m_uiShieldBashTimer  = 8000;
-    }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 uiMiscValue) override
     {
         if (eventType == AI_EVENT_START_ESCORT && pInvoker->GetTypeId() == TYPEID_PLAYER)
         {
-            DoScriptText(SAY_CORPORAL_KEESHAN_1, m_creature);
+            DoBroadcastText(SAY_CORPORAL_KEESHAN_1, m_creature, pInvoker);
             m_creature->SetFactionTemporary(FACTION_ESCORT_A_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);
-            Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue));
-        }
-    }
-
-    void WaypointStart(uint32 uiWP) override
-    {
-        switch (uiWP)
-        {
-            case 27:                                        // break outside
-                DoScriptText(SAY_CORPORAL_KEESHAN_3, m_creature);
-                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                break;
-            case 54:                                        // say goodbye
-                DoScriptText(SAY_CORPORAL_KEESHAN_5, m_creature);
-                break;
+            Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue), true, false, PATH_ID);
         }
     }
 
@@ -86,17 +61,22 @@ struct npc_corporal_keeshan_escortAI : public npc_escortAI
     {
         switch (uiWP)
         {
-            case 26:                                        // break outside
+            case 25:
                 m_creature->SetStandState(UNIT_STAND_STATE_SIT);
-                DoScriptText(SAY_CORPORAL_KEESHAN_2, m_creature);
+                if (Player* pPlayer = GetPlayerForEscort())                
+                    DoBroadcastText(SAY_CORPORAL_KEESHAN_2, m_creature, pPlayer);
                 break;
-            case 37:
-                SetRun(true);                               // run now until the destination
-                break;
-            case 53:                                        // quest_complete
-                DoScriptText(SAY_CORPORAL_KEESHAN_4, m_creature);
+            case 26:
+                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
                 if (Player* pPlayer = GetPlayerForEscort())
+                    DoBroadcastText(SAY_CORPORAL_KEESHAN_3, m_creature, pPlayer);
+                break;
+            case 69:                                        // quest_complete
+                if (Player* pPlayer = GetPlayerForEscort())
+                {
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_MISSING_IN_ACTION, m_creature);
+                    DoBroadcastText(SAY_CORPORAL_KEESHAN_4, m_creature, pPlayer);
+                }
                 break;
         }
     }
@@ -105,23 +85,7 @@ struct npc_corporal_keeshan_escortAI : public npc_escortAI
     {
         // Combat check
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_uiMockingBlowTimer < uiDiff)
-        {
-            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MOCKING_BLOW);
-            m_uiMockingBlowTimer = 5000;
-        }
-        else
-            m_uiMockingBlowTimer -= uiDiff;
-
-        if (m_uiShieldBashTimer < uiDiff)
-        {
-            DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHIELD_BASH);
-            m_uiShieldBashTimer = 8000;
-        }
-        else
-            m_uiShieldBashTimer -= uiDiff;
+            return;       
 
         DoMeleeAttackIfReady();
     }

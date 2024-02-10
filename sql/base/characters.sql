@@ -21,7 +21,7 @@
 
 DROP TABLE IF EXISTS `character_db_version`;
 CREATE TABLE `character_db_version` (
-  `required_s2452_01_characters_fishingSteps` bit(1) DEFAULT NULL
+  `required_s2473_01_characters_item_instance_text_id_fix` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Last applied sql update to DB';
 
 --
@@ -1420,7 +1420,7 @@ CREATE TABLE `item_instance` (
   `enchantments` text NOT NULL,
   `randomPropertyId` smallint(5) NOT NULL default '0',
   `durability` int(5) unsigned NOT NULL default '0',
-  `itemTextId` mediumint(8) unsigned NOT NULL default '0',
+  `itemTextId` int(8) unsigned NOT NULL default '0',
   PRIMARY KEY (`guid`),
   KEY `idx_owner_guid` (`owner_guid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Item System';

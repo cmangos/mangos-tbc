@@ -803,6 +803,7 @@ class ChatHandler
         bool HandleSunwellGateCommand(char* args);
         bool HandleSunwellGateCounterCommand(char* args);
         bool HandleExpansionRelease(char* args);
+        bool HandleSetVariable(char* args);
 
         // Battleground
         bool HandleBattlegroundStartCommand(char* args);

@@ -28,14 +28,14 @@ npc_corporal_keeshan */
 #include "AI/ScriptDevAI/base/escort_ai.h"
 
 /*######
-## npc_corporal_leehsan
+## npc_corporal_keehsan
 ######*/
 
 enum
 {
     QUEST_MISSING_IN_ACTION = 219,
 
-    PATH_ID                 = 349,
+    KEESHAN_PATH_ID         = 349,
     SAY_CORPORAL_KEESHAN_1  = 25,
     SAY_CORPORAL_KEESHAN_2  = 26,
     SAY_CORPORAL_KEESHAN_3  = 27,
@@ -53,7 +53,7 @@ struct npc_corporal_keeshan_escortAI : public npc_escortAI
         {
             DoBroadcastText(SAY_CORPORAL_KEESHAN_1, m_creature, pInvoker);
             m_creature->SetFactionTemporary(FACTION_ESCORT_A_NEUTRAL_ACTIVE, TEMPFACTION_RESTORE_RESPAWN);
-            Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue), true, false, PATH_ID);
+            Start(false, (Player*)pInvoker, GetQuestTemplateStore(uiMiscValue), true, false, KEESHAN_PATH_ID);
         }
     }
 
@@ -63,31 +63,22 @@ struct npc_corporal_keeshan_escortAI : public npc_escortAI
         {
             case 25:
                 m_creature->SetStandState(UNIT_STAND_STATE_SIT);
-                if (Player* pPlayer = GetPlayerForEscort())                
-                    DoBroadcastText(SAY_CORPORAL_KEESHAN_2, m_creature, pPlayer);
+                if (Player* player = GetPlayerForEscort())                
+                    DoBroadcastText(SAY_CORPORAL_KEESHAN_2, m_creature, player);
                 break;
             case 26:
                 m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-                if (Player* pPlayer = GetPlayerForEscort())
-                    DoBroadcastText(SAY_CORPORAL_KEESHAN_3, m_creature, pPlayer);
+                if (Player* player = GetPlayerForEscort())
+                    DoBroadcastText(SAY_CORPORAL_KEESHAN_3, m_creature, player);
                 break;
             case 69:                                        // quest_complete
-                if (Player* pPlayer = GetPlayerForEscort())
+                if (Player* player = GetPlayerForEscort())
                 {
-                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_MISSING_IN_ACTION, m_creature);
-                    DoBroadcastText(SAY_CORPORAL_KEESHAN_4, m_creature, pPlayer);
+                    player->RewardPlayerAndGroupAtEventExplored(QUEST_MISSING_IN_ACTION, m_creature);
+                    DoBroadcastText(SAY_CORPORAL_KEESHAN_4, m_creature, player);
                 }
                 break;
         }
-    }
-
-    void UpdateEscortAI(const uint32 uiDiff) override
-    {
-        // Combat check
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;       
-
-        DoMeleeAttackIfReady();
     }
 };
 
@@ -96,10 +87,10 @@ UnitAI* GetAI_npc_corporal_keeshan(Creature* pCreature)
     return new npc_corporal_keeshan_escortAI(pCreature);
 }
 
-bool QuestAccept_npc_corporal_keeshan(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+bool QuestAccept_npc_corporal_keeshan(Player* player, Creature* pCreature, const Quest* pQuest)
 {
     if (pQuest->GetQuestId() == QUEST_MISSING_IN_ACTION)
-        pCreature->AI()->SendAIEvent(AI_EVENT_START_ESCORT, pPlayer, pCreature, pQuest->GetQuestId());
+        pCreature->AI()->SendAIEvent(AI_EVENT_START_ESCORT, player, pCreature, pQuest->GetQuestId());
 
     return true;
 }

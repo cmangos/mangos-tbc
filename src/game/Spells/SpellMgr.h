@@ -2487,16 +2487,7 @@ struct SpellProcEventEntry
     uint32      cooldown;                                   // hidden cooldown used for some spell proc events, applied to _triggered_spell_
 };
 
-struct SpellBonusEntry
-{
-    float  direct_damage;
-    float  dot_damage;
-    float  ap_bonus;
-    float  ap_dot_bonus;
-};
-
 typedef std::unordered_map<uint32, SpellProcEventEntry> SpellProcEventMap;
-typedef std::unordered_map<uint32, SpellBonusEntry>     SpellBonusMap;
 
 #define ELIXIR_BATTLE_MASK    0x01
 #define ELIXIR_GUARDIAN_MASK  0x02
@@ -2685,7 +2676,6 @@ inline bool IsProfessionOrRidingSkill(uint32 skill)
 
 class SpellMgr
 {
-        friend struct DoSpellBonuses;
         friend struct DoSpellProcEvent;
         friend struct DoSpellProcItemEnchant;
 
@@ -2955,17 +2945,6 @@ class SpellMgr
         }
 
         static bool IsSpellProcEventCanTriggeredBy(SpellProcEventEntry const* spellProcEvent, uint32 EventProcFlag, SpellEntry const* spellInfo, uint32 procFlags, uint32 procExtra);
-
-        // Spell bonus data
-        SpellBonusEntry const* GetSpellBonusData(uint32 spellId) const
-        {
-            // Lookup data
-            SpellBonusMap::const_iterator itr = mSpellBonusMap.find(spellId);
-            if (itr != mSpellBonusMap.end())
-                return &itr->second;
-
-            return nullptr;
-        }
 
         // Spell target coordinates
         SpellTargetPosition const* GetSpellTargetPosition(uint32 spell_id) const
@@ -3260,7 +3239,6 @@ class SpellMgr
         void LoadSpellElixirs();
         void LoadSpellProcEvents();
         void LoadSpellProcItemEnchant();
-        void LoadSpellBonuses();
         void LoadSpellTargetPositions();
         void LoadSpellThreats();
         void LoadSkillLineAbilityMaps();
@@ -3279,7 +3257,6 @@ class SpellMgr
         SpellThreatMap     mSpellThreatMap;
         SpellProcEventMap  mSpellProcEventMap;
         SpellProcItemEnchantMap mSpellProcItemEnchantMap;
-        SpellBonusMap      mSpellBonusMap;
         SkillLineAbilityMap mSkillLineAbilityMapBySpellId;
         SkillLineAbilityMap mSkillLineAbilityMapBySkillId;
         SkillRaceClassInfoMap mSkillRaceClassInfoMap;

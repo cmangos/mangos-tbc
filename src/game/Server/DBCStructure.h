@@ -983,10 +983,11 @@ struct SpellEntry
         uint32    TotemCategory[MAX_SPELL_TOTEM_CATEGORIES];// 212-213  m_requiredTotemCategoryID
         uint32    AreaId;                                   // 214
         uint32    SchoolMask;                               // 215      m_schoolMask
+        float     effectBonusCoefficient[MAX_EFFECT_INDEX]; // 216-218  m_effectBonusCoefficient
 
         // custom
-        uint32    IsServerSide;                             // 216
-        uint32    AttributesServerside;                     // 217
+        uint32    IsServerSide;                             // 219
+        uint32    AttributesServerside;                     // 220
 
         // helpers
         int32 CalculateSimpleValue(SpellEffectIndex eff) const { return EffectBasePoints[eff] + int32(EffectBaseDice[eff]); }

@@ -97,8 +97,8 @@ struct EarthShield : public AuraScript
         Unit* target = data.target;
         if (Unit* caster = data.caster)
         {
-            value = caster->SpellHealingBonusDone(target, data.spellProto, value, SPELL_DIRECT_DAMAGE);
-            value = target->SpellHealingBonusTaken(caster, data.spellProto, value, SPELL_DIRECT_DAMAGE);
+            value = caster->SpellHealingBonusDone(target, data.spellProto, EFFECT_INDEX_0, value, SPELL_DIRECT_DAMAGE);
+            value = target->SpellHealingBonusTaken(caster, data.spellProto, EFFECT_INDEX_0, value, SPELL_DIRECT_DAMAGE);
         }
         return value;
     }

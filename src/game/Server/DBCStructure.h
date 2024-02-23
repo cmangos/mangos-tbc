@@ -984,6 +984,7 @@ struct SpellEntry
         uint32    AreaId;                                   // 214
         uint32    SchoolMask;                               // 215      m_schoolMask
         float     effectBonusCoefficient[MAX_EFFECT_INDEX]; // 216-218  m_effectBonusCoefficient
+        float     effectBonusCoefficientFromAP[MAX_EFFECT_INDEX]; // 232-234
 
         // custom
         uint32    IsServerSide;                             // 219

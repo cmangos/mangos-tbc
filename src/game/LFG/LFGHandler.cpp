@@ -17,8 +17,8 @@
  */
 
 #include "Server/WorldSession.h"
-#include "Log.h"
 #include "Globals/ObjectMgr.h"
+#include "Log/Log.h"
 #include "World/World.h"
 
 

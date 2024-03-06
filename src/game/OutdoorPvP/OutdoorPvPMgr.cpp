@@ -20,7 +20,7 @@
 #include "Policies/Singleton.h"
 #include "OutdoorPvP.h"
 #include "World/World.h"
-#include "Log.h"
+#include "Log/Log.h"
 #include "OutdoorPvPEP.h"
 #include "OutdoorPvPHP.h"
 #include "OutdoorPvPNA.h"

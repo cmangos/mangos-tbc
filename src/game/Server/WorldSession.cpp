@@ -24,7 +24,7 @@
 #include "Common.h"
 #include "Auth/CryptoHash.h"
 #include "Database/DatabaseEnv.h"
-#include "Log.h"
+#include "Log/Log.h"
 #include "Server/Opcodes.h"
 #include "Server/WorldPacket.h"
 #include "Server/WorldSession.h"

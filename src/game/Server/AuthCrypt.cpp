@@ -19,7 +19,7 @@
 #include "AuthCrypt.h"
 #include "Auth/CryptoHash.h"
 #include "Auth/HMACSHA1.h"
-#include "Log.h"
+#include "Log/Log.h"
 #include "Auth/BigNumber.h"
 
 const static size_t CRYPTED_SEND_LEN = 4;

@@ -22,7 +22,7 @@
 #include "Server/WorldSession.h"
 #include "Globals/ObjectMgr.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
-#include "Log.h"
+#include "Log/Log.h"
 #include "Server/Opcodes.h"
 #include "Spells/Spell.h"
 #include "DBScripts/ScriptMgr.h"

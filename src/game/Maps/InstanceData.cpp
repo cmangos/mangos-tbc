@@ -19,6 +19,7 @@
 #include "Maps/InstanceData.h"
 #include "Database/DatabaseEnv.h"
 #include "Maps/Map.h"
+#include "Log/Log.h"
 
 void InstanceData::SaveToDB() const
 {

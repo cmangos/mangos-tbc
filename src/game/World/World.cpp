@@ -25,7 +25,7 @@
 #include "Config/Config.h"
 #include "Platform/Define.h"
 #include "SystemConfig.h"
-#include "Log.h"
+#include "Log/Log.h"
 #include "Server/Opcodes.h"
 #include "Server/WorldSession.h"
 #include "Server/WorldPacket.h"

@@ -1095,6 +1095,7 @@ enum MangosStrings
 
     // Use for not-in-official-sources patches
     //                                    10000-10999
+    LANG_AUTOBROADCAST = 10000, /* |cffff0000[Server Announce]:|r%s */
 
     // Use for custom patches             11000-11999
 

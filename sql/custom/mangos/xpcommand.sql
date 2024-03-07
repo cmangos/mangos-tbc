@@ -1,0 +1,1 @@
+INSERT INTO tbcmangos.command VALUES('xp', '0', 'Syntax: .xp #subcommand XP boost commands');

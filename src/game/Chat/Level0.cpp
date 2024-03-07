@@ -305,3 +305,55 @@ bool ChatHandler::HandleWhisperRestrictionCommand(char* args)
 
     return true;
 }
+// Custom
+bool ChatHandler::HandleXPCommandSet(char* args)
+{
+    Player* player = m_session->GetPlayer();
+
+    uint32 modifier;
+    if (!ExtractOptUInt32(&args, modifier, 10))
+    {
+        PSendSysMessage("XP modifier not a valid number.");
+        return false;
+    }
+
+    uint32 cap = sWorld.GetExperienceCapForLevel(player->GetLevel(), player->GetTeam());
+    if (modifier && modifier <= cap)
+    {
+        player->SetPlayerXPModifier(modifier);
+        PSendSysMessage("You have set XP modifier to %u.", modifier);
+    }
+    else
+    {
+        PSendSysMessage("XP modifier not valid. Permitted values: 1 - %u.", cap);
+        return false;
+    }
+
+    return true;
+}
+
+bool ChatHandler::HandleXPCommandCurrent(char* /*args*/)
+{
+    Player* player = m_session->GetPlayer();
+
+    PSendSysMessage("Current XP modifier: %u.", player->GetPlayerXPModifier());
+
+    return true;
+}
+
+bool ChatHandler::HandleXPCommandAvailable(char* args)
+{
+    Player* player = m_session->GetPlayer();
+
+    PSendSysMessage("Current available XP modifiers:");
+    std::array<uint32, 255> caps;
+    sWorld.GetExperienceCapArray(player->GetTeam(), caps);
+
+    for (uint32 i = 1; i < MAX_LEVEL_TBC; i += 10)
+    {
+        PSendSysMessage("%u: %u, %u: %u, %u: %u, %u: %u, %u: %u, %u: %u, %u: %u, %u: %u, %u: %u, %u: %u",
+            i, caps[i], i + 1, caps[i + 1], i + 2, caps[i + 2], i + 3, caps[i + 3], i + 4, caps[i + 4], i + 5, caps[i + 5], i + 6, caps[i + 6], i + 7, caps[i + 7], i + 8, caps[i + 8], i + 9, caps[i + 9]);
+    }
+
+    return true;
+}

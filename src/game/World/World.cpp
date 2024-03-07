@@ -46,6 +46,7 @@
 #include "Maps/MapManager.h"
 #include "DBScripts/ScriptMgr.h"
 #include "AI/CreatureAIRegistry.h"
+#include "Tools/Language.h"
 #include "Policies/Singleton.h"
 #include "BattleGround/BattleGroundMgr.h"
 #include "OutdoorPvP/OutdoorPvP.h"
@@ -111,6 +112,8 @@ World::World() : mail_timer(0), mail_timer_expires(0), m_NextDailyQuestReset(0),
     m_startTime = m_gameTime;
     m_maxActiveSessionCount = 0;
     m_maxQueuedSessionCount = 0;
+    m_broadcastEnable = false;
+    m_broadcastList.clear();
 
     m_defaultDbcLocale = DEFAULT_LOCALE;
     m_availableDbcLocaleMask = 0;
@@ -126,6 +129,10 @@ World::World() : mail_timer(0), mail_timer_expires(0), m_NextDailyQuestReset(0),
 
     for (bool& m_configBoolValue : m_configBoolValues)
         m_configBoolValue = false;
+
+    for (int i = 0; i < 2; ++i)
+    for (int k = 0; k < MAX_PLAYER_LEVEL; ++k)
+        m_experienceBrackets[i][k] = 1;
 }
 
 /// World destructor
@@ -379,6 +386,20 @@ void World::LoadConfigSettings(bool reload)
     setConfigPos(CONFIG_FLOAT_RATE_HEALTH,                               "Rate.Health",                               1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_POWER_MANA,                           "Rate.Mana",                                 1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_POWER_RAGE_INCOME,                    "Rate.Rage.Income",                          1.0f);
+    setConfigMin(CONFIG_UINT32_AUTOBROADCAST_INTERVAL,                   "Autobroadcast",                             0, 0);
+    if (getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) > 0)
+    {
+        m_broadcastEnable = true;
+    }
+    else
+    {
+        m_broadcastEnable = false;
+    }
+
+    if (reload && m_broadcastEnable)
+    {
+        m_broadcastTimer.SetInterval(getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) * IN_MILLISECONDS);
+    }
     setConfigPos(CONFIG_FLOAT_RATE_POWER_RAGE_LOSS,                      "Rate.Rage.Loss",                            1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_POWER_FOCUS,                          "Rate.Focus",                                1.0f);
     setConfigPos(CONFIG_FLOAT_RATE_LOYALTY,                              "Rate.Loyalty",                              1.0f);
@@ -1366,6 +1387,23 @@ void World::SetInitialWorldSettings()
     mail_timer_expires = uint32((DAY * IN_MILLISECONDS) / (m_timers[WUPDATE_AUCTIONS].GetInterval()));
     DEBUG_LOG("Mail timer set to: %u, mail return is called every %u minutes", mail_timer, mail_timer_expires);
 
+    // for AutoBroadcast
+    sLog.outString("Starting AutoBroadcast System");
+    if (m_broadcastEnable)
+    {
+        LoadBroadcastStrings();
+    }
+    else
+    {
+        sLog.outString("AutoBroadcast is disabled");
+    }
+    sLog.outString();
+
+    if (m_broadcastEnable)
+    {
+        m_broadcastTimer.SetInterval(getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) * IN_MILLISECONDS);
+    }
+
     ///- Initialize static helper structures
     AIRegistry::Initialize();
 
@@ -1408,6 +1446,10 @@ void World::SetInitialWorldSettings()
     sLog.outString("Starting Game Event system...");
     uint32 nextGameEvent = sGameEventMgr.Initialize();
     m_timers[WUPDATE_EVENTS].SetInterval(nextGameEvent);    // depend on next event
+    sLog.outString();
+
+    sLog.outString("Loading Experience brackets...");
+    LoadExperienceBrackets();
     sLog.outString();
 
     sLog.outString("Loading Quest Group chosen quests...");
@@ -1522,6 +1564,24 @@ void World::Update(uint32 diff)
     /// Handle daily quests reset time
     if (m_gameTime > m_NextDailyQuestReset)
         ResetDailyQuests();
+    
+    if (m_broadcastEnable)
+    {
+    if (m_broadcastTimer.GetCurrent() >= 0)
+        {
+            m_broadcastTimer.Update(diff);
+        }
+    else
+        {
+            m_broadcastTimer.SetCurrent(0);
+        }
+
+    if (m_broadcastTimer.Passed())
+        {
+            m_broadcastTimer.Reset();
+            AutoBroadcast();
+        }
+    }
 
     /// Handle weekly quests reset time
     if (m_gameTime > m_NextWeeklyQuestReset)
@@ -2624,6 +2684,24 @@ void World::InvalidatePlayerDataToAllClient(ObjectGuid guid) const
     SendGlobalMessage(data);
 }
 
+void World::LoadExperienceBrackets()
+{
+    std::unique_ptr<QueryResult> result = CharacterDatabase.Query("SELECT low, high, team, value FROM experience_bracket_cap");
+    if (result)
+    {
+        do
+        {
+            Field* fields = result->Fetch();
+            uint32 low = fields[0].GetUInt32();
+            uint32 high = fields[1].GetUInt32();
+            uint32 team = fields[2].GetUInt32();
+            uint32 value = fields[3].GetUInt32();
+            for (; low <= high; low++)
+                m_experienceBrackets[team][low] = value;
+        } while (result->NextRow());
+    }
+}
+
 void World::SendGMTextFlags(uint32 accountFlag, int32 stringId, std::string type, const char* message)
 {
     std::string mangosString = sObjectMgr.GetMangosString(stringId, DEFAULT_LOCALE);
@@ -2800,4 +2878,82 @@ void World::LoadWorldSafeLocs() const
 {
     sWorldSafeLocsStore.Load(true);
     sLog.outString(">> Loaded %u world safe locs", sWorldSafeLocsStore.GetRecordCount());
+}
+
+void World::LoadBroadcastStrings()
+{
+    if (!m_broadcastEnable)
+    {
+        return;
+    }
+
+    auto QueryResult = WorldDatabase.Query("SELECT `autobroadcast`.`id`, `autobroadcast`.`content`,`autobroadcast`.`ratio` FROM `autobroadcast`");
+
+    if (!QueryResult)
+    {
+        m_broadcastEnable = false;
+        sLog.outErrorDb("DB table `autobroadcast` is empty.");
+        sLog.outString();
+        return;
+    }
+
+    m_broadcastList.clear();
+
+    BarGoLink bar(QueryResult->GetRowCount());
+    m_broadcastWeight = 0;
+
+    do
+    {
+        Field* fields = QueryResult->Fetch();
+        bar.step();
+
+        uint32 ratio = fields[2].GetUInt32();
+        if (ratio == 0)
+        {
+            continue;
+        }
+
+        m_broadcastWeight += ratio;
+
+        BroadcastString bs;
+        bs.text = fields[1].GetString();
+        bs.freq = m_broadcastWeight;
+        m_broadcastList.push_back(bs);
+    } while (QueryResult->NextRow());
+
+}
+
+void World::AutoBroadcast()
+{
+    if (m_broadcastList.size() == 1)
+    {
+        SendWorldText(LANG_AUTOBROADCAST, m_broadcastList[0].text.c_str());
+    }
+    else
+    {
+        uint32 rn = urand(1, m_broadcastWeight);
+        std::vector<BroadcastString>::const_iterator it;
+        for (it = m_broadcastList.begin(); it != m_broadcastList.end(); ++it)
+        {
+            if (rn <= it->freq)
+            {
+                break;
+            }
+        }
+        SendWorldText(LANG_AUTOBROADCAST, it->text.c_str());
+    }
+}
+
+void World::GetExperienceCapArray(Team team, std::array<uint32, MAX_PLAYER_LEVEL>& capArray)
+{
+    capArray = m_experienceBrackets[team == HORDE ? 0 : 1];
+}
+
+uint32 World::GetExperienceCapForLevel(uint32 level, Team team)
+{
+    return m_experienceBrackets[team == HORDE ? 0 : 1][level];
+}
+
+void AutoBroadcast()
+{
 }

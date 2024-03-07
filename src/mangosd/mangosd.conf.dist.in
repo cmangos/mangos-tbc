@@ -260,6 +260,7 @@ AddonChannel = 1
 CleanCharacterDB = 1
 MaxWhoListReturns = 49
 AccountData = 0
+AutoBroadcast = 1200
 
 ###################################################################################################################
 # SERVER LOGGING

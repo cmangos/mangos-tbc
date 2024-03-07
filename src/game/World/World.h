@@ -208,6 +208,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL,
     CONFIG_UINT32_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL_DIFFERENCE,
     CONFIG_UINT32_SUNSREACH_COUNTER,
+    CONFIG_UINT32_AUTOBROADCAST_INTERVAL,
     CONFIG_UINT32_VALUE_COUNT
 };
 
@@ -459,6 +460,8 @@ enum RealmZone
     REALM_ZONE_CN5_8         = 37                           // basic-Latin at create, any at login
 };
 
+#define MAX_PLAYER_LEVEL 255
+
 /// Storage class for commands issued for delayed execution
 struct CliCommandHolder
 {
@@ -650,11 +653,16 @@ class World
         * FullName: World::InvalidatePlayerDataToAllClient
         * Access: public
         **/
+        void LoadBroadcastStrings();
         void InvalidatePlayerDataToAllClient(ObjectGuid guid) const;
 
         static uint32 GetCurrentMSTime() { return m_currentMSTime; }
         static TimePoint GetCurrentClockTime() { return m_currentTime; }
         static uint32 GetCurrentDiff() { return m_currentDiff; }
+
+        // Custom
+        uint32 GetExperienceCapForLevel(uint32 level, Team team);
+        void GetExperienceCapArray(Team team, std::array<uint32, MAX_PLAYER_LEVEL>& capArray);
 
         template<typename T>
         void ExecuteForAllSessions(T executor) const
@@ -677,9 +685,14 @@ class World
         // callback for UpdateRealmCharacters
         void _UpdateRealmCharCount(QueryResult* resultCharCount, uint32 accountId);
 
+        void LoadExperienceBrackets();
         void InitDailyQuestResetTime();
         void InitWeeklyQuestResetTime();
         void SetMonthlyQuestResetTime(bool initialize = true);
+
+        // Custom
+        // Map of counts of given group
+        std::array<std::array<uint32, MAX_PLAYER_LEVEL>, 2> m_experienceBrackets;
 
         void GenerateEventGroupEvents(bool daily, bool weekly, bool deleteColumns);
         void LoadEventGroupChosen();
@@ -792,6 +805,18 @@ class World
         std::array<std::atomic<uint32>, MAX_CLASSES> m_onlineClasses;
 
         GraveyardManager m_graveyardManager;
+
+        // AutoBroadcast system
+        void AutoBroadcast();
+        struct BroadcastString
+        {
+            uint32 freq;
+            std::string text;
+        };
+        std::vector<BroadcastString> m_broadcastList;
+        uint32 m_broadcastWeight;
+        bool m_broadcastEnable;
+        IntervalTimer m_broadcastTimer;
 };
 
 extern uint32 realmID;

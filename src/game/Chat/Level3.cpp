@@ -358,6 +358,14 @@ bool ChatHandler::HandleReloadCommandCommand(char* /*args*/)
     SendGlobalSysMessage("DB table `command` will be reloaded at next chat command use.");
     return true;
 }
+    // Handle Reload for Autobroadcast.
+bool ChatHandler::HandleReloadAutoBroadcastCommand(char* /*args*/)
+{
+    sLog.outString("Re-Loading broadcast strings...");
+    sWorld.LoadBroadcastStrings();
+    SendGlobalSysMessage("Broadcast strings reloaded.");
+    return true;
+}
 
 bool ChatHandler::HandleReloadCreatureQuestRelationsCommand(char* /*args*/)
 {

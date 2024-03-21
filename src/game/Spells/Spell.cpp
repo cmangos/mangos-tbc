@@ -47,6 +47,10 @@
 #include "Spells/Scripts/SpellScript.h"
 #include "Entities/ObjectGuid.h"
 
+#ifdef ENABLE_PLAYERBOTS
+#include "playerbot/PlayerbotAI.h"
+#endif
+
 extern pEffect SpellEffects[MAX_SPELL_EFFECTS];
 
 class PrioritizeManaUnitWraper
@@ -5169,6 +5173,17 @@ SpellCastResult Spell::CheckCast(bool strict)
 
             if (m_spellInfo->MaxTargetLevel && target->GetLevel() > m_spellInfo->MaxTargetLevel)
                 return SPELL_FAILED_HIGHLEVEL;
+
+#ifdef ENABLE_PLAYERBOTS
+            if (target->IsPlayer())
+            {
+                PlayerbotAI* bot = ((Player*)target)->GetPlayerbotAI();
+                if (bot && bot->IsImmuneToSpell(m_spellInfo->Id))
+                {
+                    return SPELL_FAILED_IMMUNE;
+                }
+            }
+#endif
 
             if (m_spellInfo->HasAttribute(SPELL_ATTR_EX5_NOT_ON_TRIVIAL) && target->IsTrivialForTarget(m_caster))
                 return SPELL_FAILED_TARGET_IS_TRIVIAL;

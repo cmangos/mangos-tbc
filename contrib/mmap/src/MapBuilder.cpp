@@ -31,6 +31,36 @@
 
 using namespace VMAP;
 
+void rcModAlmostUnwalkableTriangles(rcContext* ctx, const float walkableSlopeAngle,
+    const float* verts, int /*nv*/,
+    const int* tris, int nt,
+    unsigned char* areas)
+{
+    rcIgnoreUnused(ctx);
+
+    const float walkableThr = cosf(walkableSlopeAngle / 180.0f * RC_PI);
+
+    float norm[3];
+
+    for (int i = 0; i < nt; ++i)
+    {
+        if (areas[i] & RC_WALKABLE_AREA)
+        {
+            const int* tri = &tris[i * 3];
+
+            float e0[3], e1[3];
+            rcVsub(e0, &verts[tri[1] * 3], &verts[tri[0] * 3]);
+            rcVsub(e1, &verts[tri[2] * 3], &verts[tri[0] * 3]);
+            rcVcross(norm, e0, e1);
+            rcVnormalize(norm);
+
+            // Check if the face is walkable.
+            if (norm[1] <= walkableThr)
+                areas[i] = NAV_AREA_GROUND_STEEP; //Slopes between 50 and 60. Walkable for mobs, unwalkable for players.
+        }
+    }
+}
+
 void from_json(const json& j, rcConfig& config)
 {
     config.tileSize = MMAP::VERTEX_PER_TILE;
@@ -1004,6 +1034,10 @@ namespace MMAP
         unsigned char* triFlags = new unsigned char[tTriCount];
         memset(triFlags, NAV_AREA_GROUND, tTriCount * sizeof(unsigned char));
         rcClearUnwalkableTriangles(m_rcContext, tileCfg.walkableSlopeAngle, tVerts, tVertCount, tTris, tTriCount, triFlags);
+
+        // mark almost unwalkable triangles with steep flag
+        rcModAlmostUnwalkableTriangles(m_rcContext, 50.0f, tVerts, tVertCount, tTris, tTriCount, triFlags);
+
         rcRasterizeTriangles(m_rcContext, tVerts, tVertCount, tTris, triFlags, tTriCount, *tile.solid, tileCfg.walkableClimb);
         delete[] triFlags;
 

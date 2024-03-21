@@ -46,6 +46,9 @@ const char DurabilityCostsfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiiiiiii";
 const char DurabilityQualityfmt[] = "nf";
 const char EmotesEntryfmt[] = "nxxiiix";
 const char EmotesTextEntryfmt[] = "nxixxxxxxxxxxxxxxxx";
+#ifdef ENABLE_PLAYERBOTS
+char const EmotesTextSoundEntryfmt[] = "niiii";
+#endif
 // const char FactionEntryfmt[] = "niiiiiiiiiiiiiiiiiissssssssssssssssxxxxxxxxxxxxxxxxxx";
 const char FactionTemplateEntryfmt[] = "niiiiiiiiiiiii";
 const char GameObjectArtKitfmt[] = "nxxxxxxx";
@@ -74,6 +77,9 @@ const char ItemExtendedCostEntryfmt[] = "niiiiiiiiiiiii";
 const char ItemRandomPropertiesfmt[] = "nxiiixxssssssssssssssssx";
 const char ItemRandomSuffixfmt[] = "nssssssssssssssssxxiiiiii";
 const char ItemSetEntryfmt[] = "dssssssssssssssssxxxxxxxxxxxxxxxxxxiiiiiiiiiiiiiiiiii";
+#ifdef ENABLE_PLAYERBOTS
+const char LFGDungeonEntryfmt[] = "nssssssssssssssssxiiiixx";
+#endif
 const char LiquidTypefmt[] = "niii";
 const char LightEntryfmt[] = "nifffxxxxxxx";
 const char LockEntryfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiixxxxxxxx";

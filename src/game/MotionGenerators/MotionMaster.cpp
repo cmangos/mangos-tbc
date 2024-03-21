@@ -417,12 +417,12 @@ void MotionMaster::MovePointTOL(uint32 id, float x, float y, float z, bool takeO
     Mutate(new PointTOLMovementGenerator(id, x, y, z, takeOff, forcedMovement));
 }
 
-void MotionMaster::MovePath(std::vector<G3D::Vector3>& path, ForcedMovement forcedMovement, bool flying)
+void MotionMaster::MovePath(std::vector<G3D::Vector3>& path, ForcedMovement forcedMovement, bool flying, bool cyclic)
 {
-    return MovePath(path, 0, forcedMovement, flying);
+    return MovePath(path, 0, forcedMovement, flying, cyclic);
 }
 
-void MotionMaster::MovePath(std::vector<G3D::Vector3>& path, float o, ForcedMovement forcedMovement, bool flying)
+void MotionMaster::MovePath(std::vector<G3D::Vector3>& path, float o, ForcedMovement forcedMovement, bool flying, bool cyclic)
 {
     if (path.empty())
         return;
@@ -435,7 +435,7 @@ void MotionMaster::MovePath(std::vector<G3D::Vector3>& path, float o, ForcedMove
     else
         DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "%s follows a pre-calculated path to X: %f Y: %f Z: %f", m_owner->GetGuidStr().c_str(), x, y, z);
 
-    Mutate(new FixedPathMovementGenerator(path, o, forcedMovement, flying));
+    Mutate(new FixedPathMovementGenerator(path, o, forcedMovement, flying, 0.0f, 0, cyclic));
 }
 
 void MotionMaster::MovePath(int32 pathId, WaypointPathOrigin wpOrigin /*= PATH_NO_PATH*/, ForcedMovement forcedMovement, bool flying, float speed, bool cyclic, ObjectGuid guid/* = ObjectGuid()*/)

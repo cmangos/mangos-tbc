@@ -34,6 +34,12 @@
 #include "Pools/PoolManager.h"
 #include "GameEvents/GameEventMgr.h"
 
+#ifdef ENABLE_PLAYERBOTS
+#include "ahbot/AhBot.h"
+#include "playerbot/playerbot.h"
+#include "playerbot/PlayerbotAIConfig.h"
+#endif
+
 #include <cstdarg>
 
 // Supported shift-links (client generated and server side)
@@ -942,6 +948,14 @@ ChatCommand* ChatHandler::getCommandTable()
         { "auction",        SEC_ADMINISTRATOR,  false, nullptr,                                        "", auctionCommandTable  },
 #ifdef BUILD_AHBOT
         { "ahbot",          SEC_ADMINISTRATOR,  true,  nullptr,                                        "", ahbotCommandTable    },
+#endif
+#ifdef ENABLE_PLAYERBOTS
+#ifndef BUILD_AHBOT
+        { "ahbot",            SEC_GAMEMASTER,    true,  &ChatHandler::HandleAhBotCommand,              "", nullptr },
+#endif
+        { "rndbot",           SEC_GAMEMASTER,    true,  &ChatHandler::HandleRandomPlayerbotCommand,    "", nullptr },
+        { "bot",              SEC_PLAYER,        false, &ChatHandler::HandlePlayerbotCommand,          "", nullptr },
+        { "pmon",             SEC_GAMEMASTER,    true,  &ChatHandler::HandlePerfMonCommand,            "", nullptr },
 #endif
         { "cast",           SEC_ADMINISTRATOR,  false, nullptr,                                        "", castCommandTable     },
         { "character",      SEC_GAMEMASTER,     true,  nullptr,                                        "", characterCommandTable},

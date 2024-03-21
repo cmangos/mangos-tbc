@@ -380,6 +380,21 @@ struct EmotesTextEntry
     //          m_emoteText
 };
 
+#ifdef ENABLE_PLAYERBOTS
+/**
+* \struct EmotesTextSoundEntry
+* \brief Entry resenting the text sound for given emote.
+*/
+struct EmotesTextSoundEntry
+{
+    uint32 Id;                                              // 0
+    uint32 EmotesTextId;                                    // 1
+    uint32 RaceId;                                          // 2
+    uint32 SexId;                                           // 3, 0 male / 1 female
+    uint32 SoundId;                                         // 4
+};
+#endif
+
 struct FactionEntry
 {
     uint32      ID;                                         // 0        m_ID
@@ -683,6 +698,19 @@ struct LightEntry
     //uint32 otherParams;                                   // 10
     //uint32 deathParams;                                   // 11
 };
+
+#ifdef ENABLE_PLAYERBOTS
+struct LFGDungeonEntry
+{
+    uint32  ID;                                             // 0     m_ID
+    char* name[16];                                       // 1-17  m_name_lang
+    //uint32 mask                                           // 18    m_name_lang_mask
+    uint32  minlevel;                                       // 19    m_minLevel
+    uint32  maxlevel;                                       // 20    m_maxLevel
+    uint32  type;                                           // 21    m_typeId
+    uint32  faction;                                        // 22    m_faction
+};
+#endif
 
 struct LiquidTypeEntry
 {

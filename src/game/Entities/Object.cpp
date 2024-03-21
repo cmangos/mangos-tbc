@@ -2555,8 +2555,14 @@ struct WorldObjectChangeAccumulator
     {
         // send self fields changes in another way, otherwise
         // with new camera system when player's camera too far from player, camera wouldn't receive packets and changes from player
-        if (i_object.isType(TYPEMASK_PLAYER))
-            i_object.BuildUpdateDataForPlayer((Player*)&i_object, i_updateDatas);
+        if (i_object.IsPlayer())
+        {
+            Player* plr = static_cast<Player*>(&i_object);
+#ifdef ENABLE_PLAYERBOTS
+            if (plr->isRealPlayer())
+#endif
+            i_object.BuildUpdateDataForPlayer(plr, i_updateDatas);
+        }
     }
 
     void Visit(CameraMapType& m)
@@ -2564,8 +2570,15 @@ struct WorldObjectChangeAccumulator
         for (auto& iter : m)
         {
             Player* owner = iter.getSource()->GetOwner();
+#ifdef ENABLE_PLAYERBOTS
+            if (owner->isRealPlayer())
+            {
+#endif
             if (owner != &i_object && owner->HasAtClient(&i_object))
                 i_object.BuildUpdateDataForPlayer(owner, i_updateDatas);
+#ifdef ENABLE_PLAYERBOTS
+            }
+#endif
         }
     }
 

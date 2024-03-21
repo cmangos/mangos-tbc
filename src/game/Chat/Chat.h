@@ -99,7 +99,9 @@ class ChatHandler
         static bool HasEscapeSequences(const char* message);
         static bool CheckEscapeSequences(const char* message);
 
-        bool HasSentErrorMessage() const { return sentErrorMessage;}
+        bool HasSentErrorMessage() const { return sentErrorMessage; }
+
+        WorldSession* GetSession() { return m_session; }
 
         /**
         * \brief Prepare SMSG_GM_MESSAGECHAT/SMSG_MESSAGECHAT
@@ -766,6 +768,13 @@ class ChatHandler
         bool HandleQuitCommand(char* args);
 #ifdef BUILD_DEPRECATED_PLAYERBOT
         bool HandlePlayerbotCommand(char* args);
+#endif
+
+#ifdef ENABLE_PLAYERBOTS
+        bool HandlePlayerbotCommand(char* args);
+        bool HandleRandomPlayerbotCommand(char* args);
+        bool HandleAhBotCommand(char* args);
+        bool HandlePerfMonCommand(char* args);
 #endif
 
         bool HandleArenaFlushPointsCommand(char* args);

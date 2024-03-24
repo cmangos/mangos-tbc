@@ -1114,7 +1114,8 @@ void Aura::HandleAddModifier(bool apply, bool Real)
     if (!apply)
         m_spellmod = nullptr;
 
-    ReapplyAffectedPassiveAuras();
+    if (apply)
+      ReapplyAffectedPassiveAuras();
 }
 
 void Aura::TriggerSpell()

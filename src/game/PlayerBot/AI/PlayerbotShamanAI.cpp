@@ -28,6 +28,7 @@ PlayerbotShamanAI::PlayerbotShamanAI(Player& master, Player& bot, PlayerbotAI& a
     LESSER_HEALING_WAVE      = m_ai.initSpell(LESSER_HEALING_WAVE_1);
     ANCESTRAL_SPIRIT         = m_ai.initSpell(ANCESTRAL_SPIRIT_1);
     EARTH_SHIELD             = m_ai.initSpell(EARTH_SHIELD_1);
+    WATER_SHIELD             = m_ai.initSpell(WATER_SHIELD_1);
     TREMOR_TOTEM             = m_ai.initSpell(TREMOR_TOTEM_1); // totems
     MANA_SPRING_TOTEM        = m_ai.initSpell(MANA_SPRING_TOTEM_1);
     MANA_TIDE_TOTEM          = m_ai.initSpell(MANA_TIDE_TOTEM_1);
@@ -196,9 +197,9 @@ CombatManeuverReturns PlayerbotShamanAI::DoNextCombatManeuverPVE(Unit* pTarget)
     switch (spec)
     {
         case SHAMAN_SPEC_ENHANCEMENT:
-            if (STORMSTRIKE > 0 && (m_bot.IsSpellReady(STORMSTRIKE)) && m_ai.CastSpell(STORMSTRIKE, *pTarget) == SPELL_CAST_OK)
-                return RETURN_CONTINUE;
             if (FLAME_SHOCK > 0 && (!pTarget->HasAura(FLAME_SHOCK)) && m_ai.CastSpell(FLAME_SHOCK, *pTarget) == SPELL_CAST_OK)
+                return RETURN_CONTINUE;
+            if (STORMSTRIKE > 0 && (m_bot.IsSpellReady(STORMSTRIKE)) && m_ai.CastSpell(STORMSTRIKE, *pTarget) == SPELL_CAST_OK)
                 return RETURN_CONTINUE;
             if (EARTH_SHOCK > 0 && (m_bot.IsSpellReady(EARTH_SHOCK)) && m_ai.CastSpell(EARTH_SHOCK, *pTarget) == SPELL_CAST_OK)
                 return RETURN_CONTINUE;
@@ -339,10 +340,19 @@ void PlayerbotShamanAI::DropTotems()
 
     // Fire Totems
     if ((fire == nullptr) || (m_bot.GetDistance(fire) > 30))
-    {
-        if (m_ai.GetCombatOrder() & PlayerbotAI::ORDERS_RESIST_FROST && FROST_RESISTANCE_TOTEM > 0 && m_ai.CastSpell(FROST_RESISTANCE_TOTEM) == SPELL_CAST_OK)
-            return;
-        else if (spec == SHAMAN_SPEC_ELEMENTAL && TOTEM_OF_WRATH > 0 && m_ai.CastSpell(TOTEM_OF_WRATH))
+    {   
+        switch (m_ai.GetCombatOrder())
+        {
+            case PlayerbotAI::ORDERS_RESIST_FROST:
+                if (FROST_RESISTANCE_TOTEM > 0 && m_ai.CastSpell(FROST_RESISTANCE_TOTEM) == SPELL_CAST_OK)
+                    return;
+            case PlayerbotAI::ORDERS_ASSIST:
+                if (MAGMA_TOTEM > 0 && m_ai.GetAttackerCount() > 1 && m_ai.CastSpell(MAGMA_TOTEM) == SPELL_CAST_OK)
+                    return;
+                if (SEARING_TOTEM > 0 && m_ai.CastSpell(SEARING_TOTEM) == SPELL_CAST_OK)
+                    return;
+        }
+        if (spec == SHAMAN_SPEC_ELEMENTAL && TOTEM_OF_WRATH > 0 && m_ai.CastSpell(TOTEM_OF_WRATH))
             return;
         // If the spec didn't take totem of wrath, use flametongue
         else if ((spec != SHAMAN_SPEC_ELEMENTAL || TOTEM_OF_WRATH == 0) && FLAMETONGUE_TOTEM > 0 && m_ai.CastSpell(FLAMETONGUE_TOTEM) == SPELL_CAST_OK)
@@ -400,8 +410,9 @@ void PlayerbotShamanAI::DropTotems()
 void PlayerbotShamanAI::CheckShields()
 {
    uint32 spec = m_bot.GetSpec();
-
-    if (spec == SHAMAN_SPEC_ENHANCEMENT && LIGHTNING_SHIELD > 0 && !m_bot.HasAura(LIGHTNING_SHIELD, EFFECT_INDEX_0))
+    if (WATER_SHIELD > 0 && !m_bot.HasAura(WATER_SHIELD, EFFECT_INDEX_0))
+        m_ai.CastSpell(WATER_SHIELD, m_bot);
+    else if (spec == SHAMAN_SPEC_ENHANCEMENT && LIGHTNING_SHIELD > 0 && !m_bot.HasAura(LIGHTNING_SHIELD, EFFECT_INDEX_0))
         m_ai.CastSpell(LIGHTNING_SHIELD, m_bot);
     if (EARTH_SHIELD > 0 && !m_master.HasAura(EARTH_SHIELD, EFFECT_INDEX_0))
         m_ai.CastSpell(EARTH_SHIELD, m_master);
@@ -417,7 +428,7 @@ void PlayerbotShamanAI::UseCooldowns()
     switch (spec)
     {
         case SHAMAN_SPEC_ENHANCEMENT:
-            if (SHAMANISTIC_RAGE > 0 && m_ai.CastSpell(SHAMANISTIC_RAGE, m_bot) == SPELL_CAST_OK)
+            if (SHAMANISTIC_RAGE > 0 && m_ai.GetManaPercent() < 20 && m_ai.CastSpell(SHAMANISTIC_RAGE, m_bot) == SPELL_CAST_OK)
                 return;
             break;
 
@@ -476,13 +487,23 @@ void PlayerbotShamanAI::DoNonCombatActions()
     // Mainhand
     Item* weapon;
     weapon = m_bot.GetItemByPos(EQUIPMENT_SLOT_MAINHAND);
+    DEBUG_LOG("checking mainhand wep...");
+    if (weapon)
+        DEBUG_LOG("weapon is true");
+    if (weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0)
+        DEBUG_LOG("temp wep enchant slot zero is true");
+    if (spec == SHAMAN_SPEC_ELEMENTAL)
+        DEBUG_LOG("elemental spec is true");
+    if (spec == SHAMAN_SPEC_ENHANCEMENT)
+        DEBUG_LOG("enhancment spec is true");
     if (weapon && (weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0) && spec == SHAMAN_SPEC_ELEMENTAL)
         m_ai.CastSpell(FLAMETONGUE_WEAPON, m_bot);
     else if (weapon && (weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0) && spec == SHAMAN_SPEC_ENHANCEMENT)
         m_ai.CastSpell(WINDFURY_WEAPON, m_bot);
 
     //Offhand
-    weapon = m_bot.GetItemByPos(EQUIPMENT_SLOT_OFFHAND);
+    // weapon = m_bot.GetItemByPos(EQUIPMENT_SLOT_OFFHAND);
+    weapon = m_bot.GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND);
     if (weapon && (weapon->GetEnchantmentId(TEMP_ENCHANTMENT_SLOT) == 0) && spec == SHAMAN_SPEC_ENHANCEMENT)
         m_ai.CastSpell(FLAMETONGUE_WEAPON, m_bot);
 

@@ -77,6 +77,7 @@ enum
     TOTEMIC_RECALL_1                = 36936,
     TREMOR_TOTEM_1                  = 8143,
     WATER_BREATHING_1               = 131,
+    WATER_SHIELD_1                  = 24398,
     WATER_WALKING_1                 = 546,
     WINDFURY_TOTEM_1                = 8512,
     WINDFURY_WEAPON_1               = 8232,
@@ -170,6 +171,7 @@ class PlayerbotShamanAI : PlayerbotClassAI
                CHAIN_HEAL,
                MANA_TIDE_TOTEM,
                EARTH_SHIELD,
+               WATER_SHIELD,
                CURE_DISEASE_SHAMAN,
                CURE_POISON_SHAMAN;
 

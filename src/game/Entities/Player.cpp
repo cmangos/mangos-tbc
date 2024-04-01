@@ -21965,6 +21965,25 @@ void Player::SendLootError(ObjectGuid guid, LootError error) const
     SendDirectMessage(data);
 }
 
+void Player::SetDeathPrevention(bool enable)
+{
+    if (enable)
+        m_ExtraFlags |= PLAYER_EXTRA_GM_UNKILLABLE;
+    else
+        m_ExtraFlags &= ~PLAYER_EXTRA_GM_UNKILLABLE;
+}
+
+bool Player::IsPreventingDeath() const
+{
+    return m_ExtraFlags & PLAYER_EXTRA_GM_UNKILLABLE;
+}
+
+void Player::ResetDeathTimer()
+{
+    // 6 minutes until repop at graveyard
+    m_deathTimer = 6 * MINUTE * IN_MILLISECONDS;
+}
+
 void Player::AddGCD(SpellEntry const& spellEntry, uint32 /*forcedDuration = 0*/, bool updateClient /*= false*/)
 {
     int32 gcdDuration = spellEntry.StartRecoveryTime;

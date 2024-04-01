@@ -520,6 +520,9 @@ enum PlayerExtraFlags
     // other states
     PLAYER_EXTRA_PVP_DEATH          = 0x0100,                // store PvP death status until corpse creating.
     PLAYER_EXTRA_WHISP_RESTRICTION  = 0x0200,
+
+    // death prevention
+    PLAYER_EXTRA_GM_UNKILLABLE         = 0x0400,
 };
 
 // 2^n values
@@ -2293,6 +2296,9 @@ class Player : public Unit
         virtual CombatData const* GetCombatData() const override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
 
         void SendLootError(ObjectGuid guid, LootError error) const;
+
+        void SetDeathPrevention(bool enable);
+        bool IsPreventingDeath() const override;
 
         // cooldown system
         virtual void AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration = 0, bool updateClient = false) override;

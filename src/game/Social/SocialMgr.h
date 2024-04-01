@@ -115,14 +115,22 @@ class PlayerSocial
         PlayerSocial();
         ~PlayerSocial();
         // adding/removing
-        bool AddToSocialList(ObjectGuid friend_guid, bool ignore);
+#ifdef BUILD_VOICECHAT
+        bool AddToSocialList(ObjectGuid friend_guid, bool ignore, bool muted = false);
+        void RemoveFromSocialList(ObjectGuid friend_guid, bool ignore, bool muted = false);
+#else
+    bool AddToSocialList(ObjectGuid friend_guid, bool ignore);
         void RemoveFromSocialList(ObjectGuid friend_guid, bool ignore);
+#endif
         void SetFriendNote(ObjectGuid friend_guid, std::string note);
         // Packet send's
         void SendSocialList();
         // Misc
         bool HasFriend(ObjectGuid friend_guid);
         bool HasIgnore(ObjectGuid ignore_guid);
+#ifdef BUILD_VOICECHAT
+        bool HasMute(ObjectGuid ignore_guid);
+#endif
         void SetPlayerGuid(ObjectGuid guid) { m_playerLowGuid = guid.GetCounter(); }
         uint32 GetNumberOfSocialsWithFlag(SocialFlag flag);
     private:

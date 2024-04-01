@@ -941,6 +941,17 @@ ChatCommand* ChatHandler::getCommandTable()
         { nullptr,         0,                  false,  nullptr,                                        "", nullptr }
     };
 
+#ifdef BUILD_VOICECHAT
+    static ChatCommand voiceChatCommandTable[] =
+    {
+        { "disconnect",    SEC_ADMINISTRATOR,  false,  &ChatHandler::HandleVoiceChatDisconnectCommand, "", nullptr },
+        { "disable",       SEC_ADMINISTRATOR,  false,  &ChatHandler::HandleVoiceChatDisableCommand,    "", nullptr },
+        { "enable",        SEC_ADMINISTRATOR,  false,  &ChatHandler::HandleVoiceChatEnableCommand,     "", nullptr },
+        { "stats",         SEC_ADMINISTRATOR,  false,  &ChatHandler::HandleVoiceChatStatsCommand,      "", nullptr },
+        { nullptr,         0,                  false,  nullptr,                                        "", nullptr }
+    };
+#endif
+
     static ChatCommand commandTable[] =
     {
         { "anticheat",      SEC_GAMEMASTER,     true,  nullptr,                                        "", anticheatCommandTable},
@@ -1055,6 +1066,9 @@ ChatCommand* ChatHandler::getCommandTable()
         { "loot",           SEC_GAMEMASTER,     true,  nullptr,                                        "", lootCommandTable },
 #ifdef BUILD_DEPRECATED_PLAYERBOT
         { "bot",            SEC_PLAYER,         false, &ChatHandler::HandlePlayerbotCommand,           "", nullptr },
+#endif
+#ifdef BUILD_VOICECHAT
+        { "voicechat",      SEC_ADMINISTRATOR,  false, nullptr,                                        "", voiceChatCommandTable },
 #endif
         { nullptr,          0,                  false, nullptr,                                        "", nullptr }
     };

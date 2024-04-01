@@ -817,6 +817,14 @@ class ChatHandler
         bool HandleBattlegroundStartCommand(char* args);
         bool HandleBattlegroundStopCommand(char* args);
 
+#ifdef BUILD_VOICECHAT
+        // Voice Chat
+        bool HandleVoiceChatDisconnectCommand(char* args);
+        bool HandleVoiceChatDisableCommand(char* args);
+        bool HandleVoiceChatEnableCommand(char* args);
+        bool HandleVoiceChatStatsCommand(char* args);
+#endif
+
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
 

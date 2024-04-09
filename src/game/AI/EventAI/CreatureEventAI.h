@@ -77,6 +77,7 @@ enum EventAI_Type
     EVENT_T_DEATH_PREVENTED         = 35,                   //
     EVENT_T_TARGET_NOT_REACHABLE    = 36,                   //
     EVENT_T_SPELL_CAST              = 37,                   // SpellId
+    EVENT_T_OOC_NO_LOS              = 38,                   // NoHostile, MaxRange, RepeatMin, RepeatMax, PlayerOnly, ConditionId
 
     EVENT_T_END,
 };
@@ -794,6 +795,16 @@ struct CreatureEventAI_Event
         {
             uint32 spellId;
         } spellCast;
+        // EVENT_T_OOC_NO_LOS                                      = 38
+        struct
+        {
+            uint32 noHostile;
+            uint32 maxRange;
+            uint32 repeatMin;
+            uint32 repeatMax;
+            uint32 playerOnly;
+            uint32 conditionId;
+        } ooc_no_los;
         // RAW
         struct
         {

@@ -103,6 +103,7 @@ Some events such as EVENT_T_AGGRO, EVENT_T_DEATH, EVENT_T_SPAWNED, and EVENT_T_E
 35  EVENT_T_DEATH_PREVENTED             NONE                                                                    Expires when Death prevention kicks in
 36  EVENT_T_TARGET_NOT_REACHABLE        NONE                                                                    Expires when target is not reachable
 37  EVENT_T_SPELL_CAST                  SpellID                                                                 Expires when spell list casts spell Id successfully
+38  EVENT_T_OOC_LOS                     NoHostile, MaxRange, RepeatMin, RepeatMax, PlayerOnly, ConditionId      Expires when a unit moves within distance (MaxAllowedRange) of the NPC. If (Param1) is 0 it will expire only when unit is hostile, If (Param1) is 1 it will expire only when unit is friendly. This depends generally on faction relations. Will repeat every (Param3) and (Param4). Does NOT expire when the NPC is in combat.
 
 =========================================
 Action Types
@@ -569,6 +570,18 @@ SPELL_SCHOOL_SHADOW = 5 ==> 32
 SPELL_SCHOOL_ARCANE = 6 ==> 64
 Use These Bitmask Values For Schoolmask (Param2) or Any Combinations Of These School Bitmasks for Multiple Schools.
 
+---------------------
+38 = EVENT_T_OOC_NO_LOS:
+---------------------
+Parameter 1: NoHostile       - This will expire if Unit are hostile. If Param1=1 it will only expire if Unit are not Hostile(generally determined by faction)
+Parameter 2: MaxAllowedRange - Expires when a Unit moves within this distance to creature
+Parameter 3: RepeatMin       - Minimum Time used to calculate Random Repeat Expire
+Parameter 4: RepeatMax       - Maximum Time used to calculate Random Repeat Expire
+Parameter 5: PlayerOnly      - Expires only when a Player moves within distance
+Parameter 6: ConditionId     - Expires only when condition is fulfilled. Only use when other options are not usable since it is a bit more impactful performance wise!!!
+
+OUT OF COMBAT ONLY
+This Event is commonly used for NPC's who do something or say something to you when you walk past them Out of Combat. Has no LoS Check
 =========================================
 Action Types
 =========================================

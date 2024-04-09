@@ -167,7 +167,7 @@ void CreatureEventAI::InitAI()
                 {
                     m_CreatureEventAIList.push_back(CreatureEventAIHolder(aiEvent));
                     // Cache for fast use
-                    if (aiEvent.event_type == EVENT_T_OOC_LOS)
+                    if (aiEvent.event_type == EVENT_T_OOC_LOS || EVENT_T_OOC_NO_LOS)
                         m_HasOOCLoSEvent = true;
 
                     for (uint32 actionIdx = 0; actionIdx < MAX_ACTIONS; ++actionIdx)
@@ -274,6 +274,7 @@ bool CreatureEventAI::IsTimerBasedEvent(EventAI_Type type) const
         case EVENT_T_SELECT_ATTACKING_TARGET:
         case EVENT_T_FACING_TARGET:
         case EVENT_T_SPELLHIT_TARGET:
+        case EVENT_T_OOC_NO_LOS:
             return true;
         default: return false;
     }
@@ -390,6 +391,7 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
                 return false;
             break;
         case EVENT_T_OOC_LOS:
+        case EVENT_T_OOC_NO_LOS:
             if (event.ooc_los.conditionId)
                 if (Player* player = actionInvoker->GetBeneficiaryPlayer())
                     if (!sObjectMgr.IsConditionSatisfied(event.ooc_los.conditionId, player, player->GetMap(), m_creature, CONDITION_FROM_EVENTAI))
@@ -1684,6 +1686,24 @@ void CreatureEventAI::MoveInLineOfSight(Unit* who)
                     {
                         // if range is ok and we are actually in LOS
                         if (m_creature->IsWithinDistInMap(who, fMaxAllowedRange) && m_creature->IsWithinLOSInMap(who))
+                            CheckAndReadyEventForExecution(itr, who);
+                    }
+                }
+            }
+            if (itr.event.event_type == EVENT_T_OOC_NO_LOS)
+            {
+                // can trigger if closer than fMaxAllowedRange
+                float fMaxAllowedRange = (float)itr.event.ooc_no_los.maxRange;
+
+                // who must be player type if this option is turned on
+                if (!itr.event.ooc_no_los.playerOnly || who->GetTypeId() == TYPEID_PLAYER)
+                {
+                    // if friendly event && who is not hostile OR hostile event && who is hostile
+                    if ((itr.event.ooc_no_los.noHostile && !m_creature->IsEnemy(who)) ||
+                        ((!itr.event.ooc_no_los.noHostile) && m_creature->IsEnemy(who)))
+                    {
+                        // if range is ok
+                        if (m_creature->IsWithinDistInMap(who, fMaxAllowedRange))
                             CheckAndReadyEventForExecution(itr, who);
                     }
                 }

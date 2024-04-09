@@ -149,6 +149,7 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 case EVENT_T_TIMER_OOC:
                 case EVENT_T_OOC_LOS:
                 case EVENT_T_REACHED_HOME:
+                case EVENT_T_OOC_NO_LOS:
                     sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type %u for event-type %u (cannot be used OOC)", eventId, action, targetType, eventType);
                     return false;
                 case EVENT_T_TIMER_GENERIC:
@@ -172,6 +173,7 @@ bool IsValidTargetType(EventAI_Type eventType, EventAI_ActionType actionType, ui
                 case EVENT_T_RECEIVE_EMOTE:
                 case EVENT_T_RECEIVE_AI_EVENT:
                 case EVENT_T_SPELLHIT_TARGET:
+                case EVENT_T_OOC_NO_LOS:
                     return true;
                 default:
                     sLog.outErrorEventAI("Event %u Action%u uses incorrect Target type %u for event-type %u", eventId, action, targetType, eventType);
@@ -557,6 +559,16 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                     }
                     break;
                 }
+                case EVENT_T_OOC_NO_LOS:
+                    if (temp.ooc_los.conditionId && !sConditionStorage.LookupEntry<ConditionEntry>(temp.ooc_los.conditionId))
+                    {
+                        sLog.outErrorDb("Creature %d has `ConditionId` = %u but does not exist. Setting ConditionId to 0 for event %u.", keyField, temp.ooc_los.conditionId, eventId);
+                        temp.ooc_los.conditionId = 0;
+                    }
+
+                    if (temp.ooc_los.repeatMax < temp.ooc_los.repeatMin)
+                        sLog.outErrorEventAI("Creature %d are using repeatable event(%u) with param4 < param3 (RepeatMax < RepeatMin). Event will never repeat.", keyField, eventId);
+                    break;
                 default:
                     sLog.outErrorEventAI("Creature %d using not checked at load event (%u) in event %u. Need check code update?", keyField, temp.event_id, eventId);
                     break;

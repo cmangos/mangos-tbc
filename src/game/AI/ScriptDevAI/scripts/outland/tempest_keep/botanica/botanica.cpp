@@ -19,20 +19,36 @@
 
 enum BotanicaActions
 {
+    BOTANICA_TRIGGER_BLOODWARDER_PROTECTOR_01,
     BOTANICA_ACTION_MAX,
 };
 
 instance_botanica::instance_botanica(Map* map) : ScriptedInstance(map)
 {
-    /*
-    auto posCheck = [](Unit const* unit) -> bool { return unit->GetPositionY() > 124.5f; };
-    auto successEvent = [&]()
+    // trigger 1 -1.2472258, Y:87.49708, Z:-5.6631246 
+    auto posCheckTrigger01 = [](Unit const* unit) -> bool { return unit->GetPositionY() > 87.147f; };
+    // trigger 2 -0.8657537, 143.51009, -5.539602
+    auto posCheckTrigger02 = [](Unit const* unit) -> bool { return unit->GetPositionY() > 143.51f; };
+    // trigger 3 -0.3957295, 219.5542, -5.54034
+    auto posCheckTrigger03 = [](Unit const* unit) -> bool { return unit->GetPositionY() > 219.551f; };
+    // trigger 4 -7.0142794, 288.0116, 0.46252948
+    auto posCheckTrigger04 = [](Unit const* unit) -> bool { return unit->GetPositionX() < -7.0142794f && unit->GetPositionY() > 219.551f; };
+
+    auto successEvent01 = [&]()
     {
-        // Trigger Legionnaire group 04 and 05
-        instance->GetVariableManager().SetVariable(WORLD_STATE_LEGIONNAIRE_003, 1);
+        auto m_bloodwarderGroup = instance->GetCreatures(THIRD_BLOODWARDER_STRING);
+        if (m_bloodwarderGroup != nullptr)
+        {
+            for (Creature* creature : *m_bloodwarderGroup)
+            {
+                if (!creature->IsAlive())
+                    return;
+
+                creature->GetMotionMaster()->MoveWaypoint();
+            }
+        }
     };
-    AddInstanceEvent(SHH_TRIGGER_LEGIONNAIRE, posCheck, successEvent);
-    */
+    AddInstanceEvent(BOTANICA_TRIGGER_BLOODWARDER_PROTECTOR_01, posCheckTrigger01, successEvent01);
 }
 
 void instance_botanica::AddInstanceEvent(uint32 id, std::function<bool(Unit const*)> check, std::function<void()> successEvent)

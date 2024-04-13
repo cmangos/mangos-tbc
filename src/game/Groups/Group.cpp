@@ -583,9 +583,13 @@ void Group::Disband(bool hideDestroy)
     else
     {
         if (m_bgGroup->GetBgRaid(ALLIANCE) == this)
+        {
             sVoiceChatMgr.DeleteBattlegroundVoiceChatChannel(m_bgGroup->GetInstanceId(), ALLIANCE);
+        }
         else if (m_bgGroup->GetBgRaid(HORDE) == this)
+        {
             sVoiceChatMgr.DeleteBattlegroundVoiceChatChannel(m_bgGroup->GetInstanceId(), HORDE);
+        }
     }
 #endif
 }

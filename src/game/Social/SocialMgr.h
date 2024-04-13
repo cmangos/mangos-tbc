@@ -119,7 +119,7 @@ class PlayerSocial
         bool AddToSocialList(ObjectGuid friend_guid, bool ignore, bool muted = false);
         void RemoveFromSocialList(ObjectGuid friend_guid, bool ignore, bool muted = false);
 #else
-    bool AddToSocialList(ObjectGuid friend_guid, bool ignore);
+        bool AddToSocialList(ObjectGuid friend_guid, bool ignore);
         void RemoveFromSocialList(ObjectGuid friend_guid, bool ignore);
 #endif
         void SetFriendNote(ObjectGuid friend_guid, std::string note);

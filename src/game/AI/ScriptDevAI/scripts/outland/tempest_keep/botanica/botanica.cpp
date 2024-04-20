@@ -58,6 +58,21 @@ void instance_botanica::Update(const uint32 diff)
 {
     UpdateTimers(diff);
 }
+// 34799 ArcaneDevastation
+enum Spells
+{
+    SPELL_ARCANE_RESONANCE = 34794,
+};
+
+struct ArcaneDevastation : public SpellScript
+{
+    void OnAfterHit(Spell* spell) const override
+    {
+        Unit* target = spell->m_targets.getUnitTarget();
+        target->RemoveAurasDueToSpell(SPELL_ARCANE_RESONANCE);
+        return;
+    }
+};
 
 void AddSC_instance_botanica()
 {
@@ -65,4 +80,6 @@ void AddSC_instance_botanica()
     pNewScript->Name = "instance_botanica";
     pNewScript->GetInstanceData = &GetNewInstanceScript<instance_botanica>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<ClearAllDebuffs>("spell_clear_all_debuffs");
 }

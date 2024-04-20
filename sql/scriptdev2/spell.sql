@@ -654,7 +654,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (34292,'spell_increased_spell_damage_done_dummy'),
 (28695,'spell_gameobject_call_for_help_on_usage'), -- Herb Gathering (Master)
 (29354,'spell_gameobject_call_for_help_on_usage'), -- Mining (Master)
-(30434,'spell_gameobject_call_for_help_on_usage'); -- Elemental Seaforium Charge
+(30434,'spell_gameobject_call_for_help_on_usage'), -- Elemental Seaforium Charge
+(34799,'spell_arcane_devastation');
 
 -- Wotlk
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

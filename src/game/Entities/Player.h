@@ -1697,9 +1697,6 @@ class Player : public Unit
         bool UpdateGatherSkill(uint32 SkillId, uint32 SkillValue, uint32 RedLevel, uint32 Multiplicator = 1);
         bool UpdateFishingSkill();
 
-        float GetHealthBonusFromStamina() const;
-        float GetManaBonusFromIntellect() const;
-
         bool UpdateStats(Stats stat) override;
         bool UpdateAllStats() override;
         void UpdateResistances(uint32 school) override;
@@ -1714,6 +1711,8 @@ class Player : public Unit
         void ApplyRatingMod(CombatRating cr, int32 value, bool apply);
         void UpdateRating(CombatRating cr);
         void UpdateAllRatings();
+
+        void ApplyFeralAPBonus(int32 amount, bool apply); // TBC only
 
         void CalculateMinMaxDamage(WeaponAttackType attType, bool normalized, float& min_damage, float& max_damage, uint8 index = 0);
 

@@ -81,5 +81,5 @@ void AddSC_instance_botanica()
     pNewScript->GetInstanceData = &GetNewInstanceScript<instance_botanica>;
     pNewScript->RegisterSelf();
 
-    RegisterSpellScript<ClearAllDebuffs>("spell_clear_all_debuffs");
+    RegisterSpellScript<ArcaneDevastation>("spell_clear_all_debuffs");
 }

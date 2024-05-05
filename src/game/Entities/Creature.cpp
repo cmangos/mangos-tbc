@@ -1299,7 +1299,7 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
     float rangedAttackPwr = 0.f;
 
     float healthMultiplier = 1.f;
-    float manaMultiplier = 1.f;
+    float powerMultiplier = 1.f;
 
     float strength = 0.f;
     float agility = 0.f;
@@ -1325,7 +1325,7 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
             mana = cCLS->BaseMana;
         // mana
         if (cinfo->PowerMultiplier > 0)
-            manaMultiplier = cinfo->PowerMultiplier;
+            powerMultiplier = cinfo->PowerMultiplier;
 
         // armor
         if (cinfo->ArmorMultiplier >= 0)
@@ -1423,7 +1423,6 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
     // health
     SetCreateHealth(health);
     SetMaxHealth(health);
-    SetHealth(health);
 
     // all power types
     for (int i = POWER_MANA; i <= POWER_HAPPINESS; ++i)
@@ -1447,7 +1446,6 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
 
         // Mana requires an extra field to be set
         SetMaxPower(Powers(i), maxValue);
-        SetPower(Powers(i), value);
 
         if (i == POWER_MANA)
             SetCreateMana(value);
@@ -1479,9 +1477,13 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
 
     // multipliers
     SetModifierValue(UNIT_MOD_HEALTH, TOTAL_PCT, healthMultiplier);
-    SetModifierValue(UNIT_MOD_MANA, TOTAL_PCT, manaMultiplier);
+    SetModifierValue(UnitMods(UNIT_MOD_MANA + (int)GetPowerType()), TOTAL_PCT, powerMultiplier);
 
     UpdateAllStats();
+
+    SetHealth(GetMaxHealth());
+    for (int i = POWER_MANA; i <= POWER_HAPPINESS; ++i)
+        SetPower(Powers(i), GetMaxPower(Powers(i)));
 }
 
 float Creature::_GetHealthMod(int32 Rank)

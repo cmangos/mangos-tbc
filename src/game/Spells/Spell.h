@@ -1134,6 +1134,7 @@ namespace MaNGOS
                         if (itr->getSource()->IsAOEImmune())
                             continue;
                         break;
+                    default: break;
                 }
 
                 switch (i_TargetType)

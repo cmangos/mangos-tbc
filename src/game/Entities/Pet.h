@@ -224,13 +224,10 @@ class Pet : public Creature
         int32 GetDuration() const { return m_duration; }
 
         bool UpdateStats(Stats stat) override;
-        bool UpdateAllStats() override;
-        void UpdateResistances(uint32 school) override;
-        void UpdateArmor() override;
         void UpdateMaxHealth() override;
         void UpdateMaxPower(Powers power) override;
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
-        void UpdateDamagePhysical(WeaponAttackType attType) override;
+        float GetConditionalTotalPhysicalDamageModifier(WeaponAttackType type) const override;
 
         bool   CanTakeMoreActiveSpells(uint32 spellid) const;
         void   ToggleAutocast(uint32 spellid, bool apply);

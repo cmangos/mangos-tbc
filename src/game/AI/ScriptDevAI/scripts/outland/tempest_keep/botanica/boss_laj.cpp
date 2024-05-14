@@ -80,6 +80,7 @@ struct boss_lajAI : public CombatAI
         SetCombatMovement(true);
         SetCombatScriptStatus(false);
         DespawnGuids(m_spawns);
+        CombatAI::Reset();
     }
 
     void EnterEvadeMode() override
@@ -87,6 +88,7 @@ struct boss_lajAI : public CombatAI
         SetCombatMovement(true);
         SetCombatScriptStatus(false);
         DespawnGuids(m_spawns);
+        CombatAI::EnterEvadeMode();
     }
 
     void AddTransformCooldowns(uint32 spellId)
@@ -147,7 +149,7 @@ struct boss_lajAI : public CombatAI
                 SetCombatMovement(false, true); 
                 // Remove the target focus 
                 SetCombatScriptStatus(true);
-                m_creature->MeleeAttackStop(m_creature->GetVictim());
+                SetMeleeEnabled(false);
                 m_creature->SetTarget(nullptr);
                 ResetTimer(LAJ_TELEPORT_SUMMON, 4000); 
                 break;
@@ -164,7 +166,7 @@ struct boss_lajAI : public CombatAI
             SetCombatMovement(true);
             SetCombatScriptStatus(false);
 
-            m_creature->MeleeAttackStart(m_creature->GetVictim());
+            SetMeleeEnabled(true);
             m_creature->SetTarget(m_creature->GetVictim());
         }
     }

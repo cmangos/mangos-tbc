@@ -73,6 +73,18 @@ struct boss_lajAI : public CombatAI
         AddCustomAction(LAJ_TELEPORT_SUMMON, true, [&]() { HandleTeleportSummon(); }, TIMER_COMBAT_COMBAT);
     }
 
+    void Reset() override
+    {
+        SetCombatMovement(true);
+        SetCombatScriptStatus(false);
+    }
+
+    void EnterEvadeMode() override
+    {
+        SetCombatMovement(true);
+        SetCombatScriptStatus(false);
+    }
+
     void AddTransformCooldowns(uint32 spellId)
     {
         if (spellId != SPELL_LAJ_ARCANE)
@@ -124,7 +136,15 @@ struct boss_lajAI : public CombatAI
             case SPELL_LAJ_FROST:
             case SPELL_LAJ_NATURE:
             case SPELL_LAJ_SHADOW: AddTransformCooldowns(spellInfo->Id); break;
-            case SPELL_TELEPORT_SELF: SetCombatMovement(false, true); ResetTimer(LAJ_TELEPORT_SUMMON, 4000); break;
+            case SPELL_TELEPORT_SELF: 
+                // Remove CombatMovement
+                SetCombatMovement(false, true); 
+                // Remove the target focus 
+                SetCombatScriptStatus(true);
+                m_creature->MeleeAttackStop(m_creature->GetVictim());
+                m_creature->SetTarget(nullptr);
+                ResetTimer(LAJ_TELEPORT_SUMMON, 4000); 
+                break;
         }
     }
 
@@ -134,7 +154,13 @@ struct boss_lajAI : public CombatAI
         DoBroadcastText(EMOTE_SUMMON, m_creature);
 
         if (m_creature->GetVictim())
-            m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
+        {
+            SetCombatMovement(true);
+            SetCombatScriptStatus(false);
+
+            m_creature->MeleeAttackStart(m_creature->GetVictim());
+            m_creature->SetTarget(m_creature->GetVictim());
+        }
     }
 };
 

@@ -73,16 +73,20 @@ struct boss_lajAI : public CombatAI
         AddCustomAction(LAJ_TELEPORT_SUMMON, true, [&]() { HandleTeleportSummon(); }, TIMER_COMBAT_COMBAT);
     }
 
+    GuidVector m_spawns;
+
     void Reset() override
     {
         SetCombatMovement(true);
         SetCombatScriptStatus(false);
+        DespawnGuids(m_spawns);
     }
 
     void EnterEvadeMode() override
     {
         SetCombatMovement(true);
         SetCombatScriptStatus(false);
+        DespawnGuids(m_spawns);
     }
 
     void AddTransformCooldowns(uint32 spellId)
@@ -125,6 +129,8 @@ struct boss_lajAI : public CombatAI
         summoned->AI()->DoCastSpellIfCan(nullptr, SPELL_ROOT_SELF, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
         if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
             summoned->AI()->AttackStart(target);
+
+        m_spawns.push_back(summoned->GetObjectGuid());
     }
 
     void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override

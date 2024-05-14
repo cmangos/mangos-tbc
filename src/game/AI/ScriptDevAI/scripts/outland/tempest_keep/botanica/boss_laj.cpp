@@ -172,26 +172,10 @@ struct boss_lajAI : public CombatAI
     }
 };
 
-struct AllergicReaction : public AuraScript
-{
-    bool OnCheckProc(Aura* /*aura*/, ProcExecutionData& data) const override
-    {
-        // Player with aura 34697 can proc Aura 34700 on other Players
-        // Aura 34700 should only proc on players 
-        if (data.target && !data.target->IsPlayer())
-            return false;
-
-        return true;
-    }
-};
-
-
 void AddSC_boss_laj()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_laj";
     pNewScript->GetAI = &GetNewAIInstance<boss_lajAI>;
     pNewScript->RegisterSelf();
-
-    RegisterSpellScript<AllergicReaction>("spell_allergic_reaction");
 }

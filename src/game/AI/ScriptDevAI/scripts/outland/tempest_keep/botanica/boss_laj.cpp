@@ -91,6 +91,11 @@ struct boss_lajAI : public CombatAI
         CombatAI::EnterEvadeMode();
     }
 
+    void JustDied(Unit* /*killer*/) override
+    {
+        DespawnGuids(m_spawns);
+    }
+
     void AddTransformCooldowns(uint32 spellId)
     {
         if (spellId != SPELL_LAJ_ARCANE)

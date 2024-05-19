@@ -435,6 +435,8 @@ struct boss_lady_vashjAI : public CombatAI
         if (m_instance)
             m_instance->SetData(TYPE_LADYVASHJ_EVENT, FAIL);
 
+        ResetAllTimers();
+
         DespawnGuids(m_spawns);
     }
 

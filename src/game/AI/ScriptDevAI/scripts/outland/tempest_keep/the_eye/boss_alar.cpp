@@ -235,7 +235,7 @@ struct boss_alarAI : public CombatAI
         if (m_creature->HasAura(SPELL_EMBER_BLAST))
             return;
 
-        ScriptedAI::EnterEvadeMode();
+        CombatAI::EnterEvadeMode();
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 /*miscValue*/) override

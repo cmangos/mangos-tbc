@@ -163,7 +163,12 @@ bool WorldSocket::ProcessIncomingData()
     auto self(shared_from_this());
     Read((char*)header.get(), sizeof(ClientPktHeader), [self, header](const boost::system::error_code& error, std::size_t read) -> void
     {
-        if (error) return;
+        if (error)
+        {
+            self->Close();
+            return;
+        }
+
         // thread safe due to always being called from service context
         self->m_crypt.DecryptRecv((uint8*)header.get(), sizeof(ClientPktHeader));
 
@@ -183,7 +188,12 @@ bool WorldSocket::ProcessIncomingData()
 
         self->Read(reinterpret_cast<char*>(packetBuffer->data()), packetBuffer->size(), [self, packetBuffer, opcode = opcode](const boost::system::error_code& error, std::size_t read) -> void
         {
-            if (error) return;
+            if (error)
+            {
+                self->Close();
+                return;
+            }
+
             std::unique_ptr<WorldPacket> pct = std::make_unique<WorldPacket>(opcode, packetBuffer->size());
             pct->append(*packetBuffer.get());
             if (sPacketLog->CanLogPacket() && self->IsLoggingPackets())
@@ -194,6 +204,7 @@ bool WorldSocket::ProcessIncomingData()
             if (WorldSocket::m_packetCooldowns.size() <= size_t(opcode))
             {
                 sLog.outError("WorldSocket::ProcessIncomingData: Received opcode beyond range of opcodes: %u", opcode);
+                self->Close();
                 return;
             }
 
@@ -217,15 +228,22 @@ bool WorldSocket::ProcessIncomingData()
                         if (self->m_session)
                         {
                             sLog.outError("WorldSocket::ProcessIncomingData: Player send CMSG_AUTH_SESSION again");
+                            self->Close();
                             return;
                         }
 
                         if (!self->HandleAuthSession(*pct))
+                        {
+                            self->Close();
                             return;
+                        }
                         break;
                     case CMSG_PING:
                         if (!self->HandlePing(*pct))
+                        {
+                            self->Close();
                             return;
+                        }
                         break;
                     case CMSG_KEEP_ALIVE:
                         DEBUG_LOG("CMSG_KEEP_ALIVE, size: " SIZEFMTD " ", pct->size());
@@ -242,6 +260,7 @@ bool WorldSocket::ProcessIncomingData()
                         if (!self->m_session)
                         {
                             sLog.outError("WorldSocket::ProcessIncomingData: Client not authed opcode = %u", uint32(opcode));
+                            self->Close();
                             return;
                         }
 
@@ -265,6 +284,7 @@ bool WorldSocket::ProcessIncomingData()
                 {
                     DETAIL_LOG("Disconnecting session [account id %i / address %s] for badly formatted packet.",
                         self->m_session ? self->m_session->GetAccountId() : -1, self->GetRemoteAddress().c_str());
+                    self->Close();
                     return;
                 }
             }

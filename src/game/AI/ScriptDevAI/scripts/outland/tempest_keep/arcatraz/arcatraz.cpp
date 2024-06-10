@@ -97,8 +97,8 @@ instance_arcatraz::instance_arcatraz(Map* map) : ScriptedInstance(map), Dialogue
 
 void instance_arcatraz::Initialize()
 {
-    instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_HORROR, 0);
-    instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_NIGHTMARE, 0);
+    instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_HORROR, 1);
+    instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_NIGHTMARE, 1);
     m_WardenGroup = false;
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
     InitializeDialogueHelper(this);
@@ -169,18 +169,18 @@ void instance_arcatraz::OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* 
 {
     if (pGroup->GetGroupId() == SPAWN_GROUP_WARDEN_01)
         if (m_WardenGroup)
-            instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_HORROR, 1);
+            instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_HORROR, 0);
         else
             m_WardenGroup = true;
 
     if (pGroup->GetGroupId() == SPAWN_GROUP_WARDEN_02)
         if (m_WardenGroup)
-            instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_HORROR, 1);
+            instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_HORROR, 0);
         else
             m_WardenGroup = true;
 
     if (pGroup->GetGroupId() == SPAWN_GROUP_DEFENDER)
-        instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_NIGHTMARE, 1);
+        instance->GetVariableManager().SetVariable(WORLD_STATE_PROTEAN_NIGHTMARE, 0);
 }
 
 void instance_arcatraz::SetData(uint32 type, uint32 data)

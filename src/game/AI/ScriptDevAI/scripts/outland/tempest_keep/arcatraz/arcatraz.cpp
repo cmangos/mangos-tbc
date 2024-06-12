@@ -166,12 +166,12 @@ void instance_arcatraz::OnCreatureRespawn(Creature* creature)
     {
         case NPC_PROTEAN_NIGHTMARE:
         case NPC_PROTEAN_HORROR:
-        if (creature->HasStringId(STRING_ID_ENTRANCE_GROUP))
-        {
-            creature->SetNoXP(true);
-            creature->SetNoLoot(true);
-            creature->SetNoReputation(true);
-        }
+            if (creature->HasStringId(STRING_ID_ENTRANCE_GROUP))
+            {
+                creature->SetNoXP(true);
+                creature->SetNoLoot(true);
+                creature->SetNoReputation(true);
+            }
         break;
     }
 }

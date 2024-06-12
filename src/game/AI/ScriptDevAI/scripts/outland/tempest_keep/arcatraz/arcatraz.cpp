@@ -160,6 +160,21 @@ void instance_arcatraz::OnCreatureCreate(Creature* creature)
             break;
     }
 }
+void instance_arcatraz::OnCreatureRespawn(Creature* creature)
+{
+    switch (creature->GetEntry())
+    {
+        case NPC_PROTEAN_NIGHTMARE:
+        case NPC_PROTEAN_HORROR:
+        if (creature->HasStringId(STRING_ID_ENTRANCE_GROUP))
+        {
+            creature->SetNoXP(true);
+            creature->SetNoLoot(true);
+            creature->SetNoReputation(true);
+        }
+        break;
+    }
+}
 
 // Intro Handling
 // When both Arcatraz Warder spawn_groups are dead, Protean Horror stop spawning

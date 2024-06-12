@@ -21,6 +21,10 @@ enum
     TYPE_WARDEN_4                   = 8,                    // Handled with ACID (20910 - Twilight Drakonaar, 20911 - Blackwing Drakonaar)
     TYPE_WARDEN_5                   = 9,
 
+    // intro event related
+    NPC_PROTEAN_NIGHTMARE           = 20864,
+    NPC_PROTEAN_HORROR              = 20865,
+
     NPC_DALLIAH                     = 20885,
     NPC_SOCCOTHRATES                = 20886,
     NPC_WRATH_SCRYER_FELFIRE        = 20978,
@@ -58,6 +62,8 @@ enum
     SPAWN_GROUP_DEFENDER            = 5520003,              // SpawnGroup that handles Protean Nightmare respawn
 };
 
+const std::string STRING_ID_ENTRANCE_GROUP = "ARCATRAZ_ENTRANCE_GROUP";     // StringID assigned to entrance group to prevent rep/xp farm abuse
+
 struct SpawnLocation
 {
     float m_fX, m_fY, m_fZ, m_fO;
@@ -86,6 +92,7 @@ class instance_arcatraz : public ScriptedInstance, private DialogueHelper
         void OnObjectCreate(GameObject* go) override;
         void OnCreatureCreate(Creature* creature) override;
         void OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* pCreature) override;
+        void OnCreatureRespawn(Creature* creature) override;
 
         void SetData(uint32 type, uint32 data) override;
         uint32 GetData(uint32 type) const override;

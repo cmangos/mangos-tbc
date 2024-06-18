@@ -590,6 +590,36 @@ struct WhipFrenzyHorses : public SpellScript
     }
 };
 
+// 29521 - Dance Vibe
+struct DanceVibe : public AuraScript
+{
+    bool OnAreaAuraCheckTarget(Aura const* aura, Unit* target) const override
+    {
+        if (!target)
+            return false;
+
+        Unit* caster = aura->GetCaster();
+        if (!caster)
+            return false;
+
+        if (!caster->IsCreature())
+            return false;
+
+        if (!target->IsCreature())
+            return false;
+
+        if (!caster->IsInCombat())
+                if (static_cast<Creature const*>(caster)->GetCreatureGroup() != static_cast<Creature const*>(target)->GetCreatureGroup())
+                    return false;
+
+        if (caster->IsInCombat())            
+                if (!target->IsInCombat())
+                    return false;
+
+        return true;
+    }
+};
+
 void AddSC_karazhan()
 {
     Script* pNewScript = new Script;
@@ -619,4 +649,5 @@ void AddSC_karazhan()
     RegisterSpellScript<WrathOfTheTitansProcAura>("spell_wrath_of_the_titans_proc_aura");
     RegisterSpellScript<HealingTouchHorses>("spell_healing_touch_horses");
     RegisterSpellScript<WhipFrenzyHorses>("spell_whip_frenzy_horses");
+    RegisterSpellScript<DanceVibe>("spell_dance_vibe");
 }

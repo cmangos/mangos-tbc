@@ -608,10 +608,12 @@ struct DanceVibe : public AuraScript
         if (!target->IsCreature())
             return false;
 
+        // If creature is not in Combat only spread Buff to spawn_group members
         if (!caster->IsInCombat())
                 if (static_cast<Creature const*>(caster)->GetCreatureGroup() != static_cast<Creature const*>(target)->GetCreatureGroup())
                     return false;
 
+        // If creature is in Combat spread Buff to all friendly npcs that are in combat too
         if (caster->IsInCombat())            
                 if (!target->IsInCombat())
                     return false;

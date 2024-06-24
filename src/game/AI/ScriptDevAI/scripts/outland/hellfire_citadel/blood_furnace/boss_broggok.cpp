@@ -29,6 +29,8 @@ enum
 {
     SAY_AGGRO                       = 14259,
 
+    SAY_FEL_ORC_AGGRO               = 11999,
+
     SPELL_SUMMON_INCOMBAT_TRIGGER   = 26837,    // TODO: probably cast on spawn not sure what c.16006 does
     SPELL_SLIME_SPRAY               = 30913,
     SPELL_SLIME_SPRAY_H             = 38458,
@@ -127,7 +129,7 @@ struct npc_fel_orc : public CombatAI
     void Aggro(Unit* /*who*/) override
     {
         if (urand(0, 4) > 2)
-            DoBroadcastText(11999, m_creature);
+            DoBroadcastText(SAY_FEL_ORC_AGGRO, m_creature);
     }
 
     void JustReachedHome() override

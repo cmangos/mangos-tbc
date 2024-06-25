@@ -314,23 +314,13 @@ struct boss_magtheridonAI : public CombatAI
 
 enum ChannelerActions
 {
-    CHANNELER_INFERNAL,
-    CHANNELER_DARK_MENDING,
-    CHANNELER_FEAR,
-    CHANNELER_SHADOW_BOLT,
     CHANNELER_ACTION_MAX,
-    CHANNELER_SHADOW_GRASP,
 };
 
 struct mob_hellfire_channelerAI : public CombatAI
 {
     mob_hellfire_channelerAI(Creature* creature) : CombatAI(creature, CHANNELER_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddCombatAction(CHANNELER_INFERNAL, 10000, 50000);
-        AddCombatAction(CHANNELER_DARK_MENDING, 10000u);
-        AddCombatAction(CHANNELER_FEAR, 15000, 20000);
-        AddCombatAction(CHANNELER_SHADOW_BOLT, 8000, 10000);
-        AddCustomAction(CHANNELER_SHADOW_GRASP, 10000u, [&]() { DoCastSpellIfCan(m_creature, SPELL_SHADOW_GRASP_DUMMY); });
         SetReactState(REACT_DEFENSIVE);
     }
 
@@ -353,40 +343,6 @@ struct mob_hellfire_channelerAI : public CombatAI
     {
         if (m_instance)
             m_instance->SetData(TYPE_CHANNELER_EVENT, FAIL);
-    }
-
-    void ExecuteAction(uint32 action) override
-    {
-        switch (action)
-        {
-            case CHANNELER_INFERNAL:
-            {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_BURNING_ABYSSAL, SELECT_FLAG_PLAYER))
-                    if (DoCastSpellIfCan(target, SPELL_BURNING_ABYSSAL) == CAST_OK)
-                        ResetCombatAction(action, 45000);
-                break;
-            }
-            case CHANNELER_DARK_MENDING:
-            {
-                if (Unit* target = DoSelectLowestHpFriendly(30.0f))
-                    if (DoCastSpellIfCan(target, SPELL_DARK_MENDING) == CAST_OK)
-                        ResetCombatAction(action, urand(10000, 20000));
-                break;
-            }
-            case CHANNELER_FEAR:
-            {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_FEAR, (SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_AURA)))
-                    if (DoCastSpellIfCan(target, SPELL_FEAR) == CAST_OK)
-                        ResetCombatAction(action, urand(25000, 40000));
-                break;
-            }
-            case CHANNELER_SHADOW_BOLT:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_SHADOW_BOLT_VOLLEY) == CAST_OK)
-                    ResetCombatAction(action, urand(10000, 20000));
-                break;
-            }
-        }
     }
 };
 

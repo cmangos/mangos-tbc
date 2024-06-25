@@ -30,16 +30,15 @@ EndScriptData */
 enum
 {
     // yells
-    SAY_AGGRO                   = -1544006,
-    SAY_UNUSED                  = -1544007,
-    SAY_BANISH                  = -1544008,
-    SAY_CHAMBER_DESTROY         = -1544009,
-    SAY_PLAYER_KILLED           = -1544010,
-    SAY_DEATH                   = -1544011,
+    SAY_AGGRO                   = 17346,
+    SAY_BANISH                  = 17348,
+    SAY_CHAMBER_DESTROY         = 17336,
+    SAY_PLAYER_KILLED           = 17349,
+    SAY_DEATH                   = 17347,
 
-    EMOTE_GENERIC_ENRAGED       = -1000003,
-    EMOTE_BLASTNOVA             = -1544013,
-    EMOTE_FREED                 = -1544015,
+    EMOTE_GENERIC_ENRAGED       = 2384,
+    EMOTE_BLASTNOVA             = 18739,
+    EMOTE_FREED                 = 13691,
 
     // Maghteridon spells
     SPELL_SHADOW_CAGE_DUMMY     = 30205,                    // dummy aura - in creature_template_addon
@@ -152,8 +151,8 @@ struct boss_magtheridonAI : public CombatAI
             m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
             m_creature->SetInCombatWithZone();
 
-            DoScriptText(EMOTE_FREED, m_creature);
-            DoScriptText(SAY_AGGRO, m_creature);
+            DoBroadcastText(EMOTE_FREED, m_creature);
+            DoBroadcastText(SAY_AGGRO, m_creature);
 
             SetCombatScriptStatus(false);
             m_creature->RemoveAurasDueToSpell(SPELL_SHADOW_CAGE_DUMMY);
@@ -171,14 +170,14 @@ struct boss_magtheridonAI : public CombatAI
         }
         else if (eventType == AI_EVENT_CUSTOM_B)
         {
-            DoScriptText(EMOTE_EVENT_BEGIN, m_creature);
+            DoBroadcastText(EMOTE_EVENT_BEGIN, m_creature);
         }
     }
 
     void KilledUnit(Unit* victim) override
     {
         if (victim->GetTypeId() == TYPEID_PLAYER)
-            DoScriptText(SAY_PLAYER_KILLED, m_creature);
+            DoBroadcastText(SAY_PLAYER_KILLED, m_creature);
     }
 
     void JustDied(Unit* /*killer*/) override
@@ -186,7 +185,7 @@ struct boss_magtheridonAI : public CombatAI
         if (m_instance)
             m_instance->SetData(TYPE_MAGTHERIDON_EVENT, DONE);
 
-        DoScriptText(SAY_DEATH, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
 
         m_creature->CastSpell(nullptr, SPELL_QUAKE_REMOVAL, TRIGGERED_OLD_TRIGGERED);
     }
@@ -209,7 +208,7 @@ struct boss_magtheridonAI : public CombatAI
     {
         // When banished by the cubes
         if (spellInfo->Id == SPELL_SHADOW_CAGE)
-            DoScriptText(SAY_BANISH, m_creature);
+            DoBroadcastText(SAY_BANISH, m_creature);
     }
 
     void HandlePhaseTransition()
@@ -248,7 +247,7 @@ struct boss_magtheridonAI : public CombatAI
                 if (m_creature->GetHealthPercent() < 30.0f)
                 {
                     // ToDo: maybe there is a spell here - requires additional research
-                    DoScriptText(SAY_CHAMBER_DESTROY, m_creature);
+                    DoBroadcastText(SAY_CHAMBER_DESTROY, m_creature);
                     m_creature->HandleEmote(EMOTE_STATE_TALK);
                     ResetTimer(MAGTHERIDON_TRANSITION_TIMER, 5000);
                     SetCombatScriptStatus(true);
@@ -263,7 +262,7 @@ struct boss_magtheridonAI : public CombatAI
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_BERSERK) == CAST_OK)
                 {
-                    DoScriptText(EMOTE_GENERIC_ENRAGED, m_creature);
+                    DoBroadcastText(EMOTE_GENERIC_ENRAGED, m_creature);
                     DisableCombatAction(action);
                 }
                 break;
@@ -272,7 +271,7 @@ struct boss_magtheridonAI : public CombatAI
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_BLASTNOVA) == CAST_OK)
                 {
-                    DoScriptText(EMOTE_BLASTNOVA, m_creature);
+                    DoBroadcastText(EMOTE_BLASTNOVA, m_creature);
                     ResetCombatAction(action, 55000);
                 }
                 break;

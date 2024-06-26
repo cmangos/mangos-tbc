@@ -41,6 +41,8 @@ class instance_magtheridons_lair : public ScriptedInstance
 
         bool IsEncounterInProgress() const override;
 
+        void FailBoss();
+
         void OnCreatureCreate(Creature* pCreature) override;
         void OnObjectCreate(GameObject* pGo) override;
 
@@ -52,7 +54,9 @@ class instance_magtheridons_lair : public ScriptedInstance
     private:
         uint32 m_auiEncounter[MAX_ENCOUNTER];
 
-        GuidList m_lChannelerGuidList;
+        std::vector<uint32> m_lChannelerGuidList;
+        GuidVector m_abyssalTemporaryGuids;
+
         GuidList m_lColumnGuidList;
         GuidList m_lCubeGuidList;
 

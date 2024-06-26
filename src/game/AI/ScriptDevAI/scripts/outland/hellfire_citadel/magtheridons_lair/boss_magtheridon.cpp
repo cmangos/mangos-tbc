@@ -322,6 +322,11 @@ struct mob_hellfire_channelerAI : public CombatAI
     mob_hellfire_channelerAI(Creature* creature) : CombatAI(creature, CHANNELER_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         SetReactState(REACT_DEFENSIVE);
+
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/)->bool
+        {
+            return m_creature->GetDistance2d(-16.683f, 2.34519f) > 55.0f;
+        });
     }
 
     ScriptedInstance* m_instance;
@@ -339,10 +344,11 @@ struct mob_hellfire_channelerAI : public CombatAI
         m_creature->CastSpell(m_creature, SPELL_SOUL_TRANSFER, TRIGGERED_OLD_TRIGGERED);
     }
 
-    void JustReachedHome() override
+    void EnterEvadeMode() override
     {
         if (m_instance)
             m_instance->SetData(TYPE_CHANNELER_EVENT, FAIL);
+        CombatAI::EnterEvadeMode();
     }
 };
 

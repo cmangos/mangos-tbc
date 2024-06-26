@@ -65,6 +65,17 @@ void instance_magtheridons_lair::OnCreatureCreate(Creature* pCreature)
     }
 }
 
+void instance_magtheridons_lair::OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* /*pCreature*/)
+{
+    // Confirmed on TBC Classic: instantly free magtheridon when all channelers are dead
+    if (pGroup->GetGroupId() == SPAWN_GROUP_CHANNELER)
+    {
+        SetData(TYPE_MAGTHERIDON_EVENT, IN_PROGRESS);
+        m_uiCageBreakTimer = 0;
+    }
+        
+}
+
 void instance_magtheridons_lair::OnObjectCreate(GameObject* pGo)
 {
     switch (pGo->GetEntry())
@@ -96,6 +107,7 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
             {
                 case FAIL:                   
                     FailBoss();
+                    break;
                 case DONE:
                     // Reset door on Fail or Done
                     DoUseOpenableObject(GO_DOODAD_HF_MAG_DOOR01, true);
@@ -127,6 +139,7 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
             // stop the event timer on fail
             if (uiData == FAIL)           
                 FailBoss();
+                break;
             // prepare Magtheridon for release
             if (uiData == IN_PROGRESS)
             {

@@ -28,6 +28,8 @@ enum
 
     EMOTE_EVENT_BEGIN           = 13689,
     EMOTE_NEARLY_FREE           = 13690,
+
+    SPAWN_GROUP_CHANNELER       = 5440005,
 };
 
 static const int32 aRandomTaunt[] = { 17339, 17340, 17341, 17342, 17343, 17344 };
@@ -45,6 +47,7 @@ class instance_magtheridons_lair : public ScriptedInstance
 
         void OnCreatureCreate(Creature* pCreature) override;
         void OnObjectCreate(GameObject* pGo) override;
+        void OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* pCreature) override;
 
         void SetData(uint32 uiType, uint32 uiData) override;
         uint32 GetData(uint32 uiType) const override;

@@ -162,14 +162,10 @@ void instance_magtheridons_lair::FailBoss()
     // Reset Timers and stages
     m_uiCageBreakTimer = 0;
     m_uiCageBreakStage = 0;
+    SetData(TYPE_CHANNELER_EVENT, NOT_STARTED);
 
     // Reset door on Fail
     DoUseOpenableObject(GO_DOODAD_HF_MAG_DOOR01, true);
-
-    // Reset timers and doors
-    SetData(TYPE_CHANNELER_EVENT, NOT_STARTED);
-    m_uiCageBreakTimer = 0;
-    m_uiCageBreakStage = 0;
 
     for (GuidList::const_iterator itr = m_lColumnGuidList.begin(); itr != m_lColumnGuidList.end(); ++itr)
     {

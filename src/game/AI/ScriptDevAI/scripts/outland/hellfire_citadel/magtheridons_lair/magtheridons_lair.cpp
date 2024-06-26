@@ -222,7 +222,7 @@ void instance_magtheridons_lair::Update(uint32 uiDiff)
                     {
                         if (pMagtheridon->IsAlive())
                         {
-                            DoScriptText(EMOTE_NEARLY_FREE, pMagtheridon);
+                            DoBroadcastText(EMOTE_NEARLY_FREE, pMagtheridon);
                             m_uiCageBreakTimer = MINUTE * IN_MILLISECONDS;
                         }
                     }
@@ -245,7 +245,14 @@ void instance_magtheridons_lair::Update(uint32 uiDiff)
 
     if (m_uiRandYellTimer < uiDiff)
     {
-        DoOrSimulateScriptTextForThisInstance(aRandomTaunt[urand(0, 5)], NPC_MAGTHERIDON);
+        if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
+        {
+            if (pMagtheridon->IsAlive())
+            {
+                DoBroadcastText(aRandomTaunt[urand(0, 5)], pMagtheridon);
+                m_uiCageBreakTimer = MINUTE * IN_MILLISECONDS;
+            }
+        }
         m_uiRandYellTimer = 90000;
     }
     else

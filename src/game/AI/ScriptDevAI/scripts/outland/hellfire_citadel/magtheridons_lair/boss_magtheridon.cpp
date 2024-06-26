@@ -124,6 +124,11 @@ struct boss_magtheridonAI : public CombatAI
 
         // Magtheridon gets respawned after a whipe 
         DoCastSpellIfCan(nullptr, SPELL_SHADOW_CAGE_DUMMY, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+
+        m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/)->bool
+        {
+            return m_creature->GetDistance2d(-16.683f, 2.34519f) > 55.0f;
+        });
     }
 
     ScriptedInstance* m_instance;

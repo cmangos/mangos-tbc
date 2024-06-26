@@ -70,8 +70,11 @@ void instance_magtheridons_lair::OnCreatureGroupDespawn(CreatureGroup* pGroup, C
     // Confirmed on TBC Classic: instantly free magtheridon when all channelers are dead
     if (pGroup->GetGroupId() == SPAWN_GROUP_CHANNELER)
     {
-        SetData(TYPE_MAGTHERIDON_EVENT, IN_PROGRESS);
-        m_uiCageBreakTimer = 0;
+        if (GetData(TYPE_CHANNELER_EVENT) == IN_PROGRESS)
+        {
+            SetData(TYPE_MAGTHERIDON_EVENT, IN_PROGRESS);
+            m_uiCageBreakTimer = 0;
+        }
     }
         
 }
@@ -139,7 +142,6 @@ void instance_magtheridons_lair::SetData(uint32 uiType, uint32 uiData)
             // stop the event timer on fail
             if (uiData == FAIL)           
                 FailBoss();
-                break;
             // prepare Magtheridon for release
             if (uiData == IN_PROGRESS)
             {

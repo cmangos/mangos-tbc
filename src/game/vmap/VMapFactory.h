@@ -19,24 +19,23 @@
 #ifndef _VMAPFACTORY_H
 #define _VMAPFACTORY_H
 
-#include "IVMapManager.h"
+#include <string>
 
 /**
-This is the access point to the VMapManager.
-*/
-
+ * This is the access point to the VMapManager.
+ */
 namespace VMAP
 {
-    //===========================================================
+    class IVMapManager;
 
-    class VMapFactory
+    namespace VMapFactory
     {
-        public:
-            static IVMapManager* createOrGetVMapManager();
-            static void clear();
+        IVMapManager& GetVMapManager();
+        void clear();
 
-            static void chompAndTrim(std::string& str);
-            static bool getNextId(const std::string& pString, unsigned int& pStartPos, unsigned int& pId);
-    };
+        void chompAndTrim(std::string& str);
+        bool getNextId(const std::string& pString, unsigned int& pStartPos, unsigned int& pId);
+    }
 }
+
 #endif

@@ -71,7 +71,7 @@ void LoadGameObjectModelList()
 GameObjectModel::~GameObjectModel()
 {
     if (iModel)
-        ((VMAP::VMapManager2*)VMAP::VMapFactory::createOrGetVMapManager())->releaseModelInstance(name);
+        static_cast<VMAP::VMapManager2&>(VMAP::VMapFactory::GetVMapManager()).releaseModelInstance(name);
 }
 
 bool GameObjectModel::initialize(const GameObject* const pGo, const GameObjectDisplayInfoEntry* const pDisplayInfo)
@@ -88,7 +88,7 @@ bool GameObjectModel::initialize(const GameObject* const pGo, const GameObjectDi
         return false;
     }
 
-    iModel = ((VMAP::VMapManager2*)VMAP::VMapFactory::createOrGetVMapManager())->acquireModelInstance(sWorld.GetDataPath() + "vmaps/", it->second.name);
+    iModel = static_cast<VMAP::VMapManager2&>(VMAP::VMapFactory::GetVMapManager()).acquireModelInstance(sWorld.GetDataPath() + "vmaps/", it->second.name);
 
     if (!iModel)
         return false;

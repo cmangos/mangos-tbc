@@ -99,6 +99,7 @@ endif()
 set(SRC_GRP_NETWORK
     Network/AsyncSocket.hpp
     Network/AsyncListener.hpp
+    Network/AsyncConnector.hpp
 )
 
 set(SRC_GRP_PLATFORM

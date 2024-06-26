@@ -98,6 +98,7 @@ enum MagtheridonActions
     MAGTHERIDON_ACTION_MAX,
     MAGTHERIDON_QUAKE_TIMER,
     MAGTHERIDON_TRANSITION_TIMER,
+    MAGTHERIDON_ATTACK_DELAY
 };
 
 struct boss_magtheridonAI : public CombatAI
@@ -118,7 +119,11 @@ struct boss_magtheridonAI : public CombatAI
             DoStartMovement(m_creature->GetVictim());
         });
         AddCustomAction(MAGTHERIDON_TRANSITION_TIMER, true, [&]() { HandlePhaseTransition(); });
+        AddCustomAction(MAGTHERIDON_ATTACK_DELAY, true, [&]() { HandleStartAttack(); });
         Reset();
+
+        // Magtheridon gets respawned after a whipe 
+        DoCastSpellIfCan(nullptr, SPELL_SHADOW_CAGE_DUMMY, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
     ScriptedInstance* m_instance;
@@ -152,21 +157,15 @@ struct boss_magtheridonAI : public CombatAI
             m_creature->SetInCombatWithZone();
 
             DoBroadcastText(EMOTE_FREED, m_creature);
+            m_creature->HandleEmote(EMOTE_ONESHOT_ROAR);
             DoBroadcastText(SAY_AGGRO, m_creature);
 
-            SetCombatScriptStatus(false);
+            ResetTimer(MAGTHERIDON_ATTACK_DELAY, 3000);
+            
             m_creature->RemoveAurasDueToSpell(SPELL_SHADOW_CAGE_DUMMY);
-
-            SetReactState(REACT_AGGRESSIVE);
-
+           
             DoResetThreat(); // clear threat at start
-
-            // timers here so they dont start at combat initiate
-            ResetCombatAction(MAGTHERIDON_BERSERK, uint32(20 * MINUTE * IN_MILLISECONDS));
-            ResetCombatAction(MAGTHERIDON_BLAZE, urand(10000, 15000));
-            ResetCombatAction(MAGTHERIDON_QUAKE, 40000);
-            ResetCombatAction(MAGTHERIDON_BLAST_NOVA, 55000);
-            ResetCombatAction(MAGTHERIDON_CLEAVE, urand(8000, 12000));
+            
         }
         else if (eventType == AI_EVENT_CUSTOM_B)
         {
@@ -192,16 +191,11 @@ struct boss_magtheridonAI : public CombatAI
 
     void EnterEvadeMode() override
     {
-        m_creature->SetStunned(false);
-        CombatAI::EnterEvadeMode();
-    }
-
-    void JustReachedHome() override
-    {
         if (m_instance)
             m_instance->SetData(TYPE_MAGTHERIDON_EVENT, FAIL);
 
-        DoCastSpellIfCan(nullptr, SPELL_SHADOW_CAGE_DUMMY, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        m_creature->SetStunned(false);
+        CombatAI::EnterEvadeMode();
     }
 
     void SpellHit(Unit* /*caster*/, const SpellEntry* spellInfo) override
@@ -209,6 +203,18 @@ struct boss_magtheridonAI : public CombatAI
         // When banished by the cubes
         if (spellInfo->Id == SPELL_SHADOW_CAGE)
             DoBroadcastText(SAY_BANISH, m_creature);
+    }
+
+    void HandleStartAttack()
+    {
+        SetReactState(REACT_AGGRESSIVE);
+        SetCombatScriptStatus(false);
+        // timers here so they dont start at combat initiate
+        ResetCombatAction(MAGTHERIDON_BERSERK, uint32(20 * MINUTE * IN_MILLISECONDS));
+        ResetCombatAction(MAGTHERIDON_BLAZE, urand(10000, 15000));
+        ResetCombatAction(MAGTHERIDON_QUAKE, 40000);
+        ResetCombatAction(MAGTHERIDON_BLAST_NOVA, 55000);
+        ResetCombatAction(MAGTHERIDON_CLEAVE, urand(8000, 12000));
     }
 
     void HandlePhaseTransition()
@@ -323,7 +329,7 @@ struct mob_hellfire_channelerAI : public CombatAI
     mob_hellfire_channelerAI(Creature* creature) : CombatAI(creature, CHANNELER_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         SetReactState(REACT_DEFENSIVE);
-        AddCustomAction(CHANNELER_SHADOW_GRASP, 10000u, [&]() { DoCastSpellIfCan(m_creature, SPELL_SHADOW_GRASP_DUMMY); });
+        AddCustomAction(CHANNELER_SHADOW_GRASP, 5000u, [&]() { DoCastSpellIfCan(m_creature, SPELL_SHADOW_GRASP_DUMMY); });
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/)->bool
         {
             return m_creature->GetDistance2d(-16.683f, 2.34519f) > 55.0f;

@@ -75,8 +75,7 @@ void instance_magtheridons_lair::OnCreatureGroupDespawn(CreatureGroup* pGroup, C
             SetData(TYPE_MAGTHERIDON_EVENT, IN_PROGRESS);
             m_uiCageBreakTimer = 0;
         }
-    }
-        
+    }        
 }
 
 void instance_magtheridons_lair::OnObjectCreate(GameObject* pGo)
@@ -187,6 +186,7 @@ void instance_magtheridons_lair::FailBoss()
         if (GameObject* pColumn = instance->GetGameObject(*itr))
             pColumn->ResetDoorOrButton();
     }
+
     // Reset cubes
     for (GuidList::const_iterator itr = m_lCubeGuidList.begin(); itr != m_lCubeGuidList.end(); ++itr)
         DoToggleGameObjectFlags(*itr, GO_FLAG_NO_INTERACT, true);
@@ -199,7 +199,6 @@ void instance_magtheridons_lair::FailBoss()
     // Despawn and Respawn all Channelers for 30 seconds
     RespawnDbGuids(m_lChannelerGuidList, 30);
     m_lChannelerGuidList.clear();
-
 
     if (Creature* pMagtheridon = GetSingleCreatureFromStorage(NPC_MAGTHERIDON))
     {

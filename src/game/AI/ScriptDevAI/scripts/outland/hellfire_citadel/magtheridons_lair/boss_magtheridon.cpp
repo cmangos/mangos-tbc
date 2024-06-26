@@ -329,7 +329,8 @@ struct mob_hellfire_channelerAI : public CombatAI
     mob_hellfire_channelerAI(Creature* creature) : CombatAI(creature, CHANNELER_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         SetReactState(REACT_DEFENSIVE);
-        AddCustomAction(CHANNELER_SHADOW_GRASP, 5000u, [&]() { DoCastSpellIfCan(m_creature, SPELL_SHADOW_GRASP_DUMMY); });
+        AddCustomAction(CHANNELER_SHADOW_GRASP, 5000u, [&]() { DoCastSpellIfCan(m_creature, SPELL_SHADOW_GRASP_DUMMY); },  TIMER_COMBAT_OOC);
+
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/)->bool
         {
             return m_creature->GetDistance2d(-16.683f, 2.34519f) > 55.0f;
@@ -450,16 +451,6 @@ struct QuakeMagth : public SpellScript
     }
 };
 
-struct QuakeMagthKnockback : public SpellScript
-{
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
-    {
-        if (target->IsJumping() || target->IsFalling())
-            return false;
-        return true;
-    }
-};
-
 struct DebrisMagtheridon : public AuraScript
 {
     void OnPersistentAreaAuraEnd(DynamicObject* dynGo) const override
@@ -490,6 +481,5 @@ void AddSC_boss_magtheridon()
     RegisterSpellScript<ShadowGraspCube>("spell_shadow_grasp_cube");
     RegisterSpellScript<ShadowGraspMagth>("spell_shadow_grasp_magtheridon");
     RegisterSpellScript<QuakeMagth>("spell_quake_magtheridon");
-    RegisterSpellScript<QuakeMagthKnockback>("spell_quake_magtheridon_knockback");
     RegisterSpellScript<DebrisMagtheridon>("spell_magtheridon_debris");
 }

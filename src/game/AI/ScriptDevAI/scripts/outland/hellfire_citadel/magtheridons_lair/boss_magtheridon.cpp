@@ -80,6 +80,9 @@ enum
     NPC_RAID_TRIGGER            = 17376,
 
     MAX_QUAKE_COUNT             = 7,
+
+    SPELL_LIST_PHASE_1          = 1725701,
+    SPELL_LIST_PHASE_2          = 1725702,
 };
 
 /*######
@@ -90,11 +93,7 @@ enum MagtheridonActions
 {
     MAGTHERIDON_PHASE_3,
     MAGTHERIDON_BERSERK,
-    MAGTHERIDON_BLAST_NOVA,
     MAGTHERIDON_DEBRIS,
-    MAGTHERIDON_QUAKE,
-    MAGTHERIDON_CLEAVE,
-    MAGTHERIDON_BLAZE,
     MAGTHERIDON_ACTION_MAX,
     MAGTHERIDON_QUAKE_TIMER,
     MAGTHERIDON_TRANSITION_TIMER,
@@ -107,11 +106,6 @@ struct boss_magtheridonAI : public CombatAI
     {
         AddTimerlessCombatAction(MAGTHERIDON_PHASE_3, true);
         AddCombatAction(MAGTHERIDON_DEBRIS, true);
-        AddCombatAction(MAGTHERIDON_BERSERK, true);
-        AddCombatAction(MAGTHERIDON_BLAZE, true);
-        AddCombatAction(MAGTHERIDON_QUAKE, true);
-        AddCombatAction(MAGTHERIDON_BLAST_NOVA, true);
-        AddCombatAction(MAGTHERIDON_CLEAVE, true);
         AddCustomAction(MAGTHERIDON_QUAKE_TIMER, true, [&]()
         {
             m_creature->SetStunned(false);
@@ -164,7 +158,6 @@ struct boss_magtheridonAI : public CombatAI
             DoBroadcastText(EMOTE_FREED, m_creature);
             m_creature->HandleEmote(EMOTE_ONESHOT_ROAR);
             DoBroadcastText(SAY_AGGRO, m_creature);
-
             ResetTimer(MAGTHERIDON_ATTACK_DELAY, 3000);
             
             m_creature->RemoveAurasDueToSpell(SPELL_SHADOW_CAGE_DUMMY);
@@ -214,12 +207,8 @@ struct boss_magtheridonAI : public CombatAI
     {
         SetReactState(REACT_AGGRESSIVE);
         SetCombatScriptStatus(false);
-        // timers here so they dont start at combat initiate
-        ResetCombatAction(MAGTHERIDON_BERSERK, uint32(20 * MINUTE * IN_MILLISECONDS));
-        ResetCombatAction(MAGTHERIDON_BLAZE, urand(10000, 15000));
-        ResetCombatAction(MAGTHERIDON_QUAKE, 40000);
-        ResetCombatAction(MAGTHERIDON_BLAST_NOVA, 55000);
-        ResetCombatAction(MAGTHERIDON_CLEAVE, urand(8000, 12000));
+        
+        m_creature->SetSpellList(SPELL_LIST_PHASE_1);
     }
 
     void HandlePhaseTransition()
@@ -241,12 +230,30 @@ struct boss_magtheridonAI : public CombatAI
                 SetCombatScriptStatus(false);
                 SetMeleeEnabled(true);
                 SetCombatMovement(true, true);
+                m_creature->SetSpellList(SPELL_LIST_PHASE_2);
                 break;
         }
 
         ++m_uiTransitionCount;
         if (timer)
             ResetTimer(MAGTHERIDON_TRANSITION_TIMER, timer);
+    }
+
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
+    {
+        switch (spellInfo->Id)
+        {
+            case SPELL_BLASTNOVA:
+                DoBroadcastText(EMOTE_BLASTNOVA, m_creature);
+                break;
+            case SPELL_QUAKE:
+                m_creature->SetStunned(true);
+                ResetTimer(MAGTHERIDON_QUAKE_TIMER, 7000);
+                break;
+            case SPELL_BERSERK:
+                DoBroadcastText(EMOTE_GENERIC_ENRAGED, m_creature);
+                break;
+        }
     }
 
     void ExecuteAction(uint32 action) override
@@ -265,54 +272,7 @@ struct boss_magtheridonAI : public CombatAI
                     SetMeleeEnabled(false);
                     SetCombatMovement(false);
                     SetActionReadyStatus(action, false);
-                    ResetCombatAction(MAGTHERIDON_DEBRIS, urand(20000, 30000));
                 }
-                break;
-            }
-            case MAGTHERIDON_BERSERK:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_BERSERK) == CAST_OK)
-                {
-                    DoBroadcastText(EMOTE_GENERIC_ENRAGED, m_creature);
-                    DisableCombatAction(action);
-                }
-                break;
-            }
-            case MAGTHERIDON_BLAST_NOVA:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_BLASTNOVA) == CAST_OK)
-                {
-                    DoBroadcastText(EMOTE_BLASTNOVA, m_creature);
-                    ResetCombatAction(action, 55000);
-                }
-                break;
-            }
-            case MAGTHERIDON_DEBRIS:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_DEBRIS_1) == CAST_OK)
-                    ResetCombatAction(action, urand(10000, 15000));
-                break;
-            }
-            case MAGTHERIDON_QUAKE:
-            {
-                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_QUAKE) == CAST_OK)
-                {
-                    m_creature->SetStunned(true);
-                    ResetTimer(MAGTHERIDON_QUAKE_TIMER, 7000);
-                    ResetCombatAction(action, 50000);
-                }
-                break;
-            }
-            case MAGTHERIDON_CLEAVE:
-            {
-                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
-                    ResetCombatAction(action, urand(8000, 16000));
-                break;
-            }
-            case MAGTHERIDON_BLAZE:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_BLAZE) == CAST_OK)
-                    ResetCombatAction(action, urand(10000, 15000));
                 break;
             }
         }

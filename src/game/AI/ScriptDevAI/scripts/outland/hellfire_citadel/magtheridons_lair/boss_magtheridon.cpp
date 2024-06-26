@@ -315,6 +315,7 @@ struct boss_magtheridonAI : public CombatAI
 enum ChannelerActions
 {
     CHANNELER_ACTION_MAX,
+    CHANNELER_SHADOW_GRASP,
 };
 
 struct mob_hellfire_channelerAI : public CombatAI
@@ -322,7 +323,7 @@ struct mob_hellfire_channelerAI : public CombatAI
     mob_hellfire_channelerAI(Creature* creature) : CombatAI(creature, CHANNELER_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         SetReactState(REACT_DEFENSIVE);
-
+        AddCustomAction(CHANNELER_SHADOW_GRASP, 10000u, [&]() { DoCastSpellIfCan(m_creature, SPELL_SHADOW_GRASP_DUMMY); });
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/)->bool
         {
             return m_creature->GetDistance2d(-16.683f, 2.34519f) > 55.0f;

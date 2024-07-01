@@ -39,6 +39,8 @@ enum
     EMOTE_GENERIC_ENRAGED       = 2384,
     EMOTE_BLASTNOVA             = 18739,
     EMOTE_FREED                 = 13691,
+    EMOTE_EVENT_BEGIN           = 13689,
+    EMOTE_NEARLY_FREE           = 13690,
 
     // Maghteridon spells
     SPELL_SHADOW_CAGE_DUMMY     = 30205,                    // dummy aura - in creature_template_addon
@@ -116,7 +118,7 @@ struct boss_magtheridonAI : public CombatAI
         AddCustomAction(MAGTHERIDON_ATTACK_DELAY, true, [&]() { HandleStartAttack(); });
         Reset();
 
-        // Magtheridon gets respawned after a whipe 
+        // Magtheridon gets respawned after a wipe 
         DoCastSpellIfCan(nullptr, SPELL_SHADOW_CAGE_DUMMY, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
 
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit* /*unit*/, float /*x*/, float /*y*/, float /*z*/)->bool
@@ -169,6 +171,10 @@ struct boss_magtheridonAI : public CombatAI
         {
             DoBroadcastText(EMOTE_EVENT_BEGIN, m_creature);
         }
+        else if (eventType == AI_EVENT_CUSTOM_C)
+        {
+            DoBroadcastText(EMOTE_NEARLY_FREE, m_creature);
+        }
     }
 
     void KilledUnit(Unit* victim) override
@@ -207,8 +213,6 @@ struct boss_magtheridonAI : public CombatAI
     {
         SetReactState(REACT_AGGRESSIVE);
         SetCombatScriptStatus(false);
-        
-        m_creature->SetSpellList(SPELL_LIST_PHASE_1);
     }
 
     void HandlePhaseTransition()
@@ -231,6 +235,11 @@ struct boss_magtheridonAI : public CombatAI
                 SetMeleeEnabled(true);
                 SetCombatMovement(true, true);
                 m_creature->SetSpellList(SPELL_LIST_PHASE_2);
+                if (Unit* victim = m_creature->GetVictim())
+                {
+                    m_creature->SetTarget(victim);
+                    DoStartMovement(victim);
+                }
                 break;
         }
 
@@ -268,6 +277,7 @@ struct boss_magtheridonAI : public CombatAI
                     DoBroadcastText(SAY_CHAMBER_DESTROY, m_creature);
                     m_creature->HandleEmote(EMOTE_STATE_TALK);
                     ResetTimer(MAGTHERIDON_TRANSITION_TIMER, 5000);
+                    m_creature->SetTarget(nullptr);
                     SetCombatScriptStatus(true);
                     SetMeleeEnabled(false);
                     SetCombatMovement(false);

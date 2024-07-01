@@ -221,7 +221,7 @@ void instance_magtheridons_lair::Update(uint32 uiDiff)
                     {
                         if (pMagtheridon->IsAlive())
                         {
-                            DoBroadcastText(EMOTE_NEARLY_FREE, pMagtheridon);
+                            pMagtheridon->AI()->SendAIEvent(AI_EVENT_CUSTOM_C, pMagtheridon, pMagtheridon);                            
                             m_uiCageBreakTimer = MINUTE * IN_MILLISECONDS;
                         }
                     }

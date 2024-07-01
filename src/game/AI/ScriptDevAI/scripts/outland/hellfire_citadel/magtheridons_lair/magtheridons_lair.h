@@ -25,6 +25,7 @@ enum
     GO_MAGTHERIDON_COLUMN_005   = 184637,
     GO_MAGTHERIDON_COLUMN_000   = 184638,
     GO_MAGTHERIDON_COLUMN_001   = 184639,
+    GO_MAGHERIDON_BLAZE         = 181832,
 
     SPAWN_GROUP_CHANNELER       = 5440005,
 };
@@ -59,6 +60,7 @@ class instance_magtheridons_lair : public ScriptedInstance
 
         GuidList m_lColumnGuidList;
         GuidList m_lCubeGuidList;
+        GuidList m_lBlazeGuidList;
 
         uint32 m_uiRandYellTimer;
         uint32 m_uiCageBreakTimer;

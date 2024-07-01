@@ -97,6 +97,10 @@ void instance_magtheridons_lair::OnObjectCreate(GameObject* pGo)
         case GO_MANTICRON_CUBE:
             m_lCubeGuidList.push_back(pGo->GetObjectGuid());
             break;
+        case GO_MAGHERIDON_BLAZE:
+            m_lBlazeGuidList.push_back(pGo->GetObjectGuid());
+            break;
+
     }
 }
 
@@ -190,6 +194,13 @@ void instance_magtheridons_lair::FailBoss()
     // Reset cubes
     for (GuidList::const_iterator itr = m_lCubeGuidList.begin(); itr != m_lCubeGuidList.end(); ++itr)
         DoToggleGameObjectFlags(*itr, GO_FLAG_NO_INTERACT, true);
+
+    // Despawn all Blaze objects
+    for (GuidList::const_iterator itr = m_lBlazeGuidList.begin(); itr != m_lBlazeGuidList.end(); ++itr)
+    {
+        if (GameObject* pBlaze = instance->GetGameObject(*itr))
+            pBlaze->AddObjectToRemoveList();
+    }
 
     // Despawn all abyssals
     for (ObjectGuid& guid : m_abyssalTemporaryGuids)

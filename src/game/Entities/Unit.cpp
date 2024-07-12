@@ -5674,6 +5674,7 @@ void Unit::RemoveAura(Aura* Aur, AuraRemoveMode mode)
 
     // Set remove mode
     Aur->SetRemoveMode(mode);
+    Aur->InvalidateScriptRef();
 
     // some ShapeshiftBoosts at remove trigger removing other auras including parent Shapeshift aura
     // remove aura from list before to prevent deleting it before
@@ -9746,7 +9747,6 @@ void Unit::SetMaxPower(Powers power, uint32 val)
 
 void Unit::ApplyPowerMod(Powers power, uint32 val, bool apply)
 {
-    m_unitPower[power] = m_unitPower[power] + (apply ? val : -val);
     ApplyModUInt32Value(UNIT_FIELD_POWER1 + power, val, apply);
 
     // group update

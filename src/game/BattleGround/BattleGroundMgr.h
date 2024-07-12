@@ -23,12 +23,13 @@
 #include "Utilities/EventProcessor.h"
 #include "Globals/SharedDefines.h"
 #include "Server/DBCEnums.h"
+#include "Util/UniqueTrackablePtr.h"
 #include "BattleGround.h"
 #include "BattleGround/BattleGroundDefines.h"
 
 #include <mutex>
 
-typedef std::map<uint32, BattleGround*> BattleGroundSet;
+typedef std::map<uint32, MaNGOS::unique_trackable_ptr<BattleGround>> BattleGroundSet;
 
 typedef std::unordered_map<uint32, BattleGroundTypeId> BattleMastersMap;
 typedef std::unordered_map<uint32, BattleGroundEventIdx> CreatureBattleEventIndexesMap;
@@ -62,7 +63,7 @@ class BattleGroundMgr
 
         uint32 CreateBattleGround(BattleGroundTypeId /*bgTypeId*/, bool /*isArena*/, uint32 /*minPlayersPerTeam*/, uint32 /*maxPlayersPerTeam*/, uint32 /*levelMin*/, uint32 /*levelMax*/, char const* /*battleGroundName*/, uint32 /*mapId*/, float /*team1StartLocX*/, float /*team1StartLocY*/, float /*team1StartLocZ*/, float /*team1StartLocO*/, float /*team2StartLocX*/, float /*team2StartLocY*/, float /*team2StartLocZ*/, float /*team2StartLocO*/, float /*startMaxDist*/, uint32 /*playerSkinReflootId*/);
 
-        void AddBattleGround(uint32 instanceId, BattleGroundTypeId bgTypeId, BattleGround* bg) { m_battleGrounds[bgTypeId][instanceId] = bg; };
+        void AddBattleGround(uint32 instanceId, BattleGroundTypeId bgTypeId, BattleGround* bg);;
         void RemoveBattleGround(uint32 instanceId, BattleGroundTypeId bgTypeId) { m_battleGrounds[bgTypeId].erase(instanceId); }
 
         void CreateInitialBattleGrounds();

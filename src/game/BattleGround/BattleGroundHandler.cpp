@@ -154,7 +154,12 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
             return;
         // check if has free queue slots
         if (!_player->HasFreeBattleGroundQueueId())
+        {
+            WorldPacket data;
+            sBattleGroundMgr.BuildGroupJoinedBattlegroundPacket(data, bgTypeId, BG_GROUP_JOIN_STATUS_TOO_MANY_QUEUES);
+            _player->GetSession()->SendPacket(data);
             return;
+        }
     }
     else
     {
@@ -707,7 +712,12 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
             return;
         // check if has free queue slots
         if (!_player->HasFreeBattleGroundQueueId())
+        {
+            WorldPacket data;
+            sBattleGroundMgr.BuildGroupJoinedBattlegroundPacket(data, bgTypeId, BG_GROUP_JOIN_STATUS_TOO_MANY_QUEUES);
+            _player->GetSession()->SendPacket(data);
             return;
+        }
     }
     else
     {
@@ -718,7 +728,27 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
         uint32 err = group->CanJoinBattleGroundQueue(bgTypeId, bgQueueTypeId, arenatype, arenatype, isRated != 0, arenaslot);
         if (err != BG_JOIN_ERR_OK)
         {
-            SendBattleGroundOrArenaJoinError(err);
+            if (err == BG_JOIN_ERR_MIXED_ARENATEAM)
+            {
+                WorldPacket data;
+                sBattleGroundMgr.BuildGroupJoinedBattlegroundPacket(data, bgTypeId, BG_GROUP_JOIN_STATUS_NOT_IN_TEAM);
+                _player->GetSession()->SendPacket(data);
+            }
+            else if (err == BG_JOIN_ERR_ALL_QUEUES_USED)
+            {
+                WorldPacket data;
+                sBattleGroundMgr.BuildGroupJoinedBattlegroundPacket(data, bgTypeId, BG_GROUP_JOIN_STATUS_TOO_MANY_QUEUES);
+                _player->GetSession()->SendPacket(data);
+            }
+            else if (err == BG_JOIN_ERR_GROUP_MEMBER_ALREADY_IN_QUEUE)
+            {
+                WorldPacket data;
+                sBattleGroundMgr.BuildGroupJoinedBattlegroundPacket(data, bgTypeId, BG_GROUP_JOIN_STATUS_CANNOT_QUEUE_FOR_RATED);
+                _player->GetSession()->SendPacket(data);
+            }
+            else
+                SendBattleGroundOrArenaJoinError(err);
+
             return;
         }
     }

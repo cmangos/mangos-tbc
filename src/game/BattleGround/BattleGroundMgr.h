@@ -76,9 +76,14 @@ enum BattleGroundQueueGroupTypes
 
 enum BattleGroundGroupJoinStatus
 {
-    BG_GROUP_JOIN_STATUS_DESERTERS = -2,
-    BG_GROUP_JOIN_STATUS_NOT_ELIGIBLE = -1,
-    BG_GROUP_JOIN_STATUS_SUCCESS = 0,
+    BG_GROUP_JOIN_STATUS_TEAM_LEFT_QUEUE        = -7,
+    BG_GROUP_JOIN_STATUS_QUEUED_FOR_RATED       = -6,
+    BG_GROUP_JOIN_STATUS_CANNOT_QUEUE_FOR_RATED = -5,
+    BG_GROUP_JOIN_STATUS_TOO_MANY_QUEUES        = -4,
+    BG_GROUP_JOIN_STATUS_NOT_IN_TEAM            = -3,
+    BG_GROUP_JOIN_STATUS_DESERTERS              = -2,
+    BG_GROUP_JOIN_STATUS_NOT_ELIGIBLE           = -1,
+    BG_GROUP_JOIN_STATUS_SUCCESS                = 0,
 };
 
 class BattleGround;

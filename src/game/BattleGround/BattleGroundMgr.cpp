@@ -1524,6 +1524,11 @@ void BattleGroundMgr::BuildGroupJoinedBattlegroundPacket(WorldPacket& data, Batt
     {
         case BG_GROUP_JOIN_STATUS_DESERTERS:    // You cannot join the battleground yet because you or one of your party members is flagged as a Deserter.
         case BG_GROUP_JOIN_STATUS_NOT_ELIGIBLE: // Your group has joined a battleground queue, but you are not eligible
+        case BG_GROUP_JOIN_STATUS_NOT_IN_TEAM:
+        case BG_GROUP_JOIN_STATUS_TOO_MANY_QUEUES:
+        case BG_GROUP_JOIN_STATUS_CANNOT_QUEUE_FOR_RATED:
+        case BG_GROUP_JOIN_STATUS_QUEUED_FOR_RATED:
+        case BG_GROUP_JOIN_STATUS_TEAM_LEFT_QUEUE:
             data << int32(status);
             break;
         case BG_GROUP_JOIN_STATUS_SUCCESS:      // Your group has joined the queue for [map]

@@ -1194,6 +1194,12 @@ void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg) co
     data << uint8(reason);                                  // transfer abort reason
     switch (reason)
     {
+        case TRANSFER_ABORT_NONE:
+        case TRANSFER_ABORT_MAX_PLAYERS:
+        case TRANSFER_ABORT_NOT_FOUND:
+        case TRANSFER_ABORT_TOO_MANY_INSTANCES:
+        case TRANSFER_ABORT_ZONE_IN_COMBAT:
+            break;
         case TRANSFER_ABORT_INSUF_EXPAN_LVL:
         case TRANSFER_ABORT_DIFFICULTY:
             data << uint8(arg);

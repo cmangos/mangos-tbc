@@ -461,6 +461,14 @@ class WorldSession
         uint32 GetRecruitingFriendId() const { return m_recruitingFriendId; }
         bool IsARecruiter() const { return m_isRecruiter; }
 
+#ifdef BUILD_VOICECHAT
+        // Voice Chat
+        bool IsVoiceChatEnabled() const { return m_voiceEnabled; }
+        bool IsMicEnabled() const { return m_micEnabled; }
+        uint16 GetCurrentVoiceChannelId() const { return m_currentVoiceChannel; }
+        void SetCurrentVoiceChannelId(uint32 id) { m_currentVoiceChannel = id; }
+#endif
+
         // Time Synchronisation
         void ResetTimeSync();
         void SendTimeSync();
@@ -555,6 +563,9 @@ class WorldSession
         void HandleDelFriendOpcode(WorldPacket& recvPacket);
         void HandleAddIgnoreOpcode(WorldPacket& recvPacket);
         static void HandleAddIgnoreOpcodeCallBack(QueryResult* result, uint32 accountId);
+#ifdef BUILD_VOICECHAT
+        static void HandleAddMutedOpcodeCallBack(QueryResult* result, uint32 accountId);
+#endif
         void HandleDelIgnoreOpcode(WorldPacket& recvPacket);
         void HandleSetContactNotesOpcode(WorldPacket& recvPacket);
         void HandleBugOpcode(WorldPacket& recvPacket);
@@ -880,9 +891,32 @@ class WorldSession
 
         void HandleCancelTempEnchantmentOpcode(WorldPacket& recv_data);
 
+#ifdef BUILD_VOICECHAT
+        // Voice Chat
+        void HandleAddVoiceIgnoreOpcode(WorldPacket& recvData);
+        void HandleDelVoiceIgnoreOpcode(WorldPacket& recvData);
+        void HandleChannelSilenceOpcode(WorldPacket& recvData);
+        void HandleChannelUnsilenceOpcode(WorldPacket& recvData);
+        void HandlePartySilenceOpcode(WorldPacket& recvData);
+        void HandlePartyUnsilenceOpcode(WorldPacket& recvData);
         void HandleChannelVoiceOnOpcode(WorldPacket& recv_data);
+        void HandleChannelVoiceOffOpcode(WorldPacket& recv_data);
         void HandleVoiceSessionEnableOpcode(WorldPacket& recv_data);
-        void HandleSetActiveVoiceChannel(WorldPacket& recv_data);
+        void HandleSetActiveVoiceChannelOpcode(WorldPacket& recv_data);
+#else
+        // Voice Chat placeholder
+        void HandleAddVoiceIgnoreOpcode(WorldPacket& recvData) {}
+        void HandleDelVoiceIgnoreOpcode(WorldPacket& recvData) {}
+        void HandleChannelSilenceOpcode(WorldPacket& recvData) {}
+        void HandleChannelUnsilenceOpcode(WorldPacket& recvData) {}
+        void HandlePartySilenceOpcode(WorldPacket& recvData) {}
+        void HandlePartyUnsilenceOpcode(WorldPacket& recvData) {}
+        void HandleChannelVoiceOnOpcode(WorldPacket& recv_data) {}
+        void HandleChannelVoiceOffOpcode(WorldPacket& recv_data) {}
+        void HandleVoiceSessionEnableOpcode(WorldPacket& recv_data) {}
+        void HandleSetActiveVoiceChannelOpcode(WorldPacket& recv_data) {}
+#endif
+
         void HandleSetTaxiBenchmarkOpcode(WorldPacket& recv_data);
 
         void HandleCommentatorModeOpcode(WorldPacket& recv_data);
@@ -999,6 +1033,13 @@ class WorldSession
         // Recruit-A-Friend
         uint32 m_recruitingFriendId;
         bool m_isRecruiter;
+
+#ifdef BUILD_VOICECHAT
+        // Voice Chat
+        bool m_micEnabled;
+        bool m_voiceEnabled;
+        uint16 m_currentVoiceChannel;
+#endif
 
         // Thread safety mechanisms
         std::mutex m_recvQueueLock;

@@ -46,6 +46,10 @@
 #include <cstdarg>
 #include <iostream>
 
+#ifdef BUILD_VOICECHAT
+#include "VoiceChat/VoiceChatMgr.h"
+#endif
+
 #ifdef BUILD_DEPRECATED_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
 #include "PlayerBot/Base/PlayerbotAI.h"
@@ -106,6 +110,9 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED),
     m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0),
     m_recruitingFriendId(recruitingFriend), m_isRecruiter(isARecruiter)
+#ifdef BUILD_VOICECHAT
+    , m_voiceEnabled(false), m_micEnabled(false), m_currentVoiceChannel(0)
+#endif
     {}
 
 /// WorldSession destructor
@@ -133,6 +140,11 @@ void WorldSession::SetOffline()
         // friend status
         sSocialMgr.SendFriendStatus(_player, FRIEND_OFFLINE, _player->GetObjectGuid(), true);
         LogoutRequest(time(nullptr));
+
+#ifdef BUILD_VOICECHAT
+        // Leave voice chat if player disconnects
+        sVoiceChatMgr.RemoveFromVoiceChatChannels(_player->GetObjectGuid());
+#endif
     }
 
     // be sure its closed (may occur when second session is opened)
@@ -773,6 +785,11 @@ void WorldSession::LogoutPlayer()
 #if defined(BUILD_DEPRECATED_PLAYERBOT) || defined(ENABLE_PLAYERBOTS)
         // Remember player GUID for update SQL below
         uint32 guid = _player->GetGUIDLow();
+#endif
+
+#ifdef BUILD_VOICECHAT
+        // Leave voice chat before player is removed
+        sVoiceChatMgr.RemoveFromVoiceChatChannels(_player->GetObjectGuid());
 #endif
 
         ///- Remove the player from the world

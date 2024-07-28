@@ -25,6 +25,7 @@
 #include "WorldModel.h"
 #include "VMapDefinitions.h"
 #include "Maps/GridMapDefines.h"
+#include <memory>
 
 using G3D::Vector3;
 
@@ -40,6 +41,8 @@ namespace VMAP
 
     VMapManager2::~VMapManager2(void)
     {
+        // No lock required because no other thread should still be
+        // accessing the VMapManager when we're destroying it!
         for (auto& iInstanceMapTree : iInstanceMapTrees)
         {
             delete iInstanceMapTree.second;
@@ -91,10 +94,8 @@ namespace VMAP
     // Check if specified map have tile loaded
     bool VMapManager2::IsTileLoaded(uint32 mapId, uint32 x, uint32 y) const
     {
-        InstanceTreeMap::const_iterator instanceTree = iInstanceMapTrees.find(mapId);
-        if (instanceTree == iInstanceMapTrees.end())
-            return false;
-        return instanceTree->second->IsTileLoaded(x, y);
+        StaticMapTree* instanceTree = GetInstanceTree(mapId);
+        return (instanceTree ? instanceTree->IsTileLoaded(x, y) : false);
     }
 
     //=========================================================
@@ -102,38 +103,48 @@ namespace VMAP
 
     bool VMapManager2::_loadMap(unsigned int pMapId, const std::string& basePath, uint32 tileX, uint32 tileY)
     {
-        InstanceTreeMap::iterator instanceTree = iInstanceMapTrees.find(pMapId);
-        if (instanceTree == iInstanceMapTrees.end())
+        StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+        if (!instanceTree)
         {
             std::string mapFileName = getMapFileName(pMapId);
-            StaticMapTree* newTree = new StaticMapTree(pMapId, basePath);
+            auto newTree = std::make_unique<StaticMapTree>(pMapId, basePath);
             if (!newTree->InitMap(mapFileName, this))
             {
-                delete newTree;
                 return false;
             }
 
-            // insert new data
+            // Insert new data. Note that, theoretically speaking, another thread could have
+            // inserted data for the same mapId while we were busy constructing the StaticMapTree.
+            // But that's OK, because in that case insert will not really insert our value and
+            // return an iterator to the element that prevented the insertion.
             {
                 std::lock_guard<std::mutex> lock(m_vmStaticMapMutex);
-                instanceTree = iInstanceMapTrees.insert(InstanceTreeMap::value_type(pMapId, newTree)).first;
+                auto insertResult = iInstanceMapTrees.insert(InstanceTreeMap::value_type(pMapId, newTree.get()));
+
+                // If insertion was successful, release ownership of the newly created
+                // StaticMapTree because the map has ownership now.
+                if (insertResult.second)
+                    newTree.release();
+
+                instanceTree = insertResult.first->second;
             }
         }
-        return instanceTree->second->LoadMapTile(tileX, tileY, this);
+        return instanceTree->LoadMapTile(tileX, tileY, this);
     }
 
     //=========================================================
 
     void VMapManager2::unloadMap(unsigned int pMapId)
     {
-        InstanceTreeMap::iterator instanceTree = iInstanceMapTrees.find(pMapId);
-        if (instanceTree != iInstanceMapTrees.end())
+        StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+        if (instanceTree)
         {
-            instanceTree->second->UnloadMap(this);
-            if (instanceTree->second->numLoadedTiles() == 0)
+            instanceTree->UnloadMap(this);
+            if (instanceTree->numLoadedTiles() == 0)
             {
-                delete instanceTree->second;
+                std::lock_guard<std::mutex> lock(m_vmStaticMapMutex);
                 iInstanceMapTrees.erase(pMapId);
+                delete instanceTree;
             }
         }
     }
@@ -142,14 +153,15 @@ namespace VMAP
 
     void VMapManager2::unloadMap(unsigned int  pMapId, int x, int y)
     {
-        InstanceTreeMap::iterator instanceTree = iInstanceMapTrees.find(pMapId);
-        if (instanceTree != iInstanceMapTrees.end())
+        StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+        if (instanceTree)
         {
-            instanceTree->second->UnloadMapTile(x, y, this);
-            if (instanceTree->second->numLoadedTiles() == 0)
+            instanceTree->UnloadMapTile(x, y, this);
+            if (instanceTree->numLoadedTiles() == 0)
             {
-                delete instanceTree->second;
+                std::lock_guard<std::mutex> lock(m_vmStaticMapMutex);
                 iInstanceMapTrees.erase(pMapId);
+                delete instanceTree;
             }
         }
     }
@@ -160,14 +172,14 @@ namespace VMAP
     {
         if (!isLineOfSightCalcEnabled()) return true;
         bool result = true;
-        InstanceTreeMap::iterator instanceTree = iInstanceMapTrees.find(pMapId);
-        if (instanceTree != iInstanceMapTrees.end())
+        StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+        if (instanceTree)
         {
             Vector3 pos1 = convertPositionToInternalRep(x1, y1, z1);
             Vector3 pos2 = convertPositionToInternalRep(x2, y2, z2);
             if (pos1 != pos2)
             {
-                result = instanceTree->second->isInLineOfSight(pos1, pos2, ignoreM2Model);
+                result = instanceTree->isInLineOfSight(pos1, pos2, ignoreM2Model);
             }
         }
         return result;
@@ -185,13 +197,13 @@ namespace VMAP
         rz = z2;
         if (isLineOfSightCalcEnabled())
         {
-            InstanceTreeMap::iterator instanceTree = iInstanceMapTrees.find(pMapId);
-            if (instanceTree != iInstanceMapTrees.end())
+            StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+            if (instanceTree)
             {
                 Vector3 pos1 = convertPositionToInternalRep(x1, y1, z1);
                 Vector3 pos2 = convertPositionToInternalRep(x2, y2, z2);
                 Vector3 resultPos;
-                result = instanceTree->second->getObjectHitPos(pos1, pos2, resultPos, pModifyDist);
+                result = instanceTree->getObjectHitPos(pos1, pos2, resultPos, pModifyDist);
                 resultPos = convertPositionToInternalRep(resultPos.x, resultPos.y, resultPos.z);
                 rx = resultPos.x;
                 ry = resultPos.y;
@@ -211,11 +223,11 @@ namespace VMAP
         float height = VMAP_INVALID_HEIGHT_VALUE;           // no height
         if (isHeightCalcEnabled())
         {
-            InstanceTreeMap::iterator instanceTree = iInstanceMapTrees.find(pMapId);
-            if (instanceTree != iInstanceMapTrees.end())
+            StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+            if (instanceTree)
             {
                 Vector3 pos = convertPositionToInternalRep(x, y, z);
-                height = instanceTree->second->getHeight(pos, maxSearchDist);
+                height = instanceTree->getHeight(pos, maxSearchDist);
                 if (!(height < G3D::inf()))
                 {
                     height = VMAP_INVALID_HEIGHT_VALUE;     // no height
@@ -230,11 +242,11 @@ namespace VMAP
     bool VMapManager2::getAreaInfo(unsigned int pMapId, float x, float y, float& z, uint32& flags, int32& adtId, int32& rootId, int32& groupId) const
     {
         bool result = false;
-        InstanceTreeMap::const_iterator instanceTree = iInstanceMapTrees.find(pMapId);
-        if (instanceTree != iInstanceMapTrees.end())
+        StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+        if (instanceTree)
         {
             Vector3 pos = convertPositionToInternalRep(x, y, z);
-            result = instanceTree->second->getAreaInfo(pos, flags, adtId, rootId, groupId);
+            result = instanceTree->getAreaInfo(pos, flags, adtId, rootId, groupId);
             // z is not touched by convertPositionToMangosRep(), so just copy
             z = pos.z;
         }
@@ -259,12 +271,12 @@ namespace VMAP
 
     bool VMapManager2::GetLiquidLevel(uint32 pMapId, float x, float y, float z, uint8 ReqLiquidTypeMask, float& level, float& floor, uint32& type) const
     {
-        InstanceTreeMap::const_iterator instanceTree = iInstanceMapTrees.find(pMapId);
-        if (instanceTree != iInstanceMapTrees.end())
+        StaticMapTree* instanceTree = GetInstanceTree(pMapId);
+        if (instanceTree)
         {
             LocationInfo info;
             Vector3 pos = convertPositionToInternalRep(x, y, z);
-            if (instanceTree->second->GetLocationInfo(pos, info))
+            if (instanceTree->GetLocationInfo(pos, info))
             {
                 floor = info.ground_Z;
                 type = info.hitModel->GetLiquidType();
@@ -304,6 +316,7 @@ namespace VMAP
 
     void VMapManager2::releaseModelInstance(const std::string& filename)
     {
+        std::lock_guard<std::mutex> lock(m_vmModelMutex);
         ModelFileMap::iterator model = iLoadedModelFiles.find(filename);
         if (model == iLoadedModelFiles.end())
         {

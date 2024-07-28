@@ -202,7 +202,7 @@ class TerrainInfo : public Referencable<std::atomic_long>
         // global garbage collection timer
         ShortIntervalTimer i_timer;
 
-        VMAP::IVMapManager* m_vmgr;
+        VMAP::IVMapManager& m_vmgr;
 
         typedef std::mutex LOCK_TYPE;
         typedef std::lock_guard<LOCK_TYPE> LOCK_GUARD;

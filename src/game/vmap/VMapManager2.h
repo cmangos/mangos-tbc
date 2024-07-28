@@ -66,7 +66,14 @@ namespace VMAP
     class VMapManager2 : public IVMapManager
     {
         private:
-            std::mutex m_vmStaticMapMutex;
+            StaticMapTree* GetInstanceTree(uint32 mapId) const
+            {
+                std::lock_guard<std::mutex> lock(m_vmStaticMapMutex);
+                auto iterator = iInstanceMapTrees.find(mapId);
+                return (iterator != iInstanceMapTrees.end() ? iterator->second : nullptr);
+            }
+
+            mutable std::mutex m_vmStaticMapMutex;
             std::mutex m_vmModelMutex;
 
         protected:

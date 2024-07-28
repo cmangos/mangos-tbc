@@ -18,8 +18,16 @@
 
 #include "VMapFactory.h"
 #include "VMapManager2.h"
+#include <atomic>
+#include <mutex>
 
 using namespace G3D;
+
+namespace
+{
+    std::mutex gVMapMutex;
+    std::atomic<VMAP::IVMapManager*> gVMapManager { nullptr };
+}
 
 namespace VMAP
 {
@@ -51,8 +59,6 @@ namespace VMAP
         }
     }
 
-    std::mutex m_vmapMutex;
-    IVMapManager* gVMapManager = nullptr;
 
     //===============================================
     // result false, if no more id are found
@@ -79,26 +85,32 @@ namespace VMAP
         return result;
     }
 
-    //===============================================
-    // just return the instance
-    IVMapManager* VMapFactory::createOrGetVMapManager()
+    /*
+     * Return the instance.
+     */
+    IVMapManager& VMapFactory::GetVMapManager()
     {
-        if (!gVMapManager)
+        IVMapManager* instance = gVMapManager.load(std::memory_order_acquire);
+        if (!instance)
         {
-            std::lock_guard<std::mutex> lock(m_vmapMutex);
-            if (!gVMapManager)
-                gVMapManager = new VMapManager2();              // should be taken from config ... Please change if you like :-)
+            std::lock_guard<std::mutex> lock(gVMapMutex);
+            instance = gVMapManager.load(std::memory_order_relaxed);
+            if (!instance)
+            {
+                instance = new VMapManager2();
+                gVMapManager.store(instance, std::memory_order_release);
+            }
         }
-        return gVMapManager;
+        return *instance;
     }
 
-    //===============================================
-    // delete all internal data structures
+    /*
+     * Delete all internal data structures.
+     */
     void VMapFactory::clear()
     {
-        std::lock_guard<std::mutex> lock(m_vmapMutex);
-
-        delete gVMapManager;
-        gVMapManager = nullptr;
+        // No lock required because no other thread should still be
+        // accessing the VMapManager when we're deleting it!
+        delete gVMapManager.load();
     }
 }

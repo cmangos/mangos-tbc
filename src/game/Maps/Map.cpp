@@ -855,7 +855,14 @@ void Map::Update(const uint32& t_diff)
             plr->Update(t_diff);
 
 #ifdef ENABLE_PLAYERBOTS
-            plr->UpdateAI(t_diff, !shouldUpdateBot);
+            if (sPlayerbotAIConfig.disableBotOptimizations)
+            {
+                plr->UpdateAI(t_diff, false);
+            }
+            else
+            {
+                plr->UpdateAI(t_diff, !shouldUpdateBot);
+            }
 #endif
         }
     }
@@ -877,7 +884,7 @@ void Map::Update(const uint32& t_diff)
 
 #ifdef ENABLE_PLAYERBOTS
         // For non-players only load the grid
-        if (!player->isRealPlayer())
+        if (!sPlayerbotAIConfig.disableBotOptimizations && !player->isRealPlayer())
         {
             CellPair center = MaNGOS::ComputeCellPair(player->GetPositionX(), player->GetPositionY()).normalize();
             uint32 cell_id = (center.y_coord * TOTAL_NUMBER_OF_CELLS_PER_MAP) + center.x_coord;
@@ -934,7 +941,7 @@ void Map::Update(const uint32& t_diff)
 
 #ifdef ENABLE_PLAYERBOTS
             // Skip objects on locations away from real players if world is laggy
-            if (IsContinent() && avgDiff > 100)
+            if (!sPlayerbotAIConfig.disableBotOptimizations && IsContinent() && avgDiff > 100)
             {
                 const bool isInActiveZone = IsContinent() ? HasActiveZone(obj->GetZoneId()) : HasRealPlayers();
                 if (!isInActiveZone && !shouldUpdateObjects)
@@ -1411,7 +1418,7 @@ void Map::UpdateObjectVisibility(WorldObject* obj, Cell cell, const CellPair& ce
         if (Player* player = GetPlayer(guid))
         {
 #ifdef ENABLE_PLAYERBOTS
-            if (player->isRealPlayer())
+            if (sPlayerbotAIConfig.disableBotOptimizations || player->isRealPlayer())
 #endif
             player->UpdateVisibilityOf(player->GetCamera().GetBody(), obj);
         }

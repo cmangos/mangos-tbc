@@ -142,6 +142,7 @@ Quest::Quest(Field* questRecord)
         RewMaxRepValue[i] = questRecord[130 + i].GetInt32();
 
     RequiredCondition = questRecord[135].GetUInt32();
+    ReputationSpilloverMask = questRecord[137].GetUInt32();
 
     m_isActive = true;
 

@@ -1189,6 +1189,18 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             SendAIEventAround(AIEventType(action.throwEvent.eventType), target, 0, action.throwEvent.radius);
             break;
         }
+        case ACTION_T_INFORM_PET:
+        {
+            Pet* pet = m_creature->FindGuardianWithEntry(action.informPetEvent.creatureId);
+            if (!pet || !pet->IsAlive())
+            {
+                if (failedTargetSelection)
+                    sLog.outErrorEventAI("Event %d attempt to start relay script but Target == nullptr. Creature %d", eventId, m_creature->GetEntry());
+                return false;
+            }
+            SendAIEvent(AIEventType(action.informPetEvent.eventType), m_creature, pet);
+            break;
+        }
         case ACTION_T_SET_THROW_MASK:
         {
             m_throwAIEventMask = action.setThrowMask.eventTypeMask;

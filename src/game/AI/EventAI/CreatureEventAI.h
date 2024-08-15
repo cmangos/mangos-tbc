@@ -153,6 +153,7 @@ enum EventAI_ActionType
     ACTION_T_SET_DESPAWN_AGGREGATION    = 62,               // mask, entry, entry2
     ACTION_T_SET_IMMUNITY_SET           = 63,               // SetId - creature_immunities
     ACTION_T_SET_FOLLOW_MOVEMENT        = 64,               // state - 0 off, 1 on
+    ACTION_T_INFORM_PET                 = 65,               // param1 EventType, Param 2 = creatureID
 
     ACTION_T_END,
 };
@@ -596,6 +597,11 @@ struct CreatureEventAI_Action
         {
             uint32 state;
         } followMovement;
+        struct
+        {
+            uint32 eventType;
+            uint32 creatureId;
+        } informPetEvent;
         // RAW
         struct
         {

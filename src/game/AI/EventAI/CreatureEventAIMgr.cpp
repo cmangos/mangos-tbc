@@ -1066,6 +1066,16 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         break;
                     case ACTION_T_SET_FOLLOW_MOVEMENT:
                         break;
+                    case ACTION_T_INFORM_PET:
+                        if (action.informPetEvent.eventType >= MAXIMAL_AI_EVENT_EVENTAI)
+                        {
+                            sLog.outErrorEventAI("Event %u Action %u uses invalid event type %u (must be less than %u), skipping", eventId, j + 1, action.informPetEvent.eventType, MAXIMAL_AI_EVENT_EVENTAI);
+                            continue;
+                        }
+
+                        if (!sCreatureStorage.LookupEntry<CreatureInfo>(action.informPetEvent.creatureId))
+                            sLog.outErrorEventAI("Creature %d are using event(%u) with nonexistent creature template id (%u) in param1, skipped.", keyField, eventId, action.informPetEvent.creatureId);
+                        break;
                     default:
                         sLog.outErrorEventAI("Event %u Action %u have currently not checked at load action type (%u). Need check code update?", eventId, j + 1, temp.action[j].type);
                         break;

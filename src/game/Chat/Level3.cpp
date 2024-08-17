@@ -794,7 +794,10 @@ bool ChatHandler::HandleReloadItemRequiredTragetCommand(char* /*args*/)
 bool ChatHandler::HandleReloadBattleEventCommand(char* /*args*/)
 {
     sLog.outString("Re-Loading BattleGround Eventindexes...");
-    sBattleGroundMgr.LoadBattleEventIndexes();
+    sBattleGroundMgr.GetMessager().AddMessage([](BattleGroundMgr* mgr)
+    {
+        mgr->LoadBattleEventIndexes(true);
+    });
     SendGlobalSysMessage("DB table `gameobject_battleground` and `creature_battleground` reloaded.");
     return true;
 }
@@ -6715,7 +6718,10 @@ bool ChatHandler::HandleSendMessageCommand(char* args)
 
 bool ChatHandler::HandleArenaFlushPointsCommand(char* /*args*/)
 {
-    sBattleGroundMgr.DistributeArenaPoints();
+    sBattleGroundMgr.GetMessager().AddMessage([](BattleGroundMgr* mgr)
+    {
+        mgr->DistributeArenaPoints();
+    });
     return true;
 }
 
@@ -6728,7 +6734,10 @@ bool ChatHandler::HandleArenaSeasonRewardsCommand(char* args)
     if (seasonId > 4 || seasonId == 0)
         return false;
 
-    sBattleGroundMgr.RewardArenaSeason(seasonId);
+    sBattleGroundMgr.GetMessager().AddMessage([seasonId](BattleGroundMgr* mgr)
+    {
+        mgr->RewardArenaSeason(seasonId);
+    });
     return true;
 }
 
@@ -6742,7 +6751,10 @@ bool ChatHandler::HandleArenaDataReset(char* args)
     }
 
     PSendSysMessage("Resetting all arena data.");
-    sBattleGroundMgr.ResetAllArenaData();
+    sBattleGroundMgr.GetMessager().AddMessage([](BattleGroundMgr* mgr)
+    {
+        mgr->ResetAllArenaData();
+    });
     return true;
 }
 

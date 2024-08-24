@@ -744,7 +744,8 @@ class Creature : public Unit
         SpellEntry const* ReachWithSpellCure(Unit* pVictim);
 
         void CallForHelp(float radius);
-        void CallAssistance(Unit* enemy = nullptr);
+        void CallAssistance();
+        void CallAssistance(Unit* enemy);
         void SetNoCallAssistance(bool val) { m_AlreadyCallAssistance = val; }
         bool CanAssistTo(const Unit* u, const Unit* enemy, bool checkfaction = true) const;
         bool CanInitiateAttack() const;

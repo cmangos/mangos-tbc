@@ -2151,9 +2151,13 @@ bool Creature::IsVisibleInGridForPlayer(Player* pl) const
 
 void Creature::CallAssistance(Unit* enemy)
 {
+    CallAssistance(GetVictim());
+}
+
+void Creature::CallAssistance(Unit* enemy)
+{
     // FIXME: should player pets call for assistance?
-    Unit* target = enemy ? enemy : GetVictim();
-    if (!m_AlreadyCallAssistance && target && !HasCharmer())
+    if (!m_AlreadyCallAssistance && enemy && !HasCharmer())
     {
         MANGOS_ASSERT(AI());
 
@@ -2165,7 +2169,7 @@ void Creature::CallAssistance(Unit* enemy)
         float radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS);
         if (GetCreatureInfo()->CallForHelp > 0)
             radius = GetCreatureInfo()->CallForHelp;
-        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, target, sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY), radius);
+        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, enemy, sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY), radius);
     }
 }
 
@@ -2180,6 +2184,11 @@ void Creature::CallForHelp(float radius)
     MaNGOS::CallOfHelpCreatureInRangeDo u_do(this, GetVictim(), radius);
     MaNGOS::CreatureWorker<MaNGOS::CallOfHelpCreatureInRangeDo> worker(this, u_do);
     Cell::VisitGridObjects(this, worker, radius);
+}
+
+void Creature::CallAssistance()
+{
+    CallAssistance(GetVictim());
 }
 
 /// if enemy provided, check for initial combat help against enemy

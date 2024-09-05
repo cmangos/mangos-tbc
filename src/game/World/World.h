@@ -30,6 +30,7 @@
 #include "Entities/Object.h"
 #include "Multithreading/Messager.h"
 #include "Globals/GraveyardManager.h"
+#include "LFG/LFGQueue.h"
 
 #include <atomic>
 #include <set>
@@ -388,6 +389,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_ALWAYS_SHOW_QUEST_GREETING,
     CONFIG_BOOL_DISABLE_INSTANCE_RELOCATE,
     CONFIG_BOOL_PRELOAD_MMAP_TILES,
+    CONFIG_BOOL_LFG_ENABLED,
     CONFIG_BOOL_VALUE_COUNT
 };
 
@@ -678,6 +680,9 @@ class World
         GraveyardManager& GetGraveyardManager() { return m_graveyardManager; }
 
         void SendGMTextFlags(uint32 accountFlag, int32 stringId, std::string type, const char* message);
+
+        LFGQueue& GetLFGQueue() { return m_lfgQueue; }
+        void StartLFGQueueThread();
     protected:
         void _UpdateGameTime();
         // callback for UpdateRealmCharacters
@@ -805,6 +810,10 @@ class World
         std::array<std::atomic<uint32>, MAX_CLASSES> m_onlineClasses;
 
         GraveyardManager m_graveyardManager;
+
+        // Housing this here but logically it is completely asynchronous - TODO: Separate this and unify with BG queue
+        LFGQueue m_lfgQueue;
+        std::thread m_lfgQueueThread;
 };
 
 extern uint32 realmID;

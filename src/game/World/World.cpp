@@ -158,6 +158,8 @@ World::~World()
 
     VMAP::VMapFactory::clear();
     MMAP::MMapFactory::clear();
+
+    m_lfgQueueThread.join();
 }
 
 /// Cleanups before world stop
@@ -866,6 +868,8 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_FLOAT_MAX_RECRUIT_A_FRIEND_DISTANCE, "Raf.Distance", 100.f);
 
     setConfig(CONFIG_UINT32_SUNSREACH_COUNTER, "Sunsreach.CounterMax", 10000);
+
+    setConfig(CONFIG_BOOL_LFG_ENABLED, "Lfg.Enabled", true);
 
     sLog.outString();
 }
@@ -2875,4 +2879,12 @@ void World::LoadWorldSafeLocs() const
 {
     sWorldSafeLocsStore.Load(true);
     sLog.outString(">> Loaded %u world safe locs", sWorldSafeLocsStore.GetRecordCount());
+}
+
+void World::StartLFGQueueThread()
+{
+    m_lfgQueueThread = std::thread([&]()
+    {
+        m_lfgQueue.Update();
+    });
 }

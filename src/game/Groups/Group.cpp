@@ -441,6 +441,12 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
             BroadcastPacket(data, true);
         }
 
+        // TODO: Check if member leaving should just update queue
+        sWorld.GetLFGQueue().GetMessager().AddMessage([guid](LFGQueue* queue)
+        {
+            queue->StopLookingForGroup(guid, guid);
+        });
+
         SendUpdate();
     }
     // if group before remove <= 2 disband it

@@ -19636,6 +19636,12 @@ void Player::SendInitialPacketsAfterAddToMap()
 
     SendExtraAuraDurationsOnLogin(true);
     SendExtraAuraDurationsOnLogin(false);
+
+    if (!sWorld.getConfig(CONFIG_BOOL_LFG_ENABLED))
+    {
+        WorldPacket data(SMSG_LFG_DISABLED);
+        GetSession()->SendPacket(data);
+    }
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()

@@ -20,6 +20,8 @@
 #define _LFG_QUEUE_H
 
 #include "LFG/LFGDefines.h"
+#include "Entities/ObjectGuid.h"
+#include "Globals/ObjectMgr.h"
 
 struct LFGGroupQueueInfo
 {

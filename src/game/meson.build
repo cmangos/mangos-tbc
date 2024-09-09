@@ -213,6 +213,8 @@ game_sources = [
   'Skills/SkillExtraItems.cpp',
   'Skills/SkillDiscovery.cpp',
   'LFG/LFGHandler.cpp',
+  'LFG/LFGMgr.cpp',
+  'LFG/LFGQueue.cpp',
   'Server/SQLStorages.cpp',
   'Server/AuthCrypt.cpp',
   'Server/DBCStores.cpp',

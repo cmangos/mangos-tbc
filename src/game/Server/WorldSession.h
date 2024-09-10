@@ -32,6 +32,7 @@
 #include "WorldSocket.h"
 #include "Multithreading/Messager.h"
 #include "LFG/LFGDefines.h"
+#include "BattleGround/BattleGroundDefines.h"
 
 #include <atomic>
 #include <map>

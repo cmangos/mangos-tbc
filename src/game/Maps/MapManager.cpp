@@ -27,6 +27,7 @@
 #include "Grids/CellImpl.h"
 #include "Globals/ObjectMgr.h"
 #include "Maps/MapWorkers.h"
+#include "BattleGround/BattleGroundMgr.h"
 #include <future>
 
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<MapManager, std::recursive_mutex>
@@ -144,12 +145,12 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
     return m;
 }
 
-Map* MapManager::CreateBgMap(uint32 mapid, BattleGround* bg)
+Map* MapManager::CreateBgMap(uint32 mapid, uint32 instanceId, BattleGround* bg)
 {
     sTerrainMgr.LoadTerrain(mapid);
 
     Guard _guard(*this);
-    return CreateBattleGroundMap(mapid, sMapMgr.GenerateInstanceId(), bg);
+    return CreateBattleGroundMap(mapid, instanceId, bg);
 }
 
 Map* MapManager::FindMap(uint32 mapid, uint32 instanceId) const
@@ -384,7 +385,7 @@ BattleGroundMap* MapManager::CreateBattleGroundMap(uint32 id, uint32 InstanceId,
     DEBUG_LOG("MapInstanced::CreateBattleGroundMap: instance:%d for map:%d and bgType:%d created.", InstanceId, id, bg->GetTypeId());
 
     uint8 spawnMode = uint8(DUNGEON_DIFFICULTY_NORMAL);
-    if (bg->GetTypeId() == BATTLEGROUND_AV && Player::GetMinLevelForBattleGroundBracketId(bg->GetBracketId(), bg->GetTypeId()) >= 61)
+    if (bg->GetTypeId() == BATTLEGROUND_AV && sBattleGroundMgr.GetMinLevelForBattleGroundBracketId(bg->GetBracketId(), bg->GetTypeId()) >= 61)
         spawnMode = uint8(DUNGEON_DIFFICULTY_HEROIC);        
 
     BattleGroundMap* map = new BattleGroundMap(id, i_gridCleanUpDelay, InstanceId, spawnMode);

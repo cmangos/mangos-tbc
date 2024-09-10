@@ -272,7 +272,7 @@ BattleGround::~BattleGround()
         m_bgMap->SetUnload();
 
     // remove from bg free slot queue
-    this->RemoveFromBgFreeSlotQueue();
+    this->RemovedFromBgFreeSlotQueue(true);
 
     for (BattleGroundScoreMap::const_iterator itr = m_playerScores.begin(); itr != m_playerScores.end(); ++itr)
         delete itr->second;
@@ -402,7 +402,7 @@ void BattleGround::Update(uint32 diff)
                 BattleGroundTypeId BgTypeId = GetTypeId();
 
                 if (!IsArena())
-                    sWorld.SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, GetName(), Player::GetMinLevelForBattleGroundBracketId(bracketId, BgTypeId), Player::GetMaxLevelForBattleGroundBracketId(bracketId, BgTypeId));
+                    sWorld.SendWorldText(LANG_BG_STARTED_ANNOUNCE_WORLD, GetName(), sBattleGroundMgr.GetMinLevelForBattleGroundBracketId(bracketId, BgTypeId), sBattleGroundMgr.GetMaxLevelForBattleGroundBracketId(bracketId, BgTypeId));
                 else
                     sWorld.SendWorldText(LANG_ARENA_STARTED_ANNOUNCE_WORLD, GetName(), GetArenaType(), GetArenaType());
             }
@@ -735,7 +735,7 @@ void BattleGround::UpdateWorldStateForPlayer(uint32 field, uint32 value, Player*
 */
 void BattleGround::EndBattleGround(Team winner)
 {
-    this->RemoveFromBgFreeSlotQueue();
+    this->RemovedFromBgFreeSlotQueue(true);
 
     ArenaTeam* winner_arena_team = nullptr;
     ArenaTeam* loser_arena_team = nullptr;
@@ -928,7 +928,7 @@ void BattleGround::EndBattleGround(Team winner)
         plr->GetSession()->SendPacket(data);
 
         BattleGroundQueueTypeId bgQueueTypeId = BattleGroundMgr::BgQueueTypeId(GetTypeId(), GetArenaType());
-        sBattleGroundMgr.BuildBattleGroundStatusPacket(data, this, plr->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_IN_PROGRESS, TIME_TO_AUTOREMOVE, GetStartTime(), GetArenaType(), plr->GetBGTeam());
+        sBattleGroundMgr.BuildBattleGroundStatusPacket(data, true, GetTypeId(), GetClientInstanceId(), IsRated(), GetMapId(), plr->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_IN_PROGRESS, TIME_TO_AUTOREMOVE, GetStartTime(), GetArenaType(), plr->GetBGTeam());
         plr->GetSession()->SendPacket(data);
     }
 
@@ -1237,7 +1237,7 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid playerGuid, bool isOnTransport
             if (doSendPacket)
             {
                 WorldPacket data;
-                sBattleGroundMgr.BuildBattleGroundStatusPacket(data, this, player->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_NONE, 0, 0, ARENA_TYPE_NONE, TEAM_NONE);
+                sBattleGroundMgr.BuildBattleGroundStatusPacket(data, true, GetTypeId(), GetClientInstanceId(), IsRated(), GetMapId(), player->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_NONE, 0, 0, ARENA_TYPE_NONE, TEAM_NONE);
                 player->GetSession()->SendPacket(data);
             }
 
@@ -1272,7 +1272,10 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid playerGuid, bool isOnTransport
         {
             // a player has left the battleground, so there are free slots -> add to queue
             AddToBgFreeSlotQueue();
-            sBattleGroundMgr.ScheduleQueueUpdate(0, ARENA_TYPE_NONE, bgQueueTypeId, bgTypeId, GetBracketId());
+            sWorld.GetBGQueue().GetMessager().AddMessage([bgQueueTypeId, bgTypeId, bracketId = GetBracketId()](BattleGroundQueue* queue)
+            {
+                queue->ScheduleQueueUpdate(0, ARENA_TYPE_NONE, bgQueueTypeId, bgTypeId, bracketId);
+            });
         }
 
         // Let others know
@@ -1340,8 +1343,7 @@ void BattleGround::StartBattleGround()
 {
     SetStartTime(0);
 
-    // add BG to free slot queue
-    AddToBgFreeSlotQueue();
+    // expects to be already added in free queue
 
     // add bg to update list
     // This must be done here, because we need to have already invited some players when first BG::Update() method is executed
@@ -1509,28 +1511,30 @@ void BattleGround::AddToBgFreeSlotQueue()
     // make sure to add only once
     if (!m_hasBgFreeSlotQueue && IsBattleGround())
     {
-        sBattleGroundMgr.BgFreeSlotQueue[m_typeId].push_front(this);
         m_hasBgFreeSlotQueue = true;
+        BattleGroundInQueueInfo bgInfo;
+        // TODO: Fill
+        sWorld.GetBGQueue().GetMessager().AddMessage([bgInfo](BattleGroundQueue* queue)
+        {
+            queue->AddBgToFreeSlots(bgInfo);
+        });
     }
 }
 
 /**
   Method that removes this battleground from free queue - it must be called when deleting battleground
 */
-void BattleGround::RemoveFromBgFreeSlotQueue()
+void BattleGround::RemovedFromBgFreeSlotQueue(bool removeFromQueue)
 {
     // set to be able to re-add if needed
-    m_hasBgFreeSlotQueue = false;
-    BgFreeSlotQueueType& bgFreeSlot = sBattleGroundMgr.BgFreeSlotQueue[m_typeId];
-
-    for (BgFreeSlotQueueType::iterator itr = bgFreeSlot.begin(); itr != bgFreeSlot.end(); ++itr)
+    if (m_hasBgFreeSlotQueue && removeFromQueue)
     {
-        if ((*itr)->GetInstanceId() == GetInstanceId())
+        sWorld.GetBGQueue().GetMessager().AddMessage([bgTypeId = GetTypeId(), instanceId = GetInstanceId()](BattleGroundQueue* queue)
         {
-            bgFreeSlot.erase(itr);
-            return;
-        }
+            queue->RemoveBgFromFreeSlots(bgTypeId, instanceId);
+        });
     }
+    m_hasBgFreeSlotQueue = false;
 }
 
 /**
@@ -1963,7 +1967,7 @@ void BattleGround::SendBcdToTeam(int32 bcdEntry, ChatMsg msgtype, Creature const
 */
 void BattleGround::EndNow()
 {
-    RemoveFromBgFreeSlotQueue();
+    RemovedFromBgFreeSlotQueue(true);
     SetStatus(STATUS_WAIT_LEAVE);
     SetEndTime(0);
 }
@@ -2058,7 +2062,7 @@ void BattleGround::PlayerAddedToBgCheckIfBgIsRunning(Player* player)
     sBattleGroundMgr.BuildPvpLogDataPacket(data, this);
     player->GetSession()->SendPacket(data);
 
-    sBattleGroundMgr.BuildBattleGroundStatusPacket(data, this, player->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_IN_PROGRESS, GetEndTime(), GetStartTime(), GetArenaType(), player->GetBGTeam());
+    sBattleGroundMgr.BuildBattleGroundStatusPacket(data, true, GetTypeId(), GetClientInstanceId(), IsRated(), GetMapId(), player->GetBattleGroundQueueIndex(bgQueueTypeId), STATUS_IN_PROGRESS, GetEndTime(), GetStartTime(), GetArenaType(), player->GetBGTeam());
     player->GetSession()->SendPacket(data);
 }
 

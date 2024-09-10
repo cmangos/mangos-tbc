@@ -354,7 +354,7 @@ class BattleGround
         void SetMinPlayersPerTeam(uint32 minPlayers) { m_minPlayersPerTeam = minPlayers; }
 
         void AddToBgFreeSlotQueue();                        // this queue will be useful when more battlegrounds instances will be available
-        void RemoveFromBgFreeSlotQueue();                   // this method could delete whole BG instance, if another free is available
+        void RemovedFromBgFreeSlotQueue(bool removeFromQueue); // this method could delete whole BG instance, if another free is available
 
         // Functions to decrease or increase player count
         void DecreaseInvitedCount(Team team)      { (team == ALLIANCE) ? --m_invitedAlliance : --m_invitedHorde; }

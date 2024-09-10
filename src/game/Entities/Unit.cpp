@@ -1025,12 +1025,12 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
             duel_hasEnded = true;
         }
 
-        if (dealer->GetTypeId() == TYPEID_PLAYER && dealer != victim)
+        if (dealer->IsPlayer() && dealer != victim)
         {
             Player* killer = static_cast<Player*>(dealer);
 
             // in bg, count dmg if victim is also a player
-            if (victim->GetTypeId() == TYPEID_PLAYER)
+            if (victim->IsPlayer())
             {
                 if (BattleGround* bg = killer->GetBattleGround())
                 {
@@ -7206,10 +7206,10 @@ int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellPro
 
     unit->SendHealSpellLog(pVictim, spellProto->Id, addhealth, critical);
 
-    if (unit->GetTypeId() == TYPEID_PLAYER)
+    if (unit->IsPlayer())
     {
-        if (BattleGround* bg = ((Player*)unit)->GetBattleGround())
-            bg->UpdatePlayerScore((Player*)unit, SCORE_HEALING_DONE, gain);
+        if (BattleGround* bg = static_cast<Player*>(unit)->GetBattleGround())
+            bg->UpdatePlayerScore(static_cast<Player*>(unit), SCORE_HEALING_DONE, gain);
     }
 
     // Script Event HealedBy

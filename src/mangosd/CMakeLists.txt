@@ -144,6 +144,11 @@ if (BUILD_PLAYERBOTS)
   add_definitions(-DENABLE_PLAYERBOTS)
 endif()
 
+# Define BUILD_VOICECHAT if need
+if (BUILD_VOICECHAT)
+  add_definitions(-DBUILD_VOICECHAT)
+endif()
+
 if(MSVC)
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/\${BUILD_TYPE}/${EXECUTABLE_NAME}.pdb DESTINATION ${BIN_DIR} CONFIGURATIONS Debug)
 endif()

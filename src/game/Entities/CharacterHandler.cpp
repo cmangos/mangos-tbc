@@ -40,6 +40,10 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "Anticheat/Anticheat.hpp"
 
+#ifdef BUILD_VOICECHAT
+#include "VoiceChat/VoiceChatMgr.h"
+#endif
+
 #ifdef BUILD_DEPRECATED_PLAYERBOT
 #include "PlayerBot/Base/PlayerbotMgr.h"
 #endif
@@ -789,7 +793,11 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
 
     data.Initialize(SMSG_FEATURE_SYSTEM_STATUS, 2);         // added in 2.2.0
     data << uint8(2);                                       // Can complain (0 = disabled, 1 = enabled, don't auto ignore, 2 = enabled, auto ignore)
-    data << uint8(0);                                       // Voice chat is enabled
+#ifdef BUILD_VOICECHAT
+    data << uint8(sVoiceChatMgr.CanSeeVoiceChat());         // Voice chat is available
+#else
+    data << uint8(0);                                       // Voice chat is disabled
+#endif
     SendPacket(data);
 
     // Send Spam records
@@ -989,6 +997,14 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     if (!pCurrChar->IsStandState() && !pCurrChar->IsStunned())
         pCurrChar->SetStandState(UNIT_STAND_STATE_STAND);
 
+#ifdef BUILD_VOICECHAT
+    // join available voice channels
+    if (IsVoiceChatEnabled())
+    {
+        sVoiceChatMgr.JoinAvailableVoiceChatChannels(this);
+    }
+#endif
+
     m_playerLoading = false;
     delete holder;
 }
@@ -1037,7 +1053,11 @@ void WorldSession::HandlePlayerReconnect()
 
     data.Initialize(SMSG_FEATURE_SYSTEM_STATUS, 2);         // added in 2.2.0
     data << uint8(2);                                       // Can complain (0 = disabled, 1 = enabled, don't auto ignore, 2 = enabled, auto ignore)
-    data << uint8(0);                                       // Voice chat is enabled
+#ifdef BUILD_VOICECHAT
+    data << uint8(sVoiceChatMgr.CanSeeVoiceChat());         // Voice chat is available
+#else
+    data << uint8(0);                                       // Voice chat is disabled
+#endif
     SendPacket(data);
 
     // Send Spam records
@@ -1138,6 +1158,14 @@ void WorldSession::HandlePlayerReconnect()
 
     // Undo flags and states set by logout if present:
     _player->SetStunnedByLogout(false);
+
+#ifdef BUILD_VOICECHAT
+    // join available voice channels
+    if (IsVoiceChatEnabled())
+    {
+        sVoiceChatMgr.JoinAvailableVoiceChatChannels(this);
+    }
+#endif
 
     m_playerLoading = false;
 }

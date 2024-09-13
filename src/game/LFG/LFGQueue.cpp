@@ -720,18 +720,7 @@ void LFGQueue::GroupUpdateUI(ObjectGuid leaderGuid, bool completed)
 
     sWorld.GetMessager().AddMessage([leaderGuid, completed, members](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(leaderGuid);
-
-        if (completed)
-        {
-            player->GetSession()->SendMeetingStoneComplete();
-            if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && player->GetSession()->GetSecurity() == SEC_PLAYER)
-                player->LeaveLFGChannel();
-        }
-        else
-            player->GetSession()->SendLFGUpdate();
-
-        for (auto& member : members)
+        if (Player* player = sObjectMgr.GetPlayer(leaderGuid))
         {
             if (completed)
             {
@@ -741,6 +730,21 @@ void LFGQueue::GroupUpdateUI(ObjectGuid leaderGuid, bool completed)
             }
             else
                 player->GetSession()->SendLFGUpdate();
+        }
+
+        for (auto& memberGuid : members)
+        {
+            if (Player* member = sObjectMgr.GetPlayer(memberGuid))
+            {
+                if (completed)
+                {
+                    member->GetSession()->SendMeetingStoneComplete();
+                    if (sWorld.getConfig(CONFIG_BOOL_CHANNEL_RESTRICTED_LFG) && member->GetSession()->GetSecurity() == SEC_PLAYER)
+                        member->LeaveLFGChannel();
+                }
+                else
+                    member->GetSession()->SendLFGUpdate();
+            }
         }
     });
 }

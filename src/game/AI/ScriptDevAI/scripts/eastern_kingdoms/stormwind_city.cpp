@@ -135,7 +135,7 @@ struct npc_dashel_stonefistAI : public CombatAI
     npc_dashel_stonefistAI(Creature* creature) : CombatAI(creature, DASHEL_ACTION_MAX)
     {
         AddTimerlessCombatAction(DASHEL_LOW_HP, true);
-        AddCustomAction(DASHEL_START_EVENT, true, [&]() { HandleStartEvent(); });
+        AddCustomAction(DASHEL_START_EVENT, true, [&]() { HandleStartEvent(); }, TIMER_COMBAT_OOC);
         AddCustomAction(DASHEL_EVADE_EVENT, true, [&]() { HandleStartEvadeEvent(); }, TIMER_COMBAT_OOC);
         AddCustomAction(DASHEL_END_EVENT, true, [&]() { HandleEndEvent(); }, TIMER_COMBAT_OOC);
     }
@@ -204,8 +204,7 @@ struct npc_dashel_stonefistAI : public CombatAI
     void HandleStartEvadeEvent()
     {
         // Move TargetHome after Emote
-        m_creature->GetMotionMaster()->MoveTargetedHome();
-        DisableTimer(DASHEL_EVADE_EVENT);        
+        m_creature->GetMotionMaster()->MoveTargetedHome();      
     }
 
     void SummonedMovementInform(Creature* summoned, uint32 /*motionType*/, uint32 pointId) override
@@ -273,7 +272,7 @@ struct npc_dashel_stonefistAI : public CombatAI
     void HandleEndEvent()
     {
         // Occurs only if thugs are alive
-        if(m_thugsAlive)
+        if (m_thugsAlive)
         {
             uint32 timer = 0;
             switch (m_phaseThugEventStage)
@@ -316,7 +315,6 @@ struct npc_dashel_stonefistAI : public CombatAI
                         player->AreaExploredOrEventHappens(QUEST_MISSING_DIPLO_PT8);
 
                     Reset();
-                    DisableTimer(DASHEL_END_EVENT);
                     break;
                 }
                 default: 

@@ -167,8 +167,8 @@ struct npc_dashel_stonefistAI : public CombatAI
             // remove thugs
             for (auto& guid : m_thugs)
             {
-                if (Creature* pThug = m_creature->GetMap()->GetCreature(guid))
-                    pThug->ForcedDespawn();
+                if (Creature* thug = m_creature->GetMap()->GetCreature(guid))
+                    thug->ForcedDespawn();
             }
         }
 
@@ -233,15 +233,15 @@ struct npc_dashel_stonefistAI : public CombatAI
         }
     }
 
-    void ResetThug(int thug)
+    void ResetThug(int m_thug)
     {
-        if (thug >= 2)
+        if (m_thug >= 2)
             return;
 
-        if (Creature* pThug = m_creature->GetMap()->GetCreature(m_thugs[thug]))
+        if (Creature* thug = m_creature->GetMap()->GetCreature(m_thugs[m_thug]))
         {
-            if (pThug->IsAlive())
-                pThug->GetMotionMaster()->MovePoint(10, aThugResetPosition[thug][0], aThugResetPosition[thug][1], aThugResetPosition[thug][2], FORCED_MOVEMENT_WALK);
+            if (thug->IsAlive())
+                thug->GetMotionMaster()->MovePoint(10, aThugResetPosition[m_thug][0], aThugResetPosition[m_thug][1], aThugResetPosition[m_thug][2], FORCED_MOVEMENT_WALK);
         }
     }
 
@@ -279,18 +279,18 @@ struct npc_dashel_stonefistAI : public CombatAI
             {
                 case 1:
                 {
-                    if (Creature* pThug = m_creature->GetMap()->GetCreature(m_thugs[0]))
-                        if (pThug->IsAlive())
-                            DoBroadcastText(SAY_PROGRESS_4_THU, pThug);
+                    if (Creature* thug = m_creature->GetMap()->GetCreature(m_thugs[0]))
+                        if (thug->IsAlive())
+                            DoBroadcastText(SAY_PROGRESS_4_THU, thug);
 
                     timer = 1500;
                     break;
                 }
                 case 2:
                 {
-                    if (Creature* pThug = m_creature->GetMap()->GetCreature(m_thugs[1]))
-                        if (pThug->IsAlive())
-                            DoBroadcastText(SAY_PROGRESS_5_THU, pThug);
+                    if (Creature* thug = m_creature->GetMap()->GetCreature(m_thugs[1]))
+                        if (thug->IsAlive())
+                            DoBroadcastText(SAY_PROGRESS_5_THU, thug);
 
                     // switch phase
                     timer = 1000;
@@ -333,8 +333,8 @@ struct npc_dashel_stonefistAI : public CombatAI
             // remove thugs
             for (auto& guid : m_thugs)
             {
-                if (Creature* pThug = m_creature->GetMap()->GetCreature(guid))
-                    pThug->ForcedDespawn();
+                if (Creature* thug = m_creature->GetMap()->GetCreature(guid))
+                    thug->ForcedDespawn();
                 guid.Clear();
             }
         }
@@ -386,17 +386,17 @@ struct npc_dashel_stonefistAI : public CombatAI
                 // check if thugs are alive
                 for (const auto& guid : m_thugs)
                 {
-                    if (Creature* pThug = m_creature->GetMap()->GetCreature(guid))
+                    if (Creature* thug = m_creature->GetMap()->GetCreature(guid))
                     {
-                        if (!pThug->IsAlive())
+                        if (!thug->IsAlive())
                             continue;
 
-                        pThug->RemoveAllAuras();
-                        pThug->SetFactionTemporary(FACTION_FRIENDLY_TO_ALL, TEMPFACTION_RESTORE_RESPAWN);
-                        pThug->AttackStop();
-                        pThug->SetTarget(nullptr);
-                        pThug->AI()->DoResetThreat();
-                        pThug->AI()->EnterEvadeMode();
+                        thug->RemoveAllAuras();
+                        thug->SetFactionTemporary(FACTION_FRIENDLY_TO_ALL, TEMPFACTION_RESTORE_RESPAWN);
+                        thug->AttackStop();
+                        thug->SetTarget(nullptr);
+                        thug->AI()->DoResetThreat();
+                        thug->AI()->EnterEvadeMode();
                         m_thugsAlive = true;
                     }
                 }

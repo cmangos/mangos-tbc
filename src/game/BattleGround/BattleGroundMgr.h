@@ -145,8 +145,8 @@ class BattleGroundMgr
         BattleGroundSet m_battleGrounds[MAX_BATTLEGROUND_TYPE_ID];
         typedef std::set<uint32> ClientBattleGroundIdSet;
         ClientBattleGroundIdSet m_clientBattleGroundIds[MAX_BATTLEGROUND_TYPE_ID][MAX_BATTLEGROUND_BRACKETS]; // the instanceids just visible for the client
-        bool   m_arenaTesting;
-        bool   m_testing;
+        bool m_arenaTesting;
+        bool m_testing;
         std::set<uint32> m_usedRefloot;
 };
 

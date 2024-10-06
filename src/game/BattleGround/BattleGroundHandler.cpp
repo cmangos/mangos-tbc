@@ -465,7 +465,7 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
                 MANGOS_ASSERT(bgInQueue); // at this point must always exist
 
                 // remove battleground queue status from BGmgr
-                queueItem.RemovePlayer(playerGuid, false);
+                queueItem.RemovePlayer(*queue, playerGuid, false);
 
                 sWorld.GetMessager().AddMessage([playerGuid, invitedTo = queueInfo.isInvitedToBgInstanceGuid, bgTypeId, bgQueueTypeId, groupTeam = queueInfo.groupTeam, queueSlot, bgClientInstanceId = bgInQueue->GetClientInstanceId(), isRated = bgInQueue->IsRated(), mapId = bgInQueue->GetMapId(), arenaType = bgInQueue->GetArenaType()](World* world)
                 {
@@ -524,22 +524,22 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
                             at->SaveToDB();
                         }
                     });
-
-                    queueItem.RemovePlayer(playerGuid, true);
-                    sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, queueSlot, bgTypeId, bgClientInstanceId = queueInfo.clientInstanceId, isRated = queueInfo.isRated, mapId = queueInfo.mapId](World* world)
-                    {
-                        Player* player = sObjectMgr.GetPlayer(playerGuid);
-                        if (!player)
-                            return;
-                        player->RemoveBattleGroundQueueId(bgQueueTypeId);
-                        WorldPacket data;
-                        sBattleGroundMgr.BuildBattleGroundStatusPacket(data, true, bgTypeId, bgClientInstanceId, isRated, mapId, queueSlot, STATUS_NONE, 0, 0, ARENA_TYPE_NONE, TEAM_NONE);
-                        player->GetSession()->SendPacket(data);
-                    });
-
-                    if (queueInfo.arenaType == ARENA_TYPE_NONE)
-                        queue->ScheduleQueueUpdate(queueInfo.arenaTeamRating, queueInfo.arenaType, bgQueueTypeId, bgTypeId, queueInfo.bgBracketId);
                 }
+
+                queueItem.RemovePlayer(*queue, playerGuid, true);
+                sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, queueSlot, bgTypeId, bgClientInstanceId = queueInfo.clientInstanceId, isRated = queueInfo.isRated, mapId = queueInfo.mapId](World* world)
+                {
+                    Player* player = sObjectMgr.GetPlayer(playerGuid);
+                    if (!player)
+                        return;
+                    player->RemoveBattleGroundQueueId(bgQueueTypeId);
+                    WorldPacket data;
+                    sBattleGroundMgr.BuildBattleGroundStatusPacket(data, true, bgTypeId, bgClientInstanceId, isRated, mapId, queueSlot, STATUS_NONE, 0, 0, ARENA_TYPE_NONE, TEAM_NONE);
+                    player->GetSession()->SendPacket(data);
+                });
+
+                if (queueInfo.arenaType == ARENA_TYPE_NONE)
+                    queue->ScheduleQueueUpdate(queueInfo.arenaTeamRating, queueInfo.arenaType, bgQueueTypeId, bgTypeId, queueInfo.bgBracketId);
                 break;
             default:
                 sLog.outError("Battleground port: unknown action %u", action);

@@ -64,7 +64,7 @@ struct BattleGroundInQueueInfo
     uint32 instanceId;
     bool isBattleGround;
     BattleGroundBracketId bracketId;
-    BattleGroundStatus status;
+    BattleGroundStatus status; // only altered in bg and synched here
     uint32 m_clientInstanceId;
     uint32 mapId;
 
@@ -73,8 +73,6 @@ struct BattleGroundInQueueInfo
 
     uint32 playersInside;
     uint32 maxPlayers;
-    uint32 m_invitedAlliance;
-    uint32 m_invitedHorde;
     uint32 m_maxPlayersPerTeam;
     uint32 m_minPlayersPerTeam;
 
@@ -96,8 +94,8 @@ struct BattleGroundInQueueInfo
     uint32 GetMaxPlayersPerTeam() const { return m_maxPlayersPerTeam; }
     uint32 GetMinPlayersPerTeam() const { return m_minPlayersPerTeam; }
 
-    void DecreaseInvitedCount(Team team) { (team == ALLIANCE) ? --m_invitedAlliance : --m_invitedHorde; }
-    void IncreaseInvitedCount(Team team) { (team == ALLIANCE) ? ++m_invitedAlliance : ++m_invitedHorde; }
+    void DecreaseInvitedCount(Team team);
+    void IncreaseInvitedCount(Team team);
     uint32 GetInvitedCount(Team team) const
     {
         if (team == ALLIANCE)
@@ -113,6 +111,12 @@ struct BattleGroundInQueueInfo
 
         return 0;
     }
+
+    void Fill(BattleGround* bg);
+
+    private:
+        uint32 m_invitedAlliance;
+        uint32 m_invitedHorde;
 };
 
 // this container can't be deque, because deque doesn't like removing the last element - if you remove it, it invalidates next iterator and crash appears
@@ -130,10 +134,10 @@ class BattleGroundQueueItem
 
         void FillPlayersToBg(BattleGroundInQueueInfo& queueInfo, BattleGroundBracketId /*bracketId*/);
         bool CheckPremadeMatch(BattleGroundBracketId /*bracketId*/, uint32 /*minPlayersPerTeam*/, uint32 /*maxPlayersPerTeam*/);
-        bool CheckNormalMatch(BattleGround* /*bgTemplate*/, BattleGroundBracketId /*bracketId*/, uint32 /*minPlayers*/, uint32 /*maxPlayers*/);
+        bool CheckNormalMatch(BattleGroundQueue& queue, BattleGround* /*bgTemplate*/, BattleGroundBracketId /*bracketId*/, uint32 /*minPlayers*/, uint32 /*maxPlayers*/);
         bool CheckSkirmishForSameFaction(BattleGroundBracketId /*bracketId*/, uint32 /*minPlayersPerTeam*/);
         GroupQueueInfo* AddGroup(ObjectGuid leader, AddGroupToQueueInfo const& /*groupInfo*/, BattleGroundTypeId /*bgTypeId*/, BattleGroundBracketId /*bracketEntry*/, ArenaType /*arenaType*/, bool /*isRated*/, bool /*isPremade*/, uint32 /*instanceId*/, uint32 /*arenaRating*/, uint32 arenaTeamId = 0);
-        void RemovePlayer(ObjectGuid guid, bool decreaseInvitedCount);
+        void RemovePlayer(BattleGroundQueue& queue, ObjectGuid guid, bool decreaseInvitedCount);
         bool IsPlayerInvited(ObjectGuid /*playerGuid*/, const uint32 /*bgInstanceGuid*/, const uint32 /*removeTime*/);
         bool GetPlayerGroupInfoData(ObjectGuid /*guid*/, GroupQueueInfo* /*groupInfo*/);
         void PlayerInvitedToBgUpdateAverageWaitTime(GroupQueueInfo* /*groupInfo*/, BattleGroundBracketId /*bracketId*/);
@@ -255,6 +259,11 @@ class BattleGroundQueue
         BattleGroundQueueItem& GetBattleGroundQueue(BattleGroundQueueTypeId bgQueueTypeId);
 
         void SetNextRatingDiscardUpdate(std::chrono::milliseconds& timePoint);
+
+        bool IsTesting() const { return m_testing; }
+        void SetTesting(bool state) { m_testing = state; }
+        bool IsArenaTesting() const { return m_arenaTesting; }
+        void SetArenaTesting(bool state) { m_arenaTesting = state; }
     private:
         BattleGroundQueueItem m_battleGroundQueues[MAX_BATTLEGROUND_QUEUE_TYPES];
 
@@ -266,6 +275,9 @@ class BattleGroundQueue
         TimePoint m_autoDistributionTimeChecker;
 
         Messager<BattleGroundQueue> m_messager;
+
+        bool m_testing;
+        bool m_arenaTesting;
 };
 
 #endif

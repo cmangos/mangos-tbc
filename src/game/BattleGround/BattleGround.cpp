@@ -962,6 +962,16 @@ uint32 BattleGround::GetBonusHonorFromKill(uint32 kills) const
     return (uint32)MaNGOS::Honor::hk_honor_at_level(GetMaxLevel(), kills);
 }
 
+void BattleGround::SetStatus(BattleGroundStatus status)
+{
+    m_status = status;
+    sWorld.GetBGQueue().GetMessager().AddMessage([status, bgTypeId = GetTypeId(), instanceId = GetInstanceId()](BattleGroundQueue* queue)
+    {
+        if (BattleGroundInQueueInfo* bgInstance = queue->GetFreeSlotInstance(bgTypeId, instanceId))
+            bgInstance->status = status;
+    });
+}
+
 /**
   Function that returns the battleground master entry
 */
@@ -1266,12 +1276,19 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid playerGuid, bool isOnTransport
                 delete group;
             }
         }
-        DecreaseInvitedCount(team);
+
         // we should update battleground queue, but only if bg isn't ending
         if (IsBattleGround() && GetStatus() < STATUS_WAIT_LEAVE)
         {
             // a player has left the battleground, so there are free slots -> add to queue
-            AddToBgFreeSlotQueue();
+            if (!AddToBgFreeSlotQueue()) // avoid setting two messages - if was already in queue, just update count
+            {
+                sWorld.GetBGQueue().GetMessager().AddMessage([bgTypeId, instanceId = GetInstanceId(), team](BattleGroundQueue* queue)
+                {
+                    if (BattleGroundInQueueInfo* bgInstance = queue->GetFreeSlotInstance(bgTypeId, instanceId))
+                        bgInstance->DecreaseInvitedCount(team);
+                });
+            }
             sWorld.GetBGQueue().GetMessager().AddMessage([bgQueueTypeId, bgTypeId, bracketId = GetBracketId()](BattleGroundQueue* queue)
             {
                 queue->ScheduleQueueUpdate(0, ARENA_TYPE_NONE, bgQueueTypeId, bgTypeId, bracketId);
@@ -1506,19 +1523,21 @@ void BattleGround::EventPlayerLoggedOut(Player* player)
 /**
   Function that returns the number of players that can join a battleground based on the provided team
 */
-void BattleGround::AddToBgFreeSlotQueue()
+bool BattleGround::AddToBgFreeSlotQueue()
 {
     // make sure to add only once
     if (!m_hasBgFreeSlotQueue && IsBattleGround())
     {
         m_hasBgFreeSlotQueue = true;
         BattleGroundInQueueInfo bgInfo;
-        // TODO: Fill
+        bgInfo.Fill(this);
         sWorld.GetBGQueue().GetMessager().AddMessage([bgInfo](BattleGroundQueue* queue)
         {
             queue->AddBgToFreeSlots(bgInfo);
         });
+        return true;
     }
+    return false;
 }
 
 /**
@@ -1535,6 +1554,14 @@ void BattleGround::RemovedFromBgFreeSlotQueue(bool removeFromQueue)
         });
     }
     m_hasBgFreeSlotQueue = false;
+}
+
+void BattleGround::SetInvitedCount(Team team, uint32 count)
+{
+    if (team == ALLIANCE)
+        m_invitedAlliance = count;
+    else
+        m_invitedHorde = count;
 }
 
 /**

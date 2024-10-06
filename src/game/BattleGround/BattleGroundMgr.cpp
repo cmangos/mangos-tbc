@@ -47,11 +47,10 @@ INSTANTIATE_SINGLETON_1(BattleGroundMgr);
 /***            BATTLEGROUND MANAGER                   ***/
 /*********************************************************/
 
-BattleGroundMgr::BattleGroundMgr() : m_arenaTesting(false)
+BattleGroundMgr::BattleGroundMgr() : m_arenaTesting(false), m_testing(false)
 {
     for (uint8 i = BATTLEGROUND_TYPE_NONE; i < MAX_BATTLEGROUND_TYPE_ID; ++i)
         m_battleGrounds[i].clear();
-    m_testing = false;
 }
 
 BattleGroundMgr::~BattleGroundMgr()
@@ -1139,6 +1138,10 @@ void BattleGroundMgr::ToggleTesting()
         sWorld.SendWorldText(LANG_DEBUG_BG_ON);
     else
         sWorld.SendWorldText(LANG_DEBUG_BG_OFF);
+    sWorld.GetBGQueue().GetMessager().AddMessage([testing = m_testing](BattleGroundQueue* queue)
+    {
+        queue->SetTesting(testing);
+    });
 }
 
 /**
@@ -1151,6 +1154,10 @@ void BattleGroundMgr::ToggleArenaTesting()
         sWorld.SendWorldText(LANG_DEBUG_ARENA_ON);
     else
         sWorld.SendWorldText(LANG_DEBUG_ARENA_OFF);
+    sWorld.GetBGQueue().GetMessager().AddMessage([arenaTesting = m_arenaTesting](BattleGroundQueue* queue)
+    {
+        queue->SetArenaTesting(arenaTesting);
+    });
 }
 
 /**

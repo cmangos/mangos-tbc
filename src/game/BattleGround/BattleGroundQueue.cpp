@@ -16,10 +16,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include "Battleground/BattleGroundQueue.h"
+#include "BattleGround/BattleGroundQueue.h"
 #include "Tools/Language.h"
 #include "World/World.h"
-#include "Battleground/BattleGroundMgr.h"
+#include "BattleGround/BattleGroundMgr.h"
 #include "Arena/ArenaTeam.h"
 
  /*********************************************************/

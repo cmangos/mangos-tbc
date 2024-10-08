@@ -1630,7 +1630,7 @@ void BattleGroundInQueueInfo::Fill(BattleGround* bg)
     arenaType = bg->GetArenaType();
     isRated = bg->IsRated();
     playersInside = bg->GetPlayersSize();
-    maxPlayers = bg->GetTypeId();
+    maxPlayers = bg->GetMaxPlayers();
     m_invitedAlliance = bg->GetInvitedCount(ALLIANCE);
     m_invitedHorde = bg->GetInvitedCount(HORDE);
     m_maxPlayersPerTeam = bg->GetMaxPlayersPerTeam();

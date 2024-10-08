@@ -24,6 +24,7 @@
 #include "Maps/Map.h"
 #include "Util/ByteBuffer.h"
 #include "Entities/ObjectGuid.h"
+#include "BattleGround/BattleGroundDefines.h"
 
 // magic event-numbers
 #define BG_EVENT_NONE 255

@@ -20,7 +20,7 @@
 #define __BATTLEGROUNDQUEUE_H
 
 #include "Common.h"
-#include "BattleGround/BattleGroundDefines.h"
+#include "BattleGround/BattleGround.h"
 
 struct GroupQueueInfo;                                      // type predefinition
 struct PlayerQueueInfo                                      // stores information for players in queue

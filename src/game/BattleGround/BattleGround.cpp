@@ -264,7 +264,12 @@ BattleGround::~BattleGround()
     // skip template bgs as they were never added to visible bg list
     BattleGroundBracketId bracketId = GetBracketId();
     if (bracketId != BG_BRACKET_ID_TEMPLATE)
-        sBattleGroundMgr.DeleteClientVisibleInstanceId(GetTypeId(), bracketId, GetClientInstanceId());
+    {
+        sWorld.GetBGQueue().GetMessager().AddMessage([bgTypeId = GetTypeId(), bracketId, clientInstanceId = GetClientInstanceId()](BattleGroundQueue* queue)
+        {
+            queue->DeleteClientVisibleInstanceId(bgTypeId, bracketId, clientInstanceId);
+        });
+    }
 
     // unload map
     // map can be null at bg destruction
@@ -1280,6 +1285,7 @@ void BattleGround::RemovePlayerAtLeave(ObjectGuid playerGuid, bool isOnTransport
         // we should update battleground queue, but only if bg isn't ending
         if (IsBattleGround() && GetStatus() < STATUS_WAIT_LEAVE)
         {
+            SetInvitedCount(team, GetInvitedCount(team) - 1); // change ahead of free slot queue - will be synched again after
             // a player has left the battleground, so there are free slots -> add to queue
             if (!AddToBgFreeSlotQueue()) // avoid setting two messages - if was already in queue, just update count
             {

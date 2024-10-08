@@ -264,6 +264,14 @@ class BattleGroundQueue
         void SetTesting(bool state) { m_testing = state; }
         bool IsArenaTesting() const { return m_arenaTesting; }
         void SetArenaTesting(bool state) { m_arenaTesting = state; }
+
+        uint32 CreateClientVisibleInstanceId(BattleGroundTypeId /*bgTypeId*/, BattleGroundBracketId /*bracketId*/);
+        void DeleteClientVisibleInstanceId(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracketId, uint32 clientInstanceId)
+        {
+            m_clientBattleGroundIds[bgTypeId][bracketId].erase(clientInstanceId);
+        }
+
+        void BuildBattleGroundListPacket(WorldPacket& data, ObjectGuid guid, uint32 playerLevel, BattleGroundTypeId bgTypeId) const;
     private:
         BattleGroundQueueItem m_battleGroundQueues[MAX_BATTLEGROUND_QUEUE_TYPES];
 
@@ -278,6 +286,9 @@ class BattleGroundQueue
 
         bool m_testing;
         bool m_arenaTesting;
+
+        typedef std::set<uint32> ClientBattleGroundIdSet;
+        ClientBattleGroundIdSet m_clientBattleGroundIds[MAX_BATTLEGROUND_TYPE_ID][MAX_BATTLEGROUND_BRACKETS]; // the instanceids just visible for the client
 };
 
 #endif

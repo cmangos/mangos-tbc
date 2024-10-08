@@ -77,9 +77,16 @@ Send battleground list
 */
 void WorldSession::SendBattleGroundList(ObjectGuid guid, BattleGroundTypeId bgTypeId) const
 {
-    WorldPacket data;
-    sBattleGroundMgr.BuildBattleGroundListPacket(data, guid, _player, bgTypeId);
-    SendPacket(data);
+    sWorld.GetBGQueue().GetMessager().AddMessage([playerGuid = _player->GetObjectGuid(), masterGuid = guid, playerLevel = _player->GetLevel(), bgTypeId](BattleGroundQueue* queue)
+    {
+        WorldPacket data;
+        queue->BuildBattleGroundListPacket(data, masterGuid, playerLevel, BattleGroundTypeId(bgTypeId));
+        sWorld.GetMessager().AddMessage([playerGuid, data](World* world)
+        {
+            if (Player* player = sObjectMgr.GetPlayer(playerGuid))
+                player->GetSession()->SendPacket(data);
+        });
+    });
 }
 
 // Sent by client when player wants to join a battleground
@@ -376,10 +383,17 @@ void WorldSession::HandleBattlefieldListOpcode(WorldPacket& recv_data)
         sLog.outError("Battleground: invalid bgtype received.");
         return;
     }
-
-    WorldPacket data;
-    sBattleGroundMgr.BuildBattleGroundListPacket(data, _player->GetObjectGuid(), _player, BattleGroundTypeId(bgTypeId));
-    SendPacket(data);
+   
+    sWorld.GetBGQueue().GetMessager().AddMessage([playerGuid = _player->GetObjectGuid(), masterGuid = _player->GetObjectGuid(), playerLevel = _player->GetLevel(), bgTypeId](BattleGroundQueue* queue)
+    {
+        WorldPacket data;
+        queue->BuildBattleGroundListPacket(data, masterGuid, playerLevel, BattleGroundTypeId(bgTypeId));
+        sWorld.GetMessager().AddMessage([playerGuid, data](World* world)
+        {
+            if (Player* player = sObjectMgr.GetPlayer(playerGuid))
+                player->GetSession()->SendPacket(data);
+        });
+    });
 }
 
 // Sent by client when requesting teleport to the battleground location

@@ -955,16 +955,17 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
         // check if there is premade against premade match
         if (CheckPremadeMatch(bracketId, minPlayersPerTeam, maxPlayersPerTeam))
         {
-            // create new battleground
-            BattleGround* bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketId, ARENA_TYPE_NONE, false);
-            if (!bg2)
+            BattleGround* bgTemplate = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
+            if (!bgTemplate)
             {
-                sLog.outError("BattleGroundQueueItem::Update - Cannot create battleground: %u", bgTypeId);
+                sLog.outError("BattleGround: CreateNewBattleGround - bg template not found for %u", bgTypeId);
                 return;
             }
 
             BattleGroundInQueueInfo bgInfo;
-            bgInfo.Fill(bg2);
+            bgInfo.Fill(bgTemplate);
+            bgInfo.instanceId = sMapMgr.GenerateInstanceId();
+            bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
 
             queue.AddBgToFreeSlots(bgInfo);
 
@@ -977,8 +978,13 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
             m_selectionPools[TEAM_INDEX_ALLIANCE].Init();
             m_selectionPools[TEAM_INDEX_HORDE].Init();
 
-            sWorld.GetMessager().AddMessage([bg2](World* world)
+            sWorld.GetMessager().AddMessage([instanceId = bgInfo.instanceId, clientInstanceId = bgInfo.m_clientInstanceId, bgTypeId, bracketId, allianceCount = bgInfo.GetInvitedCount(ALLIANCE), hordeCount = bgInfo.GetInvitedCount(HORDE)](World* world)
             {
+                // create new battleground
+                BattleGround* bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketId, ARENA_TYPE_NONE, false, instanceId, clientInstanceId);
+                MANGOS_ASSERT(bg2);
+                bg2->SetInvitedCount(ALLIANCE, allianceCount);
+                bg2->SetInvitedCount(HORDE, hordeCount);
                 // start bg
                 bg2->StartBattleGround();
             });
@@ -992,16 +998,17 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
         if (CheckNormalMatch(queue, bgTemplate, bracketId, minPlayersPerTeam, maxPlayersPerTeam)
             || (bgTemplate->IsArena() && CheckSkirmishForSameFaction(bracketId, minPlayersPerTeam)))
         {
-            // we successfully created a pool
-            BattleGround* bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketId, arenaType, false);
-            if (!bg2)
+            BattleGround* bgTemplate = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
+            if (!bgTemplate)
             {
-                sLog.outError("BattleGroundQueueItem::Update - Cannot create battleground: %u", bgTypeId);
+                sLog.outError("BattleGround: CreateNewBattleGround - bg template not found for %u", bgTypeId);
                 return;
             }
 
             BattleGroundInQueueInfo bgInfo;
-            bgInfo.Fill(bg2);
+            bgInfo.Fill(bgTemplate);
+            bgInfo.instanceId = sMapMgr.GenerateInstanceId();
+            bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
 
             queue.AddBgToFreeSlots(bgInfo);
 
@@ -1010,11 +1017,13 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
                 for (GroupsQueueType::const_iterator citr = m_selectionPools[TEAM_INDEX_ALLIANCE + i].selectedGroups.begin(); citr != m_selectionPools[TEAM_INDEX_ALLIANCE + i].selectedGroups.end(); ++citr)
                     InviteGroupToBg((*citr), bgInfo, (*citr)->groupTeam);
 
-            bg2->SetInvitedCount(ALLIANCE, bgInfo.GetInvitedCount(ALLIANCE));
-            bg2->SetInvitedCount(HORDE, bgInfo.GetInvitedCount(HORDE));
-
-            sWorld.GetMessager().AddMessage([bg2](World* world)
+            sWorld.GetMessager().AddMessage([instanceId = bgInfo.instanceId, clientInstanceId = bgInfo.m_clientInstanceId, bgTypeId, bracketId, allianceCount = bgInfo.GetInvitedCount(ALLIANCE), hordeCount = bgInfo.GetInvitedCount(HORDE)](World* world)
             {
+                // create new battleground
+                BattleGround* bg2 = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketId, ARENA_TYPE_NONE, false, instanceId, clientInstanceId);
+                MANGOS_ASSERT(bg2);
+                bg2->SetInvitedCount(ALLIANCE, allianceCount);
+                bg2->SetInvitedCount(HORDE, hordeCount);
                 // start bg
                 bg2->StartBattleGround();
             });
@@ -1123,15 +1132,19 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
         // if we have 2 teams, then start new arena and invite players!
         if (m_selectionPools[TEAM_INDEX_ALLIANCE].GetPlayerCount() && m_selectionPools[TEAM_INDEX_HORDE].GetPlayerCount())
         {
-            BattleGround* arena = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketId, arenaType, true);
-            if (!arena)
+            BattleGround* bgTemplate = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
+            if (!bgTemplate)
             {
-                sLog.outError("BattlegroundQueue::Update couldn't create arena instance for rated arena match!");
+                sLog.outError("BattleGround: CreateNewBattleGround - bg template not found for %u", bgTypeId);
                 return;
             }
 
             BattleGroundInQueueInfo bgInfo;
-            bgInfo.Fill(arena);
+            bgInfo.Fill(bgTemplate);
+            bgInfo.instanceId = sMapMgr.GenerateInstanceId();
+            bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
+            bgInfo.isRated = true;
+            bgInfo.arenaType = arenaType;
 
             queue.AddBgToFreeSlots(bgInfo);
 
@@ -1163,17 +1176,18 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
             InviteGroupToBg(firstGroup, bgInfo, ALLIANCE);
             InviteGroupToBg(secondGroup, bgInfo, HORDE);
 
-            // set ArenaTeamId for rated matches
-            if (bgInfo.IsArena() && bgInfo.IsRated())
-            {
-                arena->SetArenaTeamIdForTeam(firstGroup->groupTeam, firstGroup->arenaTeamId);
-                arena->SetArenaTeamIdForTeam(secondGroup->groupTeam, secondGroup->arenaTeamId);
-            }
-
             DEBUG_LOG("Starting rated arena match!");
 
-            sWorld.GetMessager().AddMessage([arena](World* world)
+            sWorld.GetMessager().AddMessage([instanceId = bgInfo.instanceId, clientInstanceId = bgInfo.m_clientInstanceId, arenaType, bgTypeId, bracketId, allianceCount = bgInfo.GetInvitedCount(ALLIANCE), hordeCount = bgInfo.GetInvitedCount(HORDE), firstTeam = firstGroup->groupTeam, firstTeamId = firstGroup->arenaTeamId, secondTeam = secondGroup->groupTeam, secondTeamId = secondGroup->arenaTeamId](World* world)
             {
+                // create new battleground
+                BattleGround* arena = sBattleGroundMgr.CreateNewBattleGround(bgTypeId, bracketId, arenaType, true, instanceId, clientInstanceId);
+                MANGOS_ASSERT(arena);
+                arena->SetInvitedCount(ALLIANCE, allianceCount);
+                arena->SetInvitedCount(HORDE, hordeCount);
+                arena->SetArenaTeamIdForTeam(firstTeam, firstTeamId);
+                arena->SetArenaTeamIdForTeam(secondTeam, secondTeamId);
+                // start bg
                 arena->StartBattleGround();
             });
         }
@@ -1509,6 +1523,74 @@ void BattleGroundQueue::SetNextRatingDiscardUpdate(std::chrono::milliseconds& ti
 {
     TimePoint now = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::now());;
     m_nextRatingDiscardUpdate = now + timePoint;
+}
+
+/**
+  Method that builds battleground list data
+
+  @param    packet
+  @param    battlemaster guid
+  @param    player
+  @param    battleground type id
+*/
+void BattleGroundQueue::BuildBattleGroundListPacket(WorldPacket& data, ObjectGuid guid, uint32 playerLevel, BattleGroundTypeId bgTypeId) const
+{
+    data.Initialize(SMSG_BATTLEFIELD_LIST);
+    data << guid;                                          // battlemaster guid
+    data << uint32(bgTypeId);                              // battleground id
+    if (bgTypeId == BATTLEGROUND_AA)                        // arena
+    {
+        data << uint8(5);                                  // unk
+        data << uint32(0);                                 // unk
+    }
+    else                                                    // battleground
+    {
+        data << uint8(0x00);                               // unk
+
+        size_t count_pos = data.wpos();
+        uint32 count = 0;
+        data << uint32(0);                                 // number of bg instances
+
+        uint32 bracket_id = sBattleGroundMgr.GetBattleGroundBracketIdFromLevel(bgTypeId, playerLevel);
+        ClientBattleGroundIdSet const& ids = m_clientBattleGroundIds[bgTypeId][bracket_id];
+        for (std::set<uint32>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr)
+        {
+            data << uint32(*itr);
+            ++count;
+        }
+        data.put<uint32>(count_pos, count);
+    }
+}
+
+/**
+  Function that returns client instance id from battleground type id and bracket id
+
+  @param    battleground type id
+  @param    bracket id
+*/
+uint32 BattleGroundQueue::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracketId)
+{
+    if (BattleGroundMgr::IsArenaType(bgTypeId))
+        return 0;                                           // arenas don't have client-instanceids
+
+    // we create here an instanceid, which is just for
+    // displaying this to the client and without any other use..
+    // the client-instanceIds are unique for each battleground-type
+    // the instance-id just needs to be as low as possible, beginning with 1
+    // the following works, because std::set is default ordered with "<"
+    // the optimalization would be to use as bitmask std::vector<uint32> - but that would only make code unreadable
+
+    uint32 lastId = 0;
+    ClientBattleGroundIdSet& ids = m_clientBattleGroundIds[bgTypeId][bracketId];
+    for (ClientBattleGroundIdSet::const_iterator itr = ids.begin(); itr != ids.end();)
+    {
+        if ((++lastId) != *itr)                             // if there is a gap between the ids, we will break..
+            break;
+        lastId = *itr;
+    }
+    ids.insert(lastId + 1);
+
+    return lastId + 1;
 }
 
 void BattleGroundQueue::RemovePlayer(BattleGroundQueueTypeId bgQueueTypeId, ObjectGuid player, bool decreaseInvitedCount)

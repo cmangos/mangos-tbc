@@ -381,36 +381,7 @@ BattleGround* BattleGroundMgr::GetBattleGroundTemplate(BattleGroundTypeId bgType
     return m_battleGrounds[bgTypeId].empty() ? nullptr : m_battleGrounds[bgTypeId].begin()->second;
 }
 
-/**
-  Function that returns client instance id from battleground type id and bracket id
 
-  @param    battleground type id
-  @param    bracket id
-*/
-uint32 BattleGroundMgr::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracketId)
-{
-    if (IsArenaType(bgTypeId))
-        return 0;                                           // arenas don't have client-instanceids
-
-    // we create here an instanceid, which is just for
-    // displaying this to the client and without any other use..
-    // the client-instanceIds are unique for each battleground-type
-    // the instance-id just needs to be as low as possible, beginning with 1
-    // the following works, because std::set is default ordered with "<"
-    // the optimalization would be to use as bitmask std::vector<uint32> - but that would only make code unreadable
-
-    uint32 lastId = 0;
-    ClientBattleGroundIdSet& ids = m_clientBattleGroundIds[bgTypeId][bracketId];
-    for (ClientBattleGroundIdSet::const_iterator itr = ids.begin(); itr != ids.end();)
-    {
-        if ((++lastId) != *itr)                             // if there is a gap between the ids, we will break..
-            break;
-        lastId = *itr;
-    }
-    ids.insert(lastId + 1);
-
-    return lastId + 1;
-}
 
 /**
   Function that creates a new battleground that is actually used
@@ -420,7 +391,7 @@ uint32 BattleGroundMgr::CreateClientVisibleInstanceId(BattleGroundTypeId bgTypeI
   @param    arena type
   @param    isRated
 */
-BattleGround* BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracketId, ArenaType arenaType, bool isRated)
+BattleGround* BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracketId, ArenaType arenaType, bool isRated, uint32 instanceId, uint32 clientInstanceId)
 {
     // get the template BG
     BattleGround* bgTemplate = GetBattleGroundTemplate(bgTypeId);
@@ -480,9 +451,9 @@ BattleGround* BattleGroundMgr::CreateNewBattleGround(BattleGroundTypeId bgTypeId
     bg->SetBracketId(bracketId);
 
     // will also set m_bgMap, instanceid
-    sMapMgr.CreateBgMap(bg->GetMapId(), bg);
+    sMapMgr.CreateBgMap(bg->GetMapId(), instanceId, bg);
 
-    bg->SetClientInstanceId(CreateClientVisibleInstanceId(bgTypeId, bracketId));
+    bg->SetClientInstanceId(clientInstanceId);
 
     // reset the new bg (set status to status_wait_queue from status_none)
     bg->Reset();
@@ -954,46 +925,6 @@ void BattleGroundMgr::ResetAllArenaData()
             at->SaveToDB();                                // save changes
             at->NotifyStatsChanged();                      // notify the players of the changes
         }
-    }
-}
-
-/**
-  Method that builds battleground list data
-
-  @param    packet
-  @param    battlemaster guid
-  @param    player
-  @param    battleground type id
-*/
-void BattleGroundMgr::BuildBattleGroundListPacket(WorldPacket& data, ObjectGuid guid, Player* player, BattleGroundTypeId bgTypeId) const
-{
-    if (!player)
-        return;
-
-    data.Initialize(SMSG_BATTLEFIELD_LIST);
-    data << guid;                                          // battlemaster guid
-    data << uint32(bgTypeId);                              // battleground id
-    if (bgTypeId == BATTLEGROUND_AA)                        // arena
-    {
-        data << uint8(5);                                  // unk
-        data << uint32(0);                                 // unk
-    }
-    else                                                    // battleground
-    {
-        data << uint8(0x00);                               // unk
-
-        size_t count_pos = data.wpos();
-        uint32 count = 0;
-        data << uint32(0);                                 // number of bg instances
-
-        uint32 bracket_id = GetBattleGroundBracketIdFromLevel(bgTypeId, player->GetLevel());
-        ClientBattleGroundIdSet const& ids = m_clientBattleGroundIds[bgTypeId][bracket_id];
-        for (std::set<uint32>::const_iterator itr = ids.begin(); itr != ids.end(); ++itr)
-        {
-            data << uint32(*itr);
-            ++count;
-        }
-        data.put<uint32>(count_pos, count);
     }
 }
 

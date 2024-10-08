@@ -145,12 +145,12 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
     return m;
 }
 
-Map* MapManager::CreateBgMap(uint32 mapid, BattleGround* bg)
+Map* MapManager::CreateBgMap(uint32 mapid, uint32 instanceId, BattleGround* bg)
 {
     sTerrainMgr.LoadTerrain(mapid);
 
     Guard _guard(*this);
-    return CreateBattleGroundMap(mapid, sMapMgr.GenerateInstanceId(), bg);
+    return CreateBattleGroundMap(mapid, instanceId, bg);
 }
 
 Map* MapManager::FindMap(uint32 mapid, uint32 instanceId) const

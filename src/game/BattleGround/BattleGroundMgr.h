@@ -52,25 +52,18 @@ class BattleGroundMgr
         static void BuildPvpLogDataPacket(WorldPacket& /*data*/, BattleGround* /*bg*/);
         static void BuildBattleGroundStatusPacket(WorldPacket& data, bool bgExists, uint32 bgTypeId, uint32 bgClientInstanceId, bool isRated, uint32 mapId, uint8 queueSlot, uint8 statusId, uint32 time1, uint32 time2, ArenaType arenaType, Team arenaTeam);
         static void BuildPlaySoundPacket(WorldPacket& /*data*/, uint32 /*soundId*/);
-        void BuildBattleGroundListPacket(WorldPacket& /*data*/, ObjectGuid /*guid*/, Player* /*player*/, BattleGroundTypeId /*bgTypeId*/) const;
 
         /* Battlegrounds */
         BattleGround* GetBattleGroundThroughClientInstance(uint32 /*instanceId*/, BattleGroundTypeId /*bgTypeId*/);
         BattleGround* GetBattleGround(uint32 /*instanceId*/, BattleGroundTypeId /*bgTypeId*/); // there must be uint32 because MAX_BATTLEGROUND_TYPE_ID means unknown
 
         BattleGround* GetBattleGroundTemplate(BattleGroundTypeId /*bgTypeId*/) const;
-        BattleGround* CreateNewBattleGround(BattleGroundTypeId /*bgTypeId*/, BattleGroundBracketId /*bracketEntry*/, ArenaType /*arenaType*/, bool /*isRated*/);
+        BattleGround* CreateNewBattleGround(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracketEntry, ArenaType arenaType, bool isRated, uint32 instanceId, uint32 clientInstanceId);
 
         uint32 CreateBattleGround(BattleGroundTypeId /*bgTypeId*/, bool /*isArena*/, uint32 /*minPlayersPerTeam*/, uint32 /*maxPlayersPerTeam*/, uint32 /*levelMin*/, uint32 /*levelMax*/, char const* /*battleGroundName*/, uint32 /*mapId*/, float /*team1StartLocX*/, float /*team1StartLocY*/, float /*team1StartLocZ*/, float /*team1StartLocO*/, float /*team2StartLocX*/, float /*team2StartLocY*/, float /*team2StartLocZ*/, float /*team2StartLocO*/, float /*startMaxDist*/, uint32 /*playerSkinReflootId*/);
 
         void AddBattleGround(uint32 instanceId, BattleGroundTypeId bgTypeId, BattleGround* bg) { m_battleGrounds[bgTypeId][instanceId] = bg; };
         void RemoveBattleGround(uint32 instanceId, BattleGroundTypeId bgTypeId) { m_battleGrounds[bgTypeId].erase(instanceId); }
-
-        uint32 CreateClientVisibleInstanceId(BattleGroundTypeId /*bgTypeId*/, BattleGroundBracketId /*bracketId*/);
-        void DeleteClientVisibleInstanceId(BattleGroundTypeId bgTypeId, BattleGroundBracketId bracketId, uint32 clientInstanceId)
-        {
-            m_clientBattleGroundIds[bgTypeId][bracketId].erase(clientInstanceId);
-        }
 
         void CreateInitialBattleGrounds();
         void DeleteAllBattleGrounds();
@@ -143,8 +136,6 @@ class BattleGroundMgr
 
         /* Battlegrounds */
         BattleGroundSet m_battleGrounds[MAX_BATTLEGROUND_TYPE_ID];
-        typedef std::set<uint32> ClientBattleGroundIdSet;
-        ClientBattleGroundIdSet m_clientBattleGroundIds[MAX_BATTLEGROUND_TYPE_ID][MAX_BATTLEGROUND_BRACKETS]; // the instanceids just visible for the client
         bool m_arenaTesting;
         bool m_testing;
         std::set<uint32> m_usedRefloot;

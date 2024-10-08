@@ -626,10 +626,8 @@ void WorldSession::HandleBattlefieldStatusOpcode(WorldPacket& /*recv_data*/)
 
     sWorld.GetBGQueue().GetMessager().AddMessage([idsToCheck, playerGuid = _player->GetObjectGuid(), playerLevel = _player->GetLevel()](BattleGroundQueue* queue)
     {
-        for (auto& data : idsToCheck)
+        for (auto [queueSlot, bgQueueTypeId] : idsToCheck)
         {
-            auto queueSlot = data.first;
-            BattleGroundQueueTypeId bgQueueTypeId = data.second;
             BattleGroundQueueItem& queueItem = queue->GetBattleGroundQueue(bgQueueTypeId);
             GroupQueueInfo queueInfo;
             if (!queueItem.GetPlayerGroupInfoData(playerGuid, &queueInfo))

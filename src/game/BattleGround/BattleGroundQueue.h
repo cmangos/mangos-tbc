@@ -258,7 +258,7 @@ class BattleGroundQueue
         BattleGroundInQueueInfo* GetFreeSlotInstance(BattleGroundTypeId bgTypeId, uint32 instanceId);
         BattleGroundQueueItem& GetBattleGroundQueue(BattleGroundQueueTypeId bgQueueTypeId);
 
-        void SetNextRatingDiscardUpdate(std::chrono::milliseconds& timePoint);
+        void SetNextRatingDiscardUpdate(std::chrono::milliseconds timePoint);
 
         bool IsTesting() const { return m_testing; }
         void SetTesting(bool state) { m_testing = state; }

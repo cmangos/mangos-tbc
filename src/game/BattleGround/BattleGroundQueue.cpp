@@ -964,6 +964,7 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
 
             BattleGroundInQueueInfo bgInfo;
             bgInfo.Fill(bgTemplate);
+            bgInfo.bracketId = bracketId;
             bgInfo.instanceId = sMapMgr.GenerateInstanceId();
             bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
 
@@ -1007,6 +1008,7 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
 
             BattleGroundInQueueInfo bgInfo;
             bgInfo.Fill(bgTemplate);
+            bgInfo.bracketId = bracketId;
             bgInfo.instanceId = sMapMgr.GenerateInstanceId();
             bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
 
@@ -1141,6 +1143,7 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
 
             BattleGroundInQueueInfo bgInfo;
             bgInfo.Fill(bgTemplate);
+            bgInfo.bracketId = bracketId;
             bgInfo.instanceId = sMapMgr.GenerateInstanceId();
             bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
             bgInfo.isRated = true;

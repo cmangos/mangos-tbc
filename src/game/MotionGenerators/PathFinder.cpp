@@ -38,6 +38,9 @@ PathFinder::PathFinder(const Unit* owner, bool ignoreNormalization) :
     m_cachedPoints(m_pointPathLimit * VERTEX_SIZE), m_pathPolyRefs(m_pointPathLimit), m_polyLength(0),
     m_smoothPathPolyRefs(m_pointPathLimit), m_sourceUnit(owner), m_navMesh(nullptr), m_navMeshQuery(nullptr),
     m_defaultMapId(m_sourceUnit->GetMapId()), m_ignoreNormalization(ignoreNormalization)
+#ifdef ENABLE_PLAYERBOTS
+    , m_defaultInstanceId(m_sourceUnit->GetInstanceId())
+#endif
 {
     DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::PathInfo for %u \n", m_sourceUnit->GetGUIDLow());
 
@@ -54,7 +57,7 @@ PathFinder::PathFinder(const Unit* owner, bool ignoreNormalization) :
 PathFinder::PathFinder() :
     m_polyLength(0), m_type(PATHFIND_BLANK),
     m_useStraightPath(false), m_forceDestination(false), m_straightLine(false), m_pointPathLimit(MAX_POINT_PATH_LENGTH), // TODO: Fix legitimate long paths
-    m_sourceUnit(nullptr), m_navMesh(nullptr), m_navMeshQuery(nullptr), m_cachedPoints(m_pointPathLimit* VERTEX_SIZE), m_pathPolyRefs(m_pointPathLimit), m_smoothPathPolyRefs(m_pointPathLimit), m_defaultMapId(0)
+    m_sourceUnit(nullptr), m_navMesh(nullptr), m_navMeshQuery(nullptr), m_cachedPoints(m_pointPathLimit* VERTEX_SIZE), m_pathPolyRefs(m_pointPathLimit), m_smoothPathPolyRefs(m_pointPathLimit), m_defaultMapId(0), m_defaultInstanceId(0)
 {
 
 }
@@ -62,7 +65,7 @@ PathFinder::PathFinder() :
 PathFinder::PathFinder(uint32 mapId, uint32 instanceId) :
     m_polyLength(0), m_type(PATHFIND_BLANK),
     m_useStraightPath(false), m_forceDestination(false), m_straightLine(false), m_pointPathLimit(MAX_POINT_PATH_LENGTH), // TODO: Fix legitimate long paths
-    m_sourceUnit(nullptr), m_navMesh(nullptr), m_navMeshQuery(nullptr), m_cachedPoints(m_pointPathLimit* VERTEX_SIZE), m_pathPolyRefs(m_pointPathLimit), m_smoothPathPolyRefs(m_pointPathLimit), m_defaultMapId(mapId)
+    m_sourceUnit(nullptr), m_navMesh(nullptr), m_navMeshQuery(nullptr), m_cachedPoints(m_pointPathLimit* VERTEX_SIZE), m_pathPolyRefs(m_pointPathLimit), m_smoothPathPolyRefs(m_pointPathLimit), m_defaultMapId(mapId), m_defaultInstanceId(instanceId)
 {
     MMAP::MMapManager* mmap = MMAP::MMapFactory::createOrGetMMapManager();
     m_defaultNavMeshQuery = mmap->GetNavMeshQuery(mapId, instanceId);
@@ -175,7 +178,7 @@ void PathFinder::setArea(uint32 mapId, float x, float y, float z, uint32 area, f
 
     MMAP::MMapManager* mmap = MMAP::MMapFactory::createOrGetMMapManager();
 
-    dtNavMeshQuery const* query = mmap->GetNavMeshQuery(mapId, 0);
+    dtNavMeshQuery const* query = mmap->GetNavMeshQuery(mapId, m_defaultInstanceId);
     dtNavMesh const* cnavMesh = mmap->GetNavMesh(mapId);
     dtNavMesh* navMesh = const_cast<dtNavMesh*> (cnavMesh);
     dtQueryFilter m_filter;
@@ -231,7 +234,7 @@ uint32 PathFinder::getArea(uint32 mapId, float x, float y, float z)
 
     MMAP::MMapManager* mmap = MMAP::MMapFactory::createOrGetMMapManager();
 
-    dtNavMeshQuery const* query = mmap->GetNavMeshQuery(mapId, 0);
+    dtNavMeshQuery const* query = mmap->GetNavMeshQuery(mapId, m_defaultInstanceId);
     dtNavMesh const* cnavMesh = mmap->GetNavMesh(mapId);
     dtNavMesh* navMesh = const_cast<dtNavMesh*> (cnavMesh);
     dtQueryFilter m_filter;

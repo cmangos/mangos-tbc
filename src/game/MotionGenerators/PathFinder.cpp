@@ -127,8 +127,10 @@ bool PathFinder::calculate(Vector3 const& start, Vector3 const& dest, bool force
     if (!MaNGOS::IsValidMapCoord(start.x, start.y, start.z))
         return false;
 
+#ifndef ENABLE_PLAYERBOTS
     if (!m_sourceUnit)
         return false;
+#endif
 
 #ifdef BUILD_METRICS
     metric::duration<std::chrono::microseconds> meas("pathfinder.calculate", {
@@ -152,11 +154,17 @@ bool PathFinder::calculate(Vector3 const& start, Vector3 const& dest, bool force
 
     SetCurrentNavMesh();
 
+#ifndef ENABLE_PLAYERBOTS
     DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::calculate() for %u \n", m_sourceUnit->GetGUIDLow());
+#endif
 
     // make sure navMesh works - we can run on map w/o mmap
     // check if the start and end point have a .mmtile loaded (can we pass via not loaded tile on the way?)
+#ifdef ENABLE_PLAYERBOTS
+    if (!m_navMesh || !m_navMeshQuery || (m_sourceUnit && m_sourceUnit->hasUnitState(UNIT_STAT_IGNORE_PATHFINDING)) ||
+#else
     if (!m_navMesh || !m_navMeshQuery || m_sourceUnit->hasUnitState(UNIT_STAT_IGNORE_PATHFINDING) ||
+#endif    
         !HaveTile(start) || !HaveTile(dest))
     {
         BuildShortcut();
@@ -376,11 +384,17 @@ dtPolyRef PathFinder::getPolyByLocation(const float* point, float* distance)
 
 void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
 {
+#ifndef ENABLE_PLAYERBOTS
     if (!m_sourceUnit)
         return;
+#endif
 
     // *** getting start/end poly logic ***
+#ifndef ENABLE_PLAYERBOTS
     if (m_sourceUnit->GetMap()->IsDungeon())
+#else
+    if (sMapMgr.FindMap(m_defaultMapId, m_defaultInstanceId) && sMapMgr.FindMap(m_defaultMapId, m_defaultInstanceId)->IsDungeon())
+#endif
     {
         float distance = sqrt((endPos.x - startPos.x) * (endPos.x - startPos.x) + (endPos.y - startPos.y) * (endPos.y - startPos.y) + (endPos.z - startPos.z) * (endPos.z - startPos.z));
         if (distance > 300.f)
@@ -409,17 +423,26 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
         DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: (startPoly == 0 || endPoly == 0)\n");
         BuildShortcut();
 
-        // Check for swimming or flying shortcut
-        if ((startPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsSwimmable(startPos.x, startPos.y, startPos.z)) ||
-            (endPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsSwimmable(endPos.x, endPos.y, endPos.z)))
-            m_type = m_sourceUnit->CanSwim() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
-        else
+#ifdef ENABLE_PLAYERBOTS
+        if (m_sourceUnit)
         {
-            if (m_sourceUnit->GetTypeId() != TYPEID_PLAYER)
-                m_type = m_sourceUnit->CanFly() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+#endif
+            // Check for swimming or flying shortcut
+            if ((startPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsSwimmable(startPos.x, startPos.y, startPos.z)) ||
+                (endPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsSwimmable(endPos.x, endPos.y, endPos.z)))
+                m_type = m_sourceUnit->CanSwim() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
             else
-                m_type = PATHFIND_NOPATH;
+            {
+                if (m_sourceUnit->GetTypeId() != TYPEID_PLAYER)
+                    m_type = m_sourceUnit->CanFly() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+                else
+
+                    m_type = PATHFIND_NOPATH;
+            }
+#ifdef ENABLE_PLAYERBOTS
         }
+#endif
+
 
         return;
     }
@@ -431,19 +454,26 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
         DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: farFromPoly distToStartPoly=%.3f distToEndPoly=%.3f\n", distToStartPoly, distToEndPoly);
 
         bool buildShotrcut = false;
-        Vector3 p = (distToStartPoly > 7.0f) ? startPos : endPos;
-        if (m_sourceUnit->GetTerrain()->IsUnderWater(p.x, p.y, p.z))
+#ifdef ENABLE_PLAYERBOTS
+        if (m_sourceUnit)
         {
-            DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: underWater case\n");
-            if (m_sourceUnit->CanSwim())
-                buildShotrcut = true;
+#endif
+            Vector3 p = (distToStartPoly > 7.0f) ? startPos : endPos;
+            if (m_sourceUnit->GetTerrain()->IsUnderWater(p.x, p.y, p.z))
+            {
+                DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: underWater case\n");
+                if (m_sourceUnit->CanSwim())
+                    buildShotrcut = true;
+            }
+            else
+            {
+                DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: flying case\n");
+                if (m_sourceUnit->CanFly())
+                    buildShotrcut = true;
+            }
+#ifdef ENABLE_PLAYERBOTS
         }
-        else
-        {
-            DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ BuildPolyPath :: flying case\n");
-            if (m_sourceUnit->CanFly())
-                buildShotrcut = true;
-        }
+#endif
 
 #ifdef ENABLE_PLAYERBOTS
         if (m_sourceUnit && m_sourceUnit->IsPlayer() && IsPointHigherThan(getActualEndPosition(), getStartPosition()))
@@ -502,10 +532,13 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
             // here to catch few bugs
             if (m_pathPolyRefs[pathStartIndex] == INVALID_POLYREF)
             {
-                sLog.outError("Invalid poly ref in BuildPolyPath. polyLength: %u, pathStartIndex: %u,"
-                              " startPos: %s, endPos: %s, mapId: %u",
-                              m_polyLength, pathStartIndex, startPos.toString().c_str(), endPos.toString().c_str(),
-                              m_sourceUnit->GetMapId());
+#ifdef ENABLE_PLAYERBOTS
+                if (m_sourceUnit)
+#endif
+                    sLog.outError("Invalid poly ref in BuildPolyPath. polyLength: %u, pathStartIndex: %u,"
+                        " startPos: %s, endPos: %s, mapId: %u",
+                        m_polyLength, pathStartIndex, startPos.toString().c_str(), endPos.toString().c_str(),
+                        m_sourceUnit->GetMapId());
                 break;
             }
 
@@ -682,12 +715,19 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
                 float hitPos[3];
                 float distanceToPoly;
 
-                hit = hit - m_sourceUnit->GetCollisionWidth();
-                if (hit < 0.1f)
+#ifdef ENABLE_PLAYERBOTS
+                if (m_sourceUnit)
                 {
-                    m_type = PATHFIND_NOPATH;
-                    return;
+#endif
+                    hit = hit - m_sourceUnit->GetCollisionWidth();
+                    if (hit < 0.1f)
+                    {
+                        m_type = PATHFIND_NOPATH;
+                        return;
+                    }
+#ifdef ENABLE_PLAYERBOTS
                 }
+#endif
 
                 dtVlerp(hitPos, startPoint, endPoint, hit);
                 dtPolyRef poly = getPolyByLocation(hitPos, &distanceToPoly);
@@ -722,7 +762,10 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
         if (!m_polyLength || dtStatusFailed(dtResult))
         {
             // only happens if we passed bad data to findPath(), or navmesh is messed up
-            sLog.outError("%u's Path Build failed: 0 length path", m_sourceUnit->GetGUIDLow());
+#ifdef ENABLE_PLAYERBOTS
+            if (m_sourceUnit)
+#endif
+                sLog.outError("%u's Path Build failed: 0 length path", m_sourceUnit->GetGUIDLow());
 
 #ifdef ENABLE_PLAYERBOTS
             if (m_sourceUnit && m_sourceUnit->IsPlayer() && IsPointHigherThan(getActualEndPosition(), getStartPosition()))

@@ -93,20 +93,20 @@ void PathFinder::SetCurrentNavMesh()
             m_navMeshQuery = m_defaultNavMeshQuery;
         }
 
-#ifdef ENABLE_PLAYERBOTS
         if (m_navMeshQuery)
             m_navMesh = m_navMeshQuery->getAttachedNavMesh();
 
     }
+#ifdef ENABLE_PLAYERBOTS
     else if (!m_sourceUnit && MMAP::MMapFactory::IsPathfindingEnabled(m_defaultMapId, nullptr))
     {
         MMAP::MMapManager* mmap = MMAP::MMapFactory::createOrGetMMapManager();
         m_navMeshQuery = m_defaultNavMeshQuery;
-#endif
 
         if (m_navMeshQuery)
             m_navMesh = m_navMeshQuery->getAttachedNavMesh();
     }
+#endif
 }
 
 bool PathFinder::calculate(float destX, float destY, float destZ, bool forceDest/* = false*/, bool straightLine/* = false*/)
@@ -154,9 +154,10 @@ bool PathFinder::calculate(Vector3 const& start, Vector3 const& dest, bool force
 
     SetCurrentNavMesh();
 
-#ifndef ENABLE_PLAYERBOTS
-    DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::calculate() for %u \n", m_sourceUnit->GetGUIDLow());
+#ifdef ENABLE_PLAYERBOTS
+    if(m_sourceUnit)
 #endif
+        DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::calculate() for %u \n", m_sourceUnit->GetGUIDLow());
 
     // make sure navMesh works - we can run on map w/o mmap
     // check if the start and end point have a .mmtile loaded (can we pass via not loaded tile on the way?)
@@ -393,7 +394,7 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
 #ifndef ENABLE_PLAYERBOTS
     if (m_sourceUnit->GetMap()->IsDungeon())
 #else
-    if (sMapMgr.FindMap(m_defaultMapId, m_defaultInstanceId) && sMapMgr.FindMap(m_defaultMapId, m_defaultInstanceId)->IsDungeon())
+    if ((m_sourceUnit && m_sourceUnit->GetMap()->IsDungeon()) || (sMapStore.LookupEntry(m_defaultMapId) && sMapStore.LookupEntry(m_defaultMapId)->IsDungeon()))
 #endif
     {
         float distance = sqrt((endPos.x - startPos.x) * (endPos.x - startPos.x) + (endPos.y - startPos.y) * (endPos.y - startPos.y) + (endPos.z - startPos.z) * (endPos.z - startPos.z));

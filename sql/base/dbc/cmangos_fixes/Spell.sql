@@ -131,6 +131,9 @@ UPDATE `spell_template` SET `MaxTargetLevel`=63 WHERE `id`=15366;
 -- Watchkeeper Gargolmar - Mortal Wound should stack to 50/100%
 UPDATE `spell_template` SET `StackAmount`=10 WHERE `id` IN(30641,36814);
 
+-- Battle Shout used from various trash npcs
+UPDATE `spell_template` SET `StackAmount`=1 WHERE `id` = 31403;
+
 -- Warlock Ritual of Summoning
 -- 5 yd summoning radius
 UPDATE `spell_template` SET `EffectRadiusIndex1`=8 WHERE `id`=698;

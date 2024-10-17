@@ -160,6 +160,7 @@ World::~World()
     MMAP::MMapFactory::clear();
 
     m_lfgQueueThread.join();
+    m_bgQueueThread.join();
 }
 
 /// Cleanups before world stop
@@ -924,6 +925,8 @@ void World::SetInitialWorldSettings()
     ///- Remove the bones (they should not exist in DB though) and old corpses after a restart
     CharacterDatabase.PExecute("DELETE FROM corpse WHERE corpse_type = '0' OR time < (" _UNIXTIME_ "-'%u')", 3 * DAY);
 
+    m_bgQueue.SetNextRatingDiscardUpdate(std::chrono::milliseconds(sWorld.getConfig(CONFIG_UINT32_ARENA_RATING_DISCARD_TIMER)));
+
     /// load spell_dbc first! dbc's need them
     sLog.outString("Loading spell_template...");
     sObjectMgr.LoadSpellTemplate();
@@ -1416,7 +1419,7 @@ void World::SetInitialWorldSettings()
     ///- Initialize Battlegrounds
     sLog.outString("Starting BattleGround System");
     sBattleGroundMgr.CreateInitialBattleGrounds();
-    sBattleGroundMgr.InitAutomaticArenaPointDistribution();
+    m_bgQueue.InitAutomaticArenaPointDistribution();
     CheckLootTemplates_Reference(ids_set);
 
     sLog.outString("Deleting expired bans...");
@@ -2889,5 +2892,13 @@ void World::StartLFGQueueThread()
     m_lfgQueueThread = std::thread([&]()
     {
         m_lfgQueue.Update();
+    });
+}
+
+void World::StartBGQueueThread()
+{
+    m_bgQueueThread = std::thread([&]()
+    {
+        m_bgQueue.Update();
     });
 }

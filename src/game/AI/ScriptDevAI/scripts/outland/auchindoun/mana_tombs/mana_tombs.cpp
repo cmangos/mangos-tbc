@@ -45,6 +45,6 @@ void AddSC_instance_mana_tombs()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "instance_mana_tombs";
-    pNewScript->GetInstanceData = &GetNewInstanceScript<instance_mana_tomb>;
+    pNewScript->GetInstanceData = &GetNewInstanceScript<instance_mana_tombs>;
     pNewScript->RegisterSelf();
 }

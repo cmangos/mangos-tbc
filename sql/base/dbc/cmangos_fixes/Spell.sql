@@ -132,7 +132,7 @@ UPDATE `spell_template` SET `MaxTargetLevel`=63 WHERE `id`=15366;
 UPDATE `spell_template` SET `StackAmount`=10 WHERE `id` IN(30641,36814);
 
 -- Battle Shout used from various trash npcs
-UPDATE `spell_template` SET `StackAmount`=1 WHERE `id` = 31403;
+UPDATE `spell_template` SET `AttributesEx`= 2048 WHERE `id` = 31403;
 
 -- Warlock Ritual of Summoning
 -- 5 yd summoning radius

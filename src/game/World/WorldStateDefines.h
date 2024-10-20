@@ -356,6 +356,14 @@ enum WorldStateID : int32
     WORLD_STATE_PROTEAN_HORROR     = 5520001,               // Prevents that Protean Horrors respawn
     WORLD_STATE_PROTEAN_NIGHTMARE  = 5520002,               // Prevents that Protean Nightmare respawn
 
+    // Mana Tombs
+    WORLD_STATE_MANA_TOMBS_GROUP_18 = 5570001,              // 2 Possible group versions
+    WORLD_STATE_MANA_TOMBS_GROUP_20 = 5570002,              // 2 Possible group versions
+    WORLD_STATE_MANA_TOMBS_GROUP_27 = 5570003,              // 2 Possible group versions
+    WORLD_STATE_MANA_TOMBS_GROUP_32 = 5570004,              // 2 Possible group versions
+    WORLD_STATE_MANA_TOMBS_GROUP_34 = 5570005,              // 2 Possible group versions
+    WORLD_STATE_MANA_TOMBS_GROUP_35 = 5570006,              // 2 Possible group versions
+
     // Wotlk
 };
 

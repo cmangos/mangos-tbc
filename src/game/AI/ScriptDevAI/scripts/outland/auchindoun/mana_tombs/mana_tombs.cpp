@@ -41,15 +41,10 @@ void instance_mana_tombs::Initialize()
 }
 
 
-InstanceData* GetInstanceData_instance_mana_tombs(Map* pMap)
-{
-    return new instance_mana_tombs(pMap);
-}
-
 void AddSC_instance_mana_tombs()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "instance_mana_tombs";
-    pNewScript->GetInstanceData = &GetInstanceData_instance_mana_tombs;
+    pNewScript->GetInstanceData = &GetNewInstanceScript<instance_mana_tomb>;
     pNewScript->RegisterSelf();
 }

@@ -90,6 +90,8 @@ void HomeMovementGenerator<Creature>::Finalize(Creature& owner)
     owner.GetCombatManager().SetEvadeState(EVADE_NONE);
     if (arrived)
     {
+        bool wasInWorld = owner.IsInWorld();
+
         if (owner.GetTemporaryFactionFlags() & TEMPFACTION_RESTORE_REACH_HOME)
             owner.ClearTemporaryFaction();
 
@@ -104,7 +106,12 @@ void HomeMovementGenerator<Creature>::Finalize(Creature& owner)
         }
 
         if (!wasActive)
+        {
             owner.SetActiveObjectState(false);
+
+            if (wasInWorld && !owner.IsInWorld()) //Make sure the owner is removed from active or we end up with a dangling pointer.
+                owner.GetMap()->RemoveFromActive(&owner);
+        }
 
         owner.SetCombatStartPosition(Position());
     }

@@ -106,9 +106,7 @@ void LFGQueue::StopLookingForMore(ObjectGuid playerGuid)
 
     sWorld.GetMessager().AddMessage([playerGuid](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-        if (player)
+        if (Player* player = sObjectMgr.GetPlayer(playerGuid))
             player->GetSession()->m_lfgInfo.queued = false;
     });
 }
@@ -121,8 +119,7 @@ void LFGQueue::StartLookingForGroup(LFGPlayerQueueInfo info, ObjectGuid invokerP
         sWorld.GetMessager().AddMessage([leaderGuid = info.leaderGuid, invokerPlayer](World* world)
         {
             Player* player = sObjectMgr.GetPlayer(invokerPlayer);
-
-            if (leaderGuid != invokerPlayer)
+            if (leaderGuid != invokerPlayer && player)
             {
                 WorldPacket data(SMSG_LFG_LEADER_IS_LFM);
                 player->GetSession()->SendPacket(data);
@@ -137,9 +134,7 @@ void LFGQueue::StartLookingForGroup(LFGPlayerQueueInfo info, ObjectGuid invokerP
 
     sWorld.GetMessager().AddMessage([invokerPlayer](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(invokerPlayer);
-
-        if (player)
+        if (Player* player = sObjectMgr.GetPlayer(invokerPlayer))
             player->GetSession()->m_lfgInfo.queued = true;
     });
 
@@ -163,9 +158,7 @@ void LFGQueue::StopLookingForGroup(ObjectGuid leaderGuid, ObjectGuid playerGuid)
 
     sWorld.GetMessager().AddMessage([playerGuid](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-        if (player)
+        if (Player* player = sObjectMgr.GetPlayer(playerGuid))
             player->GetSession()->m_lfgInfo.queued = false;
     });
 }
@@ -198,9 +191,7 @@ void LFGQueue::SetLfgSlot(ObjectGuid leaderGuid, uint32 slot, uint16 entry, uint
     {
         sWorld.GetMessager().AddMessage([leaderGuid](World* world)
         {
-            Player* player = sObjectMgr.GetPlayer(leaderGuid);
-
-            if (player)
+            if (Player* player = sObjectMgr.GetPlayer(leaderGuid))
                 player->GetSession()->m_lfgInfo.queued = false;
         });
     }
@@ -225,9 +216,7 @@ void LFGQueue::SetLfmData(ObjectGuid leaderGuid, uint16 entry, uint16 type)
     {
         sWorld.GetMessager().AddMessage([leaderGuid](World* world)
         {
-            Player* player = sObjectMgr.GetPlayer(leaderGuid);
-
-            if (player)
+            if (Player* player = sObjectMgr.GetPlayer(leaderGuid))
                 player->GetSession()->m_lfgInfo.queued = false;
         });
     }
@@ -263,9 +252,8 @@ void LFGQueue::TryJoin(ObjectGuid playerGuid, bool initial)
     {
         sWorld.GetMessager().AddMessage([playerGuid](World* world)
         {
-            Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-            player->GetSession()->SendMeetingStoneInProgress();
+            if (Player* player = sObjectMgr.GetPlayer(playerGuid))
+                player->GetSession()->SendMeetingStoneInProgress();
         });
     }
 }
@@ -301,9 +289,8 @@ void LFGQueue::TryFill(ObjectGuid leaderGuid, bool initial)
     {
         sWorld.GetMessager().AddMessage([leaderGuid](World* world)
         {
-            Player* player = sObjectMgr.GetPlayer(leaderGuid);
-
-            player->GetSession()->SendMeetingStoneInProgress();
+            if (Player* player = sObjectMgr.GetPlayer(leaderGuid))
+                player->GetSession()->SendMeetingStoneInProgress();
         });
     }
 }
@@ -324,7 +311,7 @@ bool LFGQueue::AddMember(LFGPlayerQueueInfo& info, LFGPlayerQueueInfo& playerInf
     {
         Player* player = sObjectMgr.GetPlayer(playerGuid);
         Player* leader = sObjectMgr.GetPlayer(leaderGuid);
-        Group* grp = leader->GetGroup();
+        Group* grp = leader ? leader->GetGroup() : nullptr;
 
         if (grp && grp->IsFull())
         {
@@ -360,6 +347,20 @@ void LFGQueue::HandlePendingJoin(ObjectGuid playerGuid, bool accept)
     {
         Player* player = sObjectMgr.GetPlayer(playerGuid);
         Player* leader = sObjectMgr.GetPlayer(leaderGuid);
+        if (!leader)
+        {
+            auto playerString = playerGuid.GetString(); auto leaderString = leaderGuid.GetString();
+            sLog.outError("LFGQueue::HandlePendingJoin failed for guids %s %s due to offline leader", playerString.c_str(), leaderString.c_str());
+            return;
+        }
+
+        if (!player)
+        {
+            auto playerString = playerGuid.GetString(); auto leaderString = leaderGuid.GetString();
+            sLog.outError("LFGQueue::HandlePendingJoin failed for guids %s %s due to offline player", playerString.c_str(), leaderString.c_str());
+            return;
+        }
+
         Group* grp = leader->GetGroup();
 
         Group* group = player->GetGroup();
@@ -370,7 +371,7 @@ void LFGQueue::HandlePendingJoin(ObjectGuid playerGuid, bool accept)
         if (!grp)
         {
             grp = new Group();
-            if (!grp->Create(leader->GetObjectGuid(), leader->GetName()))
+            if (!grp->Create(leaderGuid, leader->GetName()))
             {
                 delete grp;
                 grp = nullptr;
@@ -475,9 +476,7 @@ void LFGQueue::PendingJoinSuccess(ObjectGuid leaderGuid, ObjectGuid playerGuid, 
     {
         sWorld.GetMessager().AddMessage([playerGuid](World* world)
         {
-            Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-            if (player)
+            if (Player* player = sObjectMgr.GetPlayer(playerGuid))
                 player->GetSession()->m_lfgInfo.queued = false;
         });
     }
@@ -509,9 +508,7 @@ void LFGQueue::SendLFGUpdate(ObjectGuid leaderGuid, ObjectGuid playerGuid) const
 
     sWorld.GetMessager().AddMessage([playerGuid, response](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-        if (player)
+        if (Player* player = sObjectMgr.GetPlayer(playerGuid))
             player->GetSession()->SendPacket(response);
     });
 }
@@ -531,9 +528,8 @@ void LFGQueue::SendLFGUpdateLFG(ObjectGuid playerGuid) const
 
     sWorld.GetMessager().AddMessage([playerGuid, response](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-        player->GetSession()->SendPacket(response);
+        if (Player* player = sObjectMgr.GetPlayer(playerGuid))
+            player->GetSession()->SendPacket(response);
     });
 }
 
@@ -556,9 +552,8 @@ void LFGQueue::SendLFGUpdateLFM(ObjectGuid playerGuid) const
 
     sWorld.GetMessager().AddMessage([playerGuid, response](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-        player->GetSession()->SendPacket(response);
+        if (Player* player = sObjectMgr.GetPlayer(playerGuid))
+            player->GetSession()->SendPacket(response);
     });
 }
 
@@ -638,9 +633,8 @@ void LFGQueue::SendLFGListQueryResponse(ObjectGuid playerGuid, Team playerTeam, 
 
     sWorld.GetMessager().AddMessage([playerGuid, response](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(playerGuid);
-
-        player->GetSession()->SendPacket(response);
+        if (Player* player = sObjectMgr.GetPlayer(playerGuid))
+            player->GetSession()->SendPacket(response);
     });
 }
 
@@ -687,19 +681,22 @@ bool LFGQueue::GroupUpdateQueueStatus(ObjectGuid playerGuid, ObjectGuid leaderGu
 
     sWorld.GetMessager().AddMessage([leaderGuid, data, message, lfm, members](World* world)
     {
-        Player* player = sObjectMgr.GetPlayer(leaderGuid);
-
-        player->GetSession()->SendPacket(data);
-
-        if (lfm)
-            player->GetSession()->SendPacket(message);
-
-        for (auto& member : members) // TODO: Ignore players in bg here?
+        if (Player* player = sObjectMgr.GetPlayer(leaderGuid))
         {
             player->GetSession()->SendPacket(data);
-
             if (lfm)
                 player->GetSession()->SendPacket(message);
+        }
+
+        for (auto& memberGuid : members) // TODO: Ignore players in bg here?
+        {
+            if (Player* member = sObjectMgr.GetPlayer(memberGuid))
+            {
+                member->GetSession()->SendPacket(data);
+
+                if (lfm)
+                    member->GetSession()->SendPacket(message);
+            }
         }
     });
     return true;

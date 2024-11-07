@@ -900,6 +900,11 @@ class Creature : public Unit
         ObjectGuid GetKillerGuid() const { return m_killer; }
         void SetKillerGuid(ObjectGuid guid) { m_killer = guid; }
 
+        CreatureInfo const* GetMountInfo() const override{ return m_mountInfo; }
+        void SetMountInfo(CreatureInfo const* info) override;
+
+        void SetModelRunSpeed(float runSpeed) override { m_modelRunSpeed = runSpeed; }
+
     protected:
         bool CreateFromProto(uint32 dbGuid, uint32 guidlow, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
         bool InitEntry(uint32 Entry, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);
@@ -980,6 +985,9 @@ class Creature : public Unit
     private:
         GridReference<Creature> m_gridRef;
         CreatureInfo const* m_creatureInfo;                 // in heroic mode can different from sObjectMgr::GetCreatureTemplate(GetEntry())
+
+        CreatureInfo const* m_mountInfo;
+        float m_modelRunSpeed;
 };
 
 class ForcedDespawnDelayEvent : public BasicEvent

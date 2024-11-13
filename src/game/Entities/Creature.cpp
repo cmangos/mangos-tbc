@@ -2152,7 +2152,7 @@ bool Creature::IsVisibleInGridForPlayer(Player* pl) const
     return false;
 }
 
-void Creature::CallAssistance(Unit* enemy)
+void Creature::CallAssistance()
 {
     CallAssistance(GetVictim());
 }
@@ -2187,11 +2187,6 @@ void Creature::CallForHelp(float radius)
     MaNGOS::CallOfHelpCreatureInRangeDo u_do(this, GetVictim(), radius);
     MaNGOS::CreatureWorker<MaNGOS::CallOfHelpCreatureInRangeDo> worker(this, u_do);
     Cell::VisitGridObjects(this, worker, radius);
-}
-
-void Creature::CallAssistance()
-{
-    CallAssistance(GetVictim());
 }
 
 /// if enemy provided, check for initial combat help against enemy

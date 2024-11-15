@@ -642,7 +642,7 @@ void WorldSession::HandleBattlefieldStatusOpcode(WorldPacket& /*recv_data*/)
             }
             else
             {
-                uint32 avgTime = queueItem.GetAverageQueueWaitTime(&queueInfo, sBattleGroundMgr.GetBattleGroundBracketIdFromLevel(queueInfo.bgTypeId, playerLevel));
+                uint32 avgTime = queueItem.GetAverageQueueWaitTime(&queueInfo, queueInfo.bgBracketId);
                 // send status in BattleGround Queue
                 sBattleGroundMgr.BuildBattleGroundStatusPacket(data, true, queueInfo.bgTypeId, queueInfo.clientInstanceId, queueInfo.isRated, queueInfo.mapId, queueSlot, STATUS_WAIT_QUEUE, avgTime, WorldTimer::getMSTimeDiff(queueInfo.joinTime, WorldTimer::getMSTime()), queueInfo.arenaType, TEAM_NONE);
             }
@@ -919,7 +919,7 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
                 }
             });
         }
-        queue->ScheduleQueueUpdate(arenaRating, arenatype, bgQueueTypeId, bgTypeId, sBattleGroundMgr.GetBattleGroundBracketIdFromLevel(bgTypeId, bgBracketId));
+        queue->ScheduleQueueUpdate(arenaRating, arenatype, bgQueueTypeId, bgTypeId, bgBracketId);
     });    
 }
 

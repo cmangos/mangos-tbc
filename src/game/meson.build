@@ -40,6 +40,7 @@ game_sources = [
   'BattleGround/BattleGroundNA.cpp',
   'BattleGround/BattleGroundAA.cpp',
   'BattleGround/BattleGroundBE.cpp',
+  'BattleGround/BattleGroundQueue.cpp',
   'Entities/SkillHandler.cpp',
   'Entities/MiscHandler.cpp',
   'Entities/QueryHandler.cpp',
@@ -540,6 +541,7 @@ scriptdev_sources = [
   'AI/ScriptDevAI/scripts/outland/auchindoun/shadow_labyrinth/boss_blackheart_the_inciter.cpp',
   'AI/ScriptDevAI/scripts/outland/auchindoun/mana_tombs/boss_yor.cpp',
   'AI/ScriptDevAI/scripts/outland/auchindoun/mana_tombs/mana_tombsScripts.cpp',
+  'AI/ScriptDevAI/scripts/outland/auchindoun/mana_tombs/mana_tombs.cpp',
   'AI/ScriptDevAI/scripts/outland/auchindoun/mana_tombs/boss_nexusprince_shaffar.cpp',
   'AI/ScriptDevAI/scripts/outland/auchindoun/mana_tombs/boss_pandemonius.cpp',
   'AI/ScriptDevAI/scripts/outland/auchindoun/sethekk_halls/boss_anzu.cpp',
@@ -633,7 +635,7 @@ endif
 if not get_option('PCH')
   pch_files = []
 else
-  pch_files = ['../game/pchdef.h', '../game/pchdef.cpp']
+  pch_files = ['../game/pchdef.h']
 endif
 
 game_args = ['-DDT_POLYREF64', '-D__ASSERT_MACROS_DEFINE_VERSIONS_WITHOUT_UNDERSCORES=0']

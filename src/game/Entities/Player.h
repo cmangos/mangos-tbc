@@ -41,6 +41,7 @@
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 #include "Cinematics/CinematicMgr.h"
+#include "BattleGround/BattleGroundDefines.h"
 
 #include <functional>
 #include <vector>
@@ -307,61 +308,6 @@ struct EnchantDuration
 typedef std::list<EnchantDuration> EnchantDurationList;
 typedef std::list<Item*> ItemDurationList;
 
-#define MAX_LOOKING_FOR_GROUP_SLOT 3
-
-struct LookingForGroupInfo
-{
-    struct Slot
-    {
-        bool empty() const { return (!type || !entry); }
-        void clear() { entry = 0; }
-        bool set(uint16 _entry, uint16 _type) { entry = _entry; type = _type; return !empty(); }
-        bool is(uint16 _entry, uint16 _type) const { return entry == _entry && type == _type; }
-        bool isAuto() const { return entry && (type == LFG_TYPE_DUNGEON || type == LFG_TYPE_HEROIC_DUNGEON); }
-
-        uint16 entry = 0;
-        uint16 type = LFG_TYPE_DUNGEON;
-    };
-
-    inline void clear()
-    {
-        more.clear();
-        for (auto& slot : group)
-            slot.clear();
-    }
-    inline bool isAutoFill() const { return more.isAuto(); }
-    inline bool isAutoJoin() const
-    {
-        for (auto& slot : group)
-            if (slot.isAuto())
-                return true;
-        return false;
-    }
-    inline bool isEmpty() const { return (!isLFM() && !isLFG()); }
-    inline bool isLFG() const
-    {
-        for (auto& slot : group)
-            if (!slot.empty())
-                return true;
-        return false;
-    }
-    inline bool isLFG(uint32 entry, uint32 type, bool autoOnly) const
-    {
-        for (auto& slot : group)
-            if (slot.is(uint16(entry), uint16(type)) && (!autoOnly || slot.isAuto()))
-                return true;
-        return false;
-    }
-    inline bool isLFG(LookingForGroupInfo const& info, bool autoOnly) const { return isLFG(uint16(info.more.entry), uint16(info.more.type), autoOnly); }
-    inline bool isLFM() const { return !more.empty(); }
-    inline bool isLFM(uint32 entry, uint32 type) const { return more.is(uint16(entry), uint16(type)); }
-
-    // bool queued = false;
-    Slot group[MAX_LOOKING_FOR_GROUP_SLOT];
-    Slot more;
-    std::string comment;
-};
-
 enum RaidGroupError
 {
     ERR_RAID_GROUP_NONE                 = 0,
@@ -520,6 +466,9 @@ enum PlayerExtraFlags
     // other states
     PLAYER_EXTRA_PVP_DEATH          = 0x0100,                // store PvP death status until corpse creating.
     PLAYER_EXTRA_WHISP_RESTRICTION  = 0x0200,
+
+    // death prevention
+    PLAYER_EXTRA_GM_UNKILLABLE         = 0x0400,
 };
 
 // 2^n values
@@ -1403,7 +1352,7 @@ class Player : public Unit
         void SendQuestTimerFailed(uint32 quest_id) const;
         void SendCanTakeQuestResponse(uint32 msg) const;
         void SendQuestConfirmAccept(Quest const* pQuest, Player* pReceiver) const;
-        void SendPushToPartyResponse(Player* pPlayer, uint32 msg) const;
+        void SendPushToPartyResponse(Player* pPlayer, QuestShareMessages msg) const;
         void SendQuestUpdateAddItem(Quest const* pQuest, uint32 item_idx, uint32 current, uint32 count);
         void SendQuestUpdateAddCreatureOrGo(Quest const* pQuest, ObjectGuid guid, uint32 creatureOrGO_idx, uint32 count);
         void SendQuestGiverStatusMultiple() const;
@@ -1694,15 +1643,10 @@ class Player : public Unit
         bool UpdateGatherSkill(uint32 SkillId, uint32 SkillValue, uint32 RedLevel, uint32 Multiplicator = 1);
         bool UpdateFishingSkill();
 
-        float GetHealthBonusFromStamina() const;
-        float GetManaBonusFromIntellect() const;
-
         bool UpdateStats(Stats stat) override;
         bool UpdateAllStats() override;
         void UpdateResistances(uint32 school) override;
         void UpdateArmor() override;
-        void UpdateMaxHealth() override;
-        void UpdateMaxPower(Powers power) override;
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
         void UpdateShieldBlockValue();
         void UpdateDamagePhysical(WeaponAttackType attType) override;
@@ -1973,10 +1917,6 @@ class Player : public Unit
         BattleGroundTypeId GetBattleGroundTypeId() const { return m_bgData.bgTypeID; }
         BattleGround* GetBattleGround() const;
 
-        static uint32 GetMinLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id, BattleGroundTypeId bgTypeId);
-        static uint32 GetMaxLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id, BattleGroundTypeId bgTypeId);
-        BattleGroundBracketId GetBattleGroundBracketIdFromLevel(BattleGroundTypeId bgTypeId) const;
-
         bool InBattleGroundQueue() const
         {
             for (auto i : m_bgBattleGroundQueueID)
@@ -2189,8 +2129,6 @@ class Player : public Unit
         void RemoveAtLoginFlag(AtLoginFlags f, bool in_db_also = false);
         static bool ValidateAppearance(uint8 race, uint8 class_, uint8 gender, uint8 hairID, uint8 hairColor, uint8 faceID, uint8 facialHair, uint8 skinColor, bool create = false);
 
-        LookingForGroupInfo m_lookingForGroup;
-
         // Temporarily removed pet cache
         uint32 GetTemporaryUnsummonedPetNumber() const { return m_temporaryUnsummonedPetNumber; }
         void SetTemporaryUnsummonedPetNumber(uint32 petnumber) { m_temporaryUnsummonedPetNumber = petnumber; }
@@ -2293,6 +2231,9 @@ class Player : public Unit
         virtual CombatData const* GetCombatData() const override { if (m_charmInfo && m_charmInfo->GetCombatData()) return m_charmInfo->GetCombatData(); return m_combatData; }
 
         void SendLootError(ObjectGuid guid, LootError error) const;
+
+        void SetDeathPrevention(bool enable);
+        bool IsPreventingDeath() const override;
 
         // cooldown system
         virtual void AddGCD(SpellEntry const& spellEntry, uint32 forcedDuration = 0, bool updateClient = false) override;

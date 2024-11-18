@@ -4217,16 +4217,9 @@ void Player::DeleteFromDB(ObjectGuid playerguid, uint32 accountId, bool updateRe
 
     // remove from guild
     if (uint32 guildId = GetGuildIdFromDB(playerguid))
-    {
         if (Guild* guild = sGuildMgr.GetGuildById(guildId))
-        {
             if (guild->DelMember(playerguid))
-            {
                 guild->Disband();
-                delete guild;
-            }
-        }
-    }
 
     // remove from arena teams
     LeaveAllArenaTeams(playerguid);
@@ -4741,6 +4734,15 @@ void Player::DurabilityLossAll(double percent, bool inventory)
 
 void Player::DurabilityLoss(Item* item, double percent)
 {
+#ifdef ENABLE_PLAYERBOTS
+    PlayerbotAI* bot = GetPlayerbotAI();
+    if (bot)
+    {
+        bot->DurabilityLoss(item, percent);
+        return;
+    }
+#endif
+
     if (!item)
         return;
 
@@ -6592,15 +6594,25 @@ int32 Player::CalculateReputationGain(ReputationSource source, int32 rep, int32 
 
     uint32 currentLevel = GetLevel();
 
-    if (MaNGOS::XP::IsTrivialLevelDifference(currentLevel, creatureOrQuestLevel))
-        percent *= minRate;
-    else
+    // Level zero seems to be treated as always equal to players current level in IsTrivialLevelDifference therefore I have skipped level difference penalty computations for that value
+    if (creatureOrQuestLevel > 0)
     {
-        // Pre-3.0.8: Declines with 20% for each level if 6 levels or more below the player down to a minimum (default: 20%)
-        const uint32 treshold = (creatureOrQuestLevel + 5);
+        if (source == REPUTATION_SOURCE_KILL)
+        {
+            if (MaNGOS::XP::IsTrivialLevelDifference(currentLevel, creatureOrQuestLevel))
+            {
+                const uint32 greenRange = MaNGOS::XP::GetQuestGreenRange(currentLevel);
+                percent *= std::max(minRate, (1.0f - (0.2f * (currentLevel - greenRange - creatureOrQuestLevel))));
+            }
+        }
+        else if (source == REPUTATION_SOURCE_QUEST)
+        {
+            // Pre-3.0.8: Declines with 20% for each level if 6 levels or more below the player down to a minimum (default: 20%)
+            const uint32 treshold = (creatureOrQuestLevel + 5);
 
-        if (currentLevel > treshold)
-            percent *= std::max(minRate, (1.0f - (0.2f * (currentLevel - treshold))));
+            if (currentLevel > treshold)
+                percent *= std::max(minRate, (1.0f - (0.2f * (currentLevel - treshold))));
+        }
     }
 
     if (percent <= 0.0f)
@@ -12204,7 +12216,6 @@ void Player::SendNewItem(Item* item, uint32 count, bool received, bool created, 
     if (!item)                                              // prevent crash
         return;
 
-    // last check 2.0.10
     WorldPacket data(SMSG_ITEM_PUSH_RESULT, (8 + 4 + 4 + 4 + 1 + 4 + 4 + 4 + 4 + 4));
     data << GetObjectGuid();                                // player GUID
     data << uint32(received);                               // 0=looted, 1=from npc
@@ -12831,7 +12842,8 @@ void Player::SendPreparedQuest(ObjectGuid guid) const
     else
         type = QUESTGIVER_GAMEOBJECT;
 
-    if (QuestgiverGreeting const* data = sObjectMgr.GetQuestgiverGreetingData(guid.GetEntry(), type))
+    QuestgiverGreeting const* data = sObjectMgr.GetQuestgiverGreetingData(guid.GetEntry(), type);
+    if (data && (questMenu.MenuItemCount() > 1 || sWorld.getConfig(CONFIG_BOOL_ALWAYS_SHOW_QUEST_GREETING)))
     {
         QEmote qe;
         qe._Delay = data->emoteDelay;
@@ -14768,7 +14780,7 @@ void Player::SendQuestConfirmAccept(const Quest* pQuest, Player* pReceiver) cons
     }
 }
 
-void Player::SendPushToPartyResponse(Player* pPlayer, uint32 msg) const
+void Player::SendPushToPartyResponse(Player* pPlayer, QuestShareMessages msg) const
 {
     if (pPlayer)
     {
@@ -15173,8 +15185,6 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
 
     _LoadBGData(holder->GetResult(PLAYER_LOGIN_QUERY_LOADBGDATA));
 
-    
-
     if (m_bgData.bgInstanceID)                              // saved in BattleGround
     {
         BattleGround* currentBg = sBattleGroundMgr.GetBattleGround(m_bgData.bgInstanceID, BATTLEGROUND_TYPE_NONE);
@@ -15263,7 +15273,10 @@ bool Player::LoadFromDB(ObjectGuid guid, SqlQueryHolder* holder)
         {
             GameObjectInfo const* transportInfo = sGOStorage.LookupEntry<GameObjectInfo>(data->id);
             if (transportInfo->type == GAMEOBJECT_TYPE_TRANSPORT)
+            {
                 guid = ObjectGuid(HIGHGUID_GAMEOBJECT, data->id, transGUID);
+                m_movementInfo.t_guid = guid;
+            }
         }
         GenericTransport* transport = GetMap()->GetTransport(guid);
         Map* map = GetMap();
@@ -19624,6 +19637,12 @@ void Player::SendInitialPacketsAfterAddToMap()
 
     SendExtraAuraDurationsOnLogin(true);
     SendExtraAuraDurationsOnLogin(false);
+
+    if (!sWorld.getConfig(CONFIG_BOOL_LFG_ENABLED))
+    {
+        WorldPacket data(SMSG_LFG_DISABLED);
+        GetSession()->SendPacket(data);
+    }
 }
 
 void Player::SendUpdateToOutOfRangeGroupMembers()
@@ -20004,7 +20023,7 @@ BattleGround* Player::GetBattleGround() const
     if (GetBattleGroundId() == 0)
         return nullptr;
 
-    return sBattleGroundMgr.GetBattleGround(GetBattleGroundId(), m_bgData.bgTypeID);
+    return GetMap()->GetBG();
 }
 
 bool Player::InArena() const
@@ -20024,43 +20043,6 @@ bool Player::GetBGAccessByLevel(BattleGroundTypeId bgTypeId) const
         return false;
 
     return true;
-}
-
-uint32 Player::GetMinLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id, BattleGroundTypeId bgTypeId)
-{
-    if (bracket_id < 1)
-        return 0;
-
-    if (bracket_id > BG_BRACKET_ID_LAST)
-        bracket_id = BG_BRACKET_ID_LAST;
-
-    BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
-    assert(bg);
-    return 10 * bracket_id + bg->GetMinLevel();
-}
-
-uint32 Player::GetMaxLevelForBattleGroundBracketId(BattleGroundBracketId bracket_id, BattleGroundTypeId bgTypeId)
-{
-    if (bracket_id >= BG_BRACKET_ID_LAST)
-        return 255;                                         // hardcoded max level
-
-    // for example EOTS - min level 61 but max level for bracket 69
-    return (GetMinLevelForBattleGroundBracketId(bracket_id, bgTypeId) / 10 * 10) + 9;
-}
-
-BattleGroundBracketId Player::GetBattleGroundBracketIdFromLevel(BattleGroundTypeId bgTypeId) const
-{
-    BattleGround* bg = sBattleGroundMgr.GetBattleGroundTemplate(bgTypeId);
-    assert(bg);
-    if (GetLevel() < bg->GetMinLevel())
-        return BG_BRACKET_ID_FIRST;
-
-    // for example EOTS - min level 61 but max level for bracket 69
-    uint32 bracket_id = (GetLevel() - (bg->GetMinLevel() / 10 * 10)) / 10;
-    if (bracket_id > MAX_BATTLEGROUND_BRACKETS)
-        return BG_BRACKET_ID_LAST;
-
-    return BattleGroundBracketId(bracket_id);
 }
 
 float Player::GetReputationPriceDiscount(Creature const* creature) const
@@ -21098,7 +21080,7 @@ void Player::learnClassLevelSpells(bool includeHighLevelQuestRewards)
     ObjectMgr::QuestMap const& qTemplates = sObjectMgr.GetQuestTemplates();
     for (const auto& qTemplate : qTemplates)
     {
-        Quest const* quest = qTemplate.second;
+        Quest const* quest = qTemplate.second.get();
         if (!quest)
             continue;
 
@@ -21954,6 +21936,19 @@ void Player::SendLootError(ObjectGuid guid, LootError error) const
     data << uint8(0);
     data << uint8(error);
     SendDirectMessage(data);
+}
+
+void Player::SetDeathPrevention(bool enable)
+{
+    if (enable)
+        m_ExtraFlags |= PLAYER_EXTRA_GM_UNKILLABLE;
+    else
+        m_ExtraFlags &= ~PLAYER_EXTRA_GM_UNKILLABLE;
+}
+
+bool Player::IsPreventingDeath() const
+{
+    return m_ExtraFlags & PLAYER_EXTRA_GM_UNKILLABLE;
 }
 
 void Player::AddGCD(SpellEntry const& spellEntry, uint32 /*forcedDuration = 0*/, bool updateClient /*= false*/)

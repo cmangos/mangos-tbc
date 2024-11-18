@@ -1376,6 +1376,7 @@ class Unit : public WorldObject
         void SetPower(Powers power, uint32 val);
         void SetMaxPower(Powers power, uint32 val);
         int32 ModifyPower(Powers power, int32 dVal);
+        [[deprecated("Use ModifyPower()")]]
         void ApplyPowerMod(Powers power, uint32 val, bool apply);
         void ApplyMaxPowerMod(Powers power, uint32 val, bool apply);
         bool HasMana() { return GetPowerType() == POWER_MANA; }
@@ -1478,6 +1479,8 @@ class Unit : public WorldObject
 
         bool IsMounted() const { return HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT); } // not used with creature non-aura mounts
         uint32 GetMountID() const { return GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID); }
+        bool MountEntry(uint32 templateEntry, const Aura* aura = nullptr);
+        bool UnmountEntry(const Aura* aura = nullptr);
         virtual bool Mount(uint32 displayid, const Aura* aura = nullptr);
         virtual bool Unmount(const Aura* aura = nullptr);
 
@@ -1527,7 +1530,7 @@ class Unit : public WorldObject
         // Unit Melee events API: Crush/Glance/Daze
         bool CanCrush() const;
         bool CanGlance() const;
-        bool CanDaze() const;
+        virtual bool CanDaze() const { return false; };
 
         void SetCanDodge(const bool flag);
         void SetCanParry(const bool flag);
@@ -1818,6 +1821,15 @@ class Unit : public WorldObject
         bool IsJumping() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_JUMPING); }
         bool IsFalling() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FALLING); }
 
+        enum class MmapForcingStatus
+        {
+            FORCED,
+            DEFAULT,
+            IGNORED
+        };
+
+        virtual MmapForcingStatus IsIgnoringMMAP() const;
+
         bool IsDebuggingMovement() const { return m_debuggingMovement; }
         void SetDebuggingMovement(bool state) { m_debuggingMovement = state; }
 
@@ -2052,12 +2064,18 @@ class Unit : public WorldObject
         Powers GetPowerTypeByAuraGroup(UnitMods unitMod) const;
         bool CanModifyStats() const { return m_canModifyStats; }
         void SetCanModifyStats(bool modifyStats) { m_canModifyStats = modifyStats; }
+
+        static float GetHealthBonusFromStamina(float stamina);
+        virtual float GetHealthBonusFromStamina() const;
+        static float GetManaBonusFromIntellect(float intellect);
+        float GetManaBonusFromIntellect() const;
+
         virtual bool UpdateStats(Stats stat) = 0;
         virtual bool UpdateAllStats() = 0;
         virtual void UpdateResistances(uint32 school) = 0;
         virtual void UpdateArmor() = 0;
-        virtual void UpdateMaxHealth() = 0;
-        virtual void UpdateMaxPower(Powers power) = 0;
+        virtual void UpdateMaxHealth();
+        virtual void UpdateMaxPower(Powers power);
         virtual void UpdateAttackPowerAndDamage(bool ranged = false) = 0;
         virtual void UpdateDamagePhysical(WeaponAttackType attType) = 0;
         float GetTotalAttackPowerValue(WeaponAttackType attType) const;
@@ -2212,7 +2230,7 @@ class Unit : public WorldObject
             SPELL_PROC_TRIGGER_OK = 2,
         };
 
-        SpellProcEventTriggerCheck IsTriggeredAtSpellProcEvent(ProcExecutionData& data, SpellAuraHolder* holder, SpellProcEventEntry const*& spellProcEvent);
+        SpellProcEventTriggerCheck IsTriggeredAtSpellProcEvent(ProcExecutionData& data, SpellAuraHolder* holder, SpellProcEventEntry const*& spellProcEvent, bool (&canProc)[MAX_EFFECT_INDEX]);
         // only to be used in proc handlers - basepoints is expected to be a MAX_EFFECT_INDEX sized array
         SpellAuraProcResult TriggerProccedSpell(Unit* target, std::array<int32, MAX_EFFECT_INDEX>& basepoints, uint32 triggeredSpellId, Item* castItem, Aura* triggeredByAura, uint32 cooldown, ObjectGuid originalCaster);
         SpellAuraProcResult TriggerProccedSpell(Unit* target, std::array<int32, MAX_EFFECT_INDEX>& basepoints, SpellEntry const* spellInfo, Item* castItem, Aura* triggeredByAura, uint32 cooldown, ObjectGuid originalCaster);
@@ -2335,6 +2353,7 @@ class Unit : public WorldObject
         bool IsFeigningDeathSuccessfully() const { return hasUnitState(UNIT_STAT_FEIGN_DEATH); }
         void SetFeignDeath(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, bool dynamic = true, bool success = true);
         virtual bool IsIgnoringFeignDeath() const { return false; }
+        virtual bool IsIgnoringSanctuary() const { return false; }
 
         virtual bool IsSlowedInCombat() const { return false; }
 
@@ -2489,6 +2508,10 @@ class Unit : public WorldObject
         virtual bool IsNoWeaponSkillGain() const { return false; }
         virtual bool IsPreventingDeath() const { return false; }
 
+        virtual CreatureInfo const* GetMountInfo() const { return nullptr; } // TODO: Meant to be used by players during taxi
+        virtual void SetMountInfo(CreatureInfo const* info) {} // does nothing for base unit
+        virtual void SetModelRunSpeed(float runSpeed) {} // does nothing for base unit
+
     protected:
         bool MeetsSelectAttackingRequirement(Unit* target, SpellEntry const* spellInfo, uint32 selectFlags, SelectAttackingTargetParams params, int32 unitConditionId) const;
 
@@ -2547,6 +2570,21 @@ class Unit : public WorldObject
 
         AuraList m_modAuras[TOTAL_AURAS];
         float m_auraModifiersGroup[UNIT_MOD_END][MODIFIER_TYPE_END];
+
+        enum class AttackPowerMod
+        {
+            MELEE_ATTACK_POWER  = 0,
+            RANGED_ATTACK_POWER = 1,
+            ATTACK_POWER_MOD_MAX
+        };
+
+        enum class AttackPowerModSign
+        {
+            MOD_SIGN_POS,
+            MOD_SIGN_NEG,
+            MOD_SIGN_MAX
+        };
+        float m_attackPowerMod[size_t(AttackPowerMod::ATTACK_POWER_MOD_MAX)][size_t(AttackPowerModSign::MOD_SIGN_MAX)];
 
         WeaponDamageInfo m_weaponDamageInfo;
 

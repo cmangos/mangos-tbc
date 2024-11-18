@@ -370,6 +370,48 @@ struct GoblinBomb : public SpellScript
     }
 };
 
+// 11403 - Dream Vision
+struct DreamVision : public SpellScript
+{
+    void OnSummon(Spell* /*spell*/, Creature* summon) const override
+    {
+        if (summon->GetEntry() != 7863)
+            return;
+
+        summon->SetHover(true);
+        summon->SetWaterWalk(true);
+        summon->SetFeatherFall(true);
+    }
+
+    void OnRadiusCalculate(Spell* /*spell*/, SpellEffectIndex effIdx, bool /*targetB*/, float& radius) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+        radius = 2.f;
+    }
+};
+
+// 26656 - Summon Black Qiraji Battle Tank
+struct SummonBlackQirajiBattleTank : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        if (!unitTarget)
+            return;
+
+        // Prevent stacking of mounts
+        unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
+
+        // Two separate mounts depending on area id (allows use both in and out of specific instance)
+        switch (unitTarget->GetAreaId())
+        {
+            [[unlikely]] case 3428: unitTarget->CastSpell(nullptr, 25863, TRIGGERED_NONE); break;
+            default: unitTarget->CastSpell(nullptr, 26655, TRIGGERED_NONE);
+        }
+    }
+};
+
 void AddSC_item_scripts()
 {
     Script* pNewScript = new Script;
@@ -405,4 +447,6 @@ void AddSC_item_scripts()
     RegisterSpellScript<ArgussianCompass>("spell_argussian_compass");
     RegisterSpellScript<SummonGoblinBomb>("spell_summon_goblin_bomb");
     RegisterSpellScript<GoblinBomb>("spell_goblin_bomb");
+    RegisterSpellScript<DreamVision>("spell_dream_vision");
+    RegisterSpellScript<SummonBlackQirajiBattleTank>("spell_summon_black_qiraji_battle_tank");
 }

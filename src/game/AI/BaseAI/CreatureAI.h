@@ -37,6 +37,7 @@ class CreatureAI : public UnitAI
         virtual void AttackStart(Unit* who) override;
         virtual void DamageTaken(Unit* dealer, uint32& damage, DamageEffectType damageType, SpellEntry const* spellInfo) override;
         virtual void JustPreventedDeath(Unit* /*attacker*/) {}
+        virtual void JustReachedHome() override;
 
         void DoFakeDeath(uint32 spellId = 0);
         void SetDeathPrevention(bool state);
@@ -52,7 +53,7 @@ class CreatureAI : public UnitAI
 
         void AddUnreachabilityCheck(); // use in constructor
 
-        CreatureSpellList const& GetSpellList() const;
+        CreatureSpellList const& GetSpellList() const override;
 
         void TimedFleeingEnded() override;
 

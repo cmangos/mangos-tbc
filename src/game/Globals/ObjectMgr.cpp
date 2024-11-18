@@ -152,9 +152,6 @@ ObjectMgr::ObjectMgr() :
 
 ObjectMgr::~ObjectMgr()
 {
-    for (auto& mQuestTemplate : mQuestTemplates)
-        delete mQuestTemplate.second;
-
     for (auto& i : petInfo)
         delete[] i.second;
 
@@ -547,20 +544,20 @@ void ObjectMgr::LoadCreatureTemplates()
 
         for (int j = 0; j < MAX_CREATURE_MODEL; ++j)
         {
-            if (cInfo->ModelId[j])
+            if (cInfo->DisplayId[j])
             {
-                CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->ModelId[j]);
+                CreatureDisplayInfoEntry const* displayEntry = sCreatureDisplayInfoStore.LookupEntry(cInfo->DisplayId[j]);
                 if (!displayEntry)
                 {
-                    sLog.outErrorDb("Creature (Entry: %u) has nonexistent modelid_%d (%u), can crash client", cInfo->Entry, j + 1, cInfo->ModelId[j]);
-                    const_cast<CreatureInfo*>(cInfo)->ModelId[j] = 0;
+                    sLog.outErrorDb("Creature (Entry: %u) has nonexistent modelid_%d (%u), can crash client", cInfo->Entry, j + 1, cInfo->DisplayId[j]);
+                    const_cast<CreatureInfo*>(cInfo)->DisplayId[j] = 0;
                 }
                 else if (!displayScaleEntry)
                     displayScaleEntry = displayEntry;
 
-                CreatureModelInfo const* minfo = sCreatureModelStorage.LookupEntry<CreatureModelInfo>(cInfo->ModelId[j]);
+                CreatureModelInfo const* minfo = sCreatureModelStorage.LookupEntry<CreatureModelInfo>(cInfo->DisplayId[j]);
                 if (!minfo)
-                    sLog.outErrorDb("Creature (Entry: %u) are using modelid_%d (%u), but creature_model_info are missing for this model.", cInfo->Entry, j + 1, cInfo->ModelId[j]);
+                    sLog.outErrorDb("Creature (Entry: %u) are using modelid_%d (%u), but creature_model_info are missing for this model.", cInfo->Entry, j + 1, cInfo->DisplayId[j]);
             }
         }
 
@@ -848,7 +845,7 @@ void ObjectMgr::LoadCreatureClassLvlStats()
     // initialize data array
     memset(&m_creatureClassLvlStats, 0, sizeof(m_creatureClassLvlStats));
 
-    std::string queryStr = "SELECT Class, Level, BaseMana, BaseMeleeAttackPower, BaseRangedAttackPower, BaseArmor";
+    std::string queryStr = "SELECT Class, Level, BaseMana, BaseMeleeAttackPower, BaseRangedAttackPower, BaseArmor, Strength, Agility, Stamina, Intellect, Spirit";
 
     std::string expData;
     for (int i = 0; i <= MAX_EXPANSION; ++i)
@@ -898,6 +895,11 @@ void ObjectMgr::LoadCreatureClassLvlStats()
         float   baseMeleeAttackPower       = fields[3].GetFloat();
         float   baseRangedAttackPower      = fields[4].GetFloat();
         uint32  baseArmor                  = fields[5].GetUInt32();
+        uint32  strength                   = fields[6].GetUInt32();
+        uint32  agility                    = fields[7].GetUInt32();
+        uint32  stamina                    = fields[8].GetUInt32();
+        uint32  intellect                  = fields[9].GetUInt32();
+        uint32  spirit                     = fields[10].GetUInt32();
 
         for (int i = 0; i <= MAX_EXPANSION; ++i)
         {
@@ -907,9 +909,24 @@ void ObjectMgr::LoadCreatureClassLvlStats()
             cCLS.BaseMeleeAttackPower       = baseMeleeAttackPower;
             cCLS.BaseRangedAttackPower      = baseRangedAttackPower;
             cCLS.BaseArmor                  = baseArmor;
+            cCLS.Strength                   = strength;
+            cCLS.Agility                    = agility;
+            cCLS.Stamina                    = stamina;
+            cCLS.Intellect                  = intellect;
+            cCLS.Spirit                     = spirit;
 
-            cCLS.BaseHealth = fields[6 + (i * 2)].GetUInt32();
-            cCLS.BaseDamage = fields[7 + (i * 2)].GetFloat();
+            cCLS.BaseHealth = fields[11 + (i * 2)].GetUInt32();
+            cCLS.BaseDamage = fields[12 + (i * 2)].GetFloat();
+
+            // should ensure old data does not need change (not wanting to recalculate to avoid losing data)
+            // if any mistake is made, it will be in these formulae that make asumptions about the new calculations
+            // AP, RAP, HP, Mana and armor should stay the same pre-change and post-change when using multipliers == 1
+            // stamina seems to have scaling formula for npcs - so for now does not impact base health
+            // cCLS.BaseHealth -= std::min(cCLS.BaseHealth, std::max(0u, (uint32)Unit::GetHealthBonusFromStamina(cCLS.Stamina)));
+            cCLS.BaseMana -= std::min(cCLS.BaseMana, std::max(0u, (uint32)Unit::GetManaBonusFromIntellect(cCLS.Intellect)));
+            cCLS.BaseMeleeAttackPower -= std::min(cCLS.BaseMeleeAttackPower, std::max(0.f, float(cCLS.Strength >= 10 ? (cCLS.Strength - 10) * 2 : 0)));
+            cCLS.BaseRangedAttackPower -= std::min(cCLS.BaseRangedAttackPower, std::max(0.f, float(cCLS.Agility >= 10 ? (cCLS.Agility - 10) : 0)));
+            cCLS.BaseArmor -= std::min(cCLS.BaseArmor, std::max(0u, cCLS.Agility * 2));
         }
         ++storedRow;
     }
@@ -926,7 +943,7 @@ CreatureClassLvlStats const* ObjectMgr::GetCreatureClassLvlStats(uint32 level, u
 
     CreatureClassLvlStats const* cCLS = &m_creatureClassLvlStats[level][classToIndex[unitClass]][expansion];
 
-    if (cCLS->BaseHealth != 0 && cCLS->BaseDamage > 0.1f)
+    if ((cCLS->BaseHealth != 0 || cCLS->Stamina > 0) && cCLS->BaseDamage > 0.1f)
         return cCLS;
 
     return nullptr;
@@ -4485,9 +4502,6 @@ void ObjectMgr::LoadGroups()
 void ObjectMgr::LoadQuests()
 {
     // For reload case
-    for (QuestMap::const_iterator itr = mQuestTemplates.begin(); itr != mQuestTemplates.end(); ++itr)
-        delete itr->second;
-
     mQuestTemplates.clear();
 
     m_ExclusiveQuestGroups.clear();
@@ -4549,7 +4563,8 @@ void ObjectMgr::LoadQuests()
         Field* fields = queryResult->Fetch();
 
         Quest* newQuest = new Quest(fields);
-        mQuestTemplates[newQuest->GetQuestId()] = newQuest;
+        auto itr = mQuestTemplates.try_emplace(newQuest->GetQuestId(), newQuest).first;
+        newQuest->m_weakRef = itr->second;
     }
     while (queryResult->NextRow());
 
@@ -4559,7 +4574,7 @@ void ObjectMgr::LoadQuests()
 
     for (auto& mQuestTemplate : mQuestTemplates)
     {
-        Quest* qinfo = mQuestTemplate.second;
+        Quest* qinfo = mQuestTemplate.second.get();
 
         // additional quest integrity checks (GO, creature_template and item_template must be loaded already)
 
@@ -5138,7 +5153,7 @@ void ObjectMgr::LoadQuests()
     // Prevent any breadcrumb loops, and inform target quests of their breadcrumbs
     for (auto& mQuestTemplate : mQuestTemplates)
     {
-        Quest* qinfo = mQuestTemplate.second;
+        Quest* qinfo = mQuestTemplate.second.get();
         uint32   qid = qinfo->GetQuestId();
         uint32 breadcrumbForQuestId = qinfo->BreadcrumbForQuestId;
         std::set<uint32> questSet;
@@ -5819,7 +5834,7 @@ void ObjectMgr::LoadConditions()
 
     for (auto& mQuestTemplate : mQuestTemplates) // needs to be checked after loading conditions
     {
-        Quest* qinfo = mQuestTemplate.second;
+        Quest* qinfo = mQuestTemplate.second.get();
 
         if (qinfo->RequiredCondition)
         {

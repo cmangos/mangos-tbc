@@ -1914,6 +1914,12 @@ void SpellMgr::LoadSpellScriptTarget()
         bool targetfound = false;
         for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
+            if (spellProto->Effect[i] == SPELL_EFFECT_PERSISTENT_AREA_AURA) // always scriptable
+            {
+                targetfound = true;
+                break;
+            }
+
             if (spellProto->EffectImplicitTargetA[i] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
                     spellProto->EffectImplicitTargetB[i] == TARGET_UNIT_SCRIPT_NEAR_CASTER ||
                     spellProto->EffectImplicitTargetA[i] == TARGET_LOCATION_SCRIPT_NEAR_CASTER ||
@@ -2467,8 +2473,7 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
             if (!player)
                 return SPELL_FAILED_REQUIRES_AREA;
             BattleGround* bg = player->GetBattleGround();
-            return map_id == 30 && bg
-                   && bg->GetStatus() != STATUS_WAIT_JOIN ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
+            return map_id == 30 && bg && bg->GetStatus() != STATUS_WAIT_JOIN ? SPELL_CAST_OK : SPELL_FAILED_REQUIRES_AREA;
         }
         case 2584:                                          // Waiting to Resurrect
         case 42792:                                         // Recently Dropped Flag

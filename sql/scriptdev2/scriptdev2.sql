@@ -111,6 +111,7 @@ UPDATE gameobject_template SET ScriptName='go_midsummer_music' WHERE entry=18817
 UPDATE gameobject_template SET ScriptName='go_brewfest_music' WHERE entry=186221;
 UPDATE gameobject_template SET ScriptName='go_elemental_rift' WHERE entry IN (179664, 179665, 179666, 179667);
 UPDATE gameobject_template SET ScriptName='go_dragon_head' WHERE entry IN(179556,179558,179881,179882);
+UPDATE gameobject_template SET ScriptName='go_bubbly_fissure' WHERE entry=177524;
 UPDATE gameobject_template SET ScriptName='go_unadorned_spike' WHERE entry IN(175787);
 UPDATE gameobject_template SET ScriptName='go_containment_coffer' WHERE entry=122088;
 UPDATE gameobject_template SET ScriptName='go_large_jack_o_lantern' WHERE entry=186887;
@@ -316,6 +317,7 @@ UPDATE creature_template SET ScriptName='npc_shaheen' WHERE entry=19671;
 UPDATE creature_template SET ScriptName='npc_ethereum_prisoner_dungeon' WHERE entry IN(22927);
 UPDATE gameobject_template SET ScriptName='go_stasis_chamber_mana_tombs' WHERE entry IN(185519);
 UPDATE gameobject_template SET ScriptName='go_stasis_chamber_shaffar' WHERE entry IN(185522);
+UPDATE instance_template SET ScriptName='instance_mana_tombs' WHERE map=557;
 
 /* AUCHENAI CRYPTS */
 UPDATE creature_template SET ScriptName='boss_exarch_maladaar' WHERE entry=18373;
@@ -347,7 +349,6 @@ UPDATE creature_template SET ScriptName='npc_rizzle_sprysprocket' WHERE entry=23
 UPDATE creature_template SET ScriptName='npc_depth_charge' WHERE entry=23025;
 UPDATE gameobject_template SET ScriptName='go_southfury_moonstone' WHERE entry=185566;
 UPDATE creature_template SET ScriptName='mobs_spitelashes' WHERE entry IN (6190,6193,6194,6195,6196);
-UPDATE creature_template SET ScriptName='npc_loramus_thalipedes' WHERE entry=7783;
 UPDATE creature_template SET ScriptName='npc_felhound_tracker' WHERE entry=8668;
 UPDATE creature_template SET ScriptName='boss_maws' WHERE entry=15571;
 UPDATE gameobject_template SET ScriptName='go_lightning' WHERE entry=183356;
@@ -731,9 +732,9 @@ UPDATE creature_template SET ScriptName='npc_eris_havenfire' WHERE entry=14494;
 /* EVERSONG WOODS */
 UPDATE creature_template SET ScriptName='npc_kelerun_bloodmourn' WHERE entry=17807;
 UPDATE gameobject_template SET ScriptName='go_harbinger_second_trial' WHERE entry=182052;
-UPDATE creature_template SET ScriptName='npc_prospector_anvilward' WHERE entry=15420;
 UPDATE creature_template SET ScriptName='npc_apprentice_mirveda' WHERE entry=15402;
 UPDATE creature_template SET ScriptName='npc_infused_crystal' WHERE entry=16364;
+UPDATE creature_template SET ScriptName='npc_hatchling_movement' WHERE entry IN(21055,21063,21064);
 
 /* FELWOOD */
 UPDATE creature_template SET ScriptName='npc_kitten' WHERE entry=9937;
@@ -774,10 +775,10 @@ UPDATE creature_template SET ScriptName='boss_krosh_firehand' WHERE entry=18832;
 
 /* BLOOD FURNACE */
 /* The Maker,Broggok,Kelidan,Broggok's cloud */
-UPDATE creature_template SET ScriptName='boss_the_maker' WHERE entry=17381;
 UPDATE creature_template SET ScriptName='boss_broggok' WHERE entry=17380;
 UPDATE creature_template SET ScriptName='boss_kelidan_the_breaker' WHERE entry=17377;
 UPDATE creature_template SET ScriptName='mob_shadowmoon_channeler' WHERE entry=17653;
+UPDATE creature_template SET ScriptName='npc_fel_orc' WHERE entry IN (17398, 17429);
 UPDATE gameobject_template SET ScriptName='go_prison_cell_lever' WHERE entry=181982;
 UPDATE instance_template SET ScriptName='instance_blood_furnace' WHERE map=542;
 
@@ -1134,6 +1135,7 @@ UPDATE creature_template SET ScriptName='npc_adal' WHERE entry IN(18481);
 UPDATE creature_template SET ScriptName='npc_solenor' WHERE entry IN (14530,14536);
 
 /* SILVERMOON */
+UPDATE creature_template SET ScriptName='npc_event_generator_001' WHERE entry IN (2334);
 
 /* SILVERPINE FOREST */
 UPDATE creature_template SET ScriptName='npc_deathstalker_erland' WHERE entry=1978;
@@ -1224,7 +1226,6 @@ UPDATE creature_template SET ScriptName='npc_galen_goodward' WHERE entry=5391;
 UPDATE creature_template SET ScriptName='mob_aquementas' WHERE entry=9453;
 UPDATE creature_template SET ScriptName='npc_custodian_of_time' WHERE entry=20129;
 UPDATE creature_template SET ScriptName='npc_oox17tn' WHERE entry=7784;
-UPDATE creature_template SET ScriptName='npc_stone_watcher_of_norgannon' WHERE entry=7918;
 UPDATE creature_template SET ScriptName='npc_tooga' WHERE entry=5955;
 
 /* TELDRASSIL */
@@ -1249,6 +1250,7 @@ UPDATE creature_template SET ScriptName='boss_laj' WHERE entry=17980;
 UPDATE creature_template SET ScriptName='boss_warp_splinter' WHERE entry=17977;
 UPDATE creature_template SET ScriptName='mob_warp_splinter_treant' WHERE entry=19949;
 UPDATE creature_template SET ScriptName='boss_thorngrin' WHERE entry IN(17978);
+UPDATE instance_template SET ScriptName='instance_botanica' WHERE map=553;
 
 /* THE ARCATRAZ */
 UPDATE instance_template SET ScriptName='instance_arcatraz' WHERE map=552;
@@ -3903,24 +3905,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 -- -1 543 000 HELLFIRE RAMPARTS
 
 -- -1 544 000 MAGTHERIDON'S LAIR
-INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
-('-1544000','Wretched, meddling insects! Release me, and perhaps I will grant you a merciful death!','10247','6','0','0','17339','magtheridon SAY_TAUNT1'),
-('-1544001','Vermin! Leeches! Take my blood and choke on it!','10248','6','0','0','17340','magtheridon SAY_TAUNT2'),
-('-1544002','Illidan is an arrogant fool! I will crush him and reclaim Outland as my own!','10249','6','0','0','17341','magtheridon SAY_TAUNT3'),
-('-1544003','Away, you mindless parasites! My blood is my own!','10250','6','0','0','17342','magtheridon SAY_TAUNT4'),
-('-1544004','How long do you believe your pathetic sorcery can hold me?','10251','6','0','0','17343','magtheridon SAY_TAUNT5'),
-('-1544005','My blood will be the end of you!','10252','6','0','0','17344','magtheridon SAY_TAUNT6'),
-('-1544006','I... am... unleashed!','10253','1','0','0','17346','magtheridon SAY_FREED'),
-('-1544007','Thank you for releasing me. Now...die!','10254','1','0','0','0','magtheridon SAY_AGGRO'),
-('-1544008','Not again! Not again...','10256','1','0','0','17348','magtheridon SAY_BANISH'),
-('-1544009','I will not be taken so easily! Let the walls of this prison tremble... and fall!','10257','1','0','0','17336','magtheridon SAY_CHAMBER_DESTROY'),
-('-1544010','Did you think me weak? Soft? Who is the weak one now?','10255','1','0','0','17349','magtheridon SAY_PLAYER_KILLED'),
-('-1544011','The Legion will consume you all!','10258','1','0','0','17347','magtheridon SAY_DEATH'),
-('-1544012','REUSE_ME','0','0','0','0','0','REUSE_ME'),
-('-1544013','%s begins to cast Blast Nova!','0','3','0','0','18739','magtheridon EMOTE_BLASTNOVA'),
-('-1544014','%s''s bonds begin to weaken!','0','2','0','0','13689','magtheridon EMOTE_BEGIN'),
-('-1544015','%s breaks free!','0','2','0','0','13691','magtheridon EMOTE_FREED'),
-('-1544016','%s is nearly free of his bonds!','0','2','0','0','13690','magtheridon EMOTE_NEARLY_FREE');
 
 -- -1 545 000 THE STEAMVAULT
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
@@ -4622,9 +4606,7 @@ INSERT INTO gossip_texts (entry,content_default,comment) VALUES
 (-3000105,'Ezekiel said that you might have a certain book...','dirty larry GOSSIP_ITEM_BOOK'),
 (-3000106,'Let Marshal Windsor know that I am ready.','squire rowe GOSSIP_ITEM_WINDSOR'),
 (-3000107,'I am ready, as are my forces. Let us end this masquerade!','reginald windsor GOSSIP_ITEM_START'),
-(-3000108,'I need a moment of your time, sir.','prospector anvilward GOSSIP_ITEM_MOMENT'),
 (-3000109,'I am ready, Oronok. Let us destroy Cyrukh and free the elements!','oronok torn-heart GOSSIP_ITEM_FIGHT'),
-(-3000110,'Why... yes, of course. I''ve something to show you right inside this building, Mr. Anvilward.','prospector anvilward GOSSIP_ITEM_SHOW'),
 (-3000111,'I am ready, Anchorite. Let us begin the exorcism.','anchorite barada GOSSIP_ITEM_EXORCISM'),
 (-3000112,'Turn the key to start the machine.','threshwackonator  GOSSIP_ITEM_TURN_KEY'),
 (-3000120,'Pardon the intrusion, Lady Prestor, but Highlord Bolvar suggested that I seek your advice.','npc_lady_katrana_prestor GOSSIP_ITEM_KAT_1'),
@@ -6159,17 +6141,6 @@ INSERT INTO script_waypoint (Entry, PathId, Point, PositionX, PositionY, Positio
 (12858,0,21,1776.9,-2024.56,109.83,0,0,0,'win'),
 (12858,0,22,1776.87,-2028.31,109.83,0,60000,0,'stay'),
 (12858,0,23,1776.9,-2028.3,109.83,0,0,0,''),
-(15420, 0, 1, 9296.278, -6676.996, 22.358725, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 2, 9299.323, -6668.9614, 22.41846, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 3, 9303.353, -6666.7637, 22.432236, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 4, 9307.93, -6660.8057, 22.43064, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 5, 9309.302, -6656.1987, 23.005793, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 6, 9307.386, -6651.9053, 24.834118, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 7, 9300.505, -6648.1587, 28.052294, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 8, 9293.393, -6650.7246, 30.57717, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 9, 9290.5205, -6654.362, 31.830189, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 10, 9289.944, -6657.774, 31.828085, 100, 0, 0, 'Prospector Anvilward'),
-(15420, 0, 11, 9290.866, -6658.0156, 31.823935, 0.104719758033752441, 60000, 0, 'Prospector Anvilward'),
 (16812,0,1,-10868.3,-1779.84,90.476,0,2500,0,'Open door, begin walking'),
 (16812,0,2,-10875.6,-1779.58,90.478,0,0,0,''),
 (16812,0,3,-10887.4,-1779.26,90.476,0,0,0,''),

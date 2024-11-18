@@ -384,6 +384,10 @@ Unit::Unit() :
     // implement 50% base damage from offhand
     m_auraModifiersGroup[UNIT_MOD_DAMAGE_OFFHAND][TOTAL_PCT] = 0.5f;
 
+    for (auto& i : m_attackPowerMod)
+        for (auto& k : i)
+            k = 0;
+
     for (float& m_createStat : m_createStats)
         m_createStat = 0.0f;
 
@@ -613,8 +617,18 @@ void Unit::TriggerHomeEvents()
             GetMap()->GetCreatureLinkingHolder()->TryFollowMaster((Creature*)this);
     }
 
-    if (IsCreature() && static_cast<Creature*>(this)->GetCreatureGroup())
-        static_cast<Creature*>(this)->GetCreatureGroup()->TriggerLinkingEvent(CREATURE_GROUP_EVENT_HOME, this);
+    if (IsCreature())
+    {
+        Creature* me = static_cast<Creature*>(this);
+        if (me->GetCreatureGroup())
+            me->GetCreatureGroup()->TriggerLinkingEvent(CREATURE_GROUP_EVENT_HOME, this);
+        if (me->IsPet())
+        {
+            Unit* owner = me->GetOwner();
+            if (!owner->IsAlive() && static_cast<Pet*>(this)->IsGuardian())
+                static_cast<Pet*>(this)->Unsummon(PET_SAVE_REAGENTS);
+        }
+    }
 }
 
 void Unit::EvadeTimerExpired()
@@ -1011,12 +1025,12 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
             duel_hasEnded = true;
         }
 
-        if (dealer->GetTypeId() == TYPEID_PLAYER && dealer != victim)
+        if (dealer->IsPlayer() && dealer != victim)
         {
             Player* killer = static_cast<Player*>(dealer);
 
             // in bg, count dmg if victim is also a player
-            if (victim->GetTypeId() == TYPEID_PLAYER)
+            if (victim->IsPlayer())
             {
                 if (BattleGround* bg = killer->GetBattleGround())
                 {
@@ -2577,7 +2591,7 @@ void Unit::CalculateDamageAbsorbAndResist(Unit* caster, SpellSchoolMask schoolMa
                 currentAbsorb = maxAbsorb;
 
             int32 manaReduction = int32(currentAbsorb * manaMultiplier);
-            ApplyPowerMod(POWER_MANA, manaReduction, false);
+            ModifyPower(POWER_MANA, -manaReduction);
         }
 
         (*i)->OnManaAbsorb(currentAbsorb);
@@ -2988,7 +3002,8 @@ SpellMissInfo Unit::SpellHitResult(WorldObject* caster, Unit* pVictim, SpellEntr
 
     // All positive spells can`t miss
     // TODO: client not show miss log for this spells - so need find info for this in dbc and use it!
-    if (IsPositiveEffectMask(spellInfo, effectMask, caster, pVictim))
+    bool ignoreRestrictions = spellInfo->HasAttribute(SPELL_ATTR_EX3_IGNORE_CASTER_AND_TARGET_RESTRICTIONS) || spellInfo->HasAttribute(SPELL_ATTR_EX5_IGNORE_TARGET_REQUIREMENTS);
+    if (!ignoreRestrictions && IsPositiveEffectMask(spellInfo, effectMask, caster, pVictim))
     {
         if (pVictim->IsImmuneToSpell(spellInfo, reflected ? false : (caster == pVictim), effectMask, caster))
             return SPELL_MISS_IMMUNE;
@@ -3084,12 +3099,6 @@ bool Unit::CanGlance() const
     if (GetTypeId() == TYPEID_PLAYER || HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         return !GetCharmerGuid().IsCreature();
     return false;
-}
-
-bool Unit::CanDaze() const
-{
-    // Generally, only npcs are able to daze targets in melee
-    return (GetTypeId() == TYPEID_UNIT && !HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED));
 }
 
 void Unit::SetCanDodge(const bool flag)
@@ -5659,6 +5668,7 @@ void Unit::RemoveAura(Aura* Aur, AuraRemoveMode mode)
 
     // Set remove mode
     Aur->SetRemoveMode(mode);
+    Aur->InvalidateScriptRef();
 
     // some ShapeshiftBoosts at remove trigger removing other auras including parent Shapeshift aura
     // remove aura from list before to prevent deleting it before
@@ -7191,10 +7201,10 @@ int32 Unit::DealHeal(Unit* pVictim, uint32 addhealth, SpellEntry const* spellPro
 
     unit->SendHealSpellLog(pVictim, spellProto->Id, addhealth, critical);
 
-    if (unit->GetTypeId() == TYPEID_PLAYER)
+    if (unit->IsPlayer())
     {
-        if (BattleGround* bg = ((Player*)unit)->GetBattleGround())
-            bg->UpdatePlayerScore((Player*)unit, SCORE_HEALING_DONE, gain);
+        if (BattleGround* bg = static_cast<Player*>(unit)->GetBattleGround())
+            bg->UpdatePlayerScore(static_cast<Player*>(unit), SCORE_HEALING_DONE, gain);
     }
 
     // Script Event HealedBy
@@ -8055,6 +8065,22 @@ float Unit::GetPPMProcChance(uint32 WeaponSpeed, float PPM) const
     return WeaponSpeed * PPM / 600.0f;                      // result is chance in percents (probability = Speed_in_sec * (PPM / 60))
 }
 
+bool Unit::MountEntry(uint32 templateEntry, const Aura* aura)
+{
+    CreatureInfo const* ci = ObjectMgr::GetCreatureTemplate(templateEntry);
+    uint32 display_id = Creature::ChooseDisplayId(ci);
+
+    SetMountInfo(ci);
+
+    return Mount(display_id, aura);
+}
+
+bool Unit::UnmountEntry(const Aura* aura)
+{
+    SetMountInfo(nullptr);
+    return Unmount(aura);
+}
+
 bool Unit::Mount(uint32 displayid, const Aura* aura/* = nullptr*/)
 {
     // Custom mount (non-aura such as taxi or command) overwrites aura mounts
@@ -8069,6 +8095,12 @@ bool Unit::Mount(uint32 displayid, const Aura* aura/* = nullptr*/)
 
     if (aura)
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT);
+
+    if (GetMountInfo())
+    {
+        SetBaseRunSpeed(1.f); // overriden inside
+        UpdateSpeed(MOVE_RUN, true);
+    }
     return true;
 }
 
@@ -8093,6 +8125,12 @@ bool Unit::Unmount(const Aura* aura/* = nullptr*/)
         WorldPacket data(SMSG_DISMOUNT, 8);
         data << GetPackGUID();
         SendMessageToSet(data, true);
+    }
+
+    if (GetMountInfo())
+    {
+        SetBaseRunSpeed(1.f); // overriden inside
+        UpdateSpeed(MOVE_RUN, true);
     }
 
     return true;
@@ -8742,7 +8780,7 @@ void Unit::UpdateSpeed(UnitMoveType mtype, bool forced, float ratio)
     if (slow)
         speed *= (100.0f + slow) / 100.0f;
 
-    if (GetTypeId() == TYPEID_UNIT)
+    if (IsCreature())
     {
         switch (mtype)
         {
@@ -9357,6 +9395,15 @@ bool Unit::HandleStatModifier(UnitMods unitMod, UnitModifierType modifierType, f
         case BASE_VALUE:
         case TOTAL_VALUE:
             m_auraModifiersGroup[unitMod][modifierType] += apply ? amount : -amount;
+
+            if (modifierType == TOTAL_VALUE)
+            {
+                auto sign = amount > 0 ? AttackPowerModSign::MOD_SIGN_POS : AttackPowerModSign::MOD_SIGN_NEG;
+                if (unitMod == UNIT_MOD_ATTACK_POWER)
+                    m_attackPowerMod[size_t(AttackPowerMod::MELEE_ATTACK_POWER)][size_t(sign)] += apply ? amount : -amount;
+                else if (unitMod == UNIT_MOD_ATTACK_POWER_RANGED)
+                    m_attackPowerMod[size_t(AttackPowerMod::RANGED_ATTACK_POWER)][size_t(sign)] += apply ? amount : -amount;
+            }
             break;
         case BASE_PCT:
         case TOTAL_PCT:
@@ -9547,7 +9594,7 @@ float Unit::GetTotalAttackPowerValue(WeaponAttackType attType) const
             return 0.0f;
         return ap * (1.0f + GetFloatValue(UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER));
     }
-    int32 ap = GetInt32Value(UNIT_FIELD_ATTACK_POWER) + GetInt32Value(UNIT_FIELD_ATTACK_POWER_MODS);
+    int32 ap = GetInt32Value(UNIT_FIELD_ATTACK_POWER) + GetUInt16Value(UNIT_FIELD_ATTACK_POWER_MODS, 0) - GetUInt16Value(UNIT_FIELD_ATTACK_POWER_MODS, 1);
     if (ap < 0)
         return 0.0f;
     return ap * (1.0f + GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER));
@@ -10628,6 +10675,7 @@ void Unit::UpdateModelData()
         SetFloatValue(UNIT_FIELD_COMBATREACH, GetObjectScale() * modelInfo->combat_reach);
 
         SetBaseWalkSpeed(modelInfo->SpeedWalk);
+        SetModelRunSpeed(modelInfo->SpeedRun);
         SetBaseRunSpeed(modelInfo->SpeedRun, false);
     }
 }
@@ -11343,7 +11391,13 @@ bool Unit::IsAllowedDamageInArea(Unit* attacker, Unit* pVictim)
 
     // can't damage player controlled unit by player controlled unit in sanctuary
     AreaTableEntry const* area = GetAreaEntryByAreaID(pVictim->GetAreaId());
-    return !(area && area->flags & AREA_FLAG_SANCTUARY);
+    if (!area || !(area->flags & AREA_FLAG_SANCTUARY))
+        return true;
+
+    if (pVictim->IsIgnoringSanctuary())
+        return true;
+    else
+        return false;
 }
 
 class UnitVisitObjectsInRangeNotifyEvent : public BasicEvent
@@ -11611,14 +11665,6 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
     // New flags for the duration of charm need to be set after SetCharmState, gets reset in ResetCharmState
     if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
         possessed->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED);
-
-    const bool immunePC = IsImmuneToPlayer();
-    if (possessed->IsImmuneToPlayer() != immunePC)
-        possessed->SetImmuneToPlayer(immunePC);
-
-    const bool immuneNPC = IsImmuneToNPC();
-    if (possessed->IsImmuneToNPC() != immuneNPC)
-        possessed->SetImmuneToNPC(immuneNPC);
 
     charmInfo->ProcessUnattackableTargets(possessed->m_combatData);
 
@@ -12839,6 +12885,14 @@ void Unit::SelectAttackingTargets(std::vector<Unit*>& selectedTargets, Attacking
             sLog.outError("Creature::SelectAttackingTarget> Target have unimplemented value!");
             break;
     }
+}
+
+Unit::MmapForcingStatus Unit::IsIgnoringMMAP() const
+{
+    if (IsPlayer() || IsPlayerControlled())
+        return MmapForcingStatus::FORCED;
+
+    return MmapForcingStatus::DEFAULT;
 }
 
 void Unit::SetLevitate(bool enable)

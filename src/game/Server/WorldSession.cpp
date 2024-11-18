@@ -101,7 +101,7 @@ bool WorldSessionFilter::Process(WorldPacket const& packet) const
 
 /// WorldSession constructor
 WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, std::string accountName, uint32 accountFlags, uint32 recruitingFriend, bool isARecruiter) :
-    LookingForGroup_auto_join(false), LookingForGroup_auto_add(true), m_muteTime(mute_time),
+    m_muteTime(mute_time),
     _player(nullptr), m_socket(sock ? sock->shared_from_this() : nullptr), m_requestSocket(nullptr), m_localAddress("127.0.0.1"), m_sessionState(WORLD_SESSION_STATE_CREATED),
     _security(sec), _accountId(id), m_expansion(expansion), m_accountName(accountName), m_accountFlags(accountFlags),
     m_clientOS(CLIENT_OS_UNKNOWN), m_clientPlatform(CLIENT_PLATFORM_UNKNOWN), m_gameBuild(0), m_accountMaxLevel(0), m_orderCounter(0), m_lastAnticheatUpdate(0), m_anticheat(nullptr),
@@ -714,7 +714,10 @@ void WorldSession::LogoutPlayer()
             if (BattleGroundQueueTypeId bgQueueTypeId = _player->GetBattleGroundQueueTypeId(i))
             {
                 _player->RemoveBattleGroundQueueId(bgQueueTypeId);
-                sBattleGroundMgr.m_battleGroundQueues[ bgQueueTypeId ].RemovePlayer(_player->GetObjectGuid(), true);
+                sWorld.GetBGQueue().GetMessager().AddMessage([bgQueueTypeId, playerGuid = _player->GetObjectGuid()](BattleGroundQueue* queue)
+                {
+                    queue->RemovePlayer(bgQueueTypeId, playerGuid, true);
+                });
             }
         }
 
@@ -1211,6 +1214,12 @@ void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg) co
     data << uint8(reason);                                  // transfer abort reason
     switch (reason)
     {
+        case TRANSFER_ABORT_NONE:
+        case TRANSFER_ABORT_MAX_PLAYERS:
+        case TRANSFER_ABORT_NOT_FOUND:
+        case TRANSFER_ABORT_TOO_MANY_INSTANCES:
+        case TRANSFER_ABORT_ZONE_IN_COMBAT:
+            break;
         case TRANSFER_ABORT_INSUF_EXPAN_LVL:
         case TRANSFER_ABORT_DIFFICULTY:
             data << uint8(arg);

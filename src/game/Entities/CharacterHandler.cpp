@@ -127,7 +127,7 @@ void PlayerbotHolder::HandlePlayerBotLoginCallback(QueryResult* dummy, SqlQueryH
     botSession->SetNoAnticheat();
 
     // has bot already been added?
-    if (sObjectMgr.GetPlayer(lqh->GetGuid()))
+    if (sObjectMgr.GetPlayer(lqh->GetGuid(), false))
         return;
 
     uint32 guid = lqh->GetGuid().GetRawValue();
@@ -1186,10 +1186,6 @@ void WorldSession::HandleSetFactionAtWarOpcode(WorldPacket& recv_data)
 void WorldSession::HandleMeetingStoneInfoOpcode(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("WORLD: Received CMSG_MEETING_STONE_INFO");
-
-    WorldPacket data(SMSG_MEETINGSTONE_SETQUEUE, 5);
-    data << uint32(0) << uint8(6);
-    SendPacket(data);
 }
 
 void WorldSession::HandleTutorialFlagOpcode(WorldPacket& recv_data)

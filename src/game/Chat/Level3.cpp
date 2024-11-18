@@ -66,6 +66,8 @@
 #include "Globals/CombatCondition.h"
 #include "World/WorldStateExpression.h"
 
+#include "MotionGenerators/MoveMap.h"
+
 #ifdef BUILD_AHBOT
 #include "AuctionHouseBot/AuctionHouseBot.h"
 
@@ -861,7 +863,10 @@ bool ChatHandler::HandleReloadItemRequiredTragetCommand(char* /*args*/)
 bool ChatHandler::HandleReloadBattleEventCommand(char* /*args*/)
 {
     sLog.outString("Re-Loading BattleGround Eventindexes...");
-    sBattleGroundMgr.LoadBattleEventIndexes();
+    sBattleGroundMgr.GetMessager().AddMessage([](BattleGroundMgr* mgr)
+    {
+        mgr->LoadBattleEventIndexes(true);
+    });
     SendGlobalSysMessage("DB table `gameobject_battleground` and `creature_battleground` reloaded.");
     return true;
 }
@@ -2915,7 +2920,7 @@ bool ChatHandler::HandleLookupQuestCommand(char* args)
     ObjectMgr::QuestMap const& qTemplates = sObjectMgr.GetQuestTemplates();
     for (const auto& qTemplate : qTemplates)
     {
-        Quest* qinfo = qTemplate.second;
+        Quest* qinfo = qTemplate.second.get();
 
         std::string title;                                  // "" for avoid repeating check default locale
         sObjectMgr.GetQuestLocaleStrings(qinfo->GetQuestId(), loc_idx, &title);
@@ -3187,10 +3192,7 @@ bool ChatHandler::HandleGuildUninviteCommand(char* args)
         return false;
 
     if (targetGuild->DelMember(target_guid))
-    {
         targetGuild->Disband();
-        delete targetGuild;
-    }
 
     return true;
 }
@@ -3255,7 +3257,6 @@ bool ChatHandler::HandleGuildDeleteCommand(char* args)
         return false;
 
     targetGuild->Disband();
-    delete targetGuild;
 
     return true;
 }
@@ -5656,6 +5657,21 @@ bool ChatHandler::HandleGMFlyCommand(char* args)
     return true;
 }
 
+bool ChatHandler::HandleGMUnkillableCommand(char* args)
+{
+    bool value;
+    if (!ExtractOnOff(&args, value))
+    {
+        SendSysMessage(LANG_USE_BOL);
+        SetSentErrorMessage(true);
+        return false;
+    }
+    Player* target = m_session->GetPlayer();
+    target->SetDeathPrevention(value);
+    PSendSysMessage("GM Unkillability %s.", value ? "enabled" : "disabled");
+    return true;
+}
+
 bool ChatHandler::HandlePDumpLoadCommand(char* args)
 {
     char* file = ExtractQuotedOrLiteralArg(&args);
@@ -6771,7 +6787,10 @@ bool ChatHandler::HandleSendMessageCommand(char* args)
 
 bool ChatHandler::HandleArenaFlushPointsCommand(char* /*args*/)
 {
-    sBattleGroundMgr.DistributeArenaPoints();
+    sBattleGroundMgr.GetMessager().AddMessage([](BattleGroundMgr* mgr)
+    {
+        mgr->DistributeArenaPoints();
+    });
     return true;
 }
 
@@ -6784,7 +6803,10 @@ bool ChatHandler::HandleArenaSeasonRewardsCommand(char* args)
     if (seasonId > 4 || seasonId == 0)
         return false;
 
-    sBattleGroundMgr.RewardArenaSeason(seasonId);
+    sBattleGroundMgr.GetMessager().AddMessage([seasonId](BattleGroundMgr* mgr)
+    {
+        mgr->RewardArenaSeason(seasonId);
+    });
     return true;
 }
 
@@ -6798,7 +6820,10 @@ bool ChatHandler::HandleArenaDataReset(char* args)
     }
 
     PSendSysMessage("Resetting all arena data.");
-    sBattleGroundMgr.ResetAllArenaData();
+    sBattleGroundMgr.GetMessager().AddMessage([](BattleGroundMgr* mgr)
+    {
+        mgr->ResetAllArenaData();
+    });
     return true;
 }
 

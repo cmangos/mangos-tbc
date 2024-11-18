@@ -95,9 +95,12 @@ class CreatureGroup : public SpawnGroup
         bool IsOutOfCombat();
         bool IsEvading();
 
+        bool HasGroupMember(WorldObject* wo) const;
+
     private:
         void ClearRespawnTimes();
         FormationDataSPtr m_formationData;
+        std::set<Unit*> m_linkageTargets;
 };
 
 struct RespawnPosition

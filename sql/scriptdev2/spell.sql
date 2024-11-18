@@ -43,6 +43,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (12948,'spell_hakkar_summoned'),
 (13278,'spell_gdr_channel'),
 (13493,'spell_gdr_periodic'),
+(11403,'spell_dream_vision'),
 (11886,'spell_capture_wildkin'),
 (11887,'spell_capture_hippogryph'),
 (11888,'spell_capture_faerie_dragon'),
@@ -106,6 +107,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (26591,'spell_teleport_image'),
 (26608,'spell_viscidus_despawn_adds'),
 (26619,'spell_periodic_scarab_trigger'),
+(26656,'spell_summon_black_qiraji_battle_tank'),
 (26686,'spell_aq_whirlwind'),
 (26767,'spell_cthun_tentacles_summon'),
 (26769,'spell_cthun_periodic_eye_trigger'),
@@ -243,6 +245,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (32811,'spell_greater_invisibility_mob'),
 (29339,'spell_healing_touch_horses'),
 (29340,'spell_whip_frenzy_horses'),
+(29521,'spell_dance_vibe'),
 (29969,'spell_summon_blizzard'),
 (29970,'spell_dispel_blizzard'),
 (29979,'spell_massive_magnetic_pull'),
@@ -260,7 +263,6 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (30166,'spell_shadow_grasp_magtheridon'),
 (30410,'spell_shadow_grasp_cube'),
 (30658,'spell_quake_magtheridon'),
-(30571,'spell_quake_magtheridon_knockback'),
 (30425,'spell_portal_attunement'),
 (30469,'spell_nether_beam'),
 (38546,'spell_face_random_target'),
@@ -654,7 +656,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (34292,'spell_increased_spell_damage_done_dummy'),
 (28695,'spell_gameobject_call_for_help_on_usage'), -- Herb Gathering (Master)
 (29354,'spell_gameobject_call_for_help_on_usage'), -- Mining (Master)
-(30434,'spell_gameobject_call_for_help_on_usage'); -- Elemental Seaforium Charge
+(30434,'spell_gameobject_call_for_help_on_usage'), -- Elemental Seaforium Charge
+(34799,'spell_arcane_devastation'),
+(32173,'spell_entangling_roots');
 
 -- Wotlk
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

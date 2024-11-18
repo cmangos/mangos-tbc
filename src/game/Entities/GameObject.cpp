@@ -906,6 +906,9 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forc
             entry = group->GetGuidEntry(dbGuid);
     }
 
+    if (uint32 randomEntry = sObjectMgr.GetRandomGameObjectEntry(dbGuid))
+        entry = randomEntry;
+
     bool dynguid = false;
     if (map->IsDynguidForced())
         dynguid = true;
@@ -918,9 +921,6 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forc
 
     if (dynguid || newGuid == 0)
         newGuid = map->GenerateLocalLowGuid(HIGHGUID_GAMEOBJECT);
-
-    if (uint32 randomEntry = sObjectMgr.GetRandomGameObjectEntry(dbGuid))
-        entry = randomEntry;
 
     if (!Create(dbGuid, newGuid, entry, map, x, y, z, ang, rotation0, rotation1, rotation2, rotation3, animprogress, GO_STATE_READY))
         return false;
@@ -1539,10 +1539,10 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
             if (goInfo->trap.charges > 0)
                 AddUse();
 
-            if (IsBattleGroundTrap && user->GetTypeId() == TYPEID_PLAYER)
+            if (IsBattleGroundTrap && user->IsPlayer())
             {
                 // BattleGround gameobjects case
-                if (BattleGround* bg = ((Player*)user)->GetBattleGround())
+                if (BattleGround* bg = static_cast<Player*>(user)->GetBattleGround())
                     bg->HandleTriggerBuff(GetObjectGuid());
             }
 
@@ -1553,7 +1553,6 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
             if (goInfo->ExtraFlags & GAMEOBJECT_EXTRA_FLAG_CUSTOM_ANIM_ON_USE)
                 SendGameObjectCustomAnim(GetObjectGuid());
 
-            // TODO: Despawning of traps? (Also related to code in ::Update)
             return;
         }
         case GAMEOBJECT_TYPE_CHAIR:                         // 7 Sitting: Wooden bench, chairs
@@ -2316,7 +2315,7 @@ void GameObject::TickCapturePoint()
 
     /* PROGRESS EVENTS */
     // alliance takes the tower from neutral, contested or horde (if there is no neutral area) to alliance
-    else if (m_captureState != CAPTURE_STATE_PROGRESS_ALLIANCE && m_captureSlider > CAPTURE_SLIDER_MIDDLE + neutralPercent * 0.5f && progressFaction == ALLIANCE)
+    else if ((m_captureState != CAPTURE_STATE_PROGRESS_ALLIANCE && m_captureState != CAPTURE_STATE_CONTEST_ALLIANCE) && m_captureSlider > CAPTURE_SLIDER_MIDDLE + neutralPercent * 0.5f && progressFaction == ALLIANCE)
     {
         eventId = info->capturePoint.progressEventID1;
 
@@ -2329,7 +2328,7 @@ void GameObject::TickCapturePoint()
         m_captureState = CAPTURE_STATE_PROGRESS_ALLIANCE;
     }
     // horde takes the tower from neutral, contested or alliance (if there is no neutral area) to horde
-    else if (m_captureState != CAPTURE_STATE_PROGRESS_HORDE && m_captureSlider < CAPTURE_SLIDER_MIDDLE - neutralPercent * 0.5f && progressFaction == HORDE)
+    else if ((m_captureState != CAPTURE_STATE_PROGRESS_HORDE && m_captureState != CAPTURE_STATE_CONTEST_HORDE) && m_captureSlider < CAPTURE_SLIDER_MIDDLE - neutralPercent * 0.5f && progressFaction == HORDE)
     {
         eventId = info->capturePoint.progressEventID2;
 

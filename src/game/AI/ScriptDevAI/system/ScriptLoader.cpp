@@ -277,6 +277,7 @@ extern void AddSC_boss_nexusprince_shaffar();               // auchindoun, mana_
 extern void AddSC_boss_pandemonius();
 extern void AddSC_mana_tombs();
 extern void AddSC_boss_yor();
+extern void AddSC_instance_mana_tombs();
 extern void AddSC_boss_anzu();                              // auchindoun, sethekk_halls
 extern void AddSC_boss_darkweaver_syth();
 extern void AddSC_boss_talon_king_ikiss();
@@ -319,7 +320,6 @@ extern void AddSC_boss_high_king_maulgar();
 extern void AddSC_instance_gruuls_lair();
 extern void AddSC_boss_broggok();                           // HC, blood_furnace
 extern void AddSC_boss_kelidan_the_breaker();
-extern void AddSC_boss_the_maker();
 extern void AddSC_instance_blood_furnace();
 extern void AddSC_boss_nazan_and_vazruden();                // HC, hellfire_ramparts
 extern void AddSC_boss_omor_the_unscarred();
@@ -332,6 +332,7 @@ extern void AddSC_boss_warbringer_omrogg();
 extern void AddSC_boss_warchief_kargath_bladefist();
 extern void AddSC_shattered_halls();
 extern void AddSC_instance_shattered_halls();
+extern void AddSC_instance_botanica();
 extern void AddSC_arcatraz();                               // TK, arcatraz
 extern void AddSC_boss_dalliah();
 extern void AddSC_boss_harbinger_skyriss();
@@ -641,6 +642,7 @@ void AddScripts()
     AddSC_boss_pandemonius();
     AddSC_mana_tombs();
     AddSC_boss_yor();
+    AddSC_instance_mana_tombs();
     AddSC_boss_anzu();                                      // auchindoun, sethekk_halls
     AddSC_boss_darkweaver_syth();
     AddSC_boss_talon_king_ikiss();
@@ -683,7 +685,6 @@ void AddScripts()
     AddSC_instance_gruuls_lair();
     AddSC_boss_broggok();                                   // HC, blood_furnace
     AddSC_boss_kelidan_the_breaker();
-    AddSC_boss_the_maker();
     AddSC_instance_blood_furnace();
     AddSC_boss_nazan_and_vazruden();                        // HC, hellfire_ramparts
     AddSC_boss_omor_the_unscarred();
@@ -696,6 +697,7 @@ void AddScripts()
     AddSC_boss_warchief_kargath_bladefist();
     AddSC_shattered_halls();
     AddSC_instance_shattered_halls();
+    AddSC_instance_botanica();
     AddSC_arcatraz();                                       // TK, arcatraz
     AddSC_boss_dalliah();
     AddSC_boss_harbinger_skyriss();

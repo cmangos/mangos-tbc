@@ -382,7 +382,7 @@ void SpellLog::SendToSet()
 Spell::Spell(WorldObject* caster, SpellEntry const* info, uint32 triggeredFlags, ObjectGuid originalCasterGUID, SpellEntry const* triggeredBy) :
     m_partialApplicationMask(0), m_spellScript(SpellScriptMgr::GetSpellScript(info->Id)), m_auraScript(SpellScriptMgr::GetAuraScript(info->Id)),
     m_effectSkipMask(0),
-    m_spellLog(this), m_param1(0), m_param2(0), m_trueCaster(caster)
+    m_spellEvent(nullptr), m_spellLog(this), m_param1(0), m_param2(0), m_trueCaster(caster)
 {
     MANGOS_ASSERT(caster != nullptr && info != nullptr);
     MANGOS_ASSERT(info == sSpellTemplate.LookupEntry<SpellEntry>(info->Id) && "`info` must be pointer to sSpellTemplate element");
@@ -462,7 +462,7 @@ Spell::Spell(WorldObject* caster, SpellEntry const* info, uint32 triggeredFlags,
     m_petCast = (triggeredFlags & TRIGGERED_PET_CAST) != 0;
     m_notifyAI = (triggeredFlags & TRIGGERED_NORMAL_COMBAT_CAST) != 0;
     m_ignoreGCD = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_GCD) != 0);
-    m_ignoreCosts = ((triggeredFlags & TRIGGERED_IGNORE_COSTS) != 0);
+    m_ignoreCosts = (m_IsTriggeredSpell && (triggeredFlags & TRIGGERED_FORCE_COSTS) == 0) || ((triggeredFlags & TRIGGERED_IGNORE_COSTS) != 0);
     m_ignoreCooldowns = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_COOLDOWNS) != 0);
     m_ignoreConcurrentCasts = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_CURRENT_CASTED_SPELL) != 0) || m_spellInfo->HasAttribute(SPELL_ATTR_EX4_ALLOW_CAST_WHILE_CASTING);
     m_ignoreCasterAuraState = m_IsTriggeredSpell || ((triggeredFlags & TRIGGERED_IGNORE_CASTER_AURA_STATE) != 0 || m_spellInfo->HasAttribute(SPELL_ATTR_EX5_IGNORE_CASTER_REQUIREMENTS));
@@ -869,12 +869,6 @@ void Spell::PrepareMasksForProcSystem(uint8 effectMask, uint32& procAttacker, ui
     {
         procAttacker |= PROC_FLAG_DEAL_MELEE_SWING;
         procVictim |= PROC_FLAG_TAKE_MELEE_SWING;
-    }
-
-    if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_TREAT_AS_PERIODIC))
-    {
-        procAttacker = PROC_FLAG_DEAL_HARMFUL_PERIODIC;
-        procVictim = PROC_FLAG_TAKE_HARMFUL_PERIODIC;
     }
 
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_SUPPRESS_CASTER_PROCS))
@@ -3105,8 +3099,8 @@ SpellCastResult Spell::SpellStart(SpellCastTargets const* targets, Aura* trigger
         m_triggeredByAuraSpell = triggeredByAura->GetSpellProto();
 
     // create and add update event for this spell
-    SpellEvent* Event = new SpellEvent(this);
-    m_trueCaster->m_events.AddEvent(Event, m_trueCaster->m_events.CalculateTime(1));
+    m_spellEvent = new SpellEvent(this);
+    m_trueCaster->m_events.AddEvent(m_spellEvent, m_trueCaster->m_events.CalculateTime(1));
 
     if (m_trueCaster->IsUnit()) // gameobjects dont have a sense of already casting a spell
     {
@@ -4871,8 +4865,8 @@ SpellCastResult Spell::CheckCast(bool strict)
             return SPELL_FAILED_NOT_STANDING;
 
         // only allow triggered spells if at an ended battleground
-        if (!m_IsTriggeredSpell && m_caster->GetTypeId() == TYPEID_PLAYER)
-            if (BattleGround* bg = ((Player*)m_caster)->GetBattleGround())
+        if (!m_IsTriggeredSpell && m_caster->IsPlayer())
+            if (BattleGround* bg = static_cast<Player*>(m_caster)->GetBattleGround())
                 if (bg->GetStatus() == STATUS_WAIT_LEAVE)
                     return SPELL_FAILED_DONT_REPORT;
 
@@ -5098,7 +5092,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                 }
             }
 
-            if (IsPositiveSpell(m_spellInfo->Id, m_trueCaster, target) && affectedMask)
+            if (!ignoreRestrictions && IsPositiveSpell(m_spellInfo->Id, m_trueCaster, target) && affectedMask)
                 if (target->IsImmuneToSpell(m_spellInfo, target == m_trueCaster, affectedMask, m_trueCaster))
                     return SPELL_FAILED_TARGET_AURASTATE;
 
@@ -5704,7 +5698,10 @@ SpellCastResult Spell::CheckCast(bool strict)
                 else if (Item* item = m_targets.getItemTarget())
                 {
                     // not own (trade?)
-                    if (item->GetOwner() != m_caster)
+                    Player* itemOwner = item->GetOwner();
+                    Player* itemTrader = itemOwner->GetTrader();
+
+                    if (itemOwner != m_caster && itemTrader != m_caster)
                         return SPELL_FAILED_ITEM_GONE;
 
                     lockId = item->GetProto()->LockID;
@@ -7494,25 +7491,24 @@ bool Spell::HaveTargetsForEffect(SpellEffectIndex effect) const
 
 SpellEvent::SpellEvent(Spell* spell) : BasicEvent()
 {
-    m_Spell = spell;
+    m_Spell.reset(spell, [](Spell* toDelete)
+    {
+        if (toDelete->IsDeletable() || World::IsStopped())
+        {
+            delete toDelete;
+        }
+        else
+        {
+            sLog.outError("~SpellEvent: %s %u tried to delete non-deletable spell %u. Was not deleted, causes memory leak.",
+                          (toDelete->GetCaster()->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), toDelete->GetCaster()->GetGUIDLow(), toDelete->m_spellInfo->Id);
+        }
+    });
 }
 
 SpellEvent::~SpellEvent()
 {
     if (m_Spell->getState() != SPELL_STATE_FINISHED)
         m_Spell->cancel();
-
-    if (m_Spell->IsDeletable() || World::IsStopped())
-    {
-        delete m_Spell;
-    }
-    else
-    {
-        sLog.outError("~SpellEvent: %s %u tried to delete non-deletable spell %u. Was not deleted, causes memory leak.",
-                      (m_Spell->GetCaster()->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), m_Spell->GetCaster()->GetGUIDLow(), m_Spell->m_spellInfo->Id);
-        sLog.outCustomLog("~SpellEvent: %s %u tried to delete non-deletable spell %u. Was not deleted, causes memory leak.",
-                        (m_Spell->GetCaster()->GetTypeId() == TYPEID_PLAYER ? "Player" : "Creature"), m_Spell->GetCaster()->GetGUIDLow(), m_Spell->m_spellInfo->Id);
-    }
 }
 
 bool SpellEvent::Execute(uint64 e_time, uint32 p_time)
@@ -8816,4 +8812,9 @@ SpellModRAII::~SpellModRAII()
         }
         m_modOwner->SetSpellModSpell(nullptr);
     }
+}
+
+MaNGOS::unique_weak_ptr<Spell> Spell::GetWeakPtr() const
+{
+    return m_spellEvent->GetSpellWeakPtr();
 }

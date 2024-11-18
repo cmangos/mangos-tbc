@@ -31,6 +31,8 @@
 #include "Entities/Item.h"
 #include "WorldSocket.h"
 #include "Multithreading/Messager.h"
+#include "LFG/LFGDefines.h"
+#include "BattleGround/BattleGroundDefines.h"
 
 #include <atomic>
 #include <map>
@@ -121,16 +123,6 @@ enum PartyResult
     ERR_IGNORING_YOU_S                  = 9,
     ERR_LFG_PENDING                     = 12,
     ERR_INVITE_RESTRICTED               = 13,
-};
-
-enum LfgType : uint32
-{
-    LFG_TYPE_NONE           = 0,
-    LFG_TYPE_DUNGEON        = 1,
-    LFG_TYPE_RAID           = 2,
-    LFG_TYPE_QUEST          = 3,
-    LFG_TYPE_ZONE           = 4,
-    LFG_TYPE_HEROIC_DUNGEON = 5
 };
 
 enum ChatRestrictionType
@@ -421,12 +413,8 @@ class WorldSession
 
         // Looking For Group
         // TRUE values set by client sending CMSG_LFG_SET_AUTOJOIN and CMSG_LFM_CLEAR_AUTOFILL before player login
-        bool LookingForGroup_auto_join = false;
-        bool LookingForGroup_auto_add = false;
-        bool LookingForGroup_queue = false;
         void SendMeetingStoneInProgress();
         void SendMeetingStoneComplete();
-        void SendLFGListQueryResponse(LfgType type, uint32 entry);
         void SendLFGUpdate();
         void SendLFGUpdateLFG();
         void SendLFGUpdateLFM();
@@ -851,6 +839,9 @@ class WorldSession
         void HandleRandomRollOpcode(WorldPacket& recv_data);
         void HandleFarSightOpcode(WorldPacket& recv_data);
         void HandleSetDungeonDifficultyOpcode(WorldPacket& recv_data);
+        void HandleLfgAcceptLfgMatch(WorldPacket& recv_data);
+        void HandleLfgDeclineLfgMatch(WorldPacket& recv_data);
+        void HandleLfgCancelPendingLfg(WorldPacket& recv_data);
         void HandleLfgSetAutoJoinOpcode(WorldPacket& recv_data);
         void HandleLfgClearAutoJoinOpcode(WorldPacket& recv_data);
         void HandleLfmSetAutoFillOpcode(WorldPacket& recv_data);
@@ -958,6 +949,8 @@ class WorldSession
         Messager<WorldSession>& GetMessager() { return m_messager; }
 
         void SetPacketLogging(bool state);
+
+        LfgPlayerInfo m_lfgInfo;
 
     private:
         // Additional private opcode handlers

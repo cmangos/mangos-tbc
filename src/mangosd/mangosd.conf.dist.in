@@ -195,6 +195,11 @@ SD2ErrorLogFile = "SD2Errors.log"
 #        Disable mmap pathfinding on the listed maps.
 #        List of map ids with delimiter ','
 #
+#    mmap.preload
+#        Enable/Disable preloading on first mapId load - expensive but thread safe - use only for big servers
+#                 1 (enable)
+#        Default: 0 (disable)
+#
 #    PathFinder.OptimizePath
 #        Use or not path finder path optimization (cut calculated points).
 #                 0  (disable)
@@ -261,6 +266,7 @@ vmap.enableIndoorCheck = 1
 DetectPosCollision = 1
 mmap.enabled = 1
 mmap.ignoreMapIds = ""
+mmap.preload = 0
 PathFinder.OptimizePath = 1
 PathFinder.NormalizeZ = 0
 UpdateUptimeInterval = 10
@@ -607,6 +613,12 @@ LogColors = ""
 #        Enable or disable Waterbreathing
 #        Default: 4 (Console as noneone)
 #
+#    AlwaysShowQuestGreeting
+#        Controls whether quest greetings (used when NPC is a quest giver but does not have UNIT_NPC_FLAG_GOSSIP) is always
+#        shown, or is shown only if there are more than one menu items available to the player.
+#        Default: 0 (disabled, original behavior)
+#                 1 (enabled)
+#
 #    TaxiFlightChatFix
 #        Workaround for client bug: resuming taxi flight on login causes missing chat channels until the flight ends.
 #        When enabled allows clients to join local channels of the zone they are flying over on login and all custom channels.
@@ -853,6 +865,7 @@ MaxArenaPoints = 5000
 StartArenaPoints = 0
 InstantLogout = 1
 DisableWaterBreath = 4
+AlwaysShowQuestGreeting = 0
 TaxiFlightChatFix = 0
 LongFlightPathsPersistence = 0
 AllFlightPaths = 0
@@ -1595,6 +1608,18 @@ Death.Bones.World = 1
 Death.Bones.BattlegroundOrArena = 1
 Death.Ghost.RunSpeed.World = 1.0
 Death.Ghost.RunSpeed.Battleground = 1.0
+
+###################################################################################################################
+# LFG CONFIG
+#
+#    Lfg.Enabled
+#        Lfg is enabled
+#        Default: 1 (enable)
+#                 0 (disable)
+#
+###################################################################################################################
+
+Lfg.Enabled = 1
 
 ###################################################################################################################
 # BATTLEGROUND CONFIG

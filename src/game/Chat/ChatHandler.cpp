@@ -353,7 +353,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             for (GroupReference* itr = group->GetFirstMember(); itr != NULL; itr = itr->next())
             {
                 Player* player = itr->getSource();
-                if (player && player->GetPlayerbotAI())
+                if (player && player->GetPlayerbotAI() && player->IsInGroup(GetPlayer(), true))
                 {
                     player->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer(), lang);
                     GetPlayer()->m_speakTime = 0;
@@ -390,14 +390,13 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket& recv_data)
             PlayerbotMgr* mgr = GetPlayer()->GetPlayerbotMgr();
             if (mgr && GetPlayer()->GetGuildId())
             {
-                for (PlayerBotMap::const_iterator it = mgr->GetPlayerBotsBegin(); it != mgr->GetPlayerBotsEnd(); ++it)
+                mgr->ForEachPlayerbot([&](Player* const bot)
                 {
-                    Player* const bot = it->second;
                     if (bot->GetGuildId() == GetPlayer()->GetGuildId())
                     {
                         bot->GetPlayerbotAI()->HandleCommand(type, msg, *GetPlayer(), lang);
                     }
-                }
+                });
             }
 
             sRandomPlayerbotMgr.HandleCommand(type, msg, *_player, "", GetPlayer()->GetTeam(), lang);

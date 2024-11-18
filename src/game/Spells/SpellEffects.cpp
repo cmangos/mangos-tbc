@@ -2461,8 +2461,8 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    if (BattleGround* bg = ((Player*)m_caster)->GetBattleGround())
-                        bg->HandlePlayerDroppedFlag((Player*)m_caster);
+                    if (BattleGround* bg = static_cast<Player*>(m_caster)->GetBattleGround())
+                        bg->HandlePlayerDroppedFlag(static_cast<Player*>(m_caster));
 
                     m_caster->CastSpell(m_caster, 30452, TRIGGERED_OLD_TRIGGERED, nullptr);
                     return;
@@ -6221,25 +6221,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                         unitTarget->CastSpell(nullptr, 26529, TRIGGERED_NONE);
                     return;
                 }
-                case 26656:                                 // Summon Black Qiraji Battle Tank
-                {
-                    if (!unitTarget)
-                        return;
-
-                    if (unitTarget->HasAura(25863) || unitTarget->HasAura(26655))
-                        return; // protection against visual glitch
-
-                    // Prevent stacking of mounts
-                    unitTarget->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
-
-                    // Two separate mounts depending on area id (allows use both in and out of specific instance)
-                    if (unitTarget->GetAreaId() == 3428)
-                        unitTarget->CastSpell(unitTarget, 25863, TRIGGERED_NONE);
-                    else
-                        unitTarget->CastSpell(unitTarget, 26655, TRIGGERED_NONE);
-
-                    return;
-                }
                 case 26663:                                 // Valentine - Orgrimmar Grunt
                 case 26923:                                 // Valentine - Thunderbluff Watcher
                 case 26924:                                 // Valentine - Undercity Guardian
@@ -8161,6 +8142,9 @@ void Spell::EffectKnockBack(SpellEffectIndex eff_idx)
             break;
     }
 
+    if (unitTarget->hasUnitState(UNIT_STAT_ROOT))
+        return;
+
     unitTarget->KnockBackFrom(m_caster, float(m_spellInfo->EffectMiscValue[eff_idx]) / 10, float(damage) / 10);
 }
 
@@ -8192,14 +8176,11 @@ void Spell::EffectPullTowards(SpellEffectIndex eff_idx)
         dist = sqrt(unitTarget->GetDistance2d(x, y, DIST_CALC_NONE));
     }
 
-    if (damage && dist > damage)
-        dist = float(damage);
-
     if (dist < 0.1f)
         return;
 
     // Projectile motion
-    float speedXY = float(m_spellInfo->EffectMiscValue[eff_idx]) * 0.1f;
+    float speedXY = float(std::max(1, m_spellInfo->EffectMiscValue[eff_idx])) * 0.1f;
     float time = dist / speedXY;
     float speedZ = ((z - unitTarget->GetPositionZ()) + 0.5f * time * time * Movement::gravity) / time;
     float angle = unitTarget->GetAngle(x, y);

@@ -62,9 +62,6 @@ struct boss_murmurAI : public CombatAI
     ScriptedInstance* m_instance;
     bool m_bIsRegularMode;
 
-    GuidVector spellbindersVector;
-    GuidVector summonersVector;
-
     uint32 m_uiResonanceTimer;
     uint32 m_uiThunderingStormTimer;
 
@@ -82,8 +79,6 @@ struct boss_murmurAI : public CombatAI
         if (eventType == AI_EVENT_CUSTOM_A)
         {
             ResetTimer(MURMUR_OOC_RP_ATTACK, urand(8000, 10000));
-            m_instance->GetCreatureGuidVectorFromStorage(NPC_CABAL_SPELLBINDER, spellbindersVector);
-            m_instance->GetCreatureGuidVectorFromStorage(NPC_CABAL_SUMMONER, summonersVector);
         }
     }
 
@@ -95,30 +90,17 @@ struct boss_murmurAI : public CombatAI
         // kill one that's moving
         if (urand(0, 1))
         {
-            GuidVector moversVector;
-            for (ObjectGuid& guid : spellbindersVector)
+            GuidVector m_WrathTargetGuid;
+            std::vector<Creature*> const* m_WrathTarget = m_creature->GetMap()->GetCreatures(MURMURS_WRATH_TARGETS_02);
+            if (m_WrathTarget)
             {
-                if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
-                {
-                    if (creature->HasStringId(MURMURS_WRATH_TARGETS_02))
-                    {
-                        moversVector.push_back(guid);
-                    }
-                }
+                for (Creature* creature : *m_WrathTarget)
+                    m_WrathTargetGuid.push_back(creature->GetObjectGuid());
             }
-            for (ObjectGuid& guid : summonersVector)
+
+            if (m_WrathTargetGuid.size() > 0)
             {
-                if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
-                {
-                    if (creature->HasStringId(MURMURS_WRATH_TARGETS_02))
-                    {
-                        moversVector.push_back(guid);
-                    }
-                }
-            }
-            if (moversVector.size() > 0)
-            {
-                if (ObjectGuid& guid = moversVector[urand(0, moversVector.size() - 1)])
+                if (ObjectGuid& guid = m_WrathTargetGuid[urand(0, m_WrathTargetGuid.size() - 1)])
                 {
                     if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
                     {

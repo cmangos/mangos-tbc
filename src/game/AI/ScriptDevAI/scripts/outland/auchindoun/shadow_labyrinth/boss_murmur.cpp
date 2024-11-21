@@ -48,8 +48,7 @@ enum
 enum MurmurActions
 {
     MURMUR_ACTION_MAX,
-    MURMUR_OOC_RP_ATTACK,
-    MURMUR_OOC_CASTER_ATTACK
+    MURMUR_OOC_RP_ATTACK
 };
 
 struct boss_murmurAI : public CombatAI
@@ -58,7 +57,6 @@ struct boss_murmurAI : public CombatAI
         m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_bIsRegularMode(creature->GetMap()->IsRegularDifficulty())
     {
         AddCustomAction(MURMUR_OOC_RP_ATTACK, true, [&]() { HandleOocAttack(); }, TIMER_COMBAT_OOC);
-        AddCustomAction(MURMUR_OOC_CASTER_ATTACK, true, [&]() { HandleOocCasterAttack(); }, TIMER_COMBAT_OOC);
     }
 
     ScriptedInstance* m_instance;
@@ -83,7 +81,6 @@ struct boss_murmurAI : public CombatAI
     {
         if (eventType == AI_EVENT_CUSTOM_A)
         {
-            ResetTimer(MURMUR_OOC_CASTER_ATTACK, urand(8000, 10000));
             ResetTimer(MURMUR_OOC_RP_ATTACK, urand(8000, 10000));
             m_instance->GetCreatureGuidVectorFromStorage(NPC_CABAL_SPELLBINDER, spellbindersVector);
             m_instance->GetCreatureGuidVectorFromStorage(NPC_CABAL_SUMMONER, summonersVector);
@@ -135,29 +132,6 @@ struct boss_murmurAI : public CombatAI
             DoCastSpellIfCan(nullptr, SPELL_SUPPRESSION_BLAST);
 
         ResetTimer(MURMUR_OOC_RP_ATTACK, 3000);
-    }
-
-    void HandleOocCasterAttack()
-    {
-        if (m_creature->IsInCombat())
-            return;
-
-        for (ObjectGuid& guid : spellbindersVector)
-        {
-            if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
-            {
-                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, creature);
-            }
-        }
-        for (ObjectGuid& guid : summonersVector)
-        {
-            if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
-            {
-                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, creature);
-            }
-        }
-
-        ResetTimer(MURMUR_OOC_CASTER_ATTACK, urand(3000, 8000));
     }
 
     void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override

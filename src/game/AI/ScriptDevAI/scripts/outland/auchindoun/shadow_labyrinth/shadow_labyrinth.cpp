@@ -189,6 +189,20 @@ void instance_shadow_labyrinth::OnCreatureRespawn(Creature* creature)
     }
 }
 
+// The Screaming Hall 
+// All Worldstates get Activated via database when door opens
+void instance_shadow_labyrinth::OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* /*pCreature*/)
+{
+    if (pGroup->GetGroupId() == SL_SPAWN_GROUP_043)
+        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_49, 1);
+
+    if (pGroup->GetGroupId() == SL_SPAWN_GROUP_044)
+        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_50, 1);
+
+    if (pGroup->GetGroupId() == SL_SPAWN_GROUP_045)
+        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_51, 1);
+}
+
 void instance_shadow_labyrinth::Load(const char* chrIn)
 {
     if (!chrIn)

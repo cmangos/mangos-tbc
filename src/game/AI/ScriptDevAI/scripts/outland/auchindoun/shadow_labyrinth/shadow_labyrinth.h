@@ -32,6 +32,10 @@ enum
 
     SPELL_BANISH            = 30231,                        // spell is handled in creature_template_addon;
     SPELL_SHAPE_OF_BEAST    = 33949,
+
+    SL_SPAWN_GROUP_043      = 5550064,                      // SpawnGroup that stops respawning of first runner
+    SL_SPAWN_GROUP_044      = 5550065,                      // SpawnGroup that stops respawning of 2nd runner
+    SL_SPAWN_GROUP_045      = 5550066,                      // SpawnGroup that stops respawning of third and fourth runner
 };
 
 class instance_shadow_labyrinth : public ScriptedInstance
@@ -46,6 +50,8 @@ class instance_shadow_labyrinth : public ScriptedInstance
 
         void OnCreatureDeath(Creature* pCreature) override;
         void OnCreatureRespawn(Creature* creature) override;
+
+        void OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* pCreature) override;
 
         void SetData(uint32 uiType, uint32 uiData) override;
         uint32 GetData(uint32 uiType) const override;

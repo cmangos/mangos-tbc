@@ -38,6 +38,8 @@ enum
     SL_SPAWN_GROUP_045      = 5550066,                      // SpawnGroup that stops respawning of third and fourth runner
 };
 
+const std::string MURMURS_WRATH_TARGETS_02 = "SL_MURMUR_WRATH_TARGET_02";
+
 class instance_shadow_labyrinth : public ScriptedInstance
 {
     public:

@@ -100,7 +100,7 @@ struct boss_murmurAI : public CombatAI
             {
                 if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
                 {
-                    if (creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
+                    if (creature->HasStringId(MURMURS_WRATH_TARGETS_02))
                     {
                         moversVector.push_back(guid);
                     }
@@ -110,7 +110,7 @@ struct boss_murmurAI : public CombatAI
             {
                 if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
                 {
-                    if (creature->GetMotionMaster()->GetCurrentMovementGeneratorType() == WAYPOINT_MOTION_TYPE)
+                    if (creature->HasStringId(MURMURS_WRATH_TARGETS_02))
                     {
                         moversVector.push_back(guid);
                     }

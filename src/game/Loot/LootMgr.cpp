@@ -1537,7 +1537,7 @@ void Loot::GroupCheck()
 				}
 			}
 		}
-    }
+	}
 
     // in master loot case we have to send looter list to client
     if (masterLooter)

@@ -1520,24 +1520,24 @@ void Loot::GroupCheck()
                 masterLooter = player;
         }
 
-		// check if there is need to launch a roll
-		if (m_lootMethod != MASTER_LOOT)
-		{
-			for (auto lootItem : m_lootItems)
-			{
-				if (!lootItem->isBlocked)
-					continue;
+        if (masterLooter)
+            break;
 
-				uint32 itemSlot = lootItem->lootSlot;
+        // check if there is need to launch a roll
+        for (auto lootItem : m_lootItems)
+        {
+             if (!lootItem->isBlocked)
+                 continue;
 
-				if (m_roll.find(itemSlot) == m_roll.end() && lootItem->IsAllowed(player, this))
-				{
-					if (!m_roll[itemSlot].TryToStart(*this, itemSlot))      // Create and try to start a roll
-						m_roll.erase(m_roll.find(itemSlot));                // Cannot start roll so we have to delete it (find will not fail as the item was just created)
-				}
-			}
-		}
-	}
+              uint32 itemSlot = lootItem->lootSlot;
+
+              if (m_roll.find(itemSlot) == m_roll.end() && lootItem->IsAllowed(player, this))
+              {
+                  if (!m_roll[itemSlot].TryToStart(*this, itemSlot))      // Create and try to start a roll
+                      m_roll.erase(m_roll.find(itemSlot));                // Cannot start roll so we have to delete it (find will not fail as the item was just created)
+              }
+         }
+    }
 
     // in master loot case we have to send looter list to client
     if (masterLooter)

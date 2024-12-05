@@ -2148,7 +2148,10 @@ void BattleGroundMap::Update(const uint32& diff)
 {
     Map::Update(diff);
 
-    if (!m_bg->GetPlayersSize())
+    if (!m_bg)
+        return;
+    
+    if (m_bg->GetPlayersSize() == 0)
     {
         // BG is empty
         // if there are no players invited, delete BG

@@ -102,7 +102,7 @@ struct SpawnGroupEntry
     std::vector<uint32> LinkedGroups;
 
     // may be nullptr
-    std::unique_ptr<FormationEntry> FormationEntry;
+    std::unique_ptr<FormationEntry> Formation;
 
     int32 GetFormationSlotId(uint32 dbGuid) const
     {

@@ -1247,7 +1247,7 @@ void ObjectMgr::LoadSpawnGroups()
 
             entry.Active = false;
             entry.EnabledByDefault = true;
-            entry.FormationEntry = nullptr;
+            entry.Formation = nullptr;
             entry.HasChancedSpawns = false;
             newContainer->spawnGroupMap.emplace(entry.Id, std::move(entry));
         } while (result->NextRow());
@@ -1307,7 +1307,7 @@ void ObjectMgr::LoadSpawnGroups()
                 continue;
             }
 
-            itr->second.FormationEntry = std::make_unique<FormationEntry>(std::move(fEntry));
+            itr->second.Formation = std::make_unique<FormationEntry>(std::move(fEntry));
         } while (result->NextRow());
     }
 
@@ -1390,7 +1390,7 @@ void ObjectMgr::LoadSpawnGroups()
         // check and fix correctness of slot id indexation
         for (auto& sg : newContainer->spawnGroupMap)
         {
-            if (sg.second.FormationEntry == nullptr)
+            if (sg.second.Formation == nullptr)
                 continue;
 
             auto& guidMap = sg.second.DbGuids;

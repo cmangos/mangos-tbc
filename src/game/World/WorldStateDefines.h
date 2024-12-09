@@ -389,7 +389,8 @@ enum WorldStateID : int32
     WORLD_STATE_SHADOW_LAB_GROUP_48 = 5550014,              // 2 Runners that instantly die after reaching last waypoint
     WORLD_STATE_SHADOW_LAB_GROUP_49 = 5550015,              // First runner
     WORLD_STATE_SHADOW_LAB_GROUP_50 = 5550016,              // 2nd runner
-    WORLD_STATE_SHADOW_LAB_GROUP_51 = 5550017,              // 3rd and 4th runner
+    WORLD_STATE_SHADOW_LAB_GROUP_51 = 5550017,              // 3rd runner
+    WORLD_STATE_SHADOW_LAB_GROUP_52 = 5550018,              // 4th and 5th runner
 
     // Sethekk Halls
     WORLD_STATE_SETHEKK_GROUP_12    = 5560001,              // 2 Possible group versions

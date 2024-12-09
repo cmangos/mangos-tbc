@@ -194,13 +194,16 @@ void instance_shadow_labyrinth::OnCreatureRespawn(Creature* creature)
 void instance_shadow_labyrinth::OnCreatureGroupDespawn(CreatureGroup* group, Creature* /*pCreature*/)
 {
     if (group->GetGroupId() == SL_SPAWN_GROUP_043)
-        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_49, 1);
+        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_49, 0);
 
     if (group->GetGroupId() == SL_SPAWN_GROUP_044)
-        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_50, 1);
+        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_50, 0);
 
     if (group->GetGroupId() == SL_SPAWN_GROUP_045)
-        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_51, 1);
+        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_51, 0);
+
+    if (group->GetGroupId() == SL_SPAWN_GROUP_046)
+        instance->GetVariableManager().SetVariable(WORLD_STATE_SHADOW_LAB_GROUP_52, 0);
 }
 
 void instance_shadow_labyrinth::Load(const char* chrIn)

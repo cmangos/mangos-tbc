@@ -16,7 +16,7 @@
 
 /* ScriptData
 SDName: Boss_Murmur
-SD%Complete: 75
+SD%Complete: 90
 SDComment: Sonic Boom and Murmur's Touch require additional research and core support
 SDCategory: Auchindoun, Shadow Labyrinth
 EndScriptData */
@@ -48,19 +48,27 @@ enum
 enum MurmurActions
 {
     MURMUR_ACTION_MAX,
-    MURMUR_OOC_RP_ATTACK
+    // After door opens 2 Cabal Spellbinder run out of the room, both get killed from murmur individually
+    MURMUR_INTRO_KILL_01,
+    MURMUR_INTRO_KILL_02,
+    // Random cast of Suppresion Blast or Murmurs Wrath
+    MURMUR_OOC_RP_ATTACK,
 };
 
 struct boss_murmurAI : public CombatAI
 {
     boss_murmurAI(Creature* creature) : CombatAI(creature, MURMUR_ACTION_MAX),
-        m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_bIsRegularMode(creature->GetMap()->IsRegularDifficulty())
+        m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_bIsRegularMode(creature->GetMap()->IsRegularDifficulty()),
+        m_firstCast(false)
     {
+        AddCustomAction(MURMUR_INTRO_KILL_01, true, [&]() { HandleIntroKill01(); }, TIMER_COMBAT_OOC);
+        AddCustomAction(MURMUR_INTRO_KILL_02, true, [&]() { HandleIntroKill02(); }, TIMER_COMBAT_OOC);
         AddCustomAction(MURMUR_OOC_RP_ATTACK, true, [&]() { HandleOocAttack(); }, TIMER_COMBAT_OOC);
     }
 
     ScriptedInstance* m_instance;
     bool m_bIsRegularMode;
+    bool m_firstCast;
 
     uint32 m_uiResonanceTimer;
     uint32 m_uiThunderingStormTimer;
@@ -78,7 +86,33 @@ struct boss_murmurAI : public CombatAI
     {
         if (eventType == AI_EVENT_CUSTOM_A)
         {
-            ResetTimer(MURMUR_OOC_RP_ATTACK, urand(8000, 10000));
+            // Murmur can cast Supression Blast first after door opens
+            // resulting in a higher timer to kill the 2 Spellbinders that run out of the room
+            ResetTimer(MURMUR_INTRO_KILL_01, urand(0, 5000));
+            ResetTimer(MURMUR_INTRO_KILL_02, urand(0, 5000));
+            // Murmur can start casting Supression Blast pretty fast after door opens
+            ResetTimer(MURMUR_OOC_RP_ATTACK, urand(0, 3000));
+        }
+    }
+
+    // After door opens 2 Cabal Spellbinder run out of the room, both get killed from murmur individually
+    void HandleIntroKill01()
+    {
+        std::vector<Creature*> const* killTarget = m_creature->GetMap()->GetCreatures(MURMURS_WRATH_TARGETS_01);
+        if (killTarget)
+        {
+            for (Creature* creature : *killTarget)
+                DoCastSpellIfCan(creature, SPELL_MURMURS_WRATH);
+        }       
+    }
+
+    void HandleIntroKill02()
+    {
+        std::vector<Creature*> const* killTarget = m_creature->GetMap()->GetCreatures(MURMURS_WRATH_TARGETS_02);
+        if (killTarget)
+        {
+            for (Creature* creature : *killTarget)
+                DoCastSpellIfCan(creature, SPELL_MURMURS_WRATH);
         }
     }
 
@@ -87,31 +121,41 @@ struct boss_murmurAI : public CombatAI
         if (m_creature->IsInCombat())
             return;
 
-        // kill one that's moving
-        if (urand(0, 1))
+        // First cast after door opens should always be a Suprression Blast
+        if (!m_firstCast)
         {
-            GuidVector m_WrathTargetGuid;
-            std::vector<Creature*> const* m_WrathTarget = m_creature->GetMap()->GetCreatures(MURMURS_WRATH_TARGETS_02);
-            if (m_WrathTarget)
+            DoCastSpellIfCan(nullptr, SPELL_SUPPRESSION_BLAST);
+            m_firstCast = true;
+        }
+        else
+        { 
+            // Kill a moving target
+            if (urand(0, 1))
             {
-                for (Creature* creature : *m_WrathTarget)
-                    m_WrathTargetGuid.push_back(creature->GetObjectGuid());
-            }
-
-            if (m_WrathTargetGuid.size() > 0)
-            {
-                if (ObjectGuid& guid = m_WrathTargetGuid[urand(0, m_WrathTargetGuid.size() - 1)])
+                GuidVector m_WrathTargetGuid;
+                std::vector<Creature*> const* m_WrathTarget = m_creature->GetMap()->GetCreatures(MURMURS_WRATH_TARGETS_03);
+                if (m_WrathTarget)
                 {
-                    if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
+                    for (Creature* creature : *m_WrathTarget)
+                        if(creature->IsAlive() && !creature->IsInCombat())
+                            m_WrathTargetGuid.push_back(creature->GetObjectGuid());
+                }
+
+                if (m_WrathTargetGuid.size() > 0)
+                {
+                    if (ObjectGuid& guid = m_WrathTargetGuid[urand(0, m_WrathTargetGuid.size() - 1)])
                     {
-                        DoCastSpellIfCan(creature, SPELL_MURMURS_WRATH);
+                        if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
+                        {
+                            DoCastSpellIfCan(creature, SPELL_MURMURS_WRATH);
+                        }
                     }
                 }
             }
+            // stun 5 targets
+            else
+                DoCastSpellIfCan(nullptr, SPELL_SUPPRESSION_BLAST);
         }
-        // stun 5 targets
-        else
-            DoCastSpellIfCan(nullptr, SPELL_SUPPRESSION_BLAST);
 
         ResetTimer(MURMUR_OOC_RP_ATTACK, 3000);
     }

@@ -35,10 +35,13 @@ enum
 
     SL_SPAWN_GROUP_043      = 5550064,                      // SpawnGroup that stops respawning of first runner
     SL_SPAWN_GROUP_044      = 5550065,                      // SpawnGroup that stops respawning of 2nd runner
-    SL_SPAWN_GROUP_045      = 5550066,                      // SpawnGroup that stops respawning of third and fourth runner
+    SL_SPAWN_GROUP_045      = 5550066,                      // SpawnGroup that stops respawning of third runner
+    SL_SPAWN_GROUP_046      = 5550067,                      // SpawnGroup that stops respawning of third runner
 };
 
+const std::string MURMURS_WRATH_TARGETS_01 = "SL_MURMUR_WRATH_TARGET_01";
 const std::string MURMURS_WRATH_TARGETS_02 = "SL_MURMUR_WRATH_TARGET_02";
+const std::string MURMURS_WRATH_TARGETS_03 = "SL_MURMUR_WRATH_TARGET_03";
 
 class instance_shadow_labyrinth : public ScriptedInstance
 {

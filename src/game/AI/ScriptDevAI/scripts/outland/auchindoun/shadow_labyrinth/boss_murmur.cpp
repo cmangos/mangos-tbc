@@ -132,24 +132,22 @@ struct boss_murmurAI : public CombatAI
             // Kill a moving target
             if (urand(0, 1))
             {
-                GuidVector m_WrathTargetGuid;
-                std::vector<Creature*> const* m_WrathTarget = m_creature->GetMap()->GetCreatures(MURMURS_WRATH_TARGETS_03);
-                if (m_WrathTarget)
+                GuidVector WrathTargetGuid;
+                std::vector<Creature*> const* WrathTarget = m_creature->GetMap()->GetCreatures(MURMURS_WRATH_TARGETS_03);
+                if (WrathTarget)
                 {
-                    for (Creature* creature : *m_WrathTarget)
+                    for (Creature* creature : *WrathTarget)
                         if(creature->IsAlive() && !creature->IsInCombat())
-                            m_WrathTargetGuid.push_back(creature->GetObjectGuid());
+                            WrathTargetGuid.push_back(creature->GetObjectGuid());
                 }
 
-                if (m_WrathTargetGuid.size() > 0)
+                if (WrathTargetGuid.size() > 0)
                 {
-                    if (ObjectGuid& guid = m_WrathTargetGuid[urand(0, m_WrathTargetGuid.size() - 1)])
+                    ObjectGuid guid = WrathTargetGuid[urand(0, WrathTargetGuid.size() - 1)];
+                    if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
                     {
-                        if (Creature* creature = m_creature->GetMap()->GetCreature(guid))
-                        {
-                            DoCastSpellIfCan(creature, SPELL_MURMURS_WRATH);
-                        }
-                    }
+                        DoCastSpellIfCan(creature, SPELL_MURMURS_WRATH);
+                    }                    
                 }
             }
             // stun 5 targets

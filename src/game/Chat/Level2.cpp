@@ -1922,7 +1922,9 @@ bool ChatHandler::HandleNpcDeleteCommand(char* args)
         case CREATURE_SUBTYPE_GENERIC:
         {
             unit->CombatStop();
-            if (CreatureData const* data = sObjectMgr.GetCreatureData(unit->GetDbGuid()))
+            if (unit->IsUsingNewSpawningSystem()) // might be used in spawn group or scheduled for respawn already
+                unit->AddObjectToRemoveList();
+            else if (CreatureData const* data = sObjectMgr.GetCreatureData(unit->GetDbGuid()))
             {
                 // chat commands execute in world thread so should be thread safe for now
                 sMapMgr.DoForAllMapsWithMapId(data->mapid, [&](Map* map)
@@ -3373,8 +3375,8 @@ bool ChatHandler::HandleWpShowCommand(char* args)
         if (mgenType == WAYPOINT_MOTION_TYPE || mgenType == LINEAR_WP_MOTION_TYPE || mgenType == PATH_MOTION_TYPE)
         {
             uint32 pathEntry = wpOwner->GetEntry();
-            if (targetCreature->GetCreatureGroup() && targetCreature->GetCreatureGroup()->GetFormationEntry())
-                pathEntry = targetCreature->GetCreatureGroup()->GetFormationEntry()->MovementIdOrWander;
+            if (targetCreature->GetCreatureGroup() && targetCreature->GetCreatureGroup()->GetFormationData())
+                pathEntry = targetCreature->GetCreatureGroup()->GetFormationData()->GetFormationEntry().MovementIdOrWander;
             if (WaypointMovementGenerator<Creature> const* wpMMGen = dynamic_cast<WaypointMovementGenerator<Creature> const*>(wpOwner->GetMotionMaster()->GetCurrent()))
             {
                 wpMMGen->GetPathInformation(wpPathId, wpOrigin);

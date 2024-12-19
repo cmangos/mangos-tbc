@@ -1747,11 +1747,13 @@ inline bool IsIgnoreLosSpell(SpellEntry const* spellInfo)
 
     switch (spellInfo->Id)
     {
-        case 36795:                                 // Cannon Channel
+        case 8733:                                  // Blessing of Blackfathom - potentially hints at trap GO casts not respecting los
+        case 8735:                                  // Blackfathom Teleport - same
+        case 24742:                                 // Magic Wings
         case 31628:                                 // Green Beam
         case 31630:                                 // Green Beam
         case 31631:                                 // Green Beam
-        case 24742:                                 // Magic Wings
+        case 36795:                                 // Cannon Channel
         case 40639:                                 // Arcane Beam - Channel target inside gameobject
         case 42867:                                 // both need LOS, likely TARGET_UNIT should use LOS ignore from normal radius, not per-effect radius WIP
             return true;

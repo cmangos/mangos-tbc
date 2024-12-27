@@ -2507,6 +2507,7 @@ class Unit : public WorldObject
 
         virtual bool IsNoWeaponSkillGain() const { return false; }
         virtual bool IsPreventingDeath() const { return false; }
+        virtual bool IsIgnoringMisdirection() const { return false; }
 
         virtual CreatureInfo const* GetMountInfo() const { return nullptr; } // TODO: Meant to be used by players during taxi
         virtual void SetMountInfo(CreatureInfo const* info) {} // does nothing for base unit

@@ -284,7 +284,6 @@ struct EyeOfKilrogg : public SpellScript
     void OnSummon(Spell* /*spell*/, Creature* summon) const override
     {
         summon->CastSpell(nullptr, 2585, TRIGGERED_OLD_TRIGGERED);
-        summon->DisableThreatPropagationToOwner();
     }
 };
 

@@ -9,6 +9,6 @@ loginTime timestamp NOT NULL,
 loginSource INT UNSIGNED NOT NULL
 );
 
+SET sql_mode = 'NO_ZERO_DATE';
 ALTER TABLE account CHANGE `last_ip` `lockedIp` VARCHAR(30) NOT NULL DEFAULT '0.0.0.0';
 ALTER TABLE account DROP COLUMN last_login;
-

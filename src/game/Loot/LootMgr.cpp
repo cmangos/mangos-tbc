@@ -2106,6 +2106,10 @@ std::tuple<uint32, uint32, uint32> Loot::GetQualifiedWeapons()
 {
     uint32 mh = 0, oh = 0, ranged = 0;
     uint32 mhType = 0;
+    //std::sort(m_lootItems.begin(), m_lootItems.end(), [](LootItem const* left, LootItem const* right)
+    //{
+    //    return left.grou
+    //});
     for (auto const& itr : m_lootItems)
     {
         if (ItemPrototype const* pItem = sObjectMgr.GetItemPrototype(itr->itemId))

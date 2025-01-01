@@ -34,7 +34,7 @@ CreatureAI::CreatureAI(Creature* creature, uint32 combatActions) :
     SetMeleeEnabled(!(m_creature->GetSettings().HasFlag(CreatureStaticFlags::NO_MELEE_FLEE)
         || m_creature->GetSettings().HasFlag(CreatureStaticFlags4::NO_MELEE_APPROACH) || m_creature->GetCreatureInfo()->ExtraFlags & CREATURE_EXTRA_FLAG_NO_MELEE));
     if (m_creature->GetSettings().HasFlag(CreatureStaticFlags::SESSILE))
-        SetAIImmobilizedState(true);
+        SetCombatMovement(false);
 
     if (m_creature->IsNoAggroOnSight())
         SetReactState(REACT_DEFENSIVE);
@@ -57,7 +57,7 @@ void CreatureAI::EnterCombat(Unit* enemy)
 {
     UnitAI::EnterCombat(enemy);
     // TODO: Monitor this condition to see if it conflicts with any pets
-    if (m_creature->GetSettings().HasFlag(CreatureStaticFlags::NO_MELEE_FLEE) && !m_creature->IsRooted() && !m_creature->IsInPanic() && enemy && enemy->IsPlayerControlled())
+    if (m_creature->GetSettings().HasFlag(CreatureStaticFlags::NO_MELEE_FLEE) && !m_creature->GetSettings().HasFlag(CreatureStaticFlags::SESSILE) && !m_creature->IsRooted() && !m_creature->IsInPanic() && enemy && enemy->IsPlayerControlled())
     {
         DoFlee(30000);
         SetAIOrder(ORDER_CRITTER_FLEE); // mark as critter flee for custom handling

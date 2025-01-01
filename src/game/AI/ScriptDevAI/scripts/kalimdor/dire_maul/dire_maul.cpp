@@ -308,6 +308,18 @@ struct RitualCandleAura : public SpellScript
     }
 };
 
+// 22876 - Summon Netherwalker
+struct SummonNetherWalker : public SpellScript
+{
+    void OnSuccessfulFinish(Spell* spell) const override
+    {
+        Creature* caster = static_cast<Creature*>(spell->GetCaster());
+        if (!caster || !caster->IsAlive() || !caster->IsCreature())
+            return;
+        caster->ForcedDespawn();
+    }
+};
+
 void AddSC_dire_maul()
 {
     Script* pNewScript = new Script;
@@ -326,4 +338,5 @@ void AddSC_dire_maul()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<RitualCandleAura>("spell_ritual_candle_aura");
+    RegisterSpellScript<SummonNetherWalker>("spell_summon_netherwalker");
 }

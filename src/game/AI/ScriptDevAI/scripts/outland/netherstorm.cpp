@@ -2765,7 +2765,7 @@ struct npc_scrap_reaverAI : ScriptedPetAI
 
     }
 
-    bool CanHandleCharm() override { return true; }
+    bool CanHandleCharm() const override { return true; }
 
     void JustRespawned() override
     {

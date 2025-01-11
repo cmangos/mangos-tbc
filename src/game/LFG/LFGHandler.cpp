@@ -328,7 +328,7 @@ void WorldSession::SendLFGUpdateLFM()
     });
 }
 
-void WorldSession::HandleLfgAcceptLfgMatch(WorldPacket& recv_data)
+void WorldSession::HandleLfgAcceptLfgMatch(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("CMSG_ACCEPT_LFG_MATCH");
     sWorld.GetLFGQueue().GetMessager().AddMessage([objectGuid = _player->GetObjectGuid()](LFGQueue* queue)
@@ -337,7 +337,7 @@ void WorldSession::HandleLfgAcceptLfgMatch(WorldPacket& recv_data)
     });
 }
 
-void WorldSession::HandleLfgDeclineLfgMatch(WorldPacket& recv_data)
+void WorldSession::HandleLfgDeclineLfgMatch(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("CMSG_DECLINE_LFG_MATCH");
     sWorld.GetLFGQueue().GetMessager().AddMessage([objectGuid = _player->GetObjectGuid()](LFGQueue* queue)
@@ -346,7 +346,7 @@ void WorldSession::HandleLfgDeclineLfgMatch(WorldPacket& recv_data)
     });
 }
 
-void WorldSession::HandleLfgCancelPendingLfg(WorldPacket& recv_data)
+void WorldSession::HandleLfgCancelPendingLfg(WorldPacket& /*recv_data*/)
 {
     DEBUG_LOG("CMSG_CANCEL_PENDING_LFG");
     // UNK use

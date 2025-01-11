@@ -81,7 +81,7 @@ void WorldSession::SendBattleGroundList(ObjectGuid guid, BattleGroundTypeId bgTy
     {
         WorldPacket data;
         queue->BuildBattleGroundListPacket(data, masterGuid, playerLevel, BattleGroundTypeId(bgTypeId));
-        sWorld.GetMessager().AddMessage([playerGuid, data](World* world)
+        sWorld.GetMessager().AddMessage([playerGuid, data](World* /*world*/)
         {
             if (Player* player = sObjectMgr.GetPlayer(playerGuid))
                 player->GetSession()->SendPacket(data);
@@ -205,7 +205,7 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
             GroupQueueInfo* groupInfo = queueItem.AddGroup(leaderGuid, info, bgTypeId, bgBracketId, ARENA_TYPE_NONE, false, isPremade, instanceId, 0);
             uint32 avgTime = queueItem.GetAverageQueueWaitTime(groupInfo, bgBracketId);
 
-            sWorld.GetMessager().AddMessage([leaderGuid, members = info.members, bgQueueTypeId, bgTypeId, bgClientInstanceId = instanceId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated, mapId](World* world)
+            sWorld.GetMessager().AddMessage([leaderGuid, members = info.members, bgQueueTypeId, bgTypeId, bgClientInstanceId = instanceId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated, mapId](World* /*world*/)
             {
                 Player* leader = sObjectMgr.GetPlayer(leaderGuid);
                 for (ObjectGuid guid : members)
@@ -240,7 +240,7 @@ void WorldSession::HandleBattlemasterJoinOpcode(WorldPacket& recv_data)
             BattleGroundQueueItem& queueItem = queue->GetBattleGroundQueue(bgQueueTypeId);
             GroupQueueInfo* groupInfo = queueItem.AddGroup(playerGuid, info, bgTypeId, bgBracketId, ARENA_TYPE_NONE, false, isPremade, instanceId, 0);
             uint32 avgTime = queueItem.GetAverageQueueWaitTime(groupInfo, bgBracketId);
-            sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, bgTypeId, bgClientInstanceId = instanceId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated, mapId](World* world)
+            sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, bgTypeId, bgClientInstanceId = instanceId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated, mapId](World* /*world*/)
             {
                 if (Player* player = sObjectMgr.GetPlayer(playerGuid))
                 {
@@ -388,7 +388,7 @@ void WorldSession::HandleBattlefieldListOpcode(WorldPacket& recv_data)
     {
         WorldPacket data;
         queue->BuildBattleGroundListPacket(data, masterGuid, playerLevel, BattleGroundTypeId(bgTypeId));
-        sWorld.GetMessager().AddMessage([playerGuid, data](World* world)
+        sWorld.GetMessager().AddMessage([playerGuid, data](World* /*world*/)
         {
             if (Player* player = sObjectMgr.GetPlayer(playerGuid))
                 player->GetSession()->SendPacket(data);
@@ -459,7 +459,7 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
                 // send bg command result to show nice message
                 WorldPacket data2;
                 sBattleGroundMgr.BuildGroupJoinedBattlegroundPacket(data2, bgTypeId, BG_GROUP_JOIN_STATUS_DESERTERS);
-                sWorld.GetMessager().AddMessage([playerGuid, data2](World* world)
+                sWorld.GetMessager().AddMessage([playerGuid, data2](World* /*world*/)
                 {
                     if (Player* player = sObjectMgr.GetPlayer(playerGuid))
                     {
@@ -481,7 +481,7 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
                 // remove battleground queue status from BGmgr
                 queueItem.RemovePlayer(*queue, playerGuid, false);
 
-                sWorld.GetMessager().AddMessage([playerGuid, invitedTo = queueInfo.isInvitedToBgInstanceGuid, bgTypeId, bgQueueTypeId, groupTeam = queueInfo.groupTeam, queueSlot, bgClientInstanceId = bgInQueue->GetClientInstanceId(), isRated = bgInQueue->IsRated(), mapId = bgInQueue->GetMapId(), arenaType = bgInQueue->GetArenaType()](World* world)
+                sWorld.GetMessager().AddMessage([playerGuid, invitedTo = queueInfo.isInvitedToBgInstanceGuid, bgTypeId, bgQueueTypeId, groupTeam = queueInfo.groupTeam, queueSlot, bgClientInstanceId = bgInQueue->GetClientInstanceId(), isRated = bgInQueue->IsRated(), mapId = bgInQueue->GetMapId(), arenaType = bgInQueue->GetArenaType()](World* /*world*/)
                 {
                     Player* player = sObjectMgr.GetPlayer(playerGuid);
                     if (!player)
@@ -525,7 +525,7 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
                 // if player leaves rated arena match before match start, it is counted as he played but he lost
                 if (queueInfo.isRated && queueInfo.isInvitedToBgInstanceGuid)
                 {
-                    sWorld.GetMessager().AddMessage([arenaTeamId = queueInfo.arenaTeamId, playerGuid, opponentRating = queueInfo.opponentsTeamRating](World* world)
+                    sWorld.GetMessager().AddMessage([arenaTeamId = queueInfo.arenaTeamId, playerGuid, opponentRating = queueInfo.opponentsTeamRating](World* /*world*/)
                     {
                         ArenaTeam* at = sObjectMgr.GetArenaTeamById(arenaTeamId);
                         if (at)
@@ -541,7 +541,7 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
                 }
 
                 queueItem.RemovePlayer(*queue, playerGuid, true);
-                sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, queueSlot, bgTypeId, bgClientInstanceId = queueInfo.clientInstanceId, isRated = queueInfo.isRated, mapId = queueInfo.mapId](World* world)
+                sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, queueSlot, bgTypeId, bgClientInstanceId = queueInfo.clientInstanceId, isRated = queueInfo.isRated, mapId = queueInfo.mapId](World* /*world*/)
                 {
                     Player* player = sObjectMgr.GetPlayer(playerGuid);
                     if (!player)
@@ -646,7 +646,7 @@ void WorldSession::HandleBattlefieldStatusOpcode(WorldPacket& /*recv_data*/)
                 // send status in BattleGround Queue
                 sBattleGroundMgr.BuildBattleGroundStatusPacket(data, true, queueInfo.bgTypeId, queueInfo.clientInstanceId, queueInfo.isRated, queueInfo.mapId, queueSlot, STATUS_WAIT_QUEUE, avgTime, WorldTimer::getMSTimeDiff(queueInfo.joinTime, WorldTimer::getMSTime()), queueInfo.arenaType, TEAM_NONE);
             }
-            sWorld.GetMessager().AddMessage([playerGuid, data](World* world)
+            sWorld.GetMessager().AddMessage([playerGuid, data](World* /*world*/)
             {
                 if (Player* player = sObjectMgr.GetPlayer(playerGuid))
                 {
@@ -870,7 +870,7 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
 
             GroupQueueInfo* groupInfo = bgQueue.AddGroup(playerGuid, info, bgTypeId, bgBracketId, arenatype, isRated != 0, false, 0, arenaRating, ateamId);
             uint32 avgTime = bgQueue.GetAverageQueueWaitTime(groupInfo, groupInfo->bgBracketId);
-            sWorld.GetMessager().AddMessage([playerGuid, members = info.members, bgQueueTypeId, bgTypeId, bgClientInstanceId = groupInfo->clientInstanceId, mapId = groupInfo->mapId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated](World* world)
+            sWorld.GetMessager().AddMessage([playerGuid, members = info.members, bgQueueTypeId, bgTypeId, bgClientInstanceId = groupInfo->clientInstanceId, mapId = groupInfo->mapId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated](World* /*world*/)
             {
                 Player* leader = sObjectMgr.GetPlayer(playerGuid);
                 for (ObjectGuid guid : members)
@@ -902,7 +902,7 @@ void WorldSession::HandleBattlemasterJoinArena(WorldPacket& recv_data)
             GroupQueueInfo* groupInfo = bgQueue.AddGroup(playerGuid, info, bgTypeId, bgBracketId, arenatype, isRated != 0, false, 0, arenaRating, ateamId);
             uint32 avgTime = bgQueue.GetAverageQueueWaitTime(groupInfo, bgBracketId);
 
-            sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, bgTypeId, bgClientInstanceId = groupInfo->clientInstanceId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated, mapId = groupInfo->mapId](World* world)
+            sWorld.GetMessager().AddMessage([playerGuid, bgQueueTypeId, bgTypeId, bgClientInstanceId = groupInfo->clientInstanceId, avgTime, arenaType = groupInfo->arenaType, isRated = groupInfo->isRated, mapId = groupInfo->mapId](World* /*world*/)
             {
                 if (Player* player = sObjectMgr.GetPlayer(playerGuid))
                 {

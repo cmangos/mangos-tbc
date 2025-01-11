@@ -123,7 +123,7 @@ class LFGQueue
 
         bool AddMember(LFGPlayerQueueInfo& info, LFGPlayerQueueInfo& playerInfo, uint32 entry);
 
-        void HandlePendingJoin(ObjectGuid playerGuid, bool accept);
+        void HandlePendingJoin(ObjectGuid playerGuid);
         void RemovePendingJoin(ObjectGuid leaderGuid, ObjectGuid playerGuid);
         void PendingJoinSuccess(ObjectGuid leaderGuid, ObjectGuid playerGuid, bool full);
 

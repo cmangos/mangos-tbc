@@ -333,7 +333,7 @@ void WorldSession::HandleLfgAcceptLfgMatch(WorldPacket& /*recv_data*/)
     DEBUG_LOG("CMSG_ACCEPT_LFG_MATCH");
     sWorld.GetLFGQueue().GetMessager().AddMessage([objectGuid = _player->GetObjectGuid()](LFGQueue* queue)
     {
-        queue->HandlePendingJoin(objectGuid, true);
+        queue->HandlePendingJoin(objectGuid);
     });
 }
 
@@ -342,7 +342,7 @@ void WorldSession::HandleLfgDeclineLfgMatch(WorldPacket& /*recv_data*/)
     DEBUG_LOG("CMSG_DECLINE_LFG_MATCH");
     sWorld.GetLFGQueue().GetMessager().AddMessage([objectGuid = _player->GetObjectGuid()](LFGQueue* queue)
     {
-        queue->HandlePendingJoin(objectGuid, false);
+        queue->HandlePendingJoin(objectGuid);
     });
 }
 

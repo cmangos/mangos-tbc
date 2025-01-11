@@ -333,7 +333,7 @@ bool LFGQueue::AddMember(LFGPlayerQueueInfo& info, LFGPlayerQueueInfo& playerInf
     return true;
 }
 
-void LFGQueue::HandlePendingJoin(ObjectGuid playerGuid, bool accept)
+void LFGQueue::HandlePendingJoin(ObjectGuid playerGuid)
 {
     auto itr = m_queuedPlayers.find(playerGuid);
     if (itr == m_queuedPlayers.end())

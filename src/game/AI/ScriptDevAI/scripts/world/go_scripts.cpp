@@ -1172,6 +1172,31 @@ struct go_ai_ectoplasmic_distiller_trap : public GameObjectAI
     }
 };
 
+// 34145 - Ritual of Souls
+struct RitualOfSoulsDummy : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        WorldObject* caster = spell->GetTrueCaster();
+        if (caster->IsGameObject())
+        {
+            GameObject* go = static_cast<GameObject*>(caster);
+            if (Unit* owner = go->GetOwner())
+            {
+                uint32 spellId = 34145; // untalented
+                if (owner->HasAura(18693))
+                    spellId = 34148;
+                else if (owner->HasAura(18692))
+                    spellId = 34147;
+                owner->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED); // meant to be non triggered
+            }
+        }
+    }
+};
+
 void AddSC_go_scripts()
 {
     Script* pNewScript = new Script;
@@ -1273,4 +1298,6 @@ void AddSC_go_scripts()
     pNewScript->Name = "go_ectoplasmic_distiller_trap";
     pNewScript->GetGameObjectAI = &GetNewAIInstance<go_ai_ectoplasmic_distiller_trap>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<RitualOfSoulsDummy>("spell_ritual_of_souls_dummy");
 }

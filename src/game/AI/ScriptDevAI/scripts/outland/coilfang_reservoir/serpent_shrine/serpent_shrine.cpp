@@ -118,6 +118,9 @@ void instance_serpentshrine_cavern::OnObjectCreate(GameObject* pGo)
             m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
             break;
         case GO_CONSOLE_VASHJ:
+#ifdef PRENERF_2_3
+            pGo->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+#endif
             m_goEntryGuidStore[pGo->GetEntry()] = pGo->GetObjectGuid();
             EngageBridgeConsole(pGo);
             break;

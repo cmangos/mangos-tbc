@@ -37,117 +37,101 @@ EndContentData */
 
 enum
 {
-    SAY_MUG_START1          = -1000501,
-    SAY_MUG_START2          = -1000502,
-    SAY_MUG_BRAZIER         = -1000503,
-    SAY_MUG_BRAZIER_WAIT    = -1000504,
-    SAY_MUG_ON_GUARD        = -1000505,
-    SAY_MUG_REST            = -1000506,
-    SAY_MUG_DONE            = -1000507,
-    SAY_MUG_GRATITUDE       = -1000508,
-    SAY_MUG_PATROL          = -1000509,
-    SAY_MUG_RETURN          = -1000510,
+    MUGLASH_ESCORT_PATH     = 12717,
+
+    SAY_MUGLASH_START       = 8555,
+    SAY_MUGLASH_BRAZIER     = 8556,
+    SAY_MUGLASH_FAIL        = 8409,
+    SAY_MUGLASH_EVENT_01    = 8412,
 
     QUEST_VORSHA            = 6641,
 
     GO_NAGA_BRAZIER         = 178247,
-    NPC_MUGLASH             = 12717,
 
+    NPC_MUGLASH             = 12717,
     NPC_WRATH_RIDER         = 3713,
     NPC_WRATH_SORCERESS     = 3717,
     NPC_WRATH_RAZORTAIL     = 3712,
-
-    NPC_WRATH_PRIESTESS     = 3944,
-    NPC_WRATH_MYRMIDON      = 3711,
-    NPC_WRATH_SEAWITCH      = 3715,
-
-    NPC_VORSHA              = 12940
 };
 
-static float m_afFirstNagaCoord[3][3] =
+enum MuglashActions
 {
-    {3603.504150f, 1122.631104f, 1.635f},                   // rider
-    {3589.293945f, 1148.664063f, 5.565f},                   // sorceress
-    {3609.925537f, 1168.759521f, -1.168f}                   // razortail
+    NETHEKURSE_ACTION_MAX,
+    MUGLASH_FAIL,
+    MUGLASH_EVENT
 };
 
-static float m_afSecondNagaCoord[3][3] =
+static float m_afFirstNagaCoord[3][4] =
 {
-    {3609.925537f, 1168.759521f, -1.168f},                  // witch
-    {3645.652100f, 1139.425415f, 1.322f},                   // priest
-    {3583.602051f, 1128.405762f, 2.347f}                    // myrmidon
+    {3629.9194f, 1169.9987f, -3.4472558f, 1.37881f},        // Wrathtail Razortail
+    {3617.8516f, 1097.7166f, -4.0877485f, 5.67231f},        // Wrathtail Wave Rider
+    {3583.1497f, 1165.5658f, -5.3660164f, 1.85004f}         // Wrathtail Sorceress
 };
-
-static float m_fVorshaCoord[] = {3633.056885f, 1172.924072f, -5.388f};
 
 struct npc_muglashAI : public npc_escortAI
 {
     npc_muglashAI(Creature* pCreature) : npc_escortAI(pCreature)
     {
-        m_uiWaveId = 0;
-        m_bIsBrazierExtinguished = false;
         Reset();
+        AddCustomAction(MUGLASH_FAIL, true, [&]() { DoFailEscort(); }, TIMER_COMBAT_OOC);
+        AddCustomAction(MUGLASH_EVENT, true, [&]() { DoStartEvent(); }, TIMER_COMBAT_OOC);
+        m_uiWaveId = 0;
     }
 
-    bool m_bIsBrazierExtinguished;
-
     uint32 m_uiWaveId;
-    uint32 m_uiEventTimer;
+    uint8 m_uiSummonedAlive;
 
     void Reset() override
     {
-        m_uiEventTimer = 10000;
-
         if (!HasEscortState(STATE_ESCORT_ESCORTING))
         {
             m_uiWaveId = 0;
-            m_bIsBrazierExtinguished = false;
+            m_uiSummonedAlive = 0;
         }
     }
 
     void Aggro(Unit* /*pWho*/) override
     {
-        if (HasEscortState(STATE_ESCORT_PAUSED))
-        {
-            if (urand(0, 1))
-                return;
-
-            if (Player* pPlayer = GetPlayerForEscort())
-                DoScriptText(SAY_MUG_ON_GUARD, m_creature, pPlayer);
-        }
     }
 
     void WaypointReached(uint32 uiPointId) override
     {
         switch (uiPointId)
         {
-            case 1:
+            case 3:
                 if (Player* pPlayer = GetPlayerForEscort())
-                    DoScriptText(SAY_MUG_START2, m_creature, pPlayer);
-                break;
-            case 25:
-                if (Player* pPlayer = GetPlayerForEscort())
-                    DoScriptText(SAY_MUG_BRAZIER, m_creature, pPlayer);
-
-                if (GameObject* pGo = GetClosestGameObjectWithEntry(m_creature, GO_NAGA_BRAZIER, INTERACTION_DISTANCE * 2))
                 {
-                    // some kind of event flag? Update to player/group only?
-                    pGo->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-                    SetEscortPaused(true);
+                    DoBroadcastText(SAY_MUGLASH_START, m_creature, pPlayer);
+                    m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
                 }
                 break;
-            case 26:
-                DoScriptText(SAY_MUG_GRATITUDE, m_creature);
-
+            case 9:
+                // Before entering Water ignore mmaps to get better pathing
+                m_creature->SetIgnoreMMAP(true);
+                break;
+            case 15:
+                // First point after Water
+                m_creature->SetIgnoreMMAP(false);
+                break;
+            case 18:
+                // Last waypoint Reached
                 if (Player* pPlayer = GetPlayerForEscort())
-                    pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_VORSHA, m_creature);
+                {
+                    DoBroadcastText(SAY_MUGLASH_BRAZIER, m_creature, pPlayer);
+                    m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
+                }
+                // Let Escort fail after 5 minutes if players dont use Naga Brazier object
+                ResetTimer(MUGLASH_FAIL, 300000);
                 break;
-            case 27:
-                DoScriptText(SAY_MUG_PATROL, m_creature);
-                break;
-            case 28:
-                DoScriptText(SAY_MUG_RETURN, m_creature);
-                break;
+            case 19:
+                // Using custom point to get a 2 seconds delay after last text
+                // Make Naga Brazier object usable
+                if (GameObject* go = GetClosestGameObjectWithEntry(m_creature, GO_NAGA_BRAZIER, INTERACTION_DISTANCE * 2))
+                {
+                    go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+                }
+                // Stop waypoints at this point
+                SetEscortPaused(true);
         }
     }
 
@@ -156,66 +140,58 @@ struct npc_muglashAI : public npc_escortAI
         switch (m_uiWaveId)
         {
             case 1:
-                m_creature->SummonCreature(NPC_WRATH_RIDER,     m_afFirstNagaCoord[0][0], m_afFirstNagaCoord[0][1], m_afFirstNagaCoord[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-                m_creature->SummonCreature(NPC_WRATH_SORCERESS, m_afFirstNagaCoord[1][0], m_afFirstNagaCoord[1][1], m_afFirstNagaCoord[1][2], 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-                m_creature->SummonCreature(NPC_WRATH_RAZORTAIL, m_afFirstNagaCoord[2][0], m_afFirstNagaCoord[2][1], m_afFirstNagaCoord[2][2], 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-                break;
-            case 2:
-                m_creature->SummonCreature(NPC_WRATH_PRIESTESS, m_afSecondNagaCoord[0][0], m_afSecondNagaCoord[0][1], m_afSecondNagaCoord[0][2], 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-                m_creature->SummonCreature(NPC_WRATH_MYRMIDON,  m_afSecondNagaCoord[1][0], m_afSecondNagaCoord[1][1], m_afSecondNagaCoord[1][2], 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-                m_creature->SummonCreature(NPC_WRATH_SEAWITCH,  m_afSecondNagaCoord[2][0], m_afSecondNagaCoord[2][1], m_afSecondNagaCoord[2][2], 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-                break;
-            case 3:
-                m_creature->SummonCreature(NPC_VORSHA, m_fVorshaCoord[0], m_fVorshaCoord[1], m_fVorshaCoord[2], 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000);
-                break;
-            case 4:
-                SetEscortPaused(false);
-                DoScriptText(SAY_MUG_DONE, m_creature);
+                m_creature->SummonCreature(NPC_WRATH_RAZORTAIL, m_afFirstNagaCoord[0][0], m_afFirstNagaCoord[0][1], m_afFirstNagaCoord[0][2], m_afFirstNagaCoord[0][3], TEMPSPAWN_TIMED_OOC_DESPAWN, true, true, 1, 60000);
+                m_creature->SummonCreature(NPC_WRATH_RIDER, m_afFirstNagaCoord[1][0], m_afFirstNagaCoord[1][1], m_afFirstNagaCoord[1][2], m_afFirstNagaCoord[1][3], TEMPSPAWN_TIMED_OOC_DESPAWN, true, true, 1, 60000);
+                m_creature->SummonCreature(NPC_WRATH_SORCERESS, m_afFirstNagaCoord[2][0], m_afFirstNagaCoord[2][1], m_afFirstNagaCoord[2][2], m_afFirstNagaCoord[2][3], TEMPSPAWN_TIMED_OOC_DESPAWN, true, true, 1, 60000);
+                ++m_uiWaveId; 
                 break;
         }
     }
 
-    void JustSummoned(Creature* pSummoned) override
+    // Failed cause players didnt use Naga Brazier object
+    void DoFailEscort()
     {
-        pSummoned->AI()->AttackStart(m_creature);
-    }
-
-    void UpdateEscortAI(const uint32 uiDiff) override
-    {
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+        if (Player* pPlayer = GetPlayerForEscort())
         {
-            if (HasEscortState(STATE_ESCORT_PAUSED) && m_bIsBrazierExtinguished)
-            {
-                if (m_uiEventTimer < uiDiff)
-                {
-                    ++m_uiWaveId;
-                    DoWaveSummon();
-                    m_uiEventTimer = 10000;
-                }
-                else
-                    m_uiEventTimer -= uiDiff;
-            }
-
-            return;
+            DoBroadcastText(SAY_MUGLASH_FAIL, m_creature, pPlayer);
+            m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
         }
+        m_creature->ForcedDespawn(1000);
+    }
 
-        DoMeleeAttackIfReady();
+    // When Player activates object start Event
+    void DoStartEvent()
+    { 
+        switch(m_uiWaveId)
+        {
+            case 0:
+                // Disable Fail timer
+                DisableTimer(MUGLASH_FAIL);
+                ++m_uiWaveId;
+                ResetTimer(MUGLASH_EVENT, 2000);
+                break;
+            case 1:
+                if (Player* pPlayer = GetPlayerForEscort())
+                {
+                    DoBroadcastText(SAY_MUGLASH_EVENT_01, m_creature, pPlayer);
+                }
+                // Summon first wave of adds
+                DoWaveSummon();
+                break;
+        }
     }
 };
 
-bool QuestAccept_npc_muglash(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
+bool QuestAccept_npc_muglash(Player* player, Creature* creature, const Quest* quest)
 {
-    if (pQuest->GetQuestId() == QUEST_VORSHA)
+    if (quest->GetQuestId() == QUEST_VORSHA)
     {
-        if (npc_muglashAI* pEscortAI = dynamic_cast<npc_muglashAI*>(pCreature->AI()))
+        if (npc_muglashAI* pEscortAI = dynamic_cast<npc_muglashAI*>(creature->AI()))
         {
-            DoScriptText(SAY_MUG_START1, pCreature);
-            pCreature->SetFactionTemporary(FACTION_ESCORT_H_PASSIVE, TEMPFACTION_RESTORE_RESPAWN | TEMPFACTION_TOGGLE_IMMUNE_TO_NPC);
-
-            pEscortAI->Start(false, pPlayer, pQuest);
+            creature->SetFactionTemporary(FACTION_ESCORT_H_NEUTRAL_PASSIVE, TEMPFACTION_RESTORE_RESPAWN);
+            pEscortAI->Start(false, player, quest, false, false, MUGLASH_ESCORT_PATH);
         }
     }
-
     return true;
 }
 
@@ -224,19 +200,21 @@ UnitAI* GetAI_npc_muglash(Creature* pCreature)
     return new npc_muglashAI(pCreature);
 }
 
-bool GOUse_go_naga_brazier(Player* /*pPlayer*/, GameObject* pGo)
+bool GOUse_go_naga_brazier(Player* /*pPlayer*/, GameObject* go)
 {
-    if (Creature* pCreature = GetClosestCreatureWithEntry(pGo, NPC_MUGLASH, INTERACTION_DISTANCE * 2))
+    // When player finishs cast inform npc muglash
+    if (Creature* creature = GetClosestCreatureWithEntry(go, NPC_MUGLASH, INTERACTION_DISTANCE * 2))
     {
-        if (npc_muglashAI* pEscortAI = dynamic_cast<npc_muglashAI*>(pCreature->AI()))
+        if (npc_muglashAI* pEscortAI = dynamic_cast<npc_muglashAI*>(creature->AI()))
         {
-            DoScriptText(SAY_MUG_BRAZIER_WAIT, pCreature);
-
-            pEscortAI->m_bIsBrazierExtinguished = true;
+            // Start Event with 2 seconds delay
+            pEscortAI->DoStartEvent();
             return false;
         }
     }
-
+    // Make Object not interactable again and remove flames visual
+    go->SetGoState(GO_STATE_READY);
+    go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
     return true;
 }
 

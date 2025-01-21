@@ -861,7 +861,7 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
     // battleground with free slot for player should be always in the beggining of the queue
     // maybe it would be better to create bgfreeslotqueue for each bracket_id
     BgFreeSlotQueueType::iterator next;
-    auto queueItems = queue.GetFreeSlotQueueItem(bgTypeId);
+    auto& queueItems = queue.GetFreeSlotQueueItem(bgTypeId);
     for (BgFreeSlotQueueType::iterator itr = queueItems.begin(); itr != queueItems.end(); itr = next)
     {
         BattleGroundInQueueInfo& queueInfo = *itr;
@@ -968,8 +968,6 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
             bgInfo.instanceId = sMapMgr.GenerateInstanceId();
             bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
 
-            queue.AddBgToFreeSlots(bgInfo);
-
             // invite those selection pools
             for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
                 for (GroupsQueueType::const_iterator citr = m_selectionPools[TEAM_INDEX_ALLIANCE + i].selectedGroups.begin(); citr != m_selectionPools[TEAM_INDEX_ALLIANCE + i].selectedGroups.end(); ++citr)
@@ -978,6 +976,8 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
             // clear structures
             m_selectionPools[TEAM_INDEX_ALLIANCE].Init();
             m_selectionPools[TEAM_INDEX_HORDE].Init();
+
+            queue.AddBgToFreeSlots(bgInfo);
 
             sWorld.GetMessager().AddMessage([instanceId = bgInfo.instanceId, clientInstanceId = bgInfo.m_clientInstanceId, bgTypeId, bracketId, allianceCount = bgInfo.GetInvitedCount(ALLIANCE), hordeCount = bgInfo.GetInvitedCount(HORDE)](World* /*world*/)
             {
@@ -1012,12 +1012,12 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
             bgInfo.instanceId = sMapMgr.GenerateInstanceId();
             bgInfo.m_clientInstanceId = queue.CreateClientVisibleInstanceId(bgTypeId, bracketId);
 
-            queue.AddBgToFreeSlots(bgInfo);
-
             // invite those selection pools
             for (uint8 i = 0; i < PVP_TEAM_COUNT; ++i)
                 for (GroupsQueueType::const_iterator citr = m_selectionPools[TEAM_INDEX_ALLIANCE + i].selectedGroups.begin(); citr != m_selectionPools[TEAM_INDEX_ALLIANCE + i].selectedGroups.end(); ++citr)
                     InviteGroupToBg((*citr), bgInfo, (*citr)->groupTeam);
+
+            queue.AddBgToFreeSlots(bgInfo);
 
             sWorld.GetMessager().AddMessage([instanceId = bgInfo.instanceId, clientInstanceId = bgInfo.m_clientInstanceId, bgTypeId, bracketId, allianceCount = bgInfo.GetInvitedCount(ALLIANCE), hordeCount = bgInfo.GetInvitedCount(HORDE)](World* /*world*/)
             {
@@ -1149,8 +1149,6 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
             bgInfo.isRated = true;
             bgInfo.arenaType = arenaType;
 
-            queue.AddBgToFreeSlots(bgInfo);
-
             GroupQueueInfo* firstGroup = *(itr_team[TEAM_INDEX_ALLIANCE]);
             GroupQueueInfo* secondGroup = *(itr_team[TEAM_INDEX_HORDE]);
 
@@ -1178,6 +1176,8 @@ void BattleGroundQueueItem::Update(BattleGroundQueue& queue, BattleGroundTypeId 
 
             InviteGroupToBg(firstGroup, bgInfo, ALLIANCE);
             InviteGroupToBg(secondGroup, bgInfo, HORDE);
+
+            queue.AddBgToFreeSlots(bgInfo);
 
             DEBUG_LOG("Starting rated arena match!");
 

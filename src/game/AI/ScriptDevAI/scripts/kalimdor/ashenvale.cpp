@@ -43,14 +43,16 @@ enum
     SAY_MUGLASH_BRAZIER     = 8556,
     SAY_MUGLASH_FAIL        = 8409,
     SAY_MUGLASH_AGGRO       = 8412,
-    SAY_MUGLASH_EVENT_01    = 8413,
-    SAY_MUGLASH_EVENT_02    = 8567,
-    SAY_MUGLASH_EVENT_03    = 8568,
+    SAY_MUGLASH_EVENT_01    = 8410,
+    SAY_MUGLASH_EVENT_02    = 8413,
+    SAY_MUGLASH_EVENT_03    = 8567,
+    SAY_MUGLASH_EVENT_04    = 8568,
     SAY_MUGLASH_SUCCESS     = 8569,
     SAY_MUGLASH_SUCCESS_02  = 8558,
     SAY_MUGLASH_SUCCESS_03  = 8564,
     SAY_MUGLASH_SUCCESS_04  = 8565,
 
+    SPELL_MUGLASH_WAITING   = 20861,
     QUEST_VORSHA            = 6641,
 
     GO_NAGA_BRAZIER         = 178247,
@@ -67,6 +69,7 @@ enum
     NPC_WRATH_MYRMIDON      = 3711,
     NPC_WRATH_SEAWITCH      = 3715,
 
+    // 3rd Wave
     NPC_VORSHA              = 12940,
 };
 
@@ -109,7 +112,7 @@ struct npc_muglashAI : public npc_escortAI
     {
         Reset();
         AddCustomAction(MUGLASH_FAIL, true, [&]() { DoFailEscort(); }, TIMER_COMBAT_OOC);
-        AddCustomAction(MUGLASH_EVENT, true, [&]() { DoStartEvent(); }, TIMER_COMBAT_OOC);
+        AddCustomAction(MUGLASH_EVENT, true, [&]() { DoStartEvent(); }, TIMER_ALWAYS);
         m_uiEventId = 0;
     }
 
@@ -180,7 +183,7 @@ struct npc_muglashAI : public npc_escortAI
                 SetEscortPaused(true);
                 break;
             case 20:
-                // Stop waypoints at this point
+                // First Wave spawned disable waypoints for now
                 SetEscortPaused(true);
                 break;
             case 21:
@@ -220,13 +223,9 @@ struct npc_muglashAI : public npc_escortAI
             case NPC_WRATH_RAZORTAIL:
             case NPC_WRATH_RIDER:
             case NPC_WRATH_SORCERESS:     
-                // Not all dead
-                if (m_uiWaveOneAlive != 0)
-                {    
-                    --m_uiWaveOneAlive;
-                }
+                --m_uiWaveOneAlive;
                 // Continue Event if all are dead and spawn 2nd wave already
-                else if (m_uiWaveOneAlive == 0)
+                if (m_uiWaveOneAlive == 0)
                 {
                     for (auto& i : secondnagaLocations)
                         m_creature->SummonCreature(i.uiEntry, i.fX, i.fY, i.fZ, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000, true, true);
@@ -237,12 +236,9 @@ struct npc_muglashAI : public npc_escortAI
             case NPC_WRATH_MYRMIDON:
             case NPC_WRATH_SEAWITCH:
             case NPC_WRATH_PRIESTESS:
-                if (m_uiWaveTwoAlive != 0)
-                {
-                    --m_uiWaveTwoAlive;
-                }
+                --m_uiWaveTwoAlive;
                 // If 2nd Wave is Dead go to next waypoint and spawn Vorsha
-                else if (m_uiWaveTwoAlive == 0)
+                if (m_uiWaveTwoAlive == 0)
                 {
                     m_creature->SummonCreature(NPC_VORSHA, 3630.2092f, 1190.3536f, -16.624332f, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000, true, false);
                     SetEscortPaused(false); // go to next waypoint
@@ -287,15 +283,15 @@ struct npc_muglashAI : public npc_escortAI
                 break;
             case 1:                
                 if (Player* player = GetPlayerForEscort())
-                    DoBroadcastText(SAY_MUGLASH_AGGRO, m_creature, player);
+                    DoBroadcastText(SAY_MUGLASH_EVENT_01, m_creature, player);
                 // Summon first wave of adds
                 for (auto& i : nagaLocations)                
                     m_creature->SummonCreature(i.uiEntry, i.fX, i.fY, i.fZ, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000, true, true);  
                 SetEscortPaused(false); // go to next waypoint
                 break;                
             case 2:
-                // Rest after first wave is dead
-                DoBroadcastText(SAY_MUGLASH_EVENT_01, m_creature);
+                // First Wave is Dead rest now
+                DoBroadcastText(SAY_MUGLASH_EVENT_02, m_creature);
                 m_creature->SetStandState(UNIT_STAND_STATE_SIT);
                 ResetTimer(MUGLASH_EVENT, 9000);
                 ++m_uiEventId;
@@ -307,13 +303,13 @@ struct npc_muglashAI : public npc_escortAI
                 break;
             case 4:
                 // 2nd wave is dead
-                DoBroadcastText(SAY_MUGLASH_EVENT_02, m_creature);
+                DoBroadcastText(SAY_MUGLASH_EVENT_03, m_creature);
                 ++m_uiEventId;
                 ResetTimer(MUGLASH_EVENT, 3000);
                 break;
             case 5:
                 m_creature->HandleEmote(EMOTE_ONESHOT_POINT);
-                DoBroadcastText(SAY_MUGLASH_EVENT_03, m_creature);
+                DoBroadcastText(SAY_MUGLASH_EVENT_04, m_creature);
                 break;
             case 6: 
                 m_creature->HandleEmote(EMOTE_ONESHOT_CHEER);

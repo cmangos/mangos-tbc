@@ -2719,6 +2719,12 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
     if (attType == RANGED_ATTACK)
         return;                                             // ignore ranged case
 
+    auto resetLeashFunc = [&]()
+    {
+        if (!IsPlayerControlled() && m_lastMoveTime + 3s < GetMap()->GetCurrentClockTime() && GetVictim() && !GetVictim()->IsMoving())
+            GetCombatManager().TriggerCombatTimer(false);
+    };
+
     // melee attack spell casted at main hand attack only - but only if its not already being executed
     if (attType == BASE_ATTACK && m_currentSpells[CURRENT_MELEE_SPELL] && !m_currentSpells[CURRENT_MELEE_SPELL]->IsExecutedCurrently())
     {
@@ -2726,11 +2732,13 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
         if (result == SPELL_CAST_OK)
         {
             RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ATTACKING);
+            resetLeashFunc();
             return;
         }
     }
 
     RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ATTACKING);
+    resetLeashFunc();
 
     // attack can be redirected to another target
     if (Unit* magnetTarget = SelectMagnetTarget(pVictim))
@@ -11561,6 +11569,8 @@ void Unit::UpdateSplinePosition(bool relocateOnly)
             pos.o = (angle >= 0 ? angle : ((2 * M_PI_F) + angle));
         }
     }
+
+    m_lastMoveTime = GetMap()->GetCurrentClockTime();
 
     if (relocateOnly)
     {

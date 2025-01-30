@@ -244,13 +244,11 @@ struct npc_muglashAI : public npc_escortAI
                     SetEscortPaused(false); // go to next waypoint
                 }
                 break;
-        }
+            case NPC_VORSHA:
+                ResetTimer(MUGLASH_EVENT, 2000);
+                m_uiEventId = 6;
+                break;
 
-        // Vorsha killed
-        if (summoned->GetEntry() == NPC_VORSHA)
-        {
-            ResetTimer(MUGLASH_EVENT, 2000);
-            m_uiEventId = 6;
         }
     }
 

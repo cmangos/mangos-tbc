@@ -1919,17 +1919,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000499','Puny $r wanna fight Overlord Mok''Morokk? Me beat you! Me boss here!','0','0','1','0','1515','morokk SAY_MOR_CHALLENGE'),
 ('-1000500','Me scared! Me run now!','0','1','0','0','1523','morokk SAY_MOR_SCARED'),
 
-('-1000501','Are you sure that you are ready? If we do not have a group of your allies to aid us, we will surely fail.','0','0','1','0','8566','muglash SAY_MUG_START1'),
-('-1000502','This will be a tough fight, $N. Follow me closely!','0','0','1','0','8555','muglash SAY_MUG_START2'),
-('-1000503','This is the brazier, $N. Put it out. Vorsha is a beast, worthy of praise from no one!','0','0','1','0','8556','muglash SAY_MUG_BRAZIER'),
-('-1000504','Now we must wait, $N. It won''t be long before the naga realize what we have done.','0','0','1','0','8410','muglash SAY_MUG_BRAZIER_WAIT'),
-('-1000505','Be on your guard, $N!','0','0','1','0','8412','muglash SAY_MUG_ON_GUARD'),
-('-1000506','Perhaps we will get a moment to rest. But I will not give up until we have faced off against Vorsha!','0','0','1','0','8413','muglash SAY_MUG_REST'),
-('-1000507','We have done it, $N!','0','0','1','0','8569','muglash SAY_MUG_DONE'),
-('-1000508','You have my deepest gratitude, $N. I thank you.','0','0','1','0','8558','muglash SAY_MUG_GRATITUDE'),
-('-1000509','I am going to patrol the area for a while longer and ensure that things are truly safe.','0','0','1','0','8564','muglash SAY_MUG_PATROL'),
-('-1000510','Please return to Zoram''gar and report our success to the Warsong Runner.','0','0','1','0','8565','muglash SAY_MUG_RETURN'),
-
 ('-1000511','Aright, listen up! Form a circle around me and move out!','0','0','0','0','20314','letoll SAY_LE_START'),
 ('-1000512','Aright, $r, just keep us safe from harm while we work. We''ll pay you when we return.','0','0','0','0','20328','letoll SAY_LE_KEEP_SAFE'),
 ('-1000513','The dig site is just north of here.','0','0','0','0','20329','letoll SAY_LE_NORTH'),

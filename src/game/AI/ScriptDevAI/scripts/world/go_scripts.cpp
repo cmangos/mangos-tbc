@@ -1181,18 +1181,23 @@ struct RitualOfSoulsDummy : public SpellScript
             return;
 
         WorldObject* caster = spell->GetTrueCaster();
+        Unit* owner = nullptr;
         if (caster->IsGameObject())
         {
             GameObject* go = static_cast<GameObject*>(caster);
-            if (Unit* owner = go->GetOwner())
-            {
-                uint32 spellId = 34145; // untalented
-                if (owner->HasAura(18693))
-                    spellId = 34148;
-                else if (owner->HasAura(18692))
-                    spellId = 34147;
-                owner->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED); // meant to be non triggered
-            }
+            owner = go->GetOwner();
+        }
+        else
+            owner = static_cast<Unit*>(caster);
+
+        if (owner)
+        {
+            uint32 spellId = 29886; // untalented
+            if (owner->HasAura(18693))
+                spellId = 34148;
+            else if (owner->HasAura(18692))
+                spellId = 34147;
+            owner->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED); // meant to be non triggered
         }
     }
 };

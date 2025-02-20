@@ -199,7 +199,7 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
         return false;
     }
 
-    Object::_Create(dbGuid, guidlow, goinfo->id, HIGHGUID_GAMEOBJECT);
+    Object::_Create(dbGuid, guidlow, goinfo->id, goinfo->type == GAMEOBJECT_TYPE_TRANSPORT ? HIGHGUID_TRANSPORT : HIGHGUID_GAMEOBJECT);
 
     m_goInfo = goinfo;
 

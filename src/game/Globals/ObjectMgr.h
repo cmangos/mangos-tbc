@@ -720,6 +720,8 @@ class ObjectMgr
         void LoadMailLevelRewards();
         void LoadAreatriggerLocales();
 
+        void GenerateZoneAndAreaIds();
+
         void LoadGossipText();
 
         void LoadAreaTriggerTeleports();

@@ -37,12 +37,9 @@ EndContentData */
 
 enum
 {
-    MUGLASH_ESCORT_PATH     = 12717,
-
-    SAY_MUGLASH_START       = 8555,
+    SAY_MUGLASH_AGGRO       = 8412,
     SAY_MUGLASH_BRAZIER     = 8556,
     SAY_MUGLASH_FAIL        = 8409,
-    SAY_MUGLASH_AGGRO       = 8412,
     SAY_MUGLASH_EVENT_01    = 8410,
     SAY_MUGLASH_EVENT_02    = 8413,
     SAY_MUGLASH_EVENT_03    = 8567,
@@ -52,8 +49,9 @@ enum
     SAY_MUGLASH_SUCCESS_03  = 8564,
     SAY_MUGLASH_SUCCESS_04  = 8565,
 
-    SPELL_MUGLASH_WAITING   = 20861,
     QUEST_VORSHA            = 6641,
+    MUGLASH_ESCORT_PATH     = 12717,
+    SPELL_MUGLASH_WAITING   = 20861, // This spell triggers Muglash Despawn after 5 minutes
 
     GO_NAGA_BRAZIER         = 178247,
 
@@ -75,7 +73,7 @@ enum
 
 enum MuglashActions
 {
-    NETHEKURSE_ACTION_MAX,
+    MUGLASH_ACTION_MAX,
     MUGLASH_FAIL,
     MUGLASH_EVENT
 };
@@ -108,26 +106,25 @@ static const secondWaveLocations secondnagaLocations[3] =
 
 struct npc_muglashAI : public npc_escortAI
 {
-    npc_muglashAI(Creature* pCreature) : npc_escortAI(pCreature)
+    npc_muglashAI(Creature* creature) : npc_escortAI(creature)
     {
         Reset();
         AddCustomAction(MUGLASH_FAIL, true, [&]() { DoFailEscort(); }, TIMER_COMBAT_OOC);
-        AddCustomAction(MUGLASH_EVENT, true, [&]() { DoStartEvent(); }, TIMER_ALWAYS);
+        AddCustomAction(MUGLASH_EVENT, true, [&]() { DoEvent(); }, TIMER_ALWAYS);
         m_uiEventId = 0;
+        m_uiWaveOneAlive = 0;
+        m_uiWaveTwoAlive = 0;
     }
 
     uint32 m_uiEventId;
     uint8 m_uiWaveOneAlive;
     uint8 m_uiWaveTwoAlive;
-    bool m_Wave;
 
     void Reset() override
     {
         if (!HasEscortState(STATE_ESCORT_ESCORTING))
         {
             m_uiEventId = 0;
-            m_uiWaveOneAlive = 0;
-            m_uiWaveTwoAlive = 0;
         }
     }
 
@@ -147,50 +144,41 @@ struct npc_muglashAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-            case 3:
-                if (Player* player = GetPlayerForEscort())
-                {
-                    DoBroadcastText(SAY_MUGLASH_START, m_creature, player);
-                    m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
-                }
-                break;
-            case 9:
-                // Before entering Water ignore mmaps to get better pathing
+            case 10:
+                // Before entering Water ignore mmaps so npc swims
                 m_creature->SetIgnoreMMAP(true);
                 break;
-            case 15:
-                // First point after Water
+            case 12:
+                // Intermediary Point as first point after Water
                 m_creature->SetIgnoreMMAP(false);
                 break;
-            case 18:
-                // Last waypoint Reached
-                if (Player* player = GetPlayerForEscort())
-                {
-                    DoBroadcastText(SAY_MUGLASH_BRAZIER, m_creature, player);
-                    m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
-                }
-                // Let Escort fail after 5 minutes if players dont use Naga Brazier object
-                ResetTimer(MUGLASH_FAIL, 300000);
-                break;
-            case 19:
-                // Using custom point to get a 2 seconds delay after last text
-                // Make Naga Brazier object usable
-                if (GameObject* go = GetClosestGameObjectWithEntry(m_creature, GO_NAGA_BRAZIER, INTERACTION_DISTANCE * 2))
-                {
-                    go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
-                }
-                // Stop waypoints at this point
-                SetEscortPaused(true);
-                break;
-            case 20:
-                // First Wave spawned disable waypoints for now
-                SetEscortPaused(true);
-                break;
-            case 21:
+            case 15:
+                // Stop Waypoints here and start Brazier Event
                 SetEscortPaused(true);
                 ResetTimer(MUGLASH_EVENT, 2000);
-                m_uiEventId = 4;
+                m_uiEventId = 0; // For Safty set EventID to 0
                 break;
+            case 16:
+                SetEscortPaused(true);
+                break;
+            case 17:
+                SetEscortPaused(true);
+                ResetTimer(MUGLASH_EVENT, 2000);
+                m_uiEventId = 5;
+                break;
+        }
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 /*miscValue*/) override
+    {
+        if (eventType == AI_EVENT_CUSTOM_A)
+        {
+            // Player used object, remove despawn aura and disable fail timer
+            DisableTimer(MUGLASH_FAIL);
+            m_creature->RemoveAurasDueToSpell(SPELL_MUGLASH_WAITING);
+            // Start Waves
+            m_uiEventId = 2;
+            ResetTimer(MUGLASH_EVENT, 2000);
         }
     }
 
@@ -222,14 +210,14 @@ struct npc_muglashAI : public npc_escortAI
             // First Wave
             case NPC_WRATH_RAZORTAIL:
             case NPC_WRATH_RIDER:
-            case NPC_WRATH_SORCERESS:     
+            case NPC_WRATH_SORCERESS:
                 --m_uiWaveOneAlive;
                 // Continue Event if all are dead and spawn 2nd wave already
                 if (m_uiWaveOneAlive == 0)
                 {
                     for (auto& i : secondnagaLocations)
                         m_creature->SummonCreature(i.uiEntry, i.fX, i.fY, i.fZ, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000, true, true);
-                    m_uiEventId = 2;
+                    m_uiEventId = 3;
                     ResetTimer(MUGLASH_EVENT, 5000);
                 }
                 break;
@@ -245,10 +233,9 @@ struct npc_muglashAI : public npc_escortAI
                 }
                 break;
             case NPC_VORSHA:
+                m_uiEventId = 7;
                 ResetTimer(MUGLASH_EVENT, 2000);
-                m_uiEventId = 6;
                 break;
-
         }
     }
 
@@ -265,58 +252,72 @@ struct npc_muglashAI : public npc_escortAI
         {
             go->SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
         }
-        m_creature->ForcedDespawn(1000);
     }
 
     // When Player activates object start Event
-    void DoStartEvent()
-    { 
-        switch(m_uiEventId)
+    void DoEvent()
+    {
+        switch (m_uiEventId)
         {
             case 0:
-                // Disable Fail timer, player used object 
-                DisableTimer(MUGLASH_FAIL);
+                // Muglash reached Brazier object, start fail timer in case no player activates the object
+                if (Player* player = GetPlayerForEscort())
+                {
+                    DoBroadcastText(SAY_MUGLASH_BRAZIER, m_creature, player);
+                    m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
+                }
+                // Let Escort fail after 5 minutes if players dont use Naga Brazier object
+                ResetTimer(MUGLASH_FAIL, 300000);
                 ++m_uiEventId;
                 ResetTimer(MUGLASH_EVENT, 2000);
                 break;
-            case 1:                
+            case 1:
+                // Make Naga Brazier object usable
+                if (GameObject* go = GetClosestGameObjectWithEntry(m_creature, GO_NAGA_BRAZIER, INTERACTION_DISTANCE * 2))
+                {
+                    go->RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT);
+                }
+                DoCastSpellIfCan(m_creature, SPELL_MUGLASH_WAITING);
+                break;
+            case 2:
+                // First Wave
                 if (Player* player = GetPlayerForEscort())
                     DoBroadcastText(SAY_MUGLASH_EVENT_01, m_creature, player);
                 // Summon first wave of adds
-                for (auto& i : nagaLocations)                
-                    m_creature->SummonCreature(i.uiEntry, i.fX, i.fY, i.fZ, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000, true, true);  
+                for (auto& i : nagaLocations)
+                    m_creature->SummonCreature(i.uiEntry, i.fX, i.fY, i.fZ, 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 60000, true, true);
                 SetEscortPaused(false); // go to next waypoint
-                break;                
-            case 2:
+                break;
+            case 3:
                 // First Wave is Dead rest now
                 DoBroadcastText(SAY_MUGLASH_EVENT_02, m_creature);
                 m_creature->SetStandState(UNIT_STAND_STATE_SIT);
-                ResetTimer(MUGLASH_EVENT, 9000);
                 ++m_uiEventId;
+                ResetTimer(MUGLASH_EVENT, 9000);
                 break;
-            case 3:
+            case 4:
                 // 2nd wave comes to muglash
                 m_creature->SetStandState(UNIT_STAND_STATE_SIT);
                 ++m_uiEventId;
                 break;
-            case 4:
+            case 5:
                 // 2nd wave is dead
                 DoBroadcastText(SAY_MUGLASH_EVENT_03, m_creature);
                 ++m_uiEventId;
                 ResetTimer(MUGLASH_EVENT, 3000);
                 break;
-            case 5:
+            case 6:
                 m_creature->HandleEmote(EMOTE_ONESHOT_POINT);
                 DoBroadcastText(SAY_MUGLASH_EVENT_04, m_creature);
                 break;
-            case 6: 
+            case 7:
                 m_creature->HandleEmote(EMOTE_ONESHOT_CHEER);
                 if (Player* player = GetPlayerForEscort())
                     DoBroadcastText(SAY_MUGLASH_SUCCESS, m_creature, player);
                 ++m_uiEventId;
                 ResetTimer(MUGLASH_EVENT, 8000);
                 break;
-            case 7:
+            case 8:
                 if (Player* player = GetPlayerForEscort())
                 {
                     // Award quest credit
@@ -328,18 +329,18 @@ struct npc_muglashAI : public npc_escortAI
                 ++m_uiEventId;
                 ResetTimer(MUGLASH_EVENT, 3000);
                 break;
-            case 8:
+            case 9:
                 m_creature->HandleEmote(EMOTE_ONESHOT_TALK);
                 DoBroadcastText(SAY_MUGLASH_SUCCESS_03, m_creature);
                 ++m_uiEventId;
                 ResetTimer(MUGLASH_EVENT, 5000);
                 break;
-            case 9:
+            case 10:
                 DoBroadcastText(SAY_MUGLASH_SUCCESS_04, m_creature);
                 ++m_uiEventId;
                 ResetTimer(MUGLASH_EVENT, 5000);
                 break;
-            case 10:
+            case 11:
                 // Escort Finished, move random around point before despawning
                 m_creature->GetMotionMaster()->MoveRandomAroundPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 5.0f);
                 End();
@@ -362,22 +363,17 @@ bool QuestAccept_npc_muglash(Player* player, Creature* creature, const Quest* qu
     return true;
 }
 
-UnitAI* GetAI_npc_muglash(Creature* pCreature)
+UnitAI* GetAI_npc_muglash(Creature* creature)
 {
-    return new npc_muglashAI(pCreature);
+    return new npc_muglashAI(creature);
 }
 
-bool GOUse_go_naga_brazier(Player* /*pPlayer*/, GameObject* go)
+bool GOUse_go_naga_brazier(Player* player, GameObject* go)
 {
     // When player finishs cast inform npc muglash
     if (Creature* creature = GetClosestCreatureWithEntry(go, NPC_MUGLASH, INTERACTION_DISTANCE * 2))
     {
-        if (npc_muglashAI* pEscortAI = dynamic_cast<npc_muglashAI*>(creature->AI()))
-        {
-            // Start Event with 2 seconds delay
-            pEscortAI->DoStartEvent();
-            return false;
-        }
+        creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, player, creature);
     }
     // Make Object not interactable again and remove flames visual
     go->SetGoState(GO_STATE_READY);

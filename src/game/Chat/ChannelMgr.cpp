@@ -20,6 +20,10 @@
 #include "Policies/Singleton.h"
 #include "World/World.h"
 
+#ifdef BUILD_VOICECHAT
+#include "VoiceChat/VoiceChatMgr.h"
+#endif
+
 INSTANTIATE_SINGLETON_1(AllianceChannelMgr);
 INSTANTIATE_SINGLETON_1(HordeChannelMgr);
 
@@ -97,6 +101,12 @@ void ChannelMgr::LeftChannel(const std::string& name)
 
     if (channel->GetNumPlayers() == 0 && !channel->IsConstant())
     {
+#ifdef BUILD_VOICECHAT
+        // delete voice channel
+        Team team = this == channelMgr(ALLIANCE) ? ALLIANCE : HORDE;
+        sVoiceChatMgr.DeleteCustomVoiceChatChannel(channel->GetName(), team);
+#endif
+
         channels.erase(wname);
         delete channel;
     }

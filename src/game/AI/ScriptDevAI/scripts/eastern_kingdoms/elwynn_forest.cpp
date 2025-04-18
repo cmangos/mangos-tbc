@@ -32,9 +32,9 @@ enum
 };
 
 // Marshal Haggard's Chest ID: 1562
-struct go_marshal_haggards_chest : public GameObjectAI
+struct go_marshal_haggards_chestAI : public GameObjectAI
 {
-    go_marshal_haggards_chest(GameObject* go) : GameObjectAI(go) {}
+    go_marshal_haggards_chestAI(GameObject* go) : GameObjectAI(go) {}
 
     void OnLootStateChange(Unit* user)
     {
@@ -43,7 +43,7 @@ struct go_marshal_haggards_chest : public GameObjectAI
             Creature* forlornSpirit = GetClosestCreatureWithEntry(m_go, NPC_FORLORN_SPIRIT, 20.0f);
             if (!forlornSpirit || !forlornSpirit->IsAlive())
             {
-                if(Creature* spirit = m_go->SummonCreature(NPC_FORLORN_SPIRIT, -9553.5127f, -1430.542f, 62.377f, 4.6077f, TEMPSPAWN_TIMED_OOC_DESPAWN, 300000, true, false))
+                if (Creature* spirit = m_go->SummonCreature(NPC_FORLORN_SPIRIT, -9553.5127f, -1430.542f, 62.377f, 4.6077f, TEMPSPAWN_TIMED_OOC_DESPAWN, 300000, true, false))
                 {
                     spirit->AI()->AttackStart(user);
                 }
@@ -53,16 +53,10 @@ struct go_marshal_haggards_chest : public GameObjectAI
     }
 };
 
-GameObjectAI* GetAI_go_marshal_haggards_chest(GameObject* go)
-{
-    return new go_marshal_haggards_chest(go);
-}
-
 void AddSC_elwynn_forest()
 {
     Script* pNewScript = new Script;
-    pNewScript = new Script;
     pNewScript->Name = "go_marshal_haggards_chest";
-    pNewScript->GetGameObjectAI = &GetAI_go_marshal_haggards_chest;
+    pNewScript->GetGameObjectAI = &GetNewAIInstance<go_marshal_haggards_chestAI>;
     pNewScript->RegisterSelf();
 }

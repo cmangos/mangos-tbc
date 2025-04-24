@@ -344,7 +344,7 @@ enum WorldStateID : int32
     WORLD_STATE_CUSTOM_STV_GRP_02      = 330002,
 
     // Ashenvale Quest King of the Foulweald
-    WORLD_STATE_CUSTOM_FOULWEALD       = 18005,
+    WORLD_STATE_CUSTOM_FOULWEALD       = 18003,
 
     // Tbc
     WORLD_STATE_CUSTOM_SPAWN_MALACRASS = 5680001,

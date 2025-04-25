@@ -124,7 +124,9 @@ struct mob_colonel_kurzenAI : public CombatAI
 {
     mob_colonel_kurzenAI(Creature* creature) : CombatAI(creature, KURZEN_ACTION_MAX)
     {
-        AddCombatAction(KURZEN_ACTION_VANISH, 40000u);
+        // Old timer in creature AI were 8000-12000 repeat 18000-25000
+        // Classic tests first were around 12 seconds
+        AddCombatAction(KURZEN_ACTION_VANISH, 12000u);
         AddCustomAction(KURZEN_ACTION_GAROTTE, true, [&]()
             {
                 if (m_creature->GetVictim())
@@ -151,7 +153,7 @@ struct mob_colonel_kurzenAI : public CombatAI
             if (m_creature->IsInCombat()) // can happen on evade
                 DoStartMovement(m_creature->GetVictim());
 
-            ResetTimer(KURZEN_ACTION_VANISH, urand(12000, 22000));
+            ResetTimer(KURZEN_ACTION_VANISH, urand(10000, 18000));
         }
     }
 

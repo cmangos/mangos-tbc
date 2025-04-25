@@ -439,7 +439,8 @@ enum
     SAY_AGGRO_3                     = 1252,
     SAY_AGGRO_4                     = 1253,
 
-    VOLCOR_PATH_01 = 3692, // Escape through stealth path
+    VOLCOR_PATH_01                  = 3692, // Escape through stealth path
+    VOLCOR_PATH_02                  = 3693, // Escape through force path
 
     QUEST_ESCAPE_THROUGH_FORCE      = 994,
     QUEST_ESCAPE_THROUGH_STEALTH    = 995,
@@ -462,10 +463,10 @@ struct npc_volcorAI : public npc_escortAI
         // shouldn't always use text on agro
         switch (urand(0, 5))
         {
-            case 0: DoScriptText(SAY_AGGRO_1, m_creature); break;
-            case 1: DoScriptText(SAY_AGGRO_2, m_creature); break;
-            case 2: DoScriptText(SAY_AGGRO_3, m_creature); break;
-            case 3: DoScriptText(SAY_AGGRO_4, m_creature); break;
+            case 0: DoBroadcastText(SAY_AGGRO_1, m_creature); break;
+            case 1: DoBroadcastText(SAY_AGGRO_2, m_creature); break;
+            case 2: DoBroadcastText(SAY_AGGRO_3, m_creature); break;
+            case 3: DoBroadcastText(SAY_AGGRO_4, m_creature); break;
         }
     }
 
@@ -479,23 +480,30 @@ struct npc_volcorAI : public npc_escortAI
             Start(true, player, quest, false, false, VOLCOR_PATH_01);
         }
         else
-            Start(false, player, quest);
+            Start(false, player, quest, false, false, VOLCOR_PATH_02);
     }
 
     void WaypointReached(uint32 uiPointId) override
     {
         switch (uiPointId)
         {
-        case 3:
-            if (m_uiQuestId == QUEST_ESCAPE_THROUGH_STEALTH)
-            {
-                // Reward Player
+            case 3:
+                if (m_uiQuestId == QUEST_ESCAPE_THROUGH_STEALTH)
+                {
+                    // Reward Player
+                    if (Player* pPlayer = GetPlayerForEscort())
+                        pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ESCAPE_THROUGH_STEALTH, m_creature);
+                    m_creature->GetMotionMaster()->Clear(false, true);
+                    End();
+                    m_creature->ForcedDespawn(1000);
+                }
+                break;
+            case 15:
                 if (Player* pPlayer = GetPlayerForEscort())
                     pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_ESCAPE_THROUGH_STEALTH, m_creature);
                 m_creature->GetMotionMaster()->Clear(false, true);
                 End();
-                m_creature->ForcedDespawn(1000);
-            }
+                break;
         }
     }
 };

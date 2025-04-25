@@ -273,6 +273,7 @@ struct npc_prospector_remtravelAI : public npc_escortAI
                 break;
             case 39:
                 m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
                 End();
                 break;
         }

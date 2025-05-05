@@ -28,7 +28,6 @@ EndContentData */
 
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/CombatAI.h"
-#include "Spells/Scripts/SpellScript.h"
 
 /*######
 ## mob_yenniku
@@ -108,53 +107,29 @@ UnitAI* GetAI_mob_yenniku(Creature* _Creature)
 
 enum
 {
-    SPELL_SMOKE_BOM     = 8817,
-    SPELL_GARROTE       = 8818,
-    // SPELL_STEALTH    = 8822 // spell that get applied to npc after using smoke bomb
+    SPELL_SMOKE_BOMB = 8817,
+    SPELL_GARROTE = 8818,
+    SPELL_STEALTH = 8822 // spell that get applied to npc after using smoke bomb
 };
 
 enum KurzenActions
 {
     KURZEN_ACTION_VANISH,
-    KURZEN_ACTION_MAX,
     KURZEN_ACTION_GAROTTE,
+    KURZEN_ACTION_MAX,
 };
 
 struct mob_colonel_kurzenAI : public CombatAI
 {
     mob_colonel_kurzenAI(Creature* creature) : CombatAI(creature, KURZEN_ACTION_MAX)
     {
-        // Old timer in creature AI were 8000-12000 repeat 18000-25000
-        // Classic tests first were around 12 seconds
-        AddCombatAction(KURZEN_ACTION_VANISH, 12000u);
-        AddCustomAction(KURZEN_ACTION_GAROTTE, true, [&]()
-            {
-                if (m_creature->GetVictim())
-                    m_creature->GetVictim()->CastSpell(nullptr, SPELL_GARROTE, TRIGGERED_OLD_TRIGGERED);
-            });
+        AddCombatAction(KURZEN_ACTION_VANISH, urand(6000, 12000));
+        AddCombatAction(KURZEN_ACTION_GAROTTE, true);
     }
 
     void Reset() override
     {
         CombatAI::Reset();
-
-        SetCombatScriptStatus(false);
-        SetCombatMovement(true);
-        SetMeleeEnabled(true);
-    }
-
-    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
-    {
-        if (eventType == AI_EVENT_CUSTOM_A)
-        {
-            SetMeleeEnabled(true);
-            SetCombatScriptStatus(false);
-            m_attackAngle = 0.f;
-            if (m_creature->IsInCombat()) // can happen on evade
-                DoStartMovement(m_creature->GetVictim());
-
-            ResetTimer(KURZEN_ACTION_VANISH, urand(10000, 18000));
-        }
     }
 
     void ExecuteAction(uint32 action) override
@@ -163,27 +138,24 @@ struct mob_colonel_kurzenAI : public CombatAI
         {
             case KURZEN_ACTION_VANISH:
             {
-                Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_GARROTE, SELECT_FLAG_PLAYER | SELECT_FLAG_NOT_AURA);
-                if (!target) // if no target without garrote found - select any random
-                    target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER);
-                if (!target)
-                    break;
-                DoCastSpellIfCan(nullptr, SPELL_SMOKE_BOM);
-                SetCombatScriptStatus(true);
-                SetMeleeEnabled(false);
-                ResetTimer(KURZEN_ACTION_GAROTTE, urand(6000, 12000));
+                m_creature->SetCombatOnlyStealth(true); // must be before smoke bomb
+                DoCastSpellIfCan(nullptr, SPELL_SMOKE_BOMB);
+                ResetCombatAction(KURZEN_ACTION_GAROTTE, urand(2000, 6000));
+                DisableCombatAction(action);
                 break;
-            }        
-        }
-    }
-};
+            }
+            case KURZEN_ACTION_GAROTTE:
+            {
+                // Safty check if we still have Stealth aura
+                if (m_creature->HasAura(SPELL_STEALTH))
+                    DoCastSpellIfCan(m_creature->GetVictim(), SPELL_GARROTE);
 
-struct KurzenStealth : public AuraScript
-{
-    void OnApply(Aura* aura, bool apply) const override
-    {
-        if (!apply)
-            aura->GetTarget()->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, aura->GetTarget(), aura->GetTarget());
+                m_creature->SetCombatOnlyStealth(false);
+                ResetCombatAction(KURZEN_ACTION_VANISH, urand(6000, 12000));
+                DisableCombatAction(action);
+                break;
+            }
+        }
     }
 };
 
@@ -201,6 +173,4 @@ void AddSC_stranglethorn_vale()
     pNewScript->Name = "mob_colonel_kurzen";
     pNewScript->GetAI = &GetNewAIInstance<mob_colonel_kurzenAI>;
     pNewScript->RegisterSelf();
-
-    RegisterSpellScript<KurzenStealth>("spell_kurzen_stealth");
 }

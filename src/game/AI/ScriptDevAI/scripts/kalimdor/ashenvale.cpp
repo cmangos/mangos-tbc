@@ -637,7 +637,8 @@ bool QuestAccept_npc_feero_ironhand(Player* pPlayer, Creature* pCreature, const 
 }
 
 // Destroy Karang's Banner used by Enraged Foulwealds during quest King of the Foulweald (6621)
-enum {
+enum 
+{
     GO_KARANGS_BANNER = 178205,
 };
 
@@ -698,4 +699,6 @@ void AddSC_ashenvale()
     pNewScript->GetAI = &GetAI_npc_feero_ironhand;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_feero_ironhand;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<DestroyKarangsBanner>("spell_destroy_karangs_banner");
 }

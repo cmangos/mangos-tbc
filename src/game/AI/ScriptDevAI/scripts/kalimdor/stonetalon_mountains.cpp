@@ -211,7 +211,7 @@ GameObjectAI* GetAIgo_covertops(GameObject* pGo)
 }
 
 // Venture Co. Machine Smith - summon Compact Harvest Reaper
-struct CompactHarvestReaper : public SpellScript, public AuraScript
+struct CompactHarvestReaper : public SpellScript
 {
     void OnSummon(Spell* spell, Creature* summon) const override
     {

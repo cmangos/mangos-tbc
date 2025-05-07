@@ -293,11 +293,6 @@ bool QuestAccept_npc_prospector_remtravel(Player* player, Creature* creature, co
     return true;
 }
 
-UnitAI* GetAI_npc_prospector_remtravel(Creature* creature)
-{
-    return new npc_prospector_remtravelAI(creature);
-}
-
 /*####
 # npc_threshwackonator
 ####*/
@@ -962,9 +957,8 @@ void AddSC_darkshore()
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_awaken_kerlonian;
     pNewScript->RegisterSelf();
 
-    pNewScript = new Script;
     pNewScript->Name = "npc_prospector_remtravel";
-    pNewScript->GetAI = &GetAI_npc_prospector_remtravel;
+    pNewScript->GetAI = &GetNewAIInstance<npc_prospector_remtravelAI>;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_prospector_remtravel;
     pNewScript->RegisterSelf();
 

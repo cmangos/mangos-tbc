@@ -127,11 +127,6 @@ struct mob_colonel_kurzenAI : public CombatAI
         AddCombatAction(KURZEN_ACTION_GAROTTE, true);
     }
 
-    void Reset() override
-    {
-        CombatAI::Reset();
-    }
-
     void ExecuteAction(uint32 action) override
     {
         switch (action)
@@ -146,7 +141,7 @@ struct mob_colonel_kurzenAI : public CombatAI
             }
             case KURZEN_ACTION_GAROTTE:
             {
-                // Safty check if we still have Stealth aura
+                // Safty check
                 if (m_creature->HasAura(SPELL_STEALTH))
                     DoCastSpellIfCan(m_creature->GetVictim(), SPELL_GARROTE);
 

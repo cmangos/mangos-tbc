@@ -141,7 +141,7 @@ struct mob_colonel_kurzenAI : public CombatAI
             }
             case KURZEN_ACTION_GAROTTE:
             {
-                // Safty check
+                // Safety check if we still have Stealth Aura
                 if (m_creature->HasAura(SPELL_STEALTH))
                     DoCastSpellIfCan(m_creature->GetVictim(), SPELL_GARROTE);
 

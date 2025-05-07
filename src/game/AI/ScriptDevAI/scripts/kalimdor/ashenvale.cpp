@@ -363,11 +363,6 @@ bool QuestAccept_npc_muglash(Player* player, Creature* creature, const Quest* qu
     return true;
 }
 
-UnitAI* GetAI_npc_muglash(Creature* creature)
-{
-    return new npc_muglashAI(creature);
-}
-
 bool GOUse_go_naga_brazier(Player* player, GameObject* go)
 {
     // When player finishs cast inform npc muglash
@@ -780,7 +775,7 @@ void AddSC_ashenvale()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "npc_muglash";
-    pNewScript->GetAI = &GetAI_npc_muglash;
+    pNewScript->GetAI = &GetNewAIInstance<npc_muglashAI>;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_muglash;
     pNewScript->RegisterSelf();
 

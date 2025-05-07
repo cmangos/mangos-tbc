@@ -131,6 +131,12 @@ class Channel
             inline void SetModerator(bool state) { SetFlag(MEMBER_FLAG_MODERATOR, state); }
             inline bool IsMuted() const { return HasFlag(MEMBER_FLAG_MUTED); }
             inline void SetMuted(bool state) { SetFlag(MEMBER_FLAG_MUTED, state); }
+#ifdef BUILD_VOICECHAT
+            inline bool IsMicMuted() const { return HasFlag(MEMBER_FLAG_MIC_MUTED); }
+            inline void SetMicMuted(bool state) { SetFlag(MEMBER_FLAG_MIC_MUTED, state); }
+            inline bool IsVoiced() const { return HasFlag(MEMBER_FLAG_VOICED); }
+            inline void SetVoiced(bool state) { SetFlag(MEMBER_FLAG_VOICED, state); }
+#endif
         };
 
         typedef std::map<ObjectGuid, PlayerInfo> PlayerList;
@@ -159,6 +165,10 @@ class Channel
         void SetModeFlags(Player* player, const char* targetName, ChannelMemberFlags flags, bool set);
         inline void SetModerator(Player* player, const char* targetName, bool set) { SetModeFlags(player, targetName, MEMBER_FLAG_MODERATOR, set); }
         inline void SetMute(Player* player, const char* targetName, bool set) { SetModeFlags(player, targetName, MEMBER_FLAG_MUTED, set); }
+#ifdef BUILD_VOICECHAT
+        inline void SetMicMute(Player* player, const char* targetName, bool set) { SetModeFlags(player, targetName, MEMBER_FLAG_MIC_MUTED, set); }
+        inline void SetVoiced(Player* player, const char* targetName, bool set) { SetModeFlags(player, targetName, MEMBER_FLAG_VOICED, set); }
+#endif
         void SetOwner(Player* player, const char* targetName);
         void SendChannelOwnerResponse(Player* player) const;
         void SendChannelListResponse(Player* player, bool display = false);
@@ -170,6 +180,12 @@ class Channel
         void DeVoice(ObjectGuid guid1, ObjectGuid guid2) const;
         void JoinNotify(ObjectGuid guid);                   // invisible notify
         void LeaveNotify(ObjectGuid guid);                  // invisible notify
+
+#ifdef BUILD_VOICECHAT
+        void AddVoiceChatMembersAfterCreate();
+        void ToggleVoice(Player* player = nullptr);
+        bool IsVoiceEnabled() const { return HasFlag(CHANNEL_FLAG_VOICE); }
+#endif
 
         // initial packet data (notify type and channel name)
         static void MakeNotifyPacket(WorldPacket& data, const std::string& channel, ChatNotify type);
@@ -214,13 +230,13 @@ class Channel
         // Make a custom channel acquire global-like properties
         bool SetStatic(bool state, bool command = false);
 
+        bool IsOn(ObjectGuid who) const { return m_players.find(who) != m_players.end(); }
+        bool IsBanned(ObjectGuid guid) const { return m_banned.find(guid) != m_banned.end(); }
+
     private:
         void SendToOne(WorldPacket const& data, ObjectGuid receiver) const;
         void SendToAll(WorldPacket const& data) const;
         void SendMessage(WorldPacket const& data, ObjectGuid sender) const;
-
-        bool IsOn(ObjectGuid who) const { return m_players.find(who) != m_players.end(); }
-        bool IsBanned(ObjectGuid guid) const { return m_banned.find(guid) != m_banned.end(); }
 
         uint8 GetPlayerFlags(ObjectGuid guid) const
         {
@@ -245,6 +261,9 @@ class Channel
         const ChatChannelsEntry*    m_entry = nullptr;
         bool                        m_announcements = false;
         bool                        m_moderation = false;
+#ifdef BUILD_VOICECHAT
+        bool                        m_voice = false;
+#endif
         uint8                       m_flags = CHANNEL_FLAG_NONE;
         // Custom features:
         bool                        m_static = false;

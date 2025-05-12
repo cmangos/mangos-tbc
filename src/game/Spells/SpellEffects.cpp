@@ -1559,7 +1559,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     if (!m_caster || m_caster->GetTypeId() != TYPEID_PLAYER)
                         return;
                     static constexpr uint32 AshbringerSounds[12] = { 8906,8907,8908,8920,8921,8922,8923,8924,8925,8926,8927,8928 };
-                    m_caster->PlayDirectSound(AshbringerSounds[urand(0, 11)], PlayPacketParameters(PLAY_TARGET, (Player*)m_caster));
+                    m_caster->PlayDirectSound(AshbringerSounds[urand(0, 11)], PlayPacketParameters(PlayPacketSettings::TARGET, (Player*)m_caster));
                     return;
                 }
                 case 28697:                                 // Forgiveness
@@ -6912,7 +6912,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
                         return;
 
-                    m_caster->PlayMusic(12318, PlayPacketParameters(PLAY_TARGET, static_cast<Player*>(unitTarget)));
+                    m_caster->PlayMusic(12318, PlayPacketParameters(PlayPacketSettings::TARGET, static_cast<Player*>(unitTarget)));
                     return;
                 }
                 case 45204:                                 // Clone Me!
@@ -8654,7 +8654,7 @@ void Spell::EffectQuestFail(SpellEffectIndex eff_idx)
 
 void Spell::EffectPlaySound(SpellEffectIndex eff_idx)
 {
-    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+    if (!unitTarget || unitTarget->IsPlayer())
         return;
 
     uint32 soundId = m_spellInfo->EffectMiscValue[eff_idx];
@@ -8664,12 +8664,12 @@ void Spell::EffectPlaySound(SpellEffectIndex eff_idx)
         return;
     }
 
-    unitTarget->PlayDirectSound(soundId, PlayPacketParameters(PLAY_TARGET, (Player*)unitTarget));
+    unitTarget->PlayDirectSound(soundId, PlayPacketParameters(PlayPacketSettings::TARGET, static_cast<Player*>(unitTarget)));
 }
 
 void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
 {
-    if (!unitTarget || unitTarget->GetTypeId() != TYPEID_PLAYER)
+    if (!unitTarget || unitTarget->IsPlayer())
         return;
 
     uint32 soundId = m_spellInfo->EffectMiscValue[eff_idx];
@@ -8679,7 +8679,7 @@ void Spell::EffectPlayMusic(SpellEffectIndex eff_idx)
         return;
     }
 
-    m_caster->PlayMusic(soundId, PlayPacketParameters(PLAY_TARGET, (Player*)unitTarget));
+    m_caster->PlayMusic(soundId, PlayPacketParameters(PlayPacketSettings::TARGET, static_cast<Player*>(unitTarget)));
 }
 
 void Spell::EffectBind(SpellEffectIndex /*eff_idx*/)

@@ -67,6 +67,7 @@
 #include "Cinematics/CinematicMgr.h"
 #include "Maps/TransportMgr.h"
 #include "Anticheat/Anticheat.hpp"
+#include "Spells/SpellStacking.h"
 
 #ifdef BUILD_AHBOT
  #include "AuctionHouseBot/AuctionHouseBot.h"
@@ -934,6 +935,9 @@ void World::SetInitialWorldSettings()
     /// load spell_dbc first! dbc's need them
     sLog.outString("Loading spell_template...");
     sObjectMgr.LoadSpellTemplate();
+
+    sLog.outString("Loading spell groups...");
+    sSpellStacker.LoadSpellGroups();
 
     // Load before DBCs
     sLog.outString("Loading faction_store...");

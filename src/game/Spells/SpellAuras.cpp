@@ -50,6 +50,7 @@
 #include "Entities/TemporarySpawn.h"
 #include "Maps/InstanceData.h"
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
+#include "Spells/SpellStacking.h"
 
 #define NULL_AURA_SLOT 0xFF
 
@@ -640,7 +641,7 @@ void AreaAura::Update(uint32 diff)
                             // non caster self-casted auras (stacked from diff. casters)
                             if (aur->GetModifier()->m_auraname != SPELL_AURA_NONE && i->second->GetCasterGuid() != GetCasterGuid())
                             {
-                                apply = IsStackableSpell(actualSpellInfo, i->second->GetSpellProto(), target);
+                                apply = sSpellStacker.IsStackableSpell(actualSpellInfo, i->second->GetSpellProto(), target);
                                 break;
                             }
                             if (aur->GetModifier()->m_auraname != SPELL_AURA_NONE || i->second->GetCasterGuid() == GetCasterGuid())

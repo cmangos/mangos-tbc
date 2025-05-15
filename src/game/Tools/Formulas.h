@@ -129,7 +129,7 @@ namespace MaNGOS
             return 17;
         }
 
-        inline uint32 BaseGain(uint32 unit_level, uint32 mob_level, ContentLevels content)
+        inline float BaseGain(uint32 unit_level, uint32 mob_level, ContentLevels content)
         {
             uint32 nBaseExp = unit_level * 5;
             switch (content)

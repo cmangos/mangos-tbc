@@ -78,6 +78,7 @@ struct npc_aeranasAI : public CombatAI
                     m_creature->setFaction(FACTION_FRIENDLY);
                     m_creature->RemoveAllAuras();
                     m_creature->CombatStop(true);
+                    DisableCombatAction(action);
                 }
                 break;
             }

@@ -540,6 +540,19 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
             break;
         }
         case EVENT_T_RECEIVE_AI_EVENT:
+            // 0 = Out and in combat
+            // 1 = Only in Combat
+            // 2 = Only out of combat
+            if (event.receiveAIEvent.inCombat == 1)
+            {
+                if (!m_creature->IsInCombat())
+                    return false;
+            }
+            if (event.receiveAIEvent.inCombat == 2)
+            {
+                if (m_creature->IsInCombat())
+                    return false;
+            }
             break;
         case EVENT_T_ENERGY:
         {

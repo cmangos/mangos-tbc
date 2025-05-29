@@ -69,7 +69,7 @@ enum EventAI_Type
     EVENT_T_MISSING_AURA            = 27,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
     EVENT_T_TARGET_MISSING_AURA     = 28,                   // Param1 = SpellID, Param2 = Number of time stacked expected, Param3/4 Repeat Min/Max
     EVENT_T_TIMER_GENERIC           = 29,                   // InitialMin, InitialMax, RepeatMin, RepeatMax
-    EVENT_T_RECEIVE_AI_EVENT        = 30,                   // AIEventType, Sender-Entry, unused, unused
+    EVENT_T_RECEIVE_AI_EVENT        = 30,                   // AIEventType, Sender-Entry, inCombat, unused
     EVENT_T_ENERGY                  = 31,                   // EnergyMax%, EnergyMin%, RepeatMin, RepeatMax
     EVENT_T_SELECT_ATTACKING_TARGET = 32,                   // MinRange, MaxRange, RepeatMin, RepeatMax
     EVENT_T_FACING_TARGET           = 33,                   // Position, unused, RepeatMin, RepeatMax
@@ -757,7 +757,7 @@ struct CreatureEventAI_Event
         {
             uint32 eventType;                               // See UnitAI.h enum AIEventType - Receive only events of this type
             uint32 senderEntry;                             // Optional npc from only whom this event can be received
-            uint32 unused1;
+            uint32 inCombat;
             uint32 unused2;
         } receiveAIEvent;
         // EVENT_T_SELECT_ATTACKING_TARGET                  = 32

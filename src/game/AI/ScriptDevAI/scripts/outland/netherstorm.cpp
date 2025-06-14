@@ -4053,6 +4053,31 @@ struct MentalInterferenceSpellScript : public SpellScript
     }
 };
 
+
+enum PhaseHunterData
+{
+    NPC_PHASE_HUNTER_ENTRY = 18879,
+    NPC_DRAINED_PHASE_HUNTER_ENTRY = 19595
+};
+struct RechargingBatterySpellScript : public SpellScript, public AuraScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        Unit* target = spell->m_targets.getUnitTarget();
+        // Recharging Battery can only be cast on Phase Hunter under 35% health
+        if (!target || target->GetEntry() != NPC_PHASE_HUNTER_ENTRY || !target->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+            return SPELL_FAILED_BAD_TARGETS;
+        return SPELL_CAST_OK;
+    }
+
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            if (aura->GetTarget()->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
+                ((Creature*)aura->GetTarget())->UpdateEntry(NPC_DRAINED_PHASE_HUNTER_ENTRY);
+    }
+};
+
 void AddSC_netherstorm()
 {
     Script* pNewScript = new Script;
@@ -4174,4 +4199,5 @@ void AddSC_netherstorm()
     RegisterSpellScript<ThrowBoomsDoom>("spell_throw_booms_doom");
     RegisterSpellScript<ScrapReaverSpell>("spell_scrap_reaver_spell");
     RegisterSpellScript<MentalInterferenceSpellScript>("spell_mental_interference");
+    RegisterSpellScript<RechargingBatterySpellScript>("spell_recharging_battery");    
 }

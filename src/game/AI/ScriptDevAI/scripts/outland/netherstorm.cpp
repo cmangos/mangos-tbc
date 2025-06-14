@@ -4074,7 +4074,7 @@ struct RechargingBatterySpellScript : public SpellScript, public AuraScript
     {
         if (!apply)
             if (aura->GetTarget()->HasAuraState(AURA_STATE_HEALTHLESS_35_PERCENT))
-                ((Creature*)aura->GetTarget())->UpdateEntry(NPC_DRAINED_PHASE_HUNTER_ENTRY);
+                static_cast<Creature*>(aura->GetTarget())->UpdateEntry(NPC_DRAINED_PHASE_HUNTER_ENTRY);
     }
 };
 

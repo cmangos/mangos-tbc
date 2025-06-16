@@ -1323,13 +1323,13 @@ struct npc_maxx_a_millionAI : public npc_escortAI
     {
         switch (uiPointId)
         {
-        case 58:
-            if (Player* player = GetPlayerForEscort())
-                player->RewardPlayerAndGroupAtEventExplored(QUEST_MARK_V_IS_ALIVE, m_creature);
-            m_creature->GetMotionMaster()->Clear(false, true);
-            m_creature->GetMotionMaster()->MoveIdle();
-            End();
-            break;
+            case 58:
+                if (Player* player = GetPlayerForEscort())
+                    player->RewardPlayerAndGroupAtEventExplored(QUEST_MARK_V_IS_ALIVE, m_creature);
+                m_creature->GetMotionMaster()->Clear(false, true);
+                m_creature->GetMotionMaster()->MoveIdle();
+                End();
+                break;
         }
     }
 };

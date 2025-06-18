@@ -401,9 +401,12 @@ struct npc_volcorAI : public npc_escortAI
     uint32 m_uiQuestId;
 
     void Reset() override
-    {
+    {        
         if (!HasEscortState(STATE_ESCORT_ESCORTING))
+        {
             m_uiQuestId = 0;
+            m_creature->SetStandState(UNIT_STAND_STATE_SIT, true);
+        }
     }
 
     void Aggro(Unit* /*pWho*/) override

@@ -401,7 +401,7 @@ struct npc_volcorAI : public npc_escortAI
     uint32 m_uiQuestId;
 
     void Reset() override
-    {        
+    {
         if (!HasEscortState(STATE_ESCORT_ESCORTING))
         {
             m_uiQuestId = 0;

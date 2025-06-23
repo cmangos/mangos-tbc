@@ -225,6 +225,15 @@ struct PowerWordShieldPriest : public AuraScript
     }
 };
 
+// 527, 988 - Dispel Magic
+struct DispelMagicPriest : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetHelpfulThreatCoefficient(0.5f); // halves db defined threat
+    }
+};
+
 void LoadPriestScripts()
 {
     RegisterSpellScript<ConsumeMagic>("spell_consume_magic");
@@ -237,4 +246,5 @@ void LoadPriestScripts()
     RegisterSpellScript<PainSuppression>("spell_pain_suppression");
     RegisterSpellScript<Shadowfiend>("spell_shadowfiend");
     RegisterSpellScript<PowerWordShieldPriest>("spell_power_word_shield_priest");
+    RegisterSpellScript<DispelMagicPriest>("spell_dispel_magic_priest");
 }

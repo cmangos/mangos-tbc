@@ -496,6 +496,8 @@ Spell::Spell(WorldObject* caster, SpellEntry const* info, uint32 triggeredFlags,
 
     m_overrideSpeed = false;
 
+    m_helpfulThreatCoeff = 1.f;
+
     m_ignoreRoot = IsIgnoreRootSpell(m_spellInfo);
 
     OnInit();
@@ -4703,7 +4705,8 @@ void Spell::HandleThreatSpells()
     }
 
     // since 2.0.1 threat from positive effects also is distributed among all targets, so the overall caused threat is at most the defined bonus
-    threat /= m_UniqueTargetInfo.size();
+    if (positive)
+        threat /= m_UniqueTargetInfo.size();
 
     for (TargetList::const_iterator ihit = m_UniqueTargetInfo.begin(); ihit != m_UniqueTargetInfo.end(); ++ihit)
     {
@@ -4717,7 +4720,7 @@ void Spell::HandleThreatSpells()
         // positive spells distribute threat among all units that are in combat with target, like healing
         if (positive)
         {
-            target->getHostileRefManager().threatAssist(affectiveCaster, threat, m_spellInfo, false, true);
+            target->getHostileRefManager().threatAssist(affectiveCaster, threat * m_helpfulThreatCoeff, m_spellInfo, false, true);
         }
         // for negative spells threat gets distributed among affected targets
         else

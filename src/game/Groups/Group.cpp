@@ -1168,7 +1168,7 @@ bool Group::SameSubGroup(Player const* member1, Player const* member2) const
 }
 
 // allows setting subgroup for offline members
-void Group::ChangeMembersGroup(ObjectGuid guid, uint8 group)
+void Group::ChangeMembersGroup(ObjectGuid guid, uint8 group, bool isSend=true)
 {
     if (!IsRaidGroup())
         return;
@@ -1184,16 +1184,19 @@ void Group::ChangeMembersGroup(ObjectGuid guid, uint8 group)
         if (_setMembersGroup(guid, group))
         {
             SubGroupCounterDecrease(prevSubGroup);
-            SendUpdate();
+            if (isSend)
+            {
+                SendUpdate();
+            }
         }
     }
     else
         // This methods handles itself groupcounter decrease
-        ChangeMembersGroup(player, group);
+        ChangeMembersGroup(player, group, isSend);
 }
 
 // only for online members
-void Group::ChangeMembersGroup(Player* player, uint8 group)
+void Group::ChangeMembersGroup(Player* player, uint8 group, bool isSend = true)
 {
     if (!player || !IsRaidGroup())
         return;
@@ -1213,8 +1216,10 @@ void Group::ChangeMembersGroup(Player* player, uint8 group)
             player->GetOriginalGroupRef().setSubGroup(group);
         }
         SubGroupCounterDecrease(prevSubGroup);
-
-        SendUpdate();
+        if (isSend)
+        { 
+            SendUpdate();
+        }
     }
 }
 

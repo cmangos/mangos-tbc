@@ -208,8 +208,8 @@ class Group
         void SetBattlegroundGroup(BattleGround* bg) { m_bgGroup = bg; }
         uint32 CanJoinBattleGroundQueue(BattleGroundTypeId bgTypeId, BattleGroundQueueTypeId bgQueueTypeId, uint32 MinPlayerCount, uint32 MaxPlayerCount, bool isRated, uint32 arenaSlot);
 
-        void ChangeMembersGroup(ObjectGuid guid, uint8 group);
-        void ChangeMembersGroup(Player* player, uint8 group);
+        void ChangeMembersGroup(ObjectGuid guid, uint8 group, bool isSend);
+        void ChangeMembersGroup(Player* player, uint8 group, bool isSend);
 
         ObjectGuid GetMainTankGuid() const { return m_mainTankGuid; }
         ObjectGuid GetMainAssistantGuid() const { return m_mainAssistantGuid; }

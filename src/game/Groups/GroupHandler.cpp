@@ -515,11 +515,11 @@ void WorldSession::HandleGroupChangeSubGroupOpcode(WorldPacket& recv_data)
 
     // everything is fine, do it
     if (Player* player = sObjectMgr.GetPlayer(name.c_str()))
-        group->ChangeMembersGroup(player, groupNr);
+        group->ChangeMembersGroup(player, groupNr, true);
     else
     {
         if (ObjectGuid guid = sObjectMgr.GetPlayerGuidByName(name))
-            group->ChangeMembersGroup(guid, groupNr);
+            group->ChangeMembersGroup(guid, groupNr, true);
     }
 }
 
@@ -953,6 +953,6 @@ void WorldSession::HandleGroupSwapSubGroupOpcode(WorldPacket& recv_data)
     if (subgroup1 == subgroup2)
         return;
 
-    group->ChangeMembersGroup(guid1, subgroup2);
-    group->ChangeMembersGroup(guid2, subgroup1);
+    group->ChangeMembersGroup(guid1, subgroup2, false);
+    group->ChangeMembersGroup(guid2, subgroup1, true);
 }

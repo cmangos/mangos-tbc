@@ -88,12 +88,24 @@ namespace Movement
 
         moveFlags |= (MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_FORWARD);
 
-        if (args.velocity == 0.f) // ignore swim speed and flight speed because its not used in generic scripting - always possible to override
-        {
-            args.velocity = unit.GetSpeed(MovementInfo::GetSpeedType(MovementFlags(moveFlags & ~(MOVEFLAG_FLYING | MOVEFLAG_SWIMMING))));
-            if (args.slowed != 0.f) // when set always > 0.5
-                args.velocity *= args.slowed;
-        }
+        if (args.velocity <= 0.f)
+{
+    args.velocity = unit.GetSpeed(MovementInfo::GetSpeedType(MovementFlags(moveFlags & ~(MOVEFLAG_FLYING | MOVEFLAG_SWIMMING))));
+
+    // Sicherheitscheck: slowed muss im Bereich > 0.0 und = 1.0 liegen
+    if (args.slowed <= 0.f || args.slowed > 1.0f)
+        args.slowed = 1.0f;
+
+    // NPCs, die nicht verlangsamt werden können (z. B. Events, Dummys), sollten nicht geslowt werden
+    if (unit.IsRooted())
+        args.slowed = 1.0f;
+
+    args.velocity *= args.slowed;
+
+    // Fallback: Velocity darf niemals null sein
+    if (args.velocity <= 0.f)
+        args.velocity = 0.1f;
+}
 
         if (!args.Validate(&unit))
             return 0;

@@ -96,13 +96,13 @@ namespace Movement
     if (args.slowed <= 0.f || args.slowed > 1.0f)
         args.slowed = 1.0f;
 
-    // NPCs, die nicht verlangsamt werden können (z. B. Events, Dummys), sollten nicht geslowt werden
+    // // NPCs that cannot be slowed down (e.g. events, dummies) should not be slowed down
     if (unit.IsRooted())
         args.slowed = 1.0f;
 
     args.velocity *= args.slowed;
 
-    // Fallback: Velocity darf niemals null sein
+    // Fallback: Velocity must never be zero
     if (args.velocity <= 0.f)
         args.velocity = 0.1f;
 }

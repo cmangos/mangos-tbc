@@ -122,7 +122,9 @@ enum FelOrcAction
 
 struct npc_fel_orc : public CombatAI
 {
-    npc_fel_orc(Creature* creature) : CombatAI(creature, FEL_ORC_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())) {}
+    npc_fel_orc(Creature* creature)
+        : CombatAI(creature, FEL_ORC_ACTION_MAX),
+          m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())) {}
 
     ScriptedInstance* m_instance;
 
@@ -135,10 +137,18 @@ struct npc_fel_orc : public CombatAI
     void JustReachedHome() override
     {
         CombatAI::JustReachedHome();
-         // Only Event Envolved NPCs should trigger fail condition
-        if (m_creature->HasStringId(FIRST_BROGGOK_CELL_STRING) || m_creature->HasStringId(SECOND_BROGGOK_CELL_STRING) || m_creature->HasStringId(THIRD_BROGGOK_CELL_STRING) || m_creature->HasStringId(FOURTH_BROGGOK_CELL_STRING))
-            if (m_instance->GetData(TYPE_BROGGOK_EVENT == IN_PROGRESS))
+
+        // Only Event-involved NPCs should trigger fail condition
+        if (m_creature->HasStringId(FIRST_BROGGOK_CELL_STRING) ||
+            m_creature->HasStringId(SECOND_BROGGOK_CELL_STRING) ||
+            m_creature->HasStringId(THIRD_BROGGOK_CELL_STRING) ||
+            m_creature->HasStringId(FOURTH_BROGGOK_CELL_STRING))
+        {
+            if (m_instance->GetData(TYPE_BROGGOK_EVENT) == IN_PROGRESS)
+            {
                 m_instance->SetData(TYPE_BROGGOK_EVENT, FAIL);
+            }
+        }
     }
 };
 

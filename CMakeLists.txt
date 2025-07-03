@@ -33,6 +33,27 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Option to suppress known C++20 warnings till fixed
+option(SUPPRESS_CXX20_DEPRECATED_WARNINGS "Suppress deprecated C++20 warnings (enum conversions, implicit this-capture, enum compare, volatile)" OFF)
+
+if (SUPPRESS_CXX20_DEPRECATED_WARNINGS)
+  if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    add_compile_options(
+      -Wno-deprecated-enum-enum-conversion
+      -Wno-deprecated-enum-float-conversion
+      -Wno-deprecated-this-capture
+      -Wno-enum-compare
+    )
+  elseif (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    add_compile_options(
+      -Wno-deprecated-enum-enum-conversion
+      -Wno-deprecated-enum-float-conversion
+      -Wno-volatile
+      -Wno-enum-compare
+    )
+  endif()
+endif()
+
 # Define here name of the binaries
 set(CMANGOS_BINARY_SERVER_NAME "mangosd")
 set(CMANGOS_BINARY_REALMD_NAME "realmd")

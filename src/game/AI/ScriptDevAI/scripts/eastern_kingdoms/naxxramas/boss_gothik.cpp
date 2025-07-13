@@ -63,9 +63,8 @@ enum
 
 struct boss_gothikAI : public ScriptedAI
 {
-    boss_gothikAI(Creature* creature) : ScriptedAI(creature)
+    boss_gothikAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<instance_naxxramas*>(creature->GetInstanceData()))
     {
-        m_instance = (instance_naxxramas*)creature->GetInstanceData();
         Reset();
     }
 
@@ -311,11 +310,6 @@ struct boss_gothikAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_boss_gothik(Creature* creature)
-{
-    return new boss_gothikAI(creature);
-}
-
 bool EffectDummyCreature_spell_anchor(Unit* /*caster*/, uint32 spellId, SpellEffectIndex effIndex, Creature* creatureTarget, ObjectGuid /*originalCasterGuid*/)
 {
     if (effIndex != EFFECT_INDEX_0 || creatureTarget->GetEntry() != NPC_SUB_BOSS_TRIGGER)
@@ -501,7 +495,7 @@ void AddSC_boss_gothik()
 {
     Script* newScript = new Script;
     newScript->Name = "boss_gothik";
-    newScript->GetAI = &GetAI_boss_gothik;
+    newScript->GetAI = &GetNewAIInstance<boss_gothikAI>;
     newScript->RegisterSelf();
 
     newScript = new Script;

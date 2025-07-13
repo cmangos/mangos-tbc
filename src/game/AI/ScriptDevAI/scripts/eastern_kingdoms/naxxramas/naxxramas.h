@@ -257,7 +257,7 @@ static const SpawnLocation livingPoisonPositions[6] =
 class instance_naxxramas : public ScriptedInstance, private DialogueHelper
 {
     public:
-        instance_naxxramas(Map* pMap);
+        instance_naxxramas(Map* map);
         ~instance_naxxramas() {}
 
         void Initialize() override;

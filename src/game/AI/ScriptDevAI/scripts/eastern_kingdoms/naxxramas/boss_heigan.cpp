@@ -323,11 +323,6 @@ struct npc_diseased_maggotAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_npc_diseased_maggot(Creature* creature)
-{
-    return new npc_diseased_maggotAI(creature);
-}
-
 struct PlagueWaveController : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& /* data */) const override
@@ -350,7 +345,7 @@ void AddSC_boss_heigan()
 
     newScript = new Script;
     newScript->Name = "npc_diseased_maggot";
-    newScript->GetAI = &GetAI_npc_diseased_maggot;
+    newScript->GetAI = &GetNewAIInstance<npc_diseased_maggotAI>;
     newScript->RegisterSelf();
 
     RegisterSpellScript<PlagueWaveController>("spell_plague_wave_controller");

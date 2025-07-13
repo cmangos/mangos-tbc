@@ -85,7 +85,8 @@ static const uint32 groundPhaseActions[] = {SAPPHIRON_CLEAVE, SAPPHIRON_TAIL_SWE
 
 struct boss_sapphironAI : public CombatAI
 {
-    boss_sapphironAI(Creature* creature) : CombatAI(creature, SAPPHIRON_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    boss_sapphironAI(Creature* creature) : CombatAI(creature, SAPPHIRON_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())),
+        m_iceboltCount(0), m_phase(PHASE_GROUND)
     {
         AddCombatAction(SAPPHIRON_CLEAVE, 5u * IN_MILLISECONDS);
         AddCombatAction(SAPPHIRON_TAIL_SWEEP, 12u * IN_MILLISECONDS);

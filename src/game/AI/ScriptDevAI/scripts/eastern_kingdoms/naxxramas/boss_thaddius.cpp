@@ -530,11 +530,6 @@ struct boss_stalaggAI : public boss_thaddiusAddsAI
     }
 };
 
-UnitAI* GetAI_boss_stalagg(Creature* creature)
-{
-    return new boss_stalaggAI(creature);
-}
-
 /************
 ** boss_feugen
 ************/
@@ -600,11 +595,6 @@ struct boss_feugenAI : public boss_thaddiusAddsAI
             m_staticFieldTimer -= diff;
     }
 };
-
-UnitAI* GetAI_boss_feugen(Creature* creature)
-{
-    return new boss_feugenAI(creature);
-}
 
 /****************
 ** Polarity Shift
@@ -722,12 +712,12 @@ void AddSC_boss_thaddius()
 
     newScript = new Script;
     newScript->Name = "boss_stalagg";
-    newScript->GetAI = &GetAI_boss_stalagg;
+    newScript->GetAI = &GetNewAIInstance<boss_stalaggAI>;
     newScript->RegisterSelf();
 
     newScript = new Script;
     newScript->Name = "boss_feugen";
-    newScript->GetAI = &GetAI_boss_feugen;
+    newScript->GetAI = &GetNewAIInstance<boss_feugenAI>;
     newScript->RegisterSelf();
 
     RegisterSpellScript<PolarityShift>("spell_thaddius_polarity_shift");

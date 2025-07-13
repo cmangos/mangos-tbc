@@ -48,7 +48,7 @@ static const DialogueEntry naxxDialogue[] =
     {0,                     0,                0}
 };
 
-instance_naxxramas::instance_naxxramas(Map* pMap) : ScriptedInstance(pMap), DialogueHelper(naxxDialogue),
+instance_naxxramas::instance_naxxramas(Map* map) : ScriptedInstance(map), DialogueHelper(naxxDialogue),
     m_sapphironSpawnTimer(0),
     m_tauntTimer(0),
     m_horsemenKilled(0),
@@ -1056,11 +1056,6 @@ bool instance_naxxramas::DoHandleEvent(uint32 eventId)
     return false;
 }
 
-InstanceData* GetInstanceData_instance_naxxramas(Map* pMap)
-{
-    return new instance_naxxramas(pMap);
-}
-
 struct Location3DPoint
 {
     float x, y, z;
@@ -1080,7 +1075,7 @@ enum
 
 struct npc_stoneskin_gargoyleAI : public ScriptedAI
 {
-    npc_stoneskin_gargoyleAI(Creature* pCreature) : ScriptedAI(pCreature)
+    npc_stoneskin_gargoyleAI(Creature* creature) : ScriptedAI(creature)
     {
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
         {
@@ -1098,14 +1093,14 @@ struct npc_stoneskin_gargoyleAI : public ScriptedAI
         canCastVolley = false;
         TryStoneForm();
 
-        DoCastSpellIfCan(m_creature, SPELL_STEALTH_DETECTION, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        DoCastSpellIfCan(nullptr, SPELL_STEALTH_DETECTION, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
     void TryStoneForm()
     {
         if (m_creature->GetDefaultMovementType() == IDLE_MOTION_TYPE)
         {
-            if (DoCastSpellIfCan(m_creature, SPELL_STONEFORM, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT) == CAST_OK)
+            if (DoCastSpellIfCan(nullptr, SPELL_STONEFORM, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT) == CAST_OK)
             {
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                 m_creature->SetImmuneToPlayer(true);
@@ -1118,21 +1113,21 @@ struct npc_stoneskin_gargoyleAI : public ScriptedAI
         TryStoneForm();
     }
 
-    void MoveInLineOfSight(Unit* pWho) override
+    void MoveInLineOfSight(Unit* who) override
     {
         if (m_creature->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
         {
-            if (pWho->GetTypeId() == TYPEID_PLAYER
+            if (who->IsPlayer()
                 && !m_creature->IsInCombat()
-                && m_creature->IsWithinDistInMap(pWho, 17.0f)
-                && !pWho->HasAuraType(SPELL_AURA_FEIGN_DEATH)
-                && m_creature->IsWithinLOSInMap(pWho))
+                && m_creature->IsWithinDistInMap(who, 17.0f)
+                && !who->HasAuraType(SPELL_AURA_FEIGN_DEATH)
+                && m_creature->IsWithinLOSInMap(who))
             {
-                AttackStart(pWho);
+                AttackStart(who);
             }
         }
         else
-            ScriptedAI::MoveInLineOfSight(pWho);
+            ScriptedAI::MoveInLineOfSight(who);
     }
 
     void Aggro(Unit*) override
@@ -1265,7 +1260,7 @@ void AddSC_instance_naxxramas()
 {
     Script* newScript = new Script;
     newScript->Name = "instance_naxxramas";
-    newScript->GetInstanceData = &GetInstanceData_instance_naxxramas;
+    newScript->GetInstanceData = &GetNewInstanceScript<instance_naxxramas>;
     newScript->RegisterSelf();
 
     newScript = new Script;

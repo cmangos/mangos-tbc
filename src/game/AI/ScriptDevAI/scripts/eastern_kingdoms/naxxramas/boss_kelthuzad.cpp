@@ -530,11 +530,6 @@ struct boss_kelthuzadAI : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_boss_kelthuzad(Creature* creature)
-{
-    return new boss_kelthuzadAI(creature);
-}
-
 /*########################
 #   npc_icecrown_guardian
 ########################*/
@@ -609,11 +604,6 @@ struct npc_icecrown_guardianAI : public ScriptedAI
         DoMeleeAttackIfReady();
     }
 };
-
-UnitAI* GetAI_npc_icecrown_guardian(Creature* creature)
-{
-    return new npc_icecrown_guardianAI(creature);
-}
 
 // Summon one add (which type depends on spell)
 struct TriggerKTAdd : public SpellScript
@@ -717,12 +707,12 @@ void AddSC_boss_kelthuzad()
 {
     Script* newScript = new Script;
     newScript->Name = "boss_kelthuzad";
-    newScript->GetAI = &GetAI_boss_kelthuzad;
+    newScript->GetAI = &GetNewAIInstance<boss_kelthuzadAI>;
     newScript->RegisterSelf();
 
     newScript = new Script;
     newScript->Name = "npc_icecrown_guardian";
-    newScript->GetAI = &GetAI_npc_icecrown_guardian;
+    newScript->GetAI = &GetNewAIInstance<npc_icecrown_guardianAI>;
     newScript->RegisterSelf();
 
     RegisterSpellScript<TriggerKTAdd>("spell_trigger_KT_add");

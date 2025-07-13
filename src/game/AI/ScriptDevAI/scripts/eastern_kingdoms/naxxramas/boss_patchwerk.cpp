@@ -55,21 +55,14 @@ struct boss_patchwerkAI : public CombatAI
 {
     boss_patchwerkAI(Creature* creature) : CombatAI(creature, PATCHWER_ACTIONS_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddTimerlessCombatAction(PATCHWERK_BERSERK_HP_CHECK, true);         // Soft enrage à 5%
+        AddOnKillText(SAY_SLAY);
+        AddTimerlessCombatAction(PATCHWERK_BERSERK_HP_CHECK, true);         // Soft enrage at 5%
         AddCombatAction(PATCHWERK_HATEFUL_STRIKE, 1200u);
         AddCombatAction(PATCHWERK_BERSERK, 7u * MINUTE * IN_MILLISECONDS);  // Basic berserk
         AddCombatAction(PATCHWERK_BERSERK_SILMEBOLT, true);                 // Slimebolt - casted only 30 seconds after berserking to prevent kiting
     }
 
     ScriptedInstance* m_instance;
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        if (urand(0, 4))
-            return;
-
-        DoScriptText(SAY_SLAY, m_creature);
-    }
 
     void JustDied(Unit* /*killer*/) override
     {
@@ -103,7 +96,7 @@ struct boss_patchwerkAI : public CombatAI
             {
                 if (m_creature->GetHealthPercent() < 5.0f)
                 {
-                    if (DoCastSpellIfCan(m_creature, SPELL_ENRAGE) == CAST_OK)
+                    if (DoCastSpellIfCan(nullptr, SPELL_ENRAGE) == CAST_OK)
                     {
                         DoScriptText(EMOTE_GENERIC_ENRAGED, m_creature);
                         DisableCombatAction(action);
@@ -113,13 +106,13 @@ struct boss_patchwerkAI : public CombatAI
             }
             case PATCHWERK_HATEFUL_STRIKE:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_HATEFULSTRIKE_PRIMER) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_HATEFULSTRIKE_PRIMER) == CAST_OK)
                     ResetCombatAction(action, 1200);
                 break;
             }
             case PATCHWERK_BERSERK:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_BERSERK) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_BERSERK) == CAST_OK)
                 {
                     DoScriptText(EMOTE_GENERIC_BERSERK, m_creature);
                     DisableCombatAction(action);

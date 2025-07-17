@@ -21,8 +21,8 @@ SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/base/BossAI.h"
 #include "naxxramas.h"
 
 enum
@@ -46,10 +46,11 @@ enum LoathebActions
     LOATHEB_ACTION_MAX,
 };
 
-struct boss_loathebAI : public CombatAI
+struct boss_loathebAI : public BossAI
 {
-    boss_loathebAI(Creature* creature) : CombatAI(creature, LOATHEB_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    boss_loathebAI(Creature* creature) : BossAI(creature, LOATHEB_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        SetDataType(TYPE_LOATHEB);
         AddCombatAction(LOATHEB_POISON_AURA, 5000u);
         AddCombatAction(LOATHEB_CORRUPTED_MIND, 4000u);
         AddCombatAction(LOATHEB_REMOVE_CURSE, 2000u);
@@ -63,29 +64,9 @@ struct boss_loathebAI : public CombatAI
 
     void Reset() override
     {
-        CombatAI::Reset();
+        BossAI::Reset();
 
         m_corruptedMindCount = 0;
-    }
-
-    void Aggro(Unit* /*who*/) override
-    {
-        if (m_instance)
-            m_instance->SetData(TYPE_LOATHEB, IN_PROGRESS);
-    }
-
-    void JustDied(Unit* /*killer*/) override
-    {
-        if (m_instance)
-            m_instance->SetData(TYPE_LOATHEB, DONE);
-    }
-
-    void EnterEvadeMode() override
-    {
-        CombatAI::EnterEvadeMode();
-
-        if (m_instance)
-            m_instance->SetData(TYPE_LOATHEB, NOT_STARTED);
     }
 
     void JustSummoned(Creature* summoned) override
@@ -100,13 +81,13 @@ struct boss_loathebAI : public CombatAI
         {
             case LOATHEB_INEVITABLE_DOOM:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_INEVITABLE_DOOM, CAST_TRIGGERED) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_INEVITABLE_DOOM, CAST_TRIGGERED) == CAST_OK)
                     ResetCombatAction(action, ((m_corruptedMindCount <= 5) ? 30 : 15) * IN_MILLISECONDS);
                 break;
             }
             case LOATHEB_CORRUPTED_MIND:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_CORRUPTED_MIND, CAST_TRIGGERED) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_CORRUPTED_MIND, CAST_TRIGGERED) == CAST_OK)
                 {
                     ++m_corruptedMindCount;
                     ResetCombatAction(action, 60 * IN_MILLISECONDS);
@@ -115,13 +96,13 @@ struct boss_loathebAI : public CombatAI
             }
             case LOATHEB_SUMMON:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_SPORE, CAST_TRIGGERED) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_SUMMON_SPORE, CAST_TRIGGERED) == CAST_OK)
                     ResetCombatAction(action, 12 * IN_MILLISECONDS);
                 break;
             }
             case LOATHEB_POISON_AURA:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_POISON_AURA) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_POISON_AURA) == CAST_OK)
                     ResetCombatAction(action, 12 * IN_MILLISECONDS);
                 break;
             }

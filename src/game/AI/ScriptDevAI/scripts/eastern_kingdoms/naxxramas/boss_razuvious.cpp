@@ -21,8 +21,8 @@ SDComment: TODO: Deathknight Understudy are supposed to gain Mind Exhaustion deb
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/base/BossAI.h"
 #include "naxxramas.h"
 
 enum
@@ -56,26 +56,25 @@ enum RazuviousActions
     RAZUVIOUS_ACTION_MAX,
 };
 
-struct boss_razuviousAI : public CombatAI
+struct boss_razuviousAI : public BossAI
 {
-    boss_razuviousAI(Creature* creature) : CombatAI(creature, RAZUVIOUS_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    boss_razuviousAI(Creature* creature) : BossAI(creature, RAZUVIOUS_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData())), m_oneHit(false)
     {
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float, float, float z) { return z > resetZ; });
+        SetDataType(TYPE_RAZUVIOUS);
+        AddOnKillText(SAY_SLAY);
+        AddOnDeathText(SAY_DEATH);
         AddCombatAction(RAZUVIOUS_UNBALANCING_STRIKE, 30u * IN_MILLISECONDS);
         AddCombatAction(RAZUVIOUS_DISRUPTING_SHOUT, 25u * IN_MILLISECONDS);
     }
 
     ScriptedInstance* m_instance;
+    bool m_oneHit;
 
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_SLAY, m_creature);
-    }
-
-    void SpellHit(Unit* /*caster*/, const SpellEntry* spell) override
+    void SpellHit(Unit* /*caster*/, const SpellEntry* spellInfo) override
     {
         // Every time a Deathknight Understudy taunts Razuvious, he will yell its disappointment
-        if (spell->Id == SPELL_TAUNT)
+        if (spellInfo->Id == SPELL_TAUNT)
         {
             switch (urand(0, 3))
             {
@@ -87,28 +86,34 @@ struct boss_razuviousAI : public CombatAI
         }
     }
 
-    void SpellHitTarget(Unit* target, const SpellEntry* spell) override
+    void SpellHitTarget(Unit* target, const SpellEntry* spellInfo) override
     {
         // This emote happens only when Disrupting Shout hit a target with mana
-        if (spell->Id == SPELL_DISRUPTING_SHOUT && target->GetTypeId() == TYPEID_PLAYER)
+        if (spellInfo->Id == SPELL_DISRUPTING_SHOUT && target->IsPlayer())
         {
-            if (((Player*)target)->GetPowerType() == POWER_MANA)
+            if (target->GetPowerType() == POWER_MANA && !m_oneHit)
+            {
                 DoScriptText(EMOTE_TRIUMPHANT_SHOOT, m_creature);
+                m_oneHit = true;
+            }
         }
+    }
+
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
+    {
+        if (spellInfo->Id == SPELL_DISRUPTING_SHOUT)
+            m_oneHit = false;
     }
 
     void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(SAY_DEATH, m_creature);
-
-        DoCastSpellIfCan(m_creature, SPELL_HOPELESS, CAST_TRIGGERED);
-
-        if (m_instance)
-            m_instance->SetData(TYPE_RAZUVIOUS, DONE);
+        BossAI::JustDied();
+        DoCastSpellIfCan(nullptr, SPELL_HOPELESS, CAST_TRIGGERED);
     }
 
     void Aggro(Unit* /*who*/) override
     {
+        BossAI::Aggro();
         switch (urand(0, 3))
         {
             // Yell texts on aggro were removed in patch 2.0 but the sounds remained
@@ -117,15 +122,6 @@ struct boss_razuviousAI : public CombatAI
             case 2: DoPlaySoundToSet(m_creature, SOUND_AGGRO3); break;
             case 3: DoPlaySoundToSet(m_creature, SOUND_AGGRO4); break;
         }
-
-        if (m_instance)
-            m_instance->SetData(TYPE_RAZUVIOUS, IN_PROGRESS);
-    }
-
-    void JustReachedHome() override
-    {
-        if (m_instance)
-            m_instance->SetData(TYPE_RAZUVIOUS, FAIL);
     }
 
     void ExecuteAction(uint32 action) override
@@ -134,7 +130,7 @@ struct boss_razuviousAI : public CombatAI
         {
             case RAZUVIOUS_DISRUPTING_SHOUT:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_DISRUPTING_SHOUT) == CAST_OK)
+                if (DoCastSpellIfCan(nullptr, SPELL_DISRUPTING_SHOUT) == CAST_OK)
                     ResetCombatAction(action, 25u * IN_MILLISECONDS);
                 return;
             }

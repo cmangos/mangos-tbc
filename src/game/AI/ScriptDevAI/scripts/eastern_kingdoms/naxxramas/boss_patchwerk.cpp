@@ -21,8 +21,8 @@ SDComment:
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/base/BossAI.h"
 #include "naxxramas.h"
 
 enum
@@ -51,11 +51,14 @@ enum PatchwerkActions
     PATCHWER_ACTIONS_MAX,
 };
 
-struct boss_patchwerkAI : public CombatAI
+struct boss_patchwerkAI : public BossAI
 {
-    boss_patchwerkAI(Creature* creature) : CombatAI(creature, PATCHWER_ACTIONS_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    boss_patchwerkAI(Creature* creature) : BossAI(creature, PATCHWER_ACTIONS_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        SetDataType(TYPE_PATCHWERK);
         AddOnKillText(SAY_SLAY);
+        AddOnDeathText(SAY_DEATH);
+        AddOnAggroText(SAY_AGGRO1, SAY_AGGRO2);
         AddTimerlessCombatAction(PATCHWERK_BERSERK_HP_CHECK, true);         // Soft enrage at 5%
         AddCombatAction(PATCHWERK_HATEFUL_STRIKE, 1200u);
         AddCombatAction(PATCHWERK_BERSERK, 7u * MINUTE * IN_MILLISECONDS);  // Basic berserk
@@ -63,30 +66,6 @@ struct boss_patchwerkAI : public CombatAI
     }
 
     ScriptedInstance* m_instance;
-
-    void JustDied(Unit* /*killer*/) override
-    {
-        DoScriptText(SAY_DEATH, m_creature);
-
-        if (m_instance)
-            m_instance->SetData(TYPE_PATCHWERK, DONE);
-    }
-
-    void Aggro(Unit* /*who*/) override
-    {
-        DoScriptText(urand(0, 1) ? SAY_AGGRO1 : SAY_AGGRO2, m_creature);
-
-        if (m_instance)
-            m_instance->SetData(TYPE_PATCHWERK, IN_PROGRESS);
-    }
-
-    void EnterEvadeMode() override
-    {
-        CombatAI::EnterEvadeMode();
-
-        if (m_instance)
-            m_instance->SetData(TYPE_PATCHWERK, FAIL);
-    }
 
     void ExecuteAction(uint32 action) override
     {

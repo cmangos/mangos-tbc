@@ -707,7 +707,81 @@ struct ThaddiusCharge : public AuraScript
     }
 };
 
-// TODO: 28338 28339 28111 28096 28359
+// 28338, 28339 - Magnetic Pull
+struct MagneticPullThaddius : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        Unit* caster = spell->GetCaster();
+        if (target && caster->GetVictim())
+            target->CastSpell(caster->GetVictim(), 28337, TRIGGERED_OLD_TRIGGERED); // target cast actual Magnetic Pull on caster's victim
+        // ToDo research if target should also get the threat of the caster for caster's victim.
+        // This is the case in WotLK version but we have no proof of this in Classic/TBC
+        // and it was common at these times to let players manage threat and tank transitions by themselves
+    }
+};
+
+// 28096 - Stalagg Chain
+// 28111 - Feugen Chain
+struct FeugenStalaggChain : public AuraScript
+{
+    void OnPeriodicTrigger(Aura* /*aura*/, PeriodicTriggerData& /*data*/) const override
+    {
+        
+    }
+};
+
+// 28098 - Stalagg Tesla Effect
+// 28110 - Feugen Tesla Effect
+struct FeugenStalaggTeslaEffect : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        Unit* caster = spell->GetCaster();
+        if (unitTarget && unitTarget->GetTypeId() == TYPEID_UNIT && unitTarget->IsAlive())
+        {
+            if (!caster->hasUnitState(UNIT_STAT_ROOT))    // This state is found in sniffs and is probably caused by another aura like 23973
+                caster->addUnitState(UNIT_STAT_ROOT);     // but as we are not sure (the aura does not show up in sniffs), we handle the state here
+
+            // Cast chain (Stalagg Chain or Feugen Chain)
+            uint32 chainSpellId = spell->m_spellInfo->Id == 28098 ? 28096 : 28111;
+            // Only cast if not already present and in range
+            if (!unitTarget->HasAura(chainSpellId) && caster->IsWithinDistInMap(unitTarget, 60.0f))
+            {
+                if (!caster->IsImmuneToPlayer())
+                    caster->SetImmuneToPlayer(true);
+                caster->CastSpell(unitTarget, chainSpellId, TRIGGERED_OLD_TRIGGERED);
+            }
+            // Not in range and fight in progress: remove aura and cast Shock onto players
+            else if (!caster->IsWithinDistInMap(unitTarget, 60.0f) && caster)
+            {
+                unitTarget->RemoveAurasDueToSpell(chainSpellId);
+                caster->SetImmuneToPlayer(false);
+
+                if (Unit* target = caster->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
+                    caster->CastSpell(target, 28099, TRIGGERED_NONE);
+            }
+            // else: in range and already have aura: do nothing
+        }
+    }
+};
+
+// 28359 - Trigger Teslas
+struct TriggerTeslas : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        if (unitTarget)
+        {
+            DoScriptText(EMOTE_TESLA_OVERLOAD, unitTarget, unitTarget);
+            unitTarget->RemoveAllAuras();
+            unitTarget->CastSpell(unitTarget, SPELL_SHOCK_OVERLOAD, TRIGGERED_NONE); // Shock
+        }
+    }
+};
 
 void AddSC_boss_thaddius()
 {
@@ -730,4 +804,8 @@ void AddSC_boss_thaddius()
     RegisterSpellScript<PolarityShift>("spell_thaddius_polarity_shift");
     RegisterSpellScript<ThaddiusChargeDamage>("spell_thaddius_charge_damage");
     RegisterSpellScript<ThaddiusCharge>("spell_thaddius_charge_buff");
+    RegisterSpellScript<MagneticPullThaddius>("spell_magnetic_pull_thaddius");
+    RegisterSpellScript<FeugenStalaggChain>("spell_feugen_stalagg_chain");
+    RegisterSpellScript<FeugenStalaggTeslaEffect>("spell_feugen_stalagg_tesla_effect");
+    RegisterSpellScript<TriggerTeslas>("spell_trigger_teslas");
 }

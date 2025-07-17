@@ -165,7 +165,16 @@ struct SummonCorpseScarabs : public SpellScript
     }
 };
 
-// TODO: 29379
+// 29379 - Despawn Crypt Guards
+struct DespawnCryptGuards : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (target && target->IsCreature())
+            static_cast<Creature*>(target)->ForcedDespawn();
+    }
+};
 
 void AddSC_boss_anubrekhan()
 {
@@ -180,4 +189,5 @@ void AddSC_boss_anubrekhan()
     newScript->RegisterSelf();
 
     RegisterSpellScript<SummonCorpseScarabs>("spell_summon_corpse_scarabs");
+    RegisterSpellScript<DespawnCryptGuards>("spell_despawn_crypt_guards");
 }

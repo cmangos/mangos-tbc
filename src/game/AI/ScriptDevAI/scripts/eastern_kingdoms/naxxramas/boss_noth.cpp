@@ -342,7 +342,16 @@ struct boss_nothAI : public CombatAI
     }
 };
 
-// TODO: 29213 30228
+// 30228 - Despawn Summons
+struct DespawnSummonsNoth : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (target && target->IsCreature())
+            static_cast<Creature*>(target)->ForcedDespawn();
+    }
+};
 
 void AddSC_boss_noth()
 {
@@ -350,4 +359,6 @@ void AddSC_boss_noth()
     newScript->Name = "boss_noth";
     newScript->GetAI = &GetNewAIInstance<boss_nothAI>;
     newScript->RegisterSelf();
+
+    RegisterSpellScript<DespawnSummonsNoth>("spell_despawn_summons_noth");
 }

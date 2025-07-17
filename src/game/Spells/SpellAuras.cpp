@@ -1334,15 +1334,6 @@ void Aura::TriggerSpell()
                         }
                         return;
                     }
-                    // Detonate Mana
-                    case 27819:
-                    {
-                        // 50% Mana Burn
-                        int32 bpDamage = (int32)triggerTarget->GetPower(POWER_MANA) * 0.5f;
-                        triggerTarget->ModifyPower(POWER_MANA, -bpDamage);
-                        triggerTarget->CastCustomSpell(triggerTarget, 27820, &bpDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, this, triggerTarget->GetObjectGuid());
-                        return;
-                    }
 //                    // Controller Timer
 //                    case 28095: break;
                     // Stalagg Chain and Feugen Chain
@@ -4807,11 +4798,6 @@ void Aura::HandlePeriodicTriggerSpell(bool apply, bool /*Real*/)
                 // On aura removal, the target deals AoE damage to friendlies and kills himself/herself (prevent durability loss)
                 target->CastSpell(target, 23478, TRIGGERED_OLD_TRIGGERED, nullptr, this);
                 target->CastSpell(target, 23644, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                return;
-            case 29213:                                     // Curse of the Plaguebringer
-                if (m_removeMode != AURA_REMOVE_BY_DISPEL)
-                    // Cast Wrath of the Plaguebringer if not dispelled
-                    target->CastSpell(target, 29214, TRIGGERED_OLD_TRIGGERED, 0, this);
                 return;
             case 29946:
                 if (m_removeMode != AURA_REMOVE_BY_EXPIRE)

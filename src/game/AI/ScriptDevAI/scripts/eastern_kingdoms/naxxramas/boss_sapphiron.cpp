@@ -368,7 +368,7 @@ struct DespawnIceBlock : public SpellScript
 };
 
 // 29330 - Sapphiron's Wing Buffet Despawn
-struct DespawnBuffet : public AuraScript
+struct SapphironsWingBuffetDespawn : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
     {
@@ -377,7 +377,16 @@ struct DespawnBuffet : public AuraScript
     }
 };
 
-// TODO: 29336
+// 29336 - Despawn Buffet
+struct DespawnBuffet : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (target && target->IsCreature())
+            static_cast<Creature*>(target)->ForcedDespawn();
+    }
+};
 
 void AddSC_boss_sapphiron()
 {
@@ -395,5 +404,6 @@ void AddSC_boss_sapphiron()
     RegisterSpellScript<IceBolt>("spell_sapphiron_icebolt");
     RegisterSpellScript<SummonBlizzard>("spell_sapphiron_blizzard");
     RegisterSpellScript<DespawnIceBlock>("spell_sapphiron_iceblock");
+    RegisterSpellScript<SapphironsWingBuffetDespawn>("spell_sapphiron_despawn_buffet");
     RegisterSpellScript<DespawnBuffet>("spell_sapphiron_despawn_buffet");
 }

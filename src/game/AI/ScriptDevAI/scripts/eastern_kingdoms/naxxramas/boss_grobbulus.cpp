@@ -178,7 +178,16 @@ struct MutatingInjection : public AuraScript
     }
 };
 
-// TODO: 30134
+// 30134 - Despawn Boss Adds
+struct DespawnBossAdds : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (target && target->IsCreature())
+            static_cast<Creature*>(target)->ForcedDespawn();
+    }
+};
 
 void AddSC_boss_grobbulus()
 {
@@ -188,4 +197,5 @@ void AddSC_boss_grobbulus()
     newScript->RegisterSelf();
 
     RegisterSpellScript<MutatingInjection>("spell_grobbulus_mutating_injection");
+    RegisterSpellScript<DespawnBossAdds>("spell_despawn_boss_adds");
 }

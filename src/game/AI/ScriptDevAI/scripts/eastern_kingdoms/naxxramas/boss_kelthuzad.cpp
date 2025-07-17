@@ -708,7 +708,19 @@ struct GuardianPeriodic : public AuraScript
     }
 };
 
-// TODO: 27819
+// 27819 - Detonate Mana
+struct DetonateManaKelThuzad : public AuraScript
+{
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
+    {
+        // 50% Mana Burn
+        data.caster = aura->GetTarget();
+        data.target = nullptr;
+        data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(27820);
+        data.basePoints[0] = (int32)aura->GetTarget()->GetPower(POWER_MANA) * 0.5f;
+        aura->GetTarget()->ModifyPower(POWER_MANA, -data.basePoints[0]);
+    }
+};
 
 void AddSC_boss_kelthuzad()
 {
@@ -726,4 +738,5 @@ void AddSC_boss_kelthuzad()
     RegisterSpellScript<ChainsKelThuzad>("spell_chains_kel_thuzad");
     RegisterSpellScript<FrostBlast>("spell_kel_thuzad_frost_blast");
     RegisterSpellScript<GuardianPeriodic>("spell_icecrown_guardian_periodic");
+    RegisterSpellScript<DetonateManaKelThuzad>("spell_detonate_mana_kt");
 }

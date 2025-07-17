@@ -155,6 +155,7 @@ struct boss_grobbulusAI : public CombatAI
     }
 };
 
+// 28169 - Mutating Injection
 struct MutatingInjection : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -176,6 +177,8 @@ struct MutatingInjection : public AuraScript
         }
     }
 };
+
+// TODO: 30134
 
 void AddSC_boss_grobbulus()
 {

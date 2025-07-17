@@ -687,7 +687,7 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
                     {
                         if (guardian->AI())
                             guardian->AI()->EnterEvadeMode();
-                        DoScriptText(EMOTE_FLEE, guardian);
+                        DoBroadcastText(EMOTE_FLEE, guardian);
                     }
                 }
             }
@@ -815,7 +815,7 @@ void instance_naxxramas::Update(uint32 diff)
             {
                 if (Creature* kelthuzad = GetSingleCreatureFromStorage(NPC_KELTHUZAD))
                 {
-                    DoScriptText((urand(0, 1) ? SAY_KELTHUZAD_SHACKLES_1: SAY_KELTHUZAD_SHACKLES_2), kelthuzad);
+                    DoBroadcastText(SAY_KELTHUZAD_SHACKLES_1, kelthuzad);
                     kelthuzad->CastSpell(nullptr, SPELL_CLEAR_ALL_SHACKLES, TRIGGERED_OLD_TRIGGERED);
                 }
             }
@@ -1154,7 +1154,7 @@ struct npc_stoneskin_gargoyleAI : public ScriptedAI
         if (m_creature->GetHealthPercent() < 30.0f && !m_creature->HasAura(SPELL_STONESKIN))
         {
             if (DoCastSpellIfCan(m_creature, SPELL_STONESKIN) == CAST_OK)
-                DoScriptText(SAY_GARGOYLE_NOISE, m_creature);
+                DoBroadcastText(SAY_GARGOYLE_NOISE, m_creature);
         }
 
         // Acid Volley
@@ -1221,7 +1221,7 @@ bool instance_naxxramas::DoHandleAreaTrigger(AreaTriggerEntry const* areaTrigger
             if (Creature* thaddius = GetSingleCreatureFromStorage(NPC_THADDIUS))
             {
                 SetData(TYPE_THADDIUS, SPECIAL);
-                DoScriptText(SAY_THADDIUS_GREET, thaddius);
+                DoBroadcastText(SAY_THADDIUS_GREET, thaddius);
             }
         }
     }

@@ -176,7 +176,7 @@ struct boss_gluthAI : public CombatAI
     }
 };
 
-// Reduce all players and Zombie Chow NPCs HP to 5% max HP
+// 28374 - Decimate
 struct Decimate : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx ) const override
@@ -185,6 +185,7 @@ struct Decimate : public SpellScript
         {
             if (Unit* unitTarget = spell->GetUnitTarget())
             {
+                // Reduce all players and Zombie Chow NPCs HP to 5% max HP
                 // Return if not player, pet nor Zombie Chow NPC
                 if (unitTarget->GetTypeId() == TYPEID_UNIT && !unitTarget->IsControlledByPlayer() && unitTarget->GetEntry() != NPC_ZOMBIE_CHOW)
                     return;
@@ -197,6 +198,7 @@ struct Decimate : public SpellScript
     }
 };
 
+// 29682 - Call All Zombie Chow
 struct CallAllZombies : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx ) const override
@@ -215,6 +217,7 @@ struct CallAllZombies : public SpellScript
     }
 };
 
+// 28236 - Zombie Chow Search
 struct ZombieChowSearch : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx ) const override
@@ -240,6 +243,7 @@ struct ZombieChowSearch : public SpellScript
     }
 };
 
+// 28238 - Zombie Chow Search
 struct ZombieChowSearchHeal : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx ) const override

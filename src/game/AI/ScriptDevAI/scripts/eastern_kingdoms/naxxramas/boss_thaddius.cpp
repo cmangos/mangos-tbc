@@ -600,6 +600,7 @@ struct boss_feugenAI : public boss_thaddiusAddsAI
 ** Polarity Shift
 ****************/
 
+// 28089 - Polarity Shift
 struct PolarityShift : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx ) const override
@@ -638,6 +639,8 @@ struct PolarityShift : public SpellScript
     }
 };
 
+// 28062 - Positive Charge
+// 28085 - Negative Charge
 struct ThaddiusChargeDamage : public SpellScript
 {
     bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex effIdx) const override
@@ -662,6 +665,8 @@ struct ThaddiusChargeDamage : public SpellScript
     }
 };
 
+// 28059 - Positive Charge
+// 28084 - Negative Charge
 struct ThaddiusCharge : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -701,6 +706,8 @@ struct ThaddiusCharge : public AuraScript
         }
     }
 };
+
+// TODO: 28338 28339 28111 28096 28359
 
 void AddSC_boss_thaddius()
 {

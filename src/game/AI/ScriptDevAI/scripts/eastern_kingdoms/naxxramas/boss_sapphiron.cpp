@@ -311,6 +311,7 @@ bool GOUse_go_sapphiron_birth(Player* /*player*/, GameObject* go)
     return false;
 }
 
+// 28522 - Icebolt
 struct IceBolt : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /* effIdx */) const override
@@ -323,6 +324,7 @@ struct IceBolt : public SpellScript
     }
 };
 
+// 28526 - Icebolt
 struct PeriodicIceBolt : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
@@ -338,6 +340,7 @@ struct PeriodicIceBolt : public AuraScript
     }
 };
 
+// 28560 - Summon Blizzard
 struct SummonBlizzard : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /* effIdx */) const override
@@ -347,6 +350,7 @@ struct SummonBlizzard : public SpellScript
     }
 };
 
+// 30132 - Despawn Ice Block
 struct DespawnIceBlock : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /* effIdx */) const override
@@ -363,6 +367,7 @@ struct DespawnIceBlock : public SpellScript
     }
 };
 
+// 29330 - Sapphiron's Wing Buffet Despawn
 struct DespawnBuffet : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
@@ -371,6 +376,8 @@ struct DespawnBuffet : public AuraScript
             data.spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(SPELL_DESPAWN_BUFFET_EFFECT); // Despawn Ice Block
     }
 };
+
+// TODO: 29336
 
 void AddSC_boss_sapphiron()
 {

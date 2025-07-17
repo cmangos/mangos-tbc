@@ -2184,28 +2184,6 @@ void Aura::HandleAuraDummy(bool apply, bool Real)
                         }
                         return;
                     }
-                    case 28832:                             // Mark of Korth'azz
-                    case 28833:                             // Mark of Blaumeux
-                    case 28834:                             // Mark of Rivendare
-                    case 28835:                             // Mark of Zeliek
-                    {
-                        int32 damage;
-                        switch (GetStackAmount())
-                        {
-                            case 1:
-                                return;
-                            case 2: damage =   250; break;
-                            case 3: damage =  1000; break;
-                            case 4: damage =  3000; break;
-                            default:
-                                damage = 1000 * GetStackAmount();
-                                break;
-                        }
-
-                        if (Unit* caster = GetCaster())
-                            caster->CastCustomSpell(target, 28836, &damage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, nullptr, this);
-                        return;
-                    }
                     case 31736:                                     // Ironvine Seeds
                     {
                         Unit* pCaster = GetCaster();

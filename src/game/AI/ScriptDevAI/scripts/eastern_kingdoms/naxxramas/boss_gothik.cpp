@@ -395,6 +395,9 @@ bool EffectDummyCreature_spell_anchor(Unit* /*caster*/, uint32 spellId, SpellEff
     return true;
 };
 
+// 28007 - Summon Trainee
+// 28009 - Summon Knight
+// 28011 - Summon Mounted Knight
 struct SummonUnrelenting : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
@@ -429,6 +432,8 @@ struct SummonUnrelenting : public AuraScript
     }
 };
 
+// 28749 - Check Spectral Side
+// 29875 - Check Unrelenting Side
 struct CheckGothikSide : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /* effIdx */) const override
@@ -471,6 +476,8 @@ struct CheckGothikSide : public SpellScript
     }
 };
 
+// 28781 - Spectral Side Assault
+// 29874 - Unrelenting Side Assault
 struct GothikSideAssault : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /* effIdx */) const override

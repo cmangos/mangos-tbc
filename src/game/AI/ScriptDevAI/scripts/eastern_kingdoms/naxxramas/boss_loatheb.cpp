@@ -138,6 +138,7 @@ struct boss_loathebAI : public CombatAI
     }
 };
 
+// 29201 - Corrupted Mind
 struct CorruptedMind : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override

@@ -132,6 +132,7 @@ struct boss_patchwerkAI : public CombatAI
     }
 };
 
+// 28307 - Hateful Strike Primer
 struct HatefulStrikePrimer : public SpellScript
 {
     void OnInit(Spell* spell) const override

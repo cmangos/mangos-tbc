@@ -342,6 +342,8 @@ struct boss_nothAI : public CombatAI
     }
 };
 
+// TODO: 29213 30228
+
 void AddSC_boss_noth()
 {
     Script* newScript = new Script;

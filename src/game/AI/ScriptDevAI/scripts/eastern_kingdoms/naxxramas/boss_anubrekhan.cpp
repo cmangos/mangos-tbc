@@ -27,18 +27,18 @@ EndScriptData */
 
 enum
 {
-    SAY_GREET1                  = -1533000,
-    SAY_GREET2                  = -1533004,
-    SAY_GREET3                  = -1533005,
-    SAY_GREET4                  = -1533006,
-    SAY_GREET5                  = -1533007,
-    SAY_AGGRO1                  = -1533001,
-    SAY_AGGRO2                  = -1533002,
-    SAY_AGGRO3                  = -1533003,
-    SAY_SLAY                    = -1533008,
+    SAY_GREET1                  = 13004,
+    SAY_GREET2                  = 13006,
+    SAY_GREET3                  = 13007,
+    SAY_GREET4                  = 13008,
+    SAY_GREET5                  = 13009,
+    SAY_AGGRO1                  = 13000,
+    SAY_AGGRO2                  = 13002,
+    SAY_AGGRO3                  = 13003,
+    SAY_SLAY                    = 13005,
 
     SPELL_DOUBLE_ATTACK         = 18943,
-    SPELL_IMPALE                = 28783,                    // May be wrong spell id. Causes more dmg than I expect
+    SPELL_IMPALE                = 28783,
     SPELL_LOCUSTSWARM           = 28785,                    // This is a self buff that triggers the dmg debuff
     SPELL_ANUB_AURA             = 29103,                    // Periodically apply aura 29104 onto players to handle the corpse scarabs summon when they die (spell 29105)
 
@@ -82,24 +82,13 @@ struct boss_anubrekhanAI : public BossAI
     instance_naxxramas* m_instance;
     DialogueHelper m_introDialogue;
 
-    uint32 m_impaleTimer;
-    uint32 m_locustSwarmTimer;
-    uint32 m_corpseScarabsTimer;
-    bool   m_hasDoneIntro;
+    bool m_hasDoneIntro;
 
     void Reset() override
     {
         BossAI::Reset();
-        m_impaleTimer           = 15 * IN_MILLISECONDS;
-        m_locustSwarmTimer      = urand(80, 120) * IN_MILLISECONDS;
-        m_corpseScarabsTimer    = urand(65, 105) * IN_MILLISECONDS;
 
         DoCastSpellIfCan(nullptr, SPELL_DOUBLE_ATTACK, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
-    }
-
-    void KilledUnit(Unit* /*victim*/) override
-    {
-        DoScriptText(SAY_SLAY, m_creature);
     }
 
     void Aggro(Unit* /*who*/) override
@@ -125,9 +114,9 @@ struct boss_anubrekhanAI : public BossAI
     void EnterEvadeMode() override
     {
         // We despawn the guardians before entering evade mode to prevent despawning also the static adds that are linked to respawn on evade
-        DoCastSpellIfCan(m_creature, SPELL_DESPAWN_GUARDS, CAST_TRIGGERED);
+        DoCastSpellIfCan(nullptr, SPELL_DESPAWN_GUARDS, CAST_TRIGGERED);
 
-        ScriptedAI::EnterEvadeMode();
+        BossAI::EnterEvadeMode();
     }
 
     void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
@@ -139,53 +128,7 @@ struct boss_anubrekhanAI : public BossAI
     void UpdateAI(const uint32 diff) override
     {
         m_introDialogue.DialogueUpdate(diff);
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        // Impale
-        if (m_impaleTimer < diff)
-        {
-            // Cast Impale on a random target
-            // Do NOT cast it when we are afflicted by locust swarm
-            if (!m_creature->HasAura(SPELL_LOCUSTSWARM))
-            {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-                    DoCastSpellIfCan(target, SPELL_IMPALE);
-            }
-
-            m_impaleTimer = urand(12, 18) * IN_MILLISECONDS;
-        }
-        else
-            m_impaleTimer -= diff;
-
-        // Locust Swarm
-        if (m_locustSwarmTimer < diff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_LOCUSTSWARM) == CAST_OK)
-            {
-                // Summon a crypt guard
-                m_summonTimer = 3 * IN_MILLISECONDS;
-                m_locustSwarmTimer = 90 * IN_MILLISECONDS;
-                m_impaleTimer += 23 * IN_MILLISECONDS;    // Delay next Impale by Locust Swarm duration (20 sec) + casting time (3 sec), this prevent Impale to be always cast right after Locust Swarm ends
-            }
-        }
-        else
-            m_locustSwarmTimer -= diff;
-
-        // Summon Corpse Scarabs from dead Crypt Guard
-        if (m_corpseScarabsTimer)
-        {
-            if (m_corpseScarabsTimer <= diff)
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_SPAWN_CORPSE_SCARABS) == CAST_OK)
-                    m_corpseScarabsTimer = urand(65, 105) * IN_MILLISECONDS;
-            }
-            else
-                m_corpseScarabsTimer -= diff;
-        }
-
-        DoMeleeAttackIfReady();
+        BossAI::UpdateAI(diff);
     }
 };
 
@@ -207,6 +150,23 @@ bool GOUse_go_anub_door(Player* /*player*/, GameObject* go)
     return false;
 }
 
+// 28961 - Summon Corpse Scarabs
+struct SummonCorpseScarabs : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* unitTarget = spell->GetUnitTarget();
+        if (unitTarget->IsAlive())
+            return;
+
+        unitTarget->CastSpell(nullptr, 28864, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, spell->GetTrueCaster()->GetObjectGuid());  // Actual summoning spell
+        if (unitTarget->IsCreature())
+            static_cast<Creature*>(unitTarget)->ForcedDespawn(2000);
+    }
+};
+
+// TODO: 29379
+
 void AddSC_boss_anubrekhan()
 {
     Script* newScript = new Script;
@@ -218,4 +178,6 @@ void AddSC_boss_anubrekhan()
     newScript->Name = "go_anub_door";
     newScript->pGOUse = &GOUse_go_anub_door;
     newScript->RegisterSelf();
+
+    RegisterSpellScript<SummonCorpseScarabs>("spell_summon_corpse_scarabs");
 }

@@ -605,13 +605,17 @@ struct npc_icecrown_guardianAI : public ScriptedAI
     }
 };
 
-// Summon one add (which type depends on spell)
+// 28415 - Summon Type A Trigger
+// 28416 - Summon Type B Trigger
+// 28417 - Summon Type C Trigger
+// 28455 - Summon Type D Trigger
 struct TriggerKTAdd : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /* effIdx */) const override
     {
         if (Unit* unitTarget = spell->GetUnitTarget())
         {
+            // Summon one add (which type depends on spell)
             switch (spell->m_spellInfo->Id)
             {
                 case 28415:
@@ -633,11 +637,12 @@ struct TriggerKTAdd : public SpellScript
     }
 };
 
-// Select four random players plus the main tank and mind control them all. Evil.
+// 28408 - Chains of Kel'Thuzad
 struct ChainsKelThuzad : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /* effIdx */) const override
     {
+        // Select four random players plus the main tank and mind control them all. Evil.
         Creature* caster = (Creature*)spell->GetCaster();
 
         if (!caster)
@@ -673,7 +678,7 @@ struct ChainsKelThuzad : public SpellScript
     }
 };
 
-// Do damage onto the player equal to 26% of his/her full hit points on every tick
+// 27808 - Frost Blast
 struct FrostBlast : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& /* data */) const override
@@ -682,19 +687,19 @@ struct FrostBlast : public AuraScript
         if (!caster)
             return;
 
-        if (Unit* target =  aura->GetTarget())
-        {
-            int32 basePointsDamage = target->GetMaxHealth() * 26 / 100;
-            caster->CastCustomSpell(target, SPELL_FROST_BLAST_DAMAGE, &basePointsDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
-        }
+        // Do damage onto the player equal to 26% of his/her full hit points on every tick
+        Unit* target = aura->GetTarget();
+        int32 basePointsDamage = target->GetMaxHealth() * 26 / 100;
+        caster->CastCustomSpell(target, SPELL_FROST_BLAST_DAMAGE, &basePointsDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
     }
 };
 
-// Periodically inform the instance if the target is controlled through Shackle Undead or not
+// 29897 - Guardian of Icecrown Passive
 struct GuardianPeriodic : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
     {
+        // Periodically inform the instance if the target is controlled through Shackle Undead or not
         if (Unit* target = aura->GetTarget())
         {
             if (target->HasAuraType(SPELL_AURA_MOD_STUN))   // Shackle Undead applies SPELL_AURA_MOD_STUN, so we cover all ranks of the spell this way
@@ -702,6 +707,8 @@ struct GuardianPeriodic : public AuraScript
         }
     }
 };
+
+// TODO: 27819
 
 void AddSC_boss_kelthuzad()
 {

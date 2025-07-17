@@ -338,11 +338,12 @@ struct npc_invisible_manAI : public ScriptedAI
     }
 };
 
-// Web Wrap (Maexxna: pull spell initialiser)
+// 28617 - Web Wrap
 struct WebWrap : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
+        // Web Wrap (Maexxna: pull spell initialiser)
         if (effIdx == EFFECT_INDEX_0)
         {
             if (!spell->GetAffectiveCasterObject())
@@ -367,15 +368,16 @@ struct WebWrap : public SpellScript
     }
 };
 
-// Clear Web Wrap
+// 28628, 28629 - Clear Web Wrap 
 struct ClearWebWrap : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
+        // Clear Web Wrap
         if (effIdx == EFFECT_INDEX_0)
         {
             Unit* unitTarget = spell->GetUnitTarget();
-            switch(spell->m_spellInfo->Id)
+            switch (spell->m_spellInfo->Id)
             {
                 case SPELL_CLEAR_WEB_WRAP_TARGET:   // Clear Web Wrap (Maexxna: clear effects on player)
                 {

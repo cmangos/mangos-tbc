@@ -323,6 +323,8 @@ struct npc_diseased_maggotAI : public ScriptedAI
     }
 };
 
+// 29351 - Plague Wave Controller (Slow)
+// 30114 - Plague Wave Controller (Fast)
 struct PlagueWaveController : public AuraScript
 {
     void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& /* data */) const override

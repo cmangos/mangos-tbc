@@ -405,5 +405,5 @@ void AddSC_boss_sapphiron()
     RegisterSpellScript<SummonBlizzard>("spell_sapphiron_blizzard");
     RegisterSpellScript<DespawnIceBlock>("spell_sapphiron_iceblock");
     RegisterSpellScript<SapphironsWingBuffetDespawn>("spell_sapphiron_despawn_buffet");
-    RegisterSpellScript<DespawnBuffet>("spell_sapphiron_despawn_buffet");
+    RegisterSpellScript<DespawnBuffet>("spell_despawn_buffet");
 }

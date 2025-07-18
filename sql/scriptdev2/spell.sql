@@ -144,6 +144,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (28169,'spell_grobbulus_mutating_injection'),
 (28236,'spell_gluth_zombie_search'),
 (28238,'spell_gluth_zombie_search_heal'),
+(28239,'spell_gluth_single_target_instakill'),
 (28265,'spell_scourge_strike'),
 (28338,'spell_magnetic_pull_thaddius'),
 (28339,'spell_magnetic_pull_thaddius'),

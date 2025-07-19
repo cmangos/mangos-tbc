@@ -51,8 +51,6 @@ static const float resetZ = 285.0f;         // Above this altitude, Razuvious is
 
 enum RazuviousActions
 {
-    RAZUVIOUS_UNBALANCING_STRIKE,
-    RAZUVIOUS_DISRUPTING_SHOUT,
     RAZUVIOUS_ACTION_MAX,
 };
 
@@ -64,8 +62,6 @@ struct boss_razuviousAI : public BossAI
         SetDataType(TYPE_RAZUVIOUS);
         AddOnKillText(SAY_SLAY);
         AddOnDeathText(SAY_DEATH);
-        AddCombatAction(RAZUVIOUS_UNBALANCING_STRIKE, 30u * IN_MILLISECONDS);
-        AddCombatAction(RAZUVIOUS_DISRUPTING_SHOUT, 25u * IN_MILLISECONDS);
     }
 
     ScriptedInstance* m_instance;
@@ -121,25 +117,6 @@ struct boss_razuviousAI : public BossAI
             case 1: DoPlaySoundToSet(m_creature, SOUND_AGGRO2); break;
             case 2: DoPlaySoundToSet(m_creature, SOUND_AGGRO3); break;
             case 3: DoPlaySoundToSet(m_creature, SOUND_AGGRO4); break;
-        }
-    }
-
-    void ExecuteAction(uint32 action) override
-    {
-        switch (action)
-        {
-            case RAZUVIOUS_DISRUPTING_SHOUT:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_DISRUPTING_SHOUT) == CAST_OK)
-                    ResetCombatAction(action, 25u * IN_MILLISECONDS);
-                return;
-            }
-            case RAZUVIOUS_UNBALANCING_STRIKE:
-            {
-                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_UNBALANCING_STRIKE) == CAST_OK)
-                    ResetCombatAction(action, 30u * IN_MILLISECONDS);
-                return;
-            }
         }
     }
 };

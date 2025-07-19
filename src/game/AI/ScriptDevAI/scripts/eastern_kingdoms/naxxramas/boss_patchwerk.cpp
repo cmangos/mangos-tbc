@@ -39,15 +39,16 @@ enum
     SPELL_HATEFULSTRIKE         = 28308,
     SPELL_ENRAGE                = 28131,
     SPELL_BERSERK               = 26662,
-    SPELL_SLIMEBOLT             = 32309
+    SPELL_SLIMEBOLT             = 32309,
+
+    SPELLSET_NORMAL             = 1602801,
+    SPELLSET_BERSERK            = 1602802,
 };
 
 enum PatchwerkActions
 {
-    PATCHWERK_HATEFUL_STRIKE,
     PATCHWERK_BERSERK_HP_CHECK,
     PATCHWERK_BERSERK,
-    PATCHWERK_BERSERK_SILMEBOLT,
     PATCHWER_ACTIONS_MAX,
 };
 
@@ -60,12 +61,16 @@ struct boss_patchwerkAI : public BossAI
         AddOnDeathText(SAY_DEATH);
         AddOnAggroText(SAY_AGGRO1, SAY_AGGRO2);
         AddTimerlessCombatAction(PATCHWERK_BERSERK_HP_CHECK, true);         // Soft enrage at 5%
-        AddCombatAction(PATCHWERK_HATEFUL_STRIKE, 1200u);
         AddCombatAction(PATCHWERK_BERSERK, 7u * MINUTE * IN_MILLISECONDS);  // Basic berserk
-        AddCombatAction(PATCHWERK_BERSERK_SILMEBOLT, true);                 // Slimebolt - casted only 30 seconds after berserking to prevent kiting
     }
 
     ScriptedInstance* m_instance;
+
+    void Reset() override
+    {
+        BossAI::Reset();
+        m_creature->SetSpellList(SPELLSET_NORMAL);
+    }
 
     void ExecuteAction(uint32 action) override
     {
@@ -83,26 +88,14 @@ struct boss_patchwerkAI : public BossAI
                 }
                 break;
             }
-            case PATCHWERK_HATEFUL_STRIKE:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_HATEFULSTRIKE_PRIMER) == CAST_OK)
-                    ResetCombatAction(action, 1200);
-                break;
-            }
             case PATCHWERK_BERSERK:
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_BERSERK) == CAST_OK)
                 {
                     DoScriptText(EMOTE_GENERIC_BERSERK, m_creature);
                     DisableCombatAction(action);
-                    ResetCombatAction(PATCHWERK_BERSERK_SILMEBOLT, 30 * IN_MILLISECONDS);
+                    m_creature->SetSpellList(SPELLSET_BERSERK);
                 }
-                break;
-            }
-            case PATCHWERK_BERSERK_SILMEBOLT:
-            {
-                if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SLIMEBOLT) == CAST_OK)
-                    ResetCombatAction(PATCHWERK_BERSERK_SILMEBOLT, 1 * IN_MILLISECONDS);
                 break;
             }
             default:

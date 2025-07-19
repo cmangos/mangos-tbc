@@ -183,6 +183,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (29336,'spell_despawn_buffet'),
 (29351,'spell_plague_wave_controller'),
 (29379,'spell_despawn_crypt_guards'),
+(29499,'spell_teleport_trigger'),
 (29682,'spell_gluth_call_all_zombies'),
 (29874,'spell_gothik_side_assault'),
 (29875,'spell_check_gothik_side'),

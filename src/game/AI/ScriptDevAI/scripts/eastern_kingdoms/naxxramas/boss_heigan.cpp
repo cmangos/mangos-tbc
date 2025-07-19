@@ -23,8 +23,8 @@ SDComment: Missing poison inside the eye stalk tunnel in phase 2
 SDCategory: Naxxramas
 EndScriptData */
 
-#include "AI/ScriptDevAI/base/CombatAI.h"
 #include "AI/ScriptDevAI/include/sc_common.h"
+#include "AI/ScriptDevAI/base/BossAI.h"
 #include "naxxramas.h"
 
 enum
@@ -51,6 +51,7 @@ enum
     SPELL_PLAGUE_CLOUD      = 29350,                // Channel spell periodically triggering spell 30122
     SPELL_PLAGUE_WAVE_SLOW  = 29351,                // Activates the traps during phase 1; triggers spell 30116, 30117, 30118, 30119 each 10 secs
     SPELL_PLAGUE_WAVE_FAST  = 30114,                // Activates the traps during phase 2; triggers spell 30116, 30117, 30118, 30119 each 3 secs
+    SPELL_TELEPORT_TRIGGER  = 29499,
 
     MAX_PLAYERS_TELEPORT    = 3,
 
@@ -63,21 +64,18 @@ static const float resetX = 2825.0f;                // Beyond this X-line, Heiga
 
 enum HeiganActions
 {
-    HEIGAN_FEVER,
-    HEIGAN_MANA_BURN,
-    HEIGAN_TELEPORT_PLAYERS,
     HEIGAN_TAUNT,
-    HEIGAN_ERUPTION,
-    HEIGAN_PLATFORM_PHASE,
-    HEIGAN_GROUND_PHASE,
+    HEIGAN_ERUPTIONS,
+    HEIGAN_PHASE_PLATFORM,
+    HEIGAN_PHASE_GROUND,
     HEIGAN_CHANNELING,
     HEIGAN_ACTION_MAX,
     HEIGAN_DOOR,
 };
 
-struct boss_heiganAI : public CombatAI
+struct boss_heiganAI : public BossAI
 {
-    boss_heiganAI(Creature* creature) : CombatAI(creature, HEIGAN_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    boss_heiganAI(Creature* creature) : BossAI(creature, HEIGAN_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float /*y*/, float /*z*/)
         {
@@ -85,13 +83,14 @@ struct boss_heiganAI : public CombatAI
             m_creature->GetRespawnCoord(respawnX, respawnY, respawnZ);
             return m_creature->GetDistance2d(respawnX, respawnY) > 90.f || x > resetX;
         });
-        AddCombatAction(HEIGAN_FEVER, 4u * IN_MILLISECONDS);
-        AddCombatAction(HEIGAN_MANA_BURN, 5u * IN_MILLISECONDS);
-        AddCombatAction(HEIGAN_TELEPORT_PLAYERS, 35u * IN_MILLISECONDS, 45u * IN_MILLISECONDS);
+        SetDataType(TYPE_HEIGAN);
+        AddOnKillText(SAY_SLAY);
+        AddOnDeathText(SAY_DEATH);
+        AddOnAggroText(SAY_AGGRO1, SAY_AGGRO2, SAY_AGGRO3);
+        AddCombatAction(HEIGAN_PHASE_PLATFORM, 90s);
         AddCombatAction(HEIGAN_TAUNT, 25u * IN_MILLISECONDS, 90u * IN_MILLISECONDS);
-        AddCustomAction(HEIGAN_ERUPTION, true, [&]() { StartEruptions(m_phase == PHASE_GROUND ? SPELL_PLAGUE_WAVE_SLOW : SPELL_PLAGUE_WAVE_FAST); });
-        AddCustomAction(HEIGAN_GROUND_PHASE, true, [&]() { HandleGroundPhase(); }, TIMER_COMBAT_COMBAT);
-        AddCustomAction(HEIGAN_PLATFORM_PHASE, true, [&]() { HandlePlatformPhase(); }, TIMER_COMBAT_COMBAT);
+        AddCustomAction(HEIGAN_ERUPTIONS, true, [&]() { StartEruptions(m_phase == PHASE_GROUND ? SPELL_PLAGUE_WAVE_SLOW : SPELL_PLAGUE_WAVE_FAST); });
+        AddCustomAction(HEIGAN_PHASE_GROUND, true, [&]() { HandleGroundPhase(); }, TIMER_COMBAT_COMBAT);
         AddCustomAction(HEIGAN_DOOR, true, [&]() { CloseEntrance(); });
         AddCustomAction(HEIGAN_CHANNELING, true, [&]() { HandleChanneling(); }, TIMER_COMBAT_COMBAT);
     }
@@ -100,15 +99,11 @@ struct boss_heiganAI : public CombatAI
 
     uint8 m_phase;
 
-    SelectAttackingTargetParams m_teleportParams;
-
     void Reset() override
     {
         CombatAI::Reset();
 
         m_phase = PHASE_GROUND;
-        m_teleportParams.range.minRange = 0;
-        m_teleportParams.range.maxRange = 40;
 
         StopEruptions();
     }
@@ -117,43 +112,21 @@ struct boss_heiganAI : public CombatAI
     {
         switch (id)
         {
-            case HEIGAN_FEVER: return 21u * IN_MILLISECONDS;
-            case HEIGAN_MANA_BURN: return 10u * IN_MILLISECONDS;
             case HEIGAN_TAUNT: return urand(25, 90) * IN_MILLISECONDS;
-            case HEIGAN_TELEPORT_PLAYERS: return urand(35, 45) * IN_MILLISECONDS;
             default: return 0; // never occurs but for compiler
         }
     }
 
-    void Aggro(Unit* /*unit*/) override
+    void Aggro(Unit* unit) override
     {
-        switch (urand(0, 2))
-        {
-            case 0: DoScriptText(SAY_AGGRO1, m_creature); break;
-            case 1: DoScriptText(SAY_AGGRO2, m_creature); break;
-            case 2: DoScriptText(SAY_AGGRO3, m_creature); break;
-        }
-
-        if (m_instance)
-            m_instance->SetData(TYPE_HEIGAN, IN_PROGRESS);
-
-        ResetTimer(HEIGAN_ERUPTION, 5u * IN_MILLISECONDS);
+        BossAI::Aggro(unit);
+        ResetTimer(HEIGAN_ERUPTIONS, 5u * IN_MILLISECONDS);
         ResetTimer(HEIGAN_DOOR, 15u * IN_MILLISECONDS);
-        ResetTimer(HEIGAN_PLATFORM_PHASE, 90u * IN_MILLISECONDS);
     }
 
-    void KilledUnit(Unit* /*victim*/) override
+    void JustDied(Unit* killer) override
     {
-        DoScriptText(SAY_SLAY, m_creature);
-    }
-
-    void JustDied(Unit* /*killer*/) override
-    {
-        DoScriptText(SAY_DEATH, m_creature);
-
-        if (m_instance)
-            m_instance->SetData(TYPE_HEIGAN, DONE);
-
+        BossAI::JustDied(killer);
         StopEruptions();
     }
 
@@ -169,28 +142,32 @@ struct boss_heiganAI : public CombatAI
 
     void HandleGroundPhase()
     {
-        ResetAllTimers();
+        for (uint32 action : {HEIGAN_TAUNT})
+            ResetCombatAction(action, 5000);
+        AddInitialCooldowns();
         m_creature->InterruptNonMeleeSpells(true);
-        m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
+        SetCombatMovement(true, true);
+        SetMeleeEnabled(true);
         StopEruptions();
         m_phase = PHASE_GROUND;
-        ResetTimer(HEIGAN_ERUPTION, 100u);
-        ResetTimer(HEIGAN_PLATFORM_PHASE, 90u * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_ERUPTIONS, 100u);
+        ResetCombatAction(HEIGAN_PHASE_PLATFORM, 90u * IN_MILLISECONDS);
     }
 
     void HandlePlatformPhase()
     {
-        for (uint32 action : {HEIGAN_FEVER, HEIGAN_TAUNT, HEIGAN_MANA_BURN, HEIGAN_TELEPORT_PLAYERS})
+        for (uint32 action : {HEIGAN_TAUNT})
             DisableCombatAction(action);
-        m_creature->GetMotionMaster()->MoveIdle();
-        if (DoCastSpellIfCan(m_creature, SPELL_TELEPORT_SELF) == CAST_OK)
+        SetCombatMovement(false, true);
+        SetMeleeEnabled(false);
+        if (DoCastSpellIfCan(nullptr, SPELL_TELEPORT_SELF) == CAST_OK)
         {
             StopEruptions();
             m_phase = PHASE_PLATFORM;
-            ResetTimer(HEIGAN_ERUPTION, 3000u); // Small delay to let enough time for players to reach the first safe zone
+            ResetTimer(HEIGAN_ERUPTIONS, 3000u); // Small delay to let enough time for players to reach the first safe zone
             ResetTimer(HEIGAN_CHANNELING, 100u);
         }
-        ResetTimer(HEIGAN_GROUND_PHASE, 45u * IN_MILLISECONDS);
+        ResetTimer(HEIGAN_PHASE_GROUND, 45u * IN_MILLISECONDS);
     }
 
     void StartEruptions(uint32 spellId)
@@ -222,7 +199,7 @@ struct boss_heiganAI : public CombatAI
     void HandleChanneling()
     {
         DoScriptText(SAY_CHANNELING, m_creature);
-        DoCastSpellIfCan(m_creature, SPELL_PLAGUE_CLOUD);
+        DoCastSpellIfCan(nullptr, SPELL_PLAGUE_CLOUD);
         // ToDo: fill the tunnel with poison - required further research
     }
 
@@ -245,34 +222,9 @@ struct boss_heiganAI : public CombatAI
                 ResetCombatAction(action, GetSubsequentActionTimer(action));
                 return;
             }
-            case HEIGAN_FEVER:
+            case HEIGAN_PHASE_PLATFORM:
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_DECREPIT_FEVER) == CAST_OK)
-                    ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case HEIGAN_MANA_BURN:
-            {
-                if (DoCastSpellIfCan(m_creature, SPELL_MANA_BURN) == CAST_OK)
-                    ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case HEIGAN_TELEPORT_PLAYERS:
-            {
-                std::vector<Unit*> targets;
-                m_creature->SelectAttackingTargets(targets, ATTACKING_TARGET_ALL_SUITABLE, 0, nullptr, SELECT_FLAG_PLAYER | SELECT_FLAG_SKIP_TANK, m_teleportParams);
-
-                if (targets.size() > MAX_PLAYERS_TELEPORT)
-                {
-                    std::shuffle(targets.begin(), targets.end(), *GetRandomGenerator());
-                    targets.resize(MAX_PLAYERS_TELEPORT);
-                }
-
-                if (!targets.empty())
-                {
-                    for (auto& target : targets)
-                        target->CastSpell(target, SPELL_TELEPORT_PLAYERS, TRIGGERED_OLD_TRIGGERED);
-                }
+                HandlePlatformPhase();
                 DisableCombatAction(action);
                 return;
             }
@@ -337,6 +289,22 @@ struct PlagueWaveController : public AuraScript
     }
 };
 
+// 29499 - Teleport Trigger
+struct TeleportTrigger : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(MAX_PLAYERS_TELEPORT);
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (target)
+            target->CastSpell(target, SPELL_TELEPORT_PLAYERS, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void AddSC_boss_heigan()
 {
 
@@ -351,4 +319,5 @@ void AddSC_boss_heigan()
     newScript->RegisterSelf();
 
     RegisterSpellScript<PlagueWaveController>("spell_plague_wave_controller");
+    RegisterSpellScript<TeleportTrigger>("spell_teleport_trigger");
 }

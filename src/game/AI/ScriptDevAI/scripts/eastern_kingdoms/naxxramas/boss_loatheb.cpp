@@ -33,16 +33,15 @@ enum
     SPELL_SUMMON_SPORE      = 29234,
     SPELL_REMOVE_CURSE      = 30281,
 
-    NPC_SPORE               = 16286
+    NPC_SPORE               = 16286,
+
+    SPELLSET_LOATHEB        = 1601101,
+    SPELLSET_LOATHEB_P2     = 1601102,
 };
 
 enum LoathebActions
 {
-    LOATHEB_POISON_AURA,
-    LOATHEB_CORRUPTED_MIND,
-    LOATHEB_INEVITABLE_DOOM,
-    LOATHEB_REMOVE_CURSE,
-    LOATHEB_SUMMON,
+    LOATHEB_SOFT_ENRAGE,
     LOATHEB_ACTION_MAX,
 };
 
@@ -51,70 +50,36 @@ struct boss_loathebAI : public BossAI
     boss_loathebAI(Creature* creature) : BossAI(creature, LOATHEB_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         SetDataType(TYPE_LOATHEB);
-        AddCombatAction(LOATHEB_POISON_AURA, 5000u);
-        AddCombatAction(LOATHEB_CORRUPTED_MIND, 4000u);
-        AddCombatAction(LOATHEB_REMOVE_CURSE, 2000u);
-        AddCombatAction(LOATHEB_INEVITABLE_DOOM, 120000u);
-        AddCombatAction(LOATHEB_SUMMON, 12000u);
+        AddCombatAction(LOATHEB_SOFT_ENRAGE, 5min);
     }
 
     ScriptedInstance* m_instance;
 
-    uint8 m_corruptedMindCount;
-
     void Reset() override
     {
         BossAI::Reset();
-
-        m_corruptedMindCount = 0;
+        m_creature->SetSpellList(SPELLSET_LOATHEB);
     }
 
     void JustSummoned(Creature* summoned) override
     {
-        if (summoned->GetEntry() == NPC_SPORE)
-            summoned->SetInCombatWithZone();
+        if (summoned->GetEntry() != NPC_SPORE)
+            return;
+
+        summoned->AI()->AttackStart(m_creature);
     }
 
     void ExecuteAction(uint32 action) override
     {
         switch (action)
         {
-            case LOATHEB_INEVITABLE_DOOM:
+            case LOATHEB_SOFT_ENRAGE:
             {
-                if (DoCastSpellIfCan(nullptr, SPELL_INEVITABLE_DOOM, CAST_TRIGGERED) == CAST_OK)
-                    ResetCombatAction(action, ((m_corruptedMindCount <= 5) ? 30 : 15) * IN_MILLISECONDS);
-                break;
+                m_creature->SetSpellList(SPELLSET_LOATHEB_P2);
+                DisableCombatAction(action);
+                return;
             }
-            case LOATHEB_CORRUPTED_MIND:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_CORRUPTED_MIND, CAST_TRIGGERED) == CAST_OK)
-                {
-                    ++m_corruptedMindCount;
-                    ResetCombatAction(action, 60 * IN_MILLISECONDS);
-                }
-                break;
-            }
-            case LOATHEB_SUMMON:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_SUMMON_SPORE, CAST_TRIGGERED) == CAST_OK)
-                    ResetCombatAction(action, 12 * IN_MILLISECONDS);
-                break;
-            }
-            case LOATHEB_POISON_AURA:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_POISON_AURA) == CAST_OK)
-                    ResetCombatAction(action, 12 * IN_MILLISECONDS);
-                break;
-            }
-            case LOATHEB_REMOVE_CURSE:
-            {
-                SpellCastResult decurseResult = m_creature->CastSpell(m_creature, SPELL_REMOVE_CURSE, TRIGGERED_OLD_TRIGGERED);
-                if (decurseResult == SPELL_CAST_OK || decurseResult == SPELL_FAILED_NOTHING_TO_DISPEL)  // Don't throw an error if there is nothing to dispel
-                    ResetCombatAction(action, 30 * IN_MILLISECONDS);
-                break;
-            }
-            default:
-                break;
+            default: break;
         }
     }
 };
@@ -129,7 +94,7 @@ struct CorruptedMind : public SpellScript
             if (Unit* target = spell->GetUnitTarget())
             {
                 // This spell only works on players as it triggers spells that override spell class scripts
-                if (target->GetTypeId() != TYPEID_PLAYER)
+                if (!target->IsPlayer())
                     return;
 
                 // Determine which sub-spell to trigger for each healing class

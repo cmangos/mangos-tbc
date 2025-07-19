@@ -874,105 +874,6 @@ void instance_naxxramas::Update(uint32 diff)
     DialogueUpdate(diff);
 }
 
-// Initialize all triggers used in Gothik the Harvester encounter by flagging them with their position in the room and what kind of NPC they will summon
-void instance_naxxramas::InitializeGothikTriggers()
-{
-    Creature* gothik = GetSingleCreatureFromStorage(NPC_GOTHIK);
-
-    if (!gothik)
-        return;
-
-    CreatureList summonList;
-
-    for (auto triggerGuid : m_gothikTriggerList)
-    {
-        if (Creature* trigger = instance->GetCreature(triggerGuid))
-        {
-            GothTrigger gt;
-            gt.isAnchorHigh = (trigger->GetPositionZ() >= (gothik->GetPositionZ() - 5.0f));
-            gt.isRightSide = IsInRightSideGothikArea(trigger);
-            gt.summonTypeFlag = 0x00;
-            m_gothikTriggerMap[trigger->GetObjectGuid()] = gt;
-
-            // Keep track of triggers that will be used as summon point
-            if (!gt.isAnchorHigh && gt.isRightSide)
-                summonList.push_back(trigger);
-        }
-    }
-
-    if (!summonList.empty())
-    {
-        // Sort summoning trigger NPCS by distance from Gothik
-        // and flag them regarding of what they will summon
-        summonList.sort(ObjectDistanceOrder(gothik));
-        uint8 index = 0;
-        for (auto trigger : summonList)
-        {
-            switch (index)
-            {
-                // Closest and furthest: Unrelenting Knights and Trainees
-                case 0:
-                case 3:
-                    m_gothikTriggerMap[trigger->GetObjectGuid()].summonTypeFlag = SUMMON_FLAG_TRAINEE | SUMMON_FLAG_KNIGHT;
-                    break;
-                // Middle: only Unrelenting Trainee
-                case 1:
-                    m_gothikTriggerMap[trigger->GetObjectGuid()].summonTypeFlag = SUMMON_FLAG_TRAINEE;
-                    break;
-                // Other middle: Unrelenting Rider
-                case 2:
-                    m_gothikTriggerMap[trigger->GetObjectGuid()].summonTypeFlag = SUMMON_FLAG_RIDER;
-                    break;
-                default:
-                    break;
-            }
-            ++index;
-        }
-    }
-    else
-        script_error_log("No suitable summon trigger found for Gothik combat area. Set up failed.");
-}
-
-Creature* instance_naxxramas::GetClosestAnchorForGothik(Creature* source, bool rightSide)
-{
-    std::list<Creature*> outputList;
-
-    for (auto& itr : m_gothikTriggerMap)
-    {
-        if (!itr.second.isAnchorHigh)
-            continue;
-
-        if (itr.second.isRightSide != rightSide)
-            continue;
-
-        if (Creature* pCreature = instance->GetCreature(itr.first))
-            outputList.push_back(pCreature);
-    }
-
-    if (!outputList.empty())
-    {
-        outputList.sort(ObjectDistanceOrder(source));
-        return outputList.front();
-    }
-
-    return nullptr;
-}
-
-void instance_naxxramas::GetGothikSummonPoints(CreatureList& outputList, bool rightSide)
-{
-    for (auto& itr : m_gothikTriggerMap)
-    {
-        if (itr.second.isAnchorHigh)
-            continue;
-
-        if (itr.second.isRightSide != rightSide)
-            continue;
-
-        if (Creature* pCreature = instance->GetCreature(itr.first))
-            outputList.push_back(pCreature);
-    }
-}
-
 // Right is right side from gothik (eastern), i.e. right is living and left is spectral
 bool instance_naxxramas::IsInRightSideGothikArea(Unit* unit)
 {
@@ -981,11 +882,6 @@ bool instance_naxxramas::IsInRightSideGothikArea(Unit* unit)
 
     script_error_log("left/right side check, Gothik combat area failed.");
     return true;
-}
-
-bool instance_naxxramas::IsSuitableTriggerForSummon(Unit* trigger, uint8 flag)
-{
-    return m_gothikTriggerMap[trigger->GetObjectGuid()].summonTypeFlag & flag;
 }
 
 void instance_naxxramas::DoTaunt()

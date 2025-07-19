@@ -188,9 +188,9 @@ enum
     STEP_TRAINEE                = 0,
     STEP_KNIGHT                 = 1,
     STEP_RIDER                  = 2,
-    SPELL_SUMMON_TRAINEE        = 28007,                    // Triggers 27884 every 20s
-    SPELL_SUMMON_KNIGHT         = 28009,                    // Triggers 28008 every 25s
-    SPELL_SUMMON_MOUNTED_KNIGHT = 28011,                    // Triggers 28010 every 30s
+    SPELL_SUMMON_TRAINEE_PERIODIC        = 28007,                    // Triggers 27884 every 20s
+    SPELL_SUMMON_KNIGHT_PERIODIC         = 28009,                    // Triggers 28008 every 25s
+    SPELL_SUMMON_MOUNTED_KNIGHT_PERIODIC = 28011,                    // Triggers 28010 every 30s
     
     SPELL_SPECTRAL_ASSAULT      = 28781,
     SPELL_UNRELENTING_ASSAULT   = 29874,
@@ -220,7 +220,11 @@ enum GothikSpellDummy
 
     SPELL_A_TO_SKULL            = 27915,
     SPELL_B_TO_SKULL            = 27931,
-    SPELL_C_TO_SKULL            = 27937
+    SPELL_C_TO_SKULL            = 27937,
+
+    SPELL_CHOOSE_RANDOM_SKULL_PILE_A = 27896,
+    SPELL_CHOOSE_RANDOM_SKULL_PILE_B = 27930,
+    SPELL_CHOOSE_RANDOM_SKULL_PILE_C = 27938,
 };
 
 enum GothikSummonFlag {
@@ -281,11 +285,7 @@ class instance_naxxramas : public ScriptedInstance, private DialogueHelper
         void Update(const uint32 diff) override;
 
         // Gothik
-        void InitializeGothikTriggers();
-        bool IsSuitableTriggerForSummon(Unit* trigger, uint8 flag);
-        Creature* GetClosestAnchorForGothik(Creature* source, bool rightSide);
-        void GetGothikSummonPoints(CreatureList& lList, bool rightSide);
-        bool IsInRightSideGothikArea(Unit* pUnit);
+        bool IsInRightSideGothikArea(Unit* unit);
 
         // Kel'Thuzad
         void DoTaunt();
@@ -305,8 +305,6 @@ class instance_naxxramas : public ScriptedInstance, private DialogueHelper
         GuidList m_unrelentingSideList;
         GuidList m_spectralSideList;
         GuidList m_icrecrownGuardianList;
-
-        std::unordered_map<ObjectGuid, GothTrigger> m_gothikTriggerMap;
 
         uint32 m_sapphironSpawnTimer;
         uint32 m_tauntTimer;

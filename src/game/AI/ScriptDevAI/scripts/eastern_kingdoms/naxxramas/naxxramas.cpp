@@ -356,20 +356,17 @@ void instance_naxxramas::OnCreatureDeath(Creature* creature)
             m_zombieChowList.remove(creature->GetObjectGuid());
             break;
         case NPC_UNREL_TRAINEE:
-            if (Creature* anchor = GetClosestAnchorForGothik(creature, true))
-                creature->CastSpell(anchor, SPELL_A_TO_ANCHOR_1, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, creature->GetObjectGuid());
+            creature->CastSpell(nullptr, SPELL_A_TO_ANCHOR_1, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, creature->GetObjectGuid());
             m_unrelentingSideList.remove(creature->GetObjectGuid());
             creature->ForcedDespawn(4000);
             break;
         case NPC_UNREL_DEATH_KNIGHT:
-            if (Creature* anchor = GetClosestAnchorForGothik(creature, true))
-                creature->CastSpell(anchor, SPELL_B_TO_ANCHOR_1, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, creature->GetObjectGuid());
+            creature->CastSpell(nullptr, SPELL_B_TO_ANCHOR_1, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, creature->GetObjectGuid());
             m_unrelentingSideList.remove(creature->GetObjectGuid());
             creature->ForcedDespawn(4000);
             break;
         case NPC_UNREL_RIDER:
-            if (Creature* anchor = GetClosestAnchorForGothik(creature, true))
-                creature->CastSpell(anchor, SPELL_C_TO_ANCHOR_1, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, creature->GetObjectGuid());
+            creature->CastSpell(nullptr, SPELL_C_TO_ANCHOR_1, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, creature->GetObjectGuid());
             m_unrelentingSideList.remove(creature->GetObjectGuid());
             creature->ForcedDespawn(4000);
             break;
@@ -494,19 +491,18 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
                     // Encounter begins: close the gate and start timer to summon unrelenting trainees
                     DoUseDoorOrButton(GO_MILI_GOTH_ENTRY_GATE);
                     DoUseDoorOrButton(GO_MILI_GOTH_COMBAT_GATE);
-                    InitializeGothikTriggers();
                     break;
                 case SPECIAL:
                     DoUseDoorOrButton(GO_MILI_GOTH_COMBAT_GATE);
                     for (auto& spectralGuid : m_spectralSideList)
                     {
                         if (Creature* spectral = instance->GetCreature(spectralGuid))
-                            spectral->CastSpell(spectral, SPELL_SPECTRAL_ASSAULT, TRIGGERED_OLD_TRIGGERED);
+                            spectral->CastSpell(nullptr, SPELL_SPECTRAL_ASSAULT, TRIGGERED_OLD_TRIGGERED);
                     }
                     for (auto& unrelentingGuid : m_unrelentingSideList)
                     {
                         if (Creature* unrelenting = instance->GetCreature(unrelentingGuid))
-                            unrelenting->CastSpell(unrelenting, SPELL_UNRELENTING_ASSAULT, TRIGGERED_OLD_TRIGGERED);
+                            unrelenting->CastSpell(nullptr, SPELL_UNRELENTING_ASSAULT, TRIGGERED_OLD_TRIGGERED);
                     }
                     break;
                 case FAIL:
@@ -961,7 +957,7 @@ static const Location3DPoint gargoyleResetCoords = {2963.f, -3476.f, 297.6f};
 
 enum
 {
-    SAY_GARGOYLE_NOISE      = -1533160, // %s emits a strange noise.
+    SAY_GARGOYLE_NOISE      = 10755, // %s emits a strange noise.
 
     SPELL_STONEFORM         = 29154,
     SPELL_STEALTH_DETECTION = 18950,

@@ -32,13 +32,13 @@ enum
     SOUND_AGGRO3             = 8859,
     SOUND_AGGRO4             = 8861,
 
-    SAY_SLAY                 = -1533124,
-    SAY_UNDERSTUDY_TAUNT_1   = -1533125,
-    SAY_UNDERSTUDY_TAUNT_2   = -1533126,
-    SAY_UNDERSTUDY_TAUNT_3   = -1533127,
-    SAY_UNDERSTUDY_TAUNT_4   = -1533128,
-    SAY_DEATH                = -1533129,
-    EMOTE_TRIUMPHANT_SHOOT   = -1533158,
+    SAY_SLAY                 = 13081,
+    SAY_UNDERSTUDY_TAUNT_1   = 13077,
+    SAY_UNDERSTUDY_TAUNT_2   = 13072,
+    SAY_UNDERSTUDY_TAUNT_3   = 13073,
+    SAY_UNDERSTUDY_TAUNT_4   = 13074,
+    SAY_DEATH                = 13079,
+    EMOTE_TRIUMPHANT_SHOOT   = 13082,
 
     SPELL_UNBALANCING_STRIKE = 26613,
     SPELL_DISRUPTING_SHOUT   = 29107,
@@ -74,10 +74,10 @@ struct boss_razuviousAI : public BossAI
         {
             switch (urand(0, 3))
             {
-                case 0: DoScriptText(SAY_UNDERSTUDY_TAUNT_1, m_creature); break;
-                case 1: DoScriptText(SAY_UNDERSTUDY_TAUNT_2, m_creature); break;
-                case 2: DoScriptText(SAY_UNDERSTUDY_TAUNT_3, m_creature); break;
-                case 3: DoScriptText(SAY_UNDERSTUDY_TAUNT_4, m_creature); break;
+                case 0: DoBroadcastText(SAY_UNDERSTUDY_TAUNT_1, m_creature); break;
+                case 1: DoBroadcastText(SAY_UNDERSTUDY_TAUNT_2, m_creature); break;
+                case 2: DoBroadcastText(SAY_UNDERSTUDY_TAUNT_3, m_creature); break;
+                case 3: DoBroadcastText(SAY_UNDERSTUDY_TAUNT_4, m_creature); break;
             }
         }
     }
@@ -89,7 +89,7 @@ struct boss_razuviousAI : public BossAI
         {
             if (target->GetPowerType() == POWER_MANA && !m_oneHit)
             {
-                DoScriptText(EMOTE_TRIUMPHANT_SHOOT, m_creature);
+                DoBroadcastText(EMOTE_TRIUMPHANT_SHOOT, m_creature);
                 m_oneHit = true;
             }
         }

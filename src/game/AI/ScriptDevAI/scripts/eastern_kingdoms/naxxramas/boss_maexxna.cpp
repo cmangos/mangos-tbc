@@ -28,7 +28,7 @@ EndScriptData */
 
 enum
 {
-    EMOTE_BOSS_GENERIC_FRENZY   = -1000005,
+    EMOTE_BOSS_GENERIC_FRENZY   = 1191,
 
     // Maexxna Spells
     SPELL_DOUBLE_ATTACK         = 19818,
@@ -208,7 +208,7 @@ struct boss_maexxnaAI : public CombatAI
                 {
                     if (DoCastSpellIfCan(m_creature, SPELL_FRENZY) == CAST_OK)
                     {
-                        DoScriptText(EMOTE_BOSS_GENERIC_FRENZY, m_creature);
+                        DoBroadcastText(EMOTE_BOSS_GENERIC_FRENZY, m_creature);
                         DisableCombatAction(action);
                     }
                 }

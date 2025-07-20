@@ -27,13 +27,13 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO1                          = -1533075,
-    SAY_AGGRO2                          = -1533076,
-    SAY_AGGRO3                          = -1533077,
-    SAY_SUMMON                          = -1533078,
-    SAY_SLAY1                           = -1533079,
-    SAY_SLAY2                           = -1533080,
-    SAY_DEATH                           = -1533081,
+    SAY_AGGRO1                          = 13061,
+    SAY_AGGRO2                          = 13062,
+    SAY_AGGRO3                          = 13063,
+    SAY_SUMMON                          = 13067,
+    SAY_SLAY1                           = 13065,
+    SAY_SLAY2                           = 13066,
+    SAY_DEATH                           = 13064,
 
     SPELL_TELEPORT                      = 29216,
     SPELL_TELEPORT_RETURN               = 29231,
@@ -210,7 +210,7 @@ struct boss_nothAI : public BossAI
     void OnSpellCast(SpellEntry const* spellInfo, Unit* target) override
     {
         if (spellInfo->Id == SPELL_SUMMON_SKELETONS)
-            DoScriptText(SAY_SUMMON, m_creature);
+            DoBroadcastText(SAY_SUMMON, m_creature);
         static std::set<uint32> const spellBlinkSet =
         {
             SPELL_BLINK_1, SPELL_BLINK_2, SPELL_BLINK_3, SPELL_BLINK_4

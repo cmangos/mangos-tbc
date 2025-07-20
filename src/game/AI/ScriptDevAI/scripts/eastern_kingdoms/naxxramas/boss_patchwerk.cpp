@@ -27,13 +27,13 @@ EndScriptData */
 
 enum
 {
-    SAY_AGGRO1                  = -1533017,
-    SAY_AGGRO2                  = -1533018,
-    SAY_SLAY                    = -1533019,
-    SAY_DEATH                   = -1533020,
+    SAY_AGGRO1                  = 13068,
+    SAY_AGGRO2                  = 13069,
+    SAY_SLAY                    = 13071,
+    SAY_DEATH                   = 13070,
 
-    EMOTE_GENERIC_BERSERK       = -1000004,
-    EMOTE_GENERIC_ENRAGED       = -1000003,
+    EMOTE_GENERIC_BERSERK       = 4428,
+    EMOTE_GENERIC_ENRAGED       = 2384,
 
     SPELL_HATEFULSTRIKE_PRIMER  = 28307,
     SPELL_HATEFULSTRIKE         = 28308,
@@ -82,7 +82,7 @@ struct boss_patchwerkAI : public BossAI
                 {
                     if (DoCastSpellIfCan(nullptr, SPELL_ENRAGE) == CAST_OK)
                     {
-                        DoScriptText(EMOTE_GENERIC_ENRAGED, m_creature);
+                        DoBroadcastText(EMOTE_GENERIC_ENRAGED, m_creature);
                         DisableCombatAction(action);
                     }
                 }
@@ -92,7 +92,7 @@ struct boss_patchwerkAI : public BossAI
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_BERSERK) == CAST_OK)
                 {
-                    DoScriptText(EMOTE_GENERIC_BERSERK, m_creature);
+                    DoBroadcastText(EMOTE_GENERIC_BERSERK, m_creature);
                     DisableCombatAction(action);
                     m_creature->SetSpellList(SPELLSET_BERSERK);
                 }

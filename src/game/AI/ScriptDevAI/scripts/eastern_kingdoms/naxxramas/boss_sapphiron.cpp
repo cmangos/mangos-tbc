@@ -27,8 +27,8 @@ EndScriptData */
 
 enum
 {
-    EMOTE_BREATH                = -1533082,
-    EMOTE_GENERIC_ENRAGED       = -1000003,
+    EMOTE_BREATH                = 7213,
+    EMOTE_GENERIC_ENRAGED       = 2384,
 
     // All phases spells
     SPELL_DOUBLE_ATTACK         = 19818,
@@ -273,7 +273,7 @@ struct boss_sapphironAI : public CombatAI
                 if (DoCastSpellIfCan(m_creature, SPELL_FROST_BREATH) == CAST_OK)
                 {
                     DoCastSpellIfCan(m_creature, SPELL_FROST_BREATH_DUMMY, CAST_TRIGGERED);
-                    DoScriptText(EMOTE_BREATH, m_creature);
+                    DoBroadcastText(EMOTE_BREATH, m_creature);
                     DisableCombatAction(action);
                     ResetTimer(SAPPHIRON_LANDING_PHASE, 10u * IN_MILLISECONDS);
                 }
@@ -283,7 +283,7 @@ struct boss_sapphironAI : public CombatAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_BESERK) == CAST_OK)
                 {
-                    DoScriptText(EMOTE_GENERIC_ENRAGED, m_creature);
+                    DoBroadcastText(EMOTE_GENERIC_ENRAGED, m_creature);
                     DisableCombatAction(action);
                 }
                 return;

@@ -94,7 +94,7 @@ struct boss_gluthAI : public BossAI
         if (eventType == AI_EVENT_CUSTOM_A)
         {
             m_zombieChow = invoker->GetObjectGuid();
-            DoScriptText(EMOTE_DEVOURS_ZOMBIE_CHOW, m_creature, invoker);
+            DoBroadcastText(EMOTE_DEVOURS_ZOMBIE_CHOW, m_creature, invoker);
             ResetCombatAction(GLUTH_CHOW_DELAY, 1500);
         }
     }
@@ -137,7 +137,7 @@ struct boss_gluthAI : public BossAI
 
     void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
     {
-        if (spellInfo->Id == SPELL_ENRAGE)
+        if (spellInfo->Id == SPELL_FRENZY)
             DoBroadcastText(EMOTE_BOSS_GENERIC_ENRAGED, m_creature);
     }
 

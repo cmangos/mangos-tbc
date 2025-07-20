@@ -108,62 +108,6 @@ static const Location2DPoint resetCoords[3] =
         {2585.9f, -3015.1f},
         {2594.6f, -3006.7f}
 };
-struct boss_horsemenAI : public ScriptedAI
-{
-    boss_horsemenAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<instance_naxxramas*>(creature->GetInstanceData()))
-    {
-
-        Reset();
-    }
-
-    ScriptedInstance* m_instance;
-
-    uint32 m_markTimer;
-    uint32 m_markCounter;
-    uint32 m_horsmenIndex;            // Used to differentiate each of the Four Horsemen in the children classes
-
-    float m_healthPercentageCheck;
-
-    void Reset() override
-    {
-        m_markTimer             = 20 * IN_MILLISECONDS;
-        m_markCounter           = 0;
-        m_horsmenIndex          = INDEX_BLAUMEUX;       // Default: Lady Blaumeux (1: Highlord Morgraine, 2: Thane Korth'azz, 3: Sir Zeliek)
-
-        m_healthPercentageCheck = 50.0f;
-    }
-
-    virtual void UpdateHorsmenAI(const uint32 /*diff*/) {}
-
-    void UpdateAI(const uint32 diff) override
-    {
-        // Do nothing if no target
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        // Call Horsemen specific virtual function to cast special spells
-        UpdateHorsmenAI(diff);
-
-        if (m_creature->GetHealthPercent() <= m_healthPercentageCheck)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_SHIELDWALL) == CAST_OK)
-                m_healthPercentageCheck -= 30.0f;
-        }
-
-        if (m_markTimer < diff)
-        {
-            if (DoCastSpellIfCan(m_creature, markSpellList[m_horsmenIndex]) == CAST_OK)
-            {
-                m_markCounter++;
-                m_markTimer = 12 * IN_MILLISECONDS;
-            }
-        }
-        else
-            m_markTimer -= diff;
-
-        DoMeleeAttackIfReady();
-    }
-};
 
 enum BlaumeuxActions
 {

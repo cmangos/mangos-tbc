@@ -32,16 +32,16 @@ enum
     PHASE_GROUND            = 1,
     PHASE_PLATFORM          = 2,
 
-    SAY_AGGRO1              = -1533109,
-    SAY_AGGRO2              = -1533110,
-    SAY_AGGRO3              = -1533111,
-    SAY_SLAY                = -1533112,
-    SAY_TAUNT1              = -1533113,
-    SAY_TAUNT2              = -1533114,
-    SAY_TAUNT3              = -1533115,
-    SAY_TAUNT4              = -1533117,
-    SAY_CHANNELING          = -1533116,
-    SAY_DEATH               = -1533118,
+    SAY_AGGRO1              = 13041,
+    SAY_AGGRO2              = 13042,
+    SAY_AGGRO3              = 13043,
+    SAY_SLAY                = 13045,
+    SAY_TAUNT1              = 13046,
+    SAY_TAUNT2              = 13047,
+    SAY_TAUNT3              = 13048,
+    SAY_TAUNT4              = 13050,
+    SAY_CHANNELING          = 13049,
+    SAY_DEATH               = 13044,
 
     // Heigan spells
     SPELL_DECREPIT_FEVER    = 29998,
@@ -198,7 +198,7 @@ struct boss_heiganAI : public BossAI
 
     void HandleChanneling()
     {
-        DoScriptText(SAY_CHANNELING, m_creature);
+        DoBroadcastText(SAY_CHANNELING, m_creature);
         DoCastSpellIfCan(nullptr, SPELL_PLAGUE_CLOUD);
         // ToDo: fill the tunnel with poison - required further research
     }
@@ -214,10 +214,10 @@ struct boss_heiganAI : public BossAI
             {
                 switch (urand(0, 3))
                 {
-                    case 0: DoScriptText(SAY_TAUNT1, m_creature); break;
-                    case 1: DoScriptText(SAY_TAUNT2, m_creature); break;
-                    case 2: DoScriptText(SAY_TAUNT3, m_creature); break;
-                    case 3: DoScriptText(SAY_TAUNT4, m_creature); break;
+                    case 0: DoBroadcastText(SAY_TAUNT1, m_creature); break;
+                    case 1: DoBroadcastText(SAY_TAUNT2, m_creature); break;
+                    case 2: DoBroadcastText(SAY_TAUNT3, m_creature); break;
+                    case 3: DoBroadcastText(SAY_TAUNT4, m_creature); break;
                 }
                 ResetCombatAction(action, GetSubsequentActionTimer(action));
                 return;

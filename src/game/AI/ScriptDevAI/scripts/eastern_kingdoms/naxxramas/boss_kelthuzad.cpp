@@ -26,22 +26,22 @@ EndScriptData */
 
 enum
 {
-    SAY_SUMMON_MINIONS                  = -1533105,         // start of phase 1
+    SAY_SUMMON_MINIONS                  = 12999,         // start of phase 1
 
-    SAY_AGGRO1                          = -1533094,
-    SAY_AGGRO2                          = -1533095,
-    SAY_AGGRO3                          = -1533096,
+    SAY_AGGRO1                          = 12995,
+    SAY_AGGRO2                          = 12996,
+    SAY_AGGRO3                          = 12997,
 
-    SAY_SLAY1                           = -1533097,
-    SAY_SLAY2                           = -1533098,
+    SAY_SLAY1                           = 13021,
+    SAY_SLAY2                           = 13022,
 
-    SAY_DEATH                           = -1533099,
+    SAY_DEATH                           = 13019,
 
-    SAY_CHAIN1                          = -1533100,
-    SAY_CHAIN2                          = -1533101,
+    SAY_CHAIN1                          = 13017,
+    SAY_CHAIN2                          = 13018,
 
-    SAY_REQUEST_AID                     = -1533103,         // Start of phase 3
-    SAY_ANSWER_REQUEST                  = -1533104,         // Lich King answer
+    SAY_REQUEST_AID                     = 12998,         // Start of phase 3
+    SAY_ANSWER_REQUEST                  = 12994,         // Lich King answer
 
     // Phase 1 spells
     SPELL_SUMMON_TYPE_A                 = 28421,            // Summon 1 Soldier of the Frozen Waste
@@ -189,12 +189,12 @@ struct boss_kelthuzadAI : public ScriptedAI
             return;
 
         if (urand(0, 1))
-            DoScriptText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
+            DoBroadcastText(urand(0, 1) ? SAY_SLAY1 : SAY_SLAY2, m_creature);
     }
 
     void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(SAY_DEATH, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
 
         if (m_instance)
             m_instance->SetData(TYPE_KELTHUZAD, DONE);
@@ -223,7 +223,7 @@ struct boss_kelthuzadAI : public ScriptedAI
         // Phase 1 start
         if (spell->Id == SPELL_CHANNEL_VISUAL)
         {
-            DoScriptText(SAY_SUMMON_MINIONS, m_creature);
+            DoBroadcastText(SAY_SUMMON_MINIONS, m_creature);
 
             // Get all summoning trigger NPCs
             m_summoningTriggers.clear();
@@ -248,15 +248,9 @@ struct boss_kelthuzadAI : public ScriptedAI
                     DespawnIntroCreatures();    // Will leave those that for some reason are in combat
                     switch (urand(0, 2))
                     {
-                        case 0:
-                            DoScriptText(SAY_AGGRO1, m_creature);
-                            break;
-                        case 1:
-                            DoScriptText(SAY_AGGRO2, m_creature);
-                            break;
-                        case 2:
-                            DoScriptText(SAY_AGGRO3, m_creature);
-                            break;
+                        case 0: DoBroadcastText(SAY_AGGRO1, m_creature); break;
+                        case 1: DoBroadcastText(SAY_AGGRO2, m_creature); break;
+                        case 2: DoBroadcastText(SAY_AGGRO3, m_creature); break;
                     }
                     break;
                 case MAX_CHANNEL_TICKS:
@@ -485,7 +479,7 @@ struct boss_kelthuzadAI : public ScriptedAI
             if (m_creature->GetHealthPercent() < 40.0f)
             {
                 m_phase = PHASE_GUARDIANS;
-                DoScriptText(SAY_REQUEST_AID, m_creature);
+                DoBroadcastText(SAY_REQUEST_AID, m_creature);
             }
         }
         if (m_phase == PHASE_GUARDIANS)
@@ -500,7 +494,7 @@ struct boss_kelthuzadAI : public ScriptedAI
                     DoCastSpellIfCan(m_creature, SPELL_GUARDIAN_INIT, CAST_TRIGGERED);
 
                     if (Creature* lichKing = m_instance->GetSingleCreatureFromStorage(NPC_THE_LICHKING))
-                        DoScriptText(SAY_ANSWER_REQUEST, lichKing);
+                        DoBroadcastText(SAY_ANSWER_REQUEST, lichKing);
 
                     m_instance->DoUseDoorOrButton(GO_KELTHUZAD_WINDOW_1);
                     m_instance->DoUseDoorOrButton(GO_KELTHUZAD_WINDOW_2);
@@ -663,7 +657,7 @@ struct ChainsKelThuzad : public SpellScript
         std::shuffle(targets.begin(), targets.end(), *GetRandomGenerator());
         targets.resize(MAX_CONTROLLED_TARGETS);
 
-        DoScriptText(urand(0, 1) ? SAY_CHAIN1 : SAY_CHAIN2, caster);
+        DoBroadcastText(urand(0, 1) ? SAY_CHAIN1 : SAY_CHAIN2, caster);
 
         // Mind control the random targets
         for (auto& target : targets)

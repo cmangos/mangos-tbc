@@ -34,23 +34,23 @@ EndContentData */
 enum
 {
     // Stalagg
-    SAY_STAL_AGGRO                  = -1533023,
-    SAY_STAL_SLAY                   = -1533024,
-    SAY_STAL_DEATH                  = -1533025,
+    SAY_STAL_AGGRO                  = 13083,
+    SAY_STAL_SLAY                   = 13085,
+    SAY_STAL_DEATH                  = 13084,
 
     // Feugen
-    SAY_FEUG_AGGRO                  = -1533026,
-    SAY_FEUG_SLAY                   = -1533027,
-    SAY_FEUG_DEATH                  = -1533028,
+    SAY_FEUG_AGGRO                  = 13023,
+    SAY_FEUG_SLAY                   = 13025,
+    SAY_FEUG_DEATH                  = 13024,
 
     // Thaddus
-    SAY_AGGRO_1                     = -1533030,
-    SAY_AGGRO_2                     = -1533031,
-    SAY_AGGRO_3                     = -1533032,
-    SAY_SLAY                        = -1533033,
-    SAY_ELECT                       = -1533034,
-    SAY_DEATH                       = -1533035,
-    EMOTE_TESLA_OVERLOAD            = -1533150,
+    SAY_AGGRO_1                     = 13086,
+    SAY_AGGRO_2                     = 13087,
+    SAY_AGGRO_3                     = 13088,
+    SAY_SLAY                        = 13096,
+    SAY_ELECT                       = 13090,
+    SAY_DEATH                       = 13089,
+    EMOTE_TESLA_OVERLOAD            = 12178,
 
     // Thaddius Spells
     SPELL_THADIUS_SPAWN             = 28160,
@@ -135,9 +135,9 @@ struct boss_thaddiusAI : public CombatAI
     {
         switch (urand(0, 2))
         {
-            case 0: DoScriptText(SAY_AGGRO_1, m_creature); break;
-            case 1: DoScriptText(SAY_AGGRO_2, m_creature); break;
-            case 2: DoScriptText(SAY_AGGRO_3, m_creature); break;
+            case 0: DoBroadcastText(SAY_AGGRO_1, m_creature); break;
+            case 1: DoBroadcastText(SAY_AGGRO_2, m_creature); break;
+            case 2: DoBroadcastText(SAY_AGGRO_3, m_creature); break;
         }
 
         ResetCombatAction(THADDIUS_CHAIN_LIGHTNING, 8u * IN_MILLISECONDS);
@@ -163,12 +163,12 @@ struct boss_thaddiusAI : public CombatAI
         if (victim->GetTypeId() != TYPEID_PLAYER)
             return;
 
-        DoScriptText(SAY_SLAY, m_creature);
+        DoBroadcastText(SAY_SLAY, m_creature);
     }
 
     void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(SAY_DEATH, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
 
         if (m_instance)
         {
@@ -203,7 +203,7 @@ struct boss_thaddiusAI : public CombatAI
             {
                 if (DoCastSpellIfCan(m_creature, SPELL_POLARITY_SHIFT, CAST_INTERRUPT_PREVIOUS) == CAST_OK)
                 {
-                    DoScriptText(SAY_ELECT, m_creature);
+                    DoBroadcastText(SAY_ELECT, m_creature);
                     ResetCombatAction(action, GetSubsequentActionTimer(action));
                 }
                 return;
@@ -503,19 +503,19 @@ struct boss_stalaggAI : public boss_thaddiusAddsAI
 
     void Aggro(Unit* who) override
     {
-        DoScriptText(SAY_STAL_AGGRO, m_creature);
+        DoBroadcastText(SAY_STAL_AGGRO, m_creature);
         boss_thaddiusAddsAI::Aggro(who);
     }
 
     void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(SAY_STAL_DEATH, m_creature);
+        DoBroadcastText(SAY_STAL_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* victim) override
     {
         if (victim->GetTypeId() == TYPEID_PLAYER)
-            DoScriptText(SAY_STAL_SLAY, m_creature);
+            DoBroadcastText(SAY_STAL_SLAY, m_creature);
     }
 
     void UpdateAddAI(const uint32 diff) override
@@ -552,19 +552,19 @@ struct boss_feugenAI : public boss_thaddiusAddsAI
 
     void Aggro(Unit* who) override
     {
-        DoScriptText(SAY_FEUG_AGGRO, m_creature);
+        DoBroadcastText(SAY_FEUG_AGGRO, m_creature);
         boss_thaddiusAddsAI::Aggro(who);
     }
 
     void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(SAY_FEUG_DEATH, m_creature);
+        DoBroadcastText(SAY_FEUG_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* victim) override
     {
         if (victim->GetTypeId() == TYPEID_PLAYER)
-            DoScriptText(SAY_FEUG_SLAY, m_creature);
+            DoBroadcastText(SAY_FEUG_SLAY, m_creature);
     }
 
     void UpdateAddAI(const uint32 diff) override
@@ -776,7 +776,7 @@ struct TriggerTeslas : public SpellScript
         Unit* unitTarget = spell->GetUnitTarget();
         if (unitTarget)
         {
-            DoScriptText(EMOTE_TESLA_OVERLOAD, unitTarget, unitTarget);
+            DoBroadcastText(EMOTE_TESLA_OVERLOAD, unitTarget, unitTarget);
             unitTarget->RemoveAllAuras();
             unitTarget->CastSpell(unitTarget, SPELL_SHOCK_OVERLOAD, TRIGGERED_NONE); // Shock
         }

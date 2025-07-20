@@ -178,6 +178,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (28835,'spell_horsemen_mark'),
 (28961,'spell_summon_corpse_scarabs'),
 (29201,'spell_loatheb_corrupted_mind'),
+(29252,'spell_summon_skeletons_noth'),
 (29317,'spell_shadowbolt_gothik'),
 (29330,'spell_sapphiron_despawn_buffet'),
 (29336,'spell_despawn_buffet'),

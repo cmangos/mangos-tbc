@@ -647,11 +647,6 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
             DoUseDoorOrButton(GO_KELTHUZAD_EXIT_DOOR);
             if (data == IN_PROGRESS)
             {
-                if (Creature* kelthuzad = GetSingleCreatureFromStorage(NPC_KELTHUZAD))
-                {
-                    if (kelthuzad->IsAlive())
-                        kelthuzad->CastSpell(kelthuzad, SPELL_CHANNEL_VISUAL, TRIGGERED_OLD_TRIGGERED);
-                }
                 DoUseDoorOrButton(GO_KELTHUZAD_TRIGGER);
                 m_despawnKTTriggerTimer = 5 * IN_MILLISECONDS;
             }

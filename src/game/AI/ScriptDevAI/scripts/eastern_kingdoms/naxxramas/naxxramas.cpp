@@ -349,7 +349,8 @@ void instance_naxxramas::OnCreatureDeath(Creature* creature)
     {
         case NPC_MR_BIGGLESWORTH:
             if (m_auiEncounter[TYPE_KELTHUZAD] != DONE)
-                DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_CAT_DIED, NPC_KELTHUZAD);
+                if (Creature* kt = GetSingleCreatureFromStorage(NPC_KELTHUZAD, true))
+                    DoBroadcastText(SAY_KELTHUZAD_CAT_DIED, kt);
             break;
         case NPC_ZOMBIE_CHOW:
             creature->ForcedDespawn(2000);
@@ -526,15 +527,12 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
             // Skip if already set
             if (m_auiEncounter[type] == data)
                 return;
-            if (data == SPECIAL)
+            if (data == DONE)
             {
                 ++m_horsemenKilled;
 
-                if (m_horsemenKilled == 4)
-                    SetData(TYPE_FOUR_HORSEMEN, DONE);
-
-                // Don't store special data
-                break;
+                if (m_horsemenKilled != 4)
+                    break;
             }
             if (data == FAIL)
             {
@@ -597,22 +595,22 @@ void instance_naxxramas::SetData(uint32 type, uint32 data)
                 // Respawn: Stalagg, Feugen, their respective Tesla Coil NPCs and Tesla GOs
                 if (Creature* stalagg = GetSingleCreatureFromStorage(NPC_STALAGG))
                 {
+                    stalagg->SetRespawnDelay(30s, true);
                     stalagg->ForcedDespawn();
-                    stalagg->Respawn();
                 }
 
                 if (Creature* feugen = GetSingleCreatureFromStorage(NPC_FEUGEN))
                 {
+                    feugen->SetRespawnDelay(30s, true);
                     feugen->ForcedDespawn();
-                    feugen->Respawn();
                 }
 
                 for (auto& teslaGuid : m_thaddiusTeslaCoilList)
                 {
                     if (Creature* teslaCoil = instance->GetCreature(teslaGuid))
                     {
+                        teslaCoil->SetRespawnDelay(30s, true);
                         teslaCoil->ForcedDespawn();
-                        teslaCoil->Respawn();
                     }
                 }
                 if (GameObject* stalaggTesla = GetSingleGameObjectFromStorage(GO_CONS_NOX_TESLA_STALAGG))
@@ -842,7 +840,8 @@ void instance_naxxramas::Update(uint32 diff)
                     textId = SAY_ZELI_TAUNT3;
                     break;
             }
-            DoOrSimulateScriptTextForThisInstance(textId, horsemenEntry);
+            if (Creature* horseman = GetSingleCreatureFromStorage(horsemenEntry, true))
+                DoBroadcastText(textId, horseman);
             m_horsemenTauntTimer = urand(30, 40) * MINUTE * IN_MILLISECONDS;
         }
         else
@@ -893,15 +892,19 @@ void instance_naxxramas::DoTaunt()
         if (m_auiEncounter[TYPE_THADDIUS] == DONE)
             ++wingsCleared;
 
+        int32 textId = 0;;
         switch (wingsCleared)
         {
-            case 1: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT1, NPC_KELTHUZAD); break;
-            case 2: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT2, NPC_KELTHUZAD); break;
-            case 3: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT3, NPC_KELTHUZAD); break;
-            case 4: DoOrSimulateScriptTextForThisInstance(SAY_KELTHUZAD_TAUNT4, NPC_KELTHUZAD); break;
+            case 1: textId = SAY_KELTHUZAD_TAUNT1; break;
+            case 2: textId = SAY_KELTHUZAD_TAUNT2; break;
+            case 3: textId = SAY_KELTHUZAD_TAUNT3; break;
+            case 4: textId = SAY_KELTHUZAD_TAUNT4; break;
             default:
                 break;
         }
+        if (textId)
+            if (Creature* kt = GetSingleCreatureFromStorage(NPC_KELTHUZAD, true))
+                DoBroadcastText(textId, kt);
     }
 }
 

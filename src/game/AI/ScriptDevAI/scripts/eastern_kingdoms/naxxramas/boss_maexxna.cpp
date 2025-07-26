@@ -239,7 +239,7 @@ struct WebWrapMessage : public SpellScript
             spellId = SPELL_WEB_WRAP_500;
 
         if (spellId)
-            spell->GetCaster()->CastSpell(spell->GetUnitTarget(), spellId, TRIGGERED_OLD_TRIGGERED);
+            spell->GetUnitTarget()->CastSpell(spell->GetCaster(), spellId, TRIGGERED_OLD_TRIGGERED);
     }
 };
 

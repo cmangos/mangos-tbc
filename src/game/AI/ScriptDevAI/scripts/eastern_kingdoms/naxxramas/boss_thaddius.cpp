@@ -111,7 +111,7 @@ struct boss_thaddiusAI : public BossAI
         BossAI::Reset();
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
         m_creature->SetImmuneToPlayer(true);
-        DoCastSpellIfCan(m_creature, SPELL_THADIUS_SPAWN, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        DoCastSpellIfCan(nullptr, SPELL_THADIUS_SPAWN, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
     }
 
     void Aggro(Unit* who) override
@@ -187,7 +187,6 @@ struct boss_thaddiusAddsAI : public BossAI
                 DisableTimer(THADDIUS_ADD_REVIVE);
             }
         });
-        Reset();
     }
 
     instance_naxxramas* m_instance;
@@ -230,32 +229,6 @@ struct boss_thaddiusAddsAI : public BossAI
             if (!otherAdd->IsInCombat())
                 otherAdd->AI()->AttackStart(who);
         }
-    }
-
-    void JustReachedHome() override
-    {
-        if (!m_instance)
-            return;
-
-        if (Creature* other = GetOtherAdd())
-        {
-            if (boss_thaddiusAddsAI* otherAI = dynamic_cast<boss_thaddiusAddsAI*>(other->AI()))
-            {
-                if (otherAI->IsCountingDead())
-                {
-                    other->SetRespawnDelay(1s, true);
-                    other->ForcedDespawn();
-                }
-            }
-        }
-
-        if (Creature* tesla = GetClosestCreatureWithEntry(m_creature, NPC_TESLA_COIL, 50.f))
-        {
-            tesla->SetRespawnDelay(1s, true);
-            tesla->ForcedDespawn();
-        }
-
-        m_instance->SetData(TYPE_THADDIUS, FAIL);
     }
 
     void Revive()
@@ -567,7 +540,7 @@ struct TriggerTeslas : public SpellScript
         {
             DoBroadcastText(EMOTE_TESLA_OVERLOAD, unitTarget, unitTarget);
             unitTarget->RemoveAllAuras();
-            unitTarget->CastSpell(unitTarget, SPELL_SHOCK_OVERLOAD, TRIGGERED_NONE); // Shock
+            unitTarget->CastSpell(nullptr, SPELL_SHOCK_OVERLOAD, TRIGGERED_NONE); // Shock
         }
     }
 };

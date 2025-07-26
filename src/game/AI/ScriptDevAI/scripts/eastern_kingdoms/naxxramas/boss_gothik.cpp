@@ -350,6 +350,11 @@ struct ToAnchorOne : public SpellScript
 // 27893, 27929, 27936 - To Anchor 2
 struct ToAnchorTwo : public SpellScript
 {
+    void OnInit(Spell* spell) const override
+    {
+        spell->SetMaxAffectedTargets(1);
+    }
+
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
         if (effIdx != EFFECT_INDEX_0 || !spell->GetUnitTarget())

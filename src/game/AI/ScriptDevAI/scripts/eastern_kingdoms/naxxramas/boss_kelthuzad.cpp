@@ -176,19 +176,8 @@ struct boss_kelthuzadAI : public BossAI
 
         m_phase                = PHASE_NORMAL;
 
-        SetCombatScriptStatus(false);
-        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SPAWNING);
-        m_creature->SetImmuneToPlayer(true);
+        m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER | UNIT_FLAG_UNINTERACTIBLE);
         SetMeleeEnabled(false);
-    }
-
-    void Aggro(Unit* enemy) override
-    {
-        BossAI::Aggro(enemy);
-        DoBroadcastText(SAY_SUMMON_MINIONS, m_creature);
-        m_summonTicks = 0;
-        DoCastSpellIfCan(nullptr, SPELL_CHANNEL_VISUAL);
-        SetCombatScriptStatus(true);
     }
 
     void EnterEvadeMode() override
@@ -211,7 +200,7 @@ struct boss_kelthuzadAI : public BossAI
         // Phase 1 start
         if (spellInfo->Id == SPELL_CHANNEL_VISUAL)
         {
-            // nothing for the moment
+            DoBroadcastText(SAY_SUMMON_MINIONS, m_creature);
         }
         // Phase 1 periodic update every 1 second (everything in phase 1 is handled here rather than in UpdateAI())
         else if (spellInfo->Id == SPELL_CHANNEL_VISUAL_EFFECT)
@@ -295,6 +284,9 @@ struct boss_kelthuzadAI : public BossAI
                     break;
             }
 
+            if (summoningAura == 0) // beginning
+                continue;
+
             // Do not update aura for current add type if summoning aura is already present
             if (m_creature->HasAura(summoningAura))
                 continue;
@@ -369,10 +361,11 @@ struct boss_kelthuzadAI : public BossAI
 
     void StartPhase2()
     {
-        SetCombatScriptStatus(false);
         m_phase = PHASE_NORMAL;
 
+        m_creature->InterruptNonMeleeSpells(false);
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER | UNIT_FLAG_UNINTERACTIBLE);
+        m_creature->SetInCombatWithZone();
         SetCombatMovement(true);
         m_creature->GetMotionMaster()->MoveChase(m_creature->GetVictim());
 

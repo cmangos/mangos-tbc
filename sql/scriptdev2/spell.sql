@@ -260,6 +260,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (43706,'spell_drink'),
 (46755,'spell_drink'),
 (49472,'spell_drink'),
+(29866,'spell_cast_fishing_net'),
 (32403,'spell_increased_healing_done_dummy'),
 (34246,'spell_increased_healing_done_dummy'),
 (34294,'spell_increased_healing_done_dummy'),

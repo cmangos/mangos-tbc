@@ -54,40 +54,30 @@ enum
     GO_RED_SNAPPER              = 181616,
     NPC_ANGRY_MURLOC            = 17102,
     ITEM_RED_SNAPPER            = 23614,
+    SPELL_FISHED_UP_MURLOC      = 29869,
+    SPELL_FISHED_UP_RED_SNAPPER = 29867,
     // SPELL_SUMMON_TEST           = 49214                  // ! Just wrong spell name? It summon correct creature (17102)but does not appear to be used.
 };
 
-bool EffectDummyGameObj_spell_dummy_go(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, GameObject* pGOTarget, ObjectGuid /*originalCasterGuid*/)
+// 29866 - Cast Fishing Net
+struct CastFishingNet : public SpellScript
 {
-    switch (uiSpellId)
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
     {
-        case SPELL_CAST_FISHING_NET:
-        {
-            if (uiEffIndex == EFFECT_INDEX_0)
-            {
-                if (pGOTarget->GetRespawnTime() != 0 || pGOTarget->GetEntry() != GO_RED_SNAPPER || pCaster->GetTypeId() != TYPEID_PLAYER)
-                    return true;
+        if (effIdx != EFFECT_INDEX_0)
+            return;
 
-                if (urand(0, 2))
-                {
-                    if (Creature* pMurloc = pCaster->SummonCreature(NPC_ANGRY_MURLOC, pCaster->GetPositionX(), pCaster->GetPositionY() + 20.0f, pCaster->GetPositionZ(), 0.0f, TEMPSPAWN_TIMED_OOC_DESPAWN, 10000))
-                        pMurloc->AI()->AttackStart(pCaster);
-                }
-                else
-                {
-                    if (Item* pItem = ((Player*)pCaster)->StoreNewItemInInventorySlot(ITEM_RED_SNAPPER, 1))
-                        ((Player*)pCaster)->SendNewItem(pItem, 1, true, false);
-                }
+        GameObject* goTarget = spell->GetGOTarget();
+        Unit* caster = spell->GetCaster();
+        if (goTarget->GetRespawnTime() != 0 || !caster->IsPlayer())
+            return;
 
-                pGOTarget->SetLootState(GO_JUST_DEACTIVATED);
-                return true;
-            }
-            return true;
-        }
+        if (urand(0, 2))
+            caster->CastSpell(nullptr, SPELL_FISHED_UP_MURLOC, TRIGGERED_OLD_TRIGGERED);
+        else
+            caster->CastSpell(nullptr, SPELL_FISHED_UP_RED_SNAPPER, TRIGGERED_OLD_TRIGGERED);
     }
-
-    return false;
-}
+};
 
 enum
 {
@@ -1175,16 +1165,12 @@ struct IllusionPassive : public AuraScript
 void AddSC_spell_scripts()
 {
     Script* pNewScript = new Script;
-    pNewScript->Name = "spell_dummy_go";
-    pNewScript->pEffectDummyGO = &EffectDummyGameObj_spell_dummy_go;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
     pNewScript->Name = "spell_dummy_npc";
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_dummy_npc;
     pNewScript->pEffectAuraDummy = &EffectAuraDummy_spell_aura_dummy_npc;
     pNewScript->RegisterSelf();
 
+    RegisterSpellScript<CastFishingNet>("spell_cast_fishing_net");
     RegisterSpellScript<GreaterInvisibilityMob>("spell_greater_invisibility_mob");
     RegisterSpellScript<InebriateRemoval>("spell_inebriate_removal");
     RegisterSpellScript<AstralBite>("spell_astral_bite");

@@ -100,42 +100,12 @@ enum
     SPELL_THROW_GORDAWG_BOULDER         = 32001,
     NPC_MINION_OF_GUROK                 = 18181,
 
-    // npcs that are only interactable while dead
-    SPELL_SHROUD_OF_DEATH               = 10848,
-    SPELL_SPIRIT_PARTICLES              = 17327,
-    NPC_FRANCLORN_FORGEWRIGHT           = 8888,
-    NPC_GAERIYAN                        = 9299,
-
     // quest 6661
     SPELL_MELODIOUS_RAPTURE             = 21050,
     SPELL_MELODIOUS_RAPTURE_VISUAL      = 21051,
     NPC_DEEPRUN_RAT                     = 13016,
     NPC_ENTHRALLED_DEEPRUN_RAT          = 13017,
 };
-
-bool EffectAuraDummy_spell_aura_dummy_npc(const Aura* pAura, bool bApply)
-{
-    switch (pAura->GetId())
-    {    
-        case SPELL_SHROUD_OF_DEATH:
-        case SPELL_SPIRIT_PARTICLES:
-        {
-            Creature* pCreature = (Creature*)pAura->GetTarget();
-
-            if (!pCreature || (pCreature->GetEntry() != NPC_FRANCLORN_FORGEWRIGHT && pCreature->GetEntry() != NPC_GAERIYAN))
-                return false;
-
-            if (bApply)
-                pCreature->m_AuraFlags |= UNIT_AURAFLAG_ALIVE_INVISIBLE;
-            else
-                pCreature->m_AuraFlags &= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
-
-            return false;
-        }
-    }
-
-    return false;
-}
 
 bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellEffectIndex uiEffIndex, Creature* pCreatureTarget, ObjectGuid /*originalCasterGuid*/)
 {
@@ -1038,7 +1008,6 @@ void AddSC_spell_scripts()
     Script* pNewScript = new Script;
     pNewScript->Name = "spell_dummy_npc";
     pNewScript->pEffectDummyNPC = &EffectDummyCreature_spell_dummy_npc;
-    pNewScript->pEffectAuraDummy = &EffectAuraDummy_spell_aura_dummy_npc;
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<CastFishingNet>("spell_cast_fishing_net");

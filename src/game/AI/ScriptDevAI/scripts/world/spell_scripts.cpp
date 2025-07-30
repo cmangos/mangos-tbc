@@ -81,17 +81,6 @@ struct CastFishingNet : public SpellScript
 
 enum
 {
-    // quest 9629
-    SPELL_TAG_MURLOC                    = 30877,
-    SPELL_TAG_MURLOC_PROC               = 30875,
-    NPC_BLACKSILT_MURLOC                = 17326,
-    NPC_TAGGED_MURLOC                   = 17654,
-
-    // quest 9447
-    SPELL_HEALING_SALVE                 = 29314,
-    SPELL_HEALING_SALVE_DUMMY           = 29319,
-    NPC_MAGHAR_GRUNT                    = 16846,
-
     // target hulking helboar
     SPELL_ADMINISTER_ANTIDOTE           = 34665,
     NPC_HELBOAR                         = 16880,
@@ -107,14 +96,6 @@ enum
     NPC_OWLKIN                          = 16518,
     NPC_OWLKIN_INOC                     = 16534,
 
-    // Quest "Disrupt the Greengill Coast" (11541)
-    SPELL_ORB_OF_MURLOC_CONTROL         = 45109,
-    SPELL_GREENGILL_SLAVE_FREED         = 45110,
-    SPELL_ENRAGE                        = 45111,
-    NPC_FREED_GREENGILL_SLAVE           = 25085,
-    NPC_DARKSPINE_MYRMIDON              = 25060,
-    NPC_DARKSPINE_SIREN                 = 25073,
-
     // quest 9849, item 24501
     SPELL_THROW_GORDAWG_BOULDER         = 32001,
     NPC_MINION_OF_GUROK                 = 18181,
@@ -124,10 +105,6 @@ enum
     SPELL_SPIRIT_PARTICLES              = 17327,
     NPC_FRANCLORN_FORGEWRIGHT           = 8888,
     NPC_GAERIYAN                        = 9299,
-
-    //  for quest 10584
-    SPELL_PROTOVOLTAIC_MAGNETO_COLLECTOR = 37136,
-    NPC_ENCASED_ELECTROMENTAL           = 21731,
 
     // quest 6661
     SPELL_MELODIOUS_RAPTURE             = 21050,
@@ -139,83 +116,7 @@ enum
 bool EffectAuraDummy_spell_aura_dummy_npc(const Aura* pAura, bool bApply)
 {
     switch (pAura->GetId())
-    {
-        case SPELL_HEALING_SALVE:
-        {
-            if (pAura->GetEffIndex() != EFFECT_INDEX_0)
-                return true;
-
-            if (bApply)
-            {
-                if (Unit* pCaster = pAura->GetCaster())
-                    pCaster->CastSpell(pAura->GetTarget(), SPELL_HEALING_SALVE_DUMMY, TRIGGERED_OLD_TRIGGERED);
-            }
-
-            return true;
-        }
-        case SPELL_HEALING_SALVE_DUMMY:
-        {
-            if (pAura->GetEffIndex() != EFFECT_INDEX_0)
-                return true;
-
-            if (!bApply)
-            {
-                Creature* pCreature = (Creature*)pAura->GetTarget();
-
-                pCreature->UpdateEntry(NPC_MAGHAR_GRUNT);
-
-                if (pCreature->getStandState() == UNIT_STAND_STATE_KNEEL)
-                    pCreature->SetStandState(UNIT_STAND_STATE_STAND);
-
-                pCreature->ForcedDespawn(60 * IN_MILLISECONDS);
-            }
-
-            return true;
-        }        
-        case SPELL_TAG_MURLOC:
-        {
-            Creature* pCreature = (Creature*)pAura->GetTarget();
-
-            if (pAura->GetEffIndex() != EFFECT_INDEX_0)
-                return true;
-
-            if (bApply)
-            {
-                if (pCreature->GetEntry() == NPC_BLACKSILT_MURLOC)
-                {
-                    if (Unit* pCaster = pAura->GetCaster())
-                        pCaster->CastSpell(pCreature, SPELL_TAG_MURLOC_PROC, TRIGGERED_OLD_TRIGGERED);
-                }
-            }
-            else
-            {
-                if (pCreature->GetEntry() == NPC_TAGGED_MURLOC)
-                    pCreature->ForcedDespawn();
-            }
-
-            return true;
-        }
-        case SPELL_ENRAGE:
-        {
-            if (!bApply || pAura->GetTarget()->GetTypeId() != TYPEID_UNIT)
-                return false;
-
-            Creature* pTarget = (Creature*)pAura->GetTarget();
-
-            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_MYRMIDON, 50.0f))
-            {
-                pTarget->AI()->AttackStart(pCreature);
-                return true;
-            }
-
-            if (Creature* pCreature = GetClosestCreatureWithEntry(pTarget, NPC_DARKSPINE_SIREN, 50.0f))
-            {
-                pTarget->AI()->AttackStart(pCreature);
-                return true;
-            }
-
-            return false;
-        }
+    {    
         case SPELL_SHROUD_OF_DEATH:
         case SPELL_SPIRIT_PARTICLES:
         {
@@ -230,16 +131,6 @@ bool EffectAuraDummy_spell_aura_dummy_npc(const Aura* pAura, bool bApply)
                 pCreature->m_AuraFlags &= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
 
             return false;
-        }
-        case SPELL_PROTOVOLTAIC_MAGNETO_COLLECTOR:
-        {
-            if (pAura->GetEffIndex() != EFFECT_INDEX_0)
-                return true;
-
-            Unit* pTarget = pAura->GetTarget();
-            if (bApply && pTarget->GetTypeId() == TYPEID_UNIT)
-                ((Creature*)pTarget)->UpdateEntry(NPC_ENCASED_ELECTROMENTAL);
-            return true;
         }
     }
 
@@ -292,26 +183,6 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
                 pCreatureTarget->UpdateEntry(NPC_EMACIATED_FELBLOOD);
                 return true;
             }
-            return true;
-        }
-        case SPELL_TAG_MURLOC_PROC:
-        {
-            if (uiEffIndex == EFFECT_INDEX_0)
-            {
-                if (pCreatureTarget->GetEntry() == NPC_BLACKSILT_MURLOC)
-                    pCreatureTarget->UpdateEntry(NPC_TAGGED_MURLOC);
-            }
-            return true;
-        }
-        case SPELL_ORB_OF_MURLOC_CONTROL:
-        {
-            pCreatureTarget->CastSpell(pCaster, SPELL_GREENGILL_SLAVE_FREED, TRIGGERED_OLD_TRIGGERED);
-
-            // Freed Greengill Slave
-            pCreatureTarget->UpdateEntry(NPC_FREED_GREENGILL_SLAVE);
-
-            pCreatureTarget->CastSpell(pCreatureTarget, SPELL_ENRAGE, TRIGGERED_OLD_TRIGGERED);
-
             return true;
         }
         case SPELL_THROW_GORDAWG_BOULDER:

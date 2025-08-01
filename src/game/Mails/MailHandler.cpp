@@ -624,7 +624,7 @@ void WorldSession::HandleGetMailList(WorldPacket& recv_data)
 
         data << uint32((*itr)->COD);                        // COD
         data << uint32((*itr)->itemTextId);                 // item text
-        data << uint32(0);                                  // unknown
+        data << uint32(0);                                  // package (Package.dbc)
         data << uint32((*itr)->stationery);                 // stationery (Stationery.dbc)
         data << uint32((*itr)->money);                      // copper
         data << uint32((*itr)->checked);                    // flags

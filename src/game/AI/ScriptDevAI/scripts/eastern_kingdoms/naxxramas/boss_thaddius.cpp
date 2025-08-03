@@ -162,7 +162,7 @@ enum ThaddiusAddActions
 
 struct boss_thaddiusAddsAI : public BossAI
 {
-    boss_thaddiusAddsAI(Creature* creature) : BossAI(creature, THADDIUS_ADD_ACTIONS_MAX), m_instance(dynamic_cast<instance_naxxramas*>(creature->GetInstanceData())), m_isRegularMode(creature->GetMap()->IsRegularDifficulty())
+    boss_thaddiusAddsAI(Creature* creature) : BossAI(creature, THADDIUS_ADD_ACTIONS_MAX), m_instance(dynamic_cast<instance_naxxramas*>(creature->GetInstanceData()))
     {
         SetDataType(TYPE_THADDIUS);
         AddCustomAction(THADDIUS_ADD_REVIVE, true, [&]()
@@ -190,7 +190,6 @@ struct boss_thaddiusAddsAI : public BossAI
     }
 
     instance_naxxramas* m_instance;
-    bool m_isRegularMode;
 
     bool m_isFakingDeath;
     bool m_areBothDead;

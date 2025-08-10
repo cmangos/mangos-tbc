@@ -134,10 +134,29 @@ struct ExposeWeakness : public AuraScript
     }
 };
 
+// 34701 - Random Aggro
+struct RandomAggroSnakeTrap : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
+    {
+        if (effIdx != EFFECT_INDEX_0)
+            return;
+
+        Unit* target = spell->GetUnitTarget();
+        Unit* caster = spell->GetCaster();
+        if (caster->CanAttack(target))
+        {
+            if (caster->IsVisibleForOrDetect(target, target, true))
+                caster->AI()->AttackStart(caster);
+        }
+    }
+};
+
 void LoadHunterScripts()
 {
     RegisterSpellScript<HuntersMark>("spell_hunters_mark");
     RegisterSpellScript<KillCommand>("spell_kill_command");
     RegisterSpellScript<Misdirection>("spell_misdirection");
     RegisterSpellScript<ExposeWeakness>("spell_expose_weakness");
+    RegisterSpellScript<RandomAggroSnakeTrap>("spell_random_aggro_snake_trap");
 }

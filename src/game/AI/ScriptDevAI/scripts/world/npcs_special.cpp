@@ -1754,7 +1754,7 @@ enum
     SPELL_MIND_NUMBING_POISON   = 25810,
     SPELL_CRIPPLING_POISON      = 25809,
 
-    // SPELL_RANDOM_AGGRO = 34701 // unk purpose
+    SPELL_RANDOM_AGGRO = 34701,
 };
 
 struct npc_snakesAI : public ScriptedAI
@@ -1769,6 +1769,7 @@ struct npc_snakesAI : public ScriptedAI
         m_creature->GetMotionMaster()->Clear();
         m_creature->GetMotionMaster()->MoveRandomAroundPoint(m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ(), 5.f);
         DoCastSpellIfCan(nullptr, SPELL_DEADLY_POISON_PASSIVE, CAST_AURA_NOT_PRESENT | CAST_TRIGGERED);
+        DoCastSpellIfCan(nullptr, SPELL_RANDOM_AGGRO, CAST_TRIGGERED);
     }
 
     void UpdateAI(const uint32 diff) override

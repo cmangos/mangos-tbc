@@ -81,25 +81,6 @@ struct CastFishingNet : public SpellScript
 
 enum
 {
-    // target hulking helboar
-    SPELL_ADMINISTER_ANTIDOTE           = 34665,
-    NPC_HELBOAR                         = 16880,
-    NPC_DREADTUSK                       = 16992,
-
-    // quest 11515
-    SPELL_FEL_SIPHON_DUMMY              = 44936,
-    NPC_FELBLOOD_INITIATE               = 24918,
-    NPC_EMACIATED_FELBLOOD              = 24955,
-
-    // target nestlewood owlkin
-    SPELL_INOCULATE_OWLKIN              = 29528,
-    NPC_OWLKIN                          = 16518,
-    NPC_OWLKIN_INOC                     = 16534,
-
-    // quest 9849, item 24501
-    SPELL_THROW_GORDAWG_BOULDER         = 32001,
-    NPC_MINION_OF_GUROK                 = 18181,
-
     // quest 6661
     SPELL_MELODIOUS_RAPTURE             = 21050,
     SPELL_MELODIOUS_RAPTURE_VISUAL      = 21051,
@@ -111,65 +92,6 @@ bool EffectDummyCreature_spell_dummy_npc(Unit* pCaster, uint32 uiSpellId, SpellE
 {
     switch (uiSpellId)
     {
-        case SPELL_ADMINISTER_ANTIDOTE:
-        {
-            if (uiEffIndex == EFFECT_INDEX_0)
-            {
-                if (pCreatureTarget->GetEntry() != NPC_HELBOAR)
-                    return true;
-
-                // possible needs check for quest state, to not have any effect when quest really complete
-
-                pCreatureTarget->UpdateEntry(NPC_DREADTUSK);
-                return true;
-            }
-            return true;
-        }
-        case SPELL_INOCULATE_OWLKIN:
-        {
-            if (uiEffIndex == EFFECT_INDEX_0)
-            {
-                if (pCreatureTarget->GetEntry() != NPC_OWLKIN)
-                    return true;
-
-                pCreatureTarget->UpdateEntry(NPC_OWLKIN_INOC);
-                pCreatureTarget->AIM_Initialize();
-                ((Player*)pCaster)->KilledMonsterCredit(NPC_OWLKIN_INOC);
-
-                // set despawn timer, since we want to remove creature after a short time
-                pCreatureTarget->ForcedDespawn(15000);
-
-                return true;
-            }
-            return true;
-        }
-        case SPELL_FEL_SIPHON_DUMMY:
-        {
-            if (uiEffIndex == EFFECT_INDEX_0)
-            {
-                if (pCreatureTarget->GetEntry() != NPC_FELBLOOD_INITIATE)
-                    return true;
-
-                pCreatureTarget->UpdateEntry(NPC_EMACIATED_FELBLOOD);
-                return true;
-            }
-            return true;
-        }
-        case SPELL_THROW_GORDAWG_BOULDER:
-        {
-            if (uiEffIndex == EFFECT_INDEX_0)
-            {
-                for (int i = 0; i < 3; ++i)
-                {
-                    if (irand(i, 2))                        // 2-3 summons
-                        pCreatureTarget->SummonCreature(NPC_MINION_OF_GUROK, 0.0f, 0.0f, 0.0f, 0.0f, TEMPSPAWN_CORPSE_DESPAWN, 5000);
-                }
-
-                pCreatureTarget->CastSpell(nullptr, 3617, TRIGGERED_OLD_TRIGGERED); // suicide spell
-                return true;
-            }
-            return true;
-        }
         case SPELL_MELODIOUS_RAPTURE:
         {
             if (uiEffIndex == EFFECT_INDEX_0)

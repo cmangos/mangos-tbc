@@ -201,8 +201,6 @@ UPDATE creature_template SET ScriptName='spell_dummy_npc' WHERE entry IN (
 -- outland
 16880,16518,16847,17157,17326,17654,18879,21729,24918,24922,25084,25085);
 
-UPDATE gameobject_template SET ScriptName='spell_dummy_go' WHERE entry IN (181616);
-
 /* WORLD MAP SCRIPTS */
 DELETE FROM world_template WHERE map IN (0, 1, 530);
 INSERT INTO world_template VALUES
@@ -1111,7 +1109,6 @@ UPDATE creature_template SET ScriptName='npc_lord_illidan_stormrage' WHERE entry
 UPDATE gameobject_template SET ScriptName='go_crystal_prison' WHERE entry=185126;
 UPDATE creature_template SET ScriptName='npc_spawned_oronok_tornheart' WHERE entry=21685;
 UPDATE creature_template SET ScriptName='npc_domesticated_felboar' WHERE entry=21195;
-UPDATE creature_template SET ScriptName='npc_shadowmoon_tuber_node' WHERE entry=21347;
 UPDATE creature_template SET ScriptName='npc_veneratus_spawn_node' WHERE entry=21334;
 UPDATE creature_template SET ScriptName='mob_shadowmoon_soulstealer' WHERE entry=22061;
 UPDATE creature_template SET ScriptName='npc_shadowlord_deathwail' WHERE entry=22006;

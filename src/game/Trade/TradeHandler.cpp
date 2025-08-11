@@ -376,7 +376,7 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& recvPacket)
                 return;
             }
 
-            his_spell = new Spell(trader, spellEntry, TRIGGERED_OLD_TRIGGERED);
+            his_spell = new Spell(trader, spellEntry, TRIGGERED_OLD_TRIGGERED | TRIGGERED_FORCE_COSTS);
             his_spell->SetCastItem(castItem);
             his_targets.setTradeItemTarget(trader);
             his_spell->m_targets = his_targets;

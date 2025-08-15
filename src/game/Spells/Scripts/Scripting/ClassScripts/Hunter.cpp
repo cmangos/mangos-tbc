@@ -150,7 +150,7 @@ struct FreezingTrapEffect : public AuraScript
                 if (static_cast<Unit const*>(caster)->HasAura(19239))
                     return 11500;
 
-                // Clever Traps Rank 1
+                // Clever Traps Rank 2
                 if (static_cast<Unit const*>(caster)->HasAura(19245))
                     return 13000;
             }

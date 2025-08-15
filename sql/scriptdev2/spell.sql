@@ -667,6 +667,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (34799,'spell_arcane_devastation'),
 (34145,'spell_ritual_of_souls_dummy'),
 (34219,'spell_recharging_battery'),
+(3355,'spell_freezing_trap'),
+(14308,'spell_freezing_trap'),
+(14309,'spell_freezing_trap'),
 (32173,'spell_entangling_roots');
 
 -- Wotlk

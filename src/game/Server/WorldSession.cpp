@@ -842,9 +842,9 @@ void WorldSession::LogoutPlayer()
 /// Kick a player out of the World
 void WorldSession::KickPlayer(bool save, bool inPlace)
 {
-    m_playerSave = save;
     if (inPlace)
     {
+        m_playerSave = save;
         m_kickSession = true;
         LogoutPlayer();
         return;
@@ -862,9 +862,9 @@ void WorldSession::KickPlayer(bool save, bool inPlace)
             botMgr->LogoutPlayerBot(_player->GetObjectGuid());
     }
     else
-        LogoutRequest(time(nullptr) - 20, false);
+        LogoutRequest(time(nullptr) - 20, save);
 #else
-    LogoutRequest(time(nullptr) - 20, false, true);
+    LogoutRequest(time(nullptr) - 20, save, true);
 #endif
 }
 

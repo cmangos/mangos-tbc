@@ -134,10 +134,36 @@ struct ExposeWeakness : public AuraScript
     }
 };
 
+// 3355 - Freezing Trap (Rank 1)
+// 14308 - Freezing Trap (Rank 2)
+// 14309 - Freezing Trap (Rank 3)
+
+struct FreezingTrapEffect : public AuraScript
+{
+    int32 OnDurationCalculate(WorldObject const* caster, Unit const* target, int32 duration) const override
+    {
+        if (caster && caster->IsUnit())
+        {
+            if (target && target->IsPlayerControlled())
+            {
+                // Clever Traps Rank 1
+                if (static_cast<Unit const*>(caster)->HasAura(19239))
+                    return 11500;
+
+                // Clever Traps Rank 1
+                if (static_cast<Unit const*>(caster)->HasAura(19245))
+                    return 13000;
+            }
+        }
+        return duration;
+    }
+};
+
 void LoadHunterScripts()
 {
     RegisterSpellScript<HuntersMark>("spell_hunters_mark");
     RegisterSpellScript<KillCommand>("spell_kill_command");
     RegisterSpellScript<Misdirection>("spell_misdirection");
     RegisterSpellScript<ExposeWeakness>("spell_expose_weakness");
+    RegisterSpellScript<FreezingTrapEffect>("spell_freezing_trap");
 }

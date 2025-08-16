@@ -220,7 +220,6 @@ enum SummonPropSlot
     SUMMON_PROP_SLOT_TOTEM_3                = 3,
     SUMMON_PROP_SLOT_TOTEM_4                = 4,
     SUMMON_PROP_SLOT_CRITTER                = 5,
-    SUMMON_PROP_SLOT_QUEST_PLAYERS_ONLY     = 6,
     SUMMON_PROP_SLOT_ANY_AVAILABLE_TOTEM    = -1,
 };
 

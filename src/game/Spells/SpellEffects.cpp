@@ -4250,11 +4250,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
                     summonResult = DoSummonTotem(summonPositions, eff_idx, summon_prop->Slot);
                     break;
                 case UNITNAME_SUMMON_TITLE_COMPANION:
-                    // slot 6 set for critters that can help to player in fighting
-                    if (summon_prop->Slot == SUMMON_PROP_SLOT_QUEST_PLAYERS_ONLY)
-                        summonResult = DoSummonGuardian(summonPositions, summon_prop, eff_idx, creatureLevel);
-                    else
-                        summonResult = DoSummonCritter(summonPositions, summon_prop, eff_idx, creatureLevel);
+                    summonResult = DoSummonCritter(summonPositions, summon_prop, eff_idx, creatureLevel);
                     break;
                 default:
                     sLog.outError("EffectSummonType: Unhandled summon title %u", summon_prop->Title);
@@ -4264,12 +4260,7 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         }
         case SUMMON_PROP_GROUP_PETS:
         {
-            // 1562 - force of nature  - sid 33831
-            // 1161 - feral spirit - sid 51533
-            if (prop_id == 1562)                            // 3 uncontrolable instead of one controllable :/
-                summonResult = DoSummonGuardian(summonPositions, summon_prop, eff_idx, creatureLevel);
-            else
-                summonResult = DoSummonPet(summonPositions, summon_prop, eff_idx);
+            summonResult = DoSummonPet(summonPositions, summon_prop, eff_idx);
             break;
         }
         case SUMMON_PROP_GROUP_CONTROLLABLE:

@@ -2835,6 +2835,110 @@ bool GossipHello_npc_gossip_npc(Player* player, Creature* creature)
     return true;
 }
 
+bool GossipHello_npc_paymaster(Player* pPlayer, Creature* pCreature)
+{
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "5,000 Gold", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF);
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Profession Trainer", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "I want to be Aldor.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Let's go Scryer.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 3);
+    pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Oh great Flaskataur, grant me reputation with all the Outland factions.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 4);
+    pPlayer->SEND_GOSSIP_MENU(39288, pCreature->GetObjectGuid());
+    return true;
+}
+
+bool GossipSelect_npc_paymaster(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+{
+    if (uiAction > GOSSIP_ACTION_INFO_DEF + 4 && pPlayer->GetFreePrimaryProfessionPoints() == 0)
+        return false;
+
+    FactionEntry const* factionEntry;
+    switch (uiAction)
+    {
+        case GOSSIP_ACTION_INFO_DEF:
+            pPlayer->CastSpell(pPlayer, 46642, TRIGGERED_OLD_TRIGGERED);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 1:
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Jewelcrafting", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 5);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Alchemy", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 6);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Blacksmithing", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 7);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Enchanting", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 8);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Engineering", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 9);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Herbalism", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 10);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Leatherworking", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 11);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Mining", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 12);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Skinning", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 13);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Tailoring", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 14);
+            pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "First Aid", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 15);
+            pPlayer->SEND_GOSSIP_MENU(39288, pCreature->GetObjectGuid());
+            return true;
+        case GOSSIP_ACTION_INFO_DEF + 2:
+            factionEntry = sFactionStore.LookupEntry<FactionEntry>(932);
+            pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 3:
+            factionEntry = sFactionStore.LookupEntry<FactionEntry>(934);
+            pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
+            pPlayer->CLOSE_GOSSIP_MENU();
+            return true;
+        case GOSSIP_ACTION_INFO_DEF + 4:
+            factionEntry = sFactionStore.LookupEntry<FactionEntry>(967);
+            pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
+            factionEntry = sFactionStore.LookupEntry<FactionEntry>(990);
+            pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
+            factionEntry = sFactionStore.LookupEntry<FactionEntry>(1012);
+            pPlayer->GetReputationMgr().ModifyReputation(factionEntry, 84000);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 5:
+            pPlayer->learnSpellHighRank(28897);
+            pPlayer->SetSkill(755, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 6:
+            pPlayer->learnSpellHighRank(28596);
+            pPlayer->SetSkill(171, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 7:
+            pPlayer->learnSpellHighRank(29844);
+            pPlayer->SetSkill(164, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 8:
+            pPlayer->learnSpellHighRank(28029);
+            pPlayer->SetSkill(333, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 9:
+            pPlayer->learnSpellHighRank(30350);
+            pPlayer->SetSkill(202, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 10:
+            pPlayer->learnSpellHighRank(28695);
+            pPlayer->SetSkill(182, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 11:
+            pPlayer->learnSpellHighRank(32549);
+            pPlayer->SetSkill(165, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 12:
+            pPlayer->learnSpellHighRank(29354);
+            pPlayer->SetSkill(186, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 13:
+            pPlayer->learnSpellHighRank(32678);
+            pPlayer->SetSkill(393, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 14:
+            pPlayer->learnSpellHighRank(26790);
+            pPlayer->SetSkill(197, 375, 375);
+            break;
+        case GOSSIP_ACTION_INFO_DEF + 15:
+            pPlayer->learnSpellHighRank(27028);
+            pPlayer->SetSkill(129, 375, 375);
+            break;
+        default:
+            return false;
+    }
+    pPlayer->CLOSE_GOSSIP_MENU();
+    return true;
+}
+
 void AddSC_npcs_special()
 {
     Script* pNewScript = new Script;
@@ -2949,6 +3053,12 @@ void AddSC_npcs_special()
     pNewScript->Name = "npc_gossip_npc";
     pNewScript->GetAI = &GetNewAIInstance<GossipNPCAI>;
     pNewScript->pGossipHello = &GossipHello_npc_gossip_npc;
+    pNewScript->RegisterSelf();
+
+    pNewScript = new Script;
+    pNewScript->Name = "npc_paymaster";
+    pNewScript->pGossipHello = &GossipHello_npc_paymaster;
+    pNewScript->pGossipSelect = &GossipSelect_npc_paymaster;
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<HarvestSilithidEgg>("spell_harvest_silithid_egg");

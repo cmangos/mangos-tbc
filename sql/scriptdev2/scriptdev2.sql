@@ -1127,6 +1127,7 @@ UPDATE creature_template SET ScriptName='npc_dirty_larry' WHERE entry=19720;
 UPDATE creature_template SET ScriptName='npc_khadgars_servant' WHERE entry=19685;
 UPDATE creature_template SET ScriptName='npc_salsalabim' WHERE entry=18584;
 UPDATE creature_template SET ScriptName='npc_adal' WHERE entry IN(18481);
+UPDATE creature_template SET ScriptName="npc_paymaster" WHERE entry=26075;
 
 /* SILITHUS */
 UPDATE creature_template SET ScriptName='npc_solenor' WHERE entry IN (14530,14536);

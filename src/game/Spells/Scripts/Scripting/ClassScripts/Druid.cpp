@@ -118,7 +118,7 @@ struct MangleDruidTBC : public AuraScript
         if (spellInfo == nullptr)
             return false;
 
-        if (GetAllSpellMechanicMask(spellInfo) & (1 << (MECHANIC_BLEED - 1)))
+        if (GetAllSpellMechanicMask(spellInfo) & getBitmask(MECHANIC_BLEED))
             return true;
         
         switch (spellInfo->Id)

@@ -21,6 +21,18 @@
 
 #include "Platform/Define.h"
 
+template <std::convertible_to<uint32> T>
+constexpr uint32 const getBitmask(T item)
+{
+    return 1 << (item - 1);
+}
+
+template <std::convertible_to<uint32> T, typename... Targs>
+constexpr uint32 const getBitmask(T item, Targs&&... fargs)
+{
+    return getBitmask(item) | getBitmask(std::forward<Targs>(fargs)...);
+}
+
 enum Gender
 {
     GENDER_MALE                        = 0,
@@ -56,20 +68,25 @@ enum Races
 // max+1 for player race
 #define MAX_RACES         12
 
-#define RACEMASK_ALL_PLAYABLE \
-    ((1<<(RACE_HUMAN-1))    |(1<<(RACE_ORC-1))      |(1<<(RACE_DWARF-1))   | \
-    (1<<(RACE_NIGHTELF-1))  |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
-    (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
-    (1<<(RACE_DRAENEI-1)))
+constexpr uint32 const RACEMASK_ALL_PLAYABLE = getBitmask
+(
+    RACE_HUMAN,    RACE_ORC,    RACE_DWARF,
+    RACE_NIGHTELF, RACE_UNDEAD, RACE_TAUREN,
+    RACE_GNOME,    RACE_TROLL,  RACE_BLOODELF,
+    RACE_DRAENEI
+);
 
 // for most cases batter use ChrRace data for team check as more safe, but when need full mask of team can be use this defines.
-#define RACEMASK_ALLIANCE \
-    ((1<<(RACE_HUMAN-1))    |(1<<(RACE_DWARF-1))    |(1<<(RACE_NIGHTELF-1))| \
-    (1<<(RACE_GNOME-1))     |(1<<(RACE_DRAENEI-1)))
-
-#define RACEMASK_HORDE \
-    ((1<<(RACE_ORC-1))      |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
-    (1<<(RACE_TROLL-1))     |(1<<(RACE_BLOODELF-1)))
+constexpr uint32 const RACEMASK_ALLIANCE = getBitmask
+(
+    RACE_HUMAN, RACE_DWARF, RACE_NIGHTELF,
+    RACE_GNOME, RACE_DRAENEI
+);
+constexpr uint32 const RACEMASK_HORDE = getBitmask
+(
+    RACE_ORC,   RACE_UNDEAD, RACE_TAUREN,
+    RACE_TROLL, RACE_BLOODELF
+);
 
 // Class value is index in ChrClasses.dbc
 enum Classes
@@ -91,21 +108,24 @@ enum Classes
 // max+1 for player class
 #define MAX_CLASSES       12
 
-#define CLASSMASK_ALL_PLAYABLE \
-    ((1<<(CLASS_WARRIOR-1))|(1<<(CLASS_PALADIN-1))|(1<<(CLASS_HUNTER-1))| \
-    (1<<(CLASS_ROGUE-1))  |(1<<(CLASS_PRIEST-1)) |(1<<(CLASS_SHAMAN-1))| \
-    (1<<(CLASS_MAGE-1))   |(1<<(CLASS_WARLOCK-1))|(1<<(CLASS_DRUID-1))   )
+constexpr uint32 const CLASSMASK_ALL_PLAYABLE = getBitmask
+(
+    CLASS_WARLOCK, CLASS_PALADIN, CLASS_HUNTER,
+    CLASS_ROGUE,   CLASS_PRIEST,  CLASS_SHAMAN,
+    CLASS_MAGE,    CLASS_WARLOCK, CLASS_DRUID
+);
 
-#define CLASSMASK_ALL_CREATURES ((1<<(CLASS_WARRIOR-1)) | (1<<(CLASS_PALADIN-1)) | (1<<(CLASS_MAGE-1)) )
+constexpr uint32 const CLASSMASK_ALL_CREATURES = getBitmask(CLASS_WARRIOR, CLASS_PALADIN, CLASS_MAGE);
+
 #define MAX_CREATURE_CLASS 3
 
 // array index could be used to store class data only Warrior, Paladin and Mage are indexed for creature
 //                                                  W  P                 M
 static const uint8 classToIndex[MAX_CLASSES] = { 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0 };
 
-#define CLASSMASK_WAND_USERS ((1<<(CLASS_PRIEST-1))|(1<<(CLASS_MAGE-1))|(1<<(CLASS_WARLOCK-1)))
+constexpr uint32 const CLASSMASK_WAND_USERS = getBitmask(CLASS_PRIEST, CLASS_MAGE, CLASS_WARLOCK);
 
-#define CLASSMASK_RELIC_USERS ((1<<(CLASS_PALADIN-1))|(1<<(CLASS_SHAMAN-1))|(1<<(CLASS_DRUID-1)))
+constexpr uint32 const CLASSMASK_RELIC_USERS = getBitmask(CLASS_PALADIN, CLASS_SHAMAN, CLASS_DRUID);
 
 #define PLAYER_MAX_BATTLEGROUND_QUEUES 3
 
@@ -392,34 +412,44 @@ enum Mechanics
 #define MAX_MECHANIC            31
 
 // Used for spell 42292 Immune Movement Impairment and Loss of Control (0x49967da6)
-#define IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK ( \
-    (1<<(MECHANIC_CHARM   -1))|(1<<(MECHANIC_DISORIENTED-1))|(1<<(MECHANIC_FEAR  -1))| \
-    (1<<(MECHANIC_ROOT    -1))|(1<<(MECHANIC_PACIFY     -1))|(1<<(MECHANIC_SLEEP -1))| \
-    (1<<(MECHANIC_SNARE   -1))|(1<<(MECHANIC_STUN       -1))|(1<<(MECHANIC_FREEZE-1))| \
-    (1<<(MECHANIC_KNOCKOUT-1))|(1<<(MECHANIC_POLYMORPH  -1))|(1<<(MECHANIC_BANISH-1))| \
-    (1<<(MECHANIC_SHACKLE -1))|(1<<(MECHANIC_TURN       -1))|(1<<(MECHANIC_HORROR-1))| \
-    (1<<(MECHANIC_DAZE    -1))|(1<<(MECHANIC_SAPPED     -1)))
+constexpr uint32 const IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK = getBitmask
+(
+    MECHANIC_CHARM, MECHANIC_DISORIENTED, MECHANIC_FEAR,
+    MECHANIC_ROOT,     MECHANIC_PACIFY,      MECHANIC_SLEEP,
+    MECHANIC_SNARE,    MECHANIC_STUN,        MECHANIC_FREEZE,
+    MECHANIC_KNOCKOUT, MECHANIC_POLYMORPH,   MECHANIC_BANISH,
+    MECHANIC_SHACKLE,  MECHANIC_TURN,        MECHANIC_HORROR,
+    MECHANIC_DAZE,     MECHANIC_SAPPED
+);
 
 // Used for spell 40081 Free Friend (? verify the list!!)
-#define IMMUNE_TO_INCAPACITATE_MASK ( \
-    (1<<(MECHANIC_CHARM   -1))|(1<<(MECHANIC_DISORIENTED-1))|(1<<(MECHANIC_FEAR  -1))| \
-    (1<<(MECHANIC_ROOT    -1))|(1<<(MECHANIC_PACIFY     -1))|(1<<(MECHANIC_SLEEP -1))| \
-    (1<<(MECHANIC_SNARE   -1))|(1<<(MECHANIC_STUN       -1))|(1<<(MECHANIC_FREEZE-1))| \
-    (1<<(MECHANIC_KNOCKOUT-1))|(1<<(MECHANIC_POLYMORPH  -1))|(1<<(MECHANIC_BANISH-1))| \
-    (1<<(MECHANIC_HORROR  -1)))
+constexpr uint32 const IMMUNE_TO_INCAPACITATE_MASK = getBitmask
+(
+    MECHANIC_CHARM,    MECHANIC_DISORIENTED, MECHANIC_FEAR,
+    MECHANIC_ROOT,     MECHANIC_PACIFY,      MECHANIC_SLEEP,
+    MECHANIC_SNARE,    MECHANIC_STUN,        MECHANIC_FREEZE,
+    MECHANIC_KNOCKOUT, MECHANIC_POLYMORPH,   MECHANIC_BANISH,
+    MECHANIC_HORROR
+);
 
-#define IMMUNE_TO_ROOT_AND_SNARE_MASK ( \
-    (1<<(MECHANIC_ROOT-1))|(1<<(MECHANIC_SNARE-1)))
+constexpr uint32 const IMMUNE_TO_ROOT_AND_SNARE_MASK = getBitmask
+(
+    MECHANIC_ROOT, MECHANIC_SNARE
+);
 
-#define IMMUNE_TO_ROOT_AND_STUN_MASK ( \
-    (1<<(MECHANIC_ROOT-1))|(1<<(MECHANIC_STUN-1)))
+constexpr uint32 const IMMUNE_TO_ROOT_AND_STUN_MASK = getBitmask
+(
+    MECHANIC_ROOT, MECHANIC_STUN
+);
 
 // Daze and all croud control spells except polymorph are not removed
-#define MECHANIC_NOT_REMOVED_BY_SHAPESHIFT ( \
-    (1<<(MECHANIC_CHARM -1))|(1<<(MECHANIC_DISORIENTED-1))|(1<<(MECHANIC_FEAR  -1))| \
-    (1<<(MECHANIC_PACIFY-1))|(1<<(MECHANIC_STUN       -1))|(1<<(MECHANIC_FREEZE-1))| \
-    (1<<(MECHANIC_BANISH-1))|(1<<(MECHANIC_SHACKLE    -1))|(1<<(MECHANIC_HORROR-1))| \
-    (1<<(MECHANIC_TURN  -1))|(1<<(MECHANIC_DAZE       -1))|(1<<(MECHANIC_SAPPED-1)))
+constexpr uint32 const MECHANIC_NOT_REMOVED_BY_SHAPESHIFT = getBitmask
+(
+    MECHANIC_CHARM,  MECHANIC_DISORIENTED, MECHANIC_FEAR,
+    MECHANIC_PACIFY, MECHANIC_STUN,        MECHANIC_FREEZE,
+    MECHANIC_BANISH, MECHANIC_SHACKLE,     MECHANIC_HORROR,
+    MECHANIC_TURN,   MECHANIC_DAZE,        MECHANIC_SAPPED
+);
 
 // Spell dispell type
 enum DispelType
@@ -438,6 +468,7 @@ enum DispelType
 };
 
 #define DISPEL_ALL_MASK ( (1<<DISPEL_MAGIC) | (1<<DISPEL_CURSE) | (1<<DISPEL_DISEASE) | (1<<DISPEL_POISON) )
+
 
 // To all Immune system,if target has immunes,
 // some spell that related to ImmuneToDispel or ImmuneToSchool or ImmuneToDamage type can't cast to it,
@@ -1180,8 +1211,8 @@ enum CreatureType
     CREATURE_TYPE_GAS_CLOUD        = 13
 };
 
-uint32 const CREATURE_TYPEMASK_HUMANOID_OR_UNDEAD = (1 << (CREATURE_TYPE_HUMANOID - 1)) | (1 << (CREATURE_TYPE_UNDEAD - 1));
-uint32 const CREATURE_TYPEMASK_MECHANICAL_OR_ELEMENTAL = (1 << (CREATURE_TYPE_MECHANICAL - 1)) | (1 << (CREATURE_TYPE_ELEMENTAL - 1));
+constexpr uint32 const CREATURE_TYPEMASK_HUMANOID_OR_UNDEAD = getBitmask(CREATURE_TYPE_HUMANOID, CREATURE_TYPE_UNDEAD);
+constexpr uint32 const CREATURE_TYPEMASK_MECHANICAL_OR_ELEMENTAL = getBitmask(CREATURE_TYPE_MECHANICAL, CREATURE_TYPE_ELEMENTAL);
 
 // CreatureFamily.dbc
 enum CreatureFamily

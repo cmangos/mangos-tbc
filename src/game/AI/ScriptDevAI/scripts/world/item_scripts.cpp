@@ -412,6 +412,44 @@ struct SummonBlackQirajiBattleTank : public SpellScript
     }
 };
 
+// 8342 - Defibrillate
+// 22999 - Defibrillate
+struct GoblinJumperCables : public SpellScript
+{
+    void OnInit(Spell* spell) const override
+    {
+        uint32 failChance = 0;
+        switch (spell->m_spellInfo->Id)
+        {
+            case 8342: failChance = 67; break;
+            case 22999: failChance = 50; break;
+        }
+        spell->SetEffectChance(failChance, EFFECT_INDEX_0);
+        spell->SetScriptValue(1);
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        spell->SetScriptValue(0);
+    }
+
+    void OnSuccessfulFinish(Spell* spell) const override
+    { 
+        if (spell->GetScriptValue() == 1)
+        {
+            uint32 failSpellId = 0;
+            switch (spell->m_spellInfo->Id)
+            {
+                case 8342: failSpellId = 8338; break;
+                case 22999: failSpellId = 23055; break;
+            }
+
+            if (failSpellId)
+                spell->GetCaster()->CastSpell(nullptr, failSpellId, TRIGGERED_OLD_TRIGGERED, spell->GetCastItem());
+        }
+    }
+};
+
 void AddSC_item_scripts()
 {
     Script* pNewScript = new Script;
@@ -449,4 +487,5 @@ void AddSC_item_scripts()
     RegisterSpellScript<GoblinBomb>("spell_goblin_bomb");
     RegisterSpellScript<DreamVision>("spell_dream_vision");
     RegisterSpellScript<SummonBlackQirajiBattleTank>("spell_summon_black_qiraji_battle_tank");
+    RegisterSpellScript<GoblinJumperCables>("spell_goblin_jumper_cables");
 }

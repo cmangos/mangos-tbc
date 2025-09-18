@@ -217,6 +217,15 @@ struct CheatingDeath : public AuraScript
     }
 };
 
+// 16511 - Hemorrhage
+struct Hemorrhage : public SpellScript
+{
+    void OnAfterHit(Spell* spell) const override
+    {
+        spell->GetCaster()->CastSpell(spell->GetUnitTarget(), 34071, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void LoadRogueScripts()
 {
     RegisterSpellScript<Preparation>("spell_preparation");
@@ -227,4 +236,5 @@ void LoadRogueScripts()
     RegisterSpellScript<DirtyDeeds>("spell_dirty_deeds");
     RegisterSpellScript<CheatDeathRogue>("spell_cheat_death_rogue");
     RegisterSpellScript<CheatingDeath>("spell_cheating_death");
+    RegisterSpellScript<Hemorrhage>("spell_hemorrhage");
 }

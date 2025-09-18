@@ -100,7 +100,7 @@ struct GuardianAggroSpell : public SpellScript
 };
 
 // 33876, 33878 - Mangle
-struct MangleDruidTBC : public AuraScript
+struct MangleDruidTBC : public SpellScript, public AuraScript
 {
     void OnAuraInit(Aura* aura) const override
     {
@@ -138,6 +138,12 @@ struct MangleDruidTBC : public AuraScript
     void OnDamageCalculate(Aura* aura, Unit* /*attacker*/, Unit* /*victim*/, int32& /*advertisedBenefit*/, float& totalMod) const override
     {
         totalMod *= (100.0f + aura->GetModifier()->m_amount) / 100.0f;
+    }
+
+    void OnAfterHit(Spell* spell) const override
+    {
+        if (spell->m_spellInfo->CanBeUsedInForm(FORM_CAT))
+            spell->GetCaster()->CastSpell(spell->GetUnitTarget(), 34071, TRIGGERED_OLD_TRIGGERED);
     }
 };
 

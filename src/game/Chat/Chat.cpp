@@ -3442,16 +3442,16 @@ struct RaceMaskName
 static RaceMaskName const raceMaskNames[] =
 {
     // races
-    { "human", getBitmask(RACE_HUMAN)   },
-    { "orc", getBitmask(RACE_ORC)     },
-    { "dwarf", getBitmask(RACE_DWARF)   },
-    { "nightelf", getBitmask(RACE_NIGHTELF)},
-    { "undead", getBitmask(RACE_UNDEAD)  },
-    { "tauren", getBitmask(RACE_TAUREN)  },
-    { "gnome", getBitmask(RACE_GNOME)   },
-    { "troll", getBitmask(RACE_TROLL)   },
-    { "bloodelf", getBitmask(RACE_BLOODELF)},
-    { "draenei", getBitmask(RACE_DRAENEI) },
+    { "human", convertEnumToFlag(RACE_HUMAN)   },
+    { "orc", convertEnumToFlag(RACE_ORC)     },
+    { "dwarf", convertEnumToFlag(RACE_DWARF)   },
+    { "nightelf", convertEnumToFlag(RACE_NIGHTELF)},
+    { "undead", convertEnumToFlag(RACE_UNDEAD)  },
+    { "tauren", convertEnumToFlag(RACE_TAUREN)  },
+    { "gnome", convertEnumToFlag(RACE_GNOME)   },
+    { "troll", convertEnumToFlag(RACE_TROLL)   },
+    { "bloodelf", convertEnumToFlag(RACE_BLOODELF)},
+    { "draenei", convertEnumToFlag(RACE_DRAENEI) },
 
     // masks
     { "alliance", RACEMASK_ALLIANCE },

@@ -22,15 +22,15 @@
 #include "Platform/Define.h"
 
 template <std::convertible_to<uint32> T>
-constexpr uint32 const getBitmask(T item)
+constexpr uint32 const convertEnumToFlag(T item)
 {
     return 1 << (item - 1);
 }
 
 template <std::convertible_to<uint32> T, typename... Targs>
-constexpr uint32 const getBitmask(T item, Targs&&... fargs)
+constexpr uint32 const convertEnumToFlag(T item, Targs&&... fargs)
 {
-    return getBitmask(item) | getBitmask(std::forward<Targs>(fargs)...);
+    return convertEnumToFlag(item) | convertEnumToFlag(std::forward<Targs>(fargs)...);
 }
 
 enum Gender
@@ -65,10 +65,11 @@ enum Races
     RACE_FOREST_TROLL       = 18,
 };
 
+
 // max+1 for player race
 #define MAX_RACES         12
 
-constexpr uint32 const RACEMASK_ALL_PLAYABLE = getBitmask
+constexpr uint32 const RACEMASK_ALL_PLAYABLE = convertEnumToFlag
 (
     RACE_HUMAN,    RACE_ORC,    RACE_DWARF,
     RACE_NIGHTELF, RACE_UNDEAD, RACE_TAUREN,
@@ -77,12 +78,12 @@ constexpr uint32 const RACEMASK_ALL_PLAYABLE = getBitmask
 );
 
 // for most cases batter use ChrRace data for team check as more safe, but when need full mask of team can be use this defines.
-constexpr uint32 const RACEMASK_ALLIANCE = getBitmask
+constexpr uint32 const RACEMASK_ALLIANCE = convertEnumToFlag
 (
     RACE_HUMAN, RACE_DWARF, RACE_NIGHTELF,
     RACE_GNOME, RACE_DRAENEI
 );
-constexpr uint32 const RACEMASK_HORDE = getBitmask
+constexpr uint32 const RACEMASK_HORDE = convertEnumToFlag
 (
     RACE_ORC,   RACE_UNDEAD, RACE_TAUREN,
     RACE_TROLL, RACE_BLOODELF
@@ -108,14 +109,14 @@ enum Classes
 // max+1 for player class
 #define MAX_CLASSES       12
 
-constexpr uint32 const CLASSMASK_ALL_PLAYABLE = getBitmask
+constexpr uint32 const CLASSMASK_ALL_PLAYABLE = convertEnumToFlag
 (
     CLASS_WARRIOR, CLASS_PALADIN, CLASS_HUNTER,
     CLASS_ROGUE,   CLASS_PRIEST,  CLASS_SHAMAN,
     CLASS_MAGE,    CLASS_WARLOCK, CLASS_DRUID
 );
 
-constexpr uint32 const CLASSMASK_ALL_CREATURES = getBitmask(CLASS_WARRIOR, CLASS_PALADIN, CLASS_MAGE);
+constexpr uint32 const CLASSMASK_ALL_CREATURES = convertEnumToFlag(CLASS_WARRIOR, CLASS_PALADIN, CLASS_MAGE);
 
 #define MAX_CREATURE_CLASS 3
 
@@ -123,9 +124,9 @@ constexpr uint32 const CLASSMASK_ALL_CREATURES = getBitmask(CLASS_WARRIOR, CLASS
 //                                                  W  P                 M
 static const uint8 classToIndex[MAX_CLASSES] = { 0, 0, 1, 0, 0, 0, 0, 0, 2, 0, 0, 0 };
 
-constexpr uint32 const CLASSMASK_WAND_USERS = getBitmask(CLASS_PRIEST, CLASS_MAGE, CLASS_WARLOCK);
+constexpr uint32 const CLASSMASK_WAND_USERS = convertEnumToFlag(CLASS_PRIEST, CLASS_MAGE, CLASS_WARLOCK);
 
-constexpr uint32 const CLASSMASK_RELIC_USERS = getBitmask(CLASS_PALADIN, CLASS_SHAMAN, CLASS_DRUID);
+constexpr uint32 const CLASSMASK_RELIC_USERS = convertEnumToFlag(CLASS_PALADIN, CLASS_SHAMAN, CLASS_DRUID);
 
 #define PLAYER_MAX_BATTLEGROUND_QUEUES 3
 
@@ -412,7 +413,7 @@ enum Mechanics
 #define MAX_MECHANIC            31
 
 // Used for spell 42292 Immune Movement Impairment and Loss of Control (0x49967da6)
-constexpr uint32 const IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK = getBitmask
+constexpr uint32 const IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK = convertEnumToFlag
 (
     MECHANIC_CHARM,    MECHANIC_DISORIENTED, MECHANIC_FEAR,
     MECHANIC_ROOT,     MECHANIC_PACIFY,      MECHANIC_SLEEP,
@@ -423,7 +424,7 @@ constexpr uint32 const IMMUNE_TO_MOVEMENT_IMPAIRMENT_AND_LOSS_CONTROL_MASK = get
 );
 
 // Used for spell 40081 Free Friend (? verify the list!!)
-constexpr uint32 const IMMUNE_TO_INCAPACITATE_MASK = getBitmask
+constexpr uint32 const IMMUNE_TO_INCAPACITATE_MASK = convertEnumToFlag
 (
     MECHANIC_CHARM,    MECHANIC_DISORIENTED, MECHANIC_FEAR,
     MECHANIC_ROOT,     MECHANIC_PACIFY,      MECHANIC_SLEEP,
@@ -432,18 +433,18 @@ constexpr uint32 const IMMUNE_TO_INCAPACITATE_MASK = getBitmask
     MECHANIC_HORROR
 );
 
-constexpr uint32 const IMMUNE_TO_ROOT_AND_SNARE_MASK = getBitmask
+constexpr uint32 const IMMUNE_TO_ROOT_AND_SNARE_MASK = convertEnumToFlag
 (
     MECHANIC_ROOT, MECHANIC_SNARE
 );
 
-constexpr uint32 const IMMUNE_TO_ROOT_AND_STUN_MASK = getBitmask
+constexpr uint32 const IMMUNE_TO_ROOT_AND_STUN_MASK = convertEnumToFlag
 (
     MECHANIC_ROOT, MECHANIC_STUN
 );
 
 // Daze and all croud control spells except polymorph are not removed
-constexpr uint32 const MECHANIC_NOT_REMOVED_BY_SHAPESHIFT = getBitmask
+constexpr uint32 const MECHANIC_NOT_REMOVED_BY_SHAPESHIFT = convertEnumToFlag
 (
     MECHANIC_CHARM,  MECHANIC_DISORIENTED, MECHANIC_FEAR,
     MECHANIC_PACIFY, MECHANIC_STUN,        MECHANIC_FREEZE,
@@ -1211,8 +1212,8 @@ enum CreatureType
     CREATURE_TYPE_GAS_CLOUD        = 13
 };
 
-constexpr uint32 const CREATURE_TYPEMASK_HUMANOID_OR_UNDEAD = getBitmask(CREATURE_TYPE_HUMANOID, CREATURE_TYPE_UNDEAD);
-constexpr uint32 const CREATURE_TYPEMASK_MECHANICAL_OR_ELEMENTAL = getBitmask(CREATURE_TYPE_MECHANICAL, CREATURE_TYPE_ELEMENTAL);
+constexpr uint32 const CREATURE_TYPEMASK_HUMANOID_OR_UNDEAD = convertEnumToFlag(CREATURE_TYPE_HUMANOID, CREATURE_TYPE_UNDEAD);
+constexpr uint32 const CREATURE_TYPEMASK_MECHANICAL_OR_ELEMENTAL = convertEnumToFlag(CREATURE_TYPE_MECHANICAL, CREATURE_TYPE_ELEMENTAL);
 
 // CreatureFamily.dbc
 enum CreatureFamily

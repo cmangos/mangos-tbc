@@ -298,13 +298,13 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharacterFacialHairStylesStore, dbcPath, "CharacterFacialHairStyles.dbc");
     for (uint32 i = 0; i < sCharacterFacialHairStylesStore.GetNumRows(); ++i)
         if (CharacterFacialHairStylesEntry const* entry = sCharacterFacialHairStylesStore.LookupEntry(i))
-            if (entry->RaceID && (getBitmask(entry->RaceID) & RACEMASK_ALL_PLAYABLE) != 0) // ignore nonplayable races
+            if (entry->RaceID && (convertEnumToFlag(entry->RaceID) & RACEMASK_ALL_PLAYABLE) != 0) // ignore nonplayable races
                 sCharFacialHairMap.insert({ entry->RaceID | (entry->SexID << 8) | (entry->VariationID << 16), entry });
 
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sCharSectionsStore, dbcPath, "CharSections.dbc");
     for (uint32 i = 0; i < sCharSectionsStore.GetNumRows(); ++i)
         if (CharSectionsEntry const* entry = sCharSectionsStore.LookupEntry(i))
-            if (entry->Race && (getBitmask(entry->Race) & RACEMASK_ALL_PLAYABLE) != 0) //ignore Nonplayable races
+            if (entry->Race && (convertEnumToFlag(entry->Race) & RACEMASK_ALL_PLAYABLE) != 0) //ignore Nonplayable races
                 sCharSectionMap.emplace(uint8(entry->BaseSection) | (uint8(entry->Gender) << 8) | (uint8(entry->Race) << 16), entry);
 
     LoadDBC(availableDbcLocales, bar, bad_dbc_files, sChrClassesStore,          dbcPath, "ChrClasses.dbc");

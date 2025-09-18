@@ -396,7 +396,7 @@ SpellCastResult GetErrorAtShapeshiftedCast(SpellEntry const* spellInfo, uint32 f
             (spellInfo->Effect[EFFECT_INDEX_0] == SPELL_EFFECT_LEARN_SPELL || spellInfo->Effect[EFFECT_INDEX_1] == SPELL_EFFECT_LEARN_SPELL || spellInfo->Effect[EFFECT_INDEX_2] == SPELL_EFFECT_LEARN_SPELL))
         return SPELL_CAST_OK;
 
-    uint32 stanceMask = (form ? getBitmask(form) : 0);
+    uint32 stanceMask = (form ? convertEnumToFlag(form) : 0);
 
     if (stanceMask & spellInfo->StancesNot)                 // can explicitly not be casted in this stance
         return SPELL_FAILED_NOT_SHAPESHIFT;
@@ -2781,27 +2781,27 @@ DiminishingGroup GetDiminishingReturnsGroupForSpell(SpellEntry const* spellproto
     if (!mechanic)
         return DIMINISHING_NONE;
 
-    if (mechanic & getBitmask(MECHANIC_STUN))
+    if (mechanic & convertEnumToFlag(MECHANIC_STUN))
         return triggered ? DIMINISHING_TRIGGER_STUN : DIMINISHING_CONTROL_STUN;
-    if (mechanic & getBitmask(MECHANIC_SLEEP))
+    if (mechanic & convertEnumToFlag(MECHANIC_SLEEP))
         return DIMINISHING_SLEEP;
-    if (mechanic & getBitmask(MECHANIC_KNOCKOUT, MECHANIC_SAPPED, MECHANIC_POLYMORPH))
+    if (mechanic & convertEnumToFlag(MECHANIC_KNOCKOUT, MECHANIC_SAPPED, MECHANIC_POLYMORPH))
         return DIMINISHING_KNOCKOUT_POLYMORPH_SAPPED;
-    if (mechanic & getBitmask(MECHANIC_ROOT))
+    if (mechanic & convertEnumToFlag(MECHANIC_ROOT))
         return triggered ? DIMINISHING_TRIGGER_ROOT : DIMINISHING_CONTROL_ROOT;
-    if (mechanic & getBitmask(MECHANIC_FEAR))
+    if (mechanic & convertEnumToFlag(MECHANIC_FEAR))
         return DIMINISHING_FEAR;
-    if (mechanic & getBitmask(MECHANIC_CHARM))
+    if (mechanic & convertEnumToFlag(MECHANIC_CHARM))
         return DIMINISHING_CHARM;
-    //if (mechanic & getBitmask(MECHANIC_SILENCE))
+    //if (mechanic & convertEnumToFlag(MECHANIC_SILENCE))
     //    return DIMINISHING_SILENCE;
-    if (mechanic & getBitmask(MECHANIC_DISARM))
+    if (mechanic & convertEnumToFlag(MECHANIC_DISARM))
         return DIMINISHING_DISARM;
-    if (mechanic & getBitmask(MECHANIC_FREEZE))
+    if (mechanic & convertEnumToFlag(MECHANIC_FREEZE))
         return DIMINISHING_FREEZE;
-    if (mechanic & getBitmask(MECHANIC_BANISH))
+    if (mechanic & convertEnumToFlag(MECHANIC_BANISH))
         return DIMINISHING_BANISH;
-    if (mechanic & getBitmask(MECHANIC_HORROR))
+    if (mechanic & convertEnumToFlag(MECHANIC_HORROR))
         return DIMINISHING_DEATHCOIL;
 
     return DIMINISHING_NONE;

@@ -3171,7 +3171,7 @@ void Aura::HandleAuraModShapeshift(bool apply, bool Real)
                 if ((aurMechMask & MECHANIC_NOT_REMOVED_BY_SHAPESHIFT) ||
                         // some Daze spells have these parameters instead of MECHANIC_DAZE (skip snare spells)
                         (aurSpellInfo->SpellIconID == 15 && aurSpellInfo->Dispel == 0 &&
-                         (aurMechMask & getBitmask(MECHANIC_SNARE)) == 0))
+                         (aurMechMask & convertEnumToFlag(MECHANIC_SNARE)) == 0))
                 {
                     ++iter;
                     continue;
@@ -4255,7 +4255,7 @@ void Aura::HandleDetectAmore(bool apply, bool /*real*/)
     if (!GetTarget()->IsPlayer())
         return;
 
-    GetTarget()->ApplyModByteFlag(PLAYER_FIELD_BYTES2, 1, getBitmask(GetMiscValue()), apply);
+    GetTarget()->ApplyModByteFlag(PLAYER_FIELD_BYTES2, 1, convertEnumToFlag(GetMiscValue()), apply);
 }
 
 void Aura::HandleAuraModRoot(bool apply, bool Real)
@@ -4524,7 +4524,7 @@ void Aura::HandleModMechanicImmunity(bool apply, bool /*Real*/)
 
     if (apply && GetSpellProto()->HasAttribute(SPELL_ATTR_EX_IMMUNITY_PURGES_EFFECT))
     {
-        uint32 mechanic = getBitmask(misc);
+        uint32 mechanic = convertEnumToFlag(misc);
 
         // immune movement impairment and loss of control (spell data have special structure for mark this case)
         if (IsSpellRemoveAllMovementAndControlLossEffects(GetSpellProto()))
@@ -6326,7 +6326,7 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             if (((Player*)target)->HasSpell(17007))
             {
                 SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(24932);
-                if (spellInfo && spellInfo->Stances & getBitmask(form))
+                if (spellInfo && spellInfo->Stances & convertEnumToFlag(form))
                     target->CastSpell(nullptr, 24932, TRIGGERED_OLD_TRIGGERED, nullptr, this);
             }
 
@@ -8395,11 +8395,11 @@ bool SpellAuraHolder::HasMechanic(uint32 mechanic) const
 
 bool SpellAuraHolder::HasMechanicMask(uint32 mechanicMask) const
 {
-    if (mechanicMask & getBitmask(m_spellProto->Mechanic))
+    if (mechanicMask & convertEnumToFlag(m_spellProto->Mechanic))
         return true;
 
     for (int32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-        if (m_auras[i] && m_spellProto->EffectMechanic[i] && (getBitmask(m_spellProto->EffectMechanic[i]) & mechanicMask))
+        if (m_auras[i] && m_spellProto->EffectMechanic[i] && (convertEnumToFlag(m_spellProto->EffectMechanic[i]) & mechanicMask))
             return true;
     return false;
 }

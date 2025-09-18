@@ -1694,7 +1694,7 @@ inline bool IsNeedCastSpellAtFormApply(SpellEntry const* spellInfo, ShapeshiftFo
         return false;
 
     // passive spells with SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT are already active without shapeshift, do no recast!
-    return (spellInfo->Stances & getBitmask(form) && !spellInfo->HasAttribute(SPELL_ATTR_EX2_ALLOW_WHILE_NOT_SHAPESHIFTED));
+    return (spellInfo->Stances & convertEnumToFlag(form) && !spellInfo->HasAttribute(SPELL_ATTR_EX2_ALLOW_WHILE_NOT_SHAPESHIFTED));
 }
 
 inline bool IsNeedCastSpellAtOutdoor(SpellEntry const* spellInfo)
@@ -1786,7 +1786,7 @@ inline uint32 GetSpellMechanicMask(SpellEntry const* spellInfo, uint32 effectMas
 {
     uint32 mask = 0;
     if (spellInfo->Mechanic)
-        mask |= getBitmask(spellInfo->Mechanic);
+        mask |= convertEnumToFlag(spellInfo->Mechanic);
 
     for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
@@ -1794,7 +1794,7 @@ inline uint32 GetSpellMechanicMask(SpellEntry const* spellInfo, uint32 effectMas
             continue;
 
         if (spellInfo->EffectMechanic[i])
-            mask |= getBitmask(spellInfo->EffectMechanic[i]);
+            mask |= convertEnumToFlag(spellInfo->EffectMechanic[i]);
     }
 
     return mask;
@@ -1804,10 +1804,10 @@ inline uint32 GetAllSpellMechanicMask(SpellEntry const* spellInfo)
 {
     uint32 mask = 0;
     if (spellInfo->Mechanic)
-        mask |= getBitmask(spellInfo->Mechanic);
+        mask |= convertEnumToFlag(spellInfo->Mechanic);
     for (unsigned int i : spellInfo->EffectMechanic)
         if (i)
-            mask |= getBitmask(i);
+            mask |= convertEnumToFlag(i);
     return mask;
 }
 

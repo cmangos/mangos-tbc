@@ -2779,58 +2779,6 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         }
         case SPELLFAMILY_SHAMAN:
         {
-            // Rockbiter Weapon
-            if (m_spellInfo->SpellFamilyFlags & uint64(0x400000))
-            {
-                uint32 spell_id = 0;
-                switch (m_spellInfo->Id)
-                {
-                    case  8017: spell_id = 36494; break;    // Rank 1
-                    case  8018: spell_id = 36750; break;    // Rank 2
-                    case  8019: spell_id = 36755; break;    // Rank 3
-                    case 10399: spell_id = 36759; break;    // Rank 4
-                    case 16314: spell_id = 36763; break;    // Rank 5
-                    case 16315: spell_id = 36766; break;    // Rank 6
-                    case 16316: spell_id = 36771; break;    // Rank 7
-                    case 25479: spell_id = 36775; break;    // Rank 8
-                    case 25485: spell_id = 36499; break;    // Rank 9
-                    default:
-                        sLog.outError("Spell::EffectDummy: Spell %u not handled in RW", m_spellInfo->Id);
-                        return;
-                }
-
-                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spell_id);
-
-                if (!spellInfo)
-                {
-                    sLog.outError("WORLD: unknown spell id %i", spell_id);
-                    return;
-                }
-
-                if (m_caster->GetTypeId() != TYPEID_PLAYER)
-                    return;
-
-                for (int j = BASE_ATTACK; j <= OFF_ATTACK; ++j)
-                {
-                    if (Item* item = ((Player*)m_caster)->GetWeaponForAttack(WeaponAttackType(j)))
-                    {
-                        if (item->IsFitToSpellRequirements(m_spellInfo))
-                        {
-                            Spell* spell = new Spell(m_caster, spellInfo, TRIGGERED_OLD_TRIGGERED);
-
-                            // enchanting spell selected by calculated damage-per-sec in enchanting effect
-                            // at calculation applied affect from Elemental Weapons talent
-                            // real enchantment damage
-                            spell->m_currentBasePoints[1] = damage;
-
-                            SpellCastTargets targets;
-                            targets.setItemTarget(item);
-                            spell->SpellStart(&targets);
-                        }
-                    }
-                }
-                return;
-            }
             if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000200000)) // Flametongue Weapon Proc, Ranks
             {
                 if (m_CastItem)
@@ -5045,60 +4993,6 @@ void Spell::EffectEnchantItemTmp(SpellEffectIndex eff_idx)
     Player* p_caster = (Player*)m_caster;
 
     uint32 enchant_id = m_spellInfo->EffectMiscValue[eff_idx];
-
-    // Shaman Rockbiter Weapon
-    if (eff_idx == EFFECT_INDEX_0 && m_spellInfo->Effect[EFFECT_INDEX_1] == SPELL_EFFECT_DUMMY)
-    {
-        int32 enchanting_damage = m_currentBasePoints[EFFECT_INDEX_1];
-
-        // enchanting id selected by calculated damage-per-sec stored in Effect[1] base value
-        // with already applied percent bonus from Elemental Weapons talent
-        // Note: damage calculated (correctly) with rounding int32(float(v)) but
-        // RW enchantments applied damage int32(float(v)+0.5), this create  0..1 difference sometime
-        switch (enchanting_damage)
-        {
-            // Rank 1
-            case  2: enchant_id =   29; break;              //  0% [ 7% ==  2, 14% == 2, 20% == 2]
-            // Rank 2
-            case  4: enchant_id =    6; break;              //  0% [ 7% ==  4, 14% == 4]
-            case  5: enchant_id = 3025; break;              // 20%
-            // Rank 3
-            case  6: enchant_id =    1; break;              //  0% [ 7% ==  6, 14% == 6]
-            case  7: enchant_id = 3027; break;              // 20%
-            // Rank 4
-            case  9: enchant_id = 3032; break;              //  0% [ 7% ==  6]
-            case 10: enchant_id =  503; break;              // 14%
-            case 11: enchant_id = 3031; break;              // 20%
-            // Rank 5
-            case 15: enchant_id = 3035; break;              // 0%
-            case 16: enchant_id = 1663; break;              // 7%
-            case 17: enchant_id = 3033; break;              // 14%
-            case 18: enchant_id = 3034; break;              // 20%
-            // Rank 6
-            case 28: enchant_id = 3038; break;              // 0%
-            case 29: enchant_id =  683; break;              // 7%
-            case 31: enchant_id = 3036; break;              // 14%
-            case 33: enchant_id = 3037; break;              // 20%
-            // Rank 7
-            case 40: enchant_id = 3041; break;              // 0%
-            case 42: enchant_id = 1664; break;              // 7%
-            case 45: enchant_id = 3039; break;              // 14%
-            case 48: enchant_id = 3040; break;              // 20%
-            // Rank 8
-            case 49: enchant_id = 3044; break;              // 0%
-            case 52: enchant_id = 2632; break;              // 7%
-            case 55: enchant_id = 3042; break;              // 14%
-            case 58: enchant_id = 3043; break;              // 20%
-            // Rank 9
-            case 62: enchant_id = 2633; break;              // 0%
-            case 66: enchant_id = 3018; break;              // 7%
-            case 70: enchant_id = 3019; break;              // 14%
-            case 74: enchant_id = 3020; break;              // 20%
-            default:
-                sLog.outError("Spell::EffectEnchantItemTmp: Damage %u not handled in S'RW", enchanting_damage);
-                return;
-        }
-    }
 
     if (!enchant_id)
     {

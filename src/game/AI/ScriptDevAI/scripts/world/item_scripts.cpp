@@ -450,6 +450,112 @@ struct GoblinJumperCables : public SpellScript
     }
 };
 
+// 23441 - Gadgetzan Transporter
+struct GadgetzanTransporter : public SpellScript
+{
+    void OnSuccessfulFinish(Spell* spell) const override
+    {
+        // Wrong destination already rolled for, only handle minor malfunction on sucess
+        spell->GetCaster()->CastSpell(nullptr, 23450, TRIGGERED_OLD_TRIGGERED); // Transporter Arrival
+    }
+};
+
+// 23442 - Everlook Transporter
+struct EverlookTransporter : public SpellScript
+{
+    void OnSuccessfulFinish(Spell* spell) const override
+    {
+        // Roll for major malfunction (1/6); 23450 = success | 23449 = malfunction (being set afire)
+        spell->GetCaster()->CastSpell(nullptr, (urand(0, 5) ? 23450 : 23449), TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+// 36941 - Toshley's Station Transporter
+struct ToshleysStationTransporter : public SpellScript
+{
+    void OnSuccessfulFinish(Spell* spell) const override
+    {
+        Unit* caster = spell->GetCaster();
+        if (roll_chance_i(50)) // 50% success
+        {
+            int32 rand_eff = urand(1, 7);
+            switch (rand_eff)
+            {
+                case 1:
+                    // soul split - evil
+                    caster->CastSpell(nullptr, 36900, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 2:
+                    // soul split - good
+                    caster->CastSpell(nullptr, 36901, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 3:
+                    // Increase the size
+                    caster->CastSpell(nullptr, 36895, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 4:
+                    // Decrease the size
+                    caster->CastSpell(nullptr, 36893, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 5:
+                    // Transform
+                    {
+                        if (caster->IsPlayer() && static_cast<Player*>(caster)->GetTeam() == ALLIANCE)
+                            caster->CastSpell(nullptr, 36897, TRIGGERED_OLD_TRIGGERED);
+                        else
+                            caster->CastSpell(nullptr, 36899, TRIGGERED_OLD_TRIGGERED);
+                        break;
+                    }
+                case 6:
+                    // chicken
+                    caster->CastSpell(nullptr, 36940, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 7:
+                    // evil twin
+                    caster->CastSpell(nullptr, 23445, TRIGGERED_OLD_TRIGGERED);
+                    break;
+            }
+        }
+    }
+};
+
+// 36890 - Area52 Transporter
+struct Area52Transporter : public SpellScript
+{
+    void OnSuccessfulFinish(Spell* spell) const override
+    {
+        Unit* caster = spell->GetCaster();
+        if (roll_chance_i(50)) // 50% success
+        {
+            int32 rand_eff = urand(1, 4);
+            switch (rand_eff)
+            {
+                case 1:
+                    // soul split - evil
+                    caster->CastSpell(nullptr, 36900, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 2:
+                    // soul split - good
+                    caster->CastSpell(nullptr, 36901, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 3:
+                    // Increase the size
+                    caster->CastSpell(nullptr, 36895, TRIGGERED_OLD_TRIGGERED);
+                    break;
+                case 4:
+                    // Transform
+                    {
+                        if (caster->IsPlayer() && static_cast<Player*>(caster)->GetTeam() == ALLIANCE)
+                            caster->CastSpell(nullptr, 36897, TRIGGERED_OLD_TRIGGERED);
+                        else
+                            caster->CastSpell(nullptr, 36899, TRIGGERED_OLD_TRIGGERED);
+                        break;
+                    }
+            }
+        }
+    }
+};
+
 void AddSC_item_scripts()
 {
     Script* pNewScript = new Script;
@@ -488,4 +594,8 @@ void AddSC_item_scripts()
     RegisterSpellScript<DreamVision>("spell_dream_vision");
     RegisterSpellScript<SummonBlackQirajiBattleTank>("spell_summon_black_qiraji_battle_tank");
     RegisterSpellScript<GoblinJumperCables>("spell_goblin_jumper_cables");
+    RegisterSpellScript<GadgetzanTransporter>("spell_gadgetzan_transporter");
+    RegisterSpellScript<EverlookTransporter>("spell_everlook_transporter");
+    RegisterSpellScript<ToshleysStationTransporter>("spell_toshleys_station_transporter");
+    RegisterSpellScript<Area52Transporter>("spell_area52_transporter");
 }

@@ -142,7 +142,7 @@ struct MangleDruidTBC : public SpellScript, public AuraScript
 
     void OnAfterHit(Spell* spell) const override
     {
-        if (spell->m_spellInfo->Stances & (1 << (FORM_CAT - 1)))
+        if (spell->m_spellInfo->CanBeUsedInForm(FORM_CAT))
             spell->GetCaster()->CastSpell(spell->GetUnitTarget(), 34071, TRIGGERED_OLD_TRIGGERED);
     }
 };

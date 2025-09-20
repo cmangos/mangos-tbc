@@ -152,6 +152,8 @@ struct RandomAggroSnakeTrap : public SpellScript
     }
 };
 
+// TODO: some evidence tbc pet growl scales with hunter AP
+
 void LoadHunterScripts()
 {
     RegisterSpellScript<HuntersMark>("spell_hunters_mark");

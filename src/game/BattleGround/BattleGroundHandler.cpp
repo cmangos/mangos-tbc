@@ -476,7 +476,10 @@ void WorldSession::HandleBattlefieldPortOpcode(WorldPacket& recv_data)
             case 1:                                         // port to battleground
             {
                 BattleGroundInQueueInfo* bgInQueue = queue->GetFreeSlotInstance(bgTypeId, queueInfo.isInvitedToBgInstanceGuid);
-                MANGOS_ASSERT(bgInQueue); // at this point must always exist
+                if (!bgInQueue)
+                {
+                   return;
+                }
 
                 // remove battleground queue status from BGmgr
                 queueItem.RemovePlayer(*queue, playerGuid, false);

@@ -1123,18 +1123,30 @@ bool PathFinder::HaveTile(const Vector3& p) const
     if (m_sourceUnit && m_sourceUnit->GetTransport())
         return true;
 
+    if (!m_navMesh)
+    {
+        sLog.outError("PathFinder: navMesh is null for map %u", m_defaultMapId);
+        return false;
+    }
+
     int tx = -1, ty = -1;
     float point[VERTEX_SIZE] = {p.y, p.z, p.x};
 
     m_navMesh->calcTileLoc(point, &tx, &ty);
 
-    /// Workaround
-    /// For some reason, often the tx and ty variables wont get a valid value
-    /// Use this check to prevent getting negative tile coords and crashing on getTileAt
-    if (tx == -1 || ty == -1)
+    if (tx < 0 || ty < 0)
+    {
+        sLog.outError("PathFinder: invalid tile coords (%d,%d) for map %u (point: x=%.3f y=%.3f z=%.3f)", tx, ty, m_defaultMapId, p.x, p.y, p.z);
         return false;
+    }
 
-    return (m_navMesh->getTileAt(tx, ty, 0) != nullptr); // Don't use layer so always set to 0
+    if (!m_navMesh->getTileAt(tx, ty, 0))
+    {
+        sLog.outError("PathFinder: missing tile at (%d,%d) for map %u (point: x=%.3f y=%.3f z=%.3f)", tx, ty, m_defaultMapId, p.x, p.y, p.z);
+        return false;
+    }
+
+    return true;
 }
 
 uint32 PathFinder::fixupCorridor(dtPolyRef* path, uint32 npath, uint32 maxPath, dtPolyRef const* visited, uint32 nvisited)

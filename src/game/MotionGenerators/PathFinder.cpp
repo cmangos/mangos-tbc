@@ -1125,7 +1125,6 @@ bool PathFinder::HaveTile(const Vector3& p) const
 
     if (!m_navMesh)
     {
-        sLog.outError("PathFinder: navMesh is null for map %u", m_defaultMapId);
         return false;
     }
 
@@ -1136,13 +1135,11 @@ bool PathFinder::HaveTile(const Vector3& p) const
 
     if (tx < 0 || ty < 0)
     {
-        sLog.outError("PathFinder: invalid tile coords (%d,%d) for map %u (point: x=%.3f y=%.3f z=%.3f)", tx, ty, m_defaultMapId, p.x, p.y, p.z);
         return false;
     }
 
     if (!m_navMesh->getTileAt(tx, ty, 0))
     {
-        sLog.outError("PathFinder: missing tile at (%d,%d) for map %u (point: x=%.3f y=%.3f z=%.3f)", tx, ty, m_defaultMapId, p.x, p.y, p.z);
         return false;
     }
 

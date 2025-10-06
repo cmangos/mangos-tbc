@@ -217,12 +217,18 @@ struct CheatingDeath : public AuraScript
     }
 };
 
-// 16511 - Hemorrhage
+// 16511 - Hemorrhage 
 struct Hemorrhage : public SpellScript
 {
     void OnAfterHit(Spell* spell) const override
     {
-        spell->GetCaster()->CastSpell(spell->GetUnitTarget(), 34071, TRIGGERED_OLD_TRIGGERED);
+        Unit* caster = spell->GetCaster();
+        Unit* target = spell->GetUnitTarget();
+
+        if (!caster || !target)
+            return;
+
+        caster->CastSpell(target, 34071, TRIGGERED_OLD_TRIGGERED); // Hemorrhage debuff
     }
 };
 

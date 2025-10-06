@@ -89,9 +89,12 @@ class FreezeDetectorRunnable : public MaNGOS::Runnable
                 // possible freeze
                 else if (WorldTimer::getMSTimeDiff(w_lastchange, curtime) > _delaytime)
                 {
-                    sLog.outError("World Thread hangs, kicking out server!");
-                    *((uint32 volatile*)nullptr) = 0;          // bang crash
+                    sLog.outError("World Thread hangs detected (debug mode) - crash disabled.");
+
+                    std::this_thread::sleep_for(std::chrono::seconds(5));
+                    continue;
                 }
+
             }
             sLog.outString("Anti-freeze thread exiting without problems.");
         }

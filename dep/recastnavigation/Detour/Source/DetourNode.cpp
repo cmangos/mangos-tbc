@@ -120,37 +120,42 @@ dtNode* dtNodePool::findNode(dtPolyRef id, unsigned char state)
 
 dtNode* dtNodePool::getNode(dtPolyRef id, unsigned char state)
 {
-	unsigned int bucket = dtHashRef(id) & (m_hashSize-1);
-	dtNodeIndex i = m_first[bucket];
-	dtNode* node = 0;
-	while (i != DT_NULL_IDX)
-	{
-		if (m_nodes[i].id == id && m_nodes[i].state == state)
-			return &m_nodes[i];
-		i = m_next[i];
-	}
-	
-	if (m_nodeCount >= m_maxNodes)
-		return 0;
-	
-	i = (dtNodeIndex)m_nodeCount;
-	m_nodeCount++;
-	
-	// Init node
-	node = &m_nodes[i];
-	node->pidx = 0;
-	node->cost = 0;
-	node->total = 0;
-	node->id = id;
-	node->state = state;
-	node->flags = 0;
-	
-	m_next[i] = m_first[bucket];
-	m_first[bucket] = i;
-	
-	return node;
-}
+    unsigned int bucket = dtHashRef(id) & (m_hashSize - 1);
 
+    if (bucket >= m_hashSize)
+    {
+        return nullptr;
+    }
+
+    dtNodeIndex i = m_first[bucket];
+    dtNode* node = 0;
+    while (i != DT_NULL_IDX)
+    {
+        if (m_nodes[i].id == id && m_nodes[i].state == state)
+            return &m_nodes[i];
+        i = m_next[i];
+    }
+
+    if (m_nodeCount >= m_maxNodes)
+        return 0;
+
+    i = (dtNodeIndex)m_nodeCount;
+    m_nodeCount++;
+
+    // Init node
+    node = &m_nodes[i];
+    node->pidx = 0;
+    node->cost = 0;
+    node->total = 0;
+    node->id = id;
+    node->state = state;
+    node->flags = 0;
+
+    m_next[i] = m_first[bucket];
+    m_first[bucket] = i;
+
+    return node;
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 dtNodeQueue::dtNodeQueue(int n) :

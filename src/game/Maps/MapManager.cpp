@@ -310,21 +310,11 @@ Map* MapManager::CreateInstance(uint32 id, Player* player)
 
     if (entry->IsBattleGroundOrArena())
     {
+        // find existing bg map for player
         NewInstanceId = player->GetBattleGroundId();
-
-        if (!NewInstanceId)
-        {
-            sLog.outError("CreateInstance: Player has no battleground ID for map %u", id);
-            return nullptr;
-        }
-
+        MANGOS_ASSERT(NewInstanceId);
         map = FindMap(id, NewInstanceId);
-
-        if (!map)
-        {
-            sLog.outError("CreateInstance: Could not find battleground map %u with instance ID %u", id, NewInstanceId);
-            return nullptr;
-        }
+        MANGOS_ASSERT(map);
     }
     else if (DungeonPersistentState* pSave = player->GetBoundInstanceSaveForSelfOrGroup(id))
     {

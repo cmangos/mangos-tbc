@@ -9500,32 +9500,26 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
         trainerSpell.isProvidedReqLevel = trainerSpell.reqLevel > 0;
 
         // By default, lets assume the specified spell is the one we want to teach the player...
-        trainerSpell.learnedSpell = spell;
+        trainerSpell.learnedSpell.push_back(spell);
         // ...but first, lets inspect this spell...
         for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if (spellinfo->Effect[i] == SPELL_EFFECT_LEARN_SPELL && spellinfo->EffectTriggerSpell[i])
-            {
-                switch (spellinfo->EffectImplicitTargetA[i])
-                {
-                    case TARGET_NONE:
-                    case TARGET_UNIT_CASTER:
-                        // ...looks like the specified spell is actually a trainer's spell casted on a player to teach another spell
-                        // Trainer's spells can teach more than one spell (up to number of effects), but we will stick to the first one
-                        // Self-casts listed in trainer's lists usually come from recipes which were made trainable in a later patch
-                        trainerSpell.learnedSpell = spellinfo->EffectTriggerSpell[i];
-                        break;
-                }
-            }
+                trainerSpell.learnedSpell.push_back(spellinfo->EffectTriggerSpell[i]);
         }
 
-        if (trainerSpell.reqLevel)
+        for (auto& learnedSpell : trainerSpell.learnedSpell)
         {
-            if (trainerSpell.reqLevel == spellinfo->spellLevel)
-                ERROR_DB_STRICT_LOG("Table `%s` (Entry: %u) has redundant reqlevel %u (=spell level) for spell %u", tableName, entry, trainerSpell.reqLevel, spell);
+            // already checked as valid spell so exist.
+            SpellEntry const* learnSpellinfo = sSpellTemplate.LookupEntry<SpellEntry>(learnedSpell);
+            if (trainerSpell.reqLevel)
+            {
+                if (trainerSpell.reqLevel == learnSpellinfo->spellLevel)
+                    ERROR_DB_STRICT_LOG("Table `%s` (Entry: %u) has redundant reqlevel %u (=spell level) for spell %u", tableName, entry, trainerSpell.reqLevel, spell);
+            }
+            else
+                trainerSpell.reqLevel = learnSpellinfo->spellLevel;
         }
-        else
-            trainerSpell.reqLevel = spellinfo->spellLevel;
 
         if (trainerSpell.conditionId)
         {

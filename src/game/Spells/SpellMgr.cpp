@@ -123,6 +123,8 @@ uint32 GetSpellCastTime(SpellEntry const* spellInfo, WorldObject* caster, Spell*
                     }
                 }
                 break;
+            case 6249:
+                return 50000;
             case 46546: // Ritual of Summoning
                 return 0;
             default:

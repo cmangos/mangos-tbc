@@ -532,7 +532,6 @@ void LoadWarlockScripts()
     RegisterSpellScript<SeedOfCorruption>("spell_seed_of_corruption");
     RegisterSpellScript<Corruption>("spell_corruption");
     RegisterSpellScript<SiphonLife>("spell_siphon_life");
-    RegisterSpellScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<SoulLeech>("spell_soul_leech");
     RegisterSpellScript<EyeOfKilrogg>("spell_eye_of_kilrogg");
     RegisterSpellScript<DevourMagic>("spell_devour_magic");

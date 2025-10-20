@@ -364,7 +364,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
 #else
                     m_shartuulShieldPercent -= 125;
 #endif
-                    sWorldState.ExecuteOnAreaPlayers(AREAID_SHARTUUL_TRANSPORTER, [=](Player* player)->void
+                    sWorldState.ExecuteOnAreaPlayers(AREAID_SHARTUUL_TRANSPORTER, [this](Player* player)->void
                     {
                         player->SendUpdateWorldState(WORLD_STATE_SHARTUUL_SHIELD_REMAINING, m_shartuulShieldPercent / 10);
                     });
@@ -1075,7 +1075,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                         if (Creature* pillarTarget = instance->GetCreature(target))
                             pillarSource->CastSpell(pillarTarget, SPELL_COSMETIC_LEGION_RING_GREEN_MATTER, TRIGGERED_NONE);
                 }
-                sWorldState.ExecuteOnAreaPlayers(AREAID_SHARTUUL_TRANSPORTER, [=](Player* player)->void
+                sWorldState.ExecuteOnAreaPlayers(AREAID_SHARTUUL_TRANSPORTER, [this](Player* player)->void
                 {
                     player->SendUpdateWorldState(WORLD_STATE_SHARTUUL_SHIELD_REMAINING, m_shartuulShieldPercent / 10);
                     player->SendUpdateWorldState(WORLD_STATE_SHARTUUL_EVENT_ACTIVE, m_shartuulEventActive);
@@ -1371,7 +1371,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
         m_shartuulShieldPercent = 1000;
         m_shartuulEventActive = 0;
 
-        sWorldState.ExecuteOnAreaPlayers(AREAID_SHARTUUL_TRANSPORTER, [=](Player* player)->void
+        sWorldState.ExecuteOnAreaPlayers(AREAID_SHARTUUL_TRANSPORTER, [this](Player* player)->void
         {
             player->SendUpdateWorldState(WORLD_STATE_SHARTUUL_SHIELD_REMAINING, m_shartuulShieldPercent / 10);
             player->SendUpdateWorldState(WORLD_STATE_SHARTUUL_EVENT_ACTIVE, m_shartuulEventActive);

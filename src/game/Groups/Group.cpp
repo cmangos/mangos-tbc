@@ -639,8 +639,8 @@ void Group::SendUpdateTo(Player* player)
 
         // guess size
         WorldPacket data(SMSG_GROUP_LIST, (1 + 1 + 1 + 1 + 8 + 4 + GetMembersCount() * 20));
-        data << uint8(m_groupFlags);                         // group type
-        data << uint8(IsBattleGroup() ? 1 : 0);             // 2.0.x, isBattleGroundGroup?
+        data << uint8(IsRaidGroup() ? 1 : 0);               // is raid
+        data << uint8(IsBattleGroup() ? 1 : 0);             // is battle group
         data << uint8(citr->group);                         // groupid
         data << uint8(GetFlags(*citr));                     // group flags
         data << GetObjectGuid();                            // group guid

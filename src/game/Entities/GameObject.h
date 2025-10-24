@@ -43,7 +43,8 @@ struct GameObjectInfo
     uint32  displayId;
     char*   name;
     char*   IconName;
-    char*   castBarCaption;
+    char*   OpeningText;
+    char*   ClosingText;
     uint32  faction;
     uint32  flags;
     uint32  ExtraFlags;
@@ -577,7 +578,8 @@ struct GameObjectInfo
 struct GameObjectLocale
 {
     std::vector<std::string> Name;
-    std::vector<std::string> CastBarCaption;
+    std::vector<std::string> OpeningText;
+    std::vector<std::string> ClosingText;
 };
 
 // client side GO show states

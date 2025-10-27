@@ -154,6 +154,29 @@ struct RandomAggroSnakeTrap : public SpellScript
 
 // TODO: some evidence tbc pet growl scales with hunter AP
 
+// 19678 - Tame Adult Plainstrider
+struct TamingPetRodAura : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        Unit* caster = aura->GetCaster();
+        Unit* target = aura->GetTarget();
+
+        if (!target || !target->IsCreature())
+            return;
+
+        Player* player = static_cast<Player*>(caster);
+        Creature* creature = static_cast<Creature*>(target);
+
+        if (apply)    
+            if (caster && caster->IsPlayer())
+                creature->GetMotionMaster()->MoveFollow(player, PET_FOLLOW_DIST, PET_FOLLOW_ANGLE);    
+        else        
+            if (aura->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
+                creature->ForcedDespawn();        
+    }
+};
+
 void LoadHunterScripts()
 {
     RegisterSpellScript<HuntersMark>("spell_hunters_mark");
@@ -161,4 +184,5 @@ void LoadHunterScripts()
     RegisterSpellScript<Misdirection>("spell_misdirection");
     RegisterSpellScript<ExposeWeakness>("spell_expose_weakness");
     RegisterSpellScript<RandomAggroSnakeTrap>("spell_random_aggro_snake_trap");
+    RegisterSpellScript<TamingPetRodAura>("spell_taming_pet_rod");
 }

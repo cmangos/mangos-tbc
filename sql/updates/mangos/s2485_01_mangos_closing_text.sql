@@ -1,7 +1,7 @@
 ALTER TABLE db_version CHANGE COLUMN required_s2484_01_mangos_proc_cooldown required_s2485_01_mangos_closing_text bit;
 
-ALTER TABLE `gameobject_template` CHANGE `castBarCaption` `OpeningText` varchar(100) NOT NULL;
-ALTER TABLE `gameobject_template` ADD COLUMN `ClosingText` varchar(100) NOT NULL AFTER `OpeningText`;
+ALTER TABLE `gameobject_template` CHANGE `castBarCaption` `OpeningText` varchar(100) NOT NULL DEFAULT '';
+ALTER TABLE `gameobject_template` ADD COLUMN `ClosingText` varchar(100) NOT NULL DEFAULT '' AFTER `OpeningText`;
 
 ALTER TABLE `locales_gameobject` CHANGE `name_loc1` `name_loc1` varchar(100);
 ALTER TABLE `locales_gameobject` CHANGE `name_loc2` `name_loc2` varchar(100);

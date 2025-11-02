@@ -211,7 +211,7 @@ ArenaTeam* ObjectMgr::GetArenaTeamByName(const std::string& arenateamname) const
         std::string const& teamName = itr.second->GetName();
         if (std::equal(teamName.begin(), teamName.end(), arenateamname.begin(), arenateamname.end(), ichar_equals))
             return itr.second;
-    }            
+    }
 
     return nullptr;
 }
@@ -1623,7 +1623,7 @@ void ObjectMgr::LoadSpawnGroups()
                 maxRandom += randomEntry.MaxCount;
                 if (randomEntry.Chance == 0)
                     maxCount = true;
-            }                
+            }
             if (maxCount)
                 entry.MaxCount = entry.DbGuids.size();
             else
@@ -4562,7 +4562,7 @@ void ObjectMgr::LoadGroups()
                  "(SELECT COUNT(*) FROM character_instance WHERE guid = group_instance.leaderGuid AND instance = group_instance.instance AND permanent = 1 LIMIT 1), "
                  // 7
                  "`groups`.groupId, instance.encountersMask "
-                 "FROM group_instance LEFT JOIN instance ON instance = id LEFT JOIN `groups` ON `groups`.leaderGUID = group_instance.leaderGUID ORDER BY leaderGuid"
+                 "FROM group_instance LEFT JOIN instance ON instance = id LEFT JOIN `groups` ON `groups`.leaderGUID = group_instance.leaderGUID ORDER BY group_instance.leaderGuid"
              );
 
     if (!queryResult)
@@ -10382,7 +10382,7 @@ void ObjectMgr::LoadCreatureTemplateSpells(std::shared_ptr<CreatureSpellListCont
                 spell.ScriptId = 0;
                 spell.DisabledForAI = !spellInfo || spellInfo->HasAttribute(SPELL_ATTR_EX_NO_AUTOCAST_AI);
                 spells.emplace(i, spell);
-            }            
+            }
         } while (result->NextRow());
     }
 

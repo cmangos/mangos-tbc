@@ -360,8 +360,8 @@ void WaypointManager::Load()
             node.x              = fields[3].GetFloat();
             node.y              = fields[4].GetFloat();
             node.z              = fields[5].GetFloat();
-            float ori = fields[5].GetFloat();
-            node.orientation = ori == 100.f ? std::nullopt : std::make_optional(ori);
+            float ori           = fields[6].GetFloat();
+            node.orientation    = ori == 100.f ? std::nullopt : std::make_optional(ori);
             node.delay          = fields[7].GetUInt32();
             node.script_id      = fields[8].GetUInt32();
 

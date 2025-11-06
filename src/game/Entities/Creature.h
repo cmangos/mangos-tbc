@@ -44,7 +44,7 @@ class CreatureGroup;
 struct GameEventCreatureData;
 enum class VisibilityDistanceType : uint32;
 
-enum CreatureExtraFlags
+enum CreatureFlagsExtra
 {
     CREATURE_EXTRA_FLAG_INSTANCE_BIND          = 0x00000001,       // 1 creature kill bind instance with killer and killer's group
     CREATURE_EXTRA_FLAG_NO_AGGRO_ON_SIGHT      = 0x00000002,       // 2 no aggro (ignore faction/reputation hostility)

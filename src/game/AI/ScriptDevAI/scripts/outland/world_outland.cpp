@@ -1184,7 +1184,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     }
 
     void HandleShartuulAddSpawns()
-    {   
+    {
         bool genericSpawns = true;
         std::vector<std::pair<Creature*, uint32>> selectedSpawns;
         if (m_shartuulPhase == PHASE_3_DOOMGUARD_PUNISHER_ADDS)

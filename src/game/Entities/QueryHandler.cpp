@@ -259,7 +259,7 @@ void WorldSession::HandleGameObjectQueryOpcode(WorldPacket& recv_data)
         data << uint32(info->displayId);
         data << Name;
         data << uint8(0) << uint8(0) << uint8(0);           // name2, name3, name4
-        data << IconName;                                   // 2.0.3, string. Icon name to use instead of default icon for go's (ex: "Attack" makes sword)
+        data << IconName;                                   // 1.12.0, string. Icon name to use instead of default icon for go's (ex: "Attack" makes sword)
         data << openingText;                                // 2.0.3, string - when lock specifies action 0 or 1
         data << closingText;                                // 2.0.3, string - when lock specifies action 2
         data.append(info->raw.data, 24);

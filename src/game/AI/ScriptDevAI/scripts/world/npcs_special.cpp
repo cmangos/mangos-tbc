@@ -148,7 +148,8 @@ struct npc_air_force_botsAI : public ScriptedAI
         if (pSummoned)
         {
             m_spawnedGuid = pSummoned->GetObjectGuid();
-            pSummoned->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 10.0f, FORCED_MOVEMENT_FLIGHT);
+            // sniffs point to per node individual scripting as the movers (15241,15242,22077,22122,22085,22089,21976) have different move heights at different locations, but mostly 15
+            pSummoned->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 15.0f, FORCED_MOVEMENT_FLIGHT);
         }
 
         else

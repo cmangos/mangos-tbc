@@ -6850,14 +6850,10 @@ bool Player::RewardHonor(Unit* uVictim, uint32 groupsize, float honor)
                 //  title[1..14]  -> rank[5..18]
                 //  title[15..28] -> rank[5..18]
                 //  title[other]  -> 0
-                if (victim_title == 0)
-                    victim_guid.Clear();                    // Don't show HK: <rank> message, only log.
-                else if (victim_title < 15)
+                if (victim_title < 15)
                     victim_rank = victim_title + 4;
                 else if (victim_title < 29)
                     victim_rank = victim_title - 14 + 4;
-                else
-                    victim_guid.Clear();                    // Don't show HK: <rank> message, only log.
             }
 
             uint32 k_grey = MaNGOS::XP::GetGrayLevel(k_level);

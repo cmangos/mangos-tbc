@@ -1,6 +1,6 @@
 #####################################
-# MaNGOS Configuration file         
-# 
+# MaNGOS Configuration file
+#
 # 	To overwrite configuration fields with environment variables
 # 	use the following pattern to generate environment variable names:
 #
@@ -56,7 +56,7 @@ ConfVersion=2024020101
 #        Please, note, for data consistency only one connection for each database is used for transactions and async SELECTs.
 #        So formula to find out how many connections will be established: X = #_connections + 1
 #        Default: 1 connection for SELECT statements
-#   
+#
 #    MaxPingTime
 #        Settings for maximum database-ping interval (minutes between pings)
 #
@@ -986,7 +986,7 @@ TalentsInspecting = 1
 #
 #    LeashRadius
 #        Radius for default leash due to being too far from refresh position
-#        Default: 30 (yards)
+#        Default: 60 (yards)
 #
 #    CreatureFamilyFleeAssistanceRadius
 #        Radius which creature will use to seek for a near creature for assistance. Creature will flee to this creature.
@@ -1096,7 +1096,7 @@ TalentsInspecting = 1
 
 Rate.Creature.Aggro = 1
 CreatureRespawnAggroDelay = 5000
-LeashRadius = 30
+LeashRadius = 60
 CreatureFamilyFleeAssistanceRadius = 30
 CreatureFamilyAssistanceRadius = 5
 CreatureFamilyAssistanceDelay = 1500

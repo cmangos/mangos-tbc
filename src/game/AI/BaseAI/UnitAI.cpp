@@ -731,7 +731,7 @@ CreatureList UnitAI::DoFindFriendlyEligibleDispel(SpellEntry const* spellInfo, b
             dispelMask |= GetDispellMask(DispelType(spellInfo->EffectMiscValue[i]));
         else if (spellInfo->Effect[i] == SPELL_EFFECT_DISPEL_MECHANIC)
             mechanicMask |= (1 << (spellInfo->EffectMiscValue[i] - 1));
-    }            
+    }
     float maxRange = CalculateSpellRange(spellInfo);
     return DoFindFriendlyEligibleDispel(maxRange, dispelMask, mechanicMask, self);
 }
@@ -972,6 +972,9 @@ void UnitAI::AddMainSpell(uint32 spellId)
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_mainSpellId);
         m_mainSpellCost = Spell::CalculatePowerCost(spellInfo, m_unit);
         m_mainSpellMinRange = GetSpellMinRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
+        float spellMaxRange = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
+        if (spellMaxRange > m_mainSpellMinRange)
+            m_chaseDistance = spellMaxRange;
         m_mainAttackMask = SpellSchoolMask(m_mainAttackMask + spellInfo->SchoolMask);
         m_mainSpellInfo = spellInfo;
     }
@@ -1146,6 +1149,9 @@ bool UnitAI::IsMainSpellPrevented(SpellEntry const* spellInfo) const
     if (spellInfo->PreventionType == SPELL_PREVENTION_TYPE_SILENCE && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SILENCED))
         return true;
     if (spellInfo->PreventionType == SPELL_PREVENTION_TYPE_PACIFY && m_unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PACIFIED))
+        return true;
+
+    if (m_unit->GetPower(static_cast<Powers>(spellInfo->powerType)) < m_mainSpellCost)
         return true;
 
     return false;
@@ -1376,4 +1382,3 @@ void UnitAI::AddInitialCooldowns()
         }
     }
 }
-

@@ -986,7 +986,7 @@ TalentsInspecting = 1
 #
 #    LeashRadius
 #        Radius for default leash due to being too far from refresh position
-#        Default: 60 (yards)
+#        Default: 45 (yards)
 #
 #    CreatureFamilyFleeAssistanceRadius
 #        Radius which creature will use to seek for a near creature for assistance. Creature will flee to this creature.
@@ -1096,7 +1096,7 @@ TalentsInspecting = 1
 
 Rate.Creature.Aggro = 1
 CreatureRespawnAggroDelay = 5000
-LeashRadius = 60
+LeashRadius = 45
 CreatureFamilyFleeAssistanceRadius = 30
 CreatureFamilyAssistanceRadius = 5
 CreatureFamilyAssistanceDelay = 1500

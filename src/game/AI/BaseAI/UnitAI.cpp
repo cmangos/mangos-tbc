@@ -18,6 +18,7 @@
 
 #include "UnitAI.h"
 #include "Entities/Creature.h"
+#include "Globals/SharedDefines.h"
 #include "Server/DBCStores.h"
 #include "Spells/Spell.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
@@ -972,9 +973,8 @@ void UnitAI::AddMainSpell(uint32 spellId)
         SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_mainSpellId);
         m_mainSpellCost = Spell::CalculatePowerCost(spellInfo, m_unit);
         m_mainSpellMinRange = GetSpellMinRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
-        float spellMaxRange = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
-        if (spellMaxRange > m_mainSpellMinRange)
-            m_chaseDistance = spellMaxRange;
+        if (sSpellRangeStore.LookupEntry(spellInfo->rangeIndex)->Flags != static_cast<uint32>(SpellRangeFlags::SPELL_RANGE_FLAG_MELEE))
+            m_chaseDistance = GetSpellMaxRange(sSpellRangeStore.LookupEntry(spellInfo->rangeIndex));
         m_mainAttackMask = SpellSchoolMask(m_mainAttackMask + spellInfo->SchoolMask);
         m_mainSpellInfo = spellInfo;
     }

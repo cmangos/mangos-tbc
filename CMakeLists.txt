@@ -206,6 +206,10 @@ endif()
 
 # Find needed packages and if necessery abort if something important is missing
 find_package(Boost 1.70.0 REQUIRED COMPONENTS program_options thread regex serialization filesystem)
+find_package(ICU COMPONENTS uc i18n data REQUIRED)
+add_library(icuuc ALIAS ICU::uc)
+add_library(icui18n ALIAS ICU::i18n)
+add_library(icudata ALIAS ICU::data)
 
 if(NOT Boost_FOUND AND (BUILD_GAME_SERVER OR BUILD_LOGIN_SERVER))
   message(STATUS "BOOST_ROOT = $ENV{BOOST_ROOT}")

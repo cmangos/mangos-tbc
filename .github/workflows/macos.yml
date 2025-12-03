@@ -28,6 +28,7 @@ jobs:
           brew install mysql-client@8.4
           brew install openssl
           brew install icu4c@78
+          brew link icu4c@78
           brew install boost@1.85
           brew link boost@1.85
           echo "OPENSSL_ROOT_DIR=$(brew --prefix --installed openssl)" >> $GITHUB_ENV

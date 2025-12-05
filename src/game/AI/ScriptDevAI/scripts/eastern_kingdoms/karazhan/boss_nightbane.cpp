@@ -198,7 +198,7 @@ struct boss_nightbaneAI : public CombatAI
                     m_creature->SetByteFlag(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
                     m_creature->SetCanFly(false);
                     m_creature->SetHover(false);
-                    m_creature->GetMotionMaster()->MovePoint(POINT_ID_GROUND, -11162.23f, -1900.329f, 91.47265f); // noted as falling in sniff
+                    m_creature->GetMotionMaster()->MoveFall();
                 }
             }
             else // intro movement
@@ -220,6 +220,10 @@ struct boss_nightbaneAI : public CombatAI
                 }
             }
         }
+        else if (motionType == FALL_MOTION_TYPE)
+        {
+            HandleLanding();
+        }
         // avoid overlapping of escort and combat movement
         else if (motionType == POINT_MOTION_TYPE)
         {
@@ -235,18 +239,23 @@ struct boss_nightbaneAI : public CombatAI
                     HandlePhaseTransition();
                     break;
                 case POINT_ID_GROUND:
-                    // TODO: remove this once MMAPs are more reliable in the area
-                    m_creature->HandleEmote(EMOTE_ONESHOT_LAND);
-                    m_phase = PHASE_GROUND;
-                    SetCombatMovement(true);
-                    SetDeathPrevention(false);
-                    SetMeleeEnabled(true);
-                    DoResetThreat();
-                    m_creature->SetSupportThreatOnly(false);
-                    ResetTimer(NIGHTBANE_ATTACK_DELAY, 2000);
+                    HandleLanding();
                     break;
             }
         }
+    }
+
+    void HandleLanding()
+    {
+        // TODO: remove this once MMAPs are more reliable in the area
+        m_creature->HandleEmote(EMOTE_ONESHOT_LAND);
+        m_phase = PHASE_GROUND;
+        SetCombatMovement(true);
+        SetDeathPrevention(false);
+        SetMeleeEnabled(true);
+        DoResetThreat();
+        m_creature->SetSupportThreatOnly(false);
+        ResetTimer(NIGHTBANE_ATTACK_DELAY, 2000);
     }
 
     void HandleAttackDelay()

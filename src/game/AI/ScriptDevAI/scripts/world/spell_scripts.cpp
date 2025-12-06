@@ -974,6 +974,15 @@ struct InvisibleForAlive : public AuraScript
     }
 };
 
+// 17162 - Summon Water Elemental
+struct SummonWaterElemental : public SpellScript
+{
+    void OnSummon(Spell* spell, Creature* summon) const override
+    {
+        summon->SelectLevel(spell->GetCaster()->GetLevel());
+    }
+};
+
 void AddSC_spell_scripts()
 {
     RegisterSpellScript<CastFishingNet>("spell_cast_fishing_net");
@@ -1025,4 +1034,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<RandomAggro>("spell_random_aggro");
     RegisterSpellScript<RandomAggro1000000>("spell_random_aggro_1000000");
     RegisterSpellScript<InvisibleForAlive>("spell_shroud_of_death");
+    RegisterSpellScript<SummonWaterElemental>("spell_summon_water_elemental");
 }

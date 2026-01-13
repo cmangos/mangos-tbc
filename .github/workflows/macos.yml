@@ -5,7 +5,7 @@ on: [push]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-  REPO_DIR : ${{github.workspace}}
+  REPO_DIR: ${{github.workspace}}
   BUILD_DIR: ${{github.workspace}}/bin/builddir
 
 permissions:
@@ -27,6 +27,8 @@ jobs:
         run: |
           brew install mysql-client@8.4
           brew install openssl
+          brew install icu4c@78
+          brew link icu4c@78 --force
           brew install boost@1.85
           brew link boost@1.85
           echo "OPENSSL_ROOT_DIR=$(brew --prefix --installed openssl)" >> $GITHUB_ENV

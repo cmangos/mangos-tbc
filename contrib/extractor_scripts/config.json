@@ -7,6 +7,13 @@
 			"_Info": "walkableClimb <= 8 else .go c 1000403 goes over the edge"
 		}
 	},
+	"429": {
+        "3032": {
+			"_Info": "Dire Maul - .go c id 11496",
+			"walkableHeight": 6.0,
+			"walkableClimb": 5.0
+        }
+    },
 	"530": {
         "2029": {
             "detailSampleDist": 1,

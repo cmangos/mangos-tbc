@@ -300,17 +300,28 @@ bool GossipSelect_npc_solenor(Player* pPlayer, Creature* pCreature, uint32 /*uiS
     return true;
 }
 
-UnitAI* GetAI_npc_solenor(Creature* pCreature)
+bool AreaTrigger_at_southwind_tower(Player* player, AreaTriggerEntry const* areaTrigger) // 3146
 {
-    return new npc_solenorAI(pCreature);
+    if (player->IsGameMaster() || !player->IsAlive())
+        return false;
+
+    DoBroadcastText(8676, nullptr);
+    player->GetMap()->GetSpawnManager().GetSpawnGroup(5555);
+
+    return false;
 }
 
 void AddSC_silithus()
 {
-    Script* pNewScript = new Script;
-    pNewScript->Name = "npc_solenor"; // npc_solenor_the_slayer
-    pNewScript->GetAI = &GetAI_npc_solenor;
-    pNewScript->pGossipHello = &GossipHello_npc_solenor;
-    pNewScript->pGossipSelect = &GossipSelect_npc_solenor;
-    pNewScript->RegisterSelf();
+    Script* newScript = new Script;
+    newScript->Name = "npc_solenor"; // npc_solenor_the_slayer
+    newScript->GetAI = &GetNewAIInstance<npc_solenorAI>;
+    newScript->pGossipHello = &GossipHello_npc_solenor;
+    newScript->pGossipSelect = &GossipSelect_npc_solenor;
+    newScript->RegisterSelf();
+
+    newScript = new Script;
+    newScript->Name = "at_southwind_tower";
+    newScript->pAreaTrigger = &AreaTrigger_at_southwind_tower;
+    newScript->RegisterSelf();
 }

@@ -1239,6 +1239,9 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading pet level stats...");
     sObjectMgr.LoadPetLevelInfo();
 
+    sLog.outString("Loading pet autocast info...");
+    sObjectMgr.LoadPetAutocastInfo();
+
     sLog.outString("Loading Player Corpses...");
     sObjectMgr.LoadCorpses();
 

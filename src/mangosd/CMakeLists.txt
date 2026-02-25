@@ -142,6 +142,11 @@ if (BUILD_PLAYERBOTS)
   add_definitions(-DENABLE_PLAYERBOTS)
 endif()
 
+# Define BUILD_VOICECHAT if need
+if (BUILD_VOICECHAT)
+  add_definitions(-DBUILD_VOICECHAT)
+endif()
+
 if(MSVC)
   install(FILES $<TARGET_PDB_FILE:${EXECUTABLE_NAME}> DESTINATION ${BIN_DIR} CONFIGURATIONS Debug)
 endif()

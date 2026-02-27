@@ -1913,7 +1913,7 @@ class Unit : public WorldObject
         Player const* GetClientControlling() const;
 
         Pet* GetPet() const;
-        void SetPet(Unit* pet) { SetPetGuid(pet ? pet->GetObjectGuid() : ObjectGuid()); }
+        virtual void SetPet(Unit* pet) { SetPetGuid(pet ? pet->GetObjectGuid() : ObjectGuid()); }
 
         Pet* GetMiniPet() const;
         void SetMiniPet(Unit* pet) { SetCritterGuid(pet ? pet->GetObjectGuid() : ObjectGuid()); }
@@ -2354,7 +2354,6 @@ class Unit : public WorldObject
         bool SetStunned(bool apply, ObjectGuid casterGuid = ObjectGuid(), uint32 spellID = 0, bool logout = false);
 
         inline bool IsStunnedByLogout() const { return hasUnitState(UNIT_STAT_LOGOUT_TIMER); }
-        bool SetStunnedByLogout(bool apply);
 
         // Panic: AI reaction script, NPC flees (e.g. at low health)
         inline bool IsInPanic() const { return hasUnitState(UNIT_STAT_PANIC); }
@@ -2527,6 +2526,11 @@ class Unit : public WorldObject
         virtual CreatureInfo const* GetMountInfo() const { return nullptr; } // TODO: Meant to be used by players during taxi
         virtual void SetMountInfo(CreatureInfo const* /*info*/) {} // does nothing for base unit
         virtual void SetModelRunSpeed(float /*runSpeed*/) {} // does nothing for base unit
+
+        virtual bool IsThreatUpdateSent() const { return true; }
+        virtual bool IgnoreLosWhenCastingOnMe() const { return false; }
+        virtual bool IsDealTripleDamageToPets() const { return false; }
+        virtual bool IsEnemyCheckIgnoresLos() const { return false; }
 
     protected:
         bool MeetsSelectAttackingRequirement(Unit* target, SpellEntry const* spellInfo, uint32 selectFlags, SelectAttackingTargetParams params, int32 unitConditionId) const;

@@ -94,6 +94,20 @@ struct CurseOfAgony : public AuraScript
     }
 };
 
+// 1122 - Inferno (Summon)
+struct InfernoWarlockSummon : public SpellScript
+{
+    void OnSummon(Spell* spell, Creature* summon) const override
+    {
+        // Enslave demon effect, without mana cost and cooldown
+        summon->CastSpell(nullptr, 22707, TRIGGERED_OLD_TRIGGERED); // short root spell on infernal from sniffs
+        spell->GetCaster()->CastSpell(summon, 20882, TRIGGERED_OLD_TRIGGERED);
+        summon->CastSpell(nullptr, 22703, TRIGGERED_NONE); // Inferno effect - in wotlk cast automatically
+        summon->AI()->DoCastSpellIfCan(nullptr, 19483, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT);
+        summon->CastSpell(nullptr, 22764, TRIGGERED_NONE); // aggro spell
+    }
+};
+
 // 1454 - Life Tap
 struct LifeTap : public SpellScript
 {
@@ -316,6 +330,29 @@ struct CurseOfDoomEffect : public SpellScript
     }
 };
 
+// 18788 - Demonic Sacrifice
+struct DemonicSacrifice : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        Unit* target = spell->GetUnitTarget();
+        uint32 entry = target->GetEntry();
+        uint32 spellId;
+        switch (entry)
+        {
+            case 416: spellId = 18789; break;   // imp
+            case 417: spellId = 18792; break;   // fellhunter
+            case 1860: spellId = 18790; break;  // void
+            case 1863: spellId = 18791; break;  // succubus
+            case 17252: spellId = 35701; break; // fellguard
+            default: sLog.outError("EffectInstaKill: Unhandled creature entry (%u) case.", entry); return;
+        }
+
+        caster->CastSpell(nullptr, spellId, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 // 19505 - Devour Magic
 struct DevourMagic : public SpellScript
 {
@@ -487,6 +524,7 @@ void LoadWarlockScripts()
 {
     RegisterSpellScript<UnstableAffliction>("spell_unstable_affliction");
     RegisterSpellScript<CurseOfAgony>("spell_curse_of_agony");
+    RegisterSpellScript<InfernoWarlockSummon>("spell_inferno_warlock_summon");
     RegisterSpellScript<LifeTap>("spell_life_tap");
     RegisterSpellScript<CreateHealthStoneWarlock>("spell_create_health_stone_warlock");
     RegisterSpellScript<DemonicKnowledge>("spell_demonic_knowledge");
@@ -494,13 +532,13 @@ void LoadWarlockScripts()
     RegisterSpellScript<SeedOfCorruption>("spell_seed_of_corruption");
     RegisterSpellScript<Corruption>("spell_corruption");
     RegisterSpellScript<SiphonLife>("spell_siphon_life");
-    RegisterSpellScript<CurseOfAgony>("spell_curse_of_agony");
     RegisterSpellScript<SoulLeech>("spell_soul_leech");
     RegisterSpellScript<EyeOfKilrogg>("spell_eye_of_kilrogg");
     RegisterSpellScript<DevourMagic>("spell_devour_magic");
     RegisterSpellScript<SeedOfCorruptionDamage>("spell_seed_of_corruption_damage");
     RegisterSpellScript<CurseOfDoom>("spell_curse_of_doom");
     RegisterSpellScript<CurseOfDoomEffect>("spell_curse_of_doom_effect");
+    RegisterSpellScript<DemonicSacrifice>("spell_demonic_sacrifice");
     RegisterSpellScript<CurseDiminishingDuration>("spell_curse_diminishing_duration");
     RegisterSpellScript<SoulSiphon>("spell_soul_siphon");
     RegisterSpellScript<ImprovedCorruptionAndImmolate>("spell_improved_corruption_and_immolate");

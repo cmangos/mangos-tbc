@@ -962,7 +962,7 @@ struct RandomAggro1000000 : public SpellScript
     }
 };
 
-// 10848, 27978, 40131 - Shroud of Death
+// 27978, 40131 - Shroud of Death
 struct InvisibleForAlive : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -971,6 +971,15 @@ struct InvisibleForAlive : public AuraScript
             aura->GetTarget()->m_AuraFlags |= UNIT_AURAFLAG_ALIVE_INVISIBLE;
         else
             aura->GetTarget()->m_AuraFlags &= ~UNIT_AURAFLAG_ALIVE_INVISIBLE;
+    }
+};
+
+// 17162 - Summon Water Elemental
+struct SummonWaterElemental : public SpellScript
+{
+    void OnSummon(Spell* spell, Creature* summon) const override
+    {
+        summon->SelectLevel(spell->GetCaster()->GetLevel());
     }
 };
 
@@ -1025,4 +1034,5 @@ void AddSC_spell_scripts()
     RegisterSpellScript<RandomAggro>("spell_random_aggro");
     RegisterSpellScript<RandomAggro1000000>("spell_random_aggro_1000000");
     RegisterSpellScript<InvisibleForAlive>("spell_shroud_of_death");
+    RegisterSpellScript<SummonWaterElemental>("spell_summon_water_elemental");
 }

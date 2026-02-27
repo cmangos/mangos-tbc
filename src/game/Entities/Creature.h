@@ -44,14 +44,14 @@ class CreatureGroup;
 struct GameEventCreatureData;
 enum class VisibilityDistanceType : uint32;
 
-enum CreatureExtraFlags
+enum CreatureFlagsExtra
 {
     CREATURE_EXTRA_FLAG_INSTANCE_BIND          = 0x00000001,       // 1 creature kill bind instance with killer and killer's group
     CREATURE_EXTRA_FLAG_NO_AGGRO_ON_SIGHT      = 0x00000002,       // 2 no aggro (ignore faction/reputation hostility)
     CREATURE_EXTRA_FLAG_NO_PARRY               = 0x00000004,       // 4 creature can't parry
     CREATURE_EXTRA_FLAG_NO_PARRY_HASTEN        = 0x00000008,       // 8 creature can't counter-attack at parry
     CREATURE_EXTRA_FLAG_NO_BLOCK               = 0x00000010,       // 16 creature can't block
-    CREATURE_EXTRA_FLAG_UNUSED                 = 0x00000020,       // 32
+    CREATURE_EXTRA_FLAG_RUN_DURING_WANDER      = 0x00000020,       // 32 15% chance during wander (random movement)
     CREATURE_EXTRA_FLAG_UNUSED2                = 0x00000040,       // 64
     CREATURE_EXTRA_FLAG_INVISIBLE              = 0x00000080,       // 128 creature is always invisible for player (mostly trigger creatures)
     CREATURE_EXTRA_FLAG_UNUSED3                = 0x00000100,       // 256
@@ -206,6 +206,36 @@ struct CreatureInfo
     bool HasFlag(CreatureTypeFlags flags) const
     {
         return bool(CreatureTypeFlags(TypeFlags) & flags);
+    }
+
+    bool HasFlag(CreatureStaticFlags flags) const
+    {
+        return bool(CreatureStaticFlags(StaticFlags) & flags);
+    }
+
+    bool HasFlag(CreatureStaticFlags2 flags) const
+    {
+        return bool(CreatureStaticFlags2(StaticFlags2) & flags);
+    }
+
+    bool HasFlag(CreatureStaticFlags3 flags) const
+    {
+        return bool(CreatureStaticFlags3(StaticFlags3) & flags);
+    }
+
+    bool HasFlag(CreatureStaticFlags4 flags) const
+    {
+        return bool(CreatureStaticFlags4(StaticFlags4) & flags);
+    }
+
+    bool IsLargeOrBiggerCreature() const
+    {
+        return HasFlag(CreatureStaticFlags::LARGE_AOI) || HasFlag(CreatureStaticFlags3::GIGANTIC_AOI) || HasFlag(CreatureStaticFlags3::INFINITE_AOI);
+    }
+
+    bool HasFlag(CreatureFlagsExtra flags) const
+    {
+        return bool(ExtraFlags & flags);
     }
 };
 
@@ -473,13 +503,13 @@ struct TrainerSpell
     uint32 reqSkill;
     uint32 reqSkillValue;
     uint32 reqLevel;
-    uint32 learnedSpell;
+    std::vector<uint32> learnedSpell;
     std::array<std::optional<uint32>, 3> reqAbility;
     uint32 conditionId;
     bool isProvidedReqLevel;
 
     // helpers
-    bool IsCastable() const { return learnedSpell != spell; }
+    bool IsCastable() const { return learnedSpell.size() > 1; }
 };
 
 typedef std::unordered_map < uint32 /*spellid*/, TrainerSpell > TrainerSpellMap;
@@ -925,6 +955,11 @@ class Creature : public Unit
 
         bool IsCombatOnlyStealth() const { return m_combatOnlyStealth; }
         void SetCombatOnlyStealth(bool state) { m_combatOnlyStealth = state; }
+
+        bool IsThreatUpdateSent() const override;
+        bool IgnoreLosWhenCastingOnMe() const override;
+        bool IsDealTripleDamageToPets() const override;
+        bool IsEnemyCheckIgnoresLos() const override;
 
     protected:
         bool CreateFromProto(uint32 dbGuid, uint32 guidlow, CreatureInfo const* cinfo, const CreatureData* data = nullptr, GameEventCreatureData const* eventData = nullptr);

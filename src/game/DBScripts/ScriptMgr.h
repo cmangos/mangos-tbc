@@ -139,6 +139,7 @@ enum ScriptCommand                                          // resSource, resTar
     SCRIPT_COMMAND_SET_WORLDSTATE           = 53,           // dataint = worldstate id, dataint2 = new value, 
     SCRIPT_COMMAND_SET_SHEATHE              = 54,           // dataint = worldstate id, dataint2 = new value,
     SCRIPT_COMMAND_SET_STRING_ID            = 55,           // datalong = string_id id, datalong2 = 0 unapply, 1 apply
+    // 56 57 used in wotlk
 };
 
 #define MAX_TEXT_ID 4                                       // used for SCRIPT_COMMAND_TALK, SCRIPT_COMMAND_EMOTE, SCRIPT_COMMAND_CAST_SPELL, SCRIPT_COMMAND_TERMINATE_SCRIPT
@@ -190,7 +191,7 @@ struct ScriptInfo
         struct                                              // SCRIPT_COMMAND_MOVE_TO (3)
         {
             uint32 relayId;                                 // datalong
-            uint32 travelSpeed;                             // datalong2
+            uint32 flags;                                   // datalong2
             uint32 forcedMovement;                          // datalong3
         } moveTo;
 
@@ -292,8 +293,8 @@ struct ScriptInfo
         struct                                              // SCRIPT_COMMAND_MOVEMENT (20)
         {
             uint32 movementType;                            // datalong
-            uint32 wanderORpathId;                          // datalong2
-            uint32 timerOrPassTarget;                       // datalong3
+            uint32 wanderORpathIdORRelayId;                 // datalong2
+            uint32 timerOrPassTargetOrCyclic;               // datalong3
         } movement;
 
         struct                                              // SCRIPT_COMMAND_SET_ACTIVEOBJECT (21)

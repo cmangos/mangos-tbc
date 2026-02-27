@@ -1256,7 +1256,11 @@ bool ChatHandler::HandleGameObjectNearCommand(char* args)
             if (SpawnGroupEntry* groupEntry = pl->GetMap()->GetMapDataContainer().GetSpawnGroupByGuid(guid, TYPEID_GAMEOBJECT))
                 spawnGroupId = groupEntry->Id;
 
-            PSendSysMessage(LANG_GO_MIXED_LIST_CHAT, guid, PrepareStringNpcOrGoSpawnInformation<GameObject>(guid).c_str(), entry, guid, name, x, y, z, mapid, spawnGroupId);
+            uint32 dynGuid = 0;
+            if (GameObject* go = pl->GetMap()->GetGameObject(guid))
+                dynGuid = go->GetGUIDLow();
+
+            PSendSysMessage(LANG_GO_MIXED_LIST_CHAT, guid, PrepareStringNpcOrGoSpawnInformation<GameObject>(guid).c_str(), entry, dynGuid, entry, name, x, y, z, mapid, spawnGroupId);
 
 
             ++count;
@@ -1356,7 +1360,7 @@ bool ChatHandler::HandleGameObjectNearSpawnedCommand(char* args)
         uint32 spawnGroupId = 0;
         if (SpawnGroupEntry* groupEntry = player->GetMap()->GetMapDataContainer().GetSpawnGroupByGuid(guid, TYPEID_GAMEOBJECT))
             spawnGroupId = groupEntry->Id;
-        PSendSysMessage(LANG_GO_MIXED_LIST_CHAT, guid.GetCounter(), PrepareStringNpcOrGoSpawnInformation<GameObject>(guid).c_str(), entry, guid, goInfo->name, x, y, z, go->GetMapId(), spawnGroupId);
+        PSendSysMessage(LANG_GO_MIXED_LIST_CHAT, guid.GetCounter(), PrepareStringNpcOrGoSpawnInformation<GameObject>(guid).c_str(), entry, guid, entry, goInfo->name, x, y, z, go->GetMapId(), spawnGroupId);
     }
 
     PSendSysMessage(LANG_COMMAND_NEAROBJMESSAGE, distance, gameobjects.size());
@@ -2818,7 +2822,7 @@ inline Creature* Helper_CreateWaypointFor(Creature* wpOwner, WaypointPathOrigin 
     TempSpawnSettings settings;
     settings.spawner = wpOwner;
     settings.entry = VISUAL_WAYPOINT;
-    settings.x = wpNode->x; settings.y = wpNode->y; settings.z = wpNode->z; settings.ori = wpNode->orientation;
+    settings.x = wpNode->x; settings.y = wpNode->y; settings.z = wpNode->z; settings.ori = wpNode->orientation ? *wpNode->orientation : 0.f;
     settings.activeObject = true;
     settings.spawnDataEntry = 2;
     settings.spawnType = TEMPSPAWN_TIMED_DESPAWN;
@@ -3615,7 +3619,7 @@ bool ChatHandler::HandleWpExportCommand(char* args)
         outfile << itr->second.x << ",";
         outfile << itr->second.y << ",";
         outfile << itr->second.z << ",";
-        outfile << itr->second.orientation << ",";
+        outfile << (itr->second.orientation ? *itr->second.orientation : 100.f) << ",";
         outfile << itr->second.delay << ",";
         if (wpOrigin != PATH_FROM_EXTERNAL)                 // Only for normal waypoints
             outfile << itr->second.script_id << ")";

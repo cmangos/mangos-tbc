@@ -488,6 +488,8 @@ struct FactionTemplateEntry
                 return false;
         return enemyGroupMask == 0 && friendGroupMask == 0;
     }
+    bool IsRespondToCallForHelp() const { return (factionFlags & FACTION_TEMPLATE_RESPOND_TO_CALL_FOR_HELP) != 0; }
+    bool IsFleeFromCallForHelp() const { return (factionFlags & FACTION_TEMPLATE_FLEE_FROM_CALL_FOR_HELP) != 0; }
     bool IsContestedGuardFaction() const { return (factionFlags & FACTION_TEMPLATE_FLAG_ATTACK_PVP_ACTIVE_PLAYERS) != 0; }
 };
 
@@ -1063,6 +1065,12 @@ struct SpellEntry
             return mask;
         }
 
+        bool CanBeUsedInForm(ShapeshiftForm form) const
+        {
+            uint32 mask = (1 << (form - 1));
+            return Stances & mask && (StancesNot & mask) == 0;
+        }
+
     private:
         // prevent creating custom entries (copy data from original in fact)
         SpellEntry(SpellEntry const&);                      // DON'T must have implementation
@@ -1079,6 +1087,12 @@ struct SpellCastTimesEntry
     int32     CastTime;                                     // 1        m_base
     int32     CastTimePerLevel;                             // 2        m_perLevel
     int32     MinCastTime;                                  // 3        m_minimum
+};
+
+struct SpellCategoryEntry
+{
+    uint32 ID;
+    uint32 flags;
 };
 
 struct SpellFocusObjectEntry

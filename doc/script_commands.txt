@@ -182,7 +182,7 @@ Defining a buddy could be done in several way:
  3 SCRIPT_COMMAND_MOVE_TO                   resultingSource = Creature
                                             If position is very near to current position, or x=y=z=0, then only orientation is changed
                                             * datalong = dbscripts_on_relay id - executed for source and target same as this script
-                                            * datalong2 = travel_speed*100 (use 0 for creature default movement)
+                                            * datalong2
                                             * datalong3 = enum ForcedMovement
                                             * data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL: teleport unit to position
                                             * x/y/z/o
@@ -270,8 +270,14 @@ Defining a buddy could be done in several way:
                                             * datalong2 = wanderDistance (for random movement), pathId (for waypoint movement), relayId (for fall movement)
                                             * datalong3 = 0x1 - timer for timed random movement or pass target to waypoint and path movegen (by default, source targets self)
                                             *             0x2 - for waypoint, path and linear path - uses pathId from waypoint_path table
+                                            *             0x4 - for path - flying specifier
+                                            *             0x8 - for path - cyclic specifier
                                             * data_flags & SCRIPT_FLAG_COMMAND_ADDITIONAL: RandomMovement around current position
-                                            * dataint = enum ForcedMovement
+                                            * dataint = enum ForcedMovement for non random, for random 0 walk, 1 run
+                                            * dataint2 - flags - for random: 0x1 make main movegen (will stay on evade)
+                                            * dataFloat = vertical Speed - used by special case of Path
+                                            * speed = override of speed for Path
+                                            * Path when Vertical Speed is set - Uses exclusively waypoint_path, supports forcedMovement, pathId, speed, verticalSpeed
 
 21 SCRIPT_COMMAND_SET_ACTIVEOBJECT          resultingSource = WorldObject
                                             * datalong=bool 0=off, 1=on

@@ -360,7 +360,9 @@ enum PlayerFlags
 // used in (PLAYER_FIELD_BYTES, 0) byte values
 enum PlayerFieldByteFlags
 {
+    PLAYER_FIELD_BYTE_CONTROLLING_PET   = 0x01,
     PLAYER_FIELD_BYTE_TRACK_STEALTHED   = 0x02,
+    PLAYER_FIELD_BYTE_LOGGING_OUT       = 0x04,
     PLAYER_FIELD_BYTE_RELEASE_TIMER     = 0x08,             // Display time till auto release spirit
     PLAYER_FIELD_BYTE_NO_RELEASE_WINDOW = 0x10              // Display no "release spirit" window at all
 };
@@ -837,7 +839,7 @@ struct TradeStatusInfo
     ObjectGuid TraderGuid;
     InventoryResult Result;
     bool IsTargetResult;
-    uint32 ItemLimitCategoryId;
+    uint32 ItemLimitCategoryId; // sent as 0 but not used in client in tbc
     uint8 Slot;
 };
 
@@ -1175,7 +1177,7 @@ class Player : public Unit
         void RemoveItemDependentAurasAndCasts(Item* pItem);
         void DestroyItem(uint8 bag, uint8 slot, bool update);
         void DestroyItemCount(uint32 item, uint32 count, bool update, bool unequip_check = false, bool inBankAlso = false);
-        void DestroyItemCount(Item* pItem, uint32& count, bool update);
+        void DestroyItemCount(Item& item, uint32& count, bool update);
         void DestroyConjuredItems(bool update);
         void DestroyZoneLimitedItem(bool update, uint32 new_zone);
         void SplitItem(uint16 src, uint16 dst, uint32 count);
@@ -1860,6 +1862,8 @@ class Player : public Unit
 
         uint32 GetShieldBlockValue() const override;        // overwrite Unit version (virtual)
 
+        void SetPet(Unit* pet) override;
+
         void SetRegularAttackTime();
         void SetBaseModValue(BaseModGroup modGroup, BaseModType modType, float value) { m_auraBaseMod[modGroup][modType] = value; }
         void HandleBaseModValue(BaseModGroup modGroup, BaseModType modType, float amount, bool apply);
@@ -2079,6 +2083,8 @@ class Player : public Unit
         void SetMover(Unit* target) { m_mover = target ? target : this; }
         Unit* GetMover() const { return m_mover; }
         bool IsSelfMover() const { return m_mover == this; }// normal case for player not controlling other unit
+
+        bool SetStunnedByLogout(bool apply);
 
         ObjectGuid const& GetFarSightGuid() const { return GetGuidValue(PLAYER_FARSIGHT); }
 

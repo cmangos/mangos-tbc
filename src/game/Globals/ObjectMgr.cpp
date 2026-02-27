@@ -211,7 +211,7 @@ ArenaTeam* ObjectMgr::GetArenaTeamByName(const std::string& arenateamname) const
         std::string const& teamName = itr.second->GetName();
         if (std::equal(teamName.begin(), teamName.end(), arenateamname.begin(), arenateamname.end(), ichar_equals))
             return itr.second;
-    }            
+    }
 
     return nullptr;
 }
@@ -1623,7 +1623,7 @@ void ObjectMgr::LoadSpawnGroups()
                 maxRandom += randomEntry.MaxCount;
                 if (randomEntry.Chance == 0)
                     maxCount = true;
-            }                
+            }
             if (maxCount)
                 entry.MaxCount = entry.DbGuids.size();
             else
@@ -4562,7 +4562,7 @@ void ObjectMgr::LoadGroups()
                  "(SELECT COUNT(*) FROM character_instance WHERE guid = group_instance.leaderGuid AND instance = group_instance.instance AND permanent = 1 LIMIT 1), "
                  // 7
                  "`groups`.groupId, instance.encountersMask "
-                 "FROM group_instance LEFT JOIN instance ON instance = id LEFT JOIN `groups` ON `groups`.leaderGUID = group_instance.leaderGUID ORDER BY leaderGuid"
+                 "FROM group_instance LEFT JOIN instance ON instance = id LEFT JOIN `groups` ON `groups`.leaderGUID = group_instance.leaderGUID ORDER BY group_instance.leaderGuid"
              );
 
     if (!queryResult)
@@ -6483,7 +6483,7 @@ void ObjectMgr::GenerateZoneAndAreaIds()
     WorldDatabase.DirectExecute("TRUNCATE creature_zone");
     WorldDatabase.DirectExecute("TRUNCATE gameobject_zone");
 
-    std::string baseCreature = "INSERT INTO creature_zone(Guid, ZoneId, AreaId) VALUES";
+    std::string baseCreature = "INSERT INTO creature_zone(Guid, ZoneId, AreaId, WmoGroupId) VALUES";
     int i = 0;
     int total = 0;
     std::string query = "";
@@ -6491,6 +6491,7 @@ void ObjectMgr::GenerateZoneAndAreaIds()
     {
         CreatureData const& creature = data.second;
         uint32 zoneId, areaId;
+        int32 wmoGroupId = 0;
         TerrainInfo* info = sTerrainMgr.LoadTerrain(creature.mapid);
         MMAP::MMapFactory::createOrGetMMapManager()->loadMapInstance(sWorld.GetDataPath(), creature.mapid, 0);
         CellPair p = MaNGOS::ComputeCellPair(creature.posX, creature.posY);
@@ -6499,9 +6500,9 @@ void ObjectMgr::GenerateZoneAndAreaIds()
         int gx = (MAX_NUMBER_OF_GRIDS - 1) - gp.x_coord;
         int gy = (MAX_NUMBER_OF_GRIDS - 1) - gp.y_coord;
         info->LoadMapAndVMap(gx, gy);
-        info->GetZoneAndAreaId(zoneId, areaId, creature.posX, creature.posY, creature.posZ);
+        info->GetZoneAndAreaId(zoneId, areaId, creature.posX, creature.posY, creature.posZ, &wmoGroupId);
 
-        query += "(" + std::to_string(data.first) + "," + std::to_string(zoneId) + "," + std::to_string(areaId) + "),";
+        query += "(" + std::to_string(data.first) + "," + std::to_string(zoneId) + "," + std::to_string(areaId) + "," + std::to_string(wmoGroupId) + "),";
         ++i; ++total;
         if (i >= 100)
         {
@@ -6513,11 +6514,12 @@ void ObjectMgr::GenerateZoneAndAreaIds()
         }
     }
 
-    std::string baseGo = "INSERT INTO gameobject_zone(Guid, ZoneId, AreaId) VALUES";
+    std::string baseGo = "INSERT INTO gameobject_zone(Guid, ZoneId, AreaId, WmoGroupId) VALUES";
     for (auto& data : mGameObjectDataMap)
     {
         GameObjectData const& go = data.second;
         uint32 zoneId, areaId;
+        int32 wmoGroupId = 0;
         TerrainInfo* info = sTerrainMgr.LoadTerrain(go.mapid);
         MMAP::MMapFactory::createOrGetMMapManager()->loadMapInstance(sWorld.GetDataPath(), go.mapid, 0);
         CellPair p = MaNGOS::ComputeCellPair(go.posX, go.posY);
@@ -6526,9 +6528,9 @@ void ObjectMgr::GenerateZoneAndAreaIds()
         int gx = (MAX_NUMBER_OF_GRIDS - 1) - gp.x_coord;
         int gy = (MAX_NUMBER_OF_GRIDS - 1) - gp.y_coord;
         info->LoadMapAndVMap(gx, gy);
-        info->GetZoneAndAreaId(zoneId, areaId, go.posX, go.posY, go.posZ + 1);
+        info->GetZoneAndAreaId(zoneId, areaId, go.posX, go.posY, go.posZ + 1, &wmoGroupId);
 
-        query += "(" + std::to_string(data.first) + "," + std::to_string(zoneId) + "," + std::to_string(areaId) + "),";
+        query += "(" + std::to_string(data.first) + "," + std::to_string(zoneId) + "," + std::to_string(areaId) + "," + std::to_string(wmoGroupId) + "),";
         ++i; ++total;
         if (i >= 100)
         {
@@ -7325,8 +7327,11 @@ void ObjectMgr::LoadGameObjectLocales()
 
     auto queryResult = WorldDatabase.Query("SELECT entry,"
                           "name_loc1,name_loc2,name_loc3,name_loc4,name_loc5,name_loc6,name_loc7,name_loc8,"
-                          "castbarcaption_loc1,castbarcaption_loc2,castbarcaption_loc3,castbarcaption_loc4,"
-                          "castbarcaption_loc5,castbarcaption_loc6,castbarcaption_loc7,castbarcaption_loc8 FROM locales_gameobject");
+                          "opening_text_loc1,opening_text_loc2,opening_text_loc3,opening_text_loc4,"
+                          "opening_text_loc5,opening_text_loc6,opening_text_loc7,opening_text_loc8,"
+                          "closing_text_loc1,closing_text_loc2,closing_text_loc3,closing_text_loc4,"
+                          "closing_text_loc5,closing_text_loc6,closing_text_loc7,closing_text_loc8 "
+                          "FROM locales_gameobject");
 
     if (!queryResult)
     {
@@ -7355,32 +7360,60 @@ void ObjectMgr::LoadGameObjectLocales()
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[i].GetCppString();
-            if (!str.empty())
+            auto& field = fields[i];
+            if (!field.IsNULL())
             {
-                int idx = GetOrNewStorageLocaleIndexFor(LocaleConstant(i));
-                if (idx >= 0)
+                std::string str = field.GetCppString();
+                if (!str.empty())
                 {
-                    if ((int32)data.Name.size() <= idx)
-                        data.Name.resize(idx + 1);
+                    int idx = GetOrNewStorageLocaleIndexFor(LocaleConstant(i));
+                    if (idx >= 0)
+                    {
+                        if ((int32)data.Name.size() <= idx)
+                            data.Name.resize(idx + 1);
 
-                    data.Name[idx] = str;
+                        data.Name[idx] = str;
+                    }
                 }
             }
         }
 
         for (int i = 1; i < MAX_LOCALE; ++i)
         {
-            std::string str = fields[i + (MAX_LOCALE - 1)].GetCppString();
-            if (!str.empty())
+            auto& field = fields[i + (MAX_LOCALE - 1)];
+            if (!field.IsNULL())
             {
-                int idx = GetOrNewStorageLocaleIndexFor(LocaleConstant(i));
-                if (idx >= 0)
+                std::string str = field.GetCppString();
+                if (!str.empty())
                 {
-                    if ((int32)data.CastBarCaption.size() <= idx)
-                        data.CastBarCaption.resize(idx + 1);
+                    int idx = GetOrNewStorageLocaleIndexFor(LocaleConstant(i));
+                    if (idx >= 0)
+                    {
+                        if ((int32)data.OpeningText.size() <= idx)
+                            data.OpeningText.resize(idx + 1);
 
-                    data.CastBarCaption[idx] = str;
+                        data.OpeningText[idx] = str;
+                    }
+                }
+            }
+        }
+
+        for (int i = 1; i < MAX_LOCALE; ++i)
+        {
+            auto& field = fields[i + (MAX_LOCALE - 1) * 2];
+            if (!field.IsNULL())
+            {
+                std::string str = field.GetCppString();
+                if (!str.empty())
+                {
+                    int idx = GetOrNewStorageLocaleIndexFor(LocaleConstant(i));
+                    if (idx >= 0)
+                    {
+                        if ((int32)data.ClosingText.size() <= idx)
+                            data.ClosingText.resize(idx + 1);
+
+                        data.ClosingText[idx] = str;
+                    }
                 }
             }
         }
@@ -9469,32 +9502,26 @@ void ObjectMgr::LoadTrainers(char const* tableName, bool isTemplates)
         trainerSpell.isProvidedReqLevel = trainerSpell.reqLevel > 0;
 
         // By default, lets assume the specified spell is the one we want to teach the player...
-        trainerSpell.learnedSpell = spell;
+        trainerSpell.learnedSpell.push_back(spell);
         // ...but first, lets inspect this spell...
         for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
         {
             if (spellinfo->Effect[i] == SPELL_EFFECT_LEARN_SPELL && spellinfo->EffectTriggerSpell[i])
-            {
-                switch (spellinfo->EffectImplicitTargetA[i])
-                {
-                    case TARGET_NONE:
-                    case TARGET_UNIT_CASTER:
-                        // ...looks like the specified spell is actually a trainer's spell casted on a player to teach another spell
-                        // Trainer's spells can teach more than one spell (up to number of effects), but we will stick to the first one
-                        // Self-casts listed in trainer's lists usually come from recipes which were made trainable in a later patch
-                        trainerSpell.learnedSpell = spellinfo->EffectTriggerSpell[i];
-                        break;
-                }
-            }
+                trainerSpell.learnedSpell.push_back(spellinfo->EffectTriggerSpell[i]);
         }
 
-        if (trainerSpell.reqLevel)
+        for (auto& learnedSpell : trainerSpell.learnedSpell)
         {
-            if (trainerSpell.reqLevel == spellinfo->spellLevel)
-                ERROR_DB_STRICT_LOG("Table `%s` (Entry: %u) has redundant reqlevel %u (=spell level) for spell %u", tableName, entry, trainerSpell.reqLevel, spell);
+            // already checked as valid spell so exist.
+            SpellEntry const* learnSpellinfo = sSpellTemplate.LookupEntry<SpellEntry>(learnedSpell);
+            if (trainerSpell.reqLevel)
+            {
+                if (trainerSpell.reqLevel == learnSpellinfo->spellLevel)
+                    ERROR_DB_STRICT_LOG("Table `%s` (Entry: %u) has redundant reqlevel %u (=spell level) for spell %u", tableName, entry, trainerSpell.reqLevel, spell);
+            }
+            else
+                trainerSpell.reqLevel = learnSpellinfo->spellLevel;
         }
-        else
-            trainerSpell.reqLevel = spellinfo->spellLevel;
 
         if (trainerSpell.conditionId)
         {
@@ -9645,6 +9672,39 @@ void ObjectMgr::LoadVendorTemplates()
 
     for (uint32 vendor_id : vendor_ids)
         sLog.outErrorDb("Table `npc_vendor_template` has vendor template %u not used by any vendors ", vendor_id);
+}
+
+void ObjectMgr::LoadVendors()
+{
+    LoadVendors("npc_vendor", false);
+
+    for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
+    {
+        if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        {
+            if (cInfo->VendorTemplateId)
+            {
+                auto itrVendorTemplate = m_mCacheVendorTemplateItemMap.find(cInfo->VendorTemplateId);
+                if (itrVendorTemplate == m_mCacheVendorTemplateItemMap.end())
+                    continue;
+
+                auto itrVendor = m_mCacheVendorItemMap.find(cInfo->Entry);
+                if (itrVendor == m_mCacheVendorItemMap.end())
+                    continue;
+
+                VendorItemData const& dataTemplate = itrVendorTemplate->second;
+                VendorItemData const& dataVendor = itrVendor->second;
+                for (auto& itemTemplate : dataTemplate.m_items)
+                {
+                    for (auto& itemVendor : dataVendor.m_items)
+                    {
+                        if (itemTemplate->item == itemVendor->item)
+                            sLog.outErrorDb("Creature (Entry: %u) has VendorTemplateId = %u that has same item in both npc_vendor and npc_vendor_template.", cInfo->Entry, cInfo->VendorTemplateId);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /* This function is supposed to take care of three things:
@@ -10357,7 +10417,7 @@ void ObjectMgr::LoadCreatureTemplateSpells(std::shared_ptr<CreatureSpellListCont
                 spell.ScriptId = 0;
                 spell.DisabledForAI = !spellInfo || spellInfo->HasAttribute(SPELL_ATTR_EX_NO_AUTOCAST_AI);
                 spells.emplace(i, spell);
-            }            
+            }
         } while (result->NextRow());
     }
 

@@ -148,7 +148,8 @@ struct npc_air_force_botsAI : public ScriptedAI
         if (pSummoned)
         {
             m_spawnedGuid = pSummoned->GetObjectGuid();
-            pSummoned->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 10.0f, FORCED_MOVEMENT_FLIGHT);
+            // sniffs point to per node individual scripting as the movers (15241,15242,22077,22122,22085,22089,21976) have different move heights at different locations, but mostly 15
+            pSummoned->GetMotionMaster()->MovePoint(1, m_creature->GetPositionX(), m_creature->GetPositionY(), m_creature->GetPositionZ() + 15.0f, FORCED_MOVEMENT_FLIGHT);
         }
 
         else
@@ -2288,6 +2289,7 @@ struct npc_imp_in_a_ball : public ScriptedAI
     }
 };
 
+// 5166 - Harvest Silithid Egg
 struct HarvestSilithidEgg : public SpellScript
 {
     void OnInit(Spell* spell) const override
@@ -2297,6 +2299,7 @@ struct HarvestSilithidEgg : public SpellScript
     }
 };
 
+// 40526 - Imp in a Bottle (say)
 struct ImpInABottleSay : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
@@ -2538,6 +2541,7 @@ struct GossipNPCAI : public ScriptedAI
     }
 };
 
+// 33228 - Gossip NPC Periodic Trigger - Fidget (Gossip NPC Periodic Trigger - Fidget)
 struct GossipNPCPeriodicTriggerFidget : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
@@ -2546,6 +2550,7 @@ struct GossipNPCPeriodicTriggerFidget : public SpellScript
     }
 };
 
+// 33208 - Gossip NPC Periodic - Talk
 struct GossipNPCPeriodicTalk : public AuraScript
 {
     void OnPeriodicDummy(Aura* aura) const override
@@ -2578,6 +2583,7 @@ uint32 GetRandomText(const std::vector<uint32> texts)
     return texts[urand(0, texts.size() - 1)];
 }
 
+// 33227 - Gossip NPC Periodic Trigger - Talk
 struct GossipNPCPeriodicTriggerTalk : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
@@ -2719,6 +2725,7 @@ struct GossipNPCPeriodicTriggerTalk : public SpellScript
     }
 };
 
+// 44186 - Gossip NPC Appearance - All, Brewfest
 struct GossipNPCAppearanceAllBrewfest : public AuraScript
 {
     void OnApply(Aura* aura, bool /*apply*/) const override
@@ -2743,6 +2750,7 @@ struct GossipNPCAppearanceAllBrewfest : public AuraScript
     }
 };
 
+// 48305 - Gossip NPC Appearance - All, Competition
 struct GossipNPCAppearanceAllSpiritOfCompetition : public AuraScript
 {
     uint32 GetAuraScriptCustomizationValue(Aura* aura) const override
@@ -2767,6 +2775,7 @@ struct GossipNPCAppearanceAllSpiritOfCompetition : public AuraScript
     }
 };
 
+// 50531 - Gossip NPC Appearance - All, Pirate Day
 struct GossipNPCAppearanceAllPirateDay : public AuraScript
 {
     uint32 GetAuraScriptCustomizationValue(Aura* aura) const override

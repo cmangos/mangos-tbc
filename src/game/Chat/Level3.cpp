@@ -182,6 +182,75 @@ bool ChatHandler::HandleAHBotItemCommand(char* args)
 }
 #endif
 
+#ifdef BUILD_VOICECHAT
+#include "VoiceChat/VoiceChatMgr.h"
+
+bool ChatHandler::HandleVoiceChatDisconnectCommand(char* args)
+{
+    if (!sVoiceChatMgr.CanUseVoiceChat())
+    {
+        PSendSysMessage("Voice Chat is disabled or Voice Chat server is not connected!");
+        return false;
+    }
+
+    sVoiceChatMgr.SocketDisconnected();
+    
+    int32 reconnectAttempts = sVoiceChatMgr.GetReconnectAttempts();
+    if (reconnectAttempts == 0)
+    {
+        PSendSysMessage("Voice Chat server disconnected!");
+    }
+    else if (reconnectAttempts < 0)
+    {
+        PSendSysMessage("Voice Chat server disconnected, reconnect enabled (infinite attempts)");
+    }
+    else if (reconnectAttempts > 0)
+    {
+        PSendSysMessage("Voice Chat server disconnected, reconnect enabled (%u attempts)", reconnectAttempts);
+    }
+    return true;
+}
+
+bool ChatHandler::HandleVoiceChatDisableCommand(char* args)
+{
+    if (!sVoiceChatMgr.IsEnabled())
+    {
+        PSendSysMessage("Voice Chat is already disabled");
+        return false;
+    }
+
+    sVoiceChatMgr.DisableVoiceChat();
+    PSendSysMessage("Voice Chat disabled!");
+    return true;
+}
+
+bool ChatHandler::HandleVoiceChatEnableCommand(char* args)
+{
+    if (sVoiceChatMgr.IsEnabled())
+    {
+        PSendSysMessage("Voice Chat is already enabled");
+        return false;
+    }
+
+    sVoiceChatMgr.EnableVoiceChat();
+    PSendSysMessage("Voice Chat enabled!");
+    return true;
+}
+
+bool ChatHandler::HandleVoiceChatStatsCommand(char* args)
+{
+    if (!sVoiceChatMgr.IsEnabled())
+    {
+        PSendSysMessage("Voice Chat is disabled");
+        return false;
+    }
+
+    VoiceChatStatistics stats = sVoiceChatMgr.GetStatistics();
+    PSendSysMessage("Voice Chat: channels: %u, active users: %u, voice chat enabled: %u, microphone enabled: %u", stats.channels, stats.active_users, stats.totalVoiceChatEnabled, stats.totalVoiceMicEnabled);
+    return true;
+}
+#endif
+
 // reload commands
 bool ChatHandler::HandleReloadAllCommand(char* /*args*/)
 {

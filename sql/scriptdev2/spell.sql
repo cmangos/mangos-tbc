@@ -846,7 +846,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (40470,'spell_paladin_tier_6_trinket'),
 (31789,'spell_righteous_defense'),
 (31893,'spell_seal_of_blood_self_damage'),
-(31898,'spell_seal_of_blood_self_damage'),
+(31898,'spell_judgement_of_blood_self_damage'),
 (20467,'spell_judgement_of_command'),
 (20963,'spell_judgement_of_command'),
 (20964,'spell_judgement_of_command'),

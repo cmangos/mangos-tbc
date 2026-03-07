@@ -225,17 +225,29 @@ struct RighteousDefense : public SpellScript
 enum
 {
     SPELL_SEAL_OF_BLOOD_DAMAGE              = 31893,
-    SPELL_JUDGEMENT_OF_BLOOD_SELF_DAMAGE    = 32220,
-    SPELL_SEAL_OF_BLOOD_SELF_DAMAGE         = 32221
+    SPELL_SEAL_OF_BLOOD_SELF_DAMAGE         = 32221,
+
+    SPELL_JUDGEMENT_OF_BLOOD                = 31898,
+    SPELL_JUDGEMENT_OF_BLOOD_SELF_DAMAGE    = 32220
 };
 
-// 31893 - Seal of Blood, 31898 - Judgement of Blood
+// 31893 - Seal of Blood
 struct SealOfBloodSelfDamage : public SpellScript
 {
     void OnAfterHit(Spell* spell) const override
     {
+        int32 damagePoint = spell->GetTotalTargetDamage() * 10 / 100;
+        spell->GetCaster()->CastCustomSpell(nullptr, SPELL_SEAL_OF_BLOOD_SELF_DAMAGE, &damagePoint, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
+// 31898 - Judgement of Blood
+struct JudgementOfBloodSelfDamage : public SpellScript
+{
+    void OnAfterHit(Spell* spell) const override
+    {
         int32 damagePoint = spell->GetTotalTargetDamage() * 33 / 100;
-        spell->GetCaster()->CastCustomSpell(nullptr, (spell->m_spellInfo->Id == SPELL_SEAL_OF_BLOOD_DAMAGE ? SPELL_SEAL_OF_BLOOD_SELF_DAMAGE : SPELL_JUDGEMENT_OF_BLOOD_SELF_DAMAGE), &damagePoint, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
+        spell->GetCaster()->CastCustomSpell(nullptr, SPELL_JUDGEMENT_OF_BLOOD_SELF_DAMAGE, &damagePoint, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED);
     }
 };
 
@@ -294,6 +306,7 @@ void LoadPaladinScripts()
     RegisterSpellScript<RighteousDefense>("spell_righteous_defense");
     RegisterSpellScript<SealOfTheCrusader>("spell_seal_of_the_crusader");
     RegisterSpellScript<SealOfBloodSelfDamage>("spell_seal_of_blood_self_damage");
+    RegisterSpellScript<JudgementOfBloodSelfDamage>("spell_judgement_of_blood_self_damage");
     RegisterSpellScript<PaladinTier6Trinket>("spell_paladin_tier_6_trinket");
     RegisterSpellScript<BlessingOfLight>("spell_blessing_of_light");
     RegisterSpellScript<JudgementOfCommand>("spell_judgement_of_command");

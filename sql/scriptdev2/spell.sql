@@ -838,10 +838,12 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (5373,'spell_judgement_of_light_intermediate'),
 (1826,'spell_judgement_of_wisdom_intermediate'),
 (19752,'spell_divine_intervention'),
-(19977,'spell_blessing_of_light'),
+(19977,'spell_blessing_of_light'), -- Blessing of Light
 (19978,'spell_blessing_of_light'),
 (19979,'spell_blessing_of_light'),
 (27144,'spell_blessing_of_light'),
+(25890,'spell_blessing_of_light'), -- Greater Blessing of Light
+(27145,'spell_blessing_of_light'),
 (20271,'spell_judgement'),
 (40470,'spell_paladin_tier_6_trinket'),
 (31789,'spell_righteous_defense'),

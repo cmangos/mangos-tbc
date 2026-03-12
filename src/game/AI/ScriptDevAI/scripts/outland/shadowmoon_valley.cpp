@@ -5324,6 +5324,7 @@ UnitAI* GetAI_npc_bt_battle_sensor(Creature* pCreature)
     return new npc_bt_battle_sensor(pCreature);
 }
 
+// 37851 - Tag Greater Felfire Diemetradon
 struct TagGreaterFelfireDiemetradon : public SpellScript, public AuraScript
 {
     SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
@@ -5343,7 +5344,7 @@ struct TagGreaterFelfireDiemetradon : public SpellScript, public AuraScript
 
     void OnApply(Aura* aura, bool apply) const override
     {
-        if (apply)
+        if (!apply)
             static_cast<Creature*>(aura->GetTarget())->UnregisterHitBySpell(aura->GetSpellProto()->Id);
     }
 };

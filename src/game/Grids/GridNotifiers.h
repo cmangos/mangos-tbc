@@ -958,7 +958,8 @@ namespace MaNGOS
             Unit const& GetFocusObject() const { return *i_obj; }
             bool operator()(Unit* u)
             {
-                return u->IsAlive() && u->IsInCombat() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && !(u->HasAura(i_spell, EFFECT_INDEX_0) || u->HasAura(i_spell, EFFECT_INDEX_1) || u->HasAura(i_spell, EFFECT_INDEX_2));
+                return u->IsAlive() && u->IsInCombat() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && !(u->HasAura(i_spell, EFFECT_INDEX_0) || u->HasAura(i_spell, EFFECT_INDEX_1) || u->HasAura(i_spell, EFFECT_INDEX_2))
+                    && (i_spawnGroupId == 0 || (u->IsCreature() && static_cast<Creature*>(u)->GetCreatureGroup() && static_cast<Creature*>(u)->GetCreatureGroup()->GetGroupId() == i_spawnGroupId));;
             }
         private:
             Unit const* i_obj;
@@ -969,19 +970,19 @@ namespace MaNGOS
 
     class FriendlyMissingBuffInRangeNotInCombatCheck
     {
-    public:
-        FriendlyMissingBuffInRangeNotInCombatCheck(Unit const* obj, float range, uint32 spellid, uint32 spawnGroupId) : i_obj(obj), i_range(range), i_spell(spellid), i_spawnGroupId(spawnGroupId) {}
-        Unit const& GetFocusObject() const { return *i_obj; }
-        bool operator()(Unit* u)
-        {
-            return u->IsAlive() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && !(u->HasAura(i_spell, EFFECT_INDEX_0) || u->HasAura(i_spell, EFFECT_INDEX_1) || u->HasAura(i_spell, EFFECT_INDEX_2))
-                && (i_spawnGroupId == 0 || (u->IsCreature() && static_cast<Creature*>(u)->GetCreatureGroup() && static_cast<Creature*>(u)->GetCreatureGroup()->GetGroupId() == i_spawnGroupId));
-        }
-    private:
-        Unit const* i_obj;
-        float i_range;
-        uint32 i_spell;
-        uint32 i_spawnGroupId;
+        public:
+            FriendlyMissingBuffInRangeNotInCombatCheck(Unit const* obj, float range, uint32 spellid, uint32 spawnGroupId) : i_obj(obj), i_range(range), i_spell(spellid), i_spawnGroupId(spawnGroupId) {}
+            Unit const& GetFocusObject() const { return *i_obj; }
+            bool operator()(Unit* u)
+            {
+                return u->IsAlive() && i_obj->CanAssist(u) && i_obj->IsWithinDistInMap(u, i_range) && !(u->HasAura(i_spell, EFFECT_INDEX_0) || u->HasAura(i_spell, EFFECT_INDEX_1) || u->HasAura(i_spell, EFFECT_INDEX_2))
+                    && (i_spawnGroupId == 0 || (u->IsCreature() && static_cast<Creature*>(u)->GetCreatureGroup() && static_cast<Creature*>(u)->GetCreatureGroup()->GetGroupId() == i_spawnGroupId));
+            }
+        private:
+            Unit const* i_obj;
+            float i_range;
+            uint32 i_spell;
+            uint32 i_spawnGroupId;
     };
 
     class AnyUnfriendlyUnitInObjectRangeCheck

@@ -738,7 +738,7 @@ CreatureList UnitAI::DoFindFriendlyEligibleDispel(SpellEntry const* spellInfo, b
 
 CreatureList UnitAI::DoFindFriendlyMissingBuff(float /*range*/, uint32 spellId, bool inCombat, bool self, uint32 spawnGroupId) const
 {
-    return DoFindFriendlyMissingBuff(sSpellTemplate.LookupEntry<SpellEntry>(spellId), inCombat, self);
+    return DoFindFriendlyMissingBuff(sSpellTemplate.LookupEntry<SpellEntry>(spellId), inCombat, self, spawnGroupId);
 }
 
 CreatureList UnitAI::DoFindFriendlyMissingBuff(SpellEntry const* spellInfo, bool inCombat, bool self, uint32 spawnGroupId) const

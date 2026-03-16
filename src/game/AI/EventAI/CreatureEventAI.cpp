@@ -456,7 +456,7 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
                 if (!m_creature->IsInCombat())
                     return false;
                 
-                pList = DoFindFriendlyMissingBuff((float)event.friendly_buff.radius, event.friendly_buff.spellId, false, true, spawnGroupId);
+                pList = DoFindFriendlyMissingBuff((float)event.friendly_buff.radius, event.friendly_buff.spellId, true, true, spawnGroupId);
             }
             else if ((event.friendly_buff.flags & 0x1) != 0)
                 pList = DoFindFriendlyMissingBuff((float)event.friendly_buff.radius, event.friendly_buff.spellId, m_creature->IsInCombat(), spawnGroupId);
@@ -465,7 +465,7 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
                 if (m_creature->IsInCombat())
                     return false;
                                 
-                pList = DoFindFriendlyMissingBuff((float)event.friendly_buff.radius, event.friendly_buff.spellId, true, true, spawnGroupId);
+                pList = DoFindFriendlyMissingBuff((float)event.friendly_buff.radius, event.friendly_buff.spellId, false, true, spawnGroupId);
             }            
 
             // List is empty

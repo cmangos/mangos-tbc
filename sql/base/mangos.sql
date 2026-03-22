@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2487_01_mangos_dbscript_breaking_change` bit(1) DEFAULT NULL
+  `required_s2488_01_mangos_cls_rework` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -1362,7 +1362,7 @@ CREATE TABLE `creature_template` (
   `HealthMultiplier` float NOT NULL DEFAULT '1',
   `PowerMultiplier` float NOT NULL DEFAULT '1',
   `DamageMultiplier` float NOT NULL DEFAULT '1',
-  `DamageVariance` float NOT NULL DEFAULT '1',
+  `DamageVariance` float NOT NULL DEFAULT '0.4',
   `ArmorMultiplier` float NOT NULL DEFAULT '1',
   `ExperienceMultiplier` float NOT NULL DEFAULT '1',
   `StrengthMultiplier` float NOT NULL DEFAULT '1',
@@ -1417,6 +1417,8 @@ CREATE TABLE `creature_template` (
   `StringId2` INT(11) UNSIGNED NOT NULL DEFAULT '0',
   `AIName` char(64) NOT NULL DEFAULT '',
   `ScriptName` char(64) NOT NULL DEFAULT '',
+  `DamageMultiplierOLD` float NOT NULL DEFAULT '1',
+  `DamageVarianceOLD` float NOT NULL DEFAULT '1',
   PRIMARY KEY (`entry`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Creature System';
 

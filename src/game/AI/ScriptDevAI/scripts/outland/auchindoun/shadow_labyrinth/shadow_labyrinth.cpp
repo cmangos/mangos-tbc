@@ -193,8 +193,6 @@ void instance_shadow_labyrinth::OnCreatureGroupDespawn(CreatureGroup* group, Cre
         case SL_BLACKHEAT_GROUP_08:
         case SL_BLACKHEAT_GROUP_09:
         case SL_BLACKHEAT_GROUP_10:
-        case SL_BLACKHEAT_GROUP_11:
-        case SL_BLACKHEAT_GROUP_12:
         {
             switch (urand(0, 5))
             {

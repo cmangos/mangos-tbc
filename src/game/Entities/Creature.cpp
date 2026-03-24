@@ -1375,7 +1375,7 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
             auto oldMainMinDmg = ((cCLS->BaseDamageOLD * cinfo->DamageVarianceOLD) + (cCLS->BaseMeleeAttackPower / 14.0f)) * (cinfo->MeleeBaseAttackTime / 1000.0f) * damageMultiOLD;
             auto oldMainMaxDmg = ((cCLS->BaseDamageOLD * cinfo->DamageVarianceOLD * 1.5f) + (cCLS->BaseMeleeAttackPower / 14.0f)) * (cinfo->MeleeBaseAttackTime / 1000.0f) * damageMultiOLD;
 
-            printf("CLS DIFF OLD %f NEW %f\n", (oldMainMinDmg + oldMainMaxDmg) / 2, (mainMinDmg + mainMaxDmg) / 2);
+            // printf("CLS DIFF OLD %f NEW %f\n", (oldMainMinDmg + oldMainMaxDmg) / 2, (mainMinDmg + mainMaxDmg) / 2);
 
             // attack power (not sure about the next line)
             meleeAttackPwr = cCLS->BaseMeleeAttackPower;

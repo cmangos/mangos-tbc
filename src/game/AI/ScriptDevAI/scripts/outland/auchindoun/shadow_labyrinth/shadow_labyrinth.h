@@ -48,8 +48,8 @@ enum
 
     SL_SPAWN_GROUP_043      = 5550048,                      // SpawnGroup that stops respawning of first runner
     SL_SPAWN_GROUP_044      = 5550049,                      // SpawnGroup that stops respawning of 2nd runner
-    SL_SPAWN_GROUP_045      = 5550050,                      // SpawnGroup that stops respawning of third runner
-    SL_SPAWN_GROUP_046      = 5550051,                      // SpawnGroup that stops respawning of third runner
+    SL_SPAWN_GROUP_045      = 5550050,                      // SpawnGroup that stops respawning of 3rd runner
+    SL_SPAWN_GROUP_046      = 5550051,                      // SpawnGroup that stops respawning of 4th runner
 };
 
 const std::string MURMURS_WRATH_TARGETS_01 = "SL_MURMUR_WRATH_TARGET_01";

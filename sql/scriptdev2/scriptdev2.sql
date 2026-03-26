@@ -3364,11 +3364,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 
 -- -1 532 000 KARAZHAN
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
-('-1532000','Well done, Midnight!','9173','1','0','0','15334','attumen SAY_MIDNIGHT_KILL'),
-('-1532001','Cowards! Wretches!','9167','1','0','0','13459','attumen SAY_APPEAR1'),
-('-1532002','Who dares attack the steed of the Huntsman?','9298','1','0','0','15378','attumen SAY_APPEAR2'),
-('-1532003','Perhaps you would rather test yourselves against a more formidable opponent?!','9299','1','0','0','15379','attumen SAY_APPEAR3'),
-('-1532004','Come Midnight, let''s disperse this petty rabble!','9168','1','0','0','13456','attumen SAY_MOUNT'),
 ('-1532005','It was... inevitable.','9169','1','0','0','13460','attumen SAY_KILL1'),
 ('-1532006','Another trophy to add to my collection!','9300','1','0','0','15333','attumen SAY_KILL2'),
 ('-1532007','Weapons are merely a convenience for a warrior of my skill!','9166','1','0','0','13490','attumen SAY_DISARMED'),

@@ -28,24 +28,27 @@ EndScriptData */
 
 enum
 {
-    SAY_MIDNIGHT_KILL            = -1532000,
-    SAY_APPEAR_1                 = -1532001,
-    SAY_APPEAR_2                 = -1532002,
-    SAY_APPEAR_3                 = -1532003,
-    SAY_MOUNT                    = -1532004,
+    SAY_MIDNIGHT_KILL            = 15334,
+    SAY_APPEAR_1                 = 13459,
+    SAY_APPEAR_2                 = 15378,
+    SAY_APPEAR_3                 = 15379,
+    SAY_MOUNT                    = 13456,
     SAY_KILL_1                   = 13460,
     SAY_KILL_2                   = 15333,
     SAY_DISARMED                 = -1532007,
     SAY_DEATH                    = -1532008,
     SAY_RANDOM_1                 = -1532009,
     SAY_RANDOM_2                 = -1532010,
-    SAY_MIDNIGHT_CALL            = -1532137,
+    SAY_MIDNIGHT_CALL            = 13439,
 
     // Midnight					 
     SPELL_MOUNT                  = 29770,
     SPELL_KNOCKDOWN              = 29711,
     SPELL_SUMMON_ATTUMEN         = 29714,
     SPELL_SUMMON_ATTUMEN_MOUNTED = 29799,
+
+    SPELL_SET_PHASE_1            = 1615101,
+    SPELL_SET_PHASE_2            = 1615102,
 
     // Attumen
     SPELL_SHADOWCLEAVE          = 29832,
@@ -62,19 +65,13 @@ enum
 
 enum MidnightActions
 {
-    MIDNIGHT_PHASE_2,
-    MIDNIGHT_PHASE_3,
-    MIDNIGHT_ACTION_KNOCKDOWN,
     MIDNIGHT_ACTION_MAX,
 };
 
 struct boss_midnightAI : public CombatAI
 {
     boss_midnightAI(Creature* creature) : CombatAI(creature, MIDNIGHT_ACTION_MAX), m_instance(static_cast<instance_karazhan*>(creature->GetInstanceData()))
-    {
-        AddTimerlessCombatAction(MIDNIGHT_PHASE_2, true);
-        AddTimerlessCombatAction(MIDNIGHT_PHASE_3, true);
-        AddCombatAction(MIDNIGHT_ACTION_KNOCKDOWN, 6000, 9000);
+    {        
         SetDeathPrevention(true);
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
         {
@@ -83,52 +80,15 @@ struct boss_midnightAI : public CombatAI
     }
 
     instance_karazhan* m_instance;
+    bool m_Phase2 = false;
 
     void Reset() override
     {
         CombatAI::Reset();
         SetCombatScriptStatus(false);
         SetCombatMovement(true);
-    }
-
-    uint32 GetSubsequentActionTimer(uint32 id)
-    {
-        switch (id)
-        {
-            case MIDNIGHT_ACTION_KNOCKDOWN: return urand(25000, 35000);
-            default: return 0; // never occurs but for compiler
-        }
-    }
-
-    void ExecuteAction(uint32 action) override
-    {
-        switch (action)
-        {
-            case MIDNIGHT_PHASE_2:
-            {
-                // Spawn Attumen on 95% hp
-                if (m_creature->GetHealthPercent() < 95.0f)
-                {
-                    if (DoCastSpellIfCan(nullptr, SPELL_SUMMON_ATTUMEN) == CAST_OK)
-                        SetActionReadyStatus(action, false);
-                }
-                break;
-            }
-            case MIDNIGHT_PHASE_3:
-            {
-                // Spawn Attumen mounted at 25%
-                if (m_creature->GetHealthPercent() < 25.0f)
-                {
-                    if (DoCastSpellIfCan(nullptr, SPELL_MOUNT, CAST_TRIGGERED) == CAST_OK)
-                        SetActionReadyStatus(action, false);
-                }
-                break;
-            }
-            case MIDNIGHT_ACTION_KNOCKDOWN:
-                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_KNOCKDOWN);
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
-                break;
-        }
+        m_Phase2 = false;
+        m_creature->SetSpellList(m_creature->GetCreatureInfo()->SpellList);
     }
 
     void EnterEvadeMode() override
@@ -151,10 +111,10 @@ struct boss_midnightAI : public CombatAI
 
     void KilledUnit(Unit* /*victim*/) override
     {
-        if (GetActionReadyStatus(MIDNIGHT_PHASE_3) && m_instance)
+        if (m_Phase2 && m_instance)
         {
             if (Creature* pAttumen = m_instance->GetSingleCreatureFromStorage(NPC_ATTUMEN))
-                DoScriptText(SAY_MIDNIGHT_KILL, pAttumen);
+                DoBroadcastText(SAY_MIDNIGHT_KILL, pAttumen);
         }
     }
 
@@ -171,15 +131,17 @@ struct boss_midnightAI : public CombatAI
 
         if (summoned->GetEntry() == NPC_ATTUMEN)
         {
-            DoScriptText(SAY_MIDNIGHT_CALL, m_creature);
+            m_creature->SetSpellList(SPELL_SET_PHASE_2);
+            m_Phase2 = true;
+            DoBroadcastText(SAY_MIDNIGHT_CALL, m_creature);
             // Smoke effect
             summoned->CastSpell(summoned, SPELL_SPAWN_SMOKE_2, TRIGGERED_NONE);
             // Attumen yells when spawned
             switch (urand(0, 2))
             {
-                case 0: DoScriptText(SAY_APPEAR_1, summoned); break;
-                case 1: DoScriptText(SAY_APPEAR_2, summoned); break;
-                case 2: DoScriptText(SAY_APPEAR_3, summoned); break;
+                case 0: DoBroadcastText(SAY_APPEAR_1, summoned); break;
+                case 1: DoBroadcastText(SAY_APPEAR_2, summoned); break;
+                case 2: DoBroadcastText(SAY_APPEAR_3, summoned); break;
             }
         }  
     }
@@ -207,10 +169,10 @@ struct boss_midnightAI : public CombatAI
         {
             SetCombatScriptStatus(true);
             SetCombatMovement(false);
-            SetActionReadyStatus(MIDNIGHT_PHASE_3, false);
+            m_Phase2 = false;
             m_creature->GetMotionMaster()->MovePoint(1, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ());
 
-            DoScriptText(SAY_MOUNT, target, m_creature);
+            DoBroadcastText(SAY_MOUNT, target, m_creature);
         }
     }
 };

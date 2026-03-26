@@ -317,6 +317,7 @@ class Pet : public Creature
         PetModeFlags m_petModeFlags;
         CharmInfo*   m_originalCharminfo;
         bool m_inStatsUpdate;
+        bool m_scaleWithCls;
 
         void SaveToDB(uint32, uint8) override               // overwrited of Creature::SaveToDB     - don't must be called
         {

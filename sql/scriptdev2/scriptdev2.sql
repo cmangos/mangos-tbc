@@ -3364,13 +3364,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 
 -- -1 532 000 KARAZHAN
 INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadcast_text_id,comment) VALUES
-('-1532005','It was... inevitable.','9169','1','0','0','13460','attumen SAY_KILL1'),
-('-1532006','Another trophy to add to my collection!','9300','1','0','0','15333','attumen SAY_KILL2'),
-('-1532007','Weapons are merely a convenience for a warrior of my skill!','9166','1','0','0','13490','attumen SAY_DISARMED'),
-('-1532008','Always knew... someday I would become... the hunted.','9165','1','0','0','13462','attumen SAY_DEATH'),
-('-1532009','Such easy sport.','9170','1','0','0','0','attumen SAY_RANDOM1'),
-('-1532010','Amateurs! Do not think you can best me! I kill for a living.','9304','1','0','0','0','attumen SAY_RANDOM2'),
-
 ('-1532011','Hm, unannounced visitors. Preparations must be made...','9211','1','0','0','15021','moroes SAY_AGGRO'),
 ('-1532012','Now, where was I? Oh, yes...','9215','1','0','0','15339','moroes SAY_SPECIAL_1'),
 ('-1532013','You rang?','9316','1','0','0','15340','moroes SAY_SPECIAL_2'),

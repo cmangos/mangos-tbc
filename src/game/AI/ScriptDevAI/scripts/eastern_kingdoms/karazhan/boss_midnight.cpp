@@ -35,10 +35,8 @@ enum
     SAY_MOUNT                    = 13456,
     SAY_KILL_1                   = 13460,
     SAY_KILL_2                   = 15333,
-    SAY_DISARMED                 = -1532007,
-    SAY_DEATH                    = -1532008,
-    SAY_RANDOM_1                 = -1532009,
-    SAY_RANDOM_2                 = -1532010,
+    SAY_DISARMED                 = 13490,
+    SAY_DEATH                    = 13462,
     SAY_MIDNIGHT_CALL            = 13439,
 
     // Midnight					 
@@ -180,11 +178,6 @@ struct boss_midnightAI : public CombatAI
 enum AttumenActions
 {
     ATTUMEN_MOUNT,
-    ATTUMEN_ACTION_CLEAVE,
-    ATTUMEN_ACTION_CURSE,
-    ATTUMEN_ACTION_YELL,
-    ATTUMEN_ACTION_KNOCKDOWN,
-    ATTUMEN_ACTION_CHARGE, // only when mounted
     ATTUMEN_ACTION_MAX,
     ATTUMEN_ATTACK_DELAY
 };
@@ -194,19 +187,15 @@ struct boss_attumenAI : public CombatAI
     boss_attumenAI(Creature* creature) : CombatAI(creature, ATTUMEN_ACTION_MAX), m_instance(static_cast<instance_karazhan*>(creature->GetInstanceData()))
     {
         if (m_creature->GetEntry() != NPC_ATTUMEN_MOUNTED)
+        {
+            SetDeathPrevention(true);
             AddTimerlessCombatAction(ATTUMEN_MOUNT, true);
-        AddCombatAction(ATTUMEN_ACTION_CLEAVE, 10000, 16000);
-        AddCombatAction(ATTUMEN_ACTION_CURSE, 30000u);
-        AddCombatAction(ATTUMEN_ACTION_YELL, 30000, 60000);
-        AddCombatAction(ATTUMEN_ACTION_KNOCKDOWN, 6000, 9000);
+        }
         if (m_creature->GetEntry() == NPC_ATTUMEN_MOUNTED)
         {
             SetReactState(REACT_PASSIVE);
             AddCustomAction(ATTUMEN_ATTACK_DELAY, 2000u, [&]() { HandleAttackDelay(); });
-            AddCombatAction(ATTUMEN_ACTION_CHARGE, 20000u);
-        }
-        if (m_creature->GetEntry() != NPC_ATTUMEN_MOUNTED)
-            SetDeathPrevention(true);
+        }            
 
         m_creature->GetCombatManager().SetLeashingCheck([&](Unit*, float x, float y, float z)
         {
@@ -217,19 +206,6 @@ struct boss_attumenAI : public CombatAI
     }
 
     instance_karazhan* m_instance;
-
-    uint32 GetSubsequentActionTimer(uint32 id)
-    {
-        switch (id)
-        {
-            case ATTUMEN_ACTION_CLEAVE: return urand(22000, 30000);
-            case ATTUMEN_ACTION_CURSE: return 30000;
-            case ATTUMEN_ACTION_YELL: return urand(30000, 60000);
-            case ATTUMEN_ACTION_KNOCKDOWN: return urand(22000, 30000);
-            case ATTUMEN_ACTION_CHARGE: return urand(12000, 20000);
-            default: return 0; // never occurs but for compiler
-        }
-    }
 
     void ExecuteAction(uint32 action) override
     {
@@ -246,40 +222,6 @@ struct boss_attumenAI : public CombatAI
                     SetActionReadyStatus(action, false);
                 }
                 break;
-            }
-            case ATTUMEN_ACTION_CLEAVE:
-            {
-                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHADOWCLEAVE);
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case ATTUMEN_ACTION_CURSE:
-            {
-                DoCastSpellIfCan(m_creature, SPELL_INTANGIBLE_PRESENCE);
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case ATTUMEN_ACTION_YELL:
-            {
-                DoScriptText(urand(0, 1) ? SAY_RANDOM_1 : SAY_RANDOM_2, m_creature);
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case ATTUMEN_ACTION_KNOCKDOWN:
-            {
-                // Cast knockdown when mounted, otherwise uppercut
-                DoCastSpellIfCan(m_creature->GetVictim(), m_creature->GetEntry() == NPC_ATTUMEN_MOUNTED ? SPELL_KNOCKDOWN : SPELL_UPPERCUT);
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case ATTUMEN_ACTION_CHARGE:
-            {
-                // Sanity check - If creature is mounted then cast charge
-                if (m_creature->GetEntry() == NPC_ATTUMEN_MOUNTED)
-                    if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_CHARGE, SELECT_FLAG_IN_LOS | SELECT_FLAG_PLAYER))
-                        if (DoCastSpellIfCan(target, SPELL_CHARGE) == CAST_OK)
-                            ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
             }
         }
     }
@@ -299,12 +241,12 @@ struct boss_attumenAI : public CombatAI
     void SpellHit(Unit* /*source*/, const SpellEntry* spellInfo) override
     {
         if (spellInfo->Mechanic == MECHANIC_DISARM)
-            DoScriptText(SAY_DISARMED, m_creature);
+            DoBroadcastText(SAY_DISARMED, m_creature);
     }
 
     void JustDied(Unit* /*victim*/) override
     {
-        DoScriptText(SAY_DEATH, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
 
         if (m_instance)
             m_instance->SetData(TYPE_ATTUMEN, DONE);

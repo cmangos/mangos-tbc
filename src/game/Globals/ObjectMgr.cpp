@@ -926,9 +926,9 @@ void ObjectMgr::LoadCreatureClassLvlStats()
             cCLS.Intellect                  = intellect;
             cCLS.Spirit                     = spirit;
 
-            cCLS.BaseHealth = fields[11 + (i * 2)].GetUInt32();
-            cCLS.BaseDamage = fields[12 + (i * 2)].GetFloat();
-            cCLS.BaseDamageOLD = fields[13 + (i * 2)].GetFloat();
+            cCLS.BaseHealth = fields[11 + (i * 3)].GetUInt32();
+            cCLS.BaseDamage = fields[12 + (i * 3)].GetFloat();
+            cCLS.BaseDamageOLD = fields[13 + (i * 3)].GetFloat();
 
             // should ensure old data does not need change (not wanting to recalculate to avoid losing data)
             // if any mistake is made, it will be in these formulae that make asumptions about the new calculations

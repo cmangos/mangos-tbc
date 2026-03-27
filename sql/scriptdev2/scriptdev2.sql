@@ -3393,15 +3393,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1532030','You didn''t have to go and do that!','9229','1','0','0','15133','roar SAY_ROAR_DEATH'),
 ('-1532031','Go ahead and take forty winks.','9230','1','0','0','15131','roar SAY_ROAR_SLAY'),
 
-('-1532032','Now what should I do with you? I simply can''t make up my mind.','9254','1','0','0','19277','strawman SAY_STRAWMAN_AGGRO'),
-('-1532033','Don''t let them make... a mattress outta'' me.','9256','1','0','0','15135','strawman SAY_STRAWMAN_DEATH'),
-('-1532034','I guess I''m not a failure after all!','9257','1','0','0','15136','strawman SAY_STRAWMAN_SLAY'),
-
-('-1532035','I could really use a heart. Say, can I have yours?','9268','1','0','0','19278','tinhead SAY_TINHEAD_AGGRO'),
-('-1532036','Back to being an old rust bucket.','9270','1','0','0','15155','tinhead SAY_TINHEAD_DEATH'),
-('-1532037','Guess I''m not so rusty after all.','9271','1','0','0','15156','tinhead SAY_TINHEAD_SLAY'),
-('-1532038','%s begins to rust!','0','2','0','0','14361','tinhead EMOTE_RUST'),
-
 ('-1532039','Woe to each and every one of you, my pretties!','9179','1','0','25','15050','crone SAY_CRONE_INTRO'),
 ('-1532040','It will all be over soon!','9307','1','0','25','15332','crone SAY_CRONE_INTRO2'),
 ('-1532041','How could you? What a cruel, cruel world...','9178','1','0','0','15052','crone SAY_CRONE_DEATH'),

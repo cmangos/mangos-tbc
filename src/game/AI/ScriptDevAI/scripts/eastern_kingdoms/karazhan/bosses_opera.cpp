@@ -45,10 +45,10 @@ enum
     SAY_STRAWMAN_DEATH          = 15135,
     SAY_STRAWMAN_SLAY           = 15136,
 
-    SAY_TINHEAD_AGGRO           = -1532035,
-    SAY_TINHEAD_DEATH           = -1532036,
-    SAY_TINHEAD_SLAY            = -1532037,
-    EMOTE_RUST                  = -1532038,
+    SAY_TINHEAD_AGGRO           = 19278,
+    SAY_TINHEAD_DEATH           = 15155,
+    SAY_TINHEAD_SLAY            = 15156,
+    EMOTE_RUST                  = 14361,
 
     SAY_CRONE_INTRO             = -1532039,
     SAY_CRONE_INTRO2            = -1532040,
@@ -230,7 +230,6 @@ struct boss_strawmanAI : public CombatAI
 
     ScriptedInstance* m_instance;
 
-
     void Reset() override
     {
         CombatAI::Reset();
@@ -278,30 +277,31 @@ struct boss_strawmanAI : public CombatAI
     }
 };
 
-struct boss_tinheadAI : public ScriptedAI
+enum TinheadActions
 {
-    boss_tinheadAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    TINHEAD_ACTION_AGGRO,
+    TINHEAD_ACTION_MAX,
+};
+
+struct boss_tinheadAI : public CombatAI
+{
+    boss_tinheadAI(Creature* creature) : CombatAI(creature, TINHEAD_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        AddTimerlessCombatAction(TINHEAD_ACTION_AGGRO, 37000u);
         SetReactState(REACT_PASSIVE);
         Reset();
     }
 
     ScriptedInstance* m_instance;
 
-    uint32 m_uiAggroTimer;
-    uint32 m_uiCleaveTimer;
-    uint32 m_uiRustTimer;
-
     void Reset() override
     {
-        m_uiAggroTimer  = 37000;
-        m_uiCleaveTimer = 5000;
-        m_uiRustTimer   = 6000;
+        CombatAI::Reset();
     }
 
     void Aggro(Unit* /*pWho*/) override
     {
-        DoScriptText(SAY_TINHEAD_AGGRO, m_creature);
+        DoBroadcastText(SAY_TINHEAD_AGGRO, m_creature);
     }
 
     void JustReachedHome() override
@@ -314,19 +314,29 @@ struct boss_tinheadAI : public ScriptedAI
 
     void JustDied(Unit* /*pKiller*/) override
     {
-        DoScriptText(SAY_TINHEAD_DEATH, m_creature);
+        DoBroadcastText(SAY_TINHEAD_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
     {
-        DoScriptText(SAY_TINHEAD_SLAY, m_creature);
+        DoBroadcastText(SAY_TINHEAD_SLAY, m_creature);
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
     {
-        if (m_uiAggroTimer)
+        switch (spellInfo->Id)
         {
-            if (m_uiAggroTimer <= uiDiff)
+            case SPELL_RUST:
+                DoBroadcastText(EMOTE_RUST, m_creature);
+                break;
+        }
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        switch (action)
+        {
+            case TINHEAD_ACTION_AGGRO: 
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 SetReactState(REACT_AGGRESSIVE);
@@ -334,35 +344,9 @@ struct boss_tinheadAI : public ScriptedAI
                 AttackClosestEnemy();
                 if (!m_creature->IsInCombat())
                     JustReachedHome();
-                m_uiAggroTimer = 0;
-            }
-            else
-                m_uiAggroTimer -= uiDiff;
-        }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_uiCleaveTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_CLEAVE) == CAST_OK)
-                m_uiCleaveTimer = 5000;
-        }
-        else
-            m_uiCleaveTimer -= uiDiff;
-
-        if (m_uiRustTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_RUST) == CAST_OK)
-            {
-                DoScriptText(EMOTE_RUST, m_creature);
-                m_uiRustTimer = 6000;
+                DisableTimer(TINHEAD_ACTION_AGGRO);
             }
         }
-        else
-            m_uiRustTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 

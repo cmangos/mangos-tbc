@@ -627,6 +627,8 @@ enum OperaPhase
 enum JulianneActions // order based on priority
 {
     JULIANNE_ATTACK_DELAY,
+    JULIANNE_SUMMON_ROMULO,
+    JULIANNE_RESURECT_SELF,
     JULIANNE_MAX
 };
 static const float afRomuloSpawnLoc[4] = { -10893.62f, -1760.78f, 90.55f, 4.76f};
@@ -636,15 +638,14 @@ struct boss_julianneAI : public CombatAI
     boss_julianneAI(Creature* creature) : CombatAI(creature, JULIANNE_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         AddCustomAction(JULIANNE_ATTACK_DELAY, 9000u, [&]() { HandleAttackDelay(); });
+        AddCustomAction(JULIANNE_SUMMON_ROMULO, true, [&]() { DoSummonRomulo(); });
+        AddCustomAction(JULIANNE_RESURECT_SELF, true, [&]() { HandleResurectSelf(); });
         Reset();
     }
 
     ScriptedInstance* m_instance;
 
     OperaPhase m_Phase;
-
-    uint32 m_uiSummonRomuloTimer;
-    uint32 m_uiResurrectSelfTimer;
 
     bool m_bIsFakingDeath;
 
@@ -653,12 +654,8 @@ struct boss_julianneAI : public CombatAI
         CombatAI::Reset();
 
         m_Phase                     = PHASE_JULIANNE;
-
-        m_uiSummonRomuloTimer       = 0;
-        m_uiResurrectSelfTimer      = 0;
-
         m_bIsFakingDeath            = false;
-
+        m_creature->SetSpellList(m_creature->GetCreatureInfo()->SpellList);
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
     }
 
@@ -692,7 +689,7 @@ struct boss_julianneAI : public CombatAI
             {
                 m_Phase               = PHASE_BOTH;
                 m_bIsFakingDeath      = true;
-                m_uiSummonRomuloTimer = 12000;
+                ResetTimer(JULIANNE_SUMMON_ROMULO, 12000);
             }
         }
         else if (m_Phase == PHASE_BOTH)
@@ -700,7 +697,7 @@ struct boss_julianneAI : public CombatAI
             // set fake death and allow 10 sec timer to kill Romulos
             DoBroadcastText(SAY_JULIANNE_DEATH02, m_creature);
             DoSetFakeDeath();
-            m_uiResurrectSelfTimer = 10000;
+            ResetTimer(JULIANNE_SUMMON_ROMULO, 10000);
         }
     }
 
@@ -741,6 +738,7 @@ struct boss_julianneAI : public CombatAI
         m_creature->ClearAllReactives();
         m_creature->SetTarget(nullptr);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+        m_creature->SetSpellList(0); // also remove SpellList to prevent spell casting
         SetCombatMovement(false);
     }
 
@@ -754,6 +752,7 @@ struct boss_julianneAI : public CombatAI
         DoResetThreat();
         SetCombatMovement(true);
         DoStartMovement(m_creature->GetVictim());
+        m_creature->SetSpellList(m_creature->GetCreatureInfo()->SpellList);
     }
 
     // Wrapper to start phase 3
@@ -765,55 +764,31 @@ struct boss_julianneAI : public CombatAI
         DoBroadcastText(SAY_JULIANNE_RESURRECT, m_creature);
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void DoSummonRomulo()
     {
-        // spawn Romulo on timer after fake death
-        if (m_uiSummonRomuloTimer)
-        {
-            if (m_uiSummonRomuloTimer <= uiDiff)
-            {
-                m_creature->SummonCreature(NPC_ROMULO, afRomuloSpawnLoc[0], afRomuloSpawnLoc[1], afRomuloSpawnLoc[2], afRomuloSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0);
-                m_uiSummonRomuloTimer = 0;
-            }
-            else
-                m_uiSummonRomuloTimer -= uiDiff;
-        }
+        m_creature->SummonCreature(NPC_ROMULO, afRomuloSpawnLoc[0], afRomuloSpawnLoc[1], afRomuloSpawnLoc[2], afRomuloSpawnLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0);
+        DisableTimer(JULIANNE_SUMMON_ROMULO);
+    }
 
-        if (m_uiResurrectSelfTimer)
+    void HandleResurectSelf()
+    {
+        if (m_instance)
         {
-            if (m_uiResurrectSelfTimer <= uiDiff)
+            if (Creature* pRomulo = m_instance->GetSingleCreatureFromStorage(NPC_ROMULO))
             {
-                if (m_instance)
+                // if Romulos is dead, then self kill
+                if (pRomulo->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
                 {
-                    if (Creature* pRomulo = m_instance->GetSingleCreatureFromStorage(NPC_ROMULO))
-                    {
-                        // if Romulos is dead, then self kill
-                        if (pRomulo->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
-                        {
-                            m_creature->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
-                            pRomulo->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
-                        }
-                        else
-                        {
-                            DoRemoveFakeDeath();
-                            DoCastSpellIfCan(m_creature, SPELL_FULL_HEALTH, CAST_TRIGGERED);
-                        }
-                    }
+                    m_creature->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
+                    pRomulo->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
                 }
-                m_uiResurrectSelfTimer = 0;
+                else
+                {
+                    DoRemoveFakeDeath();
+                    DoCastSpellIfCan(m_creature, SPELL_FULL_HEALTH, CAST_TRIGGERED);
+                }
             }
-            else
-                m_uiResurrectSelfTimer -= uiDiff;
         }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        // don't use spells during transition
-        if (m_bIsFakingDeath)
-            return;
-
-        DoMeleeAttackIfReady();
     }
 
     void HandleAttackDelay()

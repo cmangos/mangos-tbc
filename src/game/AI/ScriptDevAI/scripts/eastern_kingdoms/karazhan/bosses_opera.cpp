@@ -437,6 +437,7 @@ enum
 
     /**** Spells For The Wolf ****/
     SPELL_PICK_RED_RIDING_HOOD      = 30769,               // targeting spell - triggers 30768
+    SPELL_LITTLE_RED_RIDING_HOOD    = 30768,               // Little Red Riding Hood - triggers 30753
     SPELL_RED_RIDING_HOOD           = 30756,
     SPELL_TERRIFYING_HOWL           = 30752,
     SPELL_WIDE_SWIPE                = 30761,
@@ -522,9 +523,6 @@ struct npc_grandmotherAI : public ScriptedAI
 
 enum BigBadWolfActions // order based on priority
 {
-    BIG_BAD_WOLF_RED_RIDING_HOOD,
-    BIG_BAD_WOLF_FEAR,
-    BIG_BAD_WOLF_SWIPE,
     BIG_BAD_WOLF_MAX,
     BIG_BAD_WOLF_ATTACK_DELAY
 };
@@ -533,9 +531,6 @@ struct boss_bigbadwolfAI : public CombatAI
 {
     boss_bigbadwolfAI(Creature* creature) : CombatAI(creature, BIG_BAD_WOLF_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddCombatAction(BIG_BAD_WOLF_RED_RIDING_HOOD, 2000, 4000);
-        AddCombatAction(BIG_BAD_WOLF_FEAR, 5000, 25000);
-        AddCombatAction(BIG_BAD_WOLF_SWIPE, 5000, 25000);
         AddCustomAction(BIG_BAD_WOLF_ATTACK_DELAY, 2000u, [&]() { HandleAttackDelay(); });
     }
 
@@ -584,25 +579,12 @@ struct boss_bigbadwolfAI : public CombatAI
             m_instance->SetData(TYPE_OPERA, DONE);
     }
 
-    void ExecuteAction(uint32 action) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
     {
-        switch (action)
+        switch (spellInfo->Id)
         {
-            case BIG_BAD_WOLF_RED_RIDING_HOOD:
-                if (DoCastSpellIfCan(m_creature, SPELL_PICK_RED_RIDING_HOOD) == CAST_OK)
-                {
-                    DoBroadcastText(SAY_WOLF_RED_RIDING_HOOD, m_creature);
-                    ResetCombatAction(action, 30000);
-                }
-                break;
-            case BIG_BAD_WOLF_FEAR:
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_NEAREST_BY, 0, SPELL_TERRIFYING_HOWL, (SELECT_FLAG_PLAYER | SELECT_FLAG_USE_EFFECT_RADIUS)))
-                    if (DoCastSpellIfCan(m_creature, SPELL_TERRIFYING_HOWL) == CAST_OK)
-                        ResetCombatAction(action, urand(20000, 50000));
-                break;
-            case BIG_BAD_WOLF_SWIPE:
-                if (DoCastSpellIfCan(m_creature, SPELL_WIDE_SWIPE) == CAST_OK)
-                    ResetCombatAction(action, urand(20000, 40000));
+            case SPELL_PICK_RED_RIDING_HOOD:
+                DoBroadcastText(SAY_WOLF_RED_RIDING_HOOD, m_creature);
                 break;
         }
     }
@@ -1159,6 +1141,25 @@ struct spell_red_riding_hood_fixate : public AuraScript
     }
 };
 
+// 30769
+struct spell_pick_red_ridding_hood : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        if (!caster || !caster->AI())
+            return;
+
+        Unit* target = caster->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER);
+
+        if (!target || target->GetTypeId() != TYPEID_PLAYER)
+            return;
+
+        // cast Little Red Riding Hood
+        caster->CastSpell(target, SPELL_LITTLE_RED_RIDING_HOOD, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 void AddSC_bosses_opera()
 {
     // Oz
@@ -1201,6 +1202,7 @@ void AddSC_bosses_opera()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<spell_red_riding_hood_fixate>("spell_red_riding_hood_fixate");
+    RegisterSpellScript<spell_pick_red_ridding_hood>("spell_pick_red_ridding_hood");
 
     // Romeo And Juliet
     pNewScript = new Script;

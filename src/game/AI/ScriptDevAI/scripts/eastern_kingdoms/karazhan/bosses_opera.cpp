@@ -587,18 +587,16 @@ struct boss_bigbadwolfAI : public CombatAI
 enum
 {
     /**** Speech *****/
-    SAY_JULIANNE_AGGRO              = -1532046,
-    SAY_JULIANNE_ENTER              = -1532047,
-    SAY_JULIANNE_DEATH01            = -1532048,
-    SAY_JULIANNE_DEATH02            = -1532049,
-    SAY_JULIANNE_RESURRECT          = -1532050,
-    SAY_JULIANNE_SLAY               = -1532051,
+    SAY_JULIANNE_AGGRO              = 15070,
+    SAY_JULIANNE_DEATH01            = 15072,
+    SAY_JULIANNE_DEATH02            = 15074,
+    SAY_JULIANNE_RESURRECT          = 15073,
+    SAY_JULIANNE_SLAY               = 15071,
 
-    SAY_ROMULO_AGGRO                = -1532052,
-    SAY_ROMULO_DEATH                = -1532053,
-    SAY_ROMULO_ENTER                = -1532054,
-    SAY_ROMULO_RESURRECT            = -1532055,
-    SAY_ROMULO_SLAY                 = -1532056,
+    SAY_ROMULO_AGGRO                = 15075,
+    SAY_ROMULO_DEATH                = 15078,
+    SAY_ROMULO_RESURRECT            = 15077,
+    SAY_ROMULO_SLAY                 = 15076,
 
     /***** Spells For Julianne *****/
     SPELL_BLINDING_PASSION          = 30890,
@@ -626,12 +624,18 @@ enum OperaPhase
     PHASE_BOTH          = 2,
 };
 
+enum JulianneActions // order based on priority
+{
+    JULIANNE_ATTACK_DELAY,
+    JULIANNE_MAX
+};
 static const float afRomuloSpawnLoc[4] = { -10893.62f, -1760.78f, 90.55f, 4.76f};
 
-struct boss_julianneAI : public ScriptedAI
+struct boss_julianneAI : public CombatAI
 {
-    boss_julianneAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    boss_julianneAI(Creature* creature) : CombatAI(creature, JULIANNE_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        AddCustomAction(JULIANNE_ATTACK_DELAY, 9000u, [&]() { HandleAttackDelay(); });
         Reset();
     }
 
@@ -639,37 +643,28 @@ struct boss_julianneAI : public ScriptedAI
 
     OperaPhase m_Phase;
 
-    uint32 m_uiBlindingPassionTimer;
-    uint32 m_uiDevotionTimer;
-    uint32 m_uiEternalAffectionTimer;
-    uint32 m_uiPowerfulAttractionTimer;
     uint32 m_uiSummonRomuloTimer;
     uint32 m_uiResurrectSelfTimer;
-    uint32 m_uiAggroTimer;
 
     bool m_bIsFakingDeath;
 
     void Reset() override
     {
+        CombatAI::Reset();
+
         m_Phase                     = PHASE_JULIANNE;
 
-        m_uiBlindingPassionTimer    = 30000;
-        m_uiDevotionTimer           = 15000;
-        m_uiEternalAffectionTimer   = 25000;
-        m_uiPowerfulAttractionTimer = 5000;
         m_uiSummonRomuloTimer       = 0;
         m_uiResurrectSelfTimer      = 0;
 
         m_bIsFakingDeath            = false;
-
-        m_uiAggroTimer = 9000;
 
         m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
     }
 
     void Aggro(Unit* /*pWho*/) override
     {
-        DoScriptText(SAY_JULIANNE_AGGRO, m_creature);
+        DoBroadcastText(SAY_JULIANNE_AGGRO, m_creature);
     }
 
     void JustReachedHome() override
@@ -703,7 +698,7 @@ struct boss_julianneAI : public ScriptedAI
         else if (m_Phase == PHASE_BOTH)
         {
             // set fake death and allow 10 sec timer to kill Romulos
-            DoScriptText(SAY_JULIANNE_DEATH02, m_creature);
+            DoBroadcastText(SAY_JULIANNE_DEATH02, m_creature);
             DoSetFakeDeath();
             m_uiResurrectSelfTimer = 10000;
         }
@@ -722,7 +717,7 @@ struct boss_julianneAI : public ScriptedAI
         if (pVictim->GetTypeId() != TYPEID_PLAYER)
             return;
 
-        DoScriptText(SAY_JULIANNE_SLAY, m_creature);
+        DoBroadcastText(SAY_JULIANNE_SLAY, m_creature);
     }
 
     void JustSummoned(Creature* pSummoned) override
@@ -767,7 +762,7 @@ struct boss_julianneAI : public ScriptedAI
         m_creature->CastSpell(nullptr, SPELL_FULL_HEALTH, TRIGGERED_NONE);
         DoRemoveFakeDeath();
         DoCastSpellIfCan(m_creature, SPELL_UNDYING_LOVE);
-        DoScriptText(SAY_JULIANNE_RESURRECT, m_creature);
+        DoBroadcastText(SAY_JULIANNE_RESURRECT, m_creature);
     }
 
     void UpdateAI(const uint32 uiDiff) override
@@ -811,22 +806,6 @@ struct boss_julianneAI : public ScriptedAI
                 m_uiResurrectSelfTimer -= uiDiff;
         }
 
-        if (m_uiAggroTimer)
-        {
-            if (m_uiAggroTimer <= uiDiff)
-            {
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                SetReactState(REACT_AGGRESSIVE);
-                m_creature->SetInCombatWithZone();
-                AttackClosestEnemy();
-                if (!m_creature->IsInCombat())
-                    JustReachedHome();
-                m_uiAggroTimer = 0;
-            }
-            else
-                m_uiAggroTimer -= uiDiff;
-        }
-
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
@@ -834,48 +813,17 @@ struct boss_julianneAI : public ScriptedAI
         if (m_bIsFakingDeath)
             return;
 
-        if (m_uiBlindingPassionTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_BLINDING_PASSION) == CAST_OK)
-                    m_uiBlindingPassionTimer = urand(30000, 45000);
-            }
-        }
-        else
-            m_uiBlindingPassionTimer -= uiDiff;
-
-        if (m_uiDevotionTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_DEVOTION) == CAST_OK)
-                m_uiDevotionTimer = urand(15000, 45000);
-        }
-        else
-            m_uiDevotionTimer -= uiDiff;
-
-        if (m_uiPowerfulAttractionTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, nullptr, SELECT_FLAG_PLAYER))
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_POWERFUL_ATTRACTION) == CAST_OK)
-                    m_uiPowerfulAttractionTimer = urand(5000, 30000);
-            }
-        }
-        else
-            m_uiPowerfulAttractionTimer -= uiDiff;
-
-        if (m_uiEternalAffectionTimer < uiDiff)
-        {
-            if (Unit* pTarget = DoSelectLowestHpFriendly(30.0f))
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_ETERNAL_AFFECTION) == CAST_OK)
-                    m_uiEternalAffectionTimer = urand(45000, 60000);
-            }
-        }
-        else
-            m_uiEternalAffectionTimer -= uiDiff;
-
         DoMeleeAttackIfReady();
+    }
+
+    void HandleAttackDelay()
+    {
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        SetReactState(REACT_AGGRESSIVE);
+        m_creature->SetInCombatWithZone();
+        AttackClosestEnemy();
+        if (!m_creature->IsInCombat())
+            JustReachedHome();
     }
 };
 
@@ -889,7 +837,7 @@ struct DrinkPoisonJulianne : public SpellScript
         if (boss_julianneAI* julianneAI = dynamic_cast<boss_julianneAI*>(target->AI()))
             julianneAI->DoSetFakeDeath();
 
-        DoScriptText(SAY_JULIANNE_DEATH01, target);
+        DoBroadcastText(SAY_JULIANNE_DEATH01, target);
     }
 };
 
@@ -947,7 +895,7 @@ struct boss_romuloAI : public ScriptedAI
 
         if (m_Phase == PHASE_ROMULO)
         {
-            DoScriptText(SAY_ROMULO_DEATH, m_creature);
+            DoBroadcastText(SAY_ROMULO_DEATH, m_creature);
             DoSetFakeDeath();
             m_Phase             = PHASE_BOTH;
             m_uiResurrectTimer  = 10000;
@@ -962,7 +910,7 @@ struct boss_romuloAI : public ScriptedAI
 
     void Aggro(Unit* /*pWho*/) override
     {
-        DoScriptText(SAY_ROMULO_AGGRO, m_creature);
+        DoBroadcastText(SAY_ROMULO_AGGRO, m_creature);
     }
 
     void JustDied(Unit* /*pKiller*/) override
@@ -978,7 +926,7 @@ struct boss_romuloAI : public ScriptedAI
         if (pVictim->GetTypeId() != TYPEID_PLAYER)
             return;
 
-        DoScriptText(SAY_ROMULO_SLAY, m_creature);
+        DoBroadcastText(SAY_ROMULO_SLAY, m_creature);
     }
 
     void SpellHit(Unit* pCaster, const SpellEntry* pSpell) override
@@ -1056,7 +1004,7 @@ struct boss_romuloAI : public ScriptedAI
                         else
                         {
                             DoRemoveFakeDeath();
-                            DoScriptText(SAY_ROMULO_RESURRECT, m_creature);
+                            DoBroadcastText(SAY_ROMULO_RESURRECT, m_creature);
                             DoCastSpellIfCan(m_creature, SPELL_FULL_HEALTH, CAST_TRIGGERED);
                         }
                     }

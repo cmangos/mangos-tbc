@@ -3384,19 +3384,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1532016','Oh, I''ve gone and made a mess...','9315','1','0','0','15086','moroes SAY_KILL_3'),
 ('-1532017','How terribly clumsy of me.','9213','1','0','0','15022','moroes SAY_DEATH'),
 
-('-1532046','What devil art thou, that dost torment me thus?','9196','1','0','0','15070','julianne SAY_JULIANNE_AGGRO'),
-('-1532047','Where is my lord? Where is my Romulo?','9199','1','0','0','0','julianne SAY_JULIANNE_ENTER'),
-('-1532048','Romulo, I come! Oh... this do I drink to thee!','9198','1','0','0','15072','julianne SAY_JULIANNE_DEATH01'),
-('-1532049','O happy dagger! This is thy sheath; there rust, and let me die!','9310','1','0','0','15074','julianne SAY_JULIANNE_DEATH02'),
-('-1532050','Come, gentle night; and give me back my Romulo!','9200','1','0','0','15073','julianne SAY_JULIANNE_RESURRECT'),
-('-1532051','Parting is such sweet sorrow.','9201','1','0','0','15071','julianne SAY_JULIANNE_SLAY'),
-
-('-1532052','Wilt thou provoke me? Then have at thee, boy!','9233','1','0','0','15075','romulo SAY_ROMULO_AGGRO'),
-('-1532053','Thou smilest... upon the stroke that... murders me.','9235','1','0','0','15078','romulo SAY_ROMULO_DEATH'),
-('-1532054','This day''s black fate on more days doth depend. This but begins the woe. Others must end.','9236','1','0','0','0','romulo SAY_ROMULO_ENTER'),
-('-1532055','Thou detestable maw, thou womb of death; I enforce thy rotten jaws to open!','9237','1','0','0','15077','romulo SAY_ROMULO_RESURRECT'),
-('-1532056','How well my comfort is revived by this!','9238','1','0','0','15076','romulo SAY_ROMULO_SLAY'),
-
 ('-1532057','The Menagerie is for guests only.','9183','1','0','0','15055','curator SAY_AGGRO'),
 ('-1532058','Gallery rules will be strictly enforced.','9188','1','0','0','15337','curator SAY_SUMMON1'),
 ('-1532059','This Curator is equipped for gallery protection.','9309','1','0','0','15338','curator SAY_SUMMON2'),

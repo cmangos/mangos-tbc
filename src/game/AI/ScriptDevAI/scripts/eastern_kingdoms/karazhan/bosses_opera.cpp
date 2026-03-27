@@ -37,9 +37,9 @@ enum
     SAY_DOROTHEE_TITO_DEATH     = -1532027,
     SAY_DOROTHEE_AGGRO          = -1532028,
 
-    SAY_ROAR_AGGRO              = -1532029,
-    SAY_ROAR_DEATH              = -1532030,
-    SAY_ROAR_SLAY               = -1532031,
+    SAY_ROAR_AGGRO              = 19276,
+    SAY_ROAR_DEATH              = 15133,
+    SAY_ROAR_SLAY               = 15131,
 
     SAY_STRAWMAN_AGGRO          = 19277,
     SAY_STRAWMAN_DEATH          = 15135,
@@ -350,32 +350,31 @@ struct boss_tinheadAI : public CombatAI
     }
 };
 
-struct boss_roarAI : public ScriptedAI
+enum RoadActions
 {
-    boss_roarAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    ROAR_ACTION_AGGRO,
+    ROAR_ACTION_MAX,
+};
+
+struct boss_roarAI : public CombatAI
+{
+    boss_roarAI(Creature* creature) : CombatAI(creature, ROAR_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        AddTimerlessCombatAction(ROAR_ACTION_AGGRO, 17000u);
         SetReactState(REACT_PASSIVE);
         Reset();
     }
 
     ScriptedInstance* m_instance;
 
-    uint32 m_uiAggroTimer;
-    uint32 m_uiMangleTimer;
-    uint32 m_uiShredTimer;
-    uint32 m_uiScreamTimer;
-
     void Reset() override
     {
-        m_uiAggroTimer  = 17000;
-        m_uiMangleTimer = 5000;
-        m_uiShredTimer  = 10000;
-        m_uiScreamTimer = 15000;
+        CombatAI::Reset();
     }
 
     void Aggro(Unit* /*pWho*/) override
     {
-        DoScriptText(SAY_ROAR_AGGRO, m_creature);
+        DoBroadcastText(SAY_ROAR_AGGRO, m_creature);
     }
 
     void JustReachedHome() override
@@ -388,19 +387,19 @@ struct boss_roarAI : public ScriptedAI
 
     void JustDied(Unit* /*pKiller*/) override
     {
-        DoScriptText(SAY_ROAR_DEATH, m_creature);
+        DoBroadcastText(SAY_ROAR_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
     {
-        DoScriptText(SAY_ROAR_SLAY, m_creature);
+        DoBroadcastText(SAY_ROAR_SLAY, m_creature);
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (m_uiAggroTimer)
+        switch (action)
         {
-            if (m_uiAggroTimer <= uiDiff)
+            case ROAR_ACTION_AGGRO: 
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 SetReactState(REACT_AGGRESSIVE);
@@ -408,40 +407,9 @@ struct boss_roarAI : public ScriptedAI
                 AttackClosestEnemy();
                 if (!m_creature->IsInCombat())
                     JustReachedHome();
-                m_uiAggroTimer = 0;
+                DisableTimer(ROAR_ACTION_AGGRO);
             }
-            else
-                m_uiAggroTimer -= uiDiff;
         }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_uiMangleTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_MANGLE) == CAST_OK)
-                m_uiMangleTimer = urand(5000, 8000);
-        }
-        else
-            m_uiMangleTimer -= uiDiff;
-
-        if (m_uiShredTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHRED) == CAST_OK)
-                m_uiShredTimer = urand(10000, 15000);
-        }
-        else
-            m_uiShredTimer -= uiDiff;
-
-        if (m_uiScreamTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_FRIGHTENED_SCREAM) == CAST_OK)
-                m_uiScreamTimer = urand(20000, 30000);
-        }
-        else
-            m_uiScreamTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 

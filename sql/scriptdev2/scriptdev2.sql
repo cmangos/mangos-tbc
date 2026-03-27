@@ -3389,10 +3389,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1532027','Tito! Oh Tito, no!','9192','1','0','0','15069','dorothee SAY_DOROTHEE_TITO_DEATH'),
 ('-1532028','Oh Tito, we simply must find a way home! The old wizard could be our only hope! Strawman, Roar, Tinhead, will you - wait... oh golly, look we have visitors!','9195','1','0','0','15067','dorothee SAY_DOROTHEE_AGGRO'),
 
-('-1532029','I''m not afraid a'' you! Do you wanna'' fight? Huh, do ya''? C''mon! I''ll fight ya'' with both paws behind my back!','9227','1','0','0','19276','roar SAY_ROAR_AGGRO'),
-('-1532030','You didn''t have to go and do that!','9229','1','0','0','15133','roar SAY_ROAR_DEATH'),
-('-1532031','Go ahead and take forty winks.','9230','1','0','0','15131','roar SAY_ROAR_SLAY'),
-
 ('-1532039','Woe to each and every one of you, my pretties!','9179','1','0','25','15050','crone SAY_CRONE_INTRO'),
 ('-1532040','It will all be over soon!','9307','1','0','25','15332','crone SAY_CRONE_INTRO2'),
 ('-1532041','How could you? What a cruel, cruel world...','9178','1','0','0','15052','crone SAY_CRONE_DEATH'),

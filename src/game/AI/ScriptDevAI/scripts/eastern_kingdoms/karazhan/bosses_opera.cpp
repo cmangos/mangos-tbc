@@ -223,7 +223,7 @@ struct boss_strawmanAI : public CombatAI
 {
     boss_strawmanAI(Creature* creature) : CombatAI(creature, STRAWMAN_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddTimerlessCombatAction(STRAWMAN_ACTION_AGGRO, 27000u);
+        AddCustomAction(STRAWMAN_ACTION_AGGRO, 27000u, [&]() { HandleAggro(); });
         SetReactState(REACT_PASSIVE);
         Reset();
     }
@@ -259,22 +259,14 @@ struct boss_strawmanAI : public CombatAI
         DoBroadcastText(SAY_STRAWMAN_SLAY, m_creature);
     }
 
-    void ExecuteAction(uint32 action) override
+    void HandleAggro()
     {
-        switch (action)
-        {
-            case STRAWMAN_ACTION_AGGRO: 
-            {
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                SetReactState(REACT_AGGRESSIVE);
-                m_creature->SetInCombatWithZone();
-                AttackClosestEnemy();
-                if (!m_creature->IsInCombat())
-                    JustReachedHome();
-                DisableTimer(STRAWMAN_ACTION_AGGRO);
-                break;
-            }
-        }
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        SetReactState(REACT_AGGRESSIVE);
+        m_creature->SetInCombatWithZone();
+        AttackClosestEnemy();
+        if (!m_creature->IsInCombat())
+            JustReachedHome();
     }
 };
 
@@ -288,7 +280,7 @@ struct boss_tinheadAI : public CombatAI
 {
     boss_tinheadAI(Creature* creature) : CombatAI(creature, TINHEAD_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddTimerlessCombatAction(TINHEAD_ACTION_AGGRO, 37000u);
+        AddCustomAction(TINHEAD_ACTION_AGGRO, 37000u, [&]() { HandleAggro(); });
         SetReactState(REACT_PASSIVE);
         Reset();
     }
@@ -333,22 +325,14 @@ struct boss_tinheadAI : public CombatAI
         }
     }
 
-    void ExecuteAction(uint32 action) override
+    void HandleAggro()
     {
-        switch (action)
-        {
-            case TINHEAD_ACTION_AGGRO: 
-            {
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                SetReactState(REACT_AGGRESSIVE);
-                m_creature->SetInCombatWithZone();
-                AttackClosestEnemy();
-                if (!m_creature->IsInCombat())
-                    JustReachedHome();
-                DisableTimer(TINHEAD_ACTION_AGGRO);
-                break;
-            }
-        }
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        SetReactState(REACT_AGGRESSIVE);
+        m_creature->SetInCombatWithZone();
+        AttackClosestEnemy();
+        if (!m_creature->IsInCombat())
+            JustReachedHome();
     }
 };
 
@@ -362,7 +346,7 @@ struct boss_roarAI : public CombatAI
 {
     boss_roarAI(Creature* creature) : CombatAI(creature, ROAR_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddTimerlessCombatAction(ROAR_ACTION_AGGRO, 17000u);
+        AddCustomAction(ROAR_ACTION_AGGRO, 17000u, [&]() { HandleAggro(); });
         SetReactState(REACT_PASSIVE);
         Reset();
     }
@@ -397,22 +381,14 @@ struct boss_roarAI : public CombatAI
         DoBroadcastText(SAY_ROAR_SLAY, m_creature);
     }
 
-    void ExecuteAction(uint32 action) override
+        void HandleAggro()
     {
-        switch (action)
-        {
-            case ROAR_ACTION_AGGRO: 
-            {
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                SetReactState(REACT_AGGRESSIVE);
-                m_creature->SetInCombatWithZone();
-                AttackClosestEnemy();
-                if (!m_creature->IsInCombat())
-                    JustReachedHome();
-                DisableTimer(ROAR_ACTION_AGGRO);
-                break;
-            }
-        }
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        SetReactState(REACT_AGGRESSIVE);
+        m_creature->SetInCombatWithZone();
+        AttackClosestEnemy();
+        if (!m_creature->IsInCombat())
+            JustReachedHome();
     }
 };
 
@@ -431,8 +407,8 @@ struct boss_croneAI : public CombatAI
 {
     boss_croneAI(Creature* creature) : CombatAI(creature, CRONE_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddTimerlessCombatAction(CRONE_ACTION_INTRO, 6000u);
-        AddTimerlessCombatAction(ROAR_ACTION_AGGRO, 9000u);
+        AddCustomAction(CRONE_ACTION_INTRO, 6000u, [&]() { HandleIntro(); });
+        AddCustomAction(ROAR_ACTION_AGGRO, 9000u, [&]() { HandleAggro(); });
         m_creature->CastSpell(m_creature, SPELL_FIERY_BROOM_PROC, TRIGGERED_OLD_TRIGGERED);
         SetReactState(REACT_PASSIVE);
         Reset();
@@ -479,28 +455,19 @@ struct boss_croneAI : public CombatAI
         pSummoned->CastSpell(pSummoned, SPELL_CYCLONE_VISUAL, TRIGGERED_OLD_TRIGGERED);
     }
 
-    void ExecuteAction(uint32 action) override
+    void HandleIntro()
     {
-        switch (action)
-        {
-            case CRONE_ACTION_INTRO: 
-            {
-                DoBroadcastText(urand(0, 1) ? SAY_CRONE_INTRO : SAY_CRONE_INTRO2, m_creature); // TODO: should be said at player who started event
-                DisableTimer(CRONE_ACTION_INTRO);
-                break;
-            }
-            case CRONE_ACTION_AGGRO: 
-            {
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                SetReactState(REACT_AGGRESSIVE);
-                m_creature->SetInCombatWithZone();
-                AttackClosestEnemy();
-                if (!m_creature->IsInCombat())
-                    JustReachedHome();
-                DisableTimer(ROAR_ACTION_AGGRO);
-                break;
-            }
-        }
+        DoBroadcastText(urand(0, 1) ? SAY_CRONE_INTRO : SAY_CRONE_INTRO2, m_creature); // TODO: should be said at player who started event
+    }
+                
+    void HandleAggro()
+    {
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+        SetReactState(REACT_AGGRESSIVE);
+        m_creature->SetInCombatWithZone();
+        AttackClosestEnemy();
+        if (!m_creature->IsInCombat())
+            JustReachedHome();
     }
 };
 

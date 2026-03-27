@@ -41,9 +41,9 @@ enum
     SAY_ROAR_DEATH              = -1532030,
     SAY_ROAR_SLAY               = -1532031,
 
-    SAY_STRAWMAN_AGGRO          = -1532032,
-    SAY_STRAWMAN_DEATH          = -1532033,
-    SAY_STRAWMAN_SLAY           = -1532034,
+    SAY_STRAWMAN_AGGRO          = 19277,
+    SAY_STRAWMAN_DEATH          = 15135,
+    SAY_STRAWMAN_SLAY           = 15136,
 
     SAY_TINHEAD_AGGRO           = -1532035,
     SAY_TINHEAD_DEATH           = -1532036,
@@ -212,31 +212,34 @@ struct boss_dorotheeAI : public CombatAI
     }
 };
 
-struct boss_strawmanAI : public ScriptedAI
+
+enum StrawmanActions
 {
-    boss_strawmanAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    STRAWMAN_ACTION_AGGRO,
+    STRAWMAN_ACTION_MAX,
+};
+
+struct boss_strawmanAI : public CombatAI
+{
+    boss_strawmanAI(Creature* creature) : CombatAI(creature, STRAWMAN_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        AddTimerlessCombatAction(STRAWMAN_ACTION_AGGRO, 27000u);
         SetReactState(REACT_PASSIVE);
         Reset();
     }
 
     ScriptedInstance* m_instance;
 
-    uint32 m_uiAggroTimer;
-    uint32 m_uiBrainBashTimer;
-    uint32 m_uiBrainWipeTimer;
 
     void Reset() override
     {
-        m_uiAggroTimer     = 27000;
-        m_uiBrainBashTimer = 5000;
-        m_uiBrainWipeTimer = 7000;
+        CombatAI::Reset();
     }
 
     void Aggro(Unit* /*pWho*/) override
     {
         DoCastSpellIfCan(m_creature, SPELL_CONFLAG_PROC);
-        DoScriptText(SAY_STRAWMAN_AGGRO, m_creature);
+        DoBroadcastText(SAY_STRAWMAN_AGGRO, m_creature);
     }
 
     void JustReachedHome() override
@@ -249,19 +252,19 @@ struct boss_strawmanAI : public ScriptedAI
 
     void JustDied(Unit* /*pKiller*/) override
     {
-        DoScriptText(SAY_STRAWMAN_DEATH, m_creature);
+        DoBroadcastText(SAY_STRAWMAN_DEATH, m_creature);
     }
 
     void KilledUnit(Unit* /*pVictim*/) override
     {
-        DoScriptText(SAY_STRAWMAN_SLAY, m_creature);
+        DoBroadcastText(SAY_STRAWMAN_SLAY, m_creature);
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (m_uiAggroTimer)
+        switch (action)
         {
-            if (m_uiAggroTimer <= uiDiff)
+            case STRAWMAN_ACTION_AGGRO: 
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 SetReactState(REACT_AGGRESSIVE);
@@ -269,35 +272,9 @@ struct boss_strawmanAI : public ScriptedAI
                 AttackClosestEnemy();
                 if (!m_creature->IsInCombat())
                     JustReachedHome();
-                m_uiAggroTimer = 0;
-            }
-            else
-                m_uiAggroTimer -= uiDiff;
-        }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_uiBrainBashTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_BRAIN_BASH) == CAST_OK)
-                m_uiBrainBashTimer = 15000;
-        }
-        else
-            m_uiBrainBashTimer -= uiDiff;
-
-        if (m_uiBrainWipeTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_BRAIN_WIPE) == CAST_OK)
-                    m_uiBrainWipeTimer = 20000;
+                DisableTimer(STRAWMAN_ACTION_AGGRO);
             }
         }
-        else
-            m_uiBrainWipeTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 

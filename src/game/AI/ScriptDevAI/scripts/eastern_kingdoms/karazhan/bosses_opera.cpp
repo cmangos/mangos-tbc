@@ -50,10 +50,10 @@ enum
     SAY_TINHEAD_SLAY            = 15156,
     EMOTE_RUST                  = 14361,
 
-    SAY_CRONE_INTRO             = -1532039,
-    SAY_CRONE_INTRO2            = -1532040,
-    SAY_CRONE_DEATH             = -1532041,
-    SAY_CRONE_SLAY              = -1532042,
+    SAY_CRONE_INTRO             = 15050,
+    SAY_CRONE_INTRO2            = 15332,
+    SAY_CRONE_DEATH             = 9178,
+    SAY_CRONE_SLAY              = 15051,
 
     /**** Spells ****/
     // Dorothee
@@ -272,6 +272,7 @@ struct boss_strawmanAI : public CombatAI
                 if (!m_creature->IsInCombat())
                     JustReachedHome();
                 DisableTimer(STRAWMAN_ACTION_AGGRO);
+                break;
             }
         }
     }
@@ -345,6 +346,7 @@ struct boss_tinheadAI : public CombatAI
                 if (!m_creature->IsInCombat())
                     JustReachedHome();
                 DisableTimer(TINHEAD_ACTION_AGGRO);
+                break;
             }
         }
     }
@@ -408,6 +410,7 @@ struct boss_roarAI : public CombatAI
                 if (!m_creature->IsInCombat())
                     JustReachedHome();
                 DisableTimer(ROAR_ACTION_AGGRO);
+                break;
             }
         }
     }
@@ -417,10 +420,19 @@ static const float afCycloneSpawnLoc1[4] = { -10908.86f, -1773.627f, 90.55865f, 
 static const float afCycloneSpawnLoc2[4] = { -10910.79f, -1771.201f, 90.56122f, 0.3642556f };
 static const float afCycloneSpawnLoc3[4] = { -10907.68f, -1778.651f, 90.56018f, 2.44127f };
 
-struct boss_croneAI : public ScriptedAI
+enum CroneActions
 {
-    boss_croneAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    CRONE_ACTION_INTRO,
+    CRONE_ACTION_AGGRO,
+    CRONE_ACTION_MAX,
+};
+
+struct boss_croneAI : public CombatAI
+{
+    boss_croneAI(Creature* creature) : CombatAI(creature, CRONE_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        AddTimerlessCombatAction(CRONE_ACTION_INTRO, 6000u);
+        AddTimerlessCombatAction(ROAR_ACTION_AGGRO, 9000u);
         m_creature->CastSpell(m_creature, SPELL_FIERY_BROOM_PROC, TRIGGERED_OLD_TRIGGERED);
         SetReactState(REACT_PASSIVE);
         Reset();
@@ -428,15 +440,9 @@ struct boss_croneAI : public ScriptedAI
 
     ScriptedInstance* m_instance;
 
-    uint32 m_uiIntroTimer;
-    uint32 m_uiChainLightningTimer;
-    uint32 m_uiAggroTimer;
-
     void Reset() override
     {
-        m_uiIntroTimer = 6000;
-        m_uiChainLightningTimer = 10000;
-        m_uiAggroTimer = 9000;
+        CombatAI::Reset();
     }
 
     void JustReachedHome() override
@@ -461,7 +467,7 @@ struct boss_croneAI : public ScriptedAI
 
     void JustDied(Unit* /*pKiller*/) override
     {
-        DoScriptText(SAY_CRONE_DEATH, m_creature);
+        DoBroadcastText(SAY_CRONE_DEATH, m_creature);
 
         if (m_instance)
             m_instance->SetData(TYPE_OPERA, DONE);
@@ -473,22 +479,17 @@ struct boss_croneAI : public ScriptedAI
         pSummoned->CastSpell(pSummoned, SPELL_CYCLONE_VISUAL, TRIGGERED_OLD_TRIGGERED);
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void ExecuteAction(uint32 action) override
     {
-        if (m_uiIntroTimer)
+        switch (action)
         {
-            if (m_uiIntroTimer <= uiDiff)
+            case CRONE_ACTION_INTRO: 
             {
-                DoScriptText(urand(0, 1) ? SAY_CRONE_INTRO : SAY_CRONE_INTRO2, m_creature); // TODO: should be said at player who started event
-                m_uiIntroTimer = 0;
+                DoBroadcastText(urand(0, 1) ? SAY_CRONE_INTRO : SAY_CRONE_INTRO2, m_creature); // TODO: should be said at player who started event
+                DisableTimer(CRONE_ACTION_INTRO);
+                break;
             }
-            else
-                m_uiIntroTimer -= uiDiff;
-        }
-
-        if (m_uiAggroTimer)
-        {
-            if (m_uiAggroTimer <= uiDiff)
+            case CRONE_ACTION_AGGRO: 
             {
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
                 SetReactState(REACT_AGGRESSIVE);
@@ -496,27 +497,10 @@ struct boss_croneAI : public ScriptedAI
                 AttackClosestEnemy();
                 if (!m_creature->IsInCombat())
                     JustReachedHome();
-                m_uiAggroTimer = 0;
-            }
-            else
-                m_uiAggroTimer -= uiDiff;
-        }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        if (m_uiChainLightningTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_CHAIN_LIGHTNING) == CAST_OK)
-                    m_uiChainLightningTimer = 15000;
+                DisableTimer(ROAR_ACTION_AGGRO);
+                break;
             }
         }
-        else
-            m_uiChainLightningTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
 };
 

@@ -3497,7 +3497,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1532134','%s howls through the halls...','0','7','0','0','12323','rokad_the_ravager EMOTE_DOG_SPAWN'),
 ('-1532135','%s skitters out from the shadows...','0','7','0','0','12324','hyakiss_the_lurker EMOTE_SPIDER_SPAWN'),
 ('-1532136','%s shrieks in pain and points at his master.','0','3','0','0','13582','Kil''Rek EMOTE_DEATH'),
-('-1532137','%s calls for her master!','0','3','0','0','13439','Midnight EMOTE_CALL'),
 ('-1532138','%s skitters out from the shadows...','0','7','0','0','12324','hyakiss_the_lurker EMOTE_SPIDER_SPAWN2'),
 ('-1532139','%s begins channelling his mana into a powerful arcane spell.','0','3','0','0','13515','aran EMOTE_ARCANE_SPELL');
 

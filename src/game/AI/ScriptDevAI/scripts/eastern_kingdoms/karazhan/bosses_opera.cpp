@@ -584,7 +584,7 @@ struct boss_bigbadwolfAI : public CombatAI
         switch (spellInfo->Id)
         {
             case SPELL_PICK_RED_RIDING_HOOD:
-                DoBroadcastText(SAY_WOLF_RED_RIDING_HOOD, m_creature);
+                DoBroadcastText(SPELL_LITTLE_RED_RIDING_HOOD, m_creature);
                 break;
         }
     }

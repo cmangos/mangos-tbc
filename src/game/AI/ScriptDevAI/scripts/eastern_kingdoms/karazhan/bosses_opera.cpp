@@ -32,10 +32,10 @@ EndScriptData */
 
 enum
 {
-    SAY_DOROTHEE_DEATH          = -1532025,
-    SAY_DOROTHEE_SUMMON         = -1532026,
-    SAY_DOROTHEE_TITO_DEATH     = -1532027,
-    SAY_DOROTHEE_AGGRO          = -1532028,
+    SAY_DOROTHEE_DEATH          = 15068,
+    SAY_DOROTHEE_SUMMON         = 15066,
+    SAY_DOROTHEE_TITO_DEATH     = 15069,
+    SAY_DOROTHEE_AGGRO          = 15067,
 
     SAY_ROAR_AGGRO              = 19276,
     SAY_ROAR_DEATH              = 15133,
@@ -90,9 +90,6 @@ enum
 
 enum DorotheeActions // order based on priority
 {
-    DOROTHEE_ACTION_SUMMONTITO,
-    DOROTHEE_ACTION_FRIGHTENEDSCREAM,
-    DOROTHEE_ACTION_WATERBOLT,
     DOROTHEE_ACTION_MAX,
     DOROTHEE_INTRO,
     DOROTHEE_AGGRO,
@@ -103,9 +100,6 @@ struct boss_dorotheeAI : public CombatAI
     boss_dorotheeAI(Creature* creature) : CombatAI(creature, DOROTHEE_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         SetReactState(REACT_PASSIVE);
-        AddCombatAction(DOROTHEE_ACTION_SUMMONTITO, GetInitialActionTimer(DOROTHEE_ACTION_SUMMONTITO));
-        AddCombatAction(DOROTHEE_ACTION_FRIGHTENEDSCREAM, GetInitialActionTimer(DOROTHEE_ACTION_FRIGHTENEDSCREAM));
-        AddCombatAction(DOROTHEE_ACTION_WATERBOLT, GetInitialActionTimer(DOROTHEE_ACTION_WATERBOLT));
         AddCustomAction(DOROTHEE_INTRO, 2000u, [&]() { HandleIntro(); });
         AddCustomAction(DOROTHEE_AGGRO, 12000u, [&]() { HandleAggro(); });
         SetRangedMode(true, 40.f, TYPE_FULL_CASTER);
@@ -121,27 +115,6 @@ struct boss_dorotheeAI : public CombatAI
         SetCombatScriptStatus(false);
     }
 
-    uint32 GetInitialActionTimer(DorotheeActions id)
-    {
-        switch (id)
-        {
-            case DOROTHEE_ACTION_SUMMONTITO: return 36500;
-            case DOROTHEE_ACTION_FRIGHTENEDSCREAM: return urand(12000, 15000);
-            case DOROTHEE_ACTION_WATERBOLT: return 0;
-            default: return 0;
-        }
-    }
-
-    uint32 GetSubsequentActionTimer(DorotheeActions id)
-    {
-        switch (id)
-        {
-            case DOROTHEE_ACTION_FRIGHTENEDSCREAM: return urand(18000, 30000);
-            case DOROTHEE_ACTION_WATERBOLT: return 2400;
-            default: return 0;
-        }
-    }
-
     void JustReachedHome() override
     {
         if (m_instance)
@@ -152,11 +125,11 @@ struct boss_dorotheeAI : public CombatAI
 
     void JustDied(Unit* /*pKiller*/) override
     {
-        DoScriptText(SAY_DOROTHEE_DEATH, m_creature);
+        DoBroadcastText(SAY_DOROTHEE_DEATH, m_creature);
     }
 
     void JustSummoned(Creature* pSummoned) override
-    {
+    {        
         if (m_creature->GetVictim())
             pSummoned->AI()->AttackStart(m_creature->GetVictim());
     }
@@ -164,41 +137,22 @@ struct boss_dorotheeAI : public CombatAI
     void SummonedCreatureJustDied(Creature* pSummoned) override
     {
         if (pSummoned->GetEntry() == NPC_TITO)
-            DoScriptText(SAY_DOROTHEE_TITO_DEATH, m_creature);
+            DoBroadcastText(SAY_DOROTHEE_TITO_DEATH, m_creature);
     }
 
-    void ExecuteAction(uint32 action) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
     {
-        switch (action)
+        switch (spellInfo->Id)
         {
-            case DOROTHEE_ACTION_WATERBOLT:
-            {
-                if (DoCastSpellIfCan(m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER), SPELL_WATERBOLT) == CAST_OK)
-                    ResetCombatAction(action, GetSubsequentActionTimer(DorotheeActions(action)));
+            case SPELL_SUMMONTITO:
+                DoBroadcastText(SAY_DOROTHEE_SUMMON, m_creature);
                 break;
-            }
-            case DOROTHEE_ACTION_FRIGHTENEDSCREAM:
-            {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_NEAREST_BY, 0, SPELL_FRIGHTENEDSCREAM, SELECT_FLAG_PLAYER | SELECT_FLAG_USE_EFFECT_RADIUS))
-                    if (DoCastSpellIfCan(nullptr, SPELL_FRIGHTENEDSCREAM) == CAST_OK)
-                        ResetCombatAction(action, GetSubsequentActionTimer(DorotheeActions(action)));
-                break;
-            }
-            case DOROTHEE_ACTION_SUMMONTITO:
-            {
-                if (DoCastSpellIfCan(m_creature, SPELL_SUMMONTITO) == CAST_OK)
-                {
-                    DoScriptText(SAY_DOROTHEE_SUMMON, m_creature);
-                    DisableCombatAction(action);
-                }
-                break;
-            }
         }
-    };
+    }
 
     void HandleIntro()
     {
-        DoScriptText(SAY_DOROTHEE_AGGRO, m_creature);
+        DoBroadcastText(SAY_DOROTHEE_AGGRO, m_creature);
     }
 
     void HandleAggro()

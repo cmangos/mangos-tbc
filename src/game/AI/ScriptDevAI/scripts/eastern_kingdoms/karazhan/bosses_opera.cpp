@@ -52,7 +52,7 @@ enum
 
     SAY_CRONE_INTRO             = 15050,
     SAY_CRONE_INTRO2            = 15332,
-    SAY_CRONE_DEATH             = 9178,
+    SAY_CRONE_DEATH             = 15052,
     SAY_CRONE_SLAY              = 15051,
 
     /**** Spells ****/

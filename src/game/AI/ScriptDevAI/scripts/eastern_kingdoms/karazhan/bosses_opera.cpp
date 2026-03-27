@@ -578,16 +578,6 @@ struct boss_bigbadwolfAI : public CombatAI
         if (m_instance)
             m_instance->SetData(TYPE_OPERA, DONE);
     }
-
-    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
-    {
-        switch (spellInfo->Id)
-        {
-            case SPELL_PICK_RED_RIDING_HOOD:
-                DoBroadcastText(SPELL_LITTLE_RED_RIDING_HOOD, m_creature);
-                break;
-        }
-    }
 };
 
 /**********************************************/
@@ -1157,6 +1147,7 @@ struct spell_pick_red_ridding_hood : public SpellScript
 
         // cast Little Red Riding Hood
         caster->CastSpell(target, SPELL_LITTLE_RED_RIDING_HOOD, TRIGGERED_OLD_TRIGGERED);
+        DoBroadcastText(SAY_WOLF_RED_RIDING_HOOD, caster);
     }
 };
 

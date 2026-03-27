@@ -92,6 +92,7 @@ enum DorotheeActions // order based on priority
 {
     DOROTHEE_ACTION_MAX,
     DOROTHEE_INTRO,
+    DOROTHEE_ACTION_SUMMONTITO,
     DOROTHEE_AGGRO,
 };
 
@@ -102,6 +103,7 @@ struct boss_dorotheeAI : public CombatAI
         SetReactState(REACT_PASSIVE);
         AddCustomAction(DOROTHEE_INTRO, 2000u, [&]() { HandleIntro(); });
         AddCustomAction(DOROTHEE_AGGRO, 12000u, [&]() { HandleAggro(); });
+        AddCustomAction(DOROTHEE_ACTION_SUMMONTITO, 36500u, [&]() { HandleSummonTito(); }, TIMER_COMBAT_COMBAT);
         SetRangedMode(true, 40.f, TYPE_FULL_CASTER);
     }
 
@@ -140,14 +142,10 @@ struct boss_dorotheeAI : public CombatAI
             DoBroadcastText(SAY_DOROTHEE_TITO_DEATH, m_creature);
     }
 
-    void OnSpellCast(SpellEntry const* spellInfo, Unit* /*target*/) override
+    void HandleSummonTito()
     {
-        switch (spellInfo->Id)
-        {
-            case SPELL_SUMMONTITO:
-                DoBroadcastText(SAY_DOROTHEE_SUMMON, m_creature);
-                break;
-        }
+        if (DoCastSpellIfCan(m_creature, SPELL_SUMMONTITO) == CAST_OK)        
+            DoBroadcastText(SAY_DOROTHEE_SUMMON, m_creature);
     }
 
     void HandleIntro()
@@ -362,7 +360,7 @@ struct boss_croneAI : public CombatAI
     boss_croneAI(Creature* creature) : CombatAI(creature, CRONE_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
         AddCustomAction(CRONE_ACTION_INTRO, 6000u, [&]() { HandleIntro(); });
-        AddCustomAction(ROAR_ACTION_AGGRO, 9000u, [&]() { HandleAggro(); });
+        AddCustomAction(CRONE_ACTION_AGGRO, 9000u, [&]() { HandleAggro(); });
         m_creature->CastSpell(m_creature, SPELL_FIERY_BROOM_PROC, TRIGGERED_OLD_TRIGGERED);
         SetReactState(REACT_PASSIVE);
         Reset();

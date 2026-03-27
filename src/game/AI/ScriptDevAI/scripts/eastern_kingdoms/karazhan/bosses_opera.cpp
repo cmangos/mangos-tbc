@@ -624,13 +624,14 @@ enum OperaPhase
     PHASE_BOTH          = 2,
 };
 
-enum JulianneActions // order based on priority
+enum JulianneActions
 {
     JULIANNE_ATTACK_DELAY,
     JULIANNE_SUMMON_ROMULO,
     JULIANNE_RESURECT_SELF,
     JULIANNE_MAX
 };
+
 static const float afRomuloSpawnLoc[4] = { -10893.62f, -1760.78f, 90.55f, 4.76f};
 
 struct boss_julianneAI : public CombatAI
@@ -697,7 +698,7 @@ struct boss_julianneAI : public CombatAI
             // set fake death and allow 10 sec timer to kill Romulos
             DoBroadcastText(SAY_JULIANNE_DEATH02, m_creature);
             DoSetFakeDeath();
-            ResetTimer(JULIANNE_SUMMON_ROMULO, 10000);
+            ResetTimer(JULIANNE_RESURECT_SELF, 10000);
         }
     }
 
@@ -816,10 +817,19 @@ struct DrinkPoisonJulianne : public SpellScript
     }
 };
 
-struct boss_romuloAI : public ScriptedAI
+enum RomuloActions
 {
-    boss_romuloAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    ROMULO_RESURECT,
+    ROMULO_RESURECT_SELF,
+    ROMULO_MAX
+};
+
+struct boss_romuloAI : public CombatAI
+{
+    boss_romuloAI(Creature* creature) : CombatAI(creature, ROMULO_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
+        AddCustomAction(ROMULO_RESURECT, true, [&]() { HandleResurect(); });
+        AddCustomAction(ROMULO_RESURECT_SELF, true, [&]() { HandleResurectSelf(); });
         Reset();
     }
 
@@ -827,26 +837,12 @@ struct boss_romuloAI : public ScriptedAI
 
     OperaPhase m_Phase;
 
-    uint32 m_uiBackwardLungeTimer;
-    uint32 m_uiDaringTimer;
-    uint32 m_uiDeadlySwatheTimer;
-    uint32 m_uiPoisonThrustTimer;
-    uint32 m_uiResurrectTimer;
-    uint32 m_uiResurrectSelfTimer;
-
     bool m_bIsFakingDeath;
 
     void Reset() override
     {
+        CombatAI::Reset();
         m_Phase                 = PHASE_ROMULO;
-
-        m_uiBackwardLungeTimer  = 15000;
-        m_uiDaringTimer         = 20000;
-        m_uiDeadlySwatheTimer   = 25000;
-        m_uiPoisonThrustTimer   = 10000;
-        m_uiResurrectTimer      = 0;
-        m_uiResurrectSelfTimer  = 0;
-
         m_bIsFakingDeath        = false;
     }
 
@@ -873,13 +869,13 @@ struct boss_romuloAI : public ScriptedAI
             DoBroadcastText(SAY_ROMULO_DEATH, m_creature);
             DoSetFakeDeath();
             m_Phase             = PHASE_BOTH;
-            m_uiResurrectTimer  = 10000;
+            ResetTimer(ROMULO_RESURECT, 10000);
         }
         else if (m_Phase == PHASE_BOTH)
         {
             // set fake death and allow 10 sec timer to kill Julianne
             DoSetFakeDeath();
-            m_uiResurrectSelfTimer = 10000;
+            ResetTimer(ROMULO_RESURECT_SELF, 10000);
         }
     }
 
@@ -941,100 +937,39 @@ struct boss_romuloAI : public ScriptedAI
         DoStartMovement(m_creature->GetVictim());
     }
 
-    void UpdateAI(const uint32 uiDiff) override
+    void HandleResurectSelf()
     {
-        // Resurrect both of them at the beginning of phase 3
-        if (m_uiResurrectTimer)
+        if (m_instance)
         {
-            if (m_uiResurrectTimer <= uiDiff)
+            if (Creature* pJulianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
             {
-                if (m_instance)
+                // if Julianne is dead, then self kill
+                if (pJulianne->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
                 {
-                    if (Creature* pJulianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
-                    {
-                        if (boss_julianneAI* pJulianneAI = dynamic_cast<boss_julianneAI*>(pJulianne->AI()))
-                            pJulianneAI->DoHandleRomuloResurrect();
-                    }
+                    m_creature->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
+                    pJulianne->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
                 }
-                m_uiResurrectTimer = 0;
-            }
-            else
-                m_uiResurrectTimer -= uiDiff;
-        }
-
-        if (m_uiResurrectSelfTimer)
-        {
-            if (m_uiResurrectSelfTimer <= uiDiff)
-            {
-                if (m_instance)
+                else
                 {
-                    if (Creature* pJulianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
-                    {
-                        // if Julianne is dead, then self kill
-                        if (pJulianne->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
-                        {
-                            m_creature->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
-                            pJulianne->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
-                        }
-                        else
-                        {
-                            DoRemoveFakeDeath();
-                            DoBroadcastText(SAY_ROMULO_RESURRECT, m_creature);
-                            DoCastSpellIfCan(m_creature, SPELL_FULL_HEALTH, CAST_TRIGGERED);
-                        }
-                    }
+                    DoRemoveFakeDeath();
+                    DoBroadcastText(SAY_ROMULO_RESURRECT, m_creature);
+                    DoCastSpellIfCan(m_creature, SPELL_FULL_HEALTH, CAST_TRIGGERED);
                 }
-                m_uiResurrectSelfTimer = 0;
             }
-            else
-                m_uiResurrectSelfTimer -= uiDiff;
         }
-
-        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
-            return;
-
-        // don't use spells on fake death
-        if (m_bIsFakingDeath)
-            return;
-
-        if (m_uiBackwardLungeTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_BACKWARD_LUNGE) == CAST_OK)
-                m_uiBackwardLungeTimer = urand(15000, 30000);
-        }
-        else
-            m_uiBackwardLungeTimer -= uiDiff;
-
-        if (m_uiDaringTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_DARING) == CAST_OK)
-                m_uiDaringTimer = urand(20000, 40000);
-        }
-        else
-            m_uiDaringTimer -= uiDiff;
-
-        if (m_uiDeadlySwatheTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_DEADLY_SWATHE) == CAST_OK)
-                m_uiDeadlySwatheTimer = urand(15000, 25000);
-        }
-        else
-            m_uiDeadlySwatheTimer -= uiDiff;
-
-        if (m_uiPoisonThrustTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_POISON_THRUST) == CAST_OK)
-#ifdef PRENERF_2_0_3
-                m_uiPoisonThrustTimer = urand(8000, 16000);
-#else
-                m_uiPoisonThrustTimer = urand(10000, 20000);
-#endif
-        }
-        else
-            m_uiPoisonThrustTimer -= uiDiff;
-
-        DoMeleeAttackIfReady();
     }
+    
+    void HandleResurect()
+    {
+        if (m_instance)
+        {
+            if (Creature* pJulianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
+            {
+                if (boss_julianneAI* pJulianneAI = dynamic_cast<boss_julianneAI*>(pJulianne->AI()))
+                    pJulianneAI->DoHandleRomuloResurrect();
+            }
+        }
+    }    
 };
 
 struct spell_red_riding_hood_fixate : public AuraScript

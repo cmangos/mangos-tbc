@@ -195,6 +195,8 @@ struct boss_terestianAI : public CombatAI
         switch (summoned->GetEntry())
         {
             case NPC_PORTAL:
+                if (m_creature->IsInCombat())
+                    summoned->SetInCombatWithZone();
                 if (!m_bSummonedPortals)
                 {
                     m_bSummonedPortals = true;
@@ -243,34 +245,6 @@ struct boss_terestianAI : public CombatAI
     }
 };
 
-struct npc_fiendish_portalAI : public ScriptedAI
-{
-    npc_fiendish_portalAI(Creature* creature) : ScriptedAI(creature) { Reset(); }
-
-    uint32 m_uiSummonTimer;
-
-    void Reset() override
-    {
-        m_uiSummonTimer = 5000;
-    }
-
-    void JustSummoned(Creature* summoned) override
-    {
-        summoned->SetInCombatWithZone();
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {
-        if (m_uiSummonTimer <= uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_SUMMON_FIENDISH_IMP) == CAST_OK)
-                m_uiSummonTimer = 5000;
-        }
-        else
-            m_uiSummonTimer -= uiDiff;
-    }
-};
-
 struct Sacrifice : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -296,11 +270,6 @@ void AddSC_boss_terestian_illhoof()
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_terestian_illhoof";
     pNewScript->GetAI = &GetNewAIInstance<boss_terestianAI>;
-    pNewScript->RegisterSelf();
-
-    pNewScript = new Script;
-    pNewScript->Name = "npc_fiendish_portal";
-    pNewScript->GetAI = &GetNewAIInstance<npc_fiendish_portalAI>;
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<Sacrifice>("spell_sacrifice");

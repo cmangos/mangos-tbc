@@ -922,6 +922,7 @@ struct boss_romuloAI : public CombatAI
         m_creature->ClearAllReactives();
         m_creature->SetTarget(nullptr);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
+        m_creature->SetSpellList(0); // also remove SpellList to prevent spell casting
         SetCombatMovement(false);
     }
 
@@ -934,6 +935,7 @@ struct boss_romuloAI : public CombatAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
         DoResetThreat();
         SetCombatMovement(true);
+        m_creature->SetSpellList(m_creature->GetCreatureInfo()->SpellList);
         DoStartMovement(m_creature->GetVictim());
     }
 

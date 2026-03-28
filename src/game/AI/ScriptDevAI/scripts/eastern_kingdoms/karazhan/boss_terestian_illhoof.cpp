@@ -31,13 +31,13 @@ enum
 {
     SAY_SLAY1                   = 15145,
     SAY_SLAY2                   = 15146,
-    SAY_DEATH                   = -1532067,
-    SAY_AGGRO                   = -1532068,
-    SAY_SACRIFICE1              = -1532069,
-    SAY_SACRIFICE2              = -1532070,
-    SAY_SUMMON1                 = -1532071,
-    SAY_SUMMON2                 = -1532072,
-    SAY_KILREK_DEATH            = -1532136,
+    SAY_DEATH                   = 15137,
+    SAY_AGGRO                   = 15141,
+    SAY_SACRIFICE1              = 15147,
+    SAY_SACRIFICE2              = 15148,
+    SAY_SUMMON1                 = 15150,
+    SAY_SUMMON2                 = 15151,
+    SAY_KILREK_DEATH            = 13582,
 
     // spells
     SPELL_SUMMON_DEMONCHAINS    = 30120,                    // Summons demonic chains that maintain the ritual of sacrifice.
@@ -137,7 +137,7 @@ struct boss_terestianAI : public CombatAI
                     if (DoCastSpellIfCan(target, SPELL_SACRIFICE) == CAST_OK)
                     {
                         DoCastSpellIfCan(m_creature, SPELL_SUMMON_DEMONCHAINS, CAST_TRIGGERED);
-                        DoScriptText(urand(0, 1) ? SAY_SACRIFICE1 : SAY_SACRIFICE2, m_creature);
+                        DoBroadcastText(urand(0, 1) ? SAY_SACRIFICE1 : SAY_SACRIFICE2, m_creature);
                         m_sacrificeGuid = target->GetObjectGuid();
                     }
                 }
@@ -153,7 +153,7 @@ struct boss_terestianAI : public CombatAI
             case ILLHOOF_ACTION_SUMMON:
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_FIENDISH_PORTAL) == CAST_OK)
-                    DoScriptText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
+                    DoBroadcastText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
                 DisableCombatAction(action);
                 return;
             }
@@ -168,7 +168,7 @@ struct boss_terestianAI : public CombatAI
 
     void Aggro(Unit* /*who*/) override
     {
-        DoScriptText(SAY_AGGRO, m_creature);
+        DoBroadcastText(SAY_AGGRO, m_creature);
 
         if (m_instance)
             m_instance->SetData(TYPE_TERESTIAN, IN_PROGRESS);
@@ -225,7 +225,7 @@ struct boss_terestianAI : public CombatAI
         switch (summoned->GetEntry())
         {
             case NPC_KILREK:
-                DoScriptText(SAY_KILREK_DEATH, summoned, summoned);
+                DoBroadcastText(SAY_KILREK_DEATH, summoned, summoned);
                 summoned->CastSpell(m_creature, SPELL_BROKEN_PACT, TRIGGERED_OLD_TRIGGERED);
                 ResetTimer(ILLHOOF_ACTION_SUMMON_KILREK, GetSubsequentActionTimer(ILLHOOF_ACTION_SUMMON_KILREK));
                 break;
@@ -238,7 +238,7 @@ struct boss_terestianAI : public CombatAI
 
     void JustDied(Unit* /*killer*/) override
     {
-        DoScriptText(SAY_DEATH, m_creature);
+        DoBroadcastText(SAY_DEATH, m_creature);
 
         if (m_instance)
             m_instance->SetData(TYPE_TERESTIAN, DONE);

@@ -73,6 +73,10 @@
  #include "AuctionHouseBot/AuctionHouseBot.h"
 #endif
 
+#ifdef BUILD_VOICECHAT
+#include "VoiceChat/VoiceChatMgr.h"
+#endif
+
 #ifdef BUILD_METRICS
  #include "Metric/Metric.h"
 #endif
@@ -169,6 +173,10 @@ World::~World()
 /// Cleanups before world stop
 void World::CleanupsBeforeStop()
 {
+#ifdef BUILD_VOICECHAT
+    if (sVoiceChatMgr.CanUseVoiceChat())
+        sVoiceChatMgr.SocketDisconnected();          // close voice socket and remove channels
+#endif
 #ifdef ENABLE_PLAYERBOTS
     sRandomPlayerbotMgr.LogoutAllBots();
 #endif
@@ -1506,6 +1514,10 @@ void World::SetInitialWorldSettings()
     uint32 uStartInterval = WorldTimer::getMSTimeDiff(startTime, WorldTimer::getMSTime());
     sLog.outString("SERVER STARTUP TIME: %i minutes %i seconds", uStartInterval / 60000, (uStartInterval % 60000) / 1000);
     sLog.outString();
+
+#ifdef BUILD_VOICECHAT
+    sVoiceChatMgr.Init();
+#endif
 }
 
 void World::DetectDBCLang()
@@ -1745,6 +1757,11 @@ void World::Update(uint32 diff)
 
     // cleanup unused GridMap objects as well as VMaps
     sTerrainMgr.Update(diff);
+
+#ifdef BUILD_VOICECHAT
+    sVoiceChatMgr.Update();
+#endif
+
 #ifdef BUILD_METRICS
     auto updateEndTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::now());
     long long total = (updateEndTime - m_currentTime).count();

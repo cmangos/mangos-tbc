@@ -118,47 +118,61 @@ void LoadHelper(CellGuidSet const& guid_set, CellPair& cell, GridRefManager<T>& 
 
     for (uint32 guid : guid_set)
     {
-        T* obj;
+        T* obj = nullptr;
         uint32 newGuid = guid;
         if constexpr (std::is_same_v<T, GameObject>)
         {
             GameObjectData const* data = sObjectMgr.GetGOData(guid);
             MANGOS_ASSERT(data);
-            obj = (T*)GameObject::CreateGameObject(data->id);
+            obj = static_cast<T*>(GameObject::CreateGameObject(data->id));
             if (map->GetSpawnManager().IsEventGuid(guid, HIGHGUID_GAMEOBJECT))
                 newGuid = 0;
         }
         else
         {
-            obj = new T;
+            obj = new T();
             if (map->GetSpawnManager().IsEventGuid(guid, HIGHGUID_UNIT))
                 newGuid = 0;
         }
         // sLog.outString("DEBUG: LoadHelper from table: %s for (guid: %u) Loading",table,guid);
-        if (!obj->LoadFromDB(guid, map, newGuid, 0))
+        if (!obj || !obj->LoadFromDB(guid, map, newGuid, 0))
         {
             delete obj;
             continue;
         }
+ 
+        // Set cell info (used also by creatures)
+        addUnitState(obj, cell);
 
+        // Only gameobjects are added to grid here
         if (!obj->IsCreature())
-        {
             grid.AddGridObject(obj);
+        
+        // Check whether object is correctly in world
+        if (!obj->IsInWorld())
+        {
+        #ifdef MANGOS_DEBUG
+            const float x = obj->GetPositionX();
+            const float y = obj->GetPositionY();
+            const float z = obj->GetPositionZ();
+            const bool isEventGuid = map->GetSpawnManager().IsEventGuid(guid, obj->GetObjectGuid().GetHigh());
 
-            addUnitState(obj, cell);
+            sLog.outError("LoadHelper - %s (guid: %u%s) has been loaded, but is not in the world! map=%u, x=%.2f, y=%.2f, z=%.2f",
+                typeid(*obj).name(),
+                obj->GetObjectGuid().GetCounter(),
+                isEventGuid ? " [EventGuid]" : "",
+            map->GetId(), x, y, z);
+        #endif
+
+            delete obj;
+            continue;
         }
-
-        // if this assert is hit we have a problem somewhere because LoadFromDb should already add to map due to AI
-        MANGOS_ASSERT(obj->IsInWorld());
-
         obj->GetViewPoint().Event_AddedToWorld(&grid);
-
         if (bg)
             bg->OnObjectDBLoad(obj);
-
         ++count;
     }
-}
+} 
 
 void LoadHelper(CellCorpseSet const& cell_corpses, CellPair& cell, CorpseMapType& /*m*/, uint32& count, Map* map, GridType& grid)
 {

@@ -67,8 +67,6 @@ enum
 enum IllhoofActions
 {
     ILLHOOF_ACTION_SUMMON_KILREK,
-    ILLHOOF_ACTION_SACRIFICE,
-    ILLHOOF_ACTION_SHADOWBOLT,
     ILLHOOF_ACTION_SUMMON,
     ILLHOOF_ACTION_BERSERK,
     ILLHOOF_ACTION_MAX,
@@ -78,11 +76,9 @@ struct boss_terestianAI : public CombatAI
 {
     boss_terestianAI(Creature* creature) : CombatAI(creature, ILLHOOF_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        AddCombatAction(ILLHOOF_ACTION_SUMMON_KILREK, true);
-        AddCombatAction(ILLHOOF_ACTION_SACRIFICE, 30000, 35000);
-        AddCombatAction(ILLHOOF_ACTION_SHADOWBOLT, 5000, 7000);
-        AddCombatAction(ILLHOOF_ACTION_SUMMON, 10000u);
-        AddCombatAction(ILLHOOF_ACTION_BERSERK, uint32(10 * MINUTE * IN_MILLISECONDS));
+        AddCustomAction(ILLHOOF_ACTION_BERSERK, uint32(10 * MINUTE * IN_MILLISECONDS), [&]() { HandleBerserk(); }, TIMER_COMBAT_COMBAT);
+        AddCustomAction(ILLHOOF_ACTION_SUMMON_KILREK, true, [&]() { HandleSummonKilrek(); });
+        AddCustomAction(ILLHOOF_ACTION_SUMMON, 10000u, [&]() { HandleSummonPortal(); }, TIMER_COMBAT_COMBAT);
         AddOnKillText(SAY_SLAY1, SAY_SLAY2);
     }
 
@@ -110,60 +106,39 @@ struct boss_terestianAI : public CombatAI
 #else
             case ILLHOOF_ACTION_SUMMON_KILREK: return 45000;
 #endif
-            case ILLHOOF_ACTION_SACRIFICE: return urand(40000, 50000);
-            case ILLHOOF_ACTION_SHADOWBOLT: return urand(6000, 16000);
             default: return 0; // never occurs but for compiler
         }
     }
 
-    void ExecuteAction(uint32 action) override
+     void OnSpellCast(SpellEntry const* spellInfo, Unit* target) override
     {
-        switch (action)
+        switch (spellInfo->Id)
         {
-            case ILLHOOF_ACTION_SUMMON_KILREK:
-            {
-                DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP);
-                DisableCombatAction(action);
-                return;
-            }
-            case ILLHOOF_ACTION_SACRIFICE:
-            {
-#ifdef PRENERF_2_0_3
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, SPELL_SACRIFICE, SELECT_FLAG_PLAYER))
-#else
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1, SPELL_SACRIFICE, SELECT_FLAG_PLAYER))
-#endif
-                {
-                    if (DoCastSpellIfCan(target, SPELL_SACRIFICE) == CAST_OK)
-                    {
-                        DoCastSpellIfCan(m_creature, SPELL_SUMMON_DEMONCHAINS, CAST_TRIGGERED);
-                        DoBroadcastText(urand(0, 1) ? SAY_SACRIFICE1 : SAY_SACRIFICE2, m_creature);
-                        m_sacrificeGuid = target->GetObjectGuid();
-                    }
-                }
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case ILLHOOF_ACTION_SHADOWBOLT:
-            {
-                DoCastSpellIfCan(m_creature->GetVictim(), SPELL_SHADOW_BOLT);
-                ResetCombatAction(action, GetSubsequentActionTimer(action));
-                return;
-            }
-            case ILLHOOF_ACTION_SUMMON:
-            {
-                if (DoCastSpellIfCan(nullptr, SPELL_FIENDISH_PORTAL) == CAST_OK)
-                    DoBroadcastText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
-                DisableCombatAction(action);
-                return;
-            }
-            case ILLHOOF_ACTION_BERSERK:
-            {
-                DoCastSpellIfCan(nullptr, SPELL_BERSERK);
-                DisableCombatAction(action);
-                return;
-            }
+            case SPELL_SACRIFICE:
+                DoCastSpellIfCan(m_creature, SPELL_SUMMON_DEMONCHAINS, CAST_TRIGGERED);
+                DoBroadcastText(urand(0, 1) ? SAY_SACRIFICE1 : SAY_SACRIFICE2, m_creature);
+                m_sacrificeGuid = target->GetObjectGuid();
+                break;
         }
+    }
+
+    void HandleSummonPortal()
+    {
+        if (DoCastSpellIfCan(nullptr, SPELL_FIENDISH_PORTAL) == CAST_OK)
+            DoBroadcastText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
+        DisableCombatAction(ILLHOOF_ACTION_SUMMON);
+    }
+
+    void HandleSummonKilrek()
+    {
+        DoCastSpellIfCan(m_creature, SPELL_SUMMON_IMP);
+        DisableCombatAction(ILLHOOF_ACTION_SUMMON_KILREK);
+    }
+
+    void HandleBerserk()
+    {
+        DoCastSpellIfCan(nullptr, SPELL_BERSERK);
+        DisableCombatAction(ILLHOOF_ACTION_BERSERK);
     }
 
     void Aggro(Unit* /*who*/) override

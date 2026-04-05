@@ -6017,21 +6017,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 {
                     unitTarget->CastSpell(nullptr, 30630, TRIGGERED_OLD_TRIGGERED);
                     return;
-                }
-                case 30769:                                 // Pick Red Riding Hood
-                {
-                    if (m_caster->GetTypeId() != TYPEID_UNIT)
-                        return;
-
-                    Unit* target = m_caster->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, uint32(0), SELECT_FLAG_PLAYER);
-
-                    if (!target || target->GetTypeId() != TYPEID_PLAYER)
-                        return;
-
-                    // cast Little Red Riding Hood
-                    m_caster->CastSpell(target, 30768, TRIGGERED_OLD_TRIGGERED);
-                    break;
-                }
+                }               
                 case 30834:                                 // Infernal Relay
                 {
                     if (!unitTarget)

@@ -89,7 +89,7 @@ class PlayerbotPriestAI : PlayerbotClassAI
 {
     public:
         PlayerbotPriestAI(Player& master, Player& bot, PlayerbotAI& ai);
-        virtual ~PlayerbotPriestAI();
+        virtual ~PlayerbotPriestAI() override;
 
         // all combat actions go here
         CombatManeuverReturns DoFirstCombatManeuver(Unit* pTarget) override;
@@ -100,7 +100,7 @@ class PlayerbotPriestAI : PlayerbotClassAI
         void DoNonCombatActions() override;
 
         // Utility Functions
-        bool CastHoTOnTank();
+        bool CastHoTOnTank() override;
 
     private:
         CombatManeuverReturns DoFirstCombatManeuverPVE(Unit* pTarget) override;

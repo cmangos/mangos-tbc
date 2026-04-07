@@ -92,7 +92,7 @@ enum DorotheeActions // order based on priority
 {
     DOROTHEE_ACTION_MAX,
     DOROTHEE_INTRO,
-    DOROTHEE_ACTION_SUMMONTITO,
+    DOROTHEE_ACTION_SUMMON_TITO,
     DOROTHEE_AGGRO,
 };
 
@@ -103,7 +103,7 @@ struct boss_dorotheeAI : public CombatAI
         SetReactState(REACT_PASSIVE);
         AddCustomAction(DOROTHEE_INTRO, 2000u, [&]() { HandleIntro(); });
         AddCustomAction(DOROTHEE_AGGRO, 12000u, [&]() { HandleAggro(); });
-        AddCustomAction(DOROTHEE_ACTION_SUMMONTITO, 36500u, [&]() { HandleSummonTito(); }, TIMER_COMBAT_COMBAT);
+        AddCustomAction(DOROTHEE_ACTION_SUMMON_TITO, 36500u, [&]() { HandleSummonTito(); }, TIMER_COMBAT_COMBAT);
         SetRangedMode(true, 40.f, TYPE_FULL_CASTER);
     }
 
@@ -131,7 +131,7 @@ struct boss_dorotheeAI : public CombatAI
     }
 
     void JustSummoned(Creature* pSummoned) override
-    {        
+    {
         if (m_creature->GetVictim())
             pSummoned->AI()->AttackStart(m_creature->GetVictim());
     }
@@ -181,11 +181,6 @@ struct boss_strawmanAI : public CombatAI
     }
 
     ScriptedInstance* m_instance;
-
-    void Reset() override
-    {
-        CombatAI::Reset();
-    }
 
     void Aggro(Unit* /*pWho*/) override
     {
@@ -238,11 +233,6 @@ struct boss_tinheadAI : public CombatAI
     }
 
     ScriptedInstance* m_instance;
-
-    void Reset() override
-    {
-        CombatAI::Reset();
-    }
 
     void Aggro(Unit* /*pWho*/) override
     {
@@ -305,11 +295,6 @@ struct boss_roarAI : public CombatAI
 
     ScriptedInstance* m_instance;
 
-    void Reset() override
-    {
-        CombatAI::Reset();
-    }
-
     void Aggro(Unit* /*pWho*/) override
     {
         DoBroadcastText(SAY_ROAR_AGGRO, m_creature);
@@ -333,7 +318,7 @@ struct boss_roarAI : public CombatAI
         DoBroadcastText(SAY_ROAR_SLAY, m_creature);
     }
 
-        void HandleAggro()
+    void HandleAggro()
     {
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
         SetReactState(REACT_AGGRESSIVE);
@@ -409,7 +394,7 @@ struct boss_croneAI : public CombatAI
 
     void HandleIntro()
     {
-        DoBroadcastText(urand(0, 1) ? SAY_CRONE_INTRO : SAY_CRONE_INTRO2, m_creature); // TODO: should be said at player who started event
+        DoBroadcastText(urand(0, 1) ? SAY_CRONE_INTRO : SAY_CRONE_INTRO2, m_creature);
     }
                 
     void HandleAggro()
@@ -739,7 +724,7 @@ struct boss_julianneAI : public CombatAI
         m_creature->ClearAllReactives();
         m_creature->SetTarget(nullptr);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-        m_creature->SetSpellList(0); // also remove SpellList to prevent spell casting
+        SetCombatScriptStatus(true);
         SetCombatMovement(false);
     }
 
@@ -753,7 +738,7 @@ struct boss_julianneAI : public CombatAI
         DoResetThreat();
         SetCombatMovement(true);
         DoStartMovement(m_creature->GetVictim());
-        m_creature->SetSpellList(m_creature->GetCreatureInfo()->SpellList);
+        SetCombatScriptStatus(false);
     }
 
     // Wrapper to start phase 3
@@ -922,7 +907,7 @@ struct boss_romuloAI : public CombatAI
         m_creature->ClearAllReactives();
         m_creature->SetTarget(nullptr);
         m_creature->SetStandState(UNIT_STAND_STATE_DEAD);
-        m_creature->SetSpellList(0); // also remove SpellList to prevent spell casting
+        SetCombatScriptStatus(true);
         SetCombatMovement(false);
     }
 
@@ -935,7 +920,7 @@ struct boss_romuloAI : public CombatAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
         DoResetThreat();
         SetCombatMovement(true);
-        m_creature->SetSpellList(m_creature->GetCreatureInfo()->SpellList);
+        SetCombatScriptStatus(false);
         DoStartMovement(m_creature->GetVictim());
     }
 
@@ -943,13 +928,13 @@ struct boss_romuloAI : public CombatAI
     {
         if (m_instance)
         {
-            if (Creature* pJulianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
+            if (Creature* julianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
             {
                 // if Julianne is dead, then self kill
-                if (pJulianne->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
+                if (julianne->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE))
                 {
                     m_creature->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
-                    pJulianne->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
+                    julianne->CastSpell(nullptr, SPELL_SUICIDE_WHILE_DEAD, TRIGGERED_OLD_TRIGGERED);
                 }
                 else
                 {
@@ -965,15 +950,16 @@ struct boss_romuloAI : public CombatAI
     {
         if (m_instance)
         {
-            if (Creature* pJulianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
+            if (Creature* julianne = m_instance->GetSingleCreatureFromStorage(NPC_JULIANNE))
             {
-                if (boss_julianneAI* pJulianneAI = dynamic_cast<boss_julianneAI*>(pJulianne->AI()))
-                    pJulianneAI->DoHandleRomuloResurrect();
+                if (boss_julianneAI* julianneAI = dynamic_cast<boss_julianneAI*>(julianne->AI()))
+                    julianneAI->DoHandleRomuloResurrect();
             }
         }
     }    
 };
 
+// 30753 - Red Riding Hood 
 struct spell_red_riding_hood_fixate : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -991,7 +977,7 @@ struct spell_red_riding_hood_fixate : public AuraScript
     }
 };
 
-// 30769
+// 30769 - Pick Red Riding Hood
 struct spell_pick_red_ridding_hood : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override

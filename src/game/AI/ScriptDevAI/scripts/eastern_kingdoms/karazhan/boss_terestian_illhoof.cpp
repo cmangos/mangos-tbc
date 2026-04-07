@@ -110,7 +110,7 @@ struct boss_terestianAI : public CombatAI
         }
     }
 
-     void OnSpellCast(SpellEntry const* spellInfo, Unit* target) override
+    void OnSpellCast(SpellEntry const* spellInfo, Unit* target) override
     {
         switch (spellInfo->Id)
         {

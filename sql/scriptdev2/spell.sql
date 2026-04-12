@@ -820,7 +820,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (19686, 'spell_taming_pet_rod'),
 (30100, 'spell_taming_pet_rod'),
 (30103, 'spell_taming_pet_rod'),
-(30104, 'spell_taming_pet_rod');
+(30104, 'spell_taming_pet_rod'),
+(19572,'spell_improved_mend_pet'),
+(19573,'spell_improved_mend_pet');
 
 -- Priest
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

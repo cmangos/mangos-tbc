@@ -960,7 +960,7 @@ struct boss_romuloAI : public CombatAI
 };
 
 // 30753 - Red Riding Hood 
-struct spell_red_riding_hood_fixate : public AuraScript
+struct RedRidingHoodFixate : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
     {
@@ -978,7 +978,7 @@ struct spell_red_riding_hood_fixate : public AuraScript
 };
 
 // 30769 - Pick Red Riding Hood
-struct spell_pick_red_ridding_hood : public SpellScript
+struct PickRedRidingHood : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
@@ -1038,8 +1038,8 @@ void AddSC_bosses_opera()
     pNewScript->GetAI = &GetNewAIInstance<boss_bigbadwolfAI>;
     pNewScript->RegisterSelf();
 
-    RegisterSpellScript<spell_red_riding_hood_fixate>("spell_red_riding_hood_fixate");
-    RegisterSpellScript<spell_pick_red_ridding_hood>("spell_pick_red_ridding_hood");
+    RegisterSpellScript<RedRidingHoodFixate>("spell_red_riding_hood_fixate");
+    RegisterSpellScript<PickRedRidingHood>("spell_pick_red_ridding_hood");
 
     // Romeo And Juliet
     pNewScript = new Script;

@@ -115,7 +115,8 @@ struct MelodiousRapture : public SpellScript
     }
 };
 
-struct GreaterInvisibilityMob : public AuraScript
+// 16380, 32811, 32943 - Invisibility
+struct DetectThroughInvisibilityMob : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
     {
@@ -996,7 +997,7 @@ void AddSC_spell_scripts()
 {
     RegisterSpellScript<CastFishingNet>("spell_cast_fishing_net");
     RegisterSpellScript<MelodiousRapture>("spell_melodious_rapture");
-    RegisterSpellScript<GreaterInvisibilityMob>("spell_greater_invisibility_mob");
+    RegisterSpellScript<DetectThroughInvisibilityMob>("spell_detect_through_invisibility_mob");
     RegisterSpellScript<InebriateRemoval>("spell_inebriate_removal");
     RegisterSpellScript<AstralBite>("spell_astral_bite");
     RegisterSpellScript<FelInfusion>("spell_fel_infusion");

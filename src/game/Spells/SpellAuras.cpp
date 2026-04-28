@@ -3589,7 +3589,7 @@ void Aura::HandleChannelDeathItem(bool apply, bool Real)
         if (msg != EQUIP_ERR_OK)
         {
             count -= noSpaceForCount;
-            ((Player*)caster)->SendEquipError(msg, nullptr, nullptr, itemType);
+            ((Player*)caster)->SendEquipError(msg, nullptr, nullptr, 0, itemType);
             if (count == 0)
                 return;
         }

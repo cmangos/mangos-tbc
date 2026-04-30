@@ -1354,6 +1354,7 @@ inline bool IsPositiveEffect(const SpellEntry* spellproto, SpellEffectIndex effI
         case 33241:
         case 33045: // Wrath of the Astromancer - stacks like positive
         case 35424: // Soul Shadows - used by Shade of Mal'druk on Mal'druk the Soulrender
+        case 35336: // Energizing Spores - Cast by Sporebats on death
         case 42628: // Zul'Aman - Fire Bomb - Neutral spell
         case 44406: // Energy Infusion - supposed to be buff despite negative targeting
             return true;

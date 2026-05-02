@@ -206,7 +206,7 @@ endif()
 
 # Find needed packages and if necessery abort if something important is missing
 find_package(Boost 1.70.0 REQUIRED COMPONENTS program_options thread regex serialization filesystem)
-if (APPLE)
+if (UNIX OR APPLE)
     find_package(ICU COMPONENTS uc i18n data REQUIRED)
     add_library(icuuc ALIAS ICU::uc)
     add_library(icui18n ALIAS ICU::i18n)

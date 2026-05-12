@@ -1453,7 +1453,7 @@ bool GameObject::CanUseNow(Player const* player) const
     }
 
     // client checks this but needs recheck
-    if (GetGOInfo()->IsUsableInCombat() && player->IsInCombat())
+    if (!GetGOInfo()->IsUsableInCombat() && player->IsInCombat())
         return false;
 
     // client checks this but needs recheck

@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `db_version`;
 CREATE TABLE `db_version` (
   `version` varchar(120) DEFAULT NULL,
   `creature_ai_version` varchar(120) DEFAULT NULL,
-  `required_s2489_01_mangos_pet_spell_lists` bit(1) DEFAULT NULL
+  `required_s2490_01_mangos_spell_threat_mask` bit(1) DEFAULT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC COMMENT='Used DB version notes';
 
 --
@@ -17008,6 +17008,7 @@ CREATE TABLE `spell_threat` (
   `Threat` smallint(6) NOT NULL,
   `multiplier` float NOT NULL DEFAULT '1' COMMENT 'threat multiplier for damage/healing',
   `ap_bonus` float NOT NULL DEFAULT '0' COMMENT 'additional threat bonus from attack power',
+  `InverseEffectMask` INT UNSIGNED DEFAULT '0' COMMENT 'inverse mask for which effects to apply to',
   PRIMARY KEY (`entry`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 

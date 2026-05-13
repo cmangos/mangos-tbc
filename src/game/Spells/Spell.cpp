@@ -4717,6 +4717,9 @@ void Spell::HandleThreatSpells()
         if (!target)
             continue;
 
+        if (!threatEntry->CanCauseThreatOnMask(ihit->effectHitMask))
+            continue;
+
         // positive spells distribute threat among all units that are in combat with target, like healing
         if (positive)
         {

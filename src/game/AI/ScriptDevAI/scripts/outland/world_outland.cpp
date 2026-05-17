@@ -291,6 +291,8 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     std::vector<BashirCombatSpawn*> m_bashirPhaseSpawnDataUsed;
     // Shade of the Horseman village attack event
     ShadeOfTheHorsemanData m_shadeData;
+    // Ring of blood
+    ObjectGuid m_playerGuid2;
 
     void Initialize() override
     {
@@ -1622,6 +1624,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case NPC_SKRAGATH:
             case NPC_WARMAUL_CHAMPION:
             case NPC_MOGOR:
+                m_playerGuid2 = ObjectGuid();
                 creature->SetCorpseDelay(20);
                 creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
                 {
@@ -1677,6 +1680,24 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                 break;
         }
     }
+    
+    void OnCreatureEnterCombat(Creature* creature) override
+    {
+        switch (creature->GetEntry())
+        {
+            case NPC_BROKENTOE:
+            case NPC_MURKBLOOD_TWIN:
+            case NPC_ROKDAR:
+            case NPC_SKRAGATH:
+            case NPC_WARMAUL_CHAMPION:
+            case NPC_MOGOR:
+                if (creature->GetTarget())
+                {
+                    m_playerGuid2 = creature->GetTarget()->GetObjectGuid();
+                }
+                break;
+        }
+    }
 
     void OnCreatureDespawn(Creature* creature) override
     {
@@ -1690,7 +1711,37 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case NPC_MOGOR:
                 if (creature->GetObjectGuid() == m_lastRingOfBlood)
                     if (Creature* gurthock = GetSingleCreatureFromStorage(NPC_GURTHOCK))
+                    {
                         gurthock->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
+                        // If it despawned and we didn't kill, then that's a quest fail for group
+                        Player* player = gurthock->GetMap()->GetPlayer(m_playerGuid2);
+
+                        if (player)
+                        {
+                            switch (creature->GetEntry())
+                            {
+                                case NPC_BROKENTOE:
+                                    player->FailQuestForGroup(QUEST_RING_OF_BLOOD_BROKENTOE);
+                                    break;
+                                case NPC_MURKBLOOD_TWIN:
+                                    player->FailQuestForGroup(QUEST_RING_OF_BLOOD_MURKBLOOD_TWIN);
+                                    break;
+                                case NPC_ROKDAR:
+                                    player->FailQuestForGroup(QUEST_RING_OF_BLOOD_ROKDAR);
+                                    break;
+                                case NPC_SKRAGATH:
+                                    player->FailQuestForGroup(QUEST_RING_OF_BLOOD_SKRAGATH);
+                                    break;
+                                case NPC_WARMAUL_CHAMPION:
+                                    player->FailQuestForGroup(QUEST_RING_OF_BLOOD_WARMAUL_CHAMPION);
+                                    break;
+                                case NPC_MOGOR:
+                                    player->FailQuestForGroup(QUEST_RING_OF_BLOOD_MOGOR);
+                                    break;
+                            }
+                        }
+                    }
+                        
                 break;
         }
     }

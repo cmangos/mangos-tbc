@@ -161,8 +161,24 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
             Spell::SendCastResult(_player, spellInfo, cast_count, SPELL_FAILED_BAD_TARGETS);
         return;
     }
-
-    _player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ITEM_USE);
+    // Rogue poisons shouldn't remove stealth
+    if ((proto->Flags & uint64(0x200040)) && proto->AllowableClass == SPELLFAMILY_ROGUE)
+    {
+        SpellAuraHolder* stealth;
+        for (int i = 1784; i < 1788; i++)
+        {
+            if (stealth = _player->GetSpellAuraHolder(i))
+            {
+                _player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ITEM_USE, stealth);
+                break; 
+            }    
+        }
+        if (!stealth)
+            _player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ITEM_USE);
+    }
+    else
+        _player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ITEM_USE);
+    
 
     // Note: If script stop casting it must send appropriate data to client to prevent stuck item in gray state.
     if (!sScriptDevAIMgr.OnItemUse(pUser, pItem, targets))

@@ -340,12 +340,7 @@ enum
     HORDE_COORDS    = 6
 };
 
-struct Location
-{
-    float x, y, z, o;
-};
-
-static Location AllianceCoords[] =
+static Position AllianceCoords[] =
 {
     { -3757.38f, -4533.05f, 14.16f, 3.62f },                 // Top-far-right bunk as seen from entrance
     { -3754.36f, -4539.13f, 14.16f, 5.13f },                 // Top-far-left bunk
@@ -361,7 +356,7 @@ static Location AllianceCoords[] =
 #define A_RUNTOY -4531.52f
 #define A_RUNTOZ 11.91f
 
-static Location HordeCoords[] =
+static Position HordeCoords[] =
 {
     { -1013.75f, -3492.59f, 62.62f, 4.34f },                 // Left, Behind
     { -1017.72f, -3490.92f, 62.62f, 4.34f },                 // Right, Behind
@@ -416,7 +411,7 @@ struct npc_doctorAI : public ScriptedAI
     bool m_bIsEventInProgress;
 
     GuidList m_lPatientGuids;
-    std::vector<Location*> m_vPatientSummonCoordinates;
+    std::vector<Position*> m_vPatientSummonCoordinates;
 
     void Reset() override
     {
@@ -442,8 +437,8 @@ struct npc_doctorAI : public ScriptedAI
     }
 
     void BeginEvent(Player* pPlayer);
-    void PatientDied(Location* pPoint);
-    void PatientSaved(Creature* pSoldier, Player* pPlayer, Location* pPoint);
+    void PatientDied(Position* pPoint);
+    void PatientSaved(Creature* pSoldier, Player* pPlayer, Position* pPoint);
     void UpdateAI(const uint32 uiDiff) override;
 };
 
@@ -456,7 +451,7 @@ struct npc_injured_patientAI : public ScriptedAI
     npc_injured_patientAI(Creature* pCreature) : ScriptedAI(pCreature), isSaved(false) {Reset();}
 
     ObjectGuid m_doctorGuid;
-    Location* m_pCoord;
+    Position* m_pCoord;
     bool isSaved;
 
     void EnterEvadeMode() override
@@ -610,7 +605,7 @@ void npc_doctorAI::BeginEvent(Player* pPlayer)
     m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
 }
 
-void npc_doctorAI::PatientDied(Location* pPoint)
+void npc_doctorAI::PatientDied(Position* pPoint)
 {
     Player* pPlayer = m_creature->GetMap()->GetPlayer(m_playerGuid);
 
@@ -640,7 +635,7 @@ void npc_doctorAI::PatientDied(Location* pPoint)
         Reset();
 }
 
-void npc_doctorAI::PatientSaved(Creature* /*soldier*/, Player* pPlayer, Location* pPoint)
+void npc_doctorAI::PatientSaved(Creature* /*soldier*/, Player* pPlayer, Position* pPoint)
 {
     if (pPlayer && m_playerGuid == pPlayer->GetObjectGuid())
     {
@@ -723,7 +718,7 @@ void npc_doctorAI::UpdateAI(const uint32 uiDiff)
                     if (m_vPatientSummonCoordinates.empty())
                         break;
 
-                    std::vector<Location*>::iterator itr = m_vPatientSummonCoordinates.begin() + urand(0, m_vPatientSummonCoordinates.size() - 1);
+                    std::vector<Position*>::iterator itr = m_vPatientSummonCoordinates.begin() + urand(0, m_vPatientSummonCoordinates.size() - 1);
 
                     uint32 patientEntry = 0;
 

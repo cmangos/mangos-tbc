@@ -10,10 +10,9 @@ env:
   BUILD_TYPE: RelWithDebInfo
   REPO_DIR: ${{github.workspace}}
   BUILD_DIR: ${{github.workspace}}/bin/builddir
-  BOOST_VERSION_MAJOR: 1
-  BOOST_VERSION_MINOR: 87
-  BOOST_VERSION_PATCH: 0
-  MSVC_VERSION: 14.3
+  BOOST_TOOLSET: "msvc"
+  BOOST_VERSION: "1.87.0"
+  BOOST_PLATFORM_VERSION: "2022"
 
 jobs:
   build:
@@ -50,17 +49,27 @@ jobs:
         run: |
           echo "ARCHIVE_FILENAME=$env:CI_REPOSITORY_NAME-${{matrix.TYPE}}-$env:CI_SHA_SHORT.zip" >> $env:GITHUB_ENV
           cmake -E make_directory ${{ env.BUILD_DIR }}
-          choco install boost-msvc-${{env.MSVC_VERSION}} --version=${{env.BOOST_VERSION_MAJOR}}.${{env.BOOST_VERSION_MINOR}}.${{env.BOOST_VERSION_PATCH}}
+
+      # install dependencies — install-boost provides BoostConfig.cmake, which
+      # find_package(Boost) now requires (config mode); choco's boost-msvc
+      # package is not discoverable that way.
+      - name: Install Boost
+        uses: MarkusJx/install-boost@v2.6.0
+        id: install-boost
+        with:
+          boost_version: ${{env.BOOST_VERSION}}
+          platform_version: ${{env.BOOST_PLATFORM_VERSION}}
+          toolset: ${{env.BOOST_TOOLSET}}
 
       - name: Configure
         env:
-          BOOST_Dir: "c:/local/boost_${{env.BOOST_VERSION_MAJOR}}_${{env.BOOST_VERSION_MINOR}}_${{env.BOOST_VERSION_PATCH}}/lib64-msvc-${{env.MSVC_VERSION}}/cmake/Boost-${{env.BOOST_VERSION_MAJOR}}.${{env.BOOST_VERSION_MINOR}}.${{env.BOOST_VERSION_PATCH}}"
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
         run: cmake ${{matrix.OPTIONAL_DEFINES}} -B ${{env.BUILD_DIR}} -S ${{env.REPO_DIR}}
 
       - name: Build
         env:
           MAKEFLAGS: "-j8"
-        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}}
+        run: cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}} --parallel
 
       - name: Archive files
         run: |
@@ -76,7 +85,7 @@ jobs:
   upload:
     runs-on: windows-2022
     permissions:
-      contents: write # for marvinpinto/action-automatic-releases to generate pre-release
+      contents: write # for softprops/action-gh-release to publish the release
     needs: build
 
     steps:
@@ -108,16 +117,15 @@ jobs:
 
       - name: Get Current Date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
 
       - name: Upload Snapshot
-        uses: "marvinpinto/action-automatic-releases@latest"
+        uses: softprops/action-gh-release@v3
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          tag_name: latest
+          name: "Development Build(${{ steps.date.outputs.date }})"
           prerelease: false
-          title: "Development Build(${{ steps.date.outputs.date }})"
-          files: all_snapshots
+          files: all_snapshots/**
 
   notify-success:
     name: Send Notification to Discord on Success

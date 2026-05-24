@@ -796,6 +796,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (14323,'spell_hunters_mark'),
 (14324,'spell_hunters_mark'),
 (14325,'spell_hunters_mark'),
+(1515,'spell_tame_beast'),
 (34026,'spell_kill_command'),
 (34477,'spell_misdirection'),
 (34501,'spell_expose_weakness'),

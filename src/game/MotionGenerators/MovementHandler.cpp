@@ -44,224 +44,220 @@ void WorldSession::HandleMoveWorldportAckOpcode(WorldPacket& /*recv_data*/)
 
 void WorldSession::HandleMoveWorldportAckOpcode()
 {
-    if (GetPlayer())
+    // ignore unexpected far teleports
+    if (!GetPlayer()->IsBeingTeleportedFar())
+        return;
+
+    // get start teleport coordinates (will used later in fail case)
+    WorldLocation old_loc;
+    GetPlayer()->GetPosition(old_loc);
+
+    // get the teleport destination
+    WorldLocation& loc = GetPlayer()->GetTeleportDest();
+
+    // possible errors in the coordinate validity check (only cheating case possible)
+    if (!MapManager::IsValidMapCoord(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation))
     {
-        // ignore unexpected far teleports
-        if (!GetPlayer()->IsBeingTeleportedFar())
-            return;
+        sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: %s was teleported far to a not valid location "
+                      "(map:%u, x:%f, y:%f, z:%f) We port him to his homebind instead..",
+                      GetPlayer()->GetGuidStr().c_str(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+        // stop teleportation else we would try this again and again in LogoutPlayer...
+        GetPlayer()->SetSemaphoreTeleportFar(false);
+        // and teleport the player to a valid place
+        GetPlayer()->TeleportToHomebind();
+        return;
+    }
 
-        // get start teleport coordinates (will used later in fail case)
-        WorldLocation old_loc;
-        GetPlayer()->GetPosition(old_loc);
+    // get the destination map entry, not the current one, this will fix homebind and reset greeting
+    MapEntry const* mEntry = sMapStore.LookupEntry(loc.mapid);
+    
+    auto returnHomeFunc = [this, player = GetPlayer(), old_loc, loc]()
+    {
+        Map* map = nullptr;
+        // must have map in teleport
+        if (!map)
+            map = sMapMgr.CreateMap(loc.mapid, player);
+        if (!map)
+            map = sMapMgr.CreateMap(old_loc.mapid, player);
 
-        // get the teleport destination
-        WorldLocation& loc = GetPlayer()->GetTeleportDest();
-
-        // possible errors in the coordinate validity check (only cheating case possible)
-        if (!MapManager::IsValidMapCoord(loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation))
+        if (!map)
         {
-            sLog.outError("WorldSession::HandleMoveWorldportAckOpcode: %s was teleported far to a not valid location "
-                        "(map:%u, x:%f, y:%f, z:%f) We port him to his homebind instead..",
-                        GetPlayer()->GetGuidStr().c_str(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
-            // stop teleportation else we would try this again and again in LogoutPlayer...
-            GetPlayer()->SetSemaphoreTeleportFar(false);
-            // and teleport the player to a valid place
-            GetPlayer()->TeleportToHomebind();
+            KickPlayer();
             return;
         }
 
-        // get the destination map entry, not the current one, this will fix homebind and reset greeting
-        MapEntry const* mEntry = sMapStore.LookupEntry(loc.mapid);
-        
-        auto returnHomeFunc = [this, player = GetPlayer(), old_loc, loc]()
+        player->SetMap(map);
+
+        player->SetSemaphoreTeleportFar(false);
+
+        // Teleport to previous place, if cannot be ported back TP to homebind place
+        if (!player->TeleportTo(old_loc))
         {
-            Map* map = nullptr;
-            // must have map in teleport
-            if (!map)
-                map = sMapMgr.CreateMap(loc.mapid, player);
-            if (!map)
-                map = sMapMgr.CreateMap(old_loc.mapid, player);
+            DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s cannot be ported to his previous place, teleporting him to his homebind place...",
+                player->GetGuidStr().c_str());
+            player->TeleportToHomebind();
+        }
+    };
 
-            if (!map)
+    Map* map = nullptr;
+
+    // prevent crash at attempt landing to not existed battleground instance
+    if (mEntry->IsBattleGroundOrArena())
+    {
+        if (GetPlayer()->GetBattleGroundId())
+            map = sMapMgr.FindMap(loc.mapid, GetPlayer()->GetBattleGroundId());
+
+        if (!map)
+        {
+            DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s was teleported far to nonexisten battleground instance "
+                       " (map:%u, x:%f, y:%f, z:%f) Trying to port him to his previous place..",
+                       GetPlayer()->GetGuidStr().c_str(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+
+            returnHomeFunc();
+            return;
+        }
+    }
+
+    uint32 miscRequirement = 0;
+    AreaTrigger const* at = sObjectMgr.GetMapEntranceTrigger(loc.mapid);
+    if (at)
+    {
+        if (AREA_LOCKSTATUS_OK != GetPlayer()->GetAreaTriggerLockStatus(at, miscRequirement))
+        {
+            returnHomeFunc();
+            return;
+        }
+    }
+
+    InstanceTemplate const* mInstance = ObjectMgr::GetInstanceTemplate(loc.mapid);
+
+    // reset instance validity, except if going to an instance inside an instance
+    if (!GetPlayer()->m_InstanceValid && !mInstance)
+        GetPlayer()->m_InstanceValid = true;
+
+    GetPlayer()->SetSemaphoreTeleportFar(false);
+
+    // relocate the player to the teleport destination
+    if (!map)
+        map = sMapMgr.CreateMap(loc.mapid, GetPlayer());
+
+    // if dead player is entering an instance of same id but corpse is not found, likely means entering different instance id
+    if (GetPlayer()->IsDelayedResurrect() && !map->GetCorpse(GetPlayer()->GetObjectGuid()) && at)
+    {
+        // respawn at entrance
+        loc.coord_x = at->target_X;
+        loc.coord_y = at->target_Y;
+        loc.coord_z = at->target_Z;
+    }
+
+    GetPlayer()->SetMap(map);
+    bool found = true;
+    if (GetPlayer()->m_teleportTransport)
+    {
+        found = false;
+        GetPlayer()->m_movementInfo.t_pos = Position(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation); // when teleporting onto transport, position is local coords
+        if (GenericTransport* transport = map->GetTransport(GetPlayer()->m_teleportTransport))
+            if (transport->GetMapId() == loc.mapid)
+                found = true;
+    }
+    else
+        GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
+    auto lambda = [this, loc, old_loc, mEntry, mInstance](Map* map)
+    {
+        if (GenericTransport* transport = map->GetTransport(GetPlayer()->m_teleportTransport))
+        {
+            if (transport->GetMapId() == loc.mapid)
             {
-                KickPlayer();
-                return;
+                transport->AddPassenger(GetPlayer(), false);
+                transport->UpdatePassengerPosition(GetPlayer());
             }
+        }
+        GetPlayer()->m_teleportTransport = ObjectGuid();
 
-            player->SetMap(map);
+        GetPlayer()->SendInitialPacketsBeforeAddToMap();
+        // the CanEnter checks are done in TeleporTo but conditions may change
+        // while the player is in transit, for example the map may get full
+        if (!map->Add(GetPlayer()))
+        {
+            // if player wasn't added to map, reset his map pointer!
+            GetPlayer()->ResetMap();
 
-            player->SetSemaphoreTeleportFar(false);
+            DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s was teleported far but couldn't be added to map "
+                " (map:%u, x:%f, y:%f, z:%f) Trying to port him to his previous place..",
+                GetPlayer()->GetGuidStr().c_str(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
 
             // Teleport to previous place, if cannot be ported back TP to homebind place
-            if (!player->TeleportTo(old_loc))
+            if (!GetPlayer()->TeleportTo(old_loc))
             {
                 DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s cannot be ported to his previous place, teleporting him to his homebind place...",
-                    player->GetGuidStr().c_str());
-                player->TeleportToHomebind();
+                    GetPlayer()->GetGuidStr().c_str());
+                GetPlayer()->TeleportToHomebind();
             }
-        };
+            return;
+        }
 
-        Map* map = nullptr;
-
-        // prevent crash at attempt landing to not existed battleground instance
-        if (mEntry->IsBattleGroundOrArena())
+        // battleground state prepare (in case join to BG), at relogin/tele player not invited
+        // only add to bg group and object, if the player was invited (else he entered through command)
+        if (_player->InBattleGround())
         {
-            if (GetPlayer()->GetBattleGroundId())
-                map = sMapMgr.FindMap(loc.mapid, GetPlayer()->GetBattleGroundId());
-
-            if (!map)
+            // cleanup setting if outdated
+            if (!mEntry->IsBattleGroundOrArena())
             {
-                DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s was teleported far to nonexisten battleground instance "
-                        " (map:%u, x:%f, y:%f, z:%f) Trying to port him to his previous place..",
-                        GetPlayer()->GetGuidStr().c_str(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
-
-                returnHomeFunc();
-                return;
+                // We're not in BG
+                _player->SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);
+                // reset destination bg team
+                _player->SetBGTeam(TEAM_NONE);
             }
-        }
-
-        uint32 miscRequirement = 0;
-        AreaTrigger const* at = sObjectMgr.GetMapEntranceTrigger(loc.mapid);
-        if (at)
-        {
-            if (AREA_LOCKSTATUS_OK != GetPlayer()->GetAreaTriggerLockStatus(at, miscRequirement))
+            // join to bg case
+            else if (BattleGround* bg = _player->GetBattleGround())
             {
-                returnHomeFunc();
-                return;
+                if (_player->IsInvitedForBattleGroundInstance(_player->GetBattleGroundId()))
+                    bg->AddPlayer(_player);
             }
         }
 
-        InstanceTemplate const* mInstance = ObjectMgr::GetInstanceTemplate(loc.mapid);
+        m_anticheat->Teleport({ loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation });
 
-        // reset instance validity, except if going to an instance inside an instance
-        if (!GetPlayer()->m_InstanceValid && !mInstance)
-            GetPlayer()->m_InstanceValid = true;
+        GetPlayer()->SendInitialPacketsAfterAddToMap(false);
 
-        GetPlayer()->SetSemaphoreTeleportFar(false);
-
-        // relocate the player to the teleport destination
-        if (!map)
-            map = sMapMgr.CreateMap(loc.mapid, GetPlayer());
-
-        // if dead player is entering an instance of same id but corpse is not found, likely means entering different instance id
-        if (GetPlayer()->IsDelayedResurrect() && !map->GetCorpse(GetPlayer()->GetObjectGuid()) && at)
-        {
-            // respawn at entrance
-            loc.coord_x = at->target_X;
-            loc.coord_y = at->target_Y;
-            loc.coord_z = at->target_Z;
-        }
-
-        GetPlayer()->SetMap(map);
-        bool found = true;
-        if (GetPlayer()->m_teleportTransport)
-        {
-            found = false;
-            GetPlayer()->m_movementInfo.t_pos = Position(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation); // when teleporting onto transport, position is local coords
-            if (GenericTransport* transport = map->GetTransport(GetPlayer()->m_teleportTransport))
-                if (transport->GetMapId() == loc.mapid)
-                    found = true;
-        }
+        // flight fast teleport case
+        if (_player->InBattleGround())
+            _player->TaxiFlightInterrupt();
         else
-            GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
-        auto lambda = [this, loc, old_loc, mEntry, mInstance](Map* map)
+            _player->TaxiFlightResume();
+
+        if (mEntry->IsRaid() && mInstance)
         {
-            if (GenericTransport* transport = map->GetTransport(GetPlayer()->m_teleportTransport))
+            if (time_t timeReset = sMapPersistentStateMgr.GetScheduler().GetResetTimeFor(mEntry->MapID))
             {
-                if (transport->GetMapId() == loc.mapid)
-                {
-                    transport->AddPassenger(GetPlayer(), false);
-                    transport->UpdatePassengerPosition(GetPlayer());
-                }
+                uint32 timeleft = uint32(timeReset - time(nullptr));
+                GetPlayer()->SendInstanceResetWarning(mEntry->MapID, timeleft);
             }
-            GetPlayer()->m_teleportTransport = ObjectGuid();
+        }
 
-            GetPlayer()->SendInitialPacketsBeforeAddToMap();
-            // the CanEnter checks are done in TeleporTo but conditions may change
-            // while the player is in transit, for example the map may get full
-            if (!map->Add(GetPlayer()))
-            {
-                // if player wasn't added to map, reset his map pointer!
-                GetPlayer()->ResetMap();
+        // mount allow check
+        if (!map->IsMountAllowed())
+            _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
 
-                DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s was teleported far but couldn't be added to map "
-                    " (map:%u, x:%f, y:%f, z:%f) Trying to port him to his previous place..",
-                    GetPlayer()->GetGuidStr().c_str(), loc.mapid, loc.coord_x, loc.coord_y, loc.coord_z);
+        _player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_WORLD);
 
-                // Teleport to previous place, if cannot be ported back TP to homebind place
-                if (!GetPlayer()->TeleportTo(old_loc))
-                {
-                    DETAIL_LOG("WorldSession::HandleMoveWorldportAckOpcode: %s cannot be ported to his previous place, teleporting him to his homebind place...",
-                        GetPlayer()->GetGuidStr().c_str());
-                    GetPlayer()->TeleportToHomebind();
-                }
-                return;
-            }
+        // honorless target
+        if (GetPlayer()->pvpInfo.inPvPEnforcedArea)
+            GetPlayer()->CastSpell(GetPlayer(), 2479, TRIGGERED_OLD_TRIGGERED);
 
-            // battleground state prepare (in case join to BG), at relogin/tele player not invited
-            // only add to bg group and object, if the player was invited (else he entered through command)
-            if (_player->InBattleGround())
-            {
-                // cleanup setting if outdated
-                if (!mEntry->IsBattleGroundOrArena())
-                {
-                    // We're not in BG
-                    _player->SetBattleGroundId(0, BATTLEGROUND_TYPE_NONE);
-                    // reset destination bg team
-                    _player->SetBGTeam(TEAM_NONE);
-                }
-                // join to bg case
-                else if (BattleGround* bg = _player->GetBattleGround())
-                {
-                    if (_player->IsInvitedForBattleGroundInstance(_player->GetBattleGroundId()))
-                        bg->AddPlayer(_player);
-                }
-            }
+        _player->ResummonPetTemporaryUnSummonedIfAny();
 
-            m_anticheat->Teleport({ loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation });
+        // lets process all delayed operations on successful teleport
+        GetPlayer()->ProcessDelayedOperations();
 
-            GetPlayer()->SendInitialPacketsAfterAddToMap(false);
-
-            // flight fast teleport case
-            if (_player->InBattleGround())
-                _player->TaxiFlightInterrupt();
-            else
-                _player->TaxiFlightResume();
-
-            if (mEntry->IsRaid() && mInstance)
-            {
-                if (time_t timeReset = sMapPersistentStateMgr.GetScheduler().GetResetTimeFor(mEntry->MapID))
-                {
-                    uint32 timeleft = uint32(timeReset - time(nullptr));
-                    GetPlayer()->SendInstanceResetWarning(mEntry->MapID, timeleft);
-                }
-            }
-
-            // mount allow check
-            if (!map->IsMountAllowed())
-                _player->RemoveSpellsCausingAura(SPELL_AURA_MOUNTED);
-
-            _player->RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_WORLD);
-
-            // honorless target
-            if (GetPlayer()->pvpInfo.inPvPEnforcedArea)
-                GetPlayer()->CastSpell(GetPlayer(), 2479, TRIGGERED_OLD_TRIGGERED);
-
-            _player->ResummonPetTemporaryUnSummonedIfAny();
-
-            // lets process all delayed operations on successful teleport
-            GetPlayer()->ProcessDelayedOperations();
-
-            // notify group after successful teleport
-            if (_player->GetGroup())
-                _player->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
-        };
-        if (found)
-            lambda(map);
-        else
-            map->GetMessager().AddMessage(lambda);        
-    }
-    
+        // notify group after successful teleport
+        if (_player->GetGroup())
+            _player->SetGroupUpdateFlag(GROUP_UPDATE_FULL);
+    };
+    if (found)
+        lambda(map);
+    else
+        map->GetMessager().AddMessage(lambda);
 }
 
 void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket& recv_data)

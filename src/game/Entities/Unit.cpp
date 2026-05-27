@@ -1567,7 +1567,7 @@ SpellCastResult Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint3
 
     if ((spellInfo->Targets & TARGET_FLAG_DEST_LOCATION))
     {
-        if (victim)
+        if (Victim)
             targets.setDestination(Victim->GetPositionX(), Victim->GetPositionY(), Victim->GetPositionZ());
         else
             sLog.outError("CastSpell: victim was nullptr but tried to get position: caster %s, spellId %i", GetGuidStr().c_str(), spellInfo->Id);

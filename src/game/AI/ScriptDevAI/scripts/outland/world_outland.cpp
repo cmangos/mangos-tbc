@@ -292,7 +292,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     // Shade of the Horseman village attack event
     ShadeOfTheHorsemanData m_shadeData;
     // Ring of blood
-    ObjectGuid m_playerGuid2;
+    ObjectGuid m_playerGuidRingOfBlood;
 
     void Initialize() override
     {
@@ -1624,7 +1624,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case NPC_SKRAGATH:
             case NPC_WARMAUL_CHAMPION:
             case NPC_MOGOR:
-                m_playerGuid2 = ObjectGuid();
+                m_playerGuidRingOfBlood = ObjectGuid();
                 creature->SetCorpseDelay(20);
                 creature->GetCombatManager().SetLeashingCheck([](Unit* unit, float /*x*/, float /*y*/, float /*z*/)
                 {
@@ -1693,7 +1693,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case NPC_MOGOR:
                 if (creature->GetTarget())
                 {
-                    m_playerGuid2 = creature->GetTarget()->GetObjectGuid();
+                    m_playerGuidRingOfBlood = creature->GetTarget()->GetObjectGuid();
                 }
                 break;
         }
@@ -1714,7 +1714,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                     {
                         gurthock->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
                         // If it despawned and we didn't kill, then that's a quest fail for group
-                        Player* player = gurthock->GetMap()->GetPlayer(m_playerGuid2);
+                        Player* player = gurthock->GetMap()->GetPlayer(m_playerGuidRingOfBlood);
 
                         if (player)
                         {

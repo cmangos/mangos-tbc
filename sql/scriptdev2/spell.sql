@@ -780,7 +780,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (34799,'spell_arcane_devastation'),
 (34145,'spell_ritual_of_souls_dummy'),
 (34219,'spell_recharging_battery'),
-(32173,'spell_entangling_roots');
+(32173,'spell_entangling_roots'),
+(34520,'spell_elemental_power_extractor');
 
 -- Wotlk
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

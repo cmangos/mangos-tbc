@@ -3378,7 +3378,8 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- Bonus coeff fixes
 UPDATE spell_template SET EffectBonusCoefficient1=0.8 WHERE Id IN(1454,1455,1456,11687,11688,11689,27222); -- Life Tap
 UPDATE spell_template SET EffectBonusCoefficient1=0.022 WHERE Id IN(42463); -- Seal of Vengeance
-UPDATE spell_template SET EffectBonusCoefficientFromAP1=0.15 WHERE Id IN(3044,14281,14282,14283,14284,14285,14286,14287,27019); -- Arcane Shot
+UPDATE spell_template SET EffectBonusCoefficientFromAP1=0.15 WHERE Id IN(3044,14281,14282,14283,14284); -- Arcane Shot
+UPDATE spell_template SET EffectBonusCoefficientFromAP2=0.15 WHERE Id IN(14285,14286,14287,27019); -- Arcane Shot - Dispel ranks
 UPDATE spell_template SET EffectBonusCoefficient1=0.5 WHERE Id IN(1463,8494,8495,10191,10192,10193,27131); -- Mana Shield
 UPDATE spell_template SET EffectBonusCoefficient1=0.3 WHERE Id IN(11426,13031,13032,13033,27134,33405); -- Ice Barrier
 UPDATE spell_template SET EffectBonusCoefficient1=0.3 WHERE Id IN(6143,8461,8462,10177,28609,32796); -- Frost Ward

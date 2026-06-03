@@ -91,9 +91,13 @@ struct EarthShield : public AuraScript
 
     SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& procData) const override
     {
-        procData.basepoints[0] = aura->GetAmount();
-        procData.triggerTarget = aura->GetTarget();
-        procData.triggeredSpellId = 379;
+        if (!aura->GetHolder()->IsProcReady(aura->GetTarget()->GetMap()->GetCurrentClockTime()))
+            return SPELL_AURA_PROC_FAILED;
+
+        int32 basepoints0 = aura->GetAmount();
+        aura->GetTarget()->CastCustomSpell(nullptr, 379, &basepoints0, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED | TRIGGERED_INSTANT_CAST | TRIGGERED_DO_NOT_RESET_LEASH);
+
+        aura->GetHolder()->SetProcCooldown(std::chrono::milliseconds(procData.cooldown), aura->GetTarget()->GetMap()->GetCurrentClockTime());
         return SPELL_AURA_PROC_OK;
     }
 };

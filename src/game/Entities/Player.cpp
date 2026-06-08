@@ -1717,8 +1717,6 @@ void Player::SetDeathState(DeathState s)
         if (!ressSpellId)
             ressSpellId = GetResurrectionSpellId();
 
-        FailQuestsOnDeath(); // TODO: Order needs to be verified
-
         if (InstanceData* mapInstance = GetInstanceData())
             mapInstance->OnPlayerDeath(this);
     }
@@ -4505,6 +4503,8 @@ void Player::BuildPlayerRepop()
 
     // set and clear other
     SetByteValue(UNIT_FIELD_BYTES_1, UNIT_BYTES_1_OFFSET_MISC_FLAGS, UNIT_BYTE1_FLAG_ALWAYS_STAND);
+
+    FailQuestsOnDeath(); // confirmed to be on release
 }
 
 void Player::ResurrectPlayer(float restore_percent, bool applySickness)

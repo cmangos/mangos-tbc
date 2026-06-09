@@ -123,8 +123,6 @@ struct boss_blackheart_the_inciterAI : public CombatAI
     {
         if (spellInfo->Id == SPELL_INCITE_CHAOS)
             HandleInciteStart();
-        else if (spellInfo->Id == SPELL_CHARGE)
-            DoResetThreat();
     }
 
     void HandleInciteStart()
@@ -145,11 +143,18 @@ struct boss_blackheart_the_inciterAI : public CombatAI
         SetCombatMovement(true);
         m_meleeEnabled = true;
         DoResetThreat();
-        if (m_creature->GetVictim())
+        Unit* target = m_creature->getAttackerForHelper();
+        if (target)
         {
-            m_creature->MeleeAttackStart(m_creature->GetVictim());
-            m_creature->SetTarget(m_creature->GetVictim());
+            m_creature->SetTarget(target);
+            m_creature->MeleeAttackStart(target);
         }
+    }
+
+    void SpellHitTarget(Unit* target, const SpellEntry* spellInfo) override
+    {
+        if (spellInfo->Id == SPELL_CHARGE)
+            DoResetThreat();
     }
 };
 

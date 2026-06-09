@@ -349,7 +349,7 @@ struct boss_vazruden_heraldAI : public CombatAI
             }
             case NAZAN_FIREBALL_GROUND:
             {
-                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, nullptr, SELECT_FLAG_PLAYER))
+                if (Unit* target = m_creature->SelectAttackingTarget(m_creature->GetVictim(), 0, nullptr, SELECT_FLAG_PLAYER))
                 {
                     if (DoCastSpellIfCan(target, m_inRegularMode ? SPELL_FIREBALL_GROUND : SPELL_FIREBALL_GROUND_H) == CAST_OK)
                         ResetCombatAction(action, urand(7300, 13200));

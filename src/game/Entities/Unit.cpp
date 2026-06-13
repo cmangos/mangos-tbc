@@ -592,6 +592,9 @@ void Unit::TriggerAggroLinkingEvent(Unit* enemy)
 
 void Unit::TriggerEvadeEvents()
 {
+    if (!IsPlayerControlled())
+        SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME);
+
     static_cast<Creature*>(this)->SetLootRecipient(nullptr);
 
     if (InstanceData* mapInstance = GetInstanceData())
@@ -608,6 +611,8 @@ void Unit::TriggerEvadeEvents()
 
 void Unit::TriggerHomeEvents()
 {
+    RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME);
+
     AI()->JustReachedHome();
 
     if (!hasUnitState(UNIT_STAT_NO_FOLLOW_MOVEMENT))
@@ -9005,6 +9010,7 @@ void Unit::SetDeathState(DeathState s)
             i_motionMaster.MoveIdle();
 
         GetCombatManager().StopEvade();
+        RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME);
 
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);

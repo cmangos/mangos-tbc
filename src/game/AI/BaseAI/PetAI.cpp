@@ -430,7 +430,7 @@ bool PetAI::CanAutoCastAreaAura(SpellEntry const* spellInfo, Unit* target) const
 {
     for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
     {
-        if (IsAreaAuraEffect(spellInfo->Effect[j]))
+        if (target && IsAreaAuraEffect(spellInfo->Effect[j]))
         {
             if (target->HasAura(spellInfo->Id, SpellEffectIndex(j)))
                 return false;

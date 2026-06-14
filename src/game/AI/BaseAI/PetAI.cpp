@@ -342,7 +342,9 @@ std::vector<std::tuple<SpellEntry const*, Unit*, bool>> PetAI::PickSpellWithTarg
             if (!ShouldCast(spellInfo, victim) || !CanAutoCast(spellInfo, m_unit))
                 continue;
 
-            nonblockingSpells.emplace_back(spellInfo, m_unit, false);
+            // m_unit fails autocast if unit is currently unattackable (phase shift for example), so we leave nullptr
+            // which will later resolve to self targeting
+            nonblockingSpells.emplace_back(spellInfo, nullptr, false);
             continue;
         }
         // Try to cast a spell if the spell is AoE
@@ -428,7 +430,7 @@ bool PetAI::CanAutoCastAreaAura(SpellEntry const* spellInfo, Unit* target) const
 {
     for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
     {
-        if (IsAreaAuraEffect(spellInfo->Effect[j]))
+        if (target && IsAreaAuraEffect(spellInfo->Effect[j]))
         {
             if (target->HasAura(spellInfo->Id, SpellEffectIndex(j)))
                 return false;

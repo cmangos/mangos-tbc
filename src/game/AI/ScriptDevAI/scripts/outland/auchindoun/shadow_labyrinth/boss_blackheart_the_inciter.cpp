@@ -133,7 +133,7 @@ struct boss_blackheart_the_inciterAI : public CombatAI
         SetCombatScriptStatus(true);
         SetCombatMovement(false);
         SetMeleeEnabled(false);
-        m_creature->CastSpell(m_creature, SPELL_LAUGH_PERIODIC, TRIGGERED_NONE);
+        m_creature->CastSpell(nullptr, SPELL_LAUGH_PERIODIC, TRIGGERED_NONE);
         ResetTimer(BLACKHEART_INCITE_TIMER, 19000);
     }
 
@@ -145,11 +145,6 @@ struct boss_blackheart_the_inciterAI : public CombatAI
         SetCombatScriptStatus(false);
         m_creature->SetInCombatWithZone(false);
         AttackClosestEnemy();
-        if (m_creature->GetVictim())
-        {
-            m_creature->SetTarget(m_creature->GetVictim());
-            DoStartMovement(m_creature->GetVictim());
-        }
     }
 };
 

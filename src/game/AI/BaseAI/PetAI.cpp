@@ -292,7 +292,7 @@ std::vector<std::tuple<SpellEntry const*, Unit*, bool>> PetAI::PickSpellWithTarg
         }
     }
 
-    uint32 creatureEntry = m_pet->getPetType() == HUNTER_PET ? 1 : m_creature->GetCreatureInfo()->Entry;
+    uint32 creatureEntry = (m_pet && m_pet->getPetType() == HUNTER_PET) ? 1 : m_creature->GetCreatureInfo()->Entry;
     // Cast a spell from autocast selection
     for (uint8 i = 0; i < m_creature->GetPetAutoSpellSize(); ++i)
     {
@@ -428,12 +428,24 @@ bool PetAI::ShouldCast(SpellEntry const* spellInfo, Unit* victim) // essentially
 
 bool PetAI::CanAutoCastAreaAura(SpellEntry const* spellInfo, Unit* target) const
 {
-    for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
-        if (target && IsAreaAuraEffect(spellInfo->Effect[j]))
+        if (target && IsAreaAuraEffect(spellInfo->Effect[i]))
         {
-            if (target->HasAura(spellInfo->Id, SpellEffectIndex(j)))
-                return false;
+            // selfcast case
+            if (spellInfo->EffectImplicitTargetA[i] == TARGET_UNIT_CASTER || spellInfo->EffectImplicitTargetA[i] == TARGET_NONE)
+            {
+                if (m_creature->HasAura(spellInfo->Id, SpellEffectIndex(i)))
+                    return false;
+            }
+            else
+            {
+                if (!target)
+                    return false;
+
+                if (target->HasAura(spellInfo->Id, SpellEffectIndex(i)))
+                    return false;
+            }
         }
     }
     return true;

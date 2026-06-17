@@ -592,6 +592,9 @@ void Unit::TriggerAggroLinkingEvent(Unit* enemy)
 
 void Unit::TriggerEvadeEvents()
 {
+    if (!IsPlayerControlled())
+        SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME);
+
     static_cast<Creature*>(this)->SetLootRecipient(nullptr);
 
     if (InstanceData* mapInstance = GetInstanceData())
@@ -608,6 +611,8 @@ void Unit::TriggerEvadeEvents()
 
 void Unit::TriggerHomeEvents()
 {
+    RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME);
+
     AI()->JustReachedHome();
 
     if (!hasUnitState(UNIT_STAT_NO_FOLLOW_MOVEMENT))
@@ -976,7 +981,7 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
             actionInterruptFlags = (actionInterruptFlags | AURA_INTERRUPT_FLAG_NON_PERIODIC_DAMAGE);
 
         SpellAuraHolderMap& vInterrupts = victim->GetSpellAuraHolderMap();
-        std::vector<uint32> cleanupHolder;
+        std::vector<std::pair<uint32, bool>> cleanupHolder;
 
         for (auto& aura : vInterrupts)
         {
@@ -994,11 +999,30 @@ uint32 Unit::DealDamage(Unit* dealer, Unit* victim, uint32 damage, CleanDamage c
                     continue;
 
             if (se->AuraInterruptFlags & actionInterruptFlags)
-                cleanupHolder.push_back(aura.second->GetId());
+                cleanupHolder.emplace_back(aura.second->GetId(), aura.second->IsPositive());
         }
 
-        for (auto aura : cleanupHolder)
-            victim->RemoveAurasDueToSpell(aura);
+        if (!cleanupHolder.empty())
+        {
+            WorldPacket data(SMSG_SPELLBREAKLOG, 8 + 8 + 4 + 1 + 4 + 1 * 5);
+            data << victim->GetPackGUID();          // Victim GUID
+            if (dealer)                             // Caster GUID
+                data << dealer->GetPackGUID();
+            else
+                data << PackedGuid();
+            data << uint32(spellInfo != nullptr ? spellInfo->Id : 0); // breaking spell id
+            data << uint8(0);                       // not used
+            data << uint32(cleanupHolder.size());   // count
+
+            for (std::pair<uint32, uint32> aura : cleanupHolder)
+            {
+                data << uint32(aura.first); // Spell Id
+                data << uint8(!aura.second); // buff / debuff
+                victim->RemoveAurasDueToSpell(aura.first);
+            }
+
+            victim->SendMessageToSet(data, true);
+        }
 
         if (Spell* spell = victim->GetCurrentSpell(CURRENT_CHANNELED_SPELL))
             if (spell->m_spellInfo->ChannelInterruptFlags & actionInterruptFlags)
@@ -1565,8 +1589,16 @@ SpellCastResult Unit::CastSpell(Unit* Victim, SpellEntry const* spellInfo, uint3
     SpellCastTargets targets;
     targets.setUnitTarget(Victim);
 
-    if (spellInfo->Targets & TARGET_FLAG_DEST_LOCATION)
-        targets.setDestination(Victim->GetPositionX(), Victim->GetPositionY(), Victim->GetPositionZ());
+    if ((spellInfo->Targets & TARGET_FLAG_DEST_LOCATION))
+    {
+        // This shouldn't happen, but we should return gracefully if it does...
+        if (!Victim)
+        {
+            sLog.outError("CastSpell: victim was nullptr but tried to get position: caster %s, spellId %i", GetGuidStr().c_str(), spellInfo->Id);
+            return SPELL_FAILED_BAD_TARGETS;
+        }    
+        targets.setDestination(Victim->GetPositionX(), Victim->GetPositionY(), Victim->GetPositionZ()); 
+    }
     if (spellInfo->Targets & TARGET_FLAG_SOURCE_LOCATION)
         if (WorldObject* caster = spell->GetCastingObject())
             targets.setSource(caster->GetPositionX(), caster->GetPositionY(), caster->GetPositionZ());
@@ -8986,6 +9018,7 @@ void Unit::SetDeathState(DeathState s)
             i_motionMaster.MoveIdle();
 
         GetCombatManager().StopEvade();
+        RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME);
 
         ModifyAuraState(AURA_STATE_HEALTHLESS_20_PERCENT, false);
         ModifyAuraState(AURA_STATE_HEALTHLESS_35_PERCENT, false);

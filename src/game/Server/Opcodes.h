@@ -369,7 +369,7 @@ enum Opcodes
     SMSG_DAMAGE_DONE_OBSOLETE                       = 0x14C,
     SMSG_DAMAGE_TAKEN_OBSOLETE                      = 0x14D,
     SMSG_CANCEL_COMBAT                              = 0x14E,
-    SMSG_PLAYER_COMBAT_XP_GAIN_OBSOLETE             = 0x14F,
+    SMSG_SPELLBREAKLOG                              = 0x14F,
     SMSG_SPELLHEALLOG                               = 0x150,
     SMSG_SPELLENERGIZELOG                           = 0x151,
     CMSG_SHEATHE_OBSOLETE                           = 0x152,

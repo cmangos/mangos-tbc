@@ -349,8 +349,14 @@ struct boss_vazruden_heraldAI : public CombatAI
             }
             case NAZAN_FIREBALL_GROUND:
             {
-                if (DoCastSpellIfCan(m_creature->GetVictim(), m_inRegularMode ? SPELL_FIREBALL_GROUND : SPELL_FIREBALL_GROUND_H) == CAST_OK)
-                    ResetCombatAction(action, urand(7300, 13200));
+                if (Creature* vazruden = m_creature->GetMap()->GetCreature(m_vazrudenGuid))
+                {
+                    if (Unit* target = vazruden->SelectAttackingTarget(ATTACKING_TARGET_TOPAGGRO, 0, nullptr, SELECT_FLAG_PLAYER))
+                    {
+                        if (DoCastSpellIfCan(target, m_inRegularMode ? SPELL_FIREBALL_GROUND : SPELL_FIREBALL_GROUND_H) == CAST_OK)
+                            ResetCombatAction(action, urand(7300, 13200));
+                    }
+                }
                 break;
             }
             case NAZAN_CONE_OF_FIRE:

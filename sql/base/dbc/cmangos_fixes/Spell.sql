@@ -3376,6 +3376,9 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- ============================================================
 
 -- Bonus coeff fixes
+-- https://web.archive.org/web/20080913121625/http://elitistjerks.com/f47/t24796-shaman_restoration/ - It receives 28.6% of your +healing per charge (or 26.55% if you downrank to Rank 1 Earth Shield)
+UPDATE spell_template SET EffectBonusCoefficient1=0.2655 WHERE Id IN (974);
+UPDATE spell_template SET EffectBonusCoefficient1=0.286 WHERE Id IN (32593,32594); -- SELECT Id,SpellName,Rank1,spellfamilyflags,EffectBonusCoefficient1,EffectBonusCoefficient2,EffectBonusCoefficient3,EffectBonusCoefficientFromAP1,EffectBonusCoefficientFromAP2,EffectBonusCoefficientFromAP3 FROM spell_template where spellname LIKE '%Earth Shield%' and spellfamilyflags = spellfamilyflags|4398046511104;
 UPDATE spell_template SET EffectBonusCoefficient1=0.8 WHERE Id IN(1454,1455,1456,11687,11688,11689,27222); -- Life Tap
 UPDATE spell_template SET EffectBonusCoefficient1=0.022 WHERE Id IN(42463); -- Seal of Vengeance
 UPDATE spell_template SET EffectBonusCoefficientFromAP1=0.15 WHERE Id IN(3044,14281,14282,14283,14284); -- Arcane Shot

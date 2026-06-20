@@ -660,11 +660,11 @@ enum {
 
     GO_PURIFIED_FOOD         = 175336,
 
-    FACTION_BLACKWOOD        = 35,         // Faction guessed
+    FACTION_BLACKWOOD        = 35,
 
     EMOTE_LURED              = -1010027,
     EMOTE_PURIFIED           = -1010028,
-    EMOTE_GENERIC_FLEE       = -1000007,
+    GENERIC_EMOTE_FLEE       = 1150,
 
     SPELL_BATTLE_STANCE      = 7165,
     SPELL_THUNDERCLAP        = 8078,
@@ -693,7 +693,7 @@ struct npc_corrupted_furbolgAI : public CombatAI
         {
             if (m_isFirst)
                 DoScriptText(EMOTE_PURIFIED, m_creature);
-            m_creature->SetFactionTemporary(FACTION_BLACKWOOD, TEMPFACTION_RESTORE_COMBAT_STOP);
+            m_creature->SetFactionTemporary(FACTION_BLACKWOOD, TEMPFACTION_RESTORE_COMBAT_STOP | TEMPFACTION_TOGGLE_IMMUNE_TO_PLAYER);
             m_creature->GetMotionMaster()->MoveRandomAroundPoint(m_bowlCoords.GetPositionX(), m_bowlCoords.GetPositionY(), m_bowlCoords.GetPositionZ(), 40.f);
             m_creature->SetWalk(true);
             ResetTimer(EVENT_FURBOLG_RESET, 90s);
@@ -790,7 +790,7 @@ struct npc_corrupted_furbolgAI : public CombatAI
             {
                 if (m_creature->GetHealthPercent() <= 15.f)
                 {
-                    DoScriptText(EMOTE_GENERIC_FLEE, m_creature);
+                    DoBroadcastText(GENERIC_EMOTE_FLEE, m_creature);
                     if (DoFlee())
                         m_hasFled = true;
                     DisableCombatAction(action);

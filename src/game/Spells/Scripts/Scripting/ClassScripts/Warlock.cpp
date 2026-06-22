@@ -41,6 +41,19 @@ void RemoveShadowEmbraceIfNecessary(Aura* aura)
         }
     }
 
+    if (!hasOtherShadowEmbraceCausingAuras) // siphon life
+    {
+        Unit::AuraList const& auraPeriodicDmg = aura->GetTarget()->GetAurasByType(SPELL_AURA_PERIODIC_LEECH);
+        for (Unit::AuraList::const_iterator itr = auraPeriodicDmg.begin(); itr != auraPeriodicDmg.end(); ++itr)
+        {
+            if ((*itr)->GetCasterGuid() == aura->GetCasterGuid() && std::find(std::begin(causesShadowEmbraceSpellList), std::end(causesShadowEmbraceSpellList), (*itr)->GetId()) != std::end(causesShadowEmbraceSpellList))
+            {
+                hasOtherShadowEmbraceCausingAuras = true;
+                break;
+            }
+        }
+    }
+
     // if this is the final Shadow Embrace causing DoT being removed, also remove Shadow Embrace if found
     if (!hasOtherShadowEmbraceCausingAuras)
     {

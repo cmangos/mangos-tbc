@@ -570,6 +570,7 @@ enum
     SPELL_RIVERPAW_DEATH   = 8655,
     SPELL_STROMGARDE_DEATH = 8894,
     SPELL_CRUSHRIDGE_DEATH = 9144,
+    SPELL_FROSTSABER_CUB_DEATH = 15782,
 
     SAY_RAGE_FALLEN        = 1151,
 };
@@ -578,6 +579,7 @@ enum
 // 8655 - Riverpaw Death
 // 8894 - Stromgarde Death
 // 9144 - Crushridge Death
+// 15782 - Frostsaber Cub Death
 struct TribalDeath : public SpellScript
 {
     bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
@@ -589,6 +591,7 @@ struct TribalDeath : public SpellScript
             case SPELL_RIVERPAW_DEATH: entry = 0; break; // Unk
             case SPELL_STROMGARDE_DEATH: entry = 2585; break; // Stromgarde Vindicator
             case SPELL_CRUSHRIDGE_DEATH: entry = 2287; break; // Crushridge Warmonger
+            case SPELL_FROSTSABER_CUB_DEATH: entry = 7434; break; // Frostsaber Pride Watcher
         }
         if (target->GetEntry() != entry)
             return false;
@@ -604,6 +607,7 @@ struct TribalDeath : public SpellScript
             case SPELL_RIVERPAW_DEATH: spellId = 0; break; // Unk
             case SPELL_STROMGARDE_DEATH: spellId = 8602; break;
             case SPELL_CRUSHRIDGE_DEATH: spellId = 8269; break;
+            case SPELL_FROSTSABER_CUB_DEATH: spellId = 15716; break;
         }
         Unit* target = spell->GetUnitTarget();
         Unit* caster = spell->GetCaster();
@@ -612,7 +616,7 @@ struct TribalDeath : public SpellScript
             if (Unit* killer = target->GetMap()->GetUnit(static_cast<Creature*>(target)->GetKillerGuid()))
                 target->AI()->AttackStart(killer);
 
-        if (spell->m_spellInfo->Id == SPELL_CRUSHRIDGE_DEATH)
+        if (spell->m_spellInfo->Id == SPELL_CRUSHRIDGE_DEATH || spell->m_spellInfo->Id == SPELL_FROSTSABER_CUB_DEATH)
             DoBroadcastText(SAY_RAGE_FALLEN, target, caster);
     }
 };

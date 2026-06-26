@@ -783,7 +783,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (34145,'spell_ritual_of_souls_dummy'),
 (34219,'spell_recharging_battery'),
 (32173,'spell_entangling_roots'),
-(34520,'spell_elemental_power_extractor');
+(34520,'spell_elemental_power_extractor'),
+(35268,'spell_raging_flames_inferno'),
+(39346,'spell_raging_flames_inferno');
 
 -- Wotlk
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

@@ -140,7 +140,7 @@ struct npc_raging_flamesAI : public CombatAI
 
         if (Creature* summoner = m_creature->GetMap()->GetCreature(m_summonerGuid))
             if (Unit* newTarget = summoner->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-                m_creature->AddThreat(newTarget, 10000000.0f);
+                m_creature->AddThreat(newTarget, 1000000.0f);
     }
 };
 
@@ -152,7 +152,7 @@ struct RagingFlamesInferno : public AuraScript
         if (!apply)
             if (Unit* caster = aura->GetCaster())
                 if (Unit* newTarget = caster->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
-                    caster->AddThreat(newTarget, 10000000.0f);
+                    caster->AddThreat(newTarget, 1000000.0f);
     }
 };
 

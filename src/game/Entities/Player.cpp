@@ -5508,6 +5508,7 @@ bool Player::UpdateFishingSkill()
 
     uint8 stepsNeededToLevelUp = GetFishingStepsNeededToLevelUp(SkillValue);
     ++m_fishingSteps;
+    // TODO: add also a random component
 
     // impl of SPELL_ATTR_EX_SPECIAL_SKILLUP
     if (m_fishingSteps >= stepsNeededToLevelUp)

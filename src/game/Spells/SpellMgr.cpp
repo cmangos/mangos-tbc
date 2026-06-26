@@ -2311,6 +2311,17 @@ SpellCastResult SpellMgr::GetSpellAllowedInLocationError(SpellEntry const* spell
             return SPELL_FAILED_REQUIRES_AREA;
     }
 
+    if (spellInfo->HasAttribute(SPELL_ATTR_EX_SPECIAL_SKILLUP)) // only fishing currently
+    {
+        // epl works - 227
+        // also meant to be used for vanilla zones but no data on that yet
+        uint32 fishingSkill = player->GetSkillValue(SKILL_FISHING);
+        uint32 v_map = GetVirtualMapForMapAndZone(map_id, zone_id);
+        MapEntry const* mapEntry = sMapStore.LookupEntry(v_map);
+        if (mapEntry && mapEntry->addon >= 1 && fishingSkill < 300)
+            return SPELL_FAILED_LOW_CASTLEVEL;
+    }
+
     // raid instance limitation
     if (spellInfo->HasAttribute(SPELL_ATTR_EX6_NOT_IN_RAID_INSTANCES))
     {

@@ -1940,6 +1940,7 @@ enum
     NPC_ORONOK_TORN_HEART           = 21685,
     NPC_GROMTOR_SON_OF_ORONOK       = 21687,
     NPC_BORAK_SON_OF_ORONOK         = 21686,
+    SPAWN_GROUP_ORONOK              = 26004,
     NPC_CYRUKH_THE_FIRELORD         = 21181,
     // NPC_EARTH_SPIRIT              = 21050,
     NPC_REDEEMED_SPIRIT_OF_EARTH    = 21739,
@@ -1954,7 +1955,10 @@ enum
 
     POINT_ID_ATTACK_READY           = 1,
     POINT_ID_ELEMENTS               = 2,
-    POINT_ID_EPILOGUE               = 3,
+    POINT_ID_START_FIGHT            = 3,
+    POINT_ID_CYRUKH_APPROACH        = 4,
+    POINT_ID_EPILOGUE               = 5,
+    WAYPOINT_ID_START               = 1,
     WAYPOINT_ID_DESPAWN             = 5,
     WAYPOINT_ID_INTRO_FINAL         = 31,
 
@@ -1985,7 +1989,7 @@ static const DialogueEntry aOutroDialogue[] =
     {SAY_FIRE_EPILOGUE_5,           NPC_REDEEMED_SPIRIT_OF_FIRE,    14000},
     {SAY_EARTH_EPILOGUE_6,          NPC_REDEEMED_SPIRIT_OF_EARTH,   6000},
     {SAY_ORONOK_EPILOGUE_7,         NPC_ORONOK_TORN_HEART,          6000},
-    {SAY_ORONOK_EPILOGUE_8,         NPC_ORONOK_TORN_HEART,          1000},
+    {SAY_ORONOK_EPILOGUE_8,         NPC_ORONOK_TORN_HEART,          2000},
     {EVENT_GIVE_WEAPONS,            0,                              8500},
     {EVENT_MOUNT,                   0,                              1000},
     {EVENT_HOVER_AND_MOVE,          0,                              1000},
@@ -2001,10 +2005,13 @@ const static Position aDamnationLocations[] =
     { -3591.871f, 1886.822f, 47.32373f, 1.850049f}, // 3 water spirit summon loc
     { -3595.36f, 1869.78f, 47.24f},            // 4 fight ready move loc
     { -3635.90f, 1860.94f, 52.93f},            // 5 elementals move loc
-    { -3599.71f, 1897.94f, 47.24f}             // 6 epilogue move loc
+    // TODO: 6 and 7: Get exact coordinates, these are approximate from video as these
+    // points were missing previously
+    { -3660.46f, 1834.63f, 59.81f},            // 6 fight start move loc
+    { -3645.46f, 1824.87f, 50.69f},            // 7 cyrukh approach loc 
+    { -3599.71f, 1897.94f, 47.24f}             // 8 epilogue move loc
 };
 
-// TODO: Add formations and more shaking animations during intro
 struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelper
 {
     npc_spawned_oronok_tornheartAI(Creature* pCreature) : ScriptedAI(pCreature),
@@ -2039,27 +2046,18 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         m_uiHealTimer       = 8000;
 
         m_bHasAttackStart   = false;
+
     }
 
     void JustRespawned() override
     {
+        // Spawns far away so need to set active to fly in
+        m_creature->SetActiveObjectState(true);
         m_creature->Mount(MOUNT_ID_ORONOK);
-        m_creature->SetLevitate(true);
         m_creature->SetHover(true);
+        m_creature->SetWalk(false, true);
         m_creature->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
-        Creature* borak = m_creature->SummonCreature(NPC_BORAK_SON_OF_ORONOK, -3419.458f, 1383.739f, 228.1865f, 5.532694f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 300000, true, true);
-        borak->Mount(MOUNT_ID_ORONOK);
-        borak->SetLevitate(true);
-        borak->SetHover(true);
-        borak->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
-        borak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
-        Creature* gromtor = m_creature->SummonCreature(NPC_GROMTOR_SON_OF_ORONOK, -3419.458f, 1383.739f, 228.1865f, 5.532694f, TEMPSPAWN_TIMED_OOC_OR_DEAD_DESPAWN, 300000, true, true);
-        gromtor->Mount(MOUNT_ID_ORONOK);
-        gromtor->SetLevitate(true);
-        gromtor->SetHover(true);
-        gromtor->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
-        gromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
-        gromtor->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
+        
     }
 
     void JustDidDialogueStep(int32 iEntry) override
@@ -2082,6 +2080,8 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
             case NPC_REDEEMED_SPIRIT_OF_EARTH:
             {
                 m_creature->SetFacingTo(4.9f);
+                // make the formation turn around as well
+                m_creature->GetCreatureGroup()->GetFormationData()->Compact(false);
                 Creature* elemental = m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_AIR, aDamnationLocations[0].x, aDamnationLocations[0].y, aDamnationLocations[0].z, aDamnationLocations[0].o, TEMPSPAWN_TIMED_DESPAWN, 32000);
                 elemental->CastSpell(nullptr, SPELL_ELEMENTAL_SPAWN_IN, TRIGGERED_NONE);
                 elemental = m_creature->SummonCreature(NPC_REDEEMED_SPIRIT_OF_EARTH, aDamnationLocations[1].x, aDamnationLocations[1].y, aDamnationLocations[1].z, aDamnationLocations[1].o, TEMPSPAWN_TIMED_DESPAWN, 32000);
@@ -2092,13 +2092,22 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 elemental->CastSpell(nullptr, SPELL_ELEMENTAL_SPAWN_IN, TRIGGERED_NONE);
                 break;
             }
+            case SAY_FIRE_EPILOGUE_5:
+                if (GameObject* pMark = GetClosestGameObjectWithEntry(m_creature, GO_MARK_OF_KAELTHAS, 50.0f))
+                {
+                    pMark->SetRespawnTime(5 * MINUTE);
+                    pMark->Refresh();
+                }
+                break;
             case SAY_ORONOK_EPILOGUE_7:
                 if (Creature* pTorlok = m_creature->GetMap()->GetCreature(m_torlokGuid))
+                {
                     m_creature->SetFacingToObject(pTorlok);
+                    m_creature->GetCreatureGroup()->GetFormationData()->Compact(false);
+                }  
                 DoScriptText(EMOTE_GIVE_WEAPONS, m_creature);
                 break;
             case EVENT_GIVE_WEAPONS:
-                m_creature->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
                 if (Creature* pBorak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
                 {
                     pBorak->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
@@ -2109,6 +2118,8 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                     pGromtor->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
                     pGromtor->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
                 }
+                m_creature->SetVirtualItem(VIRTUAL_ITEM_SLOT_0, 0);
+                m_creature->SetVirtualItem(VIRTUAL_ITEM_SLOT_1, 0);
                 break;
             case EVENT_MOUNT:
                 m_creature->Mount(MOUNT_ID_ORONOK);
@@ -2119,7 +2130,6 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 break;
             case EVENT_HOVER_AND_MOVE:
                 m_creature->Mount(MOUNT_ID_ORONOK);
-                m_creature->SetLevitate(true);
                 m_creature->SetHover(true);
                 m_creature->StopMoving();
                 m_creature->GetMotionMaster()->Clear(false, true);
@@ -2127,24 +2137,15 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 if (Creature* pBorak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
                 {
                     pBorak->Mount(MOUNT_ID_ORONOK);
-                    pBorak->SetLevitate(true);
                     pBorak->SetHover(true);
-                    pBorak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
                 }
                 if (Creature* pGromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
                 {
                     pGromtor->Mount(MOUNT_ID_ORONOK);
-                    pGromtor->SetLevitate(true);
                     pGromtor->SetHover(true);
-                    pGromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
                 }
                 break;
             case NPC_ORONOK_TORN_HEART:
-                if (GameObject* pMark = GetClosestGameObjectWithEntry(m_creature, GO_MARK_OF_KAELTHAS, 30.0f))
-                {
-                    pMark->SetRespawnTime(5 * MINUTE);
-                    pMark->Refresh();
-                }
                 break;
         }
     }
@@ -2170,9 +2171,69 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         {
             case NPC_REDEEMED_SPIRIT_OF_FIRE:    m_fireSpiritGuid = pSummoned->GetObjectGuid();  break;
             case NPC_REDEEMED_SPIRIT_OF_EARTH:   m_earthSpiritGuid = pSummoned->GetObjectGuid(); break;
-            case NPC_GROMTOR_SON_OF_ORONOK:      m_gromtorGuid = pSummoned->GetObjectGuid();     break;
-            case NPC_BORAK_SON_OF_ORONOK:        m_borakGuid = pSummoned->GetObjectGuid();       break;
             case NPC_CYRUKH_THE_FIRELORD:        m_cyrukhGuid = pSummoned->GetObjectGuid();      break;
+        }
+    }
+
+    void SummonedCreatureDespawn(Creature* pSummoned) override
+    {
+        if (pSummoned->GetEntry() == NPC_CYRUKH_THE_FIRELORD)
+        {
+            // despawn the others if they're dead
+            if (!m_creature->IsAlive())
+                m_creature->ForcedDespawn();
+            if (!m_borak->IsAlive())
+                m_borak->ForcedDespawn();
+            if (!m_gromtor->IsAlive())
+                m_gromtor->ForcedDespawn();
+        }
+    }
+
+    void SummonedCreatureJustDied(Creature* pCreature)
+    {
+        if (pCreature->GetEntry() == NPC_CYRUKH_THE_FIRELORD)
+        {
+            if (!m_creature->IsAlive())
+            {
+                // Since Oronok is dead, there is no Epilogue RP
+                // so the other npcs won't despawn unless we do this...
+                if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                    borak->ForcedDespawn();
+                if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                    gromtor->ForcedDespawn();
+                m_creature->ForcedDespawn();
+            }
+        }
+    }
+
+    void SummonedMovementInform(Creature* pSummoned, uint32 motionType, uint32 pointId) override
+    {
+        // Cyrukh's supposed to leave the lava, run near the npcs, then attack
+        // Leaving the lava also prevents the npcs from getting stuck after
+        if (pSummoned->GetEntry() == NPC_CYRUKH_THE_FIRELORD)
+        {
+            switch (motionType)
+            {
+                case POINT_MOTION_TYPE:
+                    if (pointId == POINT_ID_CYRUKH_APPROACH)
+                    {
+                        // Cyrukh starts to attack
+                        m_creature->setFaction(FACTION_ORONOK_COMBAT);
+                        if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
+                            borak->setFaction(FACTION_ORONOK_COMBAT);
+                        if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
+                            gromtor->setFaction(FACTION_ORONOK_COMBAT);
+                        if (Creature* pCyrukh = GetSpeakerByEntry(NPC_CYRUKH_THE_FIRELORD))
+                        {
+                            pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                            pCyrukh->AI()->AttackStart(m_creature);
+                            m_bHasAttackStart = true;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -2181,7 +2242,6 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         m_creature->RemoveAllAurasOnEvade();
         m_creature->CombatStop(true);
         m_creature->LoadCreatureAddon(true);
-
         m_creature->SetLootRecipient(nullptr);
 
         Reset();
@@ -2193,20 +2253,18 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         {
             if (!pCyrukh->IsAlive())
             {
-                m_creature->GetMotionMaster()->MovePoint(POINT_ID_EPILOGUE, aDamnationLocations[6].x, aDamnationLocations[6].y, aDamnationLocations[6].z);
+                m_creature->GetMotionMaster()->MovePoint(POINT_ID_EPILOGUE, aDamnationLocations[8].x, aDamnationLocations[8].y, aDamnationLocations[8].z);
                 m_creature->setFaction(FACTION_ORONOK_FRIENDLY);
                 m_creature->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
                 if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
                 {
                     borak->setFaction(FACTION_ORONOK_FRIENDLY);
                     borak->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                    borak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
                 }
                 if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
                 {
                     gromtor->setFaction(FACTION_ORONOK_FRIENDLY);
                     gromtor->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
-                    gromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
                 }
             }
         }
@@ -2231,10 +2289,40 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
     {
         switch (pointId)
         {
+            case WAYPOINT_ID_START:
+            {
+                if (!m_borakGuid)
+                {
+                    if (Creature* borak = GetClosestCreatureWithEntry(m_creature, NPC_BORAK_SON_OF_ORONOK, 60.0f))
+                    {
+                        if (m_borakGuid = borak->GetObjectGuid())
+                        {
+                            borak->Mount(MOUNT_ID_ORONOK);
+                            borak->SetHover(true);
+                            borak->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
+                        }
+                    }
+                }
+                if (!m_gromtorGuid)
+                {
+                    if (Creature* gromtor = GetClosestCreatureWithEntry(m_creature, NPC_GROMTOR_SON_OF_ORONOK, 60.0f))
+                    {
+                        if (m_gromtorGuid = gromtor->GetObjectGuid())
+                        {
+                            gromtor->Mount(MOUNT_ID_ORONOK);
+                            gromtor->SetHover(true);
+                            gromtor->CastSpell(nullptr, SPELL_ORONOK_SPEED_INCREASE, TRIGGERED_OLD_TRIGGERED);
+                        }
+                    }
+                }
+                break;
+            }
             case WAYPOINT_ID_DESPAWN:
             {
                 if (m_creature->GetMotionMaster()->GetPathId() == 2)
                 {
+                    if (Creature* cyrukh = GetSpeakerByEntry(NPC_CYRUKH_THE_FIRELORD))
+                        cyrukh->ForcedDespawn();
                     if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
                         borak->ForcedDespawn();
                     if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
@@ -2248,7 +2336,6 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 // Set them in motion
                 m_creature->SetWalk(false);
                 m_creature->Mount(0);
-                m_creature->SetLevitate(false);
                 m_creature->SetHover(false);
                 m_creature->Unmount();
                 m_creature->StopMoving();
@@ -2259,20 +2346,16 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
                 {
                     borak->Mount(0);
-                    borak->SetLevitate(false);
                     borak->SetHover(false);
                     borak->Unmount();
-                    borak->GetMotionMaster()->MoveFollow(m_creature, 5.0f, -M_PI_F / 2, true);
                     borak->RemoveAurasDueToSpell(SPELL_ORONOK_SPEED_INCREASE);
                     m_borak = borak;
                 }
                 if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
                 {
                     gromtor->Mount(0);
-                    gromtor->SetLevitate(false);
                     gromtor->SetHover(false);
                     gromtor->Unmount();
-                    gromtor->GetMotionMaster()->MoveFollow(m_creature, 5.0f, M_PI_F / 2, true);
                     gromtor->RemoveAurasDueToSpell(SPELL_ORONOK_SPEED_INCREASE);
                     m_gromtor = gromtor;
                 }
@@ -2292,23 +2375,16 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                 DoScriptText(SAY_ORONOK_READY, m_creature);
                 break;
             case POINT_ID_ELEMENTS:
-                // Cyrukh starts to attack
-                m_creature->setFaction(FACTION_ORONOK_COMBAT);
-                if (Creature* borak = GetSpeakerByEntry(NPC_BORAK_SON_OF_ORONOK))
-                    borak->setFaction(FACTION_ORONOK_COMBAT);
-                if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
-                    gromtor->setFaction(FACTION_ORONOK_COMBAT);
+                m_creature->GetMotionMaster()->MovePoint(POINT_ID_START_FIGHT, aDamnationLocations[6].x, aDamnationLocations[6].y, aDamnationLocations[6].z);
+                break;
+            case POINT_ID_START_FIGHT:
                 if (Creature* pCyrukh = GetSpeakerByEntry(NPC_CYRUKH_THE_FIRELORD))
                 {
-                    pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                    if (m_borak)
-                        printf("%p\n", m_borak);
-                    if (m_gromtor)
-                        printf("%p\n", m_gromtor);
-                    pCyrukh->AI()->AttackStart(m_creature);
-                    AttackStart(pCyrukh);
-                    m_bHasAttackStart = true;
+                    pCyrukh->GetMotionMaster()->MovePoint(POINT_ID_CYRUKH_APPROACH, aDamnationLocations[7].x, aDamnationLocations[7].y, aDamnationLocations[7].z);
+                    m_creature->SetFacingToObject(pCyrukh);
+                    m_creature->GetCreatureGroup()->GetFormationData()->Compact(false);
                 }
+                
                 break;
             case POINT_ID_EPILOGUE:
                 StartNextDialogueText(NPC_EARTHMENDER_TORLOK);
@@ -2318,45 +2394,16 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
 
     void UpdateAI(const uint32 uiDiff) override
     {
+        UpdateTimers(uiDiff, m_unit->IsInCombat());
+
         DialogueUpdate(uiDiff);
 
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
-        if (m_uiLightningTimer < uiDiff)
-        {
-            if (Unit* pTarget = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0))
-            {
-                if (DoCastSpellIfCan(pTarget, SPELL_CHAIN_LIGHTNING) == CAST_OK)
-                    m_uiLightningTimer = urand(9000, 15000);
-            }
-        }
-        else
-            m_uiLightningTimer -= uiDiff;
+        ExecuteActions(); // before lists so phase transitions have higher priority
 
-        if (m_uiTotemTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_EARTHBIND_TOTEM) == CAST_OK)
-                m_uiTotemTimer = urand(40000, 60000);
-        }
-        else
-            m_uiTotemTimer -= uiDiff;
-
-        if (m_uiFrostTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature->GetVictim(), SPELL_FROST_SHOCK) == CAST_OK)
-                m_uiFrostTimer = urand(14000, 18000);
-        }
-        else
-            m_uiFrostTimer -= uiDiff;
-
-        if (m_uiHealTimer < uiDiff)
-        {
-            if (DoCastSpellIfCan(m_creature, SPELL_HEALING_WAVE) == CAST_OK)
-                m_uiHealTimer = urand(6000, 10000);
-        }
-        else
-            m_uiHealTimer -= uiDiff;
+        UpdateSpellLists();
 
         DoMeleeAttackIfReady();
     }

@@ -233,6 +233,11 @@ bool SpellStacker::IsStackableAuraEffect(SpellEntry const* entry, SpellEntry con
             }
             else
             {
+                if (entry->Id == 16145 || entry2->Id == 16145) // Grom'tor's sunder spell stacks with warrior sunder
+                {
+                    nonmui = true;
+                    break;
+                }  
                 const bool type = (entry->Dispel == entry2->Dispel);
                 const bool prevention = (entry->PreventionType && entry->PreventionType == entry2->PreventionType);
                 if (type && prevention)

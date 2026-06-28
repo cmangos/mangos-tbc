@@ -3290,9 +3290,13 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
         }
         case SCRIPT_COMMAND_SPAWN_SPAWN_GROUP: 
         {
+            uint32 time_to_despawn = m_script->spawnGroupData.despawnDelay;
             SpawnGroup* group = pSource->GetMap()->GetSpawnManager().GetSpawnGroup(m_script->spawnGroupData.groupId);
             if (group)
+            {
                 group->Spawn(true);
+                group->Despawn(true, time_to_despawn);
+            }
             break;
         }
         default:

@@ -3294,8 +3294,9 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
             SpawnGroup* group = pSource->GetMap()->GetSpawnManager().GetSpawnGroup(m_script->spawnGroupData.groupId);
             if (group)
             {
-                group->Spawn(true);
-                group->Despawn(true, time_to_despawn);
+                group->Spawn(true, false);
+                if (time_to_despawn != 0)
+                    group->Despawn(time_to_despawn, true);
             }
             break;
         }

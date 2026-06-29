@@ -1366,9 +1366,11 @@ enum
     POINT_ORB_WAYPOINT = 1,
 
     NPC_ORB_WAYPOINT_1 = 21443,
+    NPC_PORTAL_TRIGGER = 21463,
     NPC_DRAENEI_TOMB_GUARDIAN = 22285,
 
     DBSCRIPT_VENGEFUL_HARBINGER_FAKE_DEATH = 10063,
+    DBSCRIPT_RESPAWN_ASCENDANT_FLOORPIECE = 10067,
 
     EVENT_RESET_TIMER = 120000,
 
@@ -1442,6 +1444,18 @@ struct npc_vengeful_harbinger : public ScriptedAI
             //        if (Player* player = m_creature->GetMap()->GetPlayer(m_playerGuid))
             //            player->GroupEventHappens(QUEST_VENGEFUL_HARBINGER, m_creature);
             //    break;
+            case WAYPOINT_MOTION_TYPE:
+            {
+                if (uiData == POINT_ID_END && m_creature->GetMotionMaster()->GetPathId() == PATH_ID_END)
+                {
+                    if(Creature* portalTrigger = GetClosestCreatureWithEntry(m_creature, NPC_PORTAL_TRIGGER, 45.f))
+                    {
+                        // This line needs to be called to spawn the go at the end
+                        m_creature->GetMap()->ScriptsStart(SCRIPT_TYPE_RELAY, DBSCRIPT_RESPAWN_ASCENDANT_FLOORPIECE, portalTrigger, portalTrigger);
+                    }
+                }
+                break;
+            }
         }
     }
 

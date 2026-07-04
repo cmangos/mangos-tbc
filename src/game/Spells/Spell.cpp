@@ -2179,6 +2179,178 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                     continue;
                 }
             }
+
+            uint32 mapId = m_caster->GetMapId();
+            uint32 zone, area;
+            m_caster->GetTerrain()->GetZoneAndAreaId(zone, area, x, y, z);
+            // vanilla brackets - 0, 55, 130, 205, 330
+            // tbc brackets - 305, 355, 380, 430
+            uint32 minimumRequiredSkill = 500; // catch setting for missing cases so its noticable
+            switch (mapId)
+            {
+                case 0:
+                    switch (zone)
+                    {
+                        case 1: // dun morogh
+                        case 12: // elwynn
+                        case 38: // loch modan
+                        case 40: // westfall
+                        case 85: // tirisfal
+                        case 130: // silverpine
+                            minimumRequiredSkill = 0;
+                            break;
+                        case 10: // duskwood
+                        case 11: // wetlands
+                        case 44: // redridge
+                        case 267: // hillsbrad
+                        case 1519: // stormwind
+                            minimumRequiredSkill = 55;
+                            break;
+                        case 33: // stranglethorn
+                        case 45: // arathi
+                            minimumRequiredSkill = 130;
+                            break;
+                        case 28: // western plaguelands
+                        case 47: // hinterlands
+                            minimumRequiredSkill = 205;
+                            break;
+                        case 41: // deadwind
+                        case 139: // eastern plaguelands
+                            minimumRequiredSkill = 330;
+                            break;
+                    }
+                    break;
+                case 1:
+                    switch (zone)
+                    {
+                        case 14: // durotar
+                        case 17: // barrens
+                        case 141: // teldrassil
+                        case 148: // darkshore
+                        case 1657: // darnassus
+                            minimumRequiredSkill = 0;
+                            break;
+                        case 331: // ashenvale
+                        case 406: // stonetalon
+                            minimumRequiredSkill = 55;
+                            break;
+                        case 15: // dustwallow
+                        case 405: // desolace
+                            minimumRequiredSkill = 130;
+                            break;
+                        case 357: // feralas
+                            switch (area)
+                            {
+                                case 1112: // jademir lake
+                                    minimumRequiredSkill = 330;
+                                    break;
+                                default:
+                                    minimumRequiredSkill = 205;
+                                    break;
+                            }
+                            break;
+                        case 440: // tanaris
+                            minimumRequiredSkill = 205;
+                            break;
+                        case 16: // azshara
+                        case 618: // winterspring
+                            minimumRequiredSkill = 330;
+                            break;
+                    }
+                    break;
+                case 43: // wailing caverns
+                case 48: // blackfathom
+                    minimumRequiredSkill = 55;
+                case 189: // scarlet monastery
+                case 349: // maraudon
+                    minimumRequiredSkill = 205;
+                    break;
+                case 289: // scholomance
+                case 309: // zulgurub
+                case 329: // stratholme
+                case 429: // dire maul
+                    minimumRequiredSkill = 330;
+                    break;
+                case 530:
+                {
+                    uint32 v_map = GetVirtualMapForMapAndZone(mapId, zone);
+                    MapEntry const* mapEntry = sMapStore.LookupEntry(v_map);
+                    if (!mapEntry || mapEntry->addon < 1)
+                    {
+                        minimumRequiredSkill = 0; // belf/draenei starter zones
+                        break;
+                    }
+
+                    switch (zone)
+                    {
+                        case 3521: // zangarmarsh
+                            switch (area)
+                            {
+                                case 3655:
+                                case 3659:
+                                default:
+                                    minimumRequiredSkill = 305;
+                                    break;
+                                case 3653:
+                                case 3656:
+                                case 3720:
+                                    minimumRequiredSkill = 355;
+                                    break;
+                            }
+                            break;
+                        case 3519: // terokkar
+                            switch (area)
+                            {
+                                case 3680:
+                                case 3690:
+                                case 3691:
+                                case 3692:
+                                case 3693:
+                                case 3975:
+                                    minimumRequiredSkill = 430;
+                                    break;
+                                default:
+                                    minimumRequiredSkill = 380;
+                                    break;
+                            }
+                            break;
+                        case 3518: // nagrand
+                            switch (area)
+                            {
+                                case 3621: // lake sunspring
+                                    minimumRequiredSkill = 430;
+                                    break;
+                                default:
+                                    minimumRequiredSkill = 355;
+                                    break;
+                            }
+                            break;
+                        case 3523: // netherstorm
+                            minimumRequiredSkill = 380;
+                            break;
+                        default:
+                            minimumRequiredSkill = 305;
+                            break;
+                    }
+                    break;
+                }
+                case 534: // these are unverified - needs more data
+                case 545:
+                case 546:
+                case 547:
+                case 548:
+                case 560:
+                case 568:
+                case 580:
+                case 585:
+                    minimumRequiredSkill = 430;
+                    break;
+            }
+
+            uint32 fishingSkill = m_caster->IsPlayer() ? static_cast<Player*>(m_caster)->GetSkillValue(SKILL_FISHING) : 0;
+            if (fishingSkill < minimumRequiredSkill)
+                result = SPELL_FAILED_LOW_CASTLEVEL;
+
             if (result != SPELL_CAST_OK)
             {
                 SendCastResult(result);

@@ -208,41 +208,45 @@ struct npc_time_riftAI : public ScriptedAI
         }
         else
         {
-            // Reset the RiftWaveCount if we reached the maximum number of the currentRiftWave is 0
-            if ((m_uiRiftWaveCount > 2 && !m_uiRiftWaveId) || m_uiRiftWaveCount > 3)
-                m_uiRiftWaveCount = 0;
-
-            uiSummonEntry = aPortalWaves[m_uiRiftWaveId].uiPortalMob[m_uiRiftWaveCount];
-
-            switch (uiSummonEntry)
+            // Final portal only summons Aeonus
+            if (m_uiRiftNumber < 18)
             {
-                case NPC_WHELP:
-                    uiSpellId = SPELL_INFINITE_WHELP;
-                    break;
-                case NPC_ASSASSIN:
-                    uiSpellId = urand(0, 1) ? SPELL_INFINITE_ASSASSIN : SPELL_INFINITE_ASSASSIN_2;
-                    break;
-                case NPC_CHRONOMANCER:
-                    uiSpellId = urand(0, 1) ? SPELL_INFINITE_CHRONOMANCER : SPELL_INFINITE_CHRONOMANCER_2;
-                    break;
-                case NPC_EXECUTIONER:
-                    uiSpellId = urand(0, 1) ? SPELL_INFINITE_EXECUTIONER : SPELL_INFINITE_EXECUTIONER_2;
-                    break;
-                case NPC_VANQUISHER:
-                    uiSpellId = urand(0, 1) ? SPELL_INFINITE_VANQUISHER : SPELL_INFINITE_VANQUISHER_2;
-                    break;
-            }
+                // Reset the RiftWaveCount if we reached the maximum number of the currentRiftWave is 0
+                if ((m_uiRiftWaveCount > 2 && !m_uiRiftWaveId) || m_uiRiftWaveCount > 3)
+                    m_uiRiftWaveCount = 0;
 
-            ++m_uiRiftWaveCount;
+                uiSummonEntry = aPortalWaves[m_uiRiftWaveId].uiPortalMob[m_uiRiftWaveCount];
 
-            // For Whelps we need to summon them in packs of 3
-            if (uiSpellId == SPELL_INFINITE_WHELP)
-            {
-                for (uint8 i = 0; i < 3; ++i)
+                switch (uiSummonEntry)
+                {
+                    case NPC_WHELP:
+                        uiSpellId = SPELL_INFINITE_WHELP;
+                        break;
+                    case NPC_ASSASSIN:
+                        uiSpellId = urand(0, 1) ? SPELL_INFINITE_ASSASSIN : SPELL_INFINITE_ASSASSIN_2;
+                        break;
+                    case NPC_CHRONOMANCER:
+                        uiSpellId = urand(0, 1) ? SPELL_INFINITE_CHRONOMANCER : SPELL_INFINITE_CHRONOMANCER_2;
+                        break;
+                    case NPC_EXECUTIONER:
+                        uiSpellId = urand(0, 1) ? SPELL_INFINITE_EXECUTIONER : SPELL_INFINITE_EXECUTIONER_2;
+                        break;
+                    case NPC_VANQUISHER:
+                        uiSpellId = urand(0, 1) ? SPELL_INFINITE_VANQUISHER : SPELL_INFINITE_VANQUISHER_2;
+                        break;
+                }
+
+                ++m_uiRiftWaveCount;
+
+                // For Whelps we need to summon them in packs of 3
+                if (uiSpellId == SPELL_INFINITE_WHELP)
+                {
+                    for (uint8 i = 0; i < 3; ++i)
+                        m_creature->CastSpell(m_creature, uiSpellId, TRIGGERED_OLD_TRIGGERED);
+                }
+                else
                     m_creature->CastSpell(m_creature, uiSpellId, TRIGGERED_OLD_TRIGGERED);
             }
-            else
-                m_creature->CastSpell(m_creature, uiSpellId, TRIGGERED_OLD_TRIGGERED);
         }
     }
 

@@ -352,7 +352,7 @@ void instance_dark_portal::OnCreatureDeath(Creature* pCreature)
 
 void instance_dark_portal::DoSpawnNextPortal()
 {
-    if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
+    if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH) && m_uiCurrentRiftId < 18)
     {
         // Randomize portal locations
         uint8 uiTmp = urand(0, 2);

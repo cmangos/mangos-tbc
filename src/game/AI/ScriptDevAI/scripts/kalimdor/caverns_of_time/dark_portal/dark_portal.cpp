@@ -354,7 +354,7 @@ void instance_dark_portal::DoSpawnNextPortal()
 {
     if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
     {
-        if (m_uiCurrentRiftId < 18)
+        if (GetCurrentRiftId() < 18)
         {
             // Randomize portal locations
             uint8 uiTmp = urand(0, 2);

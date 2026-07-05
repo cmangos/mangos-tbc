@@ -354,21 +354,18 @@ void instance_dark_portal::DoSpawnNextPortal()
 {
     if (Creature* pMedivh = GetSingleCreatureFromStorage(NPC_MEDIVH))
     {
-        if (GetCurrentRiftId() < 18)
-        {
-            // Randomize portal locations
-            uint8 uiTmp = urand(0, 2);
+        // Randomize portal locations
+        uint8 uiTmp = urand(0, 2);
 
-            if (uiTmp >= m_uiCurrentRiftId)
-                ++uiTmp;
+        if (uiTmp >= m_uiCurrentRiftId)
+            ++uiTmp;
 
-            debug_log("SD2: instance_dark_portal: SetRiftId %u, old was id %u.", uiTmp, m_uiCurrentRiftId);
+        debug_log("SD2: instance_dark_portal: SetRiftId %u, old was id %u.", uiTmp, m_uiCurrentRiftId);
 
-            m_uiCurrentRiftId = uiTmp;
+        m_uiCurrentRiftId = uiTmp;
 
-            // Summon next portal
-            pMedivh->SummonCreature(NPC_TIME_RIFT, afPortalLocation[uiTmp].fX, afPortalLocation[uiTmp].fY, afPortalLocation[uiTmp].fZ, afPortalLocation[uiTmp].fOrient, TEMPSPAWN_CORPSE_DESPAWN, 0);
-        }
+        // Summon next portal
+        pMedivh->SummonCreature(NPC_TIME_RIFT, afPortalLocation[uiTmp].fX, afPortalLocation[uiTmp].fY, afPortalLocation[uiTmp].fZ, afPortalLocation[uiTmp].fOrient, TEMPSPAWN_CORPSE_DESPAWN, 0);
     }
 }
 
@@ -507,7 +504,7 @@ void instance_dark_portal::Update(uint32 uiDiff)
 
     if (m_uiNextPortalTimer)
     {
-        if (m_uiNextPortalTimer <= uiDiff)
+        if (m_uiNextPortalTimer <= uiDiff && m_uiWorldStateRiftCount < 18)
         {
             DoUpdateWorldState(WORLD_STATE_OPENING_THE_DARK_PORTAL_RIFT_STATE, ++m_uiWorldStateRiftCount);
 

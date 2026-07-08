@@ -97,6 +97,7 @@ struct EarthShield : public AuraScript
         int32 basepoints0 = aura->GetAmount();
         aura->GetTarget()->CastCustomSpell(nullptr, 379, &basepoints0, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED | TRIGGERED_INSTANT_CAST | TRIGGERED_DO_NOT_RESET_LEASH);
 
+        aura->GetHolder()->DropAuraCharge();
         aura->GetHolder()->SetProcCooldown(std::chrono::milliseconds(procData.cooldown), aura->GetTarget()->GetMap()->GetCurrentClockTime());
         return SPELL_AURA_PROC_OK;
     }

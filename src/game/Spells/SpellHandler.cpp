@@ -418,6 +418,11 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
     if (_player->HasQueuedSpell())
         return;
 
+    if (IsAutoRepeatRangedSpell(spellInfo))
+        if (const Spell* repeatSpell = caster->GetCurrentSpell(CURRENT_AUTOREPEAT_SPELL))
+            if (spellId == repeatSpell->m_spellInfo->Id)
+                return;
+
     bool handled = false;
     Spell* spell = new Spell(caster, spellInfo, TRIGGERED_NONE);
     spell->m_cast_count = cast_count;                       // set count of casts

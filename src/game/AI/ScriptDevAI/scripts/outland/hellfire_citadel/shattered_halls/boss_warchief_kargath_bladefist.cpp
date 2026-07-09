@@ -285,7 +285,12 @@ struct boss_warchief_kargath_bladefistAI : public CombatAI
 struct npc_blade_dance_targetAI : public ScriptedAI
 {
     npc_blade_dance_targetAI(Creature* creature) : ScriptedAI(creature) {}
-    void Reset() override {}
+    void Reset() override
+    {
+        SetReactState(REACT_PASSIVE);
+        SetCombatMovement(false);
+    }
+
     void DamageTaken(Unit* /*dealer*/, uint32& damage, DamageEffectType /*damagetype*/, SpellEntry const* /*spellInfo*/) override
     {
         damage = std::max(m_creature->GetMaxHealth(), damage);

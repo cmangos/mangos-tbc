@@ -81,7 +81,14 @@ void UnitAI::MoveInLineOfSight(Unit* who)
         return;
 
     if (who->GetObjectGuid().IsCreature() && who->IsInCombat())
-        CheckForHelp(who, m_unit, sWorld.getConfig(CONFIG_FLOAT_CREATURE_CHECK_FOR_HELP_RADIUS));
+    {
+        float radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_CHECK_FOR_HELP_RADIUS);
+        if (((Creature*)who)->GetCreatureInfo()->CallForHelp > 0)
+            radius = ((Creature*)who)->GetCreatureInfo()->CallForHelp;
+
+        CheckForHelp(who, m_unit, radius);
+    }
+        
 
     if (!HasReactState(REACT_AGGRESSIVE)) // mobs who are aggressive can still assist
         return;

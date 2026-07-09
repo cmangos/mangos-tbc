@@ -2254,7 +2254,7 @@ void Creature::CallAssistanceOnPull(Unit* enemy)
         float radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS);
         if (GetCreatureInfo()->CallForHelp > 0)
             radius = GetCreatureInfo()->CallForHelp;
-        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, enemy, 0, radius);
+        AI()->SendAIEventAround(AI_EVENT_CALL_ASSISTANCE, enemy, sWorld.getConfig(CONFIG_UINT32_CREATURE_FAMILY_ASSISTANCE_DELAY), radius);
     }
 }
 
@@ -2264,7 +2264,14 @@ void Creature::CallForHelp(float radius)
         return;
 
     if (radius <= 0.0f)
-        radius = GetCreatureInfo()->CallForHelp;
+    {
+        // call for help can be 0
+        if (GetCreatureInfo()->CallForHelp > 0)
+            radius = GetCreatureInfo()->CallForHelp;
+        else
+            radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS); 
+    }   
+
 
     MaNGOS::CallOfHelpCreatureInRangeDo u_do(this, GetVictim(), radius);
     MaNGOS::CreatureWorker<MaNGOS::CallOfHelpCreatureInRangeDo> worker(this, u_do);

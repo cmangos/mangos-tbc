@@ -580,7 +580,7 @@ void Unit::TriggerAggroLinkingEvent(Unit* enemy)
     if (callAssistance)
         static_cast<Creature*>(this)->CallAssistanceOnPull(enemy);
 
-    m_events.AddEvent(new UnitLambdaEvent(*this, [enemyGuid = enemy->GetObjectGuid(), creatureGroup = static_cast<Creature*>(this)->GetCreatureGroup(), callAssistance, receiverList](Unit& unit)
+    m_events.AddEvent(new UnitLambdaEvent(*this, [enemyGuid = enemy->GetObjectGuid(), creatureGroup = static_cast<Creature*>(this)->GetCreatureGroup(), callAssistance](Unit& unit)
     {
         Unit* enemy = unit.GetMap()->GetUnit(enemyGuid);
         if (!enemy || !unit.IsInCombat())

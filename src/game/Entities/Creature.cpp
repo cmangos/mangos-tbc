@@ -2264,14 +2264,7 @@ void Creature::CallForHelp(float radius)
         return;
 
     if (radius <= 0.0f)
-    {
-        // call for help can be 0
-        if (GetCreatureInfo()->CallForHelp > 0)
-            radius = GetCreatureInfo()->CallForHelp;
-        else
-            radius = sWorld.getConfig(CONFIG_FLOAT_CREATURE_FAMILY_ASSISTANCE_RADIUS); 
-    }   
-
+        radius = GetCreatureInfo()->CallForHelp;
 
     MaNGOS::CallOfHelpCreatureInRangeDo u_do(this, GetVictim(), radius);
     MaNGOS::CreatureWorker<MaNGOS::CallOfHelpCreatureInRangeDo> worker(this, u_do);

@@ -1045,6 +1045,8 @@ class Creature : public Unit
 
         float m_healthMultiplier;
         float m_damageMultiplier;
+        float m_baseAP;
+        float m_baseRAP;
 
     private:
         GridReference<Creature> m_gridRef;

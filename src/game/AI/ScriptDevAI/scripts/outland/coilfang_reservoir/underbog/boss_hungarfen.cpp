@@ -132,7 +132,7 @@ struct mob_underbog_mushroomAI : public ScriptedAI
         {
             if (m_uiSporeTimer <= uiDiff)
             {
-                if (DoCastSpellIfCan(m_creature, SPELL_SPORE_CLOUD) == CAST_OK)
+                if (DoCastSpellIfCan(m_creature, SPELL_SPORE_CLOUD, CAST_INTERRUPT_PREVIOUS | CAST_TRIGGERED | CAST_FORCE_CAST) == CAST_OK)
                 {
                     m_uiGrowTimer = 0;
                     m_uiSporeTimer = 0;
@@ -158,7 +158,8 @@ struct mob_underbog_mushroomAI : public ScriptedAI
             if (m_uiShrinkTimer <= uiDiff)
             {
                 m_creature->RemoveAurasDueToSpell(SPELL_GROW);
-                m_uiShrinkTimer = 0;
+                if (DoCastSpellIfCan(nullptr, SPELL_SHRINK, CAST_TRIGGERED | CAST_AURA_NOT_PRESENT) == CAST_OK)
+                    m_uiShrinkTimer = 0;
             }
             else
                 m_uiShrinkTimer -= uiDiff;

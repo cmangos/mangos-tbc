@@ -235,12 +235,14 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData == FAIL)
             {
-                // Respawn Midnight on Fail
-                if (Creature* pMidnight = GetSingleCreatureFromStorage(NPC_MIDNIGHT))
-                {
-                    if (!pMidnight->IsAlive())
-                        pMidnight->Respawn();
-                }
+                               // Respawn Midnight on Fail
+                instance->GetSpawnManager().RespawnCreature(5320144, 0);
+
+               // if (Creature* pMidnight = GetSingleCreatureFromStorage(NPC_MIDNIGHT))
+               // {
+               //     if (!pMidnight->IsAlive())
+               //         pMidnight->Respawn();
+               // }
             }
             break;
         case TYPE_MOROES:

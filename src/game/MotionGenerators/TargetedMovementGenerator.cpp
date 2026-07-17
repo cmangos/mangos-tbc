@@ -635,22 +635,40 @@ bool ChaseMovementGenerator::RequiresNewPosition(Unit& owner, Position pos) cons
     }
 }
 
+
 bool ChaseMovementGenerator::_getLocation(Unit& owner, float& x, float& y, float& z) const
 {
     if (!i_target.isValid())
         return false;
 
-    // Chase Movement and angle == 0 case: Chase to current angle
-    // Need to avoid readjustment when target is attacking owner
     const bool currentAngle = (i_angle == 0.f || (i_target->GetVictim() && i_target->GetVictim() == &owner));
-
     float angle = (currentAngle ? i_target->GetAngle(&owner) : (i_target->GetOrientation() + i_angle));
 
-    owner.GetPosition(x, y, z);
+    owner.GetPosition(x, y, z); // 获取起点坐标
 
-    // TODO: This code would also benefit greatly if "Get Target Position in 250 ms" function existed
-    // TODO: When target is moving away, we should choose a point that is much much closer to account for it
+    // 原有：生成目标点（会带上玩家二楼Z）
     i_target->GetNearPoint(&owner, x, y, z, owner.GetObjectBoundingRadius(), this->GetDynamicTargetDistance(owner, false), angle);
+
+    // ==================== TBC 兼容的防穿楼逻辑 ====================
+    float ownerZ = owner.GetPositionZ();
+
+    // TBC 常用 GetHeight 调用方式（通常 4~5 个参数）
+    float groundZ = z;
+    if (owner.GetMap()->GetHeight(x, y, groundZ, true)) // 最常见签名
+    {
+        // 如果Z差过大，强制使用当前楼层地面高度
+        if (std::fabs(groundZ - ownerZ) < 6.0f || std::fabs(z - i_target->GetPositionZ()) > 5.0f)
+        {
+            z = groundZ + 0.5f; // 略高于地面
+        }
+    }
+    else
+    {
+        // GetHeight失败时保守处理
+        z = ownerZ;
+    }
+
+
 
     return true;
 }

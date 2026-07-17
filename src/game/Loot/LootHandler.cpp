@@ -50,7 +50,8 @@ void WorldSession::HandleAutostoreLootItemOpcode(WorldPacket& recv_data)
     if (!lootItem)
     {
         _player->SendEquipError(EQUIP_ERR_ITEM_NOT_FOUND, nullptr, nullptr);
-        loot->SendReleaseFor(_player);
+        if (loot->IsLootedFor(_player))
+            loot->Release(_player);
         return;
     }
 
@@ -59,7 +60,8 @@ void WorldSession::HandleAutostoreLootItemOpcode(WorldPacket& recv_data)
     if (lootItem->isBlocked || slotType == LOOT_SLOT_VIEW || slotType == LOOT_SLOT_REQS || slotType == MAX_LOOT_SLOT_TYPE)
     {
         sLog.outDebug("HandleAutostoreLootItemOpcode> %s have no right to loot itemId(%u)", _player->GetGuidStr().c_str(), lootItem->itemId);
-        loot->SendReleaseFor(_player);
+        if (loot->IsLootedFor(_player))
+            loot->Release(_player);
         return;
     }
 

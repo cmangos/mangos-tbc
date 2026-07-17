@@ -814,6 +814,10 @@ SpellAuraProcResult Unit::TriggerProccedSpell(Unit* target, std::array<int32, MA
     if (cooldown)
         triggeredByAura->GetHolder()->SetProcCooldown(std::chrono::milliseconds(cooldown), GetMap()->GetCurrentClockTime());
 
+        // 检查视野，仅针对 Arcane Bolt (45429)
+    if (spellInfo->Id == 45429 && target && target != this && !IsWithinLOSInMap(target))
+        return SPELL_AURA_PROC_FAILED;
+
     return SPELL_AURA_PROC_OK;
 }
 

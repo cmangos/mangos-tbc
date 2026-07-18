@@ -72,7 +72,7 @@ enum SpellNotifyPushType
     PUSH_TARGET_CENTER
 };
 
-enum CheckException
+enum class CheckException
 {
     EXCEPTION_NONE,
     EXCEPTION_MAGNET,
@@ -560,7 +560,7 @@ class Spell
 
         template<typename T> WorldObject* FindCorpseUsing();
 
-        bool CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckException exception = EXCEPTION_NONE) const;
+        bool CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, bool neutralFlagFill, CheckException exception = CheckException::EXCEPTION_NONE) const;
 
         static void SendCastResult(Player const* caster, SpellEntry const* spellInfo, uint8 cast_count, SpellCastResult result, bool isPetCastResult = false, uint32 param1 = 0, uint32 param2 = 0);
         void SendCastResult(SpellCastResult result) const;
@@ -766,6 +766,7 @@ class Spell
             GameObjectList tmpGOList[2];
             std::list<Item*> tempItemList;
             CorpseList tempCorpseList;
+            bool neutralFlagFill = false;
         };
         struct TempTargetingData
         {
@@ -949,7 +950,7 @@ class Spell
         CorpseTargetList m_uniqueCorpseTargetInfo;
         uint32 m_partialApplicationMask;
 
-        void AddUnitTarget(Unit* target, uint8 effectMask, CheckException exception = EXCEPTION_NONE);
+        void AddUnitTarget(Unit* target, uint8 effectMask, CheckException exception = CheckException::EXCEPTION_NONE);
         void AddGOTarget(GameObject* target, uint8 effectMask);
         void AddCorpseTarget(Corpse* target, uint8 effectMask);
         void AddItemTarget(Item* item, uint8 effectMask);

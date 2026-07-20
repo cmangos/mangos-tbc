@@ -69,6 +69,12 @@ struct boss_hungarfenAI : public CombatAI
         DoCastSpellIfCan(nullptr, SPELL_DESPAWN_MUSHROOMS, CAST_TRIGGERED);
     }
 
+    void EnterEvadeMode() override
+    {
+        DoCastSpellIfCan(nullptr, SPELL_DESPAWN_MUSHROOMS, CAST_TRIGGERED);
+        CombatAI::EnterEvadeMode();
+    }
+
     void ExecuteAction(uint32 action) override
     {
         switch (action)
@@ -179,6 +185,16 @@ struct DespawnMushrooms : public SpellScript
     }
 };
 
+// 34168 - Spore Cloud (Underbog)   
+struct SporeCloud : public AuraScript
+{
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
+    {
+        data.caster = aura->GetCaster();
+        data.target = aura->GetTarget();
+    }
+};
+
 void AddSC_boss_hungarfen()
 {
     Script* pNewScript = new Script;
@@ -192,4 +208,5 @@ void AddSC_boss_hungarfen()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<DespawnMushrooms>("spell_despawn_underbog_mushrooms");
+    RegisterSpellScript<SporeCloud>("spell_spore_cloud_underbog");
 }

@@ -1932,8 +1932,7 @@ void Aura::TriggerSpell()
             {
                 casterGUID = target->GetObjectGuid();
                 break;
-            }
-            case 34168:                                     // Spore Cloud (Underbog)   
+            } 
             case 38652:                                     // Spore Cloud (SSC)
             case 40106:                                     // Merge
             {

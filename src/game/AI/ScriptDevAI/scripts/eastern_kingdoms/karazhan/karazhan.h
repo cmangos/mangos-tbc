@@ -27,6 +27,7 @@ enum
 
     DATA_BASEMENT_EVENT             = 1,                // DO NOT CHANGE! Used by Acid. - used to check the mobs for the the basement event.
 
+    SPAWN_GROUP_MIDNIGHT            = 5320025,
     NPC_ATTUMEN                     = 15550,
     NPC_MIDNIGHT                    = 16151,
     NPC_MOROES                      = 15687,

@@ -242,7 +242,6 @@ class WorldSession
         void SendOfflineNameQueryResponses();
         void SendNotification(const char* format, ...) const ATTR_PRINTF(2, 3);
         void SendNotification(int32 string_id, ...) const;
-        void SendClientCacheVersion() const;
         void SendPetNameInvalid(uint32 error, const std::string& name, DeclinedName* declinedName) const;
         void SendPartyResult(PartyOperation operation, const std::string& member, PartyResult res) const;
         void SendAreaTriggerMessage(const char* Text, ...) const ATTR_PRINTF(2, 3);

@@ -504,7 +504,6 @@ bool WorldSession::Update(uint32 /*diff*/)
             else
                 SendAuthOk();
 
-            SendClientCacheVersion();
             SendTutorialsData();
             SetInCharSelection();
             return true;
@@ -1339,13 +1338,6 @@ void WorldSession::SendTimeSync()
     // Schedule next sync in 10 sec (except for the 2 first packets, which are spaced by only 5s)
     m_timeSyncTimer = m_timeSyncNextCounter == 0 ? 5000 : 10000;
     m_timeSyncNextCounter++;
-}
-
-void WorldSession::SendClientCacheVersion() const
-{
-    WorldPacket pkt(SMSG_CLIENTCACHE_VERSION, 4);
-    pkt << uint32(sWorld.getConfig(CONFIG_UINT32_CLIENTCACHE_VERSION));
-    SendPacket(pkt);
 }
 
 void WorldSession::InitializeAnticheat(const BigNumber& K)

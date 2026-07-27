@@ -225,9 +225,35 @@ void Warden::RequestScans(std::vector<std::shared_ptr<const Scan>> &&scans)
             _pendingScans.push_back(*i);
     }
 
-    // if there are still no pending scans, it means that there is a single scan which is too big.
-    // this should never happen, so if it does, just crash
-    MANGOS_ASSERT(!_pendingScans.empty());
+    // if there are still no pending scans, no request can be built this cycle.  this used to assert
+    // (crashing the server), which is reachable if an oversized scan is ever added -- e.g. via the
+    // warden_scans table -- so handle each possible cause gracefully instead.
+    if (_pendingScans.empty())
+    {
+        // the loop ran to completion, so every scan we examined was a NOP.  nothing is pending and
+        // nothing is worth retrying, which matches what the normal path below does with the queue.
+        if (!queueUpdated)
+        {
+            _enqueuedScans.clear();
+            return;
+        }
+
+        // otherwise we stopped on the very first scan.  if it can never fit in a single request,
+        // drop it so it does not block the queue forever.  if we merely hit the per-request scan
+        // count limit (Warden.ScanCount set to zero), leave the queue intact and retry later.
+        auto const &next = _enqueuedScans.front();
+
+        if (next->requestSize > MaxRequest || next->replySize > MaxReply)
+        {
+            sLog.outError("[Warden] Dropping scan too large for a single request (request %u/%u, reply %u/%u bytes)",
+                static_cast<uint32>(next->requestSize), static_cast<uint32>(MaxRequest),
+                static_cast<uint32>(next->replySize), static_cast<uint32>(MaxReply));
+
+            _enqueuedScans.erase(_enqueuedScans.begin());
+        }
+
+        return;
+    }
 
     // if the scan queue has not been updated, its because we were able to fit the entire queue into one request.
     // therefore, the queue can be emptied

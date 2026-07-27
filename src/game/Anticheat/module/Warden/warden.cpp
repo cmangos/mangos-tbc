@@ -222,7 +222,15 @@ void Warden::RequestScans(std::vector<std::shared_ptr<const Scan>> &&scans)
         // if the scan did not change the buffer size or the string size, consider
         // it a NOP and don't bother marking it as pending
         if (scan.wpos() != startSize || strings.size() != startStringSize)
+        {
             _pendingScans.push_back(*i);
+
+            // account for the space this scan consumes.  without this the checks above only ever
+            // compare a single scan against the buffer limits, so a request could be built which
+            // overflows the client's buffers, bounded only by Warden.ScanCount.
+            request += (*i)->requestSize;
+            reply += (*i)->replySize;
+        }
     }
 
     // if there are still no pending scans, no request can be built this cycle.  this used to assert

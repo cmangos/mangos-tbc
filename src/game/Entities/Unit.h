@@ -1757,7 +1757,7 @@ class Unit : public WorldObject
         SpellCastResult CastCustomSpell(SpellCastTargets& targets, SpellEntry const* spellInfo, int32 const* bp0, int32 const* bp1, int32 const* bp2, uint32 triggeredFlags, Item* castItem = nullptr, Aura* triggeredByAura = nullptr, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
         SpellCastResult CastSpell(SpellCastArgs& args, SpellEntry const* spellInfo, uint32 triggeredFlags, Item* castItem = nullptr, Aura* triggeredByAura = nullptr, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
         SpellCastResult CastSpell(SpellCastArgs& args, uint32 spellId, uint32 triggeredFlags, Item* castItem = nullptr, Aura* triggeredByAura = nullptr, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = nullptr);
-        
+
         // Single flag overload uint32
         SpellCastResult CastSpell(Unit* Victim, uint32 spellId, TriggerCastFlags triggeredFlags, Item* castItem = nullptr, Aura* triggeredByAura = nullptr, ObjectGuid originalCaster = ObjectGuid(), SpellEntry const* triggeredBy = nullptr)
         { return CastSpell(Victim, spellId, uint32(triggeredFlags), castItem, triggeredByAura, originalCaster, triggeredBy); }
@@ -2119,7 +2119,7 @@ class Unit : public WorldObject
         void UpdateVisibilityAndView() override;            // overwrite WorldObject::UpdateVisibilityAndView()
 
         // common function for visibility checks for player/creatures with detection code
-        bool IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, bool detect, bool inVisibleList = false, bool is3dDistance = true, bool spell = false, bool ignorePhase = false) const;     
+        bool IsVisibleForOrDetect(Unit const* u, WorldObject const* viewPoint, bool detect, bool inVisibleList = false, bool is3dDistance = true, bool spell = false, bool ignorePhase = false) const;
 
         // virtual functions for all world objects types
         bool isVisibleForInState(Player const* u, WorldObject const* viewPoint, bool inVisibleList) const override;
@@ -2509,7 +2509,7 @@ class Unit : public WorldObject
 
         void UpdateNextUpdateTime() override;
         uint32 ShouldPerformObjectUpdate(uint32 const diff) override;
-        
+
         void OverrideMountDisplayId(uint32 newDisplayId);
 
         void UpdateSplinePosition(bool relocateOnly = false);
@@ -2860,7 +2860,7 @@ struct TargetDistanceOrderNear
     // functor for operator ">"
     bool operator()(WorldObject const* _Left, WorldObject const* _Right) const
     {
-        return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
+        return m_mainTarget->GetDistanceOrder(_Left, _Right, true, m_distcalc);
     }
 };
 
@@ -2874,7 +2874,7 @@ struct TargetDistanceOrderFarAway
     // functor for operator "<"
     bool operator()(WorldObject const* _Left, WorldObject const* _Right) const
     {
-        return !m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
+        return !m_mainTarget->GetDistanceOrder(_Left, _Right, true, m_distcalc);
     }
 };
 
@@ -2888,7 +2888,7 @@ struct LowestHPNearestOrder
     bool operator()(Unit const* _Left, Unit const* _Right) const
     {
         if (_Left->GetHealthPercent() == _Right->GetHealthPercent())
-            return m_mainTarget->GetDistanceOrder(_Left, _Right, m_distcalc);
+            return m_mainTarget->GetDistanceOrder(_Left, _Right, true, m_distcalc);
         return _Left->GetHealthPercent() < _Right->GetHealthPercent();
     }
 };

@@ -5254,7 +5254,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                         if (Creature const* targetCreature = dynamic_cast<Creature*>(target))
                             if ((!targetCreature->GetLootRecipientGuid().IsEmpty()) && !targetCreature->IsTappedBy(static_cast<Player*>(m_trueCaster)))
                                 return SPELL_FAILED_CANT_CAST_ON_TAPPED;
-                    
+
                     // Do not allow spells to complete which are targeting players that are invisible to the caster since the time of cast start
                     if (!m_trueCaster->IsGameObject() && target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED) && !IsPositiveEffectMask(m_spellInfo, affectedMask, m_trueCaster, target) && !target->IsVisibleForOrDetect(m_caster, m_trueCaster, false, false, true, false, m_spellInfo->HasAttribute(SPELL_ATTR_EX6_IGNORE_PHASE_SHIFT)))
                         return SPELL_FAILED_BAD_TARGETS;
@@ -5617,7 +5617,7 @@ SpellCastResult Spell::CheckCast(bool strict)
                             break;
                         }
                     }
-                            
+
                     if (inCombat)
                         return SPELL_FAILED_TARGET_IN_COMBAT;
                 }
@@ -7520,10 +7520,10 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, bool n
     {
         if (target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNTARGETABLE))
             return false;
-        
+
         if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_ONLY_PEACEFUL_TARGETS) && target->IsInCombat())
             return false;
-    }    
+    }
 
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX3_NOT_ON_AOE_IMMUNE) || m_spellInfo->HasAttribute(SPELL_ATTR_EX5_TREAT_AS_AREA_EFFECT)) // rest done in aoe code
         if (target->IsAOEImmune())
@@ -7864,7 +7864,7 @@ float Spell::GetSpellSpeed() const
 
     if (m_overrideSpeed)
         return m_overridenSpeed;
-    
+
     return m_spellInfo->speed;
 }
 
@@ -8231,11 +8231,16 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
         case SCHEME_CLOSEST_CHAIN:
         {
             Unit* unitTarget = m_targets.getUnitTarget();
-            if (filterUnitList.empty() || filterUnitList.front() != unitTarget)
+            if (filterUnitList.empty())
                 break;
+            if (!unitTarget)
+            {
+                filterUnitList.sort(TargetDistanceOrderNear(m_caster));
+                unitTarget = filterUnitList.front();
+            }
             UnitList newList;
             newList.push_back(unitTarget);
-            filterUnitList.pop_front();
+            std::erase_if(filterUnitList, [&unitTarget](Unit* x) { return x == unitTarget; });
             filterUnitList.sort(TargetDistanceOrderNear(unitTarget));
             Unit* prev = unitTarget;
             UnitList::iterator next = filterUnitList.begin();

@@ -8225,7 +8225,10 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
             if (filterUnitList.empty())
                 break;
             if (!unitTarget)
+            {
+                filterUnitList.sort(TargetDistanceOrderNear(m_caster));
                 unitTarget = filterUnitList.front();
+            }
             UnitList newList;
             newList.push_back(unitTarget);
             filterUnitList.pop_front();

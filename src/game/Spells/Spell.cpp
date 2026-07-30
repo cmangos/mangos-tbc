@@ -8231,7 +8231,7 @@ void Spell::FilterTargetMap(UnitList& filterUnitList, SpellTargetFilterScheme sc
             }
             UnitList newList;
             newList.push_back(unitTarget);
-            filterUnitList.pop_front();
+            std::erase_if(filterUnitList, [&unitTarget](Unit* x) { return x == unitTarget; });
             filterUnitList.sort(TargetDistanceOrderNear(unitTarget));
             Unit* prev = unitTarget;
             UnitList::iterator next = filterUnitList.begin();

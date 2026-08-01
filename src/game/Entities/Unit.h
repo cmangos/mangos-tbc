@@ -2422,6 +2422,8 @@ class Unit : public WorldObject
         virtual bool CanWalk() const = 0;
         virtual bool IsFlying() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_FLYING); }
 
+        void SendMessageToAllWhoSeeMeMove(WorldPacket const& data, ObjectGuid mover) const;
+
         // Take possession of an unit (pet, creature, ...)
         bool TakePossessOf(Unit* possessed);
 

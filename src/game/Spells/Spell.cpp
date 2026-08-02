@@ -6086,10 +6086,18 @@ SpellCastResult Spell::CheckCast(bool strict)
                         return SPELL_FAILED_HIGHLEVEL;
 
                     Difficulty difficulty = m_caster->GetMap()->GetDifficulty();
-                    if (InstancePlayerBind* targetBind = target->GetBoundInstance(mapId, difficulty))
-                        if (InstancePlayerBind* casterBind = caster->GetBoundInstance(mapId, difficulty))
-                            if (targetBind->perm && targetBind->state != casterBind->state)
-                                return SPELL_FAILED_TARGET_LOCKED_TO_RAID_INSTANCE;
+                    InstancePlayerBind* targetBind = target->GetBoundInstance(mapId, difficulty);
+                    InstancePlayerBind* casterBind = caster->GetBoundInstance(mapId, difficulty);
+                    if (casterBind && !targetBind)
+                    {
+                        // Bind target to caster's instance
+                        if (!target->BindToInstance(casterBind->state, casterBind->perm, false))
+                            return SPELL_FAILED_BAD_TARGETS; // Fail if binding is unsuccessful
+                    }
+                    else if (targetBind && casterBind && targetBind->perm && targetBind->state != casterBind->state)
+                    {
+                        return SPELL_FAILED_TARGET_LOCKED_TO_RAID_INSTANCE;
+                    }
 
                     if (AreaTrigger const* at = sObjectMgr.GetMapEntranceTrigger(mapId))
                     {

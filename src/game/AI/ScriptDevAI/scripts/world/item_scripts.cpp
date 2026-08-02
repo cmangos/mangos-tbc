@@ -568,6 +568,19 @@ struct LinkensBoomerang : public SpellScript
     }
 };
 
+// 41608 - Relentless Assault of Shattrath
+// 41609 - Fortification of Shattrath
+// 41610 - Mighty Restoration of Shattrath
+// 41611 - Supreme Power of Shattrath
+struct ShattrathFlasks : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        if (!apply)
+            aura->GetTarget()->RemoveAurasDueToSpell(aura->GetSpellProto()->EffectTriggerSpell[EFFECT_INDEX_1]);
+    }
+};
+
 void AddSC_item_scripts()
 {
     Script* pNewScript = new Script;
@@ -611,4 +624,5 @@ void AddSC_item_scripts()
     RegisterSpellScript<ToshleysStationTransporter>("spell_toshleys_station_transporter");
     RegisterSpellScript<Area52Transporter>("spell_area52_transporter");
     RegisterSpellScript<LinkensBoomerang>("spell_linkens_boomerang");
+    RegisterSpellScript<ShattrathFlasks>("spell_shattrath_flasks");
 }

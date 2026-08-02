@@ -194,7 +194,21 @@ void WorldSession::SendTrainerList(ObjectGuid guid) const
 
             reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
 
-            TrainerSpellState state = _player->GetTrainerSpellState(tSpell, reqLevel);
+            TrainerSpellState state;
+            CreatureInfo const* cInfo = unit->GetCreatureInfo();
+            if (cInfo && cInfo->TrainerType == TRAINER_TYPE_PETS)
+            {
+                if (_player->HasSpell(tSpell->spell))
+                    state = TRAINER_SPELL_GRAY;
+                else if (_player->GetLevel() < reqLevel)
+                    state = TRAINER_SPELL_RED;
+                else
+                    state = TRAINER_SPELL_GREEN;
+            }
+            else
+            {
+                state = _player->GetTrainerSpellState(tSpell, reqLevel);
+            }
 
             SendTrainerSpellHelper(data, tSpell, state, fDiscountMod, can_learn_primary_prof, reqLevel);
 
@@ -217,7 +231,21 @@ void WorldSession::SendTrainerList(ObjectGuid guid) const
 
             reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : std::max(reqLevel, tSpell->reqLevel);
 
-            TrainerSpellState state = _player->GetTrainerSpellState(tSpell, reqLevel);
+            TrainerSpellState state;
+            CreatureInfo const* cInfo = unit->GetCreatureInfo();
+            if (cInfo && cInfo->TrainerType == TRAINER_TYPE_PETS)
+            {
+                if (_player->HasSpell(tSpell->spell))
+                    state = TRAINER_SPELL_GRAY;
+                else if (_player->GetLevel() < reqLevel)
+                    state = TRAINER_SPELL_RED;
+                else
+                    state = TRAINER_SPELL_GREEN;
+            }
+            else
+            {
+                state = _player->GetTrainerSpellState(tSpell, reqLevel);
+            }
 
             SendTrainerSpellHelper(data, tSpell, state, fDiscountMod, can_learn_primary_prof, reqLevel);
 
@@ -269,12 +297,35 @@ void WorldSession::HandleTrainerBuySpellOpcode(WorldPacket& recv_data)
 
     // can't be learn, cheat? Or double learn with lags...
     uint32 reqLevel = 0;
-    if (!_player->IsSpellFitByClassAndRace(trainer_spell->spell, &reqLevel))
-        return;
+    CreatureInfo const* ci = unit->GetCreatureInfo();
+    bool isPetTrainer = ci && ci->TrainerType == TRAINER_TYPE_PETS;
+
+    if (!isPetTrainer)
+    {
+        if (!_player->IsSpellFitByClassAndRace(trainer_spell->spell, &reqLevel))
+            return;
+    }
+    else
+    {
+        // 宠物：只用来取可能的等级，失败不拦截
+        _player->IsSpellFitByClassAndRace(trainer_spell->spell, &reqLevel);
+    }
 
     reqLevel = trainer_spell->isProvidedReqLevel ? trainer_spell->reqLevel : std::max(reqLevel, trainer_spell->reqLevel);
-    if (_player->GetTrainerSpellState(trainer_spell, reqLevel) != TRAINER_SPELL_GREEN)
-        return;
+
+    if (isPetTrainer)
+    {
+        if (_player->HasSpell(trainer_spell->spell))
+            return;
+        if (_player->GetLevel() < reqLevel)
+            return;
+    }
+    else
+    {
+        if (_player->GetTrainerSpellState(trainer_spell, reqLevel) != TRAINER_SPELL_GREEN)
+            return;
+    }
+    // 注意：这里不要再写一遍 GetTrainerSpellState
 
     // apply reputation discount
     uint32 nSpellCost = uint32(floor(trainer_spell->spellCost * _player->GetReputationPriceDiscount(unit)));
@@ -285,11 +336,32 @@ void WorldSession::HandleTrainerBuySpellOpcode(WorldPacket& recv_data)
 
     _player->ModifyMoney(-int32(nSpellCost));
 
-    SendPlaySpellVisual(guid, 0xB3);                        // visual effect on trainer
+    SendPlaySpellVisual(guid, 0xB3);
 
-    WorldPacket data(SMSG_PLAY_SPELL_IMPACT, 8 + 4);        // visual effect on player
+    WorldPacket data(SMSG_PLAY_SPELL_IMPACT, 8 + 4);
     data << _player->GetObjectGuid();
-    data << uint32(0x016A);                                 // index from SpellVisualKit.dbc
+    data << uint32(0x016A);
+    SendPacket(data);
+
+    if (isPetTrainer)
+    {
+        // 猎人必须学会教法术本身（4195），Beast Training 才看得到
+        if (!_player->HasSpell(trainer_spell->spell))
+            _player->learnSpell(trainer_spell->spell, false);
+
+    }
+    else if (trainer_spell->IsCastable())
+    {
+        _player->CastSpell(_player, trainer_spell->spell, TRIGGERED_OLD_TRIGGERED);
+    }
+    else
+    {
+        _player->learnSpell(trainer_spell->spell, false);
+    }
+
+    data.Initialize(SMSG_TRAINER_BUY_SUCCEEDED, 12);
+    data << ObjectGuid(guid);
+    data << uint32(spellId);
     SendPacket(data);
 
     // learn explicitly or cast explicitly

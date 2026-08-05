@@ -188,6 +188,11 @@ void instance_karazhan::OnObjectCreate(GameObject* pGo)
         case GO_DUST_COVERED_CHEST:
         case GO_MASTERS_TERRACE_DOOR_1:
         case GO_MASTERS_TERRACE_DOOR_2:
+            if (m_auiEncounter[TYPE_OPERA] == DONE)
+            {
+                pGo->SetGoState(GO_STATE_ACTIVE); // 直接打开
+            }
+            break;
         case GO_BLACKENED_URN:
         case GO_CHESSBOARD:
             break;
@@ -266,6 +271,11 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
                 DoUseDoorOrButton(GO_STAGE_DOOR_RIGHT);
                 DoToggleGameObjectFlags(GO_SERVANTS_ACCESS_DOOR, GO_FLAG_LOCKED, false);
                 DoToggleGameObjectFlags(GO_SIDE_ENTRANCE_DOOR, GO_FLAG_LOCKED, false);
+                // 直接打开露台门（不要用 DoUseDoorOrButton）
+                if (GameObject* pDoor1 = GetSingleGameObjectFromStorage(GO_MASTERS_TERRACE_DOOR_1))
+                    pDoor1->SetGoState(GO_STATE_ACTIVE);
+                if (GameObject* pDoor2 = GetSingleGameObjectFromStorage(GO_MASTERS_TERRACE_DOOR_2))
+                    pDoor2->SetGoState(GO_STATE_ACTIVE);
             }
             // use curtain only for event start or fail
             else

@@ -251,6 +251,9 @@ struct ActivateBombThermaplugg : public SpellScript
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         Unit* target = spell->GetUnitTarget();
+        if (!target)
+            return;
+
         // This spell should select a random Bomb-Face and activate it if needed
         // meant to cast commented out spells at random
         if (instance_gnomeregan* instance = dynamic_cast<instance_gnomeregan*>(target->GetInstanceData()))

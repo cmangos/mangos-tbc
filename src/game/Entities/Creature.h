@@ -689,7 +689,7 @@ class Creature : public Unit
         virtual UnitAI* AI() override
         {
             // Check if not a controlled chess piece
-            if (m_charmInfo && m_charmInfo->GetAI() && !HasAura(30019)) return m_charmInfo->GetAI();
+            if (m_charmInfo && m_charmInfo->GetAI()) return m_charmInfo->GetAI();
             return m_ai.get();
         }
 

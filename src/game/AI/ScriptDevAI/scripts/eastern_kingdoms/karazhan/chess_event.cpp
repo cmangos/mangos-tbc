@@ -409,19 +409,7 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     {
         // do a soft reset when the piece is controlled
         if (pCaster->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_CONTROL_PIECE)
-        {
             Reset();
-            // Restore original faction so medivh's cheat spell can damage us, since normally charm unit faction = player unit faction
-            m_creature->RestoreOriginalFaction();
-            CharmInfo* charmInfo = m_creature->GetCharmInfo();
-            MotionMaster* mm = m_unit->GetMotionMaster();
-            // Override default charm follow behavior to not run off the board
-            if (charmInfo)
-                charmInfo->SetIsRetreating(false);
-            if (mm)
-                mm->Clear();
-        }
-            
     }
 
     // Function which returns a random target by type and range

@@ -241,11 +241,6 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
                     if (!pMidnight->IsAlive())
                         pMidnight->Respawn();
                 }
-                else
-                {
-                    SpawnGroup* group = instance->GetSpawnManager().GetSpawnGroup(SPAWN_GROUP_MIDNIGHT);
-                    group->Spawn(true, true);
-                }
             }
             break;
         case TYPE_MOROES:

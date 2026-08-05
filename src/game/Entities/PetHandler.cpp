@@ -312,6 +312,18 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
             Unit* unit_target = targetGuid ? _player->GetMap()->GetUnit(targetGuid) : nullptr;
 
+            // Karazhan Chess Pieces: these spells can target any unit but they shouldn't be hitting same faction
+            switch (spellid)
+            {
+                case 37462:
+                case 37463:
+                    if (!unit_target || unit_target->GetFaction() == petUnit->GetFaction())
+                        return;
+                    break;
+                default:
+                    break;
+            }
+
             // do not cast unknown spells
             SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
             if (!spellInfo)
@@ -344,7 +356,18 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
             const SpellRangeEntry* sRange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
 
             if (!IsSpellRequireTarget(spellInfo))
-                unit_target = nullptr;
+            {
+                switch (spellInfo->Id)
+                {
+                    // Not sure if TARGET_UNIT_SCRIPT_NEAR_CASTER in general should require target, but these spells
+                    // seem to require a target which is nearby
+                    case 37465: // chess rain of fire
+                        break;
+                    default:
+                        unit_target = nullptr;
+                        break;
+                }
+            }  
 
             if (unit_target && !(petUnit->IsWithinDistInMap(unit_target, sRange->maxRange) && petUnit->IsWithinLOSInMap(unit_target, true))
                     && petUnit->CanAttackNow(unit_target))

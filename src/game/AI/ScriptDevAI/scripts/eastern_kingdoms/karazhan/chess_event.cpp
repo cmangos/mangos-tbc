@@ -132,12 +132,12 @@ enum
     SPELL_ELEMENTAL_BLAST           = 37462,                    // human queen
     SPELL_RAIN_OF_FIRE              = 37465,
     SPELL_FIREBALL                  = 37463,                    // orc queen
-    // SPELL_POISON_CLOUD           = 37469,
-    SPELL_POISON_CLOUD_ACTION       = 37775,                    // triggers 37469 - acts as a target selector spell for orc queen
+    SPELL_POISON_CLOUD              = 37469,
+    // SPELL_POISON_CLOUD_ACTION    = 37775,                    // triggers 37469 - acts as a target selector spell for orc queen (npc can't use this)
     SPELL_HEALING                   = 37455,                    // human bishop
     SPELL_HOLY_LANCE                = 37459,
-    // SPELL_SHADOW_MEND            = 37456,                    // orc bishop
-    SPELL_SHADOW_MEND_ACTION        = 37824,                    // triggers 37456 - acts as a target selector spell for orc bishop
+    SPELL_SHADOW_MEND               = 37456,                    // orc bishop
+    // SPELL_SHADOW_MEND_ACTION     = 37824,                    // triggers 37456 - acts as a target selector spell for orc bishop (npc can't use this)
     SPELL_SHADOW_SPEAR              = 37461,
     SPELL_GEYSER                    = 37427,                    // human rook
     SPELL_WATER_SHIELD              = 37432,
@@ -314,16 +314,15 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     uint32 m_uiMoveCommandTimer;
     uint32 m_uiSpellCommandTimer;
 
-    bool m_bIsPrimarySpell;
     float m_fCurrentOrientation;
 
     void Reset() override
     {
         m_uiMoveTimer = 0;
-        m_uiMoveCommandTimer = 1000;
+        // This prevents player king from moving by itself if player stops controlling
+        m_uiMoveCommandTimer = m_creature->HasAura(SPELL_CONTROL_PIECE) ? 0 : 1000;
         m_uiSpellCommandTimer = m_creature->HasAura(SPELL_CONTROL_PIECE) ? 0 : 1000;
-        m_bIsPrimarySpell = true;
-
+        
         // cancel move timer for player faction npcs or for friendly games
         if (m_pInstance)
         {
@@ -381,7 +380,9 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
 
             //DoCastSpellIfCan(m_creature, SPELL_AI_SNAPSHOT_TIMER, CAST_TRIGGERED);
             DoCastSpellIfCan(nullptr, SPELL_CHESS_AI_ATTACK_TIMER, CAST_TRIGGERED);
-
+            // attack emote + light beam on start
+            m_creature->HandleEmote(EMOTE_ONESHOT_ATTACK1H);
+            m_creature->CastSpell(m_creature, SPELL_MOVE_MARKER, TRIGGERED_NONE);
             pInvoker->CastSpell(pInvoker, SPELL_DISABLE_SQUARE, TRIGGERED_OLD_TRIGGERED);
             pInvoker->CastSpell(pInvoker, SPELL_IS_SQUARE_USED, TRIGGERED_OLD_TRIGGERED);
         }
@@ -408,7 +409,19 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
     {
         // do a soft reset when the piece is controlled
         if (pCaster->GetTypeId() == TYPEID_PLAYER && pSpell->Id == SPELL_CONTROL_PIECE)
+        {
             Reset();
+            // Restore original faction so medivh's cheat spell can damage us, since normally charm unit faction = player unit faction
+            m_creature->RestoreOriginalFaction();
+            CharmInfo* charmInfo = m_creature->GetCharmInfo();
+            MotionMaster* mm = m_unit->GetMotionMaster();
+            // Override default charm follow behavior to not run off the board
+            if (charmInfo)
+                charmInfo->SetIsRetreating(false);
+            if (mm)
+                mm->Clear();
+        }
+            
     }
 
     // Function which returns a random target by type and range
@@ -459,18 +472,22 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
             return nullptr;
 
         // define distance based on the spell radius
-        // this will replace the targeting sysmte of spells SPELL_MOVE_1 and SPELL_MOVE_2 - HACK
-        float fRadius = 10.0f;
+        // this will replace the targeting system of spells SPELL_MOVE_1 and SPELL_MOVE_2 - HACK
+        // Use base of 5 to prevent 2 square moves by default
+        float fRadius = 5.0f;
         std::list<Creature*> lSquaresList;
 
         // some pieces have special distance
         switch (m_creature->GetEntry())
         {
+            // Because they are larger, need to reduce radius to avoid moving an extra square
             case NPC_HUMAN_CONJURER:
             case NPC_ORC_WARLOCK:
+                fRadius = 15.0f;
+                break;
             case NPC_HUMAN_CHARGER:
             case NPC_ORC_WOLF:
-                fRadius = 15.0f;
+                fRadius = 10.0f;
                 break;
         }
 
@@ -526,13 +543,16 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
         {
             if (m_uiMoveCommandTimer <= uiDiff)
             {
+                m_uiMoveCommandTimer = 5000;
                 // just update facing if some enemy is near
                 if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 5.0f))
                     DoCastSpellIfCan(pTarget, SPELL_CHANGE_FACING);
                 else
                 {
                     // the npc doesn't have a 100% chance to move; also there should be some GCD check in core for this part
-                    if (roll_chance_i(15))
+                    // Previous chance of 15 results in more often 2-3 pieces moving at a time when it should be closer to 1-2
+                    // But more than 2 is still possible, just less likely.
+                    if (roll_chance_i(10))
                     {
                         // Note: in a normal case the target would be chosen using the spells above
                         // However, because the core doesn't support special targeting, we'll provide explicit target
@@ -551,11 +571,18 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
                         m_fCurrentOrientation = m_creature->GetOrientation();
                         // workaround which provides specific move target
                         if (Unit* spellTarget = GetMovementSquare())
-                            spellTarget->CastSpell(m_creature, SPELL_MOVE_TO_SQUARE, TRIGGERED_NONE);
+                        {
+                            CanCastResult result = spellTarget->AI()->DoCastSpellIfCan(m_creature, SPELL_MOVE_TO_SQUARE, TRIGGERED_NONE);
+                            // In ChessMoveToSquare, SPELL_MOVE_COOLDOWN is adding 12s gcd to moving/facing spells on the piece
+                            // But here, for npc controlled pieces, the square is caster of the moving, so they don't have that GCD,
+                            // This would seem to be the GCD check that is missing according to above comment
+                            // Therefore we add additional time so that the next square they move to doesn't cast before the GCD should have ended
+                            if (result == CAST_OK)
+                                m_uiMoveCommandTimer = 12000;
+                        }
                     }
                 }
-
-                m_uiMoveCommandTimer = 5000;
+                
             }
             else
                 m_uiMoveCommandTimer -= uiDiff;
@@ -566,9 +593,8 @@ struct npc_chess_piece_genericAI : public Scripted_NoMovementAI
         {
             if (m_uiSpellCommandTimer <= uiDiff)
             {
-                // alternate the spells and also reset the timer
-                m_uiSpellCommandTimer = m_bIsPrimarySpell ? DoCastPrimarySpell() : DoCastSecondarySpell();
-                m_bIsPrimarySpell = !m_bIsPrimarySpell;
+                // spells are used randomly, sometimes can cast same spell multiple times
+                m_uiSpellCommandTimer = urand(0, 1) ? DoCastPrimarySpell() : DoCastSecondarySpell();
             }
             else
                 m_uiSpellCommandTimer -= uiDiff;
@@ -618,6 +644,23 @@ bool GossipSelect_npc_chess_generic(Player* pPlayer, Creature* pCreature, uint32
     return true;
 }
 
+// 30019 - Chess: Control Piece
+struct ControlPiece : public AuraScript
+{
+    void OnApply(Aura* aura, bool apply) const override
+    {
+        // If the piece stops being controlled by a player, set the spell command timer so it will start casting again
+        if (!apply)
+        {
+            if (aura->GetTarget())
+            {
+                if (npc_chess_piece_genericAI* ai = dynamic_cast<npc_chess_piece_genericAI*>(aura->GetTarget()->AI()))
+                    ai->m_uiSpellCommandTimer = 5000;
+            }
+        }
+    }
+};
+
 // 30253 - Chess: Move to Square
 struct ChessMoveToSquare : public SpellScript
 {
@@ -632,6 +675,19 @@ struct ChessMoveToSquare : public SpellScript
         }
         if (target->IsCreature())
         {
+            // Some emote before moving
+            switch (target->GetEntry())
+            {
+                case NPC_KING_LLANE: target->HandleEmote(EMOTE_ONESHOT_YES); break;
+                case NPC_HUMAN_CLERIC: target->HandleEmote(EMOTE_ONESHOT_BOW); break;
+                case NPC_HUMAN_CONJURER: target->HandleEmote(EMOTE_ONESHOT_YES); break;
+                case NPC_HUMAN_FOOTMAN: target->HandleEmote(EMOTE_ONESHOT_SALUTE); break;
+                case NPC_WARCHIEF_BLACKHAND: target->HandleEmote(EMOTE_ONESHOT_ROAR); break;
+                case NPC_ORC_GRUNT: target->HandleEmote(EMOTE_ONESHOT_SALUTE); break;
+                case NPC_ORC_NECROLYTE: target->HandleEmote(EMOTE_ONESHOT_YES); break;
+                case NPC_ORC_WARLOCK: target->HandleEmote(EMOTE_ONESHOT_YES); break;
+                default: break;
+            }
             target->CastSpell(nullptr, SPELL_MOVE_COOLDOWN, TRIGGERED_NONE);
             target->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, caster, target);
         }
@@ -1027,10 +1083,10 @@ struct npc_orc_warlockAI : public npc_chess_piece_genericAI
     {
         if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 25.0f))
         {
-            DoCastSpellIfCan(pTarget, SPELL_POISON_CLOUD_ACTION);
+            DoCastSpellIfCan(pTarget, SPELL_POISON_CLOUD);
 
             // reset timer based on spell values
-            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_POISON_CLOUD_ACTION);
+            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_POISON_CLOUD);
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1649,10 +1705,10 @@ struct npc_orc_necrolyteAI : public npc_chess_piece_genericAI
     {
         if (Unit* pTarget = GetTargetByType(TARGET_TYPE_FRIENDLY, 25.0f))
         {
-            DoCastSpellIfCan(pTarget, SPELL_SHADOW_MEND_ACTION);
+            DoCastSpellIfCan(pTarget, SPELL_SHADOW_MEND);
 
             // reset timer based on spell values
-            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_MEND_ACTION);
+            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_MEND);
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1787,6 +1843,7 @@ void AddSC_chess_event()
     pNewScript->pGossipSelect = GossipSelect_npc_chess_generic;
     pNewScript->RegisterSelf();
 
+    RegisterSpellScript<ControlPiece>("spell_chess_control_piece");
     RegisterSpellScript<ChessMoveToSquare>("spell_chess_move_to_square");
     RegisterSpellScript<KarazhanChessNpcAiTakeActionMelee>("spell_karazhan_chess_take_action_melee");
     RegisterSpellScript<ChessFaceSquare>("spell_chess_face_square");

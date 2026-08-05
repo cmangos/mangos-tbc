@@ -332,7 +332,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                         if (roll_chance_i(33))
                             m_caster->CastSpell(unitTarget, 39002, TRIGGERED_OLD_TRIGGERED); // Spore Quake Knockdown
                         break;
-                    case 39384:
+                    case 39384:                             // Karazhan - Burning Flames
                     {
                         if (eff_idx == 0)
                         {
@@ -2493,6 +2493,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
 
                     unitTarget->CastSpell(m_caster, 30253, TRIGGERED_OLD_TRIGGERED);
+                    return;
                 }
                 case 30284:                                 // Change Facing
                 {
@@ -6062,7 +6063,8 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 case 37345:                                 // Karazhan - Chess NPC Action: Melee Attack: Orc Warlock
                 case 37348:                                 // Karazhan - Chess NPC Action: Melee Attack: Warchief Blackhand
                 {
-                    if (!unitTarget)
+                    // check if we are within range and facing the target to attack; prevents ai pieces from attacking past 2 tiles
+                    if (!unitTarget || unitTarget->GetDistance(m_caster) > 8.0f || m_caster->GetAngle(unitTarget) > 15.0f)
                         return;
 
                     m_caster->CastSpell(unitTarget, 32247, TRIGGERED_OLD_TRIGGERED);
@@ -6252,9 +6254,18 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     return;
                 }
                 case 39341:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Horde
+                {
+                    // Prevent targeting Medivh's pieces
+                    if (!unitTarget || unitTarget->GetFaction() != 1689)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
                 case 39344:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Alliance
                 {
-                    if (!unitTarget)
+                    // Prevent targeting Medivh's pieces
+                    if (!unitTarget || unitTarget->GetFaction() != 1690)
                         return;
 
                     m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);

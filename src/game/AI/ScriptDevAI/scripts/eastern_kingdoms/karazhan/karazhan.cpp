@@ -241,6 +241,11 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
                     if (!pMidnight->IsAlive())
                         pMidnight->Respawn();
                 }
+                else
+                {
+                    SpawnGroup* group = instance->GetSpawnManager().GetSpawnGroup(SPAWN_GROUP_MIDNIGHT);
+                    group->Spawn(true, true);
+                }
             }
             break;
         case TYPE_MOROES:
@@ -376,9 +381,13 @@ void instance_karazhan::Load(const char* chrIn)
             i = NOT_STARTED;
     }
 
-    if (m_auiEncounter[8] == DONE) // if chess event is done, enable friendly games
+    if (m_auiEncounter[8] >= DONE) // if chess event is done, enable friendly games
     {
         m_bFriendlyGame = true;
+    }
+    else // reset the event in case server was shutdown to prevent progress softlock
+    {
+        m_uiChessResetTimer = 1000;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;

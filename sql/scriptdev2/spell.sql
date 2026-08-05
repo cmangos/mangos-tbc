@@ -339,6 +339,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (29690,'spell_inebriate_removal'),
 (29448,'spell_moroes_vanish'),
 (30115,'spell_sacrifice'),
+(30019,'spell_chess_control_piece'),
 (30253,'spell_chess_move_to_square'),
 (30270,'spell_chess_face_square'),
 (32225,'spell_karazhan_chess_take_action_melee'),

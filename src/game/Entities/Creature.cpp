@@ -1358,8 +1358,10 @@ void Creature::SelectLevel(uint32 forcedLevel /*= USE_DEFAULT_DATABASE_LEVEL*/)
             powerMultiplier = cinfo->PowerMultiplier;
 
         // armor
-        if (cinfo->ArmorMultiplier >= 0)
+        if (cinfo->ArmorMultiplier > 0)
             armor = std::round(cCLS->BaseArmor * cinfo->ArmorMultiplier);
+        else if (cinfo->ArmorMultiplier == 0) // round doesn't allow 0, this is for certain npcs like Kara chess pieces
+            armor = 0;
 
         // damage
         if (cinfo->DamageMultiplier >= 0)

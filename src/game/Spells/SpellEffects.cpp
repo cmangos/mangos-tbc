@@ -6079,8 +6079,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 case 37345:                                 // Karazhan - Chess NPC Action: Melee Attack: Orc Warlock
                 case 37348:                                 // Karazhan - Chess NPC Action: Melee Attack: Warchief Blackhand
                 {
-                    // check if we are within range and facing the target to attack; prevents ai pieces from attacking past 2 tiles
-                    if (!unitTarget || unitTarget->GetDistance(m_caster) > 8.0f || m_caster->GetAngle(unitTarget) > 15.0f)
+                    if (!unitTarget)
                         return;
 
                     m_caster->CastSpell(unitTarget, 32247, TRIGGERED_OLD_TRIGGERED);

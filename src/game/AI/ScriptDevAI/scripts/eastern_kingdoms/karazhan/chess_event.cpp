@@ -710,6 +710,126 @@ struct KarazhanChessNpcAiTakeActionMelee : public SpellScript
     }
 };
 
+// 32227 - Karazhan - Chess NPC Action: Melee Attack: Footman
+struct ChessMeleeAttackFootman : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 32228 - Karazhan - Chess NPC Action: Melee Attack: Grunt
+struct ChessMeleeAttackGrunt : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37143 - Karazhan - Chess NPC Action: Melee Attack: Charger
+struct ChessMeleeAttackCharger : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37339 - Karazhan - Chess NPC Action: Melee Attack: Orc Wolf
+struct ChessMeleeAttackWolf : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37147 - Karazhan - Chess NPC Action: Melee Attack: Human Cleric
+struct ChessMeleeAttackCleric : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37337 - Karazhan - Chess NPC Action: Melee Attack: Orc Necrolyte
+struct ChessMeleeAttackNecrolyte : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37142 - Karazhan - Chess NPC Action: Melee Attack: Conjured Water Elemental
+struct ChessMeleeAttackElemental : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37220 - Karazhan - Chess NPC Action: Melee Attack: Summoned Daemon
+struct ChessMeleeAttackDaemon : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37149 - Karazhan - Chess NPC Action: Melee Attack: Human Conjurer
+struct ChessMeleeAttackConjurer : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37345 - Karazhan - Chess NPC Action: Melee Attack: Orc Warlock
+struct ChessMeleeAttackWarlock : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37150 - Karazhan - Chess NPC Action: Melee Attack: King Llane
+struct ChessMeleeAttackLlane : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
+// 37348 - Karazhan - Chess NPC Action: Melee Attack: Warchief Blackhand
+struct ChessMeleeAttackBlackhand : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
+    }
+};
+
 // 30270 - Chess: Face Square
 struct ChessFaceSquare : public SpellScript
 {
@@ -1835,4 +1955,16 @@ void AddSC_chess_event()
     RegisterSpellScript<ChessMoveToSquare>("spell_chess_move_to_square");
     RegisterSpellScript<KarazhanChessNpcAiTakeActionMelee>("spell_karazhan_chess_take_action_melee");
     RegisterSpellScript<ChessFaceSquare>("spell_chess_face_square");
+    RegisterSpellScript<ChessMeleeAttackFootman>("spell_chess_melee_footman"); 
+    RegisterSpellScript<ChessMeleeAttackGrunt>("spell_chess_melee_grunt"); 
+    RegisterSpellScript<ChessMeleeAttackCharger>("spell_chess_melee_charger");
+    RegisterSpellScript<ChessMeleeAttackWolf>("spell_chess_melee_wolf");
+    RegisterSpellScript<ChessMeleeAttackCleric>("spell_chess_melee_cleric");
+    RegisterSpellScript<ChessMeleeAttackNecrolyte>("spell_chess_melee_necrolyte");
+    RegisterSpellScript<ChessMeleeAttackElemental>("spell_chess_melee_elemental");
+    RegisterSpellScript<ChessMeleeAttackDaemon>("spell_chess_melee_daemon");
+    RegisterSpellScript<ChessMeleeAttackConjurer>("spell_chess_melee_conjurer");
+    RegisterSpellScript<ChessMeleeAttackWarlock>("spell_chess_melee_warlock");
+    RegisterSpellScript<ChessMeleeAttackLlane>("spell_chess_melee_llane");
+    RegisterSpellScript<ChessMeleeAttackBlackhand>("spell_chess_melee_blackhand");
 }

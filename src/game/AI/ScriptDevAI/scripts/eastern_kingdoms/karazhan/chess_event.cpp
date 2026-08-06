@@ -713,7 +713,7 @@ struct KarazhanChessNpcAiTakeActionMelee : public SpellScript
 // 32227 - Karazhan - Chess NPC Action: Melee Attack: Footman
 struct ChessMeleeAttackFootman : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -723,7 +723,7 @@ struct ChessMeleeAttackFootman : public SpellScript
 // 32228 - Karazhan - Chess NPC Action: Melee Attack: Grunt
 struct ChessMeleeAttackGrunt : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -733,7 +733,7 @@ struct ChessMeleeAttackGrunt : public SpellScript
 // 37143 - Karazhan - Chess NPC Action: Melee Attack: Charger
 struct ChessMeleeAttackCharger : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -743,7 +743,7 @@ struct ChessMeleeAttackCharger : public SpellScript
 // 37339 - Karazhan - Chess NPC Action: Melee Attack: Orc Wolf
 struct ChessMeleeAttackWolf : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -753,7 +753,7 @@ struct ChessMeleeAttackWolf : public SpellScript
 // 37147 - Karazhan - Chess NPC Action: Melee Attack: Human Cleric
 struct ChessMeleeAttackCleric : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -763,7 +763,7 @@ struct ChessMeleeAttackCleric : public SpellScript
 // 37337 - Karazhan - Chess NPC Action: Melee Attack: Orc Necrolyte
 struct ChessMeleeAttackNecrolyte : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -773,7 +773,7 @@ struct ChessMeleeAttackNecrolyte : public SpellScript
 // 37142 - Karazhan - Chess NPC Action: Melee Attack: Conjured Water Elemental
 struct ChessMeleeAttackElemental : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -783,7 +783,7 @@ struct ChessMeleeAttackElemental : public SpellScript
 // 37220 - Karazhan - Chess NPC Action: Melee Attack: Summoned Daemon
 struct ChessMeleeAttackDaemon : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -793,7 +793,7 @@ struct ChessMeleeAttackDaemon : public SpellScript
 // 37149 - Karazhan - Chess NPC Action: Melee Attack: Human Conjurer
 struct ChessMeleeAttackConjurer : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -803,7 +803,7 @@ struct ChessMeleeAttackConjurer : public SpellScript
 // 37345 - Karazhan - Chess NPC Action: Melee Attack: Orc Warlock
 struct ChessMeleeAttackWarlock : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -813,7 +813,7 @@ struct ChessMeleeAttackWarlock : public SpellScript
 // 37150 - Karazhan - Chess NPC Action: Melee Attack: King Llane
 struct ChessMeleeAttackLlane : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;
@@ -823,7 +823,7 @@ struct ChessMeleeAttackLlane : public SpellScript
 // 37348 - Karazhan - Chess NPC Action: Melee Attack: Warchief Blackhand
 struct ChessMeleeAttackBlackhand : public SpellScript
 {
-    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         Unit* caster = spell->GetCaster();
         return target->GetDistance(caster) <= 8.0f && caster->GetAngle(target) <= 15.0f;

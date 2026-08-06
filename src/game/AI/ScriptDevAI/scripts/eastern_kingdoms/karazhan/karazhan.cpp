@@ -380,7 +380,7 @@ void instance_karazhan::Load(const char* chrIn)
     {
         m_bFriendlyGame = true;
     }
-    else // reset the event in case server was shutdown to prevent progress softlock
+    else if (m_auiEncounter[8] == IN_PROGRESS || m_auiEncounter[8] == FAILED) // reset the event in case server was shutdown to prevent progress softlock
     {
         m_uiChessResetTimer = 1000;
     }

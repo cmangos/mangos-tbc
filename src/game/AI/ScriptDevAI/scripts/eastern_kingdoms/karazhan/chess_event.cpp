@@ -132,11 +132,11 @@ enum
     SPELL_ELEMENTAL_BLAST           = 37462,                    // human queen
     SPELL_RAIN_OF_FIRE              = 37465,
     SPELL_FIREBALL                  = 37463,                    // orc queen
-    //SPELL_POISON_CLOUD            = 37469,
+    SPELL_POISON_CLOUD              = 37469,
     SPELL_POISON_CLOUD_ACTION       = 37775,                    // triggers 37469 - acts as a target selector spell for orc queen
     SPELL_HEALING                   = 37455,                    // human bishop
     SPELL_HOLY_LANCE                = 37459,
-    //SPELL_SHADOW_MEND             = 37456,                    // orc bishop
+    SPELL_SHADOW_MEND               = 37456,                    // orc bishop
     SPELL_SHADOW_MEND_ACTION        = 37824,                    // triggers 37456 - acts as a target selector spell for orc bishop
     SPELL_SHADOW_SPEAR              = 37461,
     SPELL_GEYSER                    = 37427,                    // human rook
@@ -1194,7 +1194,7 @@ struct npc_orc_warlockAI : public npc_chess_piece_genericAI
             DoCastSpellIfCan(pTarget, SPELL_POISON_CLOUD_ACTION);
 
             // reset timer based on spell values
-            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_POISON_CLOUD_ACTION);
+            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_POISON_CLOUD);
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1816,7 +1816,7 @@ struct npc_orc_necrolyteAI : public npc_chess_piece_genericAI
             DoCastSpellIfCan(pTarget, SPELL_SHADOW_MEND_ACTION);
 
             // reset timer based on spell values
-            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_MEND_ACTION);
+            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_MEND);
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 

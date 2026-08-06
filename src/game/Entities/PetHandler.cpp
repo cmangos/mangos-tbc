@@ -312,18 +312,6 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
 
             Unit* unit_target = targetGuid ? _player->GetMap()->GetUnit(targetGuid) : nullptr;
 
-            // Karazhan Chess Pieces: these spells can target any unit but they shouldn't be hitting same faction
-            switch (spellid)
-            {
-                case 37462:
-                case 37463:
-                    if (!unit_target || unit_target->GetFaction() == petUnit->GetFaction())
-                        return;
-                    break;
-                default:
-                    break;
-            }
-
             // do not cast unknown spells
             SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(spellid);
             if (!spellInfo)

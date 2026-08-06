@@ -355,6 +355,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (37345,'spell_chess_melee_warlock'),
 (37150,'spell_chess_melee_llane'),
 (37348,'spell_chess_melee_blackhand'),
+(37462,'spell_chess_elemental_blast'),
+(37463,'spell_chess_fireball'),
 (30907,'spell_drink_poison_julianne'),
 (31225,'spell_paladin_quest_revive_self'),
 (31320,'spell_time_rift_periodic'),

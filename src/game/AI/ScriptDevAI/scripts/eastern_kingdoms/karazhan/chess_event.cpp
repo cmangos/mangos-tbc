@@ -846,6 +846,30 @@ struct ChessFaceSquare : public SpellScript
     }
 };
 
+// 37462 - Elemental Blast
+struct ChessElementalBlast : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        Unit* target = spell->m_targets.getUnitTarget();
+        if (!target || target->GetFaction() != FACTION_ID_CHESS_HORDE)
+            return SPELL_FAILED_BAD_TARGETS;
+        return SPELL_CAST_OK;
+    }    
+};
+
+// 37463 - Fireball
+struct ChessFireball : public SpellScript
+{
+    SpellCastResult OnCheckCast(Spell* spell, bool /*strict*/) const override
+    {
+        Unit* target = spell->m_targets.getUnitTarget();
+        if (!target || target->GetFaction() != FACTION_ID_CHESS_ALLIANCE)
+            return SPELL_FAILED_BAD_TARGETS;
+        return SPELL_CAST_OK;
+    }    
+};
+
 /*######
 ## npc_king_llane
 ######*/
@@ -1967,4 +1991,7 @@ void AddSC_chess_event()
     RegisterSpellScript<ChessMeleeAttackWarlock>("spell_chess_melee_warlock");
     RegisterSpellScript<ChessMeleeAttackLlane>("spell_chess_melee_llane");
     RegisterSpellScript<ChessMeleeAttackBlackhand>("spell_chess_melee_blackhand");
+    RegisterSpellScript<ChessElementalBlast>("spell_chess_elemental_blast");
+    RegisterSpellScript<ChessFireball>("spell_chess_fireball");
+
 }

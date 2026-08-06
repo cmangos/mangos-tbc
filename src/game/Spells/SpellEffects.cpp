@@ -1790,6 +1790,22 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 37775:                                 // Karazhan - Chess NPC Action - Poison Cloud
+                {
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, 37469, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 37824:                                 // Karazhan - Chess NPC Action - Shadow Mend
+                {
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, 37456, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
                 case 33923:                                 // Sonic Boom
                 case 38796:                                 // Sonic Boom (heroic)
                 {
@@ -6149,22 +6165,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
 
                     unitTarget->RemoveAurasDueToSpell(36904);
                     unitTarget->CastSpell(nullptr, 37013, TRIGGERED_NONE);
-                    return;
-                }
-                case 37775:                                 // Karazhan - Chess NPC Action - Poison Cloud
-                {
-                    if (!unitTarget)
-                        return;
-
-                    m_caster->CastSpell(unitTarget, 37469, TRIGGERED_OLD_TRIGGERED);
-                    return;
-                }
-                case 37824:                                 // Karazhan - Chess NPC Action - Shadow Mend
-                {
-                    if (!unitTarget)
-                        return;
-
-                    m_caster->CastSpell(unitTarget, 37456, TRIGGERED_OLD_TRIGGERED);
                     return;
                 }
                 case 38055:                                 // Destroy Deathforged Infernal

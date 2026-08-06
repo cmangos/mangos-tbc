@@ -3090,7 +3090,6 @@ SpellCastResult Spell::CheckScriptTargeting(SpellEffectIndex effIndex, uint32 ch
                     {
                         // Karazhan Chess Poison Cloud needs to check range, not radius from caster
                         case 37469:
-                        case 37775:
                         {
                             SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(m_spellInfo->rangeIndex);
                             float maxRange = GetSpellMaxRange(srange);

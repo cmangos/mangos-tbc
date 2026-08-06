@@ -132,12 +132,12 @@ enum
     SPELL_ELEMENTAL_BLAST           = 37462,                    // human queen
     SPELL_RAIN_OF_FIRE              = 37465,
     SPELL_FIREBALL                  = 37463,                    // orc queen
-    SPELL_POISON_CLOUD              = 37469,
-    // SPELL_POISON_CLOUD_ACTION    = 37775,                    // triggers 37469 - acts as a target selector spell for orc queen (npc can't use this)
+    //SPELL_POISON_CLOUD            = 37469,
+    SPELL_POISON_CLOUD_ACTION       = 37775,                    // triggers 37469 - acts as a target selector spell for orc queen
     SPELL_HEALING                   = 37455,                    // human bishop
     SPELL_HOLY_LANCE                = 37459,
-    SPELL_SHADOW_MEND               = 37456,                    // orc bishop
-    // SPELL_SHADOW_MEND_ACTION     = 37824,                    // triggers 37456 - acts as a target selector spell for orc bishop (npc can't use this)
+    //SPELL_SHADOW_MEND             = 37456,                    // orc bishop
+    SPELL_SHADOW_MEND_ACTION        = 37824,                    // triggers 37456 - acts as a target selector spell for orc bishop
     SPELL_SHADOW_SPEAR              = 37461,
     SPELL_GEYSER                    = 37427,                    // human rook
     SPELL_WATER_SHIELD              = 37432,
@@ -1071,10 +1071,10 @@ struct npc_orc_warlockAI : public npc_chess_piece_genericAI
     {
         if (Unit* pTarget = GetTargetByType(TARGET_TYPE_RANDOM, 25.0f))
         {
-            DoCastSpellIfCan(pTarget, SPELL_POISON_CLOUD);
+            DoCastSpellIfCan(pTarget, SPELL_POISON_CLOUD_ACTION);
 
             // reset timer based on spell values
-            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_POISON_CLOUD);
+            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_POISON_CLOUD_ACTION);
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 
@@ -1693,10 +1693,10 @@ struct npc_orc_necrolyteAI : public npc_chess_piece_genericAI
     {
         if (Unit* pTarget = GetTargetByType(TARGET_TYPE_FRIENDLY, 25.0f))
         {
-            DoCastSpellIfCan(pTarget, SPELL_SHADOW_MEND);
+            DoCastSpellIfCan(pTarget, SPELL_SHADOW_MEND_ACTION);
 
             // reset timer based on spell values
-            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_MEND);
+            const SpellEntry* pSpell = GetSpellStore()->LookupEntry<SpellEntry>(SPELL_SHADOW_MEND_ACTION);
             return pSpell->RecoveryTime ? pSpell->RecoveryTime : pSpell->CategoryRecoveryTime;
         }
 

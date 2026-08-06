@@ -103,8 +103,6 @@ bool DynamicObject::Create(uint32 guidlow, Unit* caster, uint32 spellId, SpellEf
 
     if (spellId == 44007) // Akilzon - Electrical storm - always takes 500 ms more than spell data - confirmed in sniff
         duration += 500;
-    else if (spellId == 37465 || spellId == 37469) // Karazhan Chess Aoe spells have delay before units get aura so the dynobject would delete early before last tick
-        duration += 200;
 
     m_aliveTime = GetMap()->GetCurrentClockTime() + std::chrono::milliseconds(duration);
     m_radius = radius;

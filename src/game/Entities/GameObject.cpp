@@ -1403,6 +1403,69 @@ void GameObject::SwitchDoorOrButton(bool activate, bool alternative /* = false *
         SetGoState(GO_STATE_READY);
 }
 
+bool GameObject::CanUseNow(Player const* player) const
+{
+    switch (GetGoType())
+    {
+        case GAMEOBJECT_TYPE_CHAIR:
+        {
+            float x, y;
+            std::tie(x, y) = GetClosestChairSlotPosition(player);
+            if (player->GetDistance(x, y, GetPositionZ(), DIST_CALC_NONE, GetTransport()) > 3.f * 3.f)
+                return false;
+            break;
+        }
+        case GAMEOBJECT_TYPE_SUMMONING_RITUAL:
+        {
+            SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_goInfo->summoningRitual.spellId);
+            if (spellInfo && spellInfo->HasAttribute(SPELL_ATTR_NOT_IN_COMBAT_ONLY_PEACEFUL) && player->IsInCombat())
+                return false;
+
+            WorldObject const* owner = GetOwner();
+            if (owner->IsPlayer())
+            {
+                Player const* ownerPlayer = static_cast<Player const*>(owner);
+                if (!player->IsInGroup(ownerPlayer, false))
+                    return false;
+            }
+            break;
+        }
+    }
+
+    if (!GetGOInfo()->GetLockId())
+    {
+        // mounted and cannot unmount
+        if (player->GetMountID() && !GetGOInfo()->IsUsableMounted() && (player->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_TAXI_FLIGHT) || !player->IsClientControlled()))
+            return false;
+
+        // We can't interact with anyone while being shapeshifted, unless form flags allow us to do so
+        if (player->IsShapeShifted())
+        {
+            if (SpellShapeshiftFormEntry const* formEntry = sSpellShapeshiftFormStore.LookupEntry(player->GetShapeshiftForm()))
+            {
+                // meant to have an can unshift check here
+                if (!(formEntry->flags1 & SHAPESHIFT_FLAG_CAN_NPC_INTERACT) && (player->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_TAXI_FLIGHT) || !player->IsClientControlled() || (formEntry->flags1 & SHAPESHIFT_FLAG_DONT_AUTO_UNSHIFT) != 0))
+                    return false;
+            }
+            else
+                return false;
+        }
+    }
+
+    // client checks this but needs recheck
+    if (!GetGOInfo()->IsUsableInCombat() && player->IsInCombat())
+        return false;
+
+    // client checks this but needs recheck
+    if (GetGOInfo()->CannotBeUsedUnderImmunity() && player->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE))
+        return false;
+
+    if (HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED) && !GetSpellForLock(player)) // we should not allow use of a locked GO
+        return false;
+
+    return true;
+}
+
 void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 {
     // user must be provided
@@ -1855,6 +1918,8 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
 
             spellId = info->spellcaster.spellId;
             spellCaster = this;
+            if (spellId == 46841) // sends only spell GO
+                triggeredFlags |= TRIGGERED_OLD_TRIGGERED;
 
             onSuccess = [&]()
             {
@@ -2577,16 +2642,23 @@ SpellEntry const* GameObject::GetSpellForLock(Player const* player) const
 
         for (auto&& playerSpell : player->GetSpellMap())
             if (SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(playerSpell.first))
-                for (uint32 i = 0; i < MAX_EFFECT_INDEX; ++i)
-                    if (spellInfo->Effect[i] == SPELL_EFFECT_OPEN_LOCK && ((uint32)spellInfo->EffectMiscValue[i]) == lock->Index[i])
-                        if (player->CalculateSpellEffectValue(nullptr, spellInfo, SpellEffectIndex(i), nullptr) >= int32(lock->Skill[i]))
+                for (uint32 effIdx = 0; effIdx < MAX_EFFECT_INDEX; ++effIdx)
+                    if (spellInfo->Effect[effIdx] == SPELL_EFFECT_OPEN_LOCK && ((uint32)spellInfo->EffectMiscValue[effIdx]) == lock->Index[i])
+                    {
+                        uint32 minRequiredSkill;
+                        if (lock->Skill[i])
+                            minRequiredSkill = lock->Skill[i];
+                        else
+                            minRequiredSkill = GetLevel() * 5;
+                        if (player->CalculateSpellEffectValue(nullptr, spellInfo, SpellEffectIndex(effIdx), nullptr) >= int32(minRequiredSkill))
                             return spellInfo;
+                    }
     }
 
     return nullptr;
 }
 
-std::pair<float, float> GameObject::GetClosestChairSlotPosition(Unit* user) const
+std::pair<float, float> GameObject::GetClosestChairSlotPosition(Unit const* user) const
 {
     float outX, outY;
     // check if the db is sane

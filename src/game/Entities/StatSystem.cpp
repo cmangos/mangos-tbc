@@ -219,7 +219,7 @@ void Unit::UpdateMaxHealth()
 
 void Unit::UpdateMaxPower(Powers power)
 {
-    UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + power);
+    UnitMods unitMod = UnitMods(static_cast<uint32>(UNIT_MOD_POWER_START) + static_cast<uint32>(power));
 
     uint32 create_power = GetCreatePowers(power);
 
@@ -300,7 +300,7 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
     SetModifierValue(unitMod, BASE_VALUE, val2);
 
     float base_attPower  = GetModifierValue(unitMod, BASE_VALUE) * GetModifierValue(unitMod, BASE_PCT);
-    float attPowerMod = GetModifierValue(unitMod, TOTAL_VALUE);
+    float statBonus = 0.f;
 
     // add dynamic flat mods
     if (ranged)
@@ -309,14 +309,14 @@ void Player::UpdateAttackPowerAndDamage(bool ranged)
         {
             AuraList const& mRAPbyStat = GetAurasByType(SPELL_AURA_MOD_RANGED_ATTACK_POWER_OF_STAT_PERCENT);
             for (auto i : mRAPbyStat)
-                attPowerMod += int32(GetStat(Stats(i->GetModifier()->m_miscvalue)) * i->GetModifier()->m_amount / 100.0f);
+                statBonus += int32(GetStat(Stats(i->GetModifier()->m_miscvalue)) * i->GetModifier()->m_amount / 100.0f);
         }
     }
 
     float attPowerMultiplier = GetModifierValue(unitMod, TOTAL_PCT) - 1.0f;
 
     SetInt32Value(index, (uint32)base_attPower);            // UNIT_FIELD_(RANGED)_ATTACK_POWER field
-    SetInt16Value(index_mod, 0, m_attackPowerMod[size_t(mod)][size_t(AttackPowerModSign::MOD_SIGN_POS)]);
+    SetInt16Value(index_mod, 0, int32(m_attackPowerMod[size_t(mod)][size_t(AttackPowerModSign::MOD_SIGN_POS)] + statBonus));
     SetInt16Value(index_mod, 1, m_attackPowerMod[size_t(mod)][size_t(AttackPowerModSign::MOD_SIGN_NEG)]);
     SetFloatValue(index_mult, attPowerMultiplier);          // UNIT_FIELD_(RANGED)_ATTACK_POWER_MULTIPLIER field
 
@@ -1011,10 +1011,11 @@ void Pet::UpdateMaxHealth()
 
     UnitMods unitMod = UNIT_MOD_HEALTH;
     float stamina = GetStat(STAT_STAMINA) - GetCreateStat(STAT_STAMINA); // TODO: Remove create stat usage like this
+    float addedStaminaBonus = std::max((stamina - 20) * 10, 0.f) + std::min(20.f, stamina);
 
     float value = GetModifierValue(unitMod, BASE_VALUE) + GetCreateHealth();
     value *= GetModifierValue(unitMod, BASE_PCT);
-    value += GetModifierValue(unitMod, TOTAL_VALUE) + std::max((stamina - 20) * 10 + 20, 0.f);
+    value += GetModifierValue(unitMod, TOTAL_VALUE) + addedStaminaBonus;
     value *= GetModifierValue(unitMod, TOTAL_PCT);
 
     SetMaxHealth((uint32)value);
@@ -1028,7 +1029,7 @@ void Pet::UpdateMaxPower(Powers power)
         return;
     }
 
-    UnitMods unitMod = UnitMods(UNIT_MOD_POWER_START + power);
+    UnitMods unitMod = UnitMods(static_cast<uint32>(UNIT_MOD_POWER_START) + static_cast<uint32>(power));
 
     float addValue = (power == POWER_MANA) ? GetStat(STAT_INTELLECT) - GetCreateStat(STAT_INTELLECT) : 0.0f;
 

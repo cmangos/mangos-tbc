@@ -357,11 +357,8 @@ void Unit::ProcSkillsAndReactives(bool isVictim, Unit* target, uint32 procFlags,
             if (procEx & (PROC_EX_NORMAL_HIT | PROC_EX_CRITICAL_HIT | PROC_EX_MISS | PROC_EX_DODGE | PROC_EX_PARRY | PROC_EX_BLOCK))
             {
                 if (target->GetTypeId() != TYPEID_PLAYER && target->GetCreatureType() != CREATURE_TYPE_CRITTER)
-                    ((Player*)this)->UpdateCombatSkills(target, attType, isVictim);
+                    ((Player*)this)->UpdateCombatSkills(procEx, attType, isVictim);
             }
-            // Update defence if player is victim and parry/dodge/block
-            if (isVictim && procEx & (PROC_EX_DODGE | PROC_EX_PARRY | PROC_EX_BLOCK))
-                ((Player*)this)->UpdateDefense();
         }
         // If exist crit/parry/dodge/block need update aura state (for victim and attacker)
         if (procEx & (PROC_EX_CRITICAL_HIT | PROC_EX_PARRY | PROC_EX_DODGE | PROC_EX_BLOCK))
@@ -2595,15 +2592,6 @@ SpellAuraProcResult Unit::HandleOverrideClassScriptAuraProc(ProcExecutionData& d
             // Check that only priest class can proc it is done in Spell::CheckTargetScript() for aura 23401
             if (IsSpellHaveEffect(spellInfo, SPELL_EFFECT_HEAL))
                 triggered_spell_id = 23402;
-            break;
-        }
-        case 4086:                                          // Improved Mend Pet (Rank 1)
-        case 4087:                                          // Improved Mend Pet (Rank 2)
-        {
-            if (!roll_chance_i(triggerAmount))
-                return SPELL_AURA_PROC_FAILED;
-
-            triggered_spell_id = 24406;
             break;
         }
         case 4533:                                          // Dreamwalker Raiment 2 pieces bonus

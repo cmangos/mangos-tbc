@@ -120,6 +120,7 @@ enum InventoryResult
     EQUIP_ERR_NOT_DURING_ARENA_MATCH             = 78,      // ERR_NOT_DURING_ARENA_MATCH
     EQUIP_ERR_CANNOT_TRADE_THAT                  = 79,      // ERR_TRADE_BOUND_ITEM
     EQUIP_ERR_PERSONAL_ARENA_RATING_TOO_LOW      = 80,      // ERR_CANT_EQUIP_RATING
+    EQUIP_ERR_EVENT_AUTOEQUIP_BIND_CONFIRM       = 81,            // EQUIP_ERR_OK, EVENT_AUTOEQUIP_BIND_CONFIRM
     // probably exist more
 };
 
@@ -208,7 +209,7 @@ enum ItemLootUpdateState
 enum ItemDynFlags
 {
     ITEM_DYNFLAG_BINDED                       = 0x00000001, // set in game at binding
-    ITEM_DYNFLAG_UNK1                         = 0x00000002,
+    ITEM_DYNFLAG_TRANSLATED                   = 0x00000002, // translated to lang id in query
     ITEM_DYNFLAG_UNLOCKED                     = 0x00000004, // have meaning only for item with proto->LockId, if not set show as "Locked, req. lockpicking N"
     ITEM_DYNFLAG_WRAPPED                      = 0x00000008, // mark item as wrapped into wrapper container
     ITEM_DYNFLAG_UNK4                         = 0x00000010, // can't repeat old note: appears red icon (like when item durability==0)

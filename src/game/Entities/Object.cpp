@@ -1844,7 +1844,14 @@ void WorldObject::MonsterSay(char const* text, uint32 language, Unit const* targ
     WorldPacket data;
     ChatHandler::BuildChatPacket(data, CHAT_MSG_MONSTER_SAY, text, Language(language), CHAT_TAG_NONE, GetObjectGuid(), GetName(),
                                  target ? target->GetObjectGuid() : ObjectGuid(), target ? target->GetName() : "");
-    SendMessageToSetInRange(data, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY), true);
+    float sayRange = sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY);
+    float visibilityDistance = GetVisibilityData().GetVisibilityDistance();
+    if (visibilityDistance >= 400.f) // gigantic aoi and above quadruple say range
+        sayRange *= 4;
+    else if (visibilityDistance >= 200.f) // large aoi and above double say range
+        sayRange *= 2;
+
+    SendMessageToSetInRange(data, sayRange, true);
 }
 
 void WorldObject::MonsterYell(const char* text, uint32 /*language*/, Unit const* target) const
@@ -1917,8 +1924,16 @@ void WorldObject::MonsterText(std::vector<std::string> content, uint32 type, Lan
     switch (type)
     {
         case CHAT_TYPE_SAY:
-            _DoLocalizedTextAround(this, content, CHAT_MSG_MONSTER_SAY, lang, target, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY));
+        {
+            float sayRange = sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_SAY);
+            float visibilityDistance = GetVisibilityData().GetVisibilityDistance();
+            if (visibilityDistance >= 400.f) // gigantic aoi and above quadruple say range
+                sayRange *= 4;
+            else if (visibilityDistance >= 200.f) // large aoi and above double say range
+                sayRange *= 2;
+            _DoLocalizedTextAround(this, content, CHAT_MSG_MONSTER_SAY, lang, target, sayRange);
             break;
+        }
         case CHAT_TYPE_YELL:
             _DoLocalizedTextAround(this, content, CHAT_MSG_MONSTER_YELL, lang, target, sWorld.getConfig(CONFIG_FLOAT_LISTEN_RANGE_YELL));
             break;

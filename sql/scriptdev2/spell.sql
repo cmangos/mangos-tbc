@@ -408,6 +408,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (39228,'spell_argussian_compass'),
 (41341,'spell_balance_of_power'),
 (41475,'spell_reflective_shield_malande'),
+(41467,'spell_judgement_gathios'),
 (41624,'spell_enfeeble_removal'),
 (32264,'spell_shirrak_inhibit_magic'),
 (33332,'spell_suppression_blast'),
@@ -566,12 +567,13 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (40573,'spell_ogrila_flasks'),
 (40575,'spell_ogrila_flasks'),
 (40576,'spell_ogrila_flasks'),
-(41608,'spell_ogrila_flasks'),
-(41609,'spell_ogrila_flasks'),
-(41610,'spell_ogrila_flasks'),
-(41611,'spell_ogrila_flasks'),
 (46837,'spell_ogrila_flasks'),
 (46839,'spell_ogrila_flasks'),
+(41608,'spell_shattrath_flasks'),
+(41609,'spell_shattrath_flasks'),
+(41610,'spell_shattrath_flasks'),
+(41611,'spell_shattrath_flasks'),
+(41545,'spell_soul_scream'),
 (40887,'spell_assist_bt'),
 (40892,'spell_fixate_bt'),
 (30745,'spell_target_fissures'),
@@ -785,7 +787,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (32173,'spell_entangling_roots'),
 (34520,'spell_elemental_power_extractor'),
 (35268,'spell_raging_flames_inferno'),
-(39346,'spell_raging_flames_inferno');
+(39346,'spell_raging_flames_inferno'),
+(34168,'spell_spore_cloud_underbog');
 
 -- Wotlk
 INSERT INTO spell_scripts(Id, ScriptName) VALUES
@@ -819,7 +822,9 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (19686, 'spell_taming_pet_rod'),
 (30100, 'spell_taming_pet_rod'),
 (30103, 'spell_taming_pet_rod'),
-(30104, 'spell_taming_pet_rod');
+(30104, 'spell_taming_pet_rod'),
+(19572,'spell_improved_mend_pet'),
+(19573,'spell_improved_mend_pet');
 
 -- Priest
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

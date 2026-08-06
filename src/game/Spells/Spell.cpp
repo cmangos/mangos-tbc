@@ -738,7 +738,7 @@ bool Spell::FillUnitTargets(TempTargetingData& targetingData, SpellTargetingData
         {
             for (auto itr = unitTargetList.begin(); itr != unitTargetList.end();)
             {
-                if (!CheckTarget(*itr, SpellEffectIndex(i), bool(rightTarget), CheckException(targetingData.magnet)))
+                if (!CheckTarget(*itr, SpellEffectIndex(i), bool(rightTarget), targetingData.data[i].neutralFlagFill, CheckException(targetingData.magnet)))
                     itr = unitTargetList.erase(itr);
                 else
                     ++itr;
@@ -932,11 +932,11 @@ void Spell::AddUnitTarget(Unit* target, uint8 effectMask, CheckException excepti
     // Get spell hit result on target
     TargetInfo targetInfo;
     targetInfo.targetGUID = targetGUID;                         // Store target GUID
-    targetInfo.effectHitMask = exception != EXCEPTION_MAGNET ? notImmunedMask : effectMask; // Store not immuned effects
+    targetInfo.effectHitMask = exception != CheckException::EXCEPTION_MAGNET ? notImmunedMask : effectMask; // Store not immuned effects
     targetInfo.effectMask = effectMask;                         // Store index of effect
     targetInfo.effectMaskProcessed = 0;
     targetInfo.processed  = false;                              // Effects not applied on target
-    targetInfo.magnet = (exception == EXCEPTION_MAGNET);
+    targetInfo.magnet = (exception == CheckException::EXCEPTION_MAGNET);
     targetInfo.procReflect = false;
     targetInfo.isCrit = false;
     targetInfo.heartbeatResistChance = 0;
@@ -1814,6 +1814,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             // Get a random point in circle. Use sqrt(rand) to correct distribution when converting polar to Cartesian coordinates.
             radius *= sqrtf(rand_norm_f());
         // no 'break' expected since we use code in case TARGET_LOCATION_CASTER_RANDOM_CIRCUMFERENCE!!!
+            [[fallthrough]];
         case TARGET_LOCATION_UNIT_RANDOM_CIRCUMFERENCE:
         case TARGET_LOCATION_CASTER_RANDOM_CIRCUMFERENCE:
         {
@@ -4635,26 +4636,30 @@ void Spell::SendChannelStart(uint32 duration)
 
     if (m_spellInfo->HasAttribute(SPELL_ATTR_EX_IS_CHANNELED))
     {
-        data.Initialize(SMSG_SPELL_UPDATE_CHAIN_TARGETS);
-        data << m_caster->GetObjectGuid();
-        data << uint32(m_spellInfo->Id);
-        size_t count_pos = data.wpos();
-        data << uint32(0);
-        uint32 hit = 0;
-        for (TargetList::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
+        if (target)
         {
-            if (((itr->effectHitMask & (1 << EFFECT_INDEX_0)) && itr->reflectResult == SPELL_MISS_NONE &&
-                m_CastItem) || itr->targetGUID != m_caster->GetObjectGuid())
+            data.Initialize(SMSG_SPELL_UPDATE_CHAIN_TARGETS);
+            data << m_caster->GetObjectGuid();
+            data << uint32(m_spellInfo->Id);
+            size_t count_pos = data.wpos();
+            data << uint32(0);
+            uint32 hit = 1;
+            data << target->GetObjectGuid(); // must be first
+
+            for (TargetList::const_iterator itr = m_UniqueTargetInfo.begin(); itr != m_UniqueTargetInfo.end(); ++itr)
             {
-                if (Unit* target = ObjectAccessor::GetUnit(*m_caster, itr->targetGUID))
+                if (itr->targetGUID == target->GetObjectGuid()) // already set as first
+                    continue;
+
+                if (((itr->effectHitMask & (1 << EFFECT_INDEX_0)) && itr->reflectResult == SPELL_MISS_NONE) || itr->targetGUID != m_caster->GetObjectGuid())
                 {
                     ++hit;
-                    data << target->GetObjectGuid();
+                    data << itr->targetGUID;
+                    if (hit >= 32)
+                        break;
                 }
             }
-        }
-        if (hit)
-        {
+
             data.put<uint32>(count_pos, hit);
             m_caster->SendMessageToSet(data, true);
         }
@@ -5545,12 +5550,12 @@ SpellCastResult Spell::CheckCast(bool strict)
                         {
                             case TYPEID_UNIT:
                             case TYPEID_PLAYER:
-                                if (!CheckTarget(static_cast<Unit*>(result), SpellEffectIndex(i), false, EXCEPTION_NONE))
+                                if (!CheckTarget(static_cast<Unit*>(result), SpellEffectIndex(i), false, false, CheckException::EXCEPTION_NONE))
                                     return SPELL_FAILED_NO_EDIBLE_CORPSES;
                                 break;
                             case TYPEID_CORPSE:
                                 if (Player* owner = ObjectAccessor::FindPlayer(static_cast<Corpse*>(result)->GetOwnerGuid()))
-                                    if (!CheckTarget(owner, SpellEffectIndex(i), false, EXCEPTION_NONE))
+                                    if (!CheckTarget(owner, SpellEffectIndex(i), false, false, CheckException::EXCEPTION_NONE))
                                         return SPELL_FAILED_NO_EDIBLE_CORPSES;
                                 break;
                         }
@@ -6773,7 +6778,7 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     }
     SpellSchools school = GetFirstSchoolInMask(spell ? spell->m_spellSchoolMask : GetSpellSchoolMask(spellInfo));
     // Flat mod from caster auras by spell school
-    powerCost += caster->GetInt32Value(UNIT_FIELD_POWER_COST_MODIFIER + school);
+    powerCost += caster->GetInt32Value(static_cast<uint16>(UNIT_FIELD_POWER_COST_MODIFIER) + static_cast<uint16>(school));
     // Shiv - costs 20 + weaponSpeed*10 energy (apply only to non-triggered spell with energy cost)
     if (spellInfo->HasAttribute(SPELL_ATTR_EX4_WEAPON_SPEED_COST_SCALING))
         powerCost += caster->GetAttackTime(OFF_ATTACK) / 100;
@@ -6791,7 +6796,7 @@ uint32 Spell::CalculatePowerCost(SpellEntry const* spellInfo, Unit* caster, Spel
     }
 
     // PCT mod from user auras by school
-    powerCost = int32(powerCost * (1.0f + caster->GetFloatValue(UNIT_FIELD_POWER_COST_MULTIPLIER + school)));
+    powerCost = int32(powerCost * (1.0f + caster->GetFloatValue(static_cast<uint16>(UNIT_FIELD_POWER_COST_MULTIPLIER) + static_cast<uint16>(school))));
     if (powerCost < 0)
         powerCost = 0;
     return powerCost;
@@ -7067,7 +7072,7 @@ SpellCastResult Spell::CheckItems()
                     InventoryResult msg = playerTarget->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, m_spellInfo->EffectItemType[i], count);
                     if (msg != EQUIP_ERR_OK)
                     {
-                        p_caster->SendEquipError(msg, nullptr, nullptr, m_spellInfo->EffectItemType[i]);
+                        p_caster->SendEquipError(msg, nullptr, nullptr, 0, m_spellInfo->EffectItemType[i]);
                         return SPELL_FAILED_DONT_REPORT;
                     }
                 }
@@ -7383,10 +7388,10 @@ CurrentSpellTypes Spell::GetCurrentContainer() const
     return (CURRENT_GENERIC_SPELL);
 }
 
-bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckException exception) const
+bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, bool neutralFlagFill, CheckException exception) const
 {
     // Check targets for creature type mask and remove not appropriate (skip explicit self target case, maybe need other explicit targets)
-    if (exception != EXCEPTION_MAGNET && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_CASTER)
+    if (exception != CheckException::EXCEPTION_MAGNET && m_spellInfo->EffectImplicitTargetA[eff] != TARGET_UNIT_CASTER)
     {
         if (!CheckTargetCreatureType(target, m_spellInfo))
             return false;
@@ -7400,6 +7405,8 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
     else
         targetType = m_spellInfo->EffectImplicitTargetB[eff], info = SpellTargetInfoTable[m_spellInfo->EffectImplicitTargetB[eff]];
     bool scriptTarget = (info.type == TARGET_TYPE_UNIT && info.filter == TARGET_SCRIPT);
+    if (neutralFlagFill)
+        scriptTarget = true;
 
     if (target != affectiveCaster)
     {
@@ -7462,7 +7469,7 @@ bool Spell::CheckTarget(Unit* target, SpellEffectIndex eff, bool targetB, CheckE
                 // all ok by some way or another, skip normal check
                 break;
             default:                                            // normal case
-                if (exception != EXCEPTION_MAGNET && !IsIgnoreLosSpellEffect(m_spellInfo, eff, targetB))
+                if (exception != CheckException::EXCEPTION_MAGNET && !IsIgnoreLosSpellEffect(m_spellInfo, eff, targetB))
                 {
                     float x, y, z;
                     switch (info.los)
@@ -8343,7 +8350,10 @@ void Spell::FillFromTargetFlags(TempTargetingData& targetingData, SpellEffectInd
     if (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_ENEMY))
     {
         if (Unit* unit = m_targets.getUnitTarget())
+        {
             targetingData.data[effIdx].tmpUnitList[false].push_back(unit);
+            targetingData.data[effIdx].neutralFlagFill = (m_spellInfo->Targets & (TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_ENEMY)) == TARGET_FLAG_UNIT;
+        }
     }
     else if (m_spellInfo->Targets & (TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY))
     {

@@ -7953,8 +7953,8 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
         AuraList const& mModDamagePercentDone = GetAurasByType(SPELL_AURA_MOD_DAMAGE_PERCENT_DONE);
         for (auto i : mModDamagePercentDone)
         {
-            if (i->GetModifier()->m_miscvalue & schoolMask &&                         // schoolmask has to fit with the intrinsic spell school
-                i->GetModifier()->m_miscvalue & GetMeleeDamageSchoolMask(attType == BASE_ATTACK) &&         // AND schoolmask has to fit with weapon damage school (essential for non-physical spells)
+            if (i->GetModifier()->m_miscvalue & schoolMask &&                         // schoolmask has to fit with the intrinsic spellInfo school
+                i->GetModifier()->m_miscvalue & spellInfo->SchoolMask &&              // AND schoolmask has to fit with spell damage school (essential for non-physical spells)
                     ((i->GetSpellProto()->EquippedItemClass == -1) ||                     // general, weapon independent
                      (pWeapon && pWeapon->IsFitToSpellRequirements(i->GetSpellProto()))))  // OR used weapon fits aura requirements
             {
@@ -9583,7 +9583,7 @@ float Unit::GetModifierValue(UnitMods unitMod, UnitModifierType modifierType) co
 
 float Unit::GetTotalStatValue(Stats stat) const
 {
-    UnitMods unitMod = UnitMods(UNIT_MOD_STAT_START + stat);
+    UnitMods unitMod = UnitMods(static_cast<uint32>(UNIT_MOD_STAT_START) + static_cast<uint32>(stat));
 
     if (m_auraModifiersGroup[unitMod][TOTAL_PCT] <= 0.0f)
         return 0.0f;
@@ -9599,7 +9599,7 @@ float Unit::GetTotalStatValue(Stats stat) const
 
 float Unit::GetTotalResistanceValue(SpellSchools school) const
 {
-    UnitMods unitMod = UnitMods(UNIT_MOD_RESISTANCE_START + school);
+    UnitMods unitMod = UnitMods(static_cast<uint32>(UNIT_MOD_RESISTANCE_START) + static_cast<uint32>(school));
 
     if (m_auraModifiersGroup[unitMod][TOTAL_PCT] <= 0.0f)
         return 0.0f;
@@ -9702,7 +9702,7 @@ float Unit::GetTotalAttackPowerValue(WeaponAttackType attType) const
             return 0.0f;
         return ap * (1.0f + GetFloatValue(UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER));
     }
-    int32 ap = GetInt32Value(UNIT_FIELD_ATTACK_POWER) + GetInt16Value(UNIT_FIELD_ATTACK_POWER_MODS, 0) + GetInt16Value(UNIT_FIELD_ATTACK_POWER_MODS, 1);
+    int32 ap = GetInt32Value(UNIT_FIELD_ATTACK_POWER) + GetInt16Value(UNIT_FIELD_ATTACK_POWER_MODS, size_t(AttackPowerModSign::MOD_SIGN_POS)) + GetInt16Value(UNIT_FIELD_ATTACK_POWER_MODS, size_t(AttackPowerModSign::MOD_SIGN_NEG));
     if (ap < 0)
         return 0.0f;
     return ap * (1.0f + GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER));
@@ -9801,7 +9801,7 @@ void Unit::SetPower(Powers power, uint32 val)
     if (maxPower < val)
         val = maxPower;
 
-    SetStatInt32Value(UNIT_FIELD_POWER1 + power, val);
+    SetStatInt32Value(static_cast<uint16>(UNIT_FIELD_POWER1) + static_cast<uint16>(power), int32(val));
 
     // group update
     if (GetTypeId() == TYPEID_PLAYER)
@@ -9828,7 +9828,7 @@ void Unit::SetPower(Powers power, uint32 val)
 void Unit::SetMaxPower(Powers power, uint32 val)
 {
     uint32 cur_power = GetPower(power);
-    SetStatInt32Value(UNIT_FIELD_MAXPOWER1 + power, val);
+    SetStatInt32Value(static_cast<uint16>(UNIT_FIELD_MAXPOWER1) + static_cast<uint16>(power), val);
 
     // group update
     if (GetTypeId() == TYPEID_PLAYER)
@@ -9849,7 +9849,7 @@ void Unit::SetMaxPower(Powers power, uint32 val)
 
 void Unit::ApplyPowerMod(Powers power, uint32 val, bool apply)
 {
-    ApplyModUInt32Value(UNIT_FIELD_POWER1 + power, val, apply);
+    ApplyModUInt32Value(static_cast<uint16>(UNIT_FIELD_POWER1) + static_cast<uint16>(power), val, apply);
 
     // group update
     if (GetTypeId() == TYPEID_PLAYER)
@@ -9867,7 +9867,7 @@ void Unit::ApplyPowerMod(Powers power, uint32 val, bool apply)
 
 void Unit::ApplyMaxPowerMod(Powers power, uint32 val, bool apply)
 {
-    ApplyModUInt32Value(UNIT_FIELD_MAXPOWER1 + power, val, apply);
+    ApplyModUInt32Value(static_cast<uint16>(UNIT_FIELD_MAXPOWER1) + static_cast<uint16>(power), val, apply);
 
     // group update
     if (GetTypeId() == TYPEID_PLAYER)
@@ -10977,18 +10977,18 @@ bool Unit::HasBreakableByDamageCrowdControlAura(Unit* excludeCasterChannel, uint
 
 void Unit::ApplyAttackTimePercentMod(WeaponAttackType att, float val, bool apply)
 {
-    float oldVal = GetFloatValue(UNIT_FIELD_BASEATTACKTIME + att);
+    float oldVal = GetFloatValue(static_cast<uint16>(UNIT_FIELD_BASEATTACKTIME) + static_cast<uint16>(att));
     if (val > 0)
     {
         ApplyPercentModFloatVar(m_modAttackSpeedPct[att], val, !apply);
-        ApplyPercentModFloatValue(UNIT_FIELD_BASEATTACKTIME + att, val, !apply);
+        ApplyPercentModFloatValue(static_cast<uint16>(UNIT_FIELD_BASEATTACKTIME) + static_cast<uint16>(att), val, !apply);
     }
     else
     {
         ApplyPercentModFloatVar(m_modAttackSpeedPct[att], -val, apply);
-        ApplyPercentModFloatValue(UNIT_FIELD_BASEATTACKTIME + att, -val, apply);
+        ApplyPercentModFloatValue(static_cast<uint16>(UNIT_FIELD_BASEATTACKTIME) + static_cast<uint16>(att), -val, apply);
     }
-    float newVal = GetFloatValue(UNIT_FIELD_BASEATTACKTIME + att);
+    float newVal = GetFloatValue(static_cast<uint16>(UNIT_FIELD_BASEATTACKTIME) + static_cast<uint16>(att));
     uint32 attackTimer = getAttackTimer(att);
     int32 diff = newVal - oldVal;
     setAttackTimer(att, diff < -int32(attackTimer) ? 0 : attackTimer + diff);
@@ -11775,6 +11775,24 @@ Unit* Unit::TakePossessOf(SpellEntry const* spellEntry, SummonPropertiesEntry co
 
     // return the creature therewith the summoner has access to it
     return possessed;
+}
+
+void Unit::SendMessageToAllWhoSeeMeMove(WorldPacket const& data, ObjectGuid moverOwner) const
+{
+    if (IsInWorld())
+    {
+        GuidSet const& clientGuidsIAmAt = GetClientGuidsIAmAt();
+        for (ObjectGuid guid : clientGuidsIAmAt)
+        {
+            if (moverOwner == guid)
+                continue;
+            if (Player* player = GetMap()->GetPlayer(guid))
+                player->GetSession()->SendPacket(data);
+        }
+
+        if (IsPlayer() && moverOwner != GetObjectGuid())
+            static_cast<Player const*>(this)->GetSession()->SendPacket(data);
+    }
 }
 
 bool Unit::TakePossessOf(Unit* possessed)

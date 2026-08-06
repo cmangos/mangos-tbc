@@ -1,0 +1,5 @@
+This directory is intended for database developers use
+In order to use it, developers must set the DEV_UPDATES variable to 'YES' in their InstallFullDB.config file
+All updates in this directory must have the '*.sql' extension. All other files wil be ignored
+All updates in this directory will be applied AFTER all regular updates (DB, core, SD2, ACID...)
+

@@ -1518,6 +1518,13 @@ class Player : public Unit
         void learnQuestRewardedSpells(Quest const* quest);
         void learnSpellHighRank(uint32 spellid);
 
+        // Learn all class trainer spells usable at the current level (custom quest reward)
+        void LearnAllClassTrainerSpells();
+        // Learn all learnable weapon skills and raise them to 300 (custom quest reward)
+        void LearnAllWeaponSkillsTo300();
+        // Learn spells rewarded by class quests (custom quest reward)
+        void LearnClassQuestRewardSpells();
+
 #ifdef ENABLE_PLAYERBOTS
         void learnClassLevelSpells(bool includeHighLevelQuestRewards = false);
 #endif

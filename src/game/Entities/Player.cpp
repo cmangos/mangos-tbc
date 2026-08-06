@@ -13559,6 +13559,14 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     for (SpellAreaForAreaMap::const_iterator itr = saBounds.first; itr != saBounds.second; ++itr)
         itr->second->ApplyOrRemoveSpellIfCan(this, zone, area, false);
 
+    // Custom: after completing "Practical Training" (90140-90158), learn all class skills usable at the current level
+    if (quest_id >= 90140 && quest_id <= 90158)
+    {
+        LearnAllClassTrainerSpells();
+        LearnClassQuestRewardSpells();
+        LearnAllWeaponSkillsTo300();
+    }
+
     // resend quests status directly
     UpdateForQuestWorldObjects();
     SendQuestGiverStatusMultiple();
@@ -21099,6 +21107,133 @@ void Player::learnSpellHighRank(uint32 spellid)
 
     DoPlayerLearnSpell worker(*this);
     sSpellMgr.doForHighRanks(spellid, worker);
+}
+
+void Player::LearnAllClassTrainerSpells()
+{
+    // Learn all spells from this class' trainers usable at the current level (free).
+    // Used as the reward for the custom quest line "Practical Training": after reaching level 60,
+    // the character learns all class skills available at level 60.
+    for (uint32 id = 0; id < sCreatureStorage.GetMaxEntry(); ++id)
+    {
+        CreatureInfo const* co = sCreatureStorage.LookupEntry<CreatureInfo>(id);
+        if (!co)
+            continue;
+
+        if (co->TrainerType != TRAINER_TYPE_CLASS || co->TrainerClass != getClass())
+            continue;
+
+        uint32 trainerId = co->TrainerTemplateId;
+        if (!trainerId)
+            trainerId = co->Entry;
+
+        TrainerSpellData const* trainer_spells = sObjectMgr.GetNpcTrainerTemplateSpells(trainerId);
+        if (!trainer_spells)
+            trainer_spells = sObjectMgr.GetNpcTrainerSpells(trainerId);
+        if (!trainer_spells)
+            continue;
+
+        // Spells form level-gated chains, so rescan until no new spell can be learned
+        // to avoid missing higher ranks
+        bool progress = true;
+        for (int pass = 0; pass < 30 && progress; ++pass)
+        {
+            progress = false;
+
+            for (TrainerSpellMap::const_iterator itr = trainer_spells->spellList.begin(); itr != trainer_spells->spellList.end(); ++itr)
+            {
+                TrainerSpell const* tSpell = &itr->second;
+                if (!tSpell)
+                    continue;
+
+                // Only learn spells usable at the current level
+                if (tSpell->reqLevel > GetLevel())
+                    continue;
+
+                uint32 reqLevel = tSpell->isProvidedReqLevel ? tSpell->reqLevel : 0;
+                if (GetTrainerSpellState(tSpell, reqLevel) != TRAINER_SPELL_GREEN)
+                    continue;
+
+                for (uint32 learnedSpell : tSpell->learnedSpell)
+                {
+                    if (!learnedSpell || HasSpell(learnedSpell))
+                        continue;
+
+                    SpellEntry const* proto = sSpellTemplate.LookupEntry<SpellEntry>(learnedSpell);
+                    if (!proto || !SpellMgr::IsSpellValid(proto, this, false))
+                        continue;
+
+                    // Directly learn spells with LEARN_SPELL effects
+                    bool learned = false;
+                    for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
+                    {
+                        if (proto->Effect[j] == SPELL_EFFECT_LEARN_SPELL)
+                        {
+                            learnSpell(proto->EffectTriggerSpell[j], false);
+                            learned = true;
+                        }
+                    }
+
+                    if (!learned)
+                        learnSpell(learnedSpell, false);
+
+                    progress = true;
+                }
+            }
+        }
+    }
+}
+
+void Player::LearnAllWeaponSkillsTo300()
+{
+    // Actual weapon proficiency spell IDs in this server's Spell.dbc (verified against localized names):
+    // 196 1H Axe, 197 2H Axe, 198 1H Mace, 199 2H Mace, 200 Polearm, 201 1H Sword, 202 2H Sword, 203 Unarmed
+    // 227 Staff, 264 Bow, 266 Gun, 1180 Dagger, 2567 Thrown, 15590 Fist Weapon, 5009 Wand, 5011 Crossbow
+    static const uint32 weaponProficiencySpells[] = {
+        196, 197, 198, 199, 200, 201, 202, 203,
+        227, 264, 266, 1180, 2567, 15590, 5009, 5011
+    };
+
+    for (uint32 spellId : weaponProficiencySpells)
+    {
+        if (!sSpellTemplate.LookupEntry<SpellEntry>(spellId))
+            continue;
+
+        // Only learn weapon proficiencies allowed for this class (same filter as weapon master trainers)
+        if (!IsSpellFitByClassAndRace(spellId))
+            continue;
+
+        learnSpell(spellId, false);
+    }
+
+    // Raise all existing weapon skills and defense to 300
+    static const uint16 weaponSkills[] = {
+        SKILL_SWORDS, SKILL_AXES, SKILL_MACES, SKILL_2H_SWORDS, SKILL_2H_AXES, SKILL_2H_MACES,
+        SKILL_DAGGERS, SKILL_STAVES, SKILL_BOWS, SKILL_GUNS, SKILL_CROSSBOWS, SKILL_POLEARMS,
+        SKILL_FIST_WEAPONS, SKILL_THROWN, SKILL_WANDS, SKILL_UNARMED, SKILL_DEFENSE
+    };
+
+    for (uint16 skill : weaponSkills)
+        if (HasSkill(skill))
+            SetSkill(skill, 300, 300);
+}
+
+void Player::LearnClassQuestRewardSpells()
+{
+    // Iterate class quests and learn the spells they reward (e.g. mount summons not taught by trainers)
+    ObjectMgr::QuestMap const& qTemplates = sObjectMgr.GetQuestTemplates();
+    for (const auto& qTemplate : qTemplates)
+    {
+        Quest const* quest = qTemplate.second.get();
+        if (!quest)
+            continue;
+
+        // Only process class quests the player can take (class/race/level)
+        if (quest->GetRequiredClasses() == 0 || !SatisfyQuestClass(quest, false) || !SatisfyQuestRace(quest, false) || !SatisfyQuestLevel(quest, false))
+            continue;
+
+        learnQuestRewardedSpells(quest);
+    }
 }
 
 #ifdef ENABLE_PLAYERBOTS

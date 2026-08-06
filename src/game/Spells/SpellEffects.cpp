@@ -6255,8 +6255,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 39341:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Horde
                 {
-                    // Prevent targeting Medivh's pieces
-                    if (!unitTarget || unitTarget->GetFaction() != 1689)
+                    if (!unitTarget)
                         return;
 
                     m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);
@@ -6264,8 +6263,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 }
                 case 39344:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Alliance
                 {
-                    // Prevent targeting Medivh's pieces
-                    if (!unitTarget || unitTarget->GetFaction() != 1690)
+                    if (!unitTarget)
                         return;
 
                     m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);

@@ -44,8 +44,11 @@ enum
     SPELL_TRASH                 = 3391,
     SPELL_WHIRLWIND             = 24236,
     SPELL_PANTHER_TRANSFORM     = 24190,
-    SPELL_SUMMON_ZULIAN_PROWLERS = 24247,
     SPELL_HATE_TO_ZERO          = 20538,
+
+    // 1.12 used spells 24247 (periodic trigger aura) and 24246 (summon) which do
+    // not exist in TBC data, so the summoning is now implemented directly.
+    NPC_ZULIAN_PROWLER          = 15101,
 
     SPELL_VANISH_TELEPORT       = 24228,
     SPELL_VANISH                = 24223,
@@ -62,6 +65,7 @@ enum
 enum ArlokkActions
 {
     ARLOKK_PHASE_TRANSITION,
+    ARLOKK_SUMMON_PROWLERS,
     ARLOKK_ACTION_MAX,
     ARLOKK_INVIS_SELECT,
     ARLOKK_INVIS_TIMER,
@@ -72,6 +76,7 @@ struct boss_arlokkAI : public CombatAI
     boss_arlokkAI(Creature* creature) : CombatAI(creature, ARLOKK_ACTION_MAX), m_instance(static_cast<instance_zulgurub*>(creature->GetInstanceData()))
     {
         AddCombatAction(ARLOKK_PHASE_TRANSITION, 30000u);
+        AddCombatAction(ARLOKK_SUMMON_PROWLERS, 5000u);
         AddCustomAction(ARLOKK_INVIS_SELECT, true, [&]()
         {
             if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, SELECT_FLAG_PLAYER))
@@ -89,8 +94,8 @@ struct boss_arlokkAI : public CombatAI
 
     instance_zulgurub* m_instance;
 
-    Creature* m_pTrigger1;
-    Creature* m_pTrigger2;
+    ObjectGuid m_trigger1Guid;
+    ObjectGuid m_trigger2Guid;
 
     GuidList m_lProwlerGUIDList;
 
@@ -102,6 +107,10 @@ struct boss_arlokkAI : public CombatAI
 
         m_bIsPhaseTwo = false;
 
+        m_trigger1Guid.Clear();
+        m_trigger2Guid.Clear();
+        m_lProwlerGUIDList.clear();
+
         SetCombatScriptStatus(false);
         SetCombatMovement(true);
         SetMeleeEnabled(true);
@@ -111,24 +120,56 @@ struct boss_arlokkAI : public CombatAI
     {
         DoScriptText(SAY_AGGRO, m_creature);
 
-        m_pTrigger1 = m_instance->SelectRandomPantherTrigger(true);
-        if (m_pTrigger1)
-            m_pTrigger1->CastSpell(m_pTrigger1, SPELL_SUMMON_ZULIAN_PROWLERS, TRIGGERED_NONE);
+        m_lProwlerGUIDList.clear();
 
-        m_pTrigger2 = m_instance->SelectRandomPantherTrigger(false);
-        if (m_pTrigger2)
-            m_pTrigger2->CastSpell(m_pTrigger2, SPELL_SUMMON_ZULIAN_PROWLERS, TRIGGERED_NONE);
+        if (Creature* pTrigger = m_instance->SelectRandomPantherTrigger(true))
+            m_trigger1Guid = pTrigger->GetObjectGuid();
+
+        if (Creature* pTrigger = m_instance->SelectRandomPantherTrigger(false))
+            m_trigger2Guid = pTrigger->GetObjectGuid();
+    }
+
+    // The boss returns to the pull position on evade and may despawn before
+    // reaching its real home, so JustReachedHome is not a reliable cleanup
+    // point. Stop the summons and despawn the prowlers as soon as evade starts.
+    void EnterEvadeMode() override
+    {
+        DoStopZulianProwlers();
+        CombatAI::EnterEvadeMode();
+    }
+
+    // Replicates the 1.12 mechanic: each of the two panther triggers summons a
+    // Zulian Prowler every 5 seconds for as long as the encounter is running.
+    void SummonZulianProwlers()
+    {
+        ObjectGuid aTriggerGuids[2] = { m_trigger1Guid, m_trigger2Guid };
+
+        for (uint8 i = 0; i < 2; ++i)
+        {
+            if (Creature* pTrigger = m_creature->GetMap()->GetCreature(aTriggerGuids[i]))
+            {
+                if (!pTrigger->IsAlive())
+                    continue;
+
+                if (Creature* pProwler = m_creature->SummonCreature(NPC_ZULIAN_PROWLER,
+                        pTrigger->GetPositionX(), pTrigger->GetPositionY(), pTrigger->GetPositionZ(), pTrigger->GetOrientation(),
+                        TEMPSPAWN_DEAD_DESPAWN, 0))
+                {
+                    m_lProwlerGUIDList.push_back(pProwler->GetObjectGuid());
+                }
+            }
+        }
     }
 
     void JustReachedHome() override
     {
+        DoStopZulianProwlers();
+
         if (m_instance)
             m_instance->SetData(TYPE_ARLOKK, FAIL);
 
         // we should be summoned, so despawn
         m_creature->ForcedDespawn();
-
-        DoStopZulianProwlers();
 
         m_creature->SetSpellList(SPELL_LIST_PHASE_1);
     }
@@ -146,17 +187,20 @@ struct boss_arlokkAI : public CombatAI
             m_instance->SetData(TYPE_ARLOKK, DONE);
     }
 
-    // Wrapper to despawn the zulian panthers on evade / death
+    // Wrapper to stop the summoning and despawn the zulian panthers on evade / death.
+    // Re-resolve objects by GUID so a despawned object is never dereferenced.
     void DoStopZulianProwlers()
     {
-        if (m_instance)
+        m_trigger1Guid.Clear();
+        m_trigger2Guid.Clear();
+
+        for (GuidList::const_iterator itr = m_lProwlerGUIDList.begin(); itr != m_lProwlerGUIDList.end(); ++itr)
         {
-            // Stop summoning Zulian prowlers
-            if (m_pTrigger1)
-                m_pTrigger1->RemoveAurasDueToSpell(SPELL_SUMMON_ZULIAN_PROWLERS);
-            if (m_pTrigger2)
-                m_pTrigger2->RemoveAurasDueToSpell(SPELL_SUMMON_ZULIAN_PROWLERS);
+            if (Creature* pProwler = m_creature->GetMap()->GetCreature(*itr))
+                pProwler->ForcedDespawn();
         }
+
+        m_lProwlerGUIDList.clear();
     }
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
@@ -175,6 +219,11 @@ struct boss_arlokkAI : public CombatAI
     {
         switch (action)
         {
+            case ARLOKK_SUMMON_PROWLERS:
+                SummonZulianProwlers();
+                ResetCombatAction(action, 5000);
+                break;
+
             case ARLOKK_PHASE_TRANSITION:
                 if (m_bIsPhaseTwo)
                 {

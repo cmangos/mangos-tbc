@@ -366,6 +366,10 @@ bool SpellStacker::IsStackableAuraEffect(SpellEntry const* entry, SpellEntry con
             return false;
         case SPELL_AURA_PERIODIC_ENERGIZE:
             break;
+        case SPELL_AURA_MOD_ATTACKER_SPELL_CRIT_CHANCE:
+            if (entry->Id == 12579) // All mages share same winter's chill on a target
+                return false;
+            break;
     }
     if (nonmui && instance && !IsChanneledSpell(entry) && !IsChanneledSpell(entry2))
         return false; // Forbids multi-ranking and multi-application on rule, exclude channeled spells (like Mind Flay)

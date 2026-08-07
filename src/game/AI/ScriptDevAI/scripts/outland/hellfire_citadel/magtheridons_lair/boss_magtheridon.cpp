@@ -355,14 +355,19 @@ struct go_manticron_cubeAI : public GameObjectAI
 
 bool GOUse_go_manticron_cube(Player* player, GameObject* go)
 {
-    // if current player is exhausted or last user is still channeling
+    // already exhausted: cannot use the cube again
     if (player->HasAura(SPELL_MIND_EXHAUSTION))
         return true;
 
     go_manticron_cubeAI* ai = static_cast<go_manticron_cubeAI*>(go->AI());
     Player* lastUser = ai->GetManticronCubeLastUser();
+
+    // cube busy (someone else or self still channeling): failed click also applies exhaustion
     if (lastUser && lastUser->HasAura(SPELL_SHADOW_GRASP))
+    {
+        player->CastSpell(nullptr, SPELL_MIND_EXHAUSTION, TRIGGERED_OLD_TRIGGERED);
         return true;
+    }
 
     if (ScriptedInstance* pInstance = (ScriptedInstance*)go->GetInstanceData())
     {
@@ -376,6 +381,7 @@ bool GOUse_go_manticron_cube(Player* player, GameObject* go)
 
             // the real spell is cast by player - casts SPELL_SHADOW_GRASP_VISUAL
             player->CastSpell(nullptr, SPELL_SHADOW_GRASP, TRIGGERED_NONE);
+            ai->SetManticronCubeUser(player->GetObjectGuid());
         }
     }
 

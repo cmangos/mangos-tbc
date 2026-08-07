@@ -354,13 +354,10 @@ struct boss_high_astromancer_solarianAI : public CombatAI
             }
             case SOLARIAN_BLINDING_LIGHT:
             {
-#ifdef PRENERF_2_0_3
-                // She casts this spell every 45 seconds. It is a kind of Moonfire spell, which she strikes down on the whole raid simultaneously. It hits everyone in the raid for 2280 to 2520 arcane damage.
-                if (DoCastSpellIfCan(nullptr, SPELL_BLINDING_LIGHT) == CAST_OK && DoCastSpellIfCan(nullptr, SPELL_MARK_OF_SOLARIAN) == CAST_OK)
-#else
-                if (DoCastSpellIfCan(nullptr, SPELL_BLINDING_LIGHT) == CAST_OK)
-#endif
-                    ResetCombatAction(action, 30000);
+                // Official: Blinding Light also applies Mark of Solarian, roughly every 45 seconds
+                DoCastSpellIfCan(nullptr, SPELL_BLINDING_LIGHT);
+                DoCastSpellIfCan(nullptr, SPELL_MARK_OF_SOLARIAN);
+                ResetCombatAction(action, 45000);
                 break;
             }
             case SOLARIAN_FEAR:

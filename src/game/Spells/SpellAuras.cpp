@@ -498,7 +498,7 @@ void Aura::Update(uint32 diff)
     if (m_isPeriodic)
     {
         m_periodicTimer -= diff;
-        if (m_periodicTimer <= 0 || (IsPersistent() && m_periodicTimer <= diff && m_periodicTick == GetAuraMaxTicks() - 1)) // tick also at m_periodicTimer==0 to prevent lost last tick in case max m_duration == (max m_periodicTimer)*N
+        if (m_periodicTimer <= 0) // tick also at m_periodicTimer==0 to prevent lost last tick in case max m_duration == (max m_periodicTimer)*N
         {
             // update before applying (aura can be removed in TriggerSpell or PeriodicTick calls)
             m_periodicTimer += m_modifier.periodictime;
@@ -784,7 +784,6 @@ void PersistentAreaAura::Update(uint32 diff)
                 remove = false;
         }
         else
-            // Update to prevent lost last tick
             Aura::Update(diff);
     }
 

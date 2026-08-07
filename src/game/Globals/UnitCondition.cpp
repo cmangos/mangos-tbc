@@ -49,6 +49,7 @@ std::shared_ptr<std::map<int32, UnitConditionEntry>> UnitConditionMgr::Load()
 
         UnitConditionEntry conditionEntry;
         conditionEntry.Id = fields[0].GetUInt32();
+        conditionEntry.Flags = fields[1].GetUInt32();
         for (uint32 i = 0; i < 8; ++i)
         {
             conditionEntry.Variable[i] = fields[i + 2].GetUInt32();
@@ -67,6 +68,7 @@ std::shared_ptr<std::map<int32, UnitConditionEntry>> UnitConditionMgr::Load()
         }
 
         unitConditions->emplace(conditionEntry.Id, conditionEntry);
+        ++Count;
     }
     while (result->NextRow());
 

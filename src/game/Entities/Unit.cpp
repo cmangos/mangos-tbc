@@ -2488,6 +2488,11 @@ float Unit::CalcArmorReducedDamage(WorldObject* attacker, Unit* victim, const fl
     if (attacker->IsUnit())
         armor -= static_cast<Unit*>(attacker)->GetResistancePenetration(SPELL_SCHOOL_NORMAL);
 
+    // Chess pieces have armor (confirmed by sniff), but the physical damage they take is not reduced by armor
+    // As there is no evidence of armor penetration or any flag that would cause this, ignore their armor
+    if (victim->GetFaction() == 1689 || victim->GetFaction() == 1690)
+        armor = 0.0f;
+
     if (armor < 0.0f)
         armor = 0.0f;
 

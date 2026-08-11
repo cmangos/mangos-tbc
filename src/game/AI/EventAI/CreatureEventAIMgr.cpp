@@ -557,6 +557,8 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                     }
                     break;
                 }
+                case EVENT_T_ACTION_SET:
+                    break;
                 default:
                     sLog.outErrorEventAI("Creature %d using not checked at load event (%u) in event %u. Need check code update?", keyField, temp.event_id, eventId);
                     break;
@@ -1067,6 +1069,8 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                     case ACTION_T_SET_FOLLOW_MOVEMENT:
                         break;
                     case ACTION_T_RETREAT:
+                        break;
+                    case ACTION_T_START_ACTION_SET:
                         break;
                     default:
                         sLog.outErrorEventAI("Event %u Action %u have currently not checked at load action type (%u). Need check code update?", eventId, j + 1, temp.action[j].type);

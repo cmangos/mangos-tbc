@@ -103,6 +103,7 @@ Some events such as EVENT_T_AGGRO, EVENT_T_DEATH, EVENT_T_SPAWNED, and EVENT_T_E
 35  EVENT_T_DEATH_PREVENTED             NONE                                                                    Expires when Death prevention kicks in
 36  EVENT_T_TARGET_NOT_REACHABLE        NONE                                                                    Expires when target is not reachable
 37  EVENT_T_SPELL_CAST                  SpellID                                                                 Expires when spell list casts spell Id successfully
+43  EVENT_T_ACTION_SET                  SetId, StepIndex, TimeMs						Expires when action set is engaged, on specific index and time
 
 =========================================
 Action Types
@@ -180,6 +181,7 @@ For all ACTION_T_RANDOM Actions, When a Particular Param is selected for the Eve
 63  ACTION_T_SET_IMMUNITY_SET               SetId                               Immunity Set ID - creature_immunities
 64  ACTION_T_SET_FOLLOW_MOVEMENT            State                               0 Off, 1 On
 65  ACTION_T_RETREAT                                                            Npc retreats no nearest ally
+66  ACTION_T_START_ACTION_SET               SetId, StepIndex, Repeat            Engages action set that persists through combat
 
 * = Use -1 where the param is expected to do nothing. Random constant is generated for each event, so if you have a random yell and a random sound, they will be linked up with each other (ie. param2 with param2).
 
@@ -558,6 +560,15 @@ Expires when main aggro target is not reachable by ChaseMovementGenerator - exam
 -----------------------
 Parameter 1: SpellID
 Expires when spellId is successfully cast by spell lists
+
+-----------------------
+43 = EVENT_T_ACTION_SET
+-----------------------
+Parameter 1: SetId
+Parameter 2: StepIndex
+Parameter 3: TimeMs
+Expires set id is engaged through action ACTION_T_START_ACTION_SET (66), set arrives on step index and time ms on that step
+Intended to be used for script sequences that persist through combat akin to core DialogueHelper
 
 (Name ==> School ==> School Bitmask Values)
 -------------------------------------------
@@ -1147,6 +1158,14 @@ Parameter 1: State - 0 off, 1 on
 ---------------------------------
 65 - ACTION_T_RETREAT
 ---------------------------------
+
+------------------------------
+64 - ACTION_T_START_ACTION_SET
+------------------------------
+Parameter 1: SetId (index of set id for EVENT_T_ACTION_SET)
+Parameter 2: StepIndex (index on which to initialize, by default 0)
+Parameter 3: Flags (repeat at the end of action set 0x1, ooc only 0x2)
+Engages action set that executes actions on a timer that persists through combat.
 
 =========================================
 Target Types

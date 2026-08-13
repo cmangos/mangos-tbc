@@ -1908,7 +1908,7 @@ class Player : public Unit
         void SendAuraDurationsOnLogin(); // sends own durations
         void SendExtraAuraDurationsOnLogin(bool visible); // sends init and non visible slot auras
 
-        static WorldPacket BuildAurasForTarget(Unit const* target);
+        static std::vector<WorldPacket> BuildAurasForTarget(Player const& caster, Unit const& target);
 
         PlayerMenu* GetPlayerMenu() const { return m_playerMenu.get(); }
 

@@ -19968,11 +19968,23 @@ void Player::SendExtraAuraDurationsOnLogin(bool visible)
     }
 }
 
-WorldPacket Player::BuildAurasForTarget(Unit const* target)
+std::vector<WorldPacket> Player::BuildAurasForTarget(Player const& caster, Unit const& target)
 {
-    WorldPacket data(SMSG_SET_EXTRA_AURA_INFO);
-    // TODO: Resolve different tbc protocol
-    return data;
+    std::vector<WorldPacket> auras;
+
+    SpellAuraHolderMap const& auraHolders = target.GetSpellAuraHolderMap();
+    for (SpellAuraHolderMap::const_iterator itr = auraHolders.begin(); itr != auraHolders.end(); ++itr)
+    {
+        SpellAuraHolder* holder = itr->second;
+
+        if (holder->GetAuraSlot() >= MAX_AURAS || holder->IsPassive() || holder->GetCasterGuid() != caster.GetObjectGuid())
+            continue;
+
+        WorldPacket data = holder->BuildAuraDurationToCaster();
+        auras.emplace_back(data);
+    }
+
+    return auras;
 }
 
 ItemSetEffect* Player::GetItemSetEffect(uint32 setId)

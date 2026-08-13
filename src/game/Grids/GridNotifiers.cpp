@@ -141,7 +141,13 @@ void VisibleNotifier::Notify()
     else
         for (auto vItr : i_visibleNow)
             if (vItr != &player && vItr->isType(TYPEMASK_UNIT))
-                i_data.AddAfterCreatePacket(Player::BuildAurasForTarget(static_cast<Unit const*>(vItr)));
+            {
+                auto auraPackets = Player::BuildAurasForTarget(player, static_cast<Unit const&>(*vItr));
+                for (auto& auraPacket : auraPackets)
+                {
+                    i_data.AddAfterCreatePacket(auraPacket);
+                }
+            }
 }
 
 void MessageDeliverer::Visit(CameraMapType& m)

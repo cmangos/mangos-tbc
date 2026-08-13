@@ -194,6 +194,7 @@ class SpellAuraHolder
         void LoginAuraDuration();
         void ForceUpdateAuraDuration();
         void SendAuraDuration();
+        WorldPacket BuildAuraDurationToCaster(uint32 slot = MAX_AURAS);
         void SendAuraDurationToCaster(Player* caster, uint32 slot = MAX_AURAS);
         void SendAuraDurationToCasterNeedUpdate(Player* caster);
 

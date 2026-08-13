@@ -614,7 +614,7 @@ void Transport::UpdateForMap(Map const* targetMap, bool newMap)
             {
                 UpdateData updateData;
                 BuildCreateUpdateBlockForPlayer(updateData, player);
-                WorldPacket packet = updateData.BuildPacket(0, true); // always only one packet
+                WorldPacket packet = updateData.BuildPacket(0); // always only one packet
                 player->SendDirectMessage(packet);
                 player->AddAtClient(this);
             }
@@ -624,7 +624,7 @@ void Transport::UpdateForMap(Map const* targetMap, bool newMap)
     {
         UpdateData updateData;
         BuildOutOfRangeUpdateBlock(updateData);
-        WorldPacket packet = updateData.BuildPacket(0, true); // always only one packet
+        WorldPacket packet = updateData.BuildPacket(0); // always only one packet
         for (const auto& itr : pl)
             if (this != itr.getSource()->GetTransport())
                 itr.getSource()->SendDirectMessage(packet);

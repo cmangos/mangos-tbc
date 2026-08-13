@@ -195,7 +195,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData& data, Player* target) c
     updateMask.SetCount(m_valuesCount);
     _SetCreateBits(updateMask, target);
     BuildValuesUpdate(updatetype, &buf, &updateMask, target);
-    data.AddUpdateBlock(buf);
+    data.AddUpdateBlock(buf, GetObjectGuid().IsTransport() || GetObjectGuid().IsMOTransport());
 }
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData& data, Player* target) const
@@ -225,7 +225,8 @@ void Object::BuildValuesUpdateBlockForPlayer(UpdateData& data, UpdateMask& updat
     buf << GetPackGUID();
 
     BuildValuesUpdate(UPDATETYPE_VALUES, &buf, &updateMask, target);
-    data.AddUpdateBlock(buf);
+
+    data.AddUpdateBlock(buf, GetObjectGuid().IsTransport() || GetObjectGuid().IsMOTransport());
 }
 
 void Object::BuildForcedValuesUpdateBlockForPlayer(UpdateData& data, Player* target) const
@@ -241,7 +242,7 @@ void Object::BuildForcedValuesUpdateBlockForPlayer(UpdateData& data, Player* tar
     _SetCreateBits(updateMask, target);
     BuildValuesUpdate(UPDATETYPE_VALUES, &buf, &updateMask, target);
 
-    data.AddUpdateBlock(buf);
+    data.AddUpdateBlock(buf, GetObjectGuid().IsTransport() || GetObjectGuid().IsMOTransport());
 }
 
 void Object::BuildOutOfRangeUpdateBlock(UpdateData& data) const
@@ -1149,13 +1150,13 @@ void Object::BuildUpdateDataForPlayer(Player* pl, UpdateDataMapType& update_play
     BuildValuesUpdateBlockForPlayer(iter->second, iter->first);
 }
 
-void Object::BuildCreateDataForPlayer(Player* pl, UpdateDataMapType& update_players, bool auras) const
+void Object::BuildCreateDataForPlayer(Player* player, UpdateDataMapType& update_players, bool auras) const
 {
-    UpdateDataMapType::iterator iter = update_players.find(pl);
+    UpdateDataMapType::iterator iter = update_players.find(player);
 
     if (iter == update_players.end())
     {
-        std::pair<UpdateDataMapType::iterator, bool> p = update_players.insert(UpdateDataMapType::value_type(pl, UpdateData()));
+        std::pair<UpdateDataMapType::iterator, bool> p = update_players.insert(UpdateDataMapType::value_type(player, UpdateData()));
         MANGOS_ASSERT(p.second);
         iter = p.first;
     }
@@ -1163,7 +1164,13 @@ void Object::BuildCreateDataForPlayer(Player* pl, UpdateDataMapType& update_play
     BuildCreateUpdateBlockForPlayer(iter->second, iter->first);
 
     if (auras && IsUnit())
-        iter->second.AddAfterCreatePacket(Player::BuildAurasForTarget(static_cast<Unit const*>(this)));
+    {
+        auto auraPackets = Player::BuildAurasForTarget(*player, static_cast<Unit const&>(*this));
+        for (auto& auraPacket : auraPackets)
+        {
+            iter->second.AddAfterCreatePacket(auraPacket);
+        }
+    }
 }
 
 void Object::BuildOutOfRangeDataForPlayer(Player* pl, UpdateDataMapType& update_players, ObjectGuid oorObject)

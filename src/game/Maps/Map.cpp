@@ -488,7 +488,7 @@ void Map::CreatePlayerOnClient(Player* player)
     AddUpdateCreateObject(player);
 
     SendInitSelf(player, updateData);
-    updateData.SendData(*player->GetSession());
+    updateData.SendData(*player->GetSession(), true);
 }
 
 bool Map::Add(Player* player)
@@ -1615,7 +1615,13 @@ void Map::SendInitSelf(Player* player, UpdateData& updateData) const
                     player->AddAtClient(passenger);
                     passenger->BuildCreateUpdateBlockForPlayer(updateData, player);
                     if (passenger->IsUnit())
-                        updateData.AddAfterCreatePacket(Player::BuildAurasForTarget(static_cast<Unit const*>(passenger)));
+                    {
+                        auto auraPackets = Player::BuildAurasForTarget(*player, static_cast<Unit const&>(*passenger));
+                        for (auto& auraPacket : auraPackets)
+                        {
+                            updateData.AddAfterCreatePacket(auraPacket);
+                        }
+                    }
                 }
             }
         }
@@ -2731,11 +2737,14 @@ void Map::SendObjectUpdates()
 
             if (!visData.second.empty() && visData.first->IsUnit())
             {
-                WorldPacket packet = Player::BuildAurasForTarget(static_cast<Unit const*>(visData.first));
                 for (Player* player : visData.second)
                 {
+                    std::vector<WorldPacket> auraPackets = Player::BuildAurasForTarget(*player, static_cast<Unit const&>(*(visData.first)));
                     const auto& updateDataData = update_players.find(player); // always exist after previous loop
-                    updateDataData->second.AddAfterCreatePacket(packet);
+                    for (auto& auraPacket : auraPackets)
+                    {
+                        updateDataData->second.AddAfterCreatePacket(auraPacket);
+                    }
                 }
             }
 

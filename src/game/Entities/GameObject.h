@@ -576,6 +576,34 @@ struct GameObjectInfo
         }
     }
 
+    bool IsGiganticGameObject() const
+    {
+        switch (id)
+        {
+            case 188421:
+            case 188523:
+            case 188524:
+            case 188119:
+                return true;
+            default: return false;
+        }
+    }
+
+    bool IsInfiniteGameObject() const
+    {
+        switch (type)
+        {
+            case GAMEOBJECT_TYPE_MO_TRANSPORT:
+                return true;
+            default: return false;
+        }
+    }
+
+    bool IsLargeOrBiggerGameObject() const
+    {
+        return IsLargeGameObject() || IsGiganticGameObject() || IsInfiniteGameObject();
+    }
+
     bool IsSlowUpdateObject() const
     {
         switch (type)

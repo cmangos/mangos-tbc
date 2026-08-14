@@ -3019,6 +3019,7 @@ UPDATE spell_template SET StartRecoveryTime=2500 WHERE Id IN(45664);
 -- ====================================================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
 31304, -- Immolation
+32912, -- Windfury
 36630, -- Resistances (c.22000)
 37248, -- Power Converters: Electromental Visual
 43119, -- Cyclone Visual

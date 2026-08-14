@@ -551,6 +551,7 @@ struct DeathCloudBrutallus : public AuraScript
     }
 };
 
+// 46609 - Freeze
 struct FreezeMadrigosa : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
@@ -559,7 +560,8 @@ struct FreezeMadrigosa : public SpellScript
     }
 };
 
-struct spell_break_ice : public AuraScript
+// 46637 - Break Ice
+struct BreakIceBrutallus : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
     {
@@ -587,5 +589,5 @@ void AddSC_boss_brutallus()
     RegisterSpellScript<StompBrutallus>("spell_stomp_brutallus");
     RegisterSpellScript<DeathCloudBrutallus>("spell_death_cloud_brutallus");
     RegisterSpellScript<FreezeMadrigosa>("spell_freeze_madrigosa");
-    RegisterSpellScript<spell_break_ice>("spell_break_ice");
+    RegisterSpellScript<BreakIceBrutallus>("spell_break_ice");
 }

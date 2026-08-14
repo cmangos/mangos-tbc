@@ -116,6 +116,17 @@ void instance_old_hillsbrad::OnCreatureEvade(Creature* pCreature)
     }
 }
 
+void instance_old_hillsbrad::OnCreatureDespawn(Creature* pCreature)
+{
+    switch (pCreature->GetEntry())
+    {
+        case NPC_SKARLOC:
+            if (GetData(TYPE_SKARLOC) == IN_PROGRESS) 
+                SetData(TYPE_SKARLOC, FAIL); 
+            break;
+    }
+}
+
 void instance_old_hillsbrad::OnObjectCreate(GameObject* pGo)
 {
     if (pGo->GetEntry() == GO_ROARING_FLAME)

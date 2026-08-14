@@ -147,7 +147,7 @@ enum
 
     SAY_TH_LEAVE_COMBAT1            = 17607,
     SAY_TH_LEAVE_COMBAT2            = 17608,
-    SAY_TH_LEAVE_COMBAT3            = 10457,
+    SAY_TH_LEAVE_COMBAT3            = 17609,
 
     // reset texts
     SAY_ERONZION_RESET_THRALL       = 16729,

@@ -524,11 +524,8 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                     pSummoned->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_IMMUNE_TO_PLAYER);
                     m_lSkarlocAddsGuids.push_back(pSummoned->GetObjectGuid());
                 }
-                else
-                    pSummoned->AI()->AttackStart(m_creature);
                 break;
             default:
-                pSummoned->AI()->AttackStart(m_creature);
                 break;
         }
     }

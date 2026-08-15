@@ -586,6 +586,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                                 {
                                     pEpoch->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_IMMUNE_TO_PLAYER);
                                     pEpoch->AI()->AttackStart(m_creature);
+                                    pEpoch->SetInCombatWithZone();
                                     AttackStart(pEpoch);
                                 }
                             }

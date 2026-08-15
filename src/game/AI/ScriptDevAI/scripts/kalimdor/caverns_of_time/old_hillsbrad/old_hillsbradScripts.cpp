@@ -426,21 +426,21 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
         {
             for (GuidList::const_iterator itr = m_lTarrenMillSoldiersGuids.begin(); itr != m_lTarrenMillSoldiersGuids.end(); ++itr)
             {
-                if (Creature* pTemp = m_creature->GetMap()->GetCreature(*itr))
+                if (Creature* temp = m_creature->GetMap()->GetCreature(*itr))
                 {
-                    pTemp->AI()->AttackStart(m_creature);
-                    pTemp->SetInCombatWithZone();
+                    temp->AI()->AttackStart(m_creature);
+                    temp->SetInCombatWithZone();
                 }
             }
         }
         else if (m_pInstance && m_uiEpochWaveId == 3)
         {
-            if (Creature* pEpoch = m_pInstance->GetSingleCreatureFromStorage(NPC_EPOCH))
+            if (Creature* epoch = m_pInstance->GetSingleCreatureFromStorage(NPC_EPOCH))
             {
-                pEpoch->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_IMMUNE_TO_PLAYER);
-                pEpoch->AI()->AttackStart(m_creature);
-                pEpoch->SetInCombatWithZone();
-                AttackStart(pEpoch);
+                epoch->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_IMMUNE_TO_PLAYER);
+                epoch->AI()->AttackStart(m_creature);
+                epoch->SetInCombatWithZone();
+                AttackStart(epoch);
             }
         }
         // Remount if was previously mounted
@@ -778,13 +778,13 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
             case 35:
             {
                 m_pInstance->SetData(TYPE_SKARLOC, IN_PROGRESS);
-                Creature* pSkarloc = m_creature->SummonCreature(NPC_SKARLOC, 2000.201f, 277.9190f, 66.4911f, 6.11f, TEMPSPAWN_DEAD_DESPAWN, 0);
+                Creature* skarloc = m_creature->SummonCreature(NPC_SKARLOC, 2000.201f, 277.9190f, 66.4911f, 6.11f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 m_creature->SummonCreature(NPC_VETERAN, 1997.969f, 274.4247f, 66.6181f, 5.67f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 m_creature->SummonCreature(NPC_WARDEN, 2000.002f, 282.0754f, 66.2986f, 6.02f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 DoBroadcastText(SAY_TH_SKARLOC_MEET, m_creature);
                 SetEscortPaused(true);
-                if (pSkarloc)
-                    m_creature->SetFacingToObject(pSkarloc);
+                if (skarloc)
+                    m_creature->SetFacingToObject(skarloc);
                 break;
             }
             case 37:

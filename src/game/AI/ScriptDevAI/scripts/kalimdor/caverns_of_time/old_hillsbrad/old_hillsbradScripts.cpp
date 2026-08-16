@@ -252,6 +252,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
 
     uint8 m_uiEpochWaveId;
 
+    uint32 m_epochAttackTimer;
     uint32 m_uiStrikeTimer;
     uint32 m_uiShieldBlockTimer;
 

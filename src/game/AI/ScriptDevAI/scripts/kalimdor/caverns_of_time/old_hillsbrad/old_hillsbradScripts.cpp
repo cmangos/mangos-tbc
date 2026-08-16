@@ -434,7 +434,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                 }
             }
         }
-        else if (m_pInstance && m_uiEpochWaveId == 3 && m_bEpochAttackTimer <= 0)
+        else if (m_pInstance && m_uiEpochWaveId == 3 && m_epochAttackTimer <= 0)
         {
             if (Creature* epoch = m_pInstance->GetSingleCreatureFromStorage(NPC_EPOCH))
             {
@@ -973,7 +973,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
     {
         UpdateEscortAI(uiDiff);
         if (m_pInstance && m_uiEpochWaveId == 3)
-            m_bEpochAttackTimer -= uiDiff;
+            m_epochAttackTimer -= uiDiff;
     }
 
     void UpdateEscortAI(const uint32 uiDiff) override

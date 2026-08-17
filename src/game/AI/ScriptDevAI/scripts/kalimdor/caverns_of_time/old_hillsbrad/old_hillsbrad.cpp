@@ -99,7 +99,6 @@ void instance_old_hillsbrad::OnCreatureEnterCombat(Creature* pCreature)
     {
         case NPC_DRAKE:
             SetData(TYPE_DRAKE, IN_PROGRESS);
-            DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
             break;
         case NPC_SKARLOC: SetData(TYPE_SKARLOC, IN_PROGRESS); break;
         case NPC_EPOCH:   SetData(TYPE_EPOCH, IN_PROGRESS);   break;
@@ -183,6 +182,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 if (m_uiBarrelCount == MAX_BARRELS)
                 {
                     UpdateLodgeQuestCredit();
+                    DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
 
                     if (Player* pPlayer = GetPlayerInMap())
                     {

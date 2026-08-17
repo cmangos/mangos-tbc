@@ -524,7 +524,7 @@ bool WaypointManager::AddExternalNode(uint32 entry, int32 pathId, uint32 pointId
         return false;
     }
 
-    m_externalPathTemplateMap[(entry << 8) + pathId][pointId] = WaypointNode(x, y, z, o, waittime, scriptId);
+    m_externalPathTemplateMap[(entry << 8) + pathId][pointId] = WaypointNode(x, y, z, o == 100.f ? std::nullopt : std::make_optional(o), waittime, scriptId);
     return true;
 }
 

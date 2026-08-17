@@ -55,6 +55,8 @@ enum
     NPC_BARTOLO                     = 20365,
     NPC_BEGGAR                      = 20432,
     NPC_COMMANDER_MOGRAINE          = 20345,
+
+    THRALL_PATH_ID                  = 5600435
 };
 
 static const float afInstanceLoc[][4] =

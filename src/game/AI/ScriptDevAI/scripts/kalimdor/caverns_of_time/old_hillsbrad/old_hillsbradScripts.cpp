@@ -1297,7 +1297,7 @@ struct npc_tarethaAI : public npc_escortAI, private DialogueHelper
                 m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
                 m_creature->SetStandState(UNIT_STAND_STATE_STAND);
 
-                Start(true, nullptr, nullptr, false, false, THRALL_PATH_ID);
+                Start(true);
                 m_bHasStartedEpilogue = true;
             }
         }

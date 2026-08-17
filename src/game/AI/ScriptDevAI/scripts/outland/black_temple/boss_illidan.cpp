@@ -157,7 +157,7 @@ enum
     SPELL_INSTANT_BLADE_BIRTH       = 40031,                // Makes the blades appear instantly with no fade in
 
     // Blade of Azzinoth
-    SPELL_RANGE_MARKER              = 41997,                // Dummy effect used by the Blade of Azzinoth to check the range of the Azzinoth flame - needs core support
+    SPELL_RANGE_MARKER              = 41997,                // Dummy effect cast by blade trigger - used for charge by flame of azzinoth
     SPELL_SUMMON_TEAR_AZZINOTH      = 39855,                // Summons 22997
     SPELL_AZZINOTH_CHANNEL          = 39857,                // Glaives cast it on Flames
 
@@ -520,6 +520,16 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
         if (m_instance)
             m_instance->SetData(TYPE_ILLIDAN, IN_PROGRESS);
         m_creature->PlayMusic(SOUND_KIT_ILLIDAN_AGGRO);
+
+        if (!m_instance)
+            return;
+
+        GuidVector glaiveTargets;
+        m_instance->GetGlaiveTargetGuidVector(glaiveTargets);
+        for (ObjectGuid glaiveGuid : glaiveTargets)
+            if (Creature* creature = m_creature->GetMap()->GetCreature(glaiveGuid))
+                if (!creature->HasAura(SPELL_RANGE_MARKER))
+                    creature->CastSpell(nullptr, SPELL_RANGE_MARKER, TRIGGERED_OLD_TRIGGERED);
     }
 
     void JustReachedHome() override
@@ -764,7 +774,6 @@ struct boss_illidan_stormrageAI : public CombatAI, private DialogueHelper
                 break;
             case NPC_BLADE_OF_AZZINOTH:
                 summoned->CastSpell(nullptr, SPELL_INSTANT_BLADE_BIRTH, TRIGGERED_NONE);
-                summoned->CastSpell(nullptr, SPELL_RANGE_MARKER, TRIGGERED_OLD_TRIGGERED);
                 summoned->CastSpell(nullptr, SPELL_SUMMON_TEAR_AZZINOTH, TRIGGERED_OLD_TRIGGERED);
                 m_bladesGuidList.push_back(summoned->GetObjectGuid());
                 break;
@@ -1993,8 +2002,8 @@ struct npc_flame_of_azzinothAI : public CombatAI
     npc_flame_of_azzinothAI(Creature* creature) : CombatAI(creature, FLAME_ACTION_MAX), m_instance(static_cast<instance_black_temple*>(creature->GetInstanceData()))
     {
         AddCombatAction(FLAME_ACTION_WRATH_CHECK, 3000u);
-        AddCombatAction(FLAME_ACTION_FLAME_BLAST, 10000u);
-        AddCombatAction(FLAME_ACTION_SUMMON_BLAZE, true);
+        AddCombatAction(FLAME_ACTION_FLAME_BLAST, 9500u, 10000u);
+        AddCombatAction(FLAME_ACTION_SUMMON_BLAZE, 9500u, 10000u);
         AddCombatAction(FLAME_ACTION_CHARGE, 10000u);
         AddCustomAction(FLAME_ACTION_ATTACK, 2000u, [&]()
         {
@@ -2015,31 +2024,6 @@ struct npc_flame_of_azzinothAI : public CombatAI
         }
     }
 
-    Unit* DoPickChargeTarget()
-    {
-        ThreatList const& threatlist = m_creature->getThreatManager().getThreatList();
-        if (threatlist.empty())
-            return nullptr;
-
-        GuidVector blades;
-        m_instance->GetCreatureGuidVectorFromStorage(NPC_BLADE_OF_AZZINOTH, blades);
-        if (blades.size() < 2) // safeguard
-            return nullptr;
-        Unit* first = m_creature->GetMap()->GetCreature(blades[0]);
-        Unit* second = m_creature->GetMap()->GetCreature(blades[1]);
-        for (ThreatList::const_iterator itr = threatlist.begin(); itr != threatlist.end(); ++itr)
-        {
-            if (Unit* target = m_creature->GetMap()->GetUnit((*itr)->getUnitGuid()))
-            {
-                float x, y, z;
-                target->GetPosition(x, y, z);
-                if ((!first || first->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) > 30.f) && (!second || second->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) > 30.f))
-                    return target;
-            }
-        }
-        return nullptr;
-    }
-
     void Enrage()
     {
         if (DoCastSpellIfCan(nullptr, SPELL_UNCAGED_WRATH, CAST_TRIGGERED) == CAST_OK)
@@ -2056,24 +2040,13 @@ struct npc_flame_of_azzinothAI : public CombatAI
         {
             case FLAME_ACTION_WRATH_CHECK:
             {
-                /* - aura based version for when stuff works properly
-                if (!m_creature->HasAura(SPELL_RANGE_MARKER))
-                {
-                    if (DoCastSpellIfCan(nullptr, SPELL_UNCAGED_WRATH, CAST_TRIGGERED) == CAST_OK)
-                    {
-                        DisableCombatAction(FLAME_ACTION_WRATH_CHECK);
-                        if (Unit* spawner = m_creature->GetSpawner())
-                            spawner->InterruptSpell(CURRENT_CHANNELED_SPELL); // interrupts link
-                    }
-                }
-                */
                 // distance based version
                 if (Unit* spawner = m_creature->GetSpawner())
                 {
                     float x, y, z;
                     m_creature->GetPosition(x, y, z);
-                    if (spawner->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) > 30.f)                    
-                        Enrage();                   
+                    if (spawner->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) > 30.f)
+                        Enrage();
                 }
                 else ResetCombatAction(action, 1000);
                 return;
@@ -2081,22 +2054,19 @@ struct npc_flame_of_azzinothAI : public CombatAI
             case FLAME_ACTION_FLAME_BLAST:
             {
                 if (DoCastSpellIfCan(nullptr, SPELL_FLAME_BLAST) == CAST_OK)
-                {
-                    ResetCombatAction(action, 10000);
-                    ResetCombatAction(FLAME_ACTION_SUMMON_BLAZE, 1000);
-                }
+                    ResetCombatAction(action, urand(9500, 10000));
                 return;
             }
             case FLAME_ACTION_SUMMON_BLAZE:
             {
                 if (Unit* target = m_creature->GetVictim())
                     if (target->CastSpell(nullptr, SPELL_BLAZE, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, m_creature->GetObjectGuid()) == SPELL_CAST_OK)
-                        DisableCombatAction(FLAME_ACTION_SUMMON_BLAZE);
+                        ResetCombatAction(action, urand(9500, 10000));
                 return;
             }
             case FLAME_ACTION_CHARGE:
             {
-                if (Unit* target = DoPickChargeTarget())
+                if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 0, nullptr, 0, SelectAttackingTargetParams(), 989)) // unit condition for not has aura
                     if (DoCastSpellIfCan(target, SPELL_CHARGE) == CAST_OK)
                         ResetCombatAction(action, 5000);
                 return;

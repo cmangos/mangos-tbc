@@ -2045,7 +2045,7 @@ struct npc_flame_of_azzinothAI : public CombatAI
                 {
                     float x, y, z;
                     m_creature->GetPosition(x, y, z);
-                    if (spawner->GetDistance(x, y, z, DIST_CALC_COMBAT_REACH) > 30.f)
+                    if (spawner->GetDistance(x, y, z, DIST_CALC_NONE) > (30.f * 30.f))
                         Enrage();
                 }
                 else ResetCombatAction(action, 1000);

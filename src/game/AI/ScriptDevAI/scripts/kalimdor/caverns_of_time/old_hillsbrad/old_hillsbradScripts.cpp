@@ -297,6 +297,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
             m_creature->Unmount();
             m_bHadMount = true;
         }
+        npc_escortAI::EnterCombat(enemy);
     }
 
     void Aggro(Unit* /*pWho*/) override

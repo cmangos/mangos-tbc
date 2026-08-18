@@ -2223,10 +2223,10 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
                             borak->setFaction(FACTION_ORONOK_COMBAT);
                         if (Creature* gromtor = GetSpeakerByEntry(NPC_GROMTOR_SON_OF_ORONOK))
                             gromtor->setFaction(FACTION_ORONOK_COMBAT);
-                        if (Creature* pCyrukh = GetSpeakerByEntry(NPC_CYRUKH_THE_FIRELORD))
+                        if (Creature* cyrukh = GetSpeakerByEntry(NPC_CYRUKH_THE_FIRELORD))
                         {
-                            pCyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
-                            pCyrukh->AI()->AttackStart(m_creature);
+                            cyrukh->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_PLAYER);
+                            cyrukh->AI()->AttackStart(m_creature);
                             m_bHasAttackStart = true;
                         }
                     }

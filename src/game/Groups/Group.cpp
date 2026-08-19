@@ -359,7 +359,7 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
                         if (newData.HasData())
                         {
-                            WorldPacket newDataPacket = newData.BuildPacket(0, false);
+                            WorldPacket newDataPacket = newData.BuildPacket(0);
                             member->SendDirectMessage(newDataPacket);
                         }
                     }
@@ -369,7 +369,7 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
         if (groupData.HasData())
         {
-            WorldPacket groupDataPacket = groupData.BuildPacket(0, false);
+            WorldPacket groupDataPacket = groupData.BuildPacket(0);
             player->SendDirectMessage(groupDataPacket);
         }
     }

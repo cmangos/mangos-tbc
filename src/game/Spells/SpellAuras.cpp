@@ -51,6 +51,7 @@
 #include "Maps/InstanceData.h"
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 #include "Spells/SpellStacking.h"
+#include "SpellAuras.h"
 
 #define NULL_AURA_SLOT 0xFF
 
@@ -3706,7 +3707,7 @@ void Aura::HandleModPossess(bool apply, bool Real)
             target->BuildValuesUpdateBlockForPlayerWithFlags(newData, playerCaster, UF_FLAG_OWNER_ONLY);
             if (newData.HasData())
             {
-                WorldPacket newDataPacket = newData.BuildPacket(0, false);
+                WorldPacket newDataPacket = newData.BuildPacket(0);
                 playerCaster->SendDirectMessage(newDataPacket);
             }
         }
@@ -3827,7 +3828,7 @@ void Aura::HandleModCharm(bool apply, bool Real)
 
                 if (newData.HasData())
                 {
-                    WorldPacket newDataPacket = newData.BuildPacket(0, false);
+                    WorldPacket newDataPacket = newData.BuildPacket(0);
                     playerCaster->SendDirectMessage(newDataPacket);
                 }
             }
@@ -4243,13 +4244,15 @@ void Aura::HandleInvisibilityDetect(bool apply, bool Real)
         for (auto aura : auras)
             target->GetVisibilityData().SetInvisibilityDetectMask(aura->GetModifier()->m_miscvalue, true);
     }
+
     if (GetId() == 44855) // hack for nonexistant phasing system in tbc core
     {
         GetTarget()->SetPhaseMask(apply ? 2u : 1u);
         HandleInvisibility(apply, Real);
     }
-    if (Real && target->GetTypeId() == TYPEID_PLAYER)
-        ((Player*)target)->GetCamera().UpdateVisibilityForOwner();
+
+    if (Real && target->IsClientControlled())
+        target->GetMap()->AddUpdateCreateObject(const_cast<Player*>(target->GetClientControlling()));
 }
 
 void Aura::HandleDetectAmore(bool apply, bool /*real*/)
@@ -8432,6 +8435,15 @@ bool SpellAuraHolder::IsDispellableByMask(uint32 dispelMask, Unit const* caster,
     return false;
 }
 
+bool SpellAuraHolder::HasPeriodicAura() const
+{
+    for (Aura* aura : m_auras)
+        if (aura && aura->IsPeriodic())
+            return true;
+
+    return false;
+}
+
 bool SpellAuraHolder::IsPersistent() const
 {
     for (auto aur : m_auras)
@@ -8656,7 +8668,7 @@ void SpellAuraHolder::SendAuraDuration()
     static_cast<Player*>(m_target)->SendDirectMessage(data);
 }
 
-void SpellAuraHolder::SendAuraDurationToCaster(Player* caster, uint32 slot)
+WorldPacket SpellAuraHolder::BuildAuraDurationToCaster(uint32 slot)
 {
     WorldPacket data(SMSG_SET_EXTRA_AURA_INFO, (8 + 1 + 4 + 4 + 4));
     data << m_target->GetPackGUID();
@@ -8664,6 +8676,12 @@ void SpellAuraHolder::SendAuraDurationToCaster(Player* caster, uint32 slot)
     data << uint32(GetId());
     data << int32(GetAuraMaxDuration());
     data << uint32(GetAuraMaxDuration() == -1 ? 0 : GetAuraDuration());
+    return data;
+}
+
+void SpellAuraHolder::SendAuraDurationToCaster(Player* caster, uint32 slot)
+{
+    WorldPacket data = BuildAuraDurationToCaster(slot);
 
     caster->SendDirectMessage(data);
 }

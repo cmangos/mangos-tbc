@@ -3691,6 +3691,11 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
 
     PSendSysMessage(LANG_NPCINFO_LEVEL, target->GetLevel());
     PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
+    PSendSysMessage("DamageMultiplier: %.2f", target->GetCreatureInfo()->DamageMultiplier);
+    PSendSysMessage("DamageVariance: %.2f", target->GetCreatureInfo()->DamageVariance);
+    PSendSysMessage("MinDMG: %.2f", target->GetFloatValue(UNIT_FIELD_MINDAMAGE));
+    PSendSysMessage("MaxDMG: %.2f", target->GetFloatValue(UNIT_FIELD_MAXDAMAGE));
+
     PSendSysMessage(LANG_NPCINFO_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS), target->GetUInt32Value(UNIT_DYNAMIC_FLAGS), target->GetCreatureInfo()->ExtraFlags);
     PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());
     PSendSysMessage("Corpse decay remaining time: %s", curCorpseDecayStr.c_str());
@@ -3713,6 +3718,7 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
     PSendSysMessage("Spell Lists %s ID %u", spellList.Disabled ? "disabled" : "enabled", spellList.Id);
 
     PSendSysMessage("Combat Timer: %u Leashing disabled: %s", target->GetCombatManager().GetCombatTimer(), target->GetCombatManager().IsLeashingDisabled() ? "true" : "false");
+    PSendSysMessage("Accumulated diff: %u NextUpdateTime: %u", target->GetAccumulatedUpdateDiff(), target->GetNextUpdateTime());
 
     PSendSysMessage("Combat Script: %s", target->AI()->GetCombatScriptStatus() ? "true" : "false");
     PSendSysMessage("Movementflags: %u", target->m_movementInfo.moveFlags);

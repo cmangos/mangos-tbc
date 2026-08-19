@@ -587,13 +587,14 @@ void WorldSession::HandleSellItemOpcode(WorldPacket& recv_data)
         _player->InterruptNonMeleeSpells(false);
         pItem->SetCount(pItem->GetCount() - count);
         _player->ItemRemovedQuestCheck(pItem->GetEntry(), count);
+        UpdateData data;
         if (_player->IsInWorld())
-            pItem->SendCreateUpdateToPlayer(_player);
+            _player->GetMap()->AddUpdateObject(pItem);
         pItem->SetState(ITEM_CHANGED, _player);
 
         _player->AddItemToBuyBackSlot(pNewItem, money);
         if (_player->IsInWorld())
-            pNewItem->SendCreateUpdateToPlayer(_player);
+            _player->GetMap()->AddUpdateCreateObject(pNewItem);
     }
     else
     {

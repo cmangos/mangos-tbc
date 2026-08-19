@@ -274,11 +274,6 @@ void instance_sunwell_plateau::OnObjectCreate(GameObject* go)
 {
     switch (go->GetEntry())
     {
-        case GO_FORCEFIELD:
-        case GO_BOSS_COLLISION_1:
-        case GO_BOSS_COLLISION_2:
-        case GO_ICE_BARRIER:
-            break;
         case GO_FIRE_BARRIER:
             if (m_auiEncounter[TYPE_FELMYST] == DONE)
                 go->SetGoState(GO_STATE_ACTIVE);

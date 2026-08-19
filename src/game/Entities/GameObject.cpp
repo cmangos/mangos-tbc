@@ -302,6 +302,12 @@ bool GameObject::Create(uint32 dbGuid, uint32 guidlow, uint32 name_id, Map* map,
     if (GetGOInfo()->IsLargeGameObject() && GetVisibilityData().GetVisibilityDistance() < VISIBILITY_DISTANCE_LARGE)
         GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Large);
 
+    if (GetGOInfo()->IsGiganticGameObject() && GetVisibilityData().GetVisibilityDistance() < VISIBILITY_DISTANCE_GIGANTIC)
+        GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Gigantic);
+
+    if (GetGOInfo()->IsInfiniteGameObject() && GetVisibilityData().GetVisibilityDistance() < MAX_VISIBILITY_DISTANCE)
+        GetVisibilityData().SetVisibilityDistanceOverride(VisibilityDistanceType::Infinite);
+
     if (GetEntry() == 187039) // Smuggled Mana Cell - only GO in phase in TBC
         SetPhaseMask(2);
 
@@ -726,7 +732,18 @@ void GameObject::Update(const uint32 diff)
 
             // can be not in world at pool despawn
             if (IsInWorld())
-                UpdateObjectVisibility();
+            {
+                if (!IsUsingNewSpawningSystem()) // schedule out of range
+                {
+                    auto& clientGuids = GetClientGuidsIAmAt();
+                    for (auto& clientGuid : clientGuids)
+                        if (Player* client = GetMap()->GetPlayer(clientGuid))
+                            client->RemoveAtClient(this, true);
+                    GetMap()->AddUpdateRemoveObject(GetClientGuidsIAmAt(), GetObjectGuid());
+                    clientGuids.clear();
+                    GetClientGuidsIAmAt().clear();
+                }
+            }
 
             m_forcedDespawn = false;
 
@@ -1090,9 +1107,9 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
     if (!IsInWorld() || !u->IsInWorld())
         return false;
 
-    // Transport always visible at this step implementation
-    if (IsMoTransport() && IsInMap(u))
-        return true;
+    // invisible at client always
+    if (!GetGOInfo()->displayId)
+        return false;
 
     // quick check visibility false cases for non-GM-mode
     if (!u->IsGameMaster())
@@ -1159,6 +1176,9 @@ bool GameObject::isVisibleForInState(Player const* u, WorldObject const* viewPoi
             }
         }
     }
+
+    if (GetVisibilityData().IsInfiniteVisibility() && InSamePhase(viewPoint))
+        return true;
 
     // check distance
     return IsWithinDistInMap(viewPoint, GetVisibilityData().GetVisibilityDistance(), false);
@@ -1422,7 +1442,7 @@ bool GameObject::CanUseNow(Player const* player) const
                 return false;
 
             WorldObject const* owner = GetOwner();
-            if (owner->IsPlayer())
+            if (owner && owner->IsPlayer())
             {
                 Player const* ownerPlayer = static_cast<Player const*>(owner);
                 if (!player->IsInGroup(ownerPlayer, false))
@@ -2774,6 +2794,23 @@ void GameObject::ClearGameObjectGroup()
     if (m_goGroup)
         m_goGroup->RemoveObject(this);
     m_goGroup = nullptr;
+}
+
+void GameObject::UpdateNextUpdateTime()
+{
+    // If we already have next update time don't reset it (movement mutation should do it)
+    if (m_nextUpdateTime)
+        return;
+
+    if (!m_events.IsEmpty() || m_AI)
+        SetNextUpdateTime(1);
+    else if (GetGOInfo()->IsSlowUpdateObject())
+        SetNextUpdateTime(urand(500, 1000));
+}
+
+uint32 GameObject::ShouldPerformObjectUpdate(uint32 const diff)
+{
+    return WorldObject::ShouldPerformObjectUpdate(diff);
 }
 
 QuaternionData GameObject::GetWorldRotation() const

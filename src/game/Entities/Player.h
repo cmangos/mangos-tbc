@@ -1694,7 +1694,7 @@ class Player : public Unit
         WorldSession* GetSession() const { return m_session; }
         void SetSession(WorldSession* s) { m_session = s; }
 
-        void BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) const override;
+        void BuildCreateUpdateBlockForPlayer(UpdateData& data, Player* target) const override;
         void DestroyForPlayer(Player* target) const override;
         void SendLogXPGain(uint32 GivenXP, Unit* victim, uint32 RestXP, bool recruitAFriend, float groupRate) const;
 
@@ -1908,6 +1908,8 @@ class Player : public Unit
         void SendAuraDurationsOnLogin(); // sends own durations
         void SendExtraAuraDurationsOnLogin(bool visible); // sends init and non visible slot auras
 
+        static std::vector<WorldPacket> BuildAurasForTarget(Player const& caster, Unit const& target);
+
         PlayerMenu* GetPlayerMenu() const { return m_playerMenu.get(); }
 
         ItemSetEffect* GetItemSetEffect(uint32 setId);
@@ -2111,13 +2113,14 @@ class Player : public Unit
         // currently visible objects at player client
         bool HasAtClient(WorldObject const* u) { return u == this || m_clientGUIDs.find(u->GetObjectGuid()) != m_clientGUIDs.end(); }
         void AddAtClient(WorldObject* target);
-        void RemoveAtClient(WorldObject* target);
+        void RemoveAtClient(WorldObject* target, bool skipRemovalOfAt = false);
+        void DestroyAtClient(WorldObject* target, bool skipRemovalOfAt = false);
         GuidSet& GetClientGuids() { return m_clientGUIDs; }
 
         bool IsVisibleInGridForPlayer(Player* pl) const override;
         bool IsVisibleGloballyFor(Player* u) const;
 
-        void UpdateVisibilityOf(WorldObject const* viewPoint, WorldObject* target);
+        void UpdateVisibilityOf(WorldObject const* viewPoint, WorldObject* target, UpdateData& updateData);
 
         template<class T>
         void UpdateVisibilityOf(WorldObject const* viewPoint, T* target, UpdateData& data, WorldObjectSet& visibleNow);
@@ -2130,6 +2133,8 @@ class Player : public Unit
         void HandleStealthedUnitsDetection();
 
         Camera& GetCamera() { return m_camera; }
+
+        void SetPhaseMask(uint32 newPhaseMask) override; // overwrite Unit::SetPhaseMask
 
         uint8 m_forced_speed_changes[MAX_MOVE_TYPE];
 
@@ -2296,6 +2301,9 @@ class Player : public Unit
 
         std::pair<uint32, bool> GetLastData() { return std::make_pair(m_lastDbGuid, m_lastGameObject); }
         void SetLastData(uint32 dbGuid, bool gameobject) { m_lastDbGuid = dbGuid; m_lastGameObject = gameobject; }
+
+        bool IsPendingPhaseChange() const { return m_pendingPhaseChange; }
+        void RemovePendingPhaseChange() { m_pendingPhaseChange = false; }
 
         int32 GetHighestAmmoMod() const { return m_highestAmmoMod; }
         void SetHighestAmmoMod(int32 amount) { m_highestAmmoMod = amount; }
@@ -2598,8 +2606,6 @@ class Player : public Unit
         bool m_needsZoneUpdate;
         uint32 m_newZone;
 
-        uint32 m_DetectInvTimer;
-
         // Temporary removed pet cache
         uint32 m_temporaryUnsummonedPetNumber;
         uint32 m_BGPetSpell;
@@ -2635,6 +2641,8 @@ class Player : public Unit
         std::map<uint32, ItemSetEffect> m_itemSetEffects;
 
         uint32 m_lastDbGuid; bool m_lastGameObject;
+
+        bool m_pendingPhaseChange;
 };
 
 void AddItemsSetItem(Player* player, Item* item);

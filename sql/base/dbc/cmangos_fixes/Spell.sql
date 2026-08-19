@@ -2384,6 +2384,7 @@ UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00
 12898, -- Smoke Aura Visual
 13483, -- Wither Touch
 13879, -- Magma Splash
+15167, -- Windsor's Frenzy
 16331, -- Incorporeal Defense
 16577, -- Disease Cloud
 16592, -- Shadowform
@@ -2611,6 +2612,7 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 
 -- doesnt stack multiple times
 UPDATE spell_template SET AttributesEx=AttributesEx|0x00000800 WHERE Id IN(15971); -- Demoralizing Roar
+UPDATE spell_template SET AttributesEx=AttributesEx|0x00000800 WHERE Id IN(12579); -- Winter's Chill
 
 -- frostsaber cub enrage
 INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attributes, AttributesEx, AttributesEx2, AttributesEx3, AttributesEx4, AttributesEx5, Stances, StancesNot, Targets, TargetCreatureType, RequiresSpellFocus, CasterAuraState, TargetAuraState, CasterAuraStateNot, TargetAuraStateNot, CastingTimeIndex, RecoveryTime, CategoryRecoveryTime, InterruptFlags, AuraInterruptFlags, ChannelInterruptFlags, procFlags, procChance, procCharges, maxLevel, baseLevel, spellLevel, DurationIndex, powerType, manaCost, manaCostPerLevel, manaPerSecond, manaPerSecondPerLevel, rangeIndex, speed, StackAmount, Totem1, Totem2, Reagent1, Reagent2, Reagent3, Reagent4, Reagent5, Reagent6, Reagent7, Reagent8, ReagentCount1, ReagentCount2, ReagentCount3, ReagentCount4, ReagentCount5, ReagentCount6, ReagentCount7, ReagentCount8, EquippedItemClass, EquippedItemSubClassMask, EquippedItemInventoryTypeMask, Effect1, Effect2, Effect3, EffectDieSides1, EffectDieSides2, EffectDieSides3, EffectBaseDice1, EffectBaseDice2, EffectBaseDice3, EffectDicePerLevel1, EffectDicePerLevel2, EffectDicePerLevel3, EffectRealPointsPerLevel1, EffectRealPointsPerLevel2, EffectRealPointsPerLevel3, EffectBasePoints1, EffectBasePoints2, EffectBasePoints3, EffectMechanic1, EffectMechanic2, EffectMechanic3, EffectImplicitTargetA1, EffectImplicitTargetA2, EffectImplicitTargetA3, EffectImplicitTargetB1, EffectImplicitTargetB2, EffectImplicitTargetB3, EffectRadiusIndex1, EffectRadiusIndex2, EffectRadiusIndex3, EffectApplyAuraName1, EffectApplyAuraName2, EffectApplyAuraName3, EffectAmplitude1, EffectAmplitude2, EffectAmplitude3, EffectMultipleValue1, EffectMultipleValue2, EffectMultipleValue3, EffectChainTarget1, EffectChainTarget2, EffectChainTarget3, EffectItemType1, EffectItemType2, EffectItemType3, EffectMiscValue1, EffectMiscValue2, EffectMiscValue3, EffectMiscValueB1, EffectMiscValueB2, EffectMiscValueB3, EffectTriggerSpell1, EffectTriggerSpell2, EffectTriggerSpell3, EffectPointsPerComboPoint1, EffectPointsPerComboPoint2, EffectPointsPerComboPoint3, SpellVisual, SpellIconID, activeIconID, spellPriority, SpellName, SpellName2, SpellName3, SpellName4, SpellName5, SpellName6, SpellName7, SpellName8, ManaCostPercentage, StartRecoveryCategory, StartRecoveryTime, MaxTargetLevel, SpellFamilyName, SpellFamilyFlags, MaxAffectedTargets, DmgClass, PreventionType, DmgMultiplier1, DmgMultiplier2, DmgMultiplier3, TotemCategory1, TotemCategory2, AreaId) VALUES
@@ -3019,6 +3021,7 @@ UPDATE spell_template SET StartRecoveryTime=2500 WHERE Id IN(45664);
 -- ====================================================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
 31304, -- Immolation
+32912, -- Windfury
 36630, -- Resistances (c.22000)
 37248, -- Power Converters: Electromental Visual
 43119, -- Cyclone Visual

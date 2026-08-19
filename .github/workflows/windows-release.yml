@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           path: ${{env.REPO_DIR}}
 
@@ -117,7 +117,7 @@ jobs:
 
       - name: Get Current Date
         id: date
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        run: echo "date=$(date +'%Y-%m-%d')" >> $env:GITHUB_OUTPUT
 
       - name: Upload Snapshot
         uses: softprops/action-gh-release@v3
@@ -151,7 +151,7 @@ jobs:
           echo "PB_AB_ARCH_NAME=${projectNames}-with-playerbot-ahbot-${shortSHA}.zip" >> $GITHUB_ENV
 
       - name: Notify
-        uses: rjstone/discord-webhook-notify@v2.2.1
+        uses: rjstone/discord-webhook-notify@v2.3.0
         with:
           severity: info
           description: |
@@ -186,7 +186,7 @@ jobs:
           echo "GIT_SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
 
       - name: Notify
-        uses: rjstone/discord-webhook-notify@v2.2.1
+        uses: rjstone/discord-webhook-notify@v2.3.0
         with:
           severity: error
           description: |

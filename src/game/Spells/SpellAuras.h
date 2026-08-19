@@ -194,12 +194,15 @@ class SpellAuraHolder
         void LoginAuraDuration();
         void ForceUpdateAuraDuration();
         void SendAuraDuration();
+        WorldPacket BuildAuraDurationToCaster(uint32 slot = MAX_AURAS);
         void SendAuraDurationToCaster(Player* caster, uint32 slot = MAX_AURAS);
         void SendAuraDurationToCasterNeedUpdate(Player* caster);
 
         void SetAura(uint32 slot, bool remove) { m_target->SetUInt32Value(UNIT_FIELD_AURA + slot, remove ? 0 : GetId()); }
         void SetAuraFlag(uint32 slot, bool add);
         void SetAuraLevel(uint32 slot, uint32 level);
+
+        bool HasPeriodicAura() const;
 
         void SetCreationDelayFlag();
 

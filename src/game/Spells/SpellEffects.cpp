@@ -56,6 +56,7 @@
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 #include "Maps/InstanceData.h"
 #include "Entities/Transports.h"
+#include "AI/EventAI/CreatureEventAI.h"
 
 pEffect SpellEffects[MAX_SPELL_EFFECTS] =
 {
@@ -1667,6 +1668,37 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(nullptr, 32614, TRIGGERED_OLD_TRIGGERED);
                     ((Creature*)unitTarget)->ForcedDespawn(1000);
                     return;
+                }
+                case 33133:                                 // Transform
+                {
+                    if (!unitTarget || !unitTarget->IsCreature())
+                        return;
+                    Creature* oldCreature = (Creature*)unitTarget;
+                    uint32 transformEntry = 0;
+                    // update entry based on current entry
+                    switch (oldCreature->GetEntry())
+                    {
+                        case 18092:
+                            transformEntry = 18170;
+                            break;
+                        case 18093:
+                            transformEntry = 18172;
+                            break;
+                        case 18094:
+                            transformEntry = 18171;
+                            break;
+                        default:
+                            return;
+                            break;
+                    }
+                    oldCreature->UpdateEntry(transformEntry);
+                    // reset EventAI if new entry
+                    if (oldCreature->GetAIName() == "EventAI")
+                    {
+                        CreatureEventAI* eventAI = static_cast<CreatureEventAI*>(oldCreature->AI());
+                        if (eventAI)
+                            eventAI->InitAI();
+                    }
                 }
                 case 33060:                                 // Make a Wish
                 {

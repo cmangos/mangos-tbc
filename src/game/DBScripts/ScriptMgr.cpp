@@ -35,7 +35,6 @@
 #include "Maps/InstanceData.h"
 #include "Entities/Object.h"
 #include "Entities/Transports.h"
-#include "AI/EventAI/CreatureEventAI.h"
 
 #include <string_view>
 
@@ -2941,16 +2940,7 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
             Creature* pCSource = static_cast<Creature*>(pSource);
 
             if (pCSource->GetEntry() != m_script->updateTemplate.newTemplate)
-            {
                 pCSource->UpdateEntry(m_script->updateTemplate.newTemplate);
-                // reset EventAI if new entry
-                if (pCSource->GetAIName() == "EventAI")
-                {
-                    CreatureEventAI* eventAI = static_cast<CreatureEventAI*>(pCSource->AI());
-                    if (eventAI)
-                        eventAI->InitAI();
-                }
-            }  
             else
                 sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. Source already has specified creature entry.", m_table, m_script->id, m_script->command);
             break;

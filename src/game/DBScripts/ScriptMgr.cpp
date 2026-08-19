@@ -2944,10 +2944,13 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
             {
                 pCSource->UpdateEntry(m_script->updateTemplate.newTemplate);
                 // reset EventAI if new entry
-                if (auto* eventAI = dynamic_cast<CreatureEventAI*>(pCSource->AI()))
-                    eventAI->InitAI();
-            }
-                
+                if (pCSource->GetAIName() == "EventAI")
+                {
+                    CreatureEventAI* eventAI = static_cast<CreatureEventAI*>(pCSource->AI());
+                    if (eventAI)
+                        eventAI->InitAI();
+                }
+            }  
             else
                 sLog.outErrorDb(" DB-SCRIPTS: Process table `%s` id %u, command %u failed. Source already has specified creature entry.", m_table, m_script->id, m_script->command);
             break;

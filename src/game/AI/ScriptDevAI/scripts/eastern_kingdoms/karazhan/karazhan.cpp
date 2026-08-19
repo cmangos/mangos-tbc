@@ -241,6 +241,12 @@ void instance_karazhan::SetData(uint32 uiType, uint32 uiData)
                     if (!pMidnight->IsAlive())
                         pMidnight->Respawn();
                 }
+                else // In P3 Midnight doesnt exist anymore so we have to spawn a new npc
+                {
+                    SpawnGroup* spawnGroup = instance->GetSpawnManager().GetSpawnGroup("KARAZHAN_MIDNIGHT");
+                    if (spawnGroup)
+                        spawnGroup->Spawn(true, true);
+                }
             }
             break;
         case TYPE_MOROES:

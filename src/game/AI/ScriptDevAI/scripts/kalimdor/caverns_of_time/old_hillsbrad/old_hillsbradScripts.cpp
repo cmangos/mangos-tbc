@@ -918,7 +918,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
             case 113:
                 m_creature->SummonCreature(NPC_EPOCH, 2639.9202f, 700.25867f, 65.13583f, 4.74729f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 StartNextDialogueText(NPC_EPOCH);
-                SetEscortPaused(false);
+                SetEscortPaused(true);
                 break;
             // *** Escort event - Part IV - Epoch - begin fight ***
             case 121:
@@ -946,7 +946,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
             // *** Escort event - Epilogue - run off ***
             case 123:
                 // return to position
-                SetEscortPaused(false);
+                SetEscortPaused(true);
                 break;
             case 125:
                 m_creature->SetActiveObjectState(false);

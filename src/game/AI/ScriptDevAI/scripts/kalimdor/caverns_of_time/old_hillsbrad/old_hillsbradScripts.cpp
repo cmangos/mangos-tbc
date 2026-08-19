@@ -646,6 +646,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                         // taunt Thrall
                         DoBroadcastText(SAY_SKARLOC_ENTER, pSummoned);
                         SetEscortPaused(false);
+                        m_creature->SetFacingToObject(pSummoned);
                         break;
                 }
                 break;

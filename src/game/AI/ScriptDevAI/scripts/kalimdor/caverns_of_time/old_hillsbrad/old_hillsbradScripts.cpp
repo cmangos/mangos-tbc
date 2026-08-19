@@ -787,8 +787,6 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                 m_creature->SummonCreature(NPC_WARDEN, 2000.002f, 282.0754f, 66.2986f, 6.02f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 DoBroadcastText(SAY_TH_SKARLOC_MEET, m_creature);
                 SetEscortPaused(true);
-                if (skarloc)
-                    m_creature->SetFacingToObject(skarloc);
                 break;
             }
             case 36:

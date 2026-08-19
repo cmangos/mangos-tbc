@@ -602,6 +602,10 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                             m_creature->SummonCreature(NPC_INFINITE_SLAYER,   2639.641f, 710.5246f, 56.23582f, 4.60f, TEMPSPAWN_DEAD_DESPAWN, 0);
                             ++m_uiEpochWaveId;
                             break;
+                        case 3:
+                            // Last wave before Epoch Hunter died, prepare to activate boss
+                            ++m_uiEpochWaveId;
+                            break;
                     }
                 }
                 break;
@@ -978,7 +982,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
     {
         DialogueUpdate(uiDiff);
         UpdateEscortAI(uiDiff);
-        if (m_pInstance && m_uiEpochWaveId == 3)
+        if (m_pInstance && m_uiEpochWaveId == 4)
         {
             m_epochAttackTimer -= uiDiff;
             if (m_epochAttackTimer <= uiDiff)

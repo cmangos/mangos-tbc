@@ -47,6 +47,7 @@
 #include "Movement/MoveSplineInit.h"
 #include "Entities/CreatureLinkingMgr.h"
 #include "Maps/SpawnManager.h"
+#include "AI/EventAI/CreatureEventAI.h"
 
 // apply implementation of the singletons
 #include "Policies/Singleton.h"
@@ -653,6 +654,9 @@ bool Creature::UpdateEntry(uint32 Entry, const CreatureData* data /*=nullptr*/, 
     // static flags implementation
     m_settings.ResetStaticFlags(CreatureStaticFlags(GetCreatureInfo()->StaticFlags), CreatureStaticFlags2(GetCreatureInfo()->StaticFlags2), CreatureStaticFlags3(GetCreatureInfo()->StaticFlags3), CreatureStaticFlags4(GetCreatureInfo()->StaticFlags4));
 
+    // reset EventAI if new entry
+    if (auto* eventAI = dynamic_cast<CreatureEventAI*>(AI()))
+        eventAI->InitAI();
     return true;
 }
 

@@ -783,7 +783,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
             case 34:
             {
                 m_pInstance->SetData(TYPE_SKARLOC, IN_PROGRESS);
-                Creature* skarloc = m_creature->SummonCreature(NPC_SKARLOC, 2000.201f, 277.9190f, 66.4911f, 6.11f, TEMPSPAWN_DEAD_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_SKARLOC, 2000.201f, 277.9190f, 66.4911f, 6.11f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 m_creature->SummonCreature(NPC_VETERAN, 1997.969f, 274.4247f, 66.6181f, 5.67f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 m_creature->SummonCreature(NPC_WARDEN, 2000.002f, 282.0754f, 66.2986f, 6.02f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 DoBroadcastText(SAY_TH_SKARLOC_MEET, m_creature);

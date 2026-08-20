@@ -30,6 +30,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "old_hillsbrad.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
+#include "AI/EventAI/CreatureEventAI.h"
 
 /*######
 ## npc_erozion
@@ -1490,7 +1491,7 @@ struct InfiniteTransform : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
-        Creature* unitTarget = spell->GetCaster();
+        Unit* unitTarget = spell->GetCaster();
         if (!unitTarget || !unitTarget->IsCreature())
             return;
         Creature* oldCreature = (Creature*)unitTarget;

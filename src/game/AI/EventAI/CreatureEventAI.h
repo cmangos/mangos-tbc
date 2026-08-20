@@ -155,7 +155,7 @@ enum EventAI_ActionType
     ACTION_T_SET_IMMUNITY_SET           = 63,               // SetId - creature_immunities
     ACTION_T_SET_FOLLOW_MOVEMENT        = 64,               // state - 0 off, 1 on
     ACTION_T_RETREAT                    = 65,               //
-    ACTION_T_START_ACTION_SET           = 66,               // SetId, StepIndex, Repeat (0/1)
+    ACTION_T_START_ACTION_SET           = 66,               // SetId, StepIndex, Repeat (0x1), Ooc (0x2)
 
     ACTION_T_END,
 };

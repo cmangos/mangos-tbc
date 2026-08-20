@@ -56,7 +56,6 @@
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 #include "Maps/InstanceData.h"
 #include "Entities/Transports.h"
-#include "AI/EventAI/CreatureEventAI.h"
 
 pEffect SpellEffects[MAX_SPELL_EFFECTS] =
 {

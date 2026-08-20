@@ -36,6 +36,7 @@ EndContentData */
 #include "AI/ScriptDevAI/include/sc_common.h"
 #include "AI/ScriptDevAI/base/escort_ai.h"
 #include "AI/ScriptDevAI/base/pet_ai.h"
+#include "world_outland.h"
 
 /*######
 ## mob_unkor_the_ruthless
@@ -1267,10 +1268,8 @@ enum
 {
     POINT_HARBINGER_POSITION = 1,
 
-    NPC_VENGEFUL_HARBINGER = 21638,
-
     SPELL_COSMETIC_CHAIN_LIGHTNING = 37226,
-    SPELL_ETHEREAL_TELEPORT        = 34427,
+    // SPELL_ETHEREAL_TELEPORT        = 34427,
 
     DBSCRIPT_TOMB_GUARDIAN = 10062,
     DBSCRIPT_EVENT_RESET = 10068
@@ -1356,17 +1355,11 @@ struct npc_draenei_tomb_guardian : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_npc_draenei_tomb_guardian(Creature* pCreature)
-{
-    return new npc_draenei_tomb_guardian(pCreature);
-}
-
 enum
 {
     POINT_ORB_WAYPOINT = 1,
 
     NPC_ORB_WAYPOINT_1 = 21443,
-    NPC_DRAENEI_TOMB_GUARDIAN = 22285,
 
     DBSCRIPT_VENGEFUL_HARBINGER_FAKE_DEATH = 10063,
 
@@ -1495,11 +1488,6 @@ struct npc_vengeful_harbinger : public ScriptedAI
     }
 };
 
-UnitAI* GetAI_npc_vengeful_harbinger(Creature* pCreature)
-{
-    return new npc_vengeful_harbinger(pCreature);
-}
-
 /*######
 ## go_monstrous_kaliri_egg
 ######*/
@@ -1594,12 +1582,12 @@ void AddSC_terokkar_forest()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_draenei_tomb_guardian";
-    pNewScript->GetAI = &GetAI_npc_draenei_tomb_guardian;
+    pNewScript->GetAI = &GetNewAIInstance<npc_draenei_tomb_guardian>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;
     pNewScript->Name = "npc_vengeful_harbinger";
-    pNewScript->GetAI = &GetAI_npc_vengeful_harbinger;
+    pNewScript->GetAI = &GetNewAIInstance<npc_vengeful_harbinger>;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

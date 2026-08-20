@@ -1570,6 +1570,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             case NPC_LEGION_RING_EVENT_INVISMAN_LG:
             case NPC_YSIEL_WINDSINGER:
             case NPC_VINDICATOR_VUULEEN:
+            case NPC_DRAENEI_TOMB_GUARDIAN:
                 m_npcEntryGuidStore[creature->GetEntry()] = creature->GetObjectGuid();
                 break;
             case NPC_SKYGUARD_AETHER_TECH:
@@ -1909,7 +1910,7 @@ struct world_map_outland : public ScriptedMap, public TimerManager
     void ShowChatCommands(ChatHandler* handler) override
     {
         handler->SendSysMessage("This instance supports the following commands:\n bashir (0,1,2,3,4,5,6,7) starts event at stage respectively - start event, start phase 1, finish phase 1,"
-        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event\n debuggurthock\n shartuulitem, shartuulreset, capturehalaa");
+        "start phase 2, finish phase 2, start phase 3, finish phase 3, despawn event\n debuggurthock\n shartuulitem, shartuulreset, capturehalaa, spawnharbinger, spawnfloorpiece");
     }
 
     void ExecuteChatCommand(ChatHandler* handler, char* args) override
@@ -1972,6 +1973,22 @@ struct world_map_outland : public ScriptedMap, public TimerManager
                 Player* player = handler->GetSession()->GetPlayer();
                 StartEvents_Event(banner->GetMap(), player->GetTeam() == ALLIANCE ? banner->GetGOInfo()->capturePoint.winEventID1 : banner->GetGOInfo()->capturePoint.winEventID2, banner, player, true);
             }
+        }
+        else if (val == "spawnharbinger")
+        {
+            Player* player = handler->GetSession()->GetPlayer();
+            Creature* guardian = nullptr;
+            if (Creature* existingGuardian = GetSingleCreatureFromStorage(NPC_DRAENEI_TOMB_GUARDIAN))
+                guardian = existingGuardian;
+            else
+                guardian = player->SummonCreature(NPC_DRAENEI_TOMB_GUARDIAN, -2971.159f, 4335.879f, -49.797f, 1.62f, TEMPSPAWN_DEAD_DESPAWN, 300000);
+
+            guardian->SummonCreature(NPC_VENGEFUL_HARBINGER, -2972.71f, 4402.54f, -49.1456f, 4.64258f, TEMPSPAWN_DEAD_DESPAWN, 300000);
+        }
+        else if (val == "spawnfloorpiece")
+        {
+            if (Creature* portalTrigger = instance->GetCreature("BONE_WASTES_PORTAL_TRIGGER"))
+                instance->ScriptsStart(SCRIPT_TYPE_RELAY, DBSCRIPT_RESPAWN_ASCENDANT_FLOORPIECE, portalTrigger, portalTrigger);
         }
     }
 };

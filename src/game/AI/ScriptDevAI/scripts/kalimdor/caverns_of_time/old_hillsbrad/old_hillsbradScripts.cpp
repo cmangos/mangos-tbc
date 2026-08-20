@@ -1521,7 +1521,7 @@ struct InfiniteTransform : public SpellScript
                 eventAI->InitAI();
         }
     }
-}
+};
 
 void AddSC_old_hillsbrad()
 {

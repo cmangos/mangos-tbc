@@ -1485,6 +1485,43 @@ bool AreaTrigger_at_southshore_inn(Player* player, AreaTriggerEntry const* /*pAt
     return true;
 }
 
+// 33133 - Transform
+struct InfiniteTransform : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Creature* unitTarget = spell->GetCaster();
+        if (!unitTarget || !unitTarget->IsCreature())
+            return;
+        Creature* oldCreature = (Creature*)unitTarget;
+        uint32 transformEntry = 0;
+        // update entry based on current entry
+        switch (oldCreature->GetEntry())
+        {
+            case 18092:
+                transformEntry = 18170;
+                break;
+            case 18093:
+                transformEntry = 18172;
+                break;
+            case 18094:
+                transformEntry = 18171;
+                break;
+            default:
+                return;
+                break;
+        }
+        oldCreature->UpdateEntry(transformEntry);
+        // init new EventAI
+        if (oldCreature->GetAIName() == "EventAI")
+        {
+            CreatureEventAI* eventAI = static_cast<CreatureEventAI*>(oldCreature->AI());
+            if (eventAI)
+                eventAI->InitAI();
+        }
+    }
+}
+
 void AddSC_old_hillsbrad()
 {
     Script* pNewScript = new Script;
@@ -1526,4 +1563,6 @@ void AddSC_old_hillsbrad()
     pNewScript->Name = "at_southshore_inn";
     pNewScript->pAreaTrigger = &AreaTrigger_at_southshore_inn;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<InfiniteTransform>("spell_infinite_transform");
 }

@@ -2005,7 +2005,7 @@ void CreatureEventAI::UpdateEventTimers(const uint32 diff)
             if (i->event.event_type == EVENT_T_ACTION_SET)
             {
                 bool success = CheckAndReadyEventForExecution(*i);
-                if (maxTimer < i->event.actionSet.timeMs)
+                if (m_setId == i->event.actionSet.setId && m_index == i->event.actionSet.stepIndex && maxTimer < i->event.actionSet.timeMs)
                     maxTimer = i->event.actionSet.timeMs;
                 continue;
             }

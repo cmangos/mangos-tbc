@@ -8489,6 +8489,7 @@ void Unit::EngageInCombatWith(Unit* enemy)
 void Unit::EngageInCombatWithAggressor(Unit* aggressor)
 {
     MANGOS_ASSERT(aggressor);
+    aggressor->AddThreat(this);
     SetInCombatWithAggressor(aggressor);
     aggressor->SetInCombatWithVictim(this);
     GetCombatManager().TriggerCombatTimer(aggressor);

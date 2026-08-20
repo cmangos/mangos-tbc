@@ -433,7 +433,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
     void JustReachedHome() override 
     {
         // Have the Epoch Hunter adds attack once Thrall reaches home, not on summon
-        if (!m_lTarrenMillSoldiersGuids.empty())
+        if (!m_lTarrenMillSoldiersGuids.empty() && m_uiEpochWaveId > 1)
         {
             for (GuidList::const_iterator itr = m_lTarrenMillSoldiersGuids.begin(); itr != m_lTarrenMillSoldiersGuids.end(); ++itr)
             {
@@ -933,11 +933,10 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                 m_lTarrenMillSoldiersGuids.clear();
                 if (Creature* pGuardsman = m_creature->SummonCreature(NPC_TARREN_MILL_GUARDSMAN, 2629.452f, 716.2737f, 56.55614f, 4.73f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pGuardsman->GetMotionMaster()->MoveWaypoint(1);
-
-                if (Creature* pLookout = m_creature->SummonCreature(NPC_TARREN_MILL_LOOKOUT, 2639.85f, 717.0549f, 56.36302f, 4.49f, TEMPSPAWN_DEAD_DESPAWN, 0))
+                if (Creature* pLookout = m_creature->SummonCreature(NPC_TARREN_MILL_LOOKOUT, 2639.8496f, 717.0549f, 56.363018f, 4.616436958312988281f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pLookout->GetMotionMaster()->MoveWaypoint(1);
 
-                if (Creature* pProtector = m_creature->SummonCreature(NPC_TARREN_MILL_PROTECTOR, 2655.716f, 698.5595f, 57.72154f, 3.17f, TEMPSPAWN_DEAD_DESPAWN, 0))
+                if (Creature* pProtector = m_creature->SummonCreature(NPC_TARREN_MILL_PROTECTOR, 2654.1365f, 698.68353f, 57.62938f, 3.088443756103515625f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pProtector->GetMotionMaster()->MoveWaypoint(1);
 
                 ++m_uiEpochWaveId;

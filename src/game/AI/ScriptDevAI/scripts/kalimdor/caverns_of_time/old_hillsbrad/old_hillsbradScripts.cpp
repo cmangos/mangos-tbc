@@ -433,7 +433,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
     void JustReachedHome() override 
     {
         // Have the Epoch Hunter adds attack once Thrall reaches home, not on summon
-        if (!m_lTarrenMillSoldiersGuids.empty())
+        if (!m_lTarrenMillSoldiersGuids.empty() && m_uiEpochWaveId > 1)
         {
             for (GuidList::const_iterator itr = m_lTarrenMillSoldiersGuids.begin(); itr != m_lTarrenMillSoldiersGuids.end(); ++itr)
             {
@@ -602,6 +602,10 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                             m_creature->SummonCreature(NPC_INFINITE_SLAYER,   2639.641f, 710.5246f, 56.23582f, 4.60f, TEMPSPAWN_DEAD_DESPAWN, 0);
                             ++m_uiEpochWaveId;
                             break;
+                        case 3:
+                            // Last wave before Epoch Hunter died, prepare to activate boss
+                            ++m_uiEpochWaveId;
+                            break;
                     }
                 }
                 break;
@@ -642,6 +646,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                         // taunt Thrall
                         DoBroadcastText(SAY_SKARLOC_ENTER, pSummoned);
                         SetEscortPaused(false);
+                        m_creature->SetFacingToObject(pSummoned);
                         break;
                 }
                 break;
@@ -778,13 +783,11 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
             case 34:
             {
                 m_pInstance->SetData(TYPE_SKARLOC, IN_PROGRESS);
-                Creature* skarloc = m_creature->SummonCreature(NPC_SKARLOC, 2000.201f, 277.9190f, 66.4911f, 6.11f, TEMPSPAWN_DEAD_DESPAWN, 0);
+                m_creature->SummonCreature(NPC_SKARLOC, 2000.201f, 277.9190f, 66.4911f, 6.11f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 m_creature->SummonCreature(NPC_VETERAN, 1997.969f, 274.4247f, 66.6181f, 5.67f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 m_creature->SummonCreature(NPC_WARDEN, 2000.002f, 282.0754f, 66.2986f, 6.02f, TEMPSPAWN_DEAD_DESPAWN, 0);
                 DoBroadcastText(SAY_TH_SKARLOC_MEET, m_creature);
                 SetEscortPaused(true);
-                if (skarloc)
-                    m_creature->SetFacingToObject(skarloc);
                 break;
             }
             case 36:
@@ -930,11 +933,10 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
                 m_lTarrenMillSoldiersGuids.clear();
                 if (Creature* pGuardsman = m_creature->SummonCreature(NPC_TARREN_MILL_GUARDSMAN, 2629.452f, 716.2737f, 56.55614f, 4.73f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pGuardsman->GetMotionMaster()->MoveWaypoint(1);
-
-                if (Creature* pLookout = m_creature->SummonCreature(NPC_TARREN_MILL_LOOKOUT, 2639.85f, 717.0549f, 56.36302f, 4.49f, TEMPSPAWN_DEAD_DESPAWN, 0))
+                if (Creature* pLookout = m_creature->SummonCreature(NPC_TARREN_MILL_LOOKOUT, 2639.8496f, 717.0549f, 56.363018f, 4.616436958312988281f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pLookout->GetMotionMaster()->MoveWaypoint(1);
 
-                if (Creature* pProtector = m_creature->SummonCreature(NPC_TARREN_MILL_PROTECTOR, 2655.716f, 698.5595f, 57.72154f, 3.17f, TEMPSPAWN_DEAD_DESPAWN, 0))
+                if (Creature* pProtector = m_creature->SummonCreature(NPC_TARREN_MILL_PROTECTOR, 2654.1365f, 698.68353f, 57.62938f, 3.088443756103515625f, TEMPSPAWN_DEAD_DESPAWN, 0))
                     pProtector->GetMotionMaster()->MoveWaypoint(1);
 
                 ++m_uiEpochWaveId;
@@ -978,7 +980,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI, private DialogueHelper
     {
         DialogueUpdate(uiDiff);
         UpdateEscortAI(uiDiff);
-        if (m_pInstance && m_uiEpochWaveId == 3)
+        if (m_pInstance && m_uiEpochWaveId == 4)
         {
             m_epochAttackTimer -= uiDiff;
             if (m_epochAttackTimer <= uiDiff)
@@ -1483,6 +1485,43 @@ bool AreaTrigger_at_southshore_inn(Player* player, AreaTriggerEntry const* /*pAt
     return true;
 }
 
+// 33133 - Transform
+struct InfiniteTransform : public SpellScript
+{
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Creature* unitTarget = spell->GetCaster();
+        if (!unitTarget || !unitTarget->IsCreature())
+            return;
+        Creature* oldCreature = (Creature*)unitTarget;
+        uint32 transformEntry = 0;
+        // update entry based on current entry
+        switch (oldCreature->GetEntry())
+        {
+            case 18092:
+                transformEntry = 18170;
+                break;
+            case 18093:
+                transformEntry = 18172;
+                break;
+            case 18094:
+                transformEntry = 18171;
+                break;
+            default:
+                return;
+                break;
+        }
+        oldCreature->UpdateEntry(transformEntry);
+        // init new EventAI
+        if (oldCreature->GetAIName() == "EventAI")
+        {
+            CreatureEventAI* eventAI = static_cast<CreatureEventAI*>(oldCreature->AI());
+            if (eventAI)
+                eventAI->InitAI();
+        }
+    }
+}
+
 void AddSC_old_hillsbrad()
 {
     Script* pNewScript = new Script;
@@ -1524,4 +1563,6 @@ void AddSC_old_hillsbrad()
     pNewScript->Name = "at_southshore_inn";
     pNewScript->pAreaTrigger = &AreaTrigger_at_southshore_inn;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<InfiniteTransform>("spell_infinite_transform");
 }

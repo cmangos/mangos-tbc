@@ -788,7 +788,8 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (34520,'spell_elemental_power_extractor'),
 (35268,'spell_raging_flames_inferno'),
 (39346,'spell_raging_flames_inferno'),
-(34168,'spell_spore_cloud_underbog');
+(34168,'spell_spore_cloud_underbog'),
+(33133,'spell_infinite_transform');
 
 -- Wotlk
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

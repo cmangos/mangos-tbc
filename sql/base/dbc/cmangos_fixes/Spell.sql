@@ -3051,6 +3051,7 @@ UPDATE `spell_template` SET `MaxAffectedTargets` = 1 WHERE `Id` IN (
 30835, -- Infernal Relay (Karazhan, Prince Malchezaar)
 30854,30898,39095, -- prince malchezaar spell fixes
 32312, -- Move 1 (Karazhan, Chess Event)
+37824, -- Karazhan - Chess NPC Action - Shadow Mend (should select 1 target)
 37388, -- Move 2 (Karazhan, Chess Event)
 39338, -- Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Horde
 39342, -- Karazhan - Chess, Medivh CHEAT: Hand of Medivh, Target Alliance

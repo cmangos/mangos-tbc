@@ -2489,6 +2489,11 @@ float Unit::CalcArmorReducedDamage(WorldObject* attacker, Unit* victim, const fl
     if (attacker->IsUnit())
         armor -= static_cast<Unit*>(attacker)->GetResistancePenetration(SPELL_SCHOOL_NORMAL);
 
+    // Chess pieces have armor (confirmed by sniff), but the physical damage they take is not reduced by armor
+    // As there is no evidence of armor penetration or any flag that would cause this, ignore their armor
+    if (victim->GetFaction() == 1689 || victim->GetFaction() == 1690)
+        armor = 0.0f;
+
     if (armor < 0.0f)
         armor = 0.0f;
 
@@ -4411,7 +4416,7 @@ void Unit::_UpdateSpells(uint32 time)
     {
         SpellAuraHolder* holder = iter->second;
 
-        if (!(holder->IsPermanent() || holder->IsPassive()) && holder->GetAuraDuration() == 0)
+        if (!(holder->IsPermanent() || holder->IsPassive()) && holder->GetAuraDuration() == 0 && !holder->IsPersistent())
         {
             RemoveSpellAuraHolder(holder, AURA_REMOVE_BY_EXPIRE);
             iter = m_spellAuraHolders.begin();
@@ -10076,6 +10081,14 @@ void CharmInfo::InitPetActionBar()
         SetActionBar(ACTION_BAR_INDEX_PET_SPELL_END + i, COMMAND_ATTACK - i, ACT_REACTION);
 }
 
+void CharmInfo::InitChessActionBar()
+{
+    // Chess event pieces do not have command or reaction visible
+    // first 4 SpellOrActions are spells/special attacks/abilities
+    for (uint32 i = 0; i <= ACTION_BAR_INDEX_PET_SPELL_END; ++i)
+        SetActionBar(ACTION_BAR_INDEX_PET_SPELL_START + i, 0, ACT_DISABLED);
+}
+
 void CharmInfo::InitEmptyActionBar()
 {
     for (uint32 x = ACTION_BAR_INDEX_START + 1; x < ACTION_BAR_INDEX_END; ++x)
@@ -10153,9 +10166,14 @@ void CharmInfo::InitPossessCreateSpells()
 
 void CharmInfo::InitCharmCreateSpells()
 {
-    InitPetActionBar();
-
-    SetActionBar(ACTION_BAR_INDEX_START, COMMAND_ATTACK, ACT_COMMAND);
+    // Special case: Karazhan chess pieces have non-standard action bar
+    if (m_unit->IsCreature() && m_unit->HasAura(30019))
+        InitChessActionBar();
+    else
+    {
+        InitPetActionBar();
+        SetActionBar(ACTION_BAR_INDEX_START, COMMAND_ATTACK, ACT_COMMAND);
+    }
 
     if (m_unit->IsPlayer())               // charmed players don't have spells
         return;

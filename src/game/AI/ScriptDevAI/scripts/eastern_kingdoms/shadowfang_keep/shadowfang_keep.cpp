@@ -484,9 +484,11 @@ struct boss_arugalAI : public CombatAI
             {
                 if (Unit* target = m_creature->SelectAttackingTarget(ATTACKING_TARGET_RANDOM, 1))
                 {
-                    DoScriptText(YELL_WORGEN_CURSE, m_creature);
                     if (DoCastSpellIfCan(target, SPELL_ARUGALS_CURSE) == CAST_OK)
+                    {
+                        DoScriptText(YELL_WORGEN_CURSE, m_creature);
                         ResetCombatAction(action, urand(20, 35) * IN_MILLISECONDS);
+                    }
                 }
                 break;
             }

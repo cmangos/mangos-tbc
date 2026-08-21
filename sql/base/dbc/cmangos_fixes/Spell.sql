@@ -3210,6 +3210,7 @@ UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00
 32732, -- Flay
 37248, -- Power Converters: Electromental Visual
 38471, -- Spore Burst
+39152, -- Darkfury
 43119, -- Cyclone Visual
 43120, -- Cyclone
 43457  -- Ball of Energy

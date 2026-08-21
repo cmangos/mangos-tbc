@@ -2284,7 +2284,7 @@ std::pair<bool, GuidVector> Creature::MarkCallAssistanceOnPull(Unit* enemy)
 
 void Creature::CallAssistanceOnPull(Unit* enemy, GuidVector const& receiverList)
 {
-    if (enemy && !HasCharmer())
+    if (enemy && !HasCharmer() && !m_AlreadyCallAssistance)
     {
         MANGOS_ASSERT(AI());
 

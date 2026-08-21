@@ -57,18 +57,24 @@ bool GOUse_go_molten_core_rune(Player* /*pPlayer*/, GameObject* pGo)
 
 struct npc_core_hound : public CreatureEventAI
 {
-    // Action IDs
-    static constexpr uint32 actionReigniteTimer = 0;
+    enum CoreHoundMoltenCore
+    {
+        REIGNITE_TIMER          = 0,
 
-    // Spells
-    static constexpr uint32 spellFullHeal = 17683;
-    static constexpr uint32 spellFireNovaVisual = 19823;
-    static constexpr uint32 spellPacifySelf = 19951;
+        SPELL_FULL_HEAL         = 17683,
+        SPELL_FIRE_NOVA_VISUAL  = 19823,
+        SPELL_PACIFY_SELF       = 19951,
+
+        NPC_CORE_HOUND = 11671,
+
+        EMOTE_SMOLDER   = 7866,
+        EMOTE_REIGNITE  = 7867,
+    };
 
     npc_core_hound(Creature* creature) : CreatureEventAI(creature)
     {
         SetDeathPrevention(true);
-        AddCustomAction(actionReigniteTimer, true, [this] { HandleReigniteTimer(); });
+        AddCustomAction(REIGNITE_TIMER, true, [this] { HandleReigniteTimer(); });
     }
 
     void Reset() override
@@ -81,15 +87,14 @@ struct npc_core_hound : public CreatureEventAI
     void Reignite()
     {
         m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-        m_creature->RemoveAurasDueToSpell(spellPacifySelf);
-        DoCastSpellIfCan(m_creature, spellFullHeal, CAST_TRIGGERED);
+        m_creature->RemoveAurasDueToSpell(SPELL_PACIFY_SELF);
+        DoCastSpellIfCan(nullptr, SPELL_FULL_HEAL, CAST_TRIGGERED);
         DoResetThreat();
         SetCombatMovement(true);
 
         SetDeathPrevention(true);
 
-        // %s reignites from the heat of another Core Hound!
-        DoBroadcastText(7867, m_creature);
+        DoBroadcastText(EMOTE_REIGNITE, m_creature); // %s reignites from the heat of another Core Hound!
     }
 
     // Collapse, entering a fake death.
@@ -101,12 +106,11 @@ struct npc_core_hound : public CreatureEventAI
     // * Confirm they keep combo points.
     void Collapse()
     {
-        // %s collapses and begins to smolder.
-        DoBroadcastText(7866, m_creature);
+        DoBroadcastText(EMOTE_SMOLDER, m_creature); // %s collapses and begins to smolder.
 
-        ResetTimer(actionReigniteTimer, 10000);
+        ResetTimer(REIGNITE_TIMER, 10000);
 
-        DoCastSpellIfCan(m_creature, spellPacifySelf, CAST_TRIGGERED);
+        DoCastSpellIfCan(nullptr, SPELL_PACIFY_SELF, CAST_TRIGGERED);
 
         m_creature->SetTarget(nullptr);
         SetCombatMovement(false);
@@ -122,14 +126,14 @@ struct npc_core_hound : public CreatureEventAI
     {
         // Reignite if there are still other core hounds alive 10 seconds after the collapse.
         std::list<Creature*> coreHounds;
-        GetCreatureListWithEntryInGrid(coreHounds, m_creature, 11671 /* Core Hound */, 40.0f);
+        GetCreatureListWithEntryInGrid(coreHounds, m_creature, NPC_CORE_HOUND, 40.0f);
         for (Creature* coreHound : coreHounds)
         {
             // Ignore alive core hounds in groups not in combat with us.
             if (coreHound && coreHound->IsInCombat() && coreHound->GetHealth() > 1)
             {
                 Reignite();
-                DoCastSpellIfCan(m_creature, spellFireNovaVisual, CAST_TRIGGERED);
+                DoCastSpellIfCan(nullptr, SPELL_FIRE_NOVA_VISUAL, CAST_TRIGGERED);
                 return;
             }
         }

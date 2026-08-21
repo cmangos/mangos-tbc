@@ -3206,9 +3206,11 @@ UPDATE `spell_template` SET `EffectMiscValueB1`=64 WHERE `Id` IN(38107);
 -- ============================================================
 UPDATE `spell_template` SET `AttributesServerSide` = `AttributesServerSide`|0x00000004 WHERE `Id` IN (
 32008, -- Fel Fire - c.17152,18944,19298
+32578, -- Gor'drek's Ointment
 32732, -- Flay
 37248, -- Power Converters: Electromental Visual
 38471, -- Spore Burst
+39152, -- Darkfury
 43119, -- Cyclone Visual
 43120, -- Cyclone
 43457  -- Ball of Energy

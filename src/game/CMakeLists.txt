@@ -40,6 +40,16 @@ if(NOT BUILD_SCRIPTDEV)
   endforeach()
 endif()
 
+if(NOT BUILD_VOICECHAT)
+  set (EXCLUDE_DIR "VoiceChat")
+  foreach (TMP_PATH ${LIBRARY_SRCS})
+      string (FIND ${TMP_PATH} ${EXCLUDE_DIR} EXCLUDE_DIR_FOUND)
+      if (NOT ${EXCLUDE_DIR_FOUND} EQUAL -1)
+          list(REMOVE_ITEM LIBRARY_SRCS ${TMP_PATH})
+      endif ()
+  endforeach()
+endif()
+
 if(NOT BUILD_DEPRECATED_PLAYERBOT)
   # exclude Playerbot folder
   set (EXCLUDE_DIR "PlayerBot/")
@@ -144,6 +154,11 @@ endif()
 # Define BUILD_AHBOT if need
 if (BUILD_AHBOT)
   add_definitions(-DBUILD_AHBOT)
+endif()
+
+# Define BUILD_VOICECHAT if need
+if (BUILD_VOICECHAT)
+  add_definitions(-DBUILD_VOICECHAT)
 endif()
 
 # Define BUILD_METRICS if need

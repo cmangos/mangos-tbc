@@ -97,3 +97,6 @@ cmake_install.cmake
 # Module files
 #
 src/modules/
+
+# Voice Chat server
+src/voicechat-server/

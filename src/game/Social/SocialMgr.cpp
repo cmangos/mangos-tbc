@@ -48,7 +48,11 @@ uint32 PlayerSocial::GetNumberOfSocialsWithFlag(SocialFlag flag)
     return counter;
 }
 
+#ifdef BUILD_VOICECHAT
+bool PlayerSocial::AddToSocialList(ObjectGuid friend_guid, bool ignore, bool muted)
+#else
 bool PlayerSocial::AddToSocialList(ObjectGuid friend_guid, bool ignore)
+#endif
 {
     // check client limits
     if (ignore)
@@ -56,6 +60,13 @@ bool PlayerSocial::AddToSocialList(ObjectGuid friend_guid, bool ignore)
         if (GetNumberOfSocialsWithFlag(SOCIAL_FLAG_IGNORED) >= SOCIALMGR_IGNORE_LIMIT)
             return false;
     }
+#ifdef BUILD_VOICECHAT
+    else if (muted)
+    {
+        if (GetNumberOfSocialsWithFlag(SOCIAL_FLAG_MUTED) >= SOCIALMGR_IGNORE_LIMIT)
+            return false;
+    }
+#endif
     else
     {
         if (GetNumberOfSocialsWithFlag(SOCIAL_FLAG_FRIEND) >= SOCIALMGR_FRIEND_LIMIT)
@@ -65,6 +76,10 @@ bool PlayerSocial::AddToSocialList(ObjectGuid friend_guid, bool ignore)
     uint32 flag = SOCIAL_FLAG_FRIEND;
     if (ignore)
         flag = SOCIAL_FLAG_IGNORED;
+#ifdef BUILD_VOICECHAT
+    if (muted)
+        flag = SOCIAL_FLAG_MUTED;
+#endif
 
     PlayerSocialMap::const_iterator itr = m_playerSocialMap.find(friend_guid.GetCounter());
     if (itr != m_playerSocialMap.end())
@@ -82,7 +97,11 @@ bool PlayerSocial::AddToSocialList(ObjectGuid friend_guid, bool ignore)
     return true;
 }
 
+#ifdef BUILD_VOICECHAT
+void PlayerSocial::RemoveFromSocialList(ObjectGuid friend_guid, bool ignore, bool muted)
+#else
 void PlayerSocial::RemoveFromSocialList(ObjectGuid friend_guid, bool ignore)
+#endif
 {
     PlayerSocialMap::iterator itr = m_playerSocialMap.find(friend_guid.GetCounter());
     if (itr == m_playerSocialMap.end())                     // not exist
@@ -91,6 +110,10 @@ void PlayerSocial::RemoveFromSocialList(ObjectGuid friend_guid, bool ignore)
     uint32 flag = SOCIAL_FLAG_FRIEND;
     if (ignore)
         flag = SOCIAL_FLAG_IGNORED;
+#ifdef BUILD_VOICECHAT
+    if (muted)
+        flag = SOCIAL_FLAG_MUTED;
+#endif
 
     itr->second.Flags &= ~flag;
     if (itr->second.Flags == 0)
@@ -180,6 +203,14 @@ bool PlayerSocial::HasIgnore(ObjectGuid ignore_guid)
     PlayerSocialMap::const_iterator itr = m_playerSocialMap.find(ignore_guid.GetCounter());
     return itr == m_playerSocialMap.end() ? false : (itr->second.Flags & SOCIAL_FLAG_IGNORED) != 0;
 }
+
+#ifdef BUILD_VOICECHAT
+bool PlayerSocial::HasMute(ObjectGuid ignore_guid)
+{
+    PlayerSocialMap::const_iterator itr = m_playerSocialMap.find(ignore_guid.GetCounter());
+    return itr == m_playerSocialMap.end() ? false : (itr->second.Flags & SOCIAL_FLAG_MUTED) != 0;
+}
+#endif
 
 SocialMgr::SocialMgr()
 {
@@ -316,6 +347,10 @@ PlayerSocial* SocialMgr::LoadFromDB(std::unique_ptr<QueryResult> queryResult, Ob
 
     // used to speed up check below. Using GetNumberOfSocialsWithFlag will cause unneeded iteration
     uint32 friendCounter = 0, ignoreCounter = 0;
+#ifdef BUILD_VOICECHAT
+    uint32 muteCounter = 0;
+#endif
+
 
     do
     {
@@ -327,6 +362,10 @@ PlayerSocial* SocialMgr::LoadFromDB(std::unique_ptr<QueryResult> queryResult, Ob
 
         if ((flags & SOCIAL_FLAG_IGNORED) && ignoreCounter >= SOCIALMGR_IGNORE_LIMIT)
             continue;
+#ifdef BUILD_VOICECHAT
+        if ((flags & SOCIAL_FLAG_MUTED) && muteCounter >= SOCIALMGR_IGNORE_LIMIT)
+            continue;
+#endif
         if ((flags & SOCIAL_FLAG_FRIEND) && friendCounter >= SOCIALMGR_FRIEND_LIMIT)
             continue;
 
@@ -334,6 +373,10 @@ PlayerSocial* SocialMgr::LoadFromDB(std::unique_ptr<QueryResult> queryResult, Ob
 
         if (flags & SOCIAL_FLAG_IGNORED)
             ++ignoreCounter;
+#ifdef BUILD_VOICECHAT
+        else if (flags & SOCIAL_FLAG_MUTED)
+            ++muteCounter;
+#endif
         else
             ++friendCounter;
     }

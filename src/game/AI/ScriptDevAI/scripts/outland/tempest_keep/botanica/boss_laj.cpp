@@ -173,10 +173,24 @@ struct boss_lajAI : public CombatAI
     }
 };
 
+struct AllergicReaction : public SpellScript
+{
+    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        // Player with aura 34697 can ONLY proc Aura 34700 on other UNIT_FLAG_PLAYER_CONTROLLED targets
+        if (!target->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED))
+            return false;
+
+        return true;
+    }
+};
+
 void AddSC_boss_laj()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "boss_laj";
     pNewScript->GetAI = &GetNewAIInstance<boss_lajAI>;
     pNewScript->RegisterSelf();
+
+    RegisterSpellScript<AllergicReaction>("spell_allergic_reaction");
 }

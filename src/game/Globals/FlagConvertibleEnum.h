@@ -41,25 +41,25 @@ DEFINE_ENUM_FLAG(FlagConvertibleEnum64);
 #define DEFINE_FLAG_CONVERTIBLE_ENUM_64(enumType) constexpr bool IsFlagConvertibleEnum64(enumType) { return std::is_enum_v<enumType>; }
 
 template <typename T, typename = std::enable_if_t<IsFlagConvertibleEnum(T {})>>
-constexpr FlagConvertibleEnum const convertEnumToFlag(T item)
+constexpr FlagConvertibleEnum convertEnumToFlag(T item)
 {
     return FlagConvertibleEnum(uint32(1) << static_cast<uint32>(static_cast<std::underlying_type_t<T>>(item) - 1));
 }
 
 template <typename T, typename = std::enable_if_t<IsFlagConvertibleEnum64(T {})>>
-constexpr FlagConvertibleEnum64 const convertEnumToFlag(T item)
+constexpr FlagConvertibleEnum64 convertEnumToFlag(T item)
 {
     return FlagConvertibleEnum64(uint64(1) << static_cast<uint64>(static_cast<std::underlying_type_t<T>>(item) - 1));
 }
 
 template <std::convertible_to<uint32> T>
-constexpr uint32 const convertEnumToFlag(T item)
+constexpr uint32 convertEnumToFlag(T item)
 {
     return 1 << (item - 1);
 }
 
 template <std::convertible_to<uint32> T, typename... Targs>
-constexpr uint32 const convertEnumToFlag(T item, Targs&&... fargs)
+constexpr uint32 convertEnumToFlag(T item, Targs&&... fargs)
 {
     return convertEnumToFlag(item) | convertEnumToFlag(std::forward<Targs>(fargs)...);
 }

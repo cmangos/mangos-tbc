@@ -128,7 +128,7 @@ struct npc_grark_lorkrubAI : public npc_escortAI, private DialogueHelper
         npc_escortAI::MoveInLineOfSight(pWho);
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* pInvoker, uint32 /*uiMiscValue*/) override
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*pSender*/, Unit* /*pInvoker*/, uint32 /*uiMiscValue*/) override
     {
         // rejoin head on request
         if (eventType == AI_EVENT_CUSTOM_A)

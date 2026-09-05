@@ -372,7 +372,7 @@ UnitAI* GetAI_npc_time_rift(Creature* pCreature)
 // 31320 - Time Rift Periodic
 struct TimeRiftPeriodic : public AuraScript
 {
-    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& data) const override
+    void OnPeriodicTrigger(Aura* aura, PeriodicTriggerData& /*data*/) const override
     {
         Unit* target = aura->GetTarget();
         if (npc_time_riftAI* timeRiftAI = dynamic_cast<npc_time_riftAI*>(target->AI()))

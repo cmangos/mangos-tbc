@@ -1673,7 +1673,7 @@ void Map::SendRemoveInfinite(Player* player) const
     updateData.SendData(*player->GetSession());
 }
 
-void Map::UpdateInfinite(Player& player, UpdateData& updateData, GuidSet& clientGUIDs, WorldObjectSet& visibleNow) const
+void Map::UpdateInfinite(Player& player, UpdateData& updateData, GuidSet& /*clientGUIDs*/, WorldObjectSet& visibleNow) const
 {
     for (auto i : m_infiniteObjects)
     {

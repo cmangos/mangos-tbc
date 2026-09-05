@@ -2833,7 +2833,7 @@ void Unit::AttackerStateUpdate(Unit* pVictim, WeaponAttackType attType, bool ext
                          GetGUIDLow(), pVictim->GetGUIDLow(), pVictim->GetTypeId(), meleeDamageInfo.totalDamage, totalAbsorb, meleeDamageInfo.blockedAmount, totalResist);
 }
 
-void Unit::DoExtraAttacks(Unit* victim)
+void Unit::DoExtraAttacks(Unit* /*victim*/)
 {
     Unit* attackTarget = nullptr;
     if (m_extraAttackGuid)
@@ -12131,7 +12131,7 @@ void Unit::BreakCharmIncoming()
         charmer->BreakCharmOutgoing(this);
 }
 
-void Unit::Uncharm(Unit* charmed, uint32 spellId)
+void Unit::Uncharm(Unit* charmed, uint32 /*spellId*/)
 {
     Player* player = (GetTypeId() == TYPEID_PLAYER ? static_cast<Player*>(this) : nullptr);
 

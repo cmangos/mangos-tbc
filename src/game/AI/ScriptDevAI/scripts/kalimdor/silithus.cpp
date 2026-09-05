@@ -300,7 +300,7 @@ bool GossipSelect_npc_solenor(Player* pPlayer, Creature* pCreature, uint32 /*uiS
     return true;
 }
 
-bool AreaTrigger_at_southwind_tower(Player* player, AreaTriggerEntry const* areaTrigger) // 3146
+bool AreaTrigger_at_southwind_tower(Player* player, AreaTriggerEntry const* /*areaTrigger*/) // 3146
 {
     if (player->IsGameMaster() || !player->IsAlive())
         return false;

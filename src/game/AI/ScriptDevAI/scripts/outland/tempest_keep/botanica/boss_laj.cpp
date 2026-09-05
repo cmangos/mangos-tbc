@@ -176,7 +176,7 @@ struct boss_lajAI : public CombatAI
 // 34700 - Allergic Reaction
 struct AllergicReaction : public SpellScript
 {
-    bool OnCheckTarget(const Spell* spell, Unit* target, SpellEffectIndex /*eff*/) const override
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
     {
         // Player with aura 34697 can ONLY proc Aura 34700 on other player controlled targets
         if (!target->IsPlayerControlled())

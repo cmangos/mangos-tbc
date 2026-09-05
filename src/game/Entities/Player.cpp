@@ -5063,7 +5063,7 @@ void Player::LeaveLFGChannel()
     }
 }
 
-void Player::UpdateDefense(uint32 procEx)
+void Player::UpdateDefense(uint32 /*procEx*/)
 {
     uint32 defense_skill_gain = sWorld.getConfig(CONFIG_UINT32_SKILL_GAIN_DEFENSE);
 

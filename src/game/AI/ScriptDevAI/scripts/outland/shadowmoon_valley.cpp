@@ -2189,7 +2189,7 @@ struct npc_spawned_oronok_tornheartAI : public ScriptedAI, private DialogueHelpe
         }
     }
 
-    void SummonedCreatureJustDied(Creature* pCreature)
+    void SummonedCreatureJustDied(Creature* pCreature) override
     {
         if (pCreature->GetEntry() == NPC_CYRUKH_THE_FIRELORD)
         {

@@ -333,7 +333,7 @@ void Spell::EffectSchoolDMG(SpellEffectIndex eff_idx)
                         if (roll_chance_i(33))
                             m_caster->CastSpell(unitTarget, 39002, TRIGGERED_OLD_TRIGGERED); // Spore Quake Knockdown
                         break;
-                    case 39384:
+                    case 39384:                             // Karazhan - Burning Flames
                     {
                         if (eff_idx == 0)
                         {
@@ -1790,6 +1790,22 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
 
                     return;
                 }
+                case 37775:                                 // Karazhan - Chess NPC Action - Poison Cloud
+                {
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, 37469, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
+                case 37824:                                 // Karazhan - Chess NPC Action - Shadow Mend
+                {
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, 37456, TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
                 case 33923:                                 // Sonic Boom
                 case 38796:                                 // Sonic Boom (heroic)
                 {
@@ -2493,6 +2509,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
 
                     unitTarget->CastSpell(m_caster, 30253, TRIGGERED_OLD_TRIGGERED);
+                    return;
                 }
                 case 30284:                                 // Change Facing
                 {
@@ -6149,22 +6166,6 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     unitTarget->CastSpell(nullptr, 37013, TRIGGERED_NONE);
                     return;
                 }
-                case 37775:                                 // Karazhan - Chess NPC Action - Poison Cloud
-                {
-                    if (!unitTarget)
-                        return;
-
-                    m_caster->CastSpell(unitTarget, 37469, TRIGGERED_OLD_TRIGGERED);
-                    return;
-                }
-                case 37824:                                 // Karazhan - Chess NPC Action - Shadow Mend
-                {
-                    if (!unitTarget)
-                        return;
-
-                    m_caster->CastSpell(unitTarget, 37456, TRIGGERED_OLD_TRIGGERED);
-                    return;
-                }
                 case 38055:                                 // Destroy Deathforged Infernal
                 {
                     if (!unitTarget)
@@ -6252,6 +6253,13 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                     return;
                 }
                 case 39341:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Horde
+                {
+                    if (!unitTarget)
+                        return;
+
+                    m_caster->CastSpell(unitTarget, m_spellInfo->CalculateSimpleValue(eff_idx), TRIGGERED_OLD_TRIGGERED);
+                    return;
+                }
                 case 39344:                                 // Karazhan - Chess, Medivh CHEAT: Fury of Medivh, Target Alliance
                 {
                     if (!unitTarget)

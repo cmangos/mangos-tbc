@@ -344,7 +344,18 @@ void WorldSession::HandlePetAction(WorldPacket& recv_data)
             const SpellRangeEntry* sRange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
 
             if (!IsSpellRequireTarget(spellInfo))
-                unit_target = nullptr;
+            {
+                switch (spellInfo->Id)
+                {
+                    // Not sure if TARGET_UNIT_SCRIPT_NEAR_CASTER in general should require target, but these spells
+                    // seem to require a target which is nearby
+                    case 37465: // chess rain of fire
+                        break;
+                    default:
+                        unit_target = nullptr;
+                        break;
+                }
+            }  
 
             if (unit_target && !(petUnit->IsWithinDistInMap(unit_target, sRange->maxRange) && petUnit->IsWithinLOSInMap(unit_target, true))
                     && petUnit->CanAttackNow(unit_target))

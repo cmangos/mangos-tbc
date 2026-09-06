@@ -47,7 +47,6 @@ struct world_map_kalimdor : public ScriptedMap
     uint32 m_encounter[MAX_ENCOUNTER];
     bool b_isOmenSpellCreditDone;
     std::array<std::vector<ObjectGuid>, MAX_ELEMENTS> m_aElementalRiftGUIDs;
-    uint32 m_uiDronesTimer;
     uint32 m_freedSpriteDarter;
     // Shade of the Horseman village attack event
     ShadeOfTheHorsemanData m_shadeData;
@@ -65,7 +64,6 @@ struct world_map_kalimdor : public ScriptedMap
         b_isOmenSpellCreditDone = false;
         for (auto& riftList : m_aElementalRiftGUIDs)
             riftList.clear();
-        m_uiDronesTimer = 0;
         memset(&m_encounter, 0, sizeof(m_encounter));
 
         m_shadeData.Reset();

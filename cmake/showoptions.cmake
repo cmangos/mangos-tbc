@@ -55,6 +55,12 @@ else()
   message(STATUS "Build AHBot           : No  (default)")
 endif()
 
+if(BUILD_VOICECHAT)
+  message(STATUS "Build VoiceChat       : Yes")
+else()
+  message(STATUS "Build VoiceChat       : No  (default)")
+endif()
+
 if(BUILD_METRICS)
   message(STATUS "Build METRICS         : Yes")
 else()

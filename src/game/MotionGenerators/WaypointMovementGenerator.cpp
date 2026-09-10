@@ -516,12 +516,9 @@ bool WaypointMovementGenerator<Creature>::CanMove(int32 diff, Creature& u)
     return i_nextMoveTime.Passed() && !u.hasUnitState(UNIT_STAT_WAYPOINT_PAUSED);
 }
 
-bool WaypointMovementGenerator<Creature>::GetResetPosition(Creature&, float& x, float& y, float& z, float& o) const
+bool WaypointMovementGenerator<Creature>::GetResetPosition(Creature&, Position& pos) const
 {
-    x = m_resetPoint.x;
-    y = m_resetPoint.y;
-    z = m_resetPoint.z;
-    o = m_resetPoint.o;
+    pos = m_resetPoint;
 
     return true;
     // prevent a crash at empty waypoint path.
@@ -537,12 +534,12 @@ bool WaypointMovementGenerator<Creature>::GetResetPosition(Creature&, float& x, 
 
     WaypointNode const* curWP = &(lastPoint->second);
 
-    x = curWP->x;
-    y = curWP->y;
-    z = curWP->z;
+    pos.x = curWP->x;
+    pos.y = curWP->y;
+    pos.z = curWP->z;
 
     if (curWP->orientation)
-        o = *curWP->orientation;
+        pos.o = *curWP->orientation;
     else                                                    // Calculate the resulting angle based on positions between previous and current waypoint
     {
         WaypointNode const* prevWP;
@@ -554,14 +551,19 @@ bool WaypointMovementGenerator<Creature>::GetResetPosition(Creature&, float& x, 
         else                                                // Take the last waypoint (crbegin()) as previous
             prevWP = &(i_path->rbegin()->second);
 
-        float dx = x - prevWP->x;
-        float dy = y - prevWP->y;
-        o = atan2(dy, dx);                                  // returns value between -Pi..Pi
+        float dx = pos.x - prevWP->x;
+        float dy = pos.y - prevWP->y;
+        pos.o = atan2(dy, dx); // returns value between -Pi..Pi
 
-        o = (o >= 0) ? o : 2 * M_PI_F + o;
+        pos.o = (pos.o >= 0) ? pos.o : 2 * M_PI_F + pos.o;
     }
 
     return true;
+}
+
+void WaypointMovementGenerator<Creature>::SetResetPosition(Creature&, Position const& pos)
+{
+    m_resetPoint = pos;
 }
 
 void WaypointMovementGenerator<Creature>::GetPathInformation(std::ostringstream& oss) const

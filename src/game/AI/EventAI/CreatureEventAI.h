@@ -919,7 +919,7 @@ class CreatureEventAI : public CreatureAI
         bool CheckAndReadyEventForExecution(CreatureEventAIHolder& holder, Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
         void IncreaseDepthIfNecessary() { if (m_depth >= m_creatureEventAITempList.size()) m_creatureEventAITempList.resize(m_depth + 1); }
         virtual bool ProcessEvent(CreatureEventAIHolder& holder, Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
-        virtual bool ProcessAction(CreatureEventAI_Action const& action, uint32 rnd, uint32 eventId, Unit* actionInvoker, Unit* AIEventSender, Unit* eventTarget);
+        virtual bool ProcessAction(CreatureEventAI_Action const& action, uint32 rnd, uint32 eventId, Unit* actionInvoker, Unit* AIEventSender, Unit* eventTarget, bool actionSetEvent);
         inline uint32 GetRandActionParam(uint32 rnd, uint32 param1, uint32 param2, uint32 param3) const;
         inline int32 GetRandActionParam(uint32 rnd, int32 param1, int32 param2, int32 param3) const;
         /// If the bool& param is true, an error should be reported

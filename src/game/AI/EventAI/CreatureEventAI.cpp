@@ -585,6 +585,8 @@ bool CreatureEventAI::CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvo
             if (event.actionSet.setId != m_setId || event.actionSet.stepIndex != m_index || event.actionSet.timeMs > m_timer)
                 return false;
             break;
+        case EVENT_T_MOVEMENT_INFORM:
+            break;
         default:
             sLog.outErrorEventAI("Creature %u using Event %u has invalid Event Type(%u), missing from ProcessEvent() Switch.", m_creature->GetEntry(), holder.event.event_id, holder.event.event_type);
             return false;
@@ -2063,4 +2065,22 @@ void CreatureEventAI::UpdateEventTimers(const uint32 diff)
         m_EventDiff += diff;
         m_EventUpdateTime -= diff;
     }
+}
+
+void CreatureEventAI::MovementInform(uint32 motionType, uint32 pointId)
+{
+    IncreaseDepthIfNecessary();
+    for (auto& itr : m_CreatureEventAIList)
+    {
+        if (itr.event.event_type == EVENT_T_MOVEMENT_INFORM &&
+            itr.event.movementInform.movementType == motionType && itr.event.movementInform.pointId == pointId)
+        {
+            if (motionType == WAYPOINT_MOTION_TYPE || motionType == PATH_MOTION_TYPE || motionType == LINEAR_WP_MOTION_TYPE)
+                if (itr.event.movementInform.pathId != m_creature->GetMotionMaster()->GetPathId())
+                    continue;
+
+            CheckAndReadyEventForExecution(itr);
+        }
+    }
+    ProcessEvents();
 }

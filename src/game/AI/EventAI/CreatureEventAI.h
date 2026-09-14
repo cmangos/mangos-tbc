@@ -83,6 +83,7 @@ enum EventAI_Type
     EVENT_T_PASSENGER_SPAWN         = 41,                   // SeatID
     EVENT_T_PASSENGER_CONTROL_END   = 42,                   // SeatID
     EVENT_T_ACTION_SET              = 43,                   // SetId, StepIndex, TimeMs
+    EVENT_T_MOVEMENT_INFORM         = 44,                   // MovementType, PointId, PathId
 
     EVENT_T_END,
 };
@@ -817,6 +818,13 @@ struct CreatureEventAI_Event
             uint32 stepIndex;
             uint32 timeMs;
         } actionSet;
+        // EVENT_T_MOVEMENT_INFORM                          = 39
+        struct
+        {
+            uint32 movementType;
+            uint32 pointId;
+            uint32 pathId;
+        } movementInform;
         // RAW
         struct
         {
@@ -913,6 +921,7 @@ class CreatureEventAI : public CreatureAI
         static int Permissible(const Creature* creature);
 
         virtual void UpdateEventTimers(const uint32 diff) override;
+        void MovementInform(uint32 motionType, uint32 pointId) override;
         void ProcessEvents(Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
         bool CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
         void ResetEvent(CreatureEventAIHolder& holder);

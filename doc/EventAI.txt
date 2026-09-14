@@ -104,6 +104,7 @@ Some events such as EVENT_T_AGGRO, EVENT_T_DEATH, EVENT_T_SPAWNED, and EVENT_T_E
 36  EVENT_T_TARGET_NOT_REACHABLE        NONE                                                                    Expires when target is not reachable
 37  EVENT_T_SPELL_CAST                  SpellID                                                                 Expires when spell list casts spell Id successfully
 43  EVENT_T_ACTION_SET                  SetId, StepIndex, TimeMs						Expires when action set is engaged, on specific index and time
+44  EVENT_T_MOVEMENT_INFORM             MovementType, PointId, PathId						Expires when AI is informed about movement
 
 =========================================
 Action Types
@@ -580,6 +581,14 @@ SPELL_SCHOOL_FROST  = 4 ==> 16
 SPELL_SCHOOL_SHADOW = 5 ==> 32
 SPELL_SCHOOL_ARCANE = 6 ==> 64
 Use These Bitmask Values For Schoolmask (Param2) or Any Combinations Of These School Bitmasks for Multiple Schools.
+
+----------------------------
+44 = EVENT_T_MOVEMENT_INFORM
+----------------------------
+Parameter 1: MovementType
+Parameter 2: PointId
+Parameter 3: PathId
+Expires when AI is informed about movement. If waypoint/path/linear path movement is used, PathId is also checked against Path used. Use 0 when referencing creature_movement.
 
 =========================================
 Action Types

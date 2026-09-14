@@ -559,6 +559,13 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                 }
                 case EVENT_T_ACTION_SET:
                     break;
+                case EVENT_T_MOVEMENT_INFORM:
+                    if (temp.movementInform.movementType > MOVEMENT_TYPE_MAX)
+                    {
+                        sLog.outErrorEventAI("Creature %d has nonexistent MovementType(%u) defined in event %u.", keyField, temp.movementInform.movementType, eventId);
+                        continue;
+                    }
+                    break;
                 default:
                     sLog.outErrorEventAI("Creature %d using not checked at load event (%u) in event %u. Need check code update?", keyField, temp.event_id, eventId);
                     break;

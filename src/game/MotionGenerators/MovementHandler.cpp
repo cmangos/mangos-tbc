@@ -167,7 +167,7 @@ void WorldSession::HandleMoveWorldportAckOpcode()
         GetPlayer()->Relocate(loc.coord_x, loc.coord_y, loc.coord_z, loc.orientation);
     auto lambda = [playerGuid = GetPlayer()->GetObjectGuid(), loc, old_loc, mEntry, mInstance](Map* map)
     {
-        Player* player = ObjectAccessor::FindPlayer(playerGuid, false);
+        Player* player = map->GetPlayer(playerGuid);
         if (!player)
             return;
 

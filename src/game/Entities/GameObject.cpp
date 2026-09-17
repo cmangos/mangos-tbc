@@ -955,35 +955,25 @@ bool GameObject::LoadFromDB(uint32 dbGuid, Map* map, uint32 newGuid, uint32 forc
     if (groupEntry && groupEntry->StringId)
         SetStringId(groupEntry->StringId, true);
 
-    if (!GetGOInfo()->GetDespawnPossibility() && !GetGOInfo()->IsDespawnAtAction() && data->spawntimesecsmin >= 0)
+    if (data->spawntimesecsmin >= 0)
     {
-        SetFlag(GAMEOBJECT_FLAGS, GO_FLAG_NODESPAWN);
         m_spawnedByDefault = true;
-        m_respawnDelay = 0;
-        m_respawnTime = 0;
+        m_respawnDelay = data->GetRandomRespawnTime();
+
+        m_respawnTime = map->GetPersistentState()->GetGORespawnTime(GetDbGuid());
+
+        // ready to respawn
+        if (m_respawnTime && m_respawnTime <= time(nullptr))
+        {
+            m_respawnTime = 0;
+            map->GetPersistentState()->SaveGORespawnTime(GetDbGuid(), 0);
+        }
     }
     else
     {
-        if (data->spawntimesecsmin >= 0)
-        {
-            m_spawnedByDefault = true;
-            m_respawnDelay = data->GetRandomRespawnTime();
-
-            m_respawnTime  = map->GetPersistentState()->GetGORespawnTime(GetDbGuid());
-
-            // ready to respawn
-            if (m_respawnTime && m_respawnTime <= time(nullptr))
-            {
-                m_respawnTime = 0;
-                map->GetPersistentState()->SaveGORespawnTime(GetDbGuid(), 0);
-            }
-        }
-        else
-        {
-            m_spawnedByDefault = false;
-            m_respawnDelay = -data->spawntimesecsmin;
-            m_respawnTime = 0;
-        }
+        m_spawnedByDefault = false;
+        m_respawnDelay = -data->spawntimesecsmin;
+        m_respawnTime = 0;
     }
 
     map->Add(this);

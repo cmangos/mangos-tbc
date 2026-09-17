@@ -659,11 +659,11 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& holder, Unit* actionIn
     rnd = urand();
     if (!(holder.event.event_flags & EFLAG_RANDOM_ACTION))
     {
-        actionSuccess = ProcessAction(holder.event.action[0], rnd, holder.event.event_id, actionInvoker, AIEventSender, holder.eventTarget, holder.event.event_type == EVENT_T_ACTION_SET);
+        actionSuccess = ProcessAction(holder.event.action[0], rnd, holder.event.event_id, actionInvoker, AIEventSender, holder.eventTarget);
 
         if (!(holder.event.event_flags & EFLAG_COMBAT_ACTION) || actionSuccess)
             for (uint32 j = 1; j < MAX_ACTIONS; ++j)
-                ProcessAction(holder.event.action[j], rnd, holder.event.event_id, actionInvoker, AIEventSender, holder.eventTarget, holder.event.event_type == EVENT_T_ACTION_SET);
+                ProcessAction(holder.event.action[j], rnd, holder.event.event_id, actionInvoker, AIEventSender, holder.eventTarget);
     }
     // Process actions, random case
     else
@@ -692,7 +692,7 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& holder, Unit* actionIn
             }
 
             rnd = urand(); // need to randomize again to prevent always same result when both event and action are randomized
-            actionSuccess = ProcessAction(holder.event.action[j], rnd, holder.event.event_id, actionInvoker, AIEventSender, holder.eventTarget, holder.event.event_type == EVENT_T_ACTION_SET);
+            actionSuccess = ProcessAction(holder.event.action[j], rnd, holder.event.event_id, actionInvoker, AIEventSender, holder.eventTarget);
         }
     }
 
@@ -703,7 +703,7 @@ bool CreatureEventAI::ProcessEvent(CreatureEventAIHolder& holder, Unit* actionIn
     return true;
 }
 
-bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32 rnd, uint32 eventId, Unit* actionInvoker, Unit* AIEventSender, Unit* eventTarget, bool actionSetEvent)
+bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32 rnd, uint32 eventId, Unit* actionInvoker, Unit* AIEventSender, Unit* eventTarget)
 {
     if (action.type == ACTION_T_NONE)
         return false;
@@ -1369,7 +1369,7 @@ bool CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                 }
                 m_creature->SetFacingToObject(target);
                 
-                if (actionSetEvent && !m_creature->GetMotionMaster()->empty()) // update reset position when during action set
+                if (!m_creature->IsInCombat() && !m_creature->GetMotionMaster()->empty()) // update reset position when during action set
                     m_creature->GetMotionMaster()->top()->SetResetPosition(*m_creature, m_creature->GetPosition());
             }
             break;

@@ -91,7 +91,7 @@ struct boss_malchezaarAI : public CombatAI
         AddCombatAction(MALCHEZAAR_SUNDER_ARMOR, true);
         AddCombatAction(MALCHEZAAR_THRASH, true);
         AddCombatAction(MALCHEZAAR_AMPLIFY_DAMAGE, true);
-        AddCombatAction(MALCHEZAAR_INFERNAL, 40000u);
+        AddCombatAction(MALCHEZAAR_INFERNAL, 20000u);
         AddCombatAction(MALCHEZAAR_SHADOW_NOVA, 35500u);
         AddCombatAction(MALCHEZAAR_SHADOW_WORD_PAIN, 20000u);
         AddCombatAction(MALCHEZAAR_ENFEEBLE, 30000u);
@@ -251,7 +251,7 @@ struct boss_malchezaarAI : public CombatAI
                     {
                         relayFar->CastSpell(relayClose, SPELL_INFERNAL_RELAY, TRIGGERED_NONE);
                         DoScriptText(urand(0, 1) ? SAY_SUMMON1 : SAY_SUMMON2, m_creature);
-                        ResetCombatAction(action, GetActionReadyStatus(MALCHEZAAR_PHASE_3) ? 45000 : 17000);
+                        ResetCombatAction(action, GetActionReadyStatus(MALCHEZAAR_PHASE_3) ? urand(45000, 50000) : urand(15000, 20000));
                     }
                 }
                 break;

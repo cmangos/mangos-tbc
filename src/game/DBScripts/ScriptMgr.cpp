@@ -2776,10 +2776,10 @@ bool ScriptAction::ExecuteDbscriptCommand(WorldObject* pSource, WorldObject* pTa
             }
             if (m_script->setFacing.resetFacing)
             {
-                float x, y, z, o;
-                if (pCSource->GetMotionMaster()->empty() || !pCSource->GetMotionMaster()->top()->GetResetPosition(*pCSource, x, y, z, o))
-                    pCSource->GetRespawnCoord(x, y, z, &o);
-                pCSource->SetFacingTo(o);
+                Position pos;
+                if (pCSource->GetMotionMaster()->empty() || !pCSource->GetMotionMaster()->top()->GetResetPosition(*pCSource, pos))
+                    pCSource->GetRespawnCoord(pos.x, pos.y, pos.z, &pos.o);
+                pCSource->SetFacingTo(pos.o);
             }
             else
                 pCSource->SetFacingToObject(pTarget);

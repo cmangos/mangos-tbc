@@ -130,7 +130,7 @@ class ChaseMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Chas
         bool _lostTarget(Unit& u) const;
         bool RemoveOnInvalid() const override { return false; }
         void _reachTarget(Unit&);
-        bool GetResetPosition(Unit& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const override { return false; }
+        bool GetResetPosition(Unit& /*u*/, Position& /*pos*/) const override { return false; }
         void HandleMovementFailure(Unit& owner) override;
 
         ChaseMovementMode GetCurrentMode() const { return m_currentMode; }
@@ -195,7 +195,7 @@ class FollowMovementGenerator : public TargetedMovementGeneratorMedium<Unit, Fol
         virtual void Interrupt(Unit& owner) override;
         void Reset(Unit& owner) override;
 
-        bool GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o) const override;
+        bool GetResetPosition(Unit& owner, Position& pos) const override;
 
         virtual bool EnableWalking() const;
 
@@ -256,7 +256,7 @@ class FormationMovementGenerator : public FollowMovementGenerator
 
         bool Update(Unit&, const uint32&) override;
         void Interrupt(Unit& owner) override;
-        bool GetResetPosition(Unit&, float& x, float& y, float& z, float& o) const override;
+        bool GetResetPosition(Unit&, Position& pos) const override;
 
     protected:
         void HandleTargetedMovement(Unit& owner, const uint32& time_diff) override;

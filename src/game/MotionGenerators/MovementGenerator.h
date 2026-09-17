@@ -52,7 +52,8 @@ class MovementGenerator
         virtual void UnitSpeedChanged() { }
 
         // used by Evade code for select point to evade with expected restart default movement
-        virtual bool GetResetPosition(Unit&, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const { return false; }
+        virtual bool GetResetPosition(Unit&, Position& pos) const { return false; }
+        virtual void SetResetPosition(Unit&, Position const& pos) { }
 
         // given destination unreachable? due to pathfinsing or other
         virtual bool IsReachable() const { return true; }
@@ -93,10 +94,15 @@ class MovementGeneratorMedium : public MovementGenerator
             // u->AssertIsType<T>();
             return (static_cast<D*>(this))->Update(*((T*)&u), time_diff);
         }
-        bool GetResetPosition(Unit& u, float& x, float& y, float& z, float& o) const override
+        bool GetResetPosition(Unit& u, Position& pos) const override
         {
             // u->AssertIsType<T>();
-            return (static_cast<D const*>(this))->GetResetPosition(*((T*)&u), x, y, z, o);
+            return (static_cast<D const*>(this))->GetResetPosition(*((T*)&u), pos);
+        }
+        void SetResetPosition(Unit& u, Position const& pos) override
+        {
+            // u->AssertIsType<T>();
+            (static_cast<D*>(this))->SetResetPosition(*((T*)&u), pos);
         }
     public:
         // Will not link if not overridden in the generators - also not generate for T==Unit
@@ -113,7 +119,7 @@ class MovementGeneratorMedium : public MovementGenerator
 
         // not need always overwrites
         template <class U = T, typename std::enable_if<false == std::is_same<U, Unit>::value, U>::type* = nullptr>
-        bool GetResetPosition(U& /*u*/, float& /*x*/, float& /*y*/, float& /*z*/, float& /*o*/) const { return false; }
+        bool GetResetPosition(U& /*u*/, Position& /*pos*/) const { return false; }
 };
 
 struct SelectableMovement : public FactoryHolder<MovementGenerator, MovementGeneratorType>

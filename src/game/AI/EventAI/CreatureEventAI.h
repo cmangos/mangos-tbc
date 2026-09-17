@@ -82,6 +82,8 @@ enum EventAI_Type
     EVENT_T_VEHICLE_RETURN          = 40,                   // SeatID
     EVENT_T_PASSENGER_SPAWN         = 41,                   // SeatID
     EVENT_T_PASSENGER_CONTROL_END   = 42,                   // SeatID
+    EVENT_T_ACTION_SET              = 43,                   // SetId, StepIndex, TimeMs
+    EVENT_T_MOVEMENT_INFORM         = 44,                   // MovementType, PointId, PathId
 
     EVENT_T_END,
 };
@@ -153,7 +155,8 @@ enum EventAI_ActionType
     ACTION_T_SET_DESPAWN_AGGREGATION    = 62,               // mask, entry, entry2
     ACTION_T_SET_IMMUNITY_SET           = 63,               // SetId - creature_immunities
     ACTION_T_SET_FOLLOW_MOVEMENT        = 64,               // state - 0 off, 1 on
-    ACTION_T_RETREAT                    = 65,
+    ACTION_T_RETREAT                    = 65,               //
+    ACTION_T_START_ACTION_SET           = 66,               // SetId, StepIndex, Repeat (0x1), Ooc (0x2)
 
     ACTION_T_END,
 };
@@ -598,6 +601,13 @@ struct CreatureEventAI_Action
             uint32 state;
         } followMovement;
         // ACTION_T_RETREAT - no params at this time
+        struct
+        {
+            uint32 setId;
+            uint32 stepIndex;
+            uint32 repeatAndOocFlags;
+        } startActionSet;
+        // ACTION_T_START_ACTION_SET
         // RAW
         struct
         {
@@ -801,6 +811,20 @@ struct CreatureEventAI_Event
         {
             uint32 spellId;
         } spellCast;
+        // EVENT_T_ACTION_SET                               = 38
+        struct
+        {
+            uint32 setId;
+            uint32 stepIndex;
+            uint32 timeMs;
+        } actionSet;
+        // EVENT_T_MOVEMENT_INFORM                          = 39
+        struct
+        {
+            uint32 movementType;
+            uint32 pointId;
+            uint32 pathId;
+        } movementInform;
         // RAW
         struct
         {
@@ -897,10 +921,11 @@ class CreatureEventAI : public CreatureAI
         static int Permissible(const Creature* creature);
 
         virtual void UpdateEventTimers(const uint32 diff) override;
+        void MovementInform(uint32 motionType, uint32 pointId) override;
         void ProcessEvents(Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
         bool CheckEvent(CreatureEventAIHolder& holder, Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
         void ResetEvent(CreatureEventAIHolder& holder);
-        void CheckAndReadyEventForExecution(CreatureEventAIHolder& holder, Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
+        bool CheckAndReadyEventForExecution(CreatureEventAIHolder& holder, Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
         void IncreaseDepthIfNecessary() { if (m_depth >= m_creatureEventAITempList.size()) m_creatureEventAITempList.resize(m_depth + 1); }
         virtual bool ProcessEvent(CreatureEventAIHolder& holder, Unit* actionInvoker = nullptr, Unit* AIEventSender = nullptr);
         virtual bool ProcessAction(CreatureEventAI_Action const& action, uint32 rnd, uint32 eventId, Unit* actionInvoker, Unit* AIEventSender, Unit* eventTarget);
@@ -942,6 +967,13 @@ class CreatureEventAI : public CreatureAI
         uint32 m_despawnAggregationMask;
         std::set<uint32> m_entriesForDespawn;
         GuidVector m_despawnGuids;
+
+        uint32 m_timer; // EVENT_T_ACTION_SET
+        int32 m_setId;
+        uint32 m_maxIndex;
+        uint32 m_index;
+        bool m_repeat;
+        bool m_setOocOnly;
 
         MovementGeneratorType m_defaultMovement; // TODO: Extend to all of AI
 };

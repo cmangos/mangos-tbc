@@ -44,7 +44,7 @@ void HomeMovementGenerator<Creature>::_setTargetLocation(Creature& owner)
 
     Position pos;
     // at apply we can select more nice return points base at current movegen
-    if (owner.GetMotionMaster()->empty() || !owner.GetMotionMaster()->top()->GetResetPosition(owner, pos.x, pos.y, pos.z, pos.o))
+    if (owner.GetMotionMaster()->empty() || !owner.GetMotionMaster()->top()->GetResetPosition(owner, pos))
         owner.GetCombatStartPosition(pos);
 
     if (pos.IsEmpty())

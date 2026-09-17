@@ -840,17 +840,17 @@ void FollowMovementGenerator::Reset(Unit& owner)
     Initialize(owner);
 }
 
-bool FollowMovementGenerator::GetResetPosition(Unit& owner, float& x, float& y, float& z, float& o) const
+bool FollowMovementGenerator::GetResetPosition(Unit& owner, Position& pos) const
 {
-    if (!_getLocation(owner, x, y, z, m_targetMoving))
+    if (!_getLocation(owner, pos.x, pos.y, pos.z, m_targetMoving))
         return false;
 
-    if (!_getOrientation(owner, o))
-        o = owner.GetAngle(x, y);
+    if (!_getOrientation(owner, pos.o))
+        pos.o = owner.GetAngle(pos.x, pos.y);
 
     // must return local coords
     if (GenericTransport* transport = owner.GetTransport())
-        transport->CalculatePassengerOffset(x, y, z, &o);
+        transport->CalculatePassengerOffset(pos.x, pos.y, pos.z, &pos.o);
 
     return true;
 }
@@ -1194,15 +1194,12 @@ void FormationMovementGenerator::Interrupt(Unit& owner)
     FollowMovementGenerator::Interrupt(owner);
 }
 
-bool FormationMovementGenerator::GetResetPosition(Unit&, float& x, float& y, float& z, float& o) const
+bool FormationMovementGenerator::GetResetPosition(Unit&, Position& pos) const
 {
     if (m_resetPoint.IsEmpty())
         return false;
 
-    x = m_resetPoint.x;
-    y = m_resetPoint.y;
-    z = m_resetPoint.z;
-    o = m_resetPoint.o;
+    pos = m_resetPoint;
 
     return true;
 }

@@ -104,12 +104,12 @@ void instance_shattered_halls::OnCreatureCreate(Creature* creature)
         case NPC_NETHEKURSE:
         case NPC_KARGATH_BLADEFIST:
         case NPC_EXECUTIONER:
-        case NPC_SOLDIER_ALLIANCE_2:
-        case NPC_SOLDIER_ALLIANCE_3:
-        case NPC_OFFICER_ALLIANCE:
-        case NPC_SOLDIER_HORDE_2:
-        case NPC_SOLDIER_HORDE_3:
-        case NPC_OFFICER_HORDE:
+        case NPC_RIFLEMAN_BROWNBEARD:
+        case NPC_PRIVATE_JACINT:
+        case NPC_CAPTAIN_ALINA:
+        case NPC_KORAG_PROUDMANE:
+        case NPC_SCOUT_ORGARR:
+        case NPC_CAPTAIN_BONESHATTER:
             m_npcEntryGuidStore[creature->GetEntry()] = creature->GetObjectGuid();
             break;
         case NPC_SHATTERED_HAND_ZEALOT:
@@ -205,16 +205,21 @@ void instance_shattered_halls::SetData(uint32 type, uint32 data)
 
                     // cast the execution spell
                     DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_1);
+
+                    // Make Kargath yell intro
+                    if (Creature* kargath = GetSingleCreatureFromStorage(NPC_KARGATH_BLADEFIST, true))
+                        DoBroadcastText(m_team == ALLIANCE ? SAY_KARGATH_EXECUTE_INTRO_ALLY : SAY_KARGATH_EXECUTE_INTRO_HORDE, kargath);
+                    
                 }
             }
             if (data == DONE)
             {
                 // If the officer is already killed, then skip the quest completion
-                if (m_executionStage)
+                if (m_executionStage > 1)
                     break;
 
                 // Complete quest 9524 or 9525
-                if (Creature* officer = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_OFFICER_ALLIANCE : NPC_OFFICER_HORDE))
+                if (Creature* officer = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_CAPTAIN_ALINA : NPC_CAPTAIN_BONESHATTER))
                 {
                     Map::PlayerList const& lPlayers = instance->GetPlayers();
                     for (const auto& lPlayer : lPlayers)
@@ -510,32 +515,38 @@ void instance_shattered_halls::Update(uint32 diff)
     if (m_auiEncounter[TYPE_EXECUTION] != IN_PROGRESS)
         return;
 
+    // Appears to be: dwarf/tauren, officer, then human/orc last
     if (m_executionTimer < diff)
     {
         switch (m_executionStage)
         {
             case 0:
-                // Kill the officer
-                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_OFFICER_ALLIANCE : NPC_OFFICER_HORDE))
+                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_RIFLEMAN_BROWNBEARD : NPC_KORAG_PROUDMANE))
                     pSoldier->Suicide();
 
-                // Make Kargath yell
-                DoOrSimulateScriptTextForThisInstance(m_team == ALLIANCE ? SAY_KARGATH_EXECUTE_ALLY : SAY_KARGATH_EXECUTE_HORDE, NPC_KARGATH_BLADEFIST);
+                if (Creature* kargath = GetSingleCreatureFromStorage(NPC_KARGATH_BLADEFIST, true))
+                    DoBroadcastText(m_team == ALLIANCE ? SAY_KARGATH_EXECUTE_DWARF_ALLY : SAY_KARGATH_EXECUTE_TAUREN_HORDE, kargath);
 
                 // Set timer for the next execution
                 DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_2);
                 m_executionTimer = 10 * MINUTE * IN_MILLISECONDS;
                 break;
             case 1:
-                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_SOLDIER_ALLIANCE_2 : NPC_SOLDIER_HORDE_2))
+                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_CAPTAIN_ALINA : NPC_CAPTAIN_BONESHATTER))
                     pSoldier->Suicide();
+
+                if (Creature* kargath = GetSingleCreatureFromStorage(NPC_KARGATH_BLADEFIST, true))
+                    DoBroadcastText(m_team == ALLIANCE ? SAY_KARGATH_EXECUTE_OFFICER_ALLY : SAY_KARGATH_EXECUTE_OFFICER_HORDE, kargath);
 
                 DoCastGroupDebuff(SPELL_KARGATH_EXECUTIONER_3);
                 m_executionTimer = 15 * MINUTE * IN_MILLISECONDS;
                 break;
             case 2:
-                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_SOLDIER_ALLIANCE_3 : NPC_SOLDIER_HORDE_3))
+                if (Creature* pSoldier = GetSingleCreatureFromStorage(m_team == ALLIANCE ? NPC_PRIVATE_JACINT : NPC_SCOUT_ORGARR))
                     pSoldier->Suicide();
+
+                if (Creature* kargath = GetSingleCreatureFromStorage(NPC_KARGATH_BLADEFIST, true))
+                    DoBroadcastText(SAY_KARGATH_EXECUTE_FINAL, kargath);
 
                 SetData(TYPE_EXECUTION, FAIL);
                 m_executionTimer = 0;

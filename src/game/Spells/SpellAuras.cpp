@@ -6727,7 +6727,7 @@ void Aura::PeriodicTick()
             }
 
             // for non-bleed normal school dots, reduce damage with armor
-            if (spellProto->SchoolMask == SPELL_SCHOOL_MASK_NORMAL && !isNotBleed)
+            if (spellProto->SchoolMask == SPELL_SCHOOL_MASK_NORMAL && isNotBleed)
                 pdamage = target->CalcArmorReducedDamage(caster, target, pdamage);
 
             pdamage -= target->GetResilienceRatingDamageReduction(pdamage, SpellDmgClass(spellProto->DmgClass), true);

@@ -6724,11 +6724,11 @@ void Aura::PeriodicTick()
             {
                 WeaponAttackType attackType = GetWeaponAttackType(spellProto);
                 pdamage = target->MeleeDamageBonusTaken(caster, pdamage, attackType, SpellSchoolMask(spellProto->SchoolMask), spellProto, GetEffIndex(), DOT, GetStackAmount());
-
-                // for non-bleed normal school dots, reduce damage with armor
-                if (spellProto->SchoolMask == SPELL_SCHOOL_MASK_NORMAL && !isNotBleed)
-                    pdamage = target->CalcArmorReducedDamage(caster, target, pdamage);
             }
+
+            // for non-bleed normal school dots, reduce damage with armor
+            if (spellProto->SchoolMask == SPELL_SCHOOL_MASK_NORMAL && !isNotBleed)
+                pdamage = target->CalcArmorReducedDamage(caster, target, pdamage);
 
             pdamage -= target->GetResilienceRatingDamageReduction(pdamage, SpellDmgClass(spellProto->DmgClass), true);
 

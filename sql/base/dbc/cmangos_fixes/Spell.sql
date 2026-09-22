@@ -637,8 +637,8 @@ INSERT INTO `spell_template` (`Id`,`Category`,`Dispel`,`Mechanic`,`Attributes`,`
 ('22707', '0', '0', '0', '384', '268435456', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '101', '0', '0', '0', '0', '487', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '-1', '0', '0', '6', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '0', '0', '0', '0', '0', '0', '0', '0', '26', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '87', '0', '0', 'Root', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '0', '0', '0', '0', '0', '0', '0', '0', '0', '1', '1', '1', '0');
 
 -- magtheridon debris select spell
-INSERT INTO `spell_template` (`Id`,`Category`,`Attributes`,`AttributesEx2`,`CategoryRecoveryTime`,`Effect1`,`EffectImplicitTargetA1`,`EffectImplicitTargetB1`,`EffectRadiusIndex1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`MaxAffectedTargets`) VALUES
-(30629,1152,256,4,5000,77,22,7,12,1,'Debris',1,1);
+INSERT INTO `spell_template` (`Id`,`Category`,`Attributes`,`AttributesEx2`,`AttributesEx3`,`CategoryRecoveryTime`,`Effect1`,`EffectImplicitTargetA1`,`EffectImplicitTargetB1`,`EffectRadiusIndex1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`,`MaxAffectedTargets`) VALUES
+(30629,1152,256,4,256,5000,77,22,7,12,1,'Debris',1,1);
 
 -- magtheridon debris spawn spell for trigger
 INSERT INTO `spell_template` (`Id`,`Attributes`,`AttributesEx2`,`DurationIndex`,`Effect1`,`EffectImplicitTargetA1`,`EffectMiscValue1`,`EffectMiscValueB1`,`SpellIconID`,`SpellName`,`DmgMultiplier1`) VALUES

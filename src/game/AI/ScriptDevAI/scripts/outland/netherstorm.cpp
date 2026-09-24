@@ -2243,6 +2243,8 @@ enum
     SPELL_DIMENSIUS_FEEDING     = 37450,
     SPELL_SHADOW_SPIRAL         = 37500,
     SPELL_SHADOW_VAULT          = 37412,
+    SPELL_CONSUME               = 37422,
+    SPELL_LOGIC_TICK            = 37425, // unk
 
     NPC_SPAWN_OF_DIMENSIUS      = 21780,
     NPC_CAPTAIN_SAEED           = 20985,
@@ -2258,7 +2260,8 @@ struct npc_dimensiusAI : public Scripted_NoMovementAI
 
     uint32 m_uiSpiralTimer;
     uint32 m_uiVaultTimer;
-    uint32 m_uiRainTimer;
+    uint32 m_uiConsumeTimer;
+    uint32 m_uiRainTimer;    
     uint8 m_uiRainIndex;
     uint8 m_uiSpawnsDead;
 
@@ -2268,6 +2271,7 @@ struct npc_dimensiusAI : public Scripted_NoMovementAI
     {
         m_uiSpiralTimer = 1000;
         m_uiVaultTimer  = urand(5000, 10000);
+        m_uiConsumeTimer = urand(20000, 30000);
         m_uiRainTimer   = 0;
         m_uiRainIndex   = urand(0, 4);
         m_uiSpawnsDead  = 0;
@@ -2372,6 +2376,14 @@ struct npc_dimensiusAI : public Scripted_NoMovementAI
         }
         else
             m_uiVaultTimer -= uiDiff;
+
+        if (m_uiConsumeTimer < uiDiff)
+        {
+            if (DoCastSpellIfCan(nullptr, SPELL_CONSUME) == CAST_OK)
+                m_uiConsumeTimer = urand(20000, 30000);
+        }
+        else
+            m_uiConsumeTimer -= uiDiff;
 
         DoMeleeAttackIfReady();
     }

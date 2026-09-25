@@ -27,6 +27,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 #define MAX_STACK_SIZE 64
 
@@ -125,6 +126,14 @@ class BIH
             float intervalMax = -1.f;
             Vector3 org = r.origin();
             Vector3 dir = r.direction();
+            // NaNs can bypass the empty-child clipping tests and revisit a node.
+            for (int i = 0; i < 3; ++i)
+                if (!std::isfinite(org[i]) || !std::isfinite(dir[i]))
+                    return;
+            // An infinite search distance is valid for indoor/area queries.
+            if (std::isnan(maxDist) || maxDist < 0.0f)
+                return;
+
             Vector3 invDir;
             for (int i = 0; i < 3; ++i)
             {
@@ -208,6 +217,8 @@ class BIH
                             }
                             // ray passes through both nodes
                             // push back node
+                            if (stackPos >= MAX_STACK_SIZE)
+                                return;
                             stack[stackPos].node = back;
                             stack[stackPos].tnear = (tb >= intervalMin) ? tb : intervalMin;
                             stack[stackPos].tfar = intervalMax;

@@ -5421,7 +5421,8 @@ void Unit::RemoveAurasDueToSpellBySteal(SpellAuraHolder* holder, Unit* stealer)
     // max duration 2 minutes (in msecs)
     int32 dur = holder->GetAuraDuration();
     int32 max_dur = 2 * MINUTE * IN_MILLISECONDS;
-    int32 new_max_dur = max_dur > dur ? dur : max_dur;
+    // permanent auras (duration -1) must also be capped
+    int32 new_max_dur = (dur >= 0 && dur < max_dur) ? dur : max_dur;
     new_holder->SetAuraMaxDuration(new_max_dur);
     new_holder->SetAuraDuration(new_max_dur);
 

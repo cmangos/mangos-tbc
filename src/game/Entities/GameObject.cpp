@@ -542,6 +542,7 @@ void GameObject::Update(const uint32 diff)
                             m_lootState = GO_JUST_DEACTIVATED;
 
                         m_loot->Update();
+                        RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_LOCKED);
                     }
                     break;
                 case GAMEOBJECT_TYPE_TRAP:
@@ -666,9 +667,10 @@ void GameObject::Update(const uint32 diff)
             {
                 SendObjectDeSpawnAnim(GetObjectGuid());
                 // reset flags
-                if (GetMap()->Instanceable())
+                if (GetMap()->Instanceable() && GetGoType() != GAMEOBJECT_TYPE_CHEST)
                 {
                     // In Instances GO_FLAG_LOCKED, GO_FLAG_INTERACT_COND or GO_FLAG_NO_INTERACT are not changed
+                    // Actually for chests, they do
                     uint32 currentLockOrInteractFlags = GetUInt32Value(GAMEOBJECT_FLAGS) & (GO_FLAG_LOCKED | GO_FLAG_INTERACT_COND | GO_FLAG_NO_INTERACT);
                     SetUInt32Value(GAMEOBJECT_FLAGS, (GetGOInfo()->flags & ~(GO_FLAG_LOCKED | GO_FLAG_INTERACT_COND | GO_FLAG_NO_INTERACT)) | currentLockOrInteractFlags);
                 }

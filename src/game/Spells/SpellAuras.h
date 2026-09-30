@@ -103,7 +103,7 @@ class SpellAuraHolder
         void ApplyAuraModifiers(bool apply, bool real = false);
         void _AddSpellAuraHolder();
         void _RemoveSpellAuraHolder();
-        void HandleSpellSpecificBoosts(bool apply);
+        void HandleSpellSpecificBoosts(bool apply, AuraRemoveMode mode = AURA_REMOVE_BY_DEFAULT);
         void CleanupTriggeredSpells();
 
         void setDiminishGroup(DiminishingGroup group) { m_AuraDRGroup = group; }

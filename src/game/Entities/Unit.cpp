@@ -5732,7 +5732,7 @@ void Unit::RemoveSpellAuraHolder(SpellAuraHolder* holder, AuraRemoveMode mode)
     holder->_RemoveSpellAuraHolder();
 
     if (mode != AURA_REMOVE_BY_DELETE)
-        holder->HandleSpellSpecificBoosts(false);
+        holder->HandleSpellSpecificBoosts(false, mode);
 
     if (statue)
         statue->UnSummon();

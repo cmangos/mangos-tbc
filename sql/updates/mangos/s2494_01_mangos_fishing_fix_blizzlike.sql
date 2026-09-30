@@ -11,3 +11,10 @@ REPLACE INTO `skill_fishing_base_level` (`entry`, `skill`) VALUES
 (3679, 405), -- Skettis
 (2366, 205), -- The Black Morass
 (3606, 330); -- Hyjal Summit
+
+-- Insert remaining missing high-level subzones from Terokkar and Zangarmarsh
+REPLACE INTO `skill_fishing_base_level` (`entry`, `skill`) VALUES
+(3720, 355), -- Twin Spire Ruins (Zangarmarsh)
+(3680, 405), -- Blackwind Valley (Terokkar)
+(3693, 405), -- Skethyl Mountains (Terokkar)
+(3975, 405); -- Terokk's Rest (Terokkar)

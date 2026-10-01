@@ -49,6 +49,7 @@ class SpawnGroup
         void Spawn(bool force, bool ignoreRespawntime);
         virtual void Despawn(uint32 timeMSToDespawn = 0, uint32 forcedDespawnTime = 0) = 0;
         std::string to_string() const;
+        bool HasStringId(const std::string& stringId) const;
         uint32 GetObjectTypeId() const { return m_objectTypeId; }
         void SetEnabled(bool enabled) { m_enabled = enabled; }
         SpawnGroupEntry const& GetGroupEntry() const { return m_entry; }

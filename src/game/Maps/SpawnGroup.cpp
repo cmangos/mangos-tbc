@@ -707,6 +707,12 @@ void CreatureGroup::ClearRespawnTimes()
         m_map.GetPersistentState()->SaveObjectRespawnTime(GetObjectTypeId(), data.DbGuid, now);
 }
 
+bool SpawnGroup::HasStringId(const std::string& stringId) const
+{
+    uint32 stringIdId = m_map.GetMapDataContainer().GetStringId(stringId);
+    return m_entry.StringId == stringIdId;
+}
+
 GameObjectGroup::GameObjectGroup(SpawnGroupEntry const& entry, Map& map) : SpawnGroup(entry, map, uint32(TYPEID_GAMEOBJECT))
 {
 }

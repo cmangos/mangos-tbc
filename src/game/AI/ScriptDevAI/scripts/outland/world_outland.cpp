@@ -1670,6 +1670,12 @@ struct world_map_outland : public ScriptedMap, public TimerManager
         }
     }
 
+    void OnObjectSpawn(GameObject* go)
+    {
+        if (go->GetEntry() == GO_UNGUARDED_SUMMONING_SITE)
+            go->ForcedDespawn(300000);
+    }
+
     void OnCreatureEvade(Creature* creature) override
     {
         switch (creature->GetEntry())
@@ -1904,6 +1910,17 @@ struct world_map_outland : public ScriptedMap, public TimerManager
             // Azure Watch
             if (Creature* matron = instance->GetCreature(m_npcEntryGuidStore[NPC_COSTUMED_ORPHAN_MATRON]))
                 matron->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, matron, matron);
+        }
+    }
+
+    void OnCreatureGroupDespawn(CreatureGroup* creatureGroup, Creature* /*creature*/) override
+    {
+        // 10585 - The Summoning Chamber
+        if (creatureGroup->HasStringId("THE_SUMMONING_CHAMBER_GUARD_GROUP"))
+        {
+            SpawnGroup* group = instance->GetSpawnManager().GetSpawnGroup("THE_SUMMONING_CHAMBER_UNGUARDED_GROUP");
+            if (group)
+                group->Spawn(true, true);
         }
     }
 

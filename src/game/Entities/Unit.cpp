@@ -10493,6 +10493,7 @@ bool Unit::SetConfused(bool apply, ObjectGuid casterGuid, uint32 spellID)
         // We are effectively rebuilding motion master contents: confused > fleeing > panic
         {
             const bool panic = IsInPanic();
+            const bool hadConfusedGenerator = (GetMotionMaster()->GetCurrentMovementGeneratorType() == CONFUSED_MOTION_TYPE);
 
             GetMotionMaster()->MovementExpired();
 
@@ -10504,6 +10505,13 @@ bool Unit::SetConfused(bool apply, ObjectGuid casterGuid, uint32 spellID)
                 Unit* source = (fears.empty() ? nullptr : fears.back()->GetCaster());
                 GetMotionMaster()->MoveFleeing(source ? source : this);
             }
+
+            // If the confused movement generator was already gone (e.g. cleared by Uncharm while
+            // the unit is still polymorphed), its Finalize() could not re-enable client control.
+            // Restore it explicitly once the confused state actually fades.
+            if (!apply && !hadConfusedGenerator)
+                if (const Player* controllingClientPlayer = GetClientControlling())
+                    controllingClientPlayer->UpdateClientControl(this, true);
         }
 
         if (apply)
@@ -10538,6 +10546,7 @@ bool Unit::SetFleeing(bool apply, ObjectGuid casterGuid/* = ObjectGuid()*/, uint
         // TODO: requires motionmster upgrade for proper handling past this line
         // We are effectively rebuilding motion master contents: confused > fleeing > panic
         {
+            MovementGeneratorType const currentType = GetMotionMaster()->GetCurrentMovementGeneratorType();
             GetMotionMaster()->MovementExpired();
 
             if (IsConfused())
@@ -10547,6 +10556,13 @@ bool Unit::SetFleeing(bool apply, ObjectGuid casterGuid/* = ObjectGuid()*/, uint
                 Unit* source = (IsInWorld() ? GetMap()->GetUnit(casterGuid) : nullptr);
                 GetMotionMaster()->MoveFleeing((source ? source : this), duration);
             }
+
+            // If the fleeing movement generator was already gone (e.g. cleared by Uncharm while
+            // the unit is still feared), its Finalize() could not re-enable client control.
+            // Restore it explicitly once the feared state actually fades.
+            if (!apply && currentType != FLEEING_MOTION_TYPE && currentType != TIMED_FLEEING_MOTION_TYPE)
+                if (const Player* controllingClientPlayer = GetClientControlling())
+                    controllingClientPlayer->UpdateClientControl(this, true);
         }
 
         if (apply)

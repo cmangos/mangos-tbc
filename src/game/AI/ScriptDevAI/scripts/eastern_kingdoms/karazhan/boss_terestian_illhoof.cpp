@@ -147,6 +147,16 @@ struct boss_terestianAI : public CombatAI
 
         if (m_instance)
             m_instance->SetData(TYPE_TERESTIAN, IN_PROGRESS);
+
+        // Kil'rek is spawned before the pull; explicitly engage him now
+        if (Creature* kilrek = m_creature->GetMap()->GetAnyTypeCreature(m_kilrekGuid))
+        {
+            if (kilrek->IsAlive())
+            {
+                kilrek->SetInCombatWithZone();
+                kilrek->AI()->AttackClosestEnemy();
+            }
+        }
     }
 
     void JustReachedHome() override

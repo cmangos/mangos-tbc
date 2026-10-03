@@ -27,6 +27,12 @@ struct HuntersMark : public AuraScript
     {
         if (data.effIdx == EFFECT_INDEX_2)
         {
+            // TBC 2.4.3 rank 4: effect 2 is SPELL_AURA_MOD_TARGET_RANGED_ATTACK_POWER_BY_ATTACKER
+            // and scales with stack count (value already contains baseAmount * stackAmount).
+            // The legacy Improved Hunter's Mark melee-AP calculation below is for other ranks/eras.
+            if (data.spellProto->EffectApplyAuraName[EFFECT_INDEX_2] == SPELL_AURA_MOD_TARGET_RANGED_ATTACK_POWER_BY_ATTACKER)
+                return value;
+
             int32 auraValue = 0;
             if (data.aura)
             {
@@ -59,6 +65,12 @@ struct HuntersMark : public AuraScript
 
     SpellAuraProcResult OnProc(Aura* aura, ProcExecutionData& /*procData*/) const override
     {
+        // TBC 2.4.3: rank 4 Hunter's Mark uses SPELL_AURA_MOD_TARGET_RANGED_ATTACK_POWER_BY_ATTACKER
+        // on effect 2. The actual stack increase is handled by Unit::HandleTargetRangedAttackPowerByAttackerAuraProc.
+        if (aura->GetEffIndex() == EFFECT_INDEX_2 &&
+            aura->GetModifier()->m_auraname == SPELL_AURA_MOD_TARGET_RANGED_ATTACK_POWER_BY_ATTACKER)
+            return SPELL_AURA_PROC_OK;
+
         if (aura->GetEffIndex() != EFFECT_INDEX_0) // increases debuff strength on every hit up to 4th
         {
             int32 basevalue = aura->GetBasePoints();

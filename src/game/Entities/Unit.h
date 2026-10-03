@@ -2271,6 +2271,7 @@ class Unit : public WorldObject
         SpellAuraProcResult HandleMechanicImmuneResistanceAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleManaShieldAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleAttackPowerAttackerBonusAuraProc(ProcExecutionData& data);
+        SpellAuraProcResult HandleTargetRangedAttackPowerByAttackerAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleModResistanceAuraProc(ProcExecutionData& data);
         SpellAuraProcResult HandleRemoveByDamageChanceProc(ProcExecutionData& data);
         SpellAuraProcResult HandleInvisibilityAuraProc(ProcExecutionData& data);

@@ -7963,12 +7963,27 @@ uint32 Unit::MeleeDamageBonusDone(Unit* victim, uint32 pdamage, WeaponAttackType
     if (attType == RANGED_ATTACK)
     {
         APbonus += victim->GetTotalAuraModifier(SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS);
+        APbonus += victim->GetTotalAuraModifier(SPELL_AURA_MOD_TARGET_RANGED_ATTACK_POWER_BY_ATTACKER);
         APbonus += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_RANGED_ATTACK_POWER_VERSUS, creatureTypeMask);
     }
     else
     {
         APbonus += victim->GetTotalAuraModifier(SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS);
         APbonus += GetTotalAuraModifierByMiscMask(SPELL_AURA_MOD_MELEE_ATTACK_POWER_VERSUS, creatureTypeMask);
+
+        // Improved Hunter's Mark: melee AP equal to X% of the mark's stacked ranged AP
+        AuraList const& hmAuras = victim->GetAurasByType(SPELL_AURA_MOD_TARGET_RANGED_ATTACK_POWER_BY_ATTACKER);
+        for (auto i : hmAuras)
+        {
+            if (Unit* markCaster = i->GetCaster())
+            {
+                int32 talentPct = 0;
+                for (int32 misc = 5236; misc <= 5240; ++misc)
+                    talentPct += markCaster->GetTotalAuraModifierByMiscValue(SPELL_AURA_OVERRIDE_CLASS_SCRIPTS, misc);
+                if (talentPct > 0)
+                    APbonus += int32(i->GetModifier()->m_amount * talentPct / 100.0f);
+            }
+        }
     }
 
     // PERCENT damage auras

@@ -995,7 +995,15 @@ void PathFinder::NormalizePath()
     {
         if (transport)
             transport->CalculatePassengerPosition(m_pathPoint.x, m_pathPoint.y, m_pathPoint.z);
+
+        float oldZ = m_pathPoint.z;
         m_sourceUnit->UpdateAllowedPositionZ(m_pathPoint.x, m_pathPoint.y, m_pathPoint.z);
+
+        // Clamp the Z correction to avoid snapping a path point onto a lower
+        // floor/underground below terrain overhangs or bridges (Issue #3226).
+        if (std::fabs(m_pathPoint.z - oldZ) > 2.0f)
+            m_pathPoint.z = oldZ;
+
         if (transport)
             transport->CalculatePassengerOffset(m_pathPoint.x, m_pathPoint.y, m_pathPoint.z);
     }

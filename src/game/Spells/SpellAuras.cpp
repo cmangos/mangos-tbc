@@ -784,6 +784,8 @@ void PersistentAreaAura::Update(uint32 diff)
             else
                 remove = false;
         }
+        else
+            Aura::Update(diff);
     }
 
     if (remove)

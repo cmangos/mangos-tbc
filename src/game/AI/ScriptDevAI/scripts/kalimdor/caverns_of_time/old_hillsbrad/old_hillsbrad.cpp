@@ -36,6 +36,7 @@ instance_old_hillsbrad::instance_old_hillsbrad(Map* pMap) : ScriptedInstance(pMa
 
 void instance_old_hillsbrad::Initialize()
 {
+    instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 0);
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 }
 
@@ -196,7 +197,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
         case TYPE_DRAKE:
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)           
-                DoUpdateWorldState(WORLD_STATE_CUSTOM_TRASH_RESPAWN, 1);
+                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 0);
                 break;
         case TYPE_SKARLOC:
         case TYPE_ESCORT_BARN:
@@ -302,7 +303,7 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
                         if (lieutnantDrake)
                             lieutnantDrake->Spawn(true, true);
 
-                        DoUpdateWorldState(WORLD_STATE_CUSTOM_TRASH_RESPAWN, 1);
+                        instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 1);
                     }
 
                     // Orc Prisoners and all alive enemy NPC groups around the orc Huts will have differen RP elements after Lieutenant Drake spawned

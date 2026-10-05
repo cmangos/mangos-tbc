@@ -157,17 +157,13 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, m_uiBarrelCount);
 
                 debug_log("SD2: Instance Old Hillsbrad: go_barrel_old_hillsbrad count %u", m_uiBarrelCount);
-
-                // Set encounter to done, and spawn Liutenant Drake
+                
+                // 5 Barrels used - Worldstate still gets shown ingame
+                // Dont change Type to Done as it can reset on crash/soft reset
                 if (m_uiBarrelCount == MAX_BARRELS)
                 {
-                    UpdateLodgeQuestCredit();
-                    DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
-
                     m_uiDrakeDelay = 3000;
                     m_uiDrakeStep = 1;
-
-                    SetData(TYPE_BARREL_DIVERSION, DONE);
                 }
             }
             break;
@@ -198,6 +194,10 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             }
             break;
         case TYPE_DRAKE:
+            m_auiEncounter[uiType] = uiData;
+            if (uiData == DONE)           
+                DoUpdateWorldState(WORLD_STATE_CUSTOM_TRASH_RESPAWN, 1);
+                break;
         case TYPE_SKARLOC:
         case TYPE_ESCORT_BARN:
         case TYPE_ESCORT_INN:
@@ -286,7 +286,7 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
             switch (m_uiDrakeStep)
             {
                 case 1: {
-                    // Spawn Fire
+                    // First spawn  all Roaring Flames - despawning on soft reset
                     SpawnGroup* roaringFlames = instance->GetSpawnManager().GetSpawnGroup("OHF_ROARING_FLAMES");
                     if (roaringFlames)
                         roaringFlames->Spawn(true, true);
@@ -295,10 +295,15 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
                     break;
                 }
                 case 2: {
-                    // Spawn Lieutnant Drake
-                    SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE");
-                    if (lieutnantDrake)
-                        lieutnantDrake->Spawn(true, true);
+                    // Spawn Lieutnant Drake only if not already done and prevent enemy npc respawning
+                    if (GetData(TYPE_DRAKE) != DONE)
+                    {
+                        SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE");
+                        if (lieutnantDrake)
+                            lieutnantDrake->Spawn(true, true);
+
+                        DoUpdateWorldState(WORLD_STATE_CUSTOM_TRASH_RESPAWN, 1);
+                    }
 
                     // Orc Prisoners and all alive enemy NPC groups around the orc Huts will have differen RP elements after Lieutenant Drake spawned
                     // Everything gets handled via EAI activated with AI_EVENT_CUSTOM_EVENTAI_A
@@ -308,9 +313,14 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
                         for (Creature* creature : *drakerpSpecial)
                             creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
                     }
-                    m_uiDrakeDelay = 0;
-                    m_uiDrakeStep = 0;
+                    m_uiDrakeDelay = 7000;
+                    m_uiDrakeStep = 3;
                     break;
+                }
+                case 3: {
+                    // Remove Barrel Worldstate and update quests
+                    UpdateLodgeQuestCredit();
+                    DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
                 }
             }
         }
@@ -340,7 +350,7 @@ bool ProcessEventId_event_go_barrel_old_hillsbrad(uint32 /*uiEventId*/, Object* 
     {
         if (instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)((Player*)pSource)->GetInstanceData())
         {
-            if (pInstance->GetData(TYPE_BARREL_DIVERSION) == DONE || (GameObject*)pTarget->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT))
+            if ((GameObject*)pTarget->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT))
                 return true;
 
             pInstance->SetData(TYPE_BARREL_DIVERSION, IN_PROGRESS);

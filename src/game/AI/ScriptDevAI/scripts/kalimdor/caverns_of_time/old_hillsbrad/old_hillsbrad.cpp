@@ -27,7 +27,9 @@ EndScriptData */
 instance_old_hillsbrad::instance_old_hillsbrad(Map* pMap) : ScriptedInstance(pMap),
     m_uiBarrelCount(0),
     m_uiThrallEventCount(0),
-    m_uiThrallResetTimer(0)
+    m_uiThrallResetTimer(0),
+    m_uiDrakeDelay(0),
+    m_uiDrakeStep(0)
 {
     Initialize();
 }
@@ -38,19 +40,7 @@ void instance_old_hillsbrad::Initialize()
 }
 
 void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
-{
-    // ToDo: HandleThrallRelocation();
-    // Note: this isn't yet supported because of the grid load / unload
-
-    // Spawn Drake if necessary
-    if (GetData(TYPE_DRAKE) == DONE || GetData(TYPE_BARREL_DIVERSION) != DONE)
-        return;
-
-    if (GetSingleCreatureFromStorage(NPC_DRAKE, true))
-        return;
-
-    pPlayer->SummonCreature(NPC_DRAKE, aDrakeSummonLoc[0], aDrakeSummonLoc[1], aDrakeSummonLoc[2], aDrakeSummonLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0);
-}
+{}
 
 void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
 {
@@ -71,14 +61,6 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         case NPC_ORC_PRISONER:
-            // Sort the orcs which are inside the houses
-            if (pCreature->GetPositionZ() > 53.4f)
-            {
-                if (pCreature->GetPositionY() > 150.0f)
-                    m_lLeftPrisonersList.push_back(pCreature->GetObjectGuid());
-                else
-                    m_lRightPrisonersList.push_back(pCreature->GetObjectGuid());
-            }
             break;
     }
 }
@@ -128,9 +110,7 @@ void instance_old_hillsbrad::OnCreatureDespawn(Creature* pCreature)
 
 void instance_old_hillsbrad::OnObjectCreate(GameObject* pGo)
 {
-    if (pGo->GetEntry() == GO_ROARING_FLAME)
-        m_lRoaringFlamesList.push_back(pGo->GetObjectGuid());
-    else if (pGo->GetEntry() == GO_PRISON_DOOR)
+    if (pGo->GetEntry() == GO_PRISON_DOOR)
         m_goEntryGuidStore[GO_PRISON_DOOR] = pGo->GetObjectGuid();
 }
 
@@ -184,39 +164,8 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                     UpdateLodgeQuestCredit();
                     DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
 
-                    if (Player* pPlayer = GetPlayerInMap())
-                    {
-                        pPlayer->SummonCreature(NPC_DRAKE, aDrakeSummonLoc[0], aDrakeSummonLoc[1], aDrakeSummonLoc[2], aDrakeSummonLoc[3], TEMPSPAWN_DEAD_DESPAWN, 0);
-
-                        // set the houses on fire
-                        for (GuidList::const_iterator itr = m_lRoaringFlamesList.begin(); itr != m_lRoaringFlamesList.end(); ++itr)
-                            DoRespawnGameObject(*itr, 30 * MINUTE);
-
-                        // move the orcs outside the houses
-                        float fX, fY, fZ;
-                        for (GuidList::const_iterator itr = m_lRightPrisonersList.begin(); itr != m_lRightPrisonersList.end(); ++itr)
-                        {
-                            if (Creature* pOrc = instance->GetCreature(*itr))
-                            {
-                                pOrc->GetRandomPoint(afInstanceLoc[0][0], afInstanceLoc[0][1], afInstanceLoc[0][2], 10.0f, fX, fY, fZ);
-                                pOrc->SetWalk(false);
-                                pOrc->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
-                                pOrc->SetStandState(UNIT_STAND_STATE_STAND);
-                            }
-                        }
-                        for (GuidList::const_iterator itr = m_lLeftPrisonersList.begin(); itr != m_lLeftPrisonersList.end(); ++itr)
-                        {
-                            if (Creature* pOrc = instance->GetCreature(*itr))
-                            {
-                                pOrc->GetRandomPoint(afInstanceLoc[1][0], afInstanceLoc[1][1], afInstanceLoc[1][2], 10.0f, fX, fY, fZ);
-                                pOrc->SetWalk(false);
-                                pOrc->GetMotionMaster()->MovePoint(0, fX, fY, fZ);
-                                pOrc->SetStandState(UNIT_STAND_STATE_STAND);
-                            }
-                        }
-                    }
-                    else
-                        debug_log("SD2: Instance Old Hillsbrad: SetData (Type: %u Data %u) cannot find any pPlayer.", uiType, uiData);
+                    m_uiDrakeDelay = 3000;
+                    m_uiDrakeStep = 1;
 
                     SetData(TYPE_BARREL_DIVERSION, DONE);
                 }
@@ -330,6 +279,44 @@ void instance_old_hillsbrad::UpdateLodgeQuestCredit()
 
 void instance_old_hillsbrad::Update(uint32 uiDiff)
 {
+    if (m_uiDrakeDelay)
+    {
+        if (m_uiDrakeDelay <= uiDiff)
+        {
+            switch (m_uiDrakeStep)
+            {
+                case 1: {
+                    // Spawn Fire
+                    SpawnGroup* roaringFlames = instance->GetSpawnManager().GetSpawnGroup("OHF_ROARING_FLAMES");
+                    if (roaringFlames)
+                        roaringFlames->Spawn(true, true);
+                    m_uiDrakeDelay = 2000;
+                    m_uiDrakeStep = 2;
+                    break;
+                }
+                case 2: {
+                    // Spawn Lieutnant Drake
+                    SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE");
+                    if (lieutnantDrake)
+                        lieutnantDrake->Spawn(true, true);
+
+                    // Orc Prisoners and all alive enemy NPC groups around the orc Huts will have differen RP elements after Lieutenant Drake spawned
+                    // Everything gets handled via EAI activated with AI_EVENT_CUSTOM_EVENTAI_A
+                    std::vector<Creature*> const* drakerpSpecial = instance->GetCreatures("OHF_DRAKE_RP_SPECIAL");
+                    if (drakerpSpecial)
+                    {
+                        for (Creature* creature : *drakerpSpecial)
+                            creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
+                    }
+                    m_uiDrakeDelay = 0;
+                    m_uiDrakeStep = 0;
+                    break;
+                }
+            }
+        }
+        else
+            m_uiDrakeDelay -= uiDiff;
+    }
     if (m_uiThrallResetTimer)
     {
         if (m_uiThrallResetTimer <= uiDiff)

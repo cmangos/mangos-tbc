@@ -59,14 +59,6 @@ enum
     THRALL_PATH_ID                  = 5600435
 };
 
-static const float afInstanceLoc[][4] =
-{
-    {2104.51f, 91.96f, 53.14f, 0},                  // right orcs outside loc
-    {2192.58f, 238.44f, 52.44f, 0},                 // left orcs outside loc
-};
-
-static const float aDrakeSummonLoc[4] = {2170.7588f, 146.05963f, 87.63939f, 4.19093f};
-
 class instance_old_hillsbrad : public ScriptedInstance
 {
     public:
@@ -106,10 +98,8 @@ class instance_old_hillsbrad : public ScriptedInstance
         uint32 m_uiBarrelCount;
         uint32 m_uiThrallEventCount;
         uint32 m_uiThrallResetTimer;
-
-        GuidList m_lRoaringFlamesList;
-        GuidList m_lLeftPrisonersList;
-        GuidList m_lRightPrisonersList;
+        uint32 m_uiDrakeDelay;
+        uint8 m_uiDrakeStep;
 };
 
 #endif

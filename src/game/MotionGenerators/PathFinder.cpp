@@ -429,9 +429,10 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
         {
 #endif
             // Check for swimming or flying shortcut
-            if ((startPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsSwimmable(startPos.x, startPos.y, startPos.z)) ||
-                (endPoly == INVALID_POLYREF && m_sourceUnit->GetTerrain()->IsSwimmable(endPos.x, endPos.y, endPos.z)))
-                m_type = m_sourceUnit->CanSwim() ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
+            // a swimming unit can cross the shoreline even when the navmesh
+            // has no walkable corridor between water and land
+            if (canTakeWaterShortcut(startPos, endPos))
+                m_type = PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH);
             else
             {
                 if (m_sourceUnit->GetTypeId() != TYPEID_PLAYER)
@@ -777,7 +778,10 @@ void PathFinder::BuildPolyPath(const Vector3& startPos, const Vector3& endPos)
 #endif
 
             BuildShortcut();
-            m_type = PATHFIND_NOPATH;
+
+            // a swimming unit can cross the shoreline even when the navmesh
+            // has no walkable corridor between water and land
+            m_type = canTakeWaterShortcut(startPos, endPos) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
             return;
         }
     }
@@ -946,7 +950,10 @@ void PathFinder::BuildPointPath(const float* startPoint, const float* endPoint)
         // TODO : check the exact cases
         DEBUG_FILTER_LOG(LOG_FILTER_PATHFINDING, "++ PathFinder::BuildPointPath FAILED! path sized %d returned\n", pointCount);
         BuildShortcut();
-        m_type = PATHFIND_NOPATH;
+
+        // a swimming unit can cross the shoreline even when the navmesh
+        // has no walkable corridor between water and land
+        m_type = canTakeWaterShortcut(getStartPosition(), getEndPosition()) ? PathType(PATHFIND_NORMAL | PATHFIND_NOT_USING_PATH) : PATHFIND_NOPATH;
         return;
     }
 
@@ -1097,6 +1104,43 @@ void PathFinder::updateFilter()
 
         m_filter.setIncludeFlags(includedFlags);
     }
+}
+
+bool PathFinder::isWaterPosition(float x, float y, float z) const
+{
+    if (!m_sourceUnit)
+        return false;
+
+    const TerrainInfo* terrain = m_sourceUnit->GetTerrain();
+    if (terrain->IsSwimmable(x, y, z))
+        return true;
+
+    GridMapLiquidStatus status = terrain->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS);
+    return status == LIQUID_MAP_IN_WATER || status == LIQUID_MAP_UNDER_WATER;
+}
+
+bool PathFinder::isCrossingWaterLandBoundary(const Vector3& startPos, const Vector3& endPos) const
+{
+    return isWaterPosition(startPos.x, startPos.y, startPos.z) != isWaterPosition(endPos.x, endPos.y, endPos.z);
+}
+
+bool PathFinder::isMovingWithinWater(const Vector3& startPos, const Vector3& endPos) const
+{
+    return isWaterPosition(startPos.x, startPos.y, startPos.z) && isWaterPosition(endPos.x, endPos.y, endPos.z);
+}
+
+bool PathFinder::canTakeWaterShortcut(const Vector3& startPos, const Vector3& endPos) const
+{
+    if (!m_sourceUnit || !m_sourceUnit->CanSwim())
+        return false;
+
+    // crossing the water/land boundary in either direction requires a unit
+    // that can both swim and walk (InhabitType WATER | GROUND) - pure water
+    // creatures must never path onto land and vice versa
+    if (isCrossingWaterLandBoundary(startPos, endPos))
+        return m_sourceUnit->CanWalk();
+
+    return isMovingWithinWater(startPos, endPos);
 }
 
 NavTerrainFlag PathFinder::getNavTerrain(float x, float y, float z) const

@@ -167,6 +167,10 @@ class PathFinder
 #endif
 
         NavTerrainFlag getNavTerrain(float x, float y, float z) const;
+        bool isWaterPosition(float x, float y, float z) const;
+        bool isCrossingWaterLandBoundary(const Vector3& startPos, const Vector3& endPos) const;
+        bool isMovingWithinWater(const Vector3& startPos, const Vector3& endPos) const;
+        bool canTakeWaterShortcut(const Vector3& startPos, const Vector3& endPos) const;
         void createFilter();
         void updateFilter();
 

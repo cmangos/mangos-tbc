@@ -147,21 +147,6 @@ std::string getnth(std::string& str, int n)
     return str.substr(s, e - s);
 }
 
-bool changetoknth(std::string& str, int n, const char* with, bool insert = false, bool nonzero = false)
-{
-    std::string::size_type s = 0, e = 0;
-    if (!findtoknth(str, n, s, e))
-        return false;
-    if (nonzero && str.substr(s, e - s) == "0")
-        return true;                                        // not an error
-    if (!insert)
-        str.replace(s, e - s, with);
-    else
-        str.insert(s, with);
-
-    return true;
-}
-
 uint32 registerNewGuid(uint32 oldGuid, std::map<uint32, uint32>& guidMap, uint32 hiGuid)
 {
     std::map<uint32, uint32>::const_iterator itr = guidMap.find(oldGuid);
@@ -184,19 +169,6 @@ bool changeGuid(std::string& str, int n, std::map<uint32, uint32>& guidMap, uint
     snprintf(chritem, 20, "%u", newGuid);
 
     return changenth(str, n, chritem, false, nonzero);
-}
-
-bool changetokGuid(std::string& str, int n, std::map<uint32, uint32>& guidMap, uint32 hiGuid, bool nonzero = false)
-{
-    char chritem[20];
-    uint32 oldGuid = atoi(gettoknth(str, n).c_str());
-    if (nonzero && oldGuid == 0)
-        return true;                                        // not an error
-
-    uint32 newGuid = registerNewGuid(oldGuid, guidMap, hiGuid);
-    snprintf(chritem, 20, "%u", newGuid);
-
-    return changetoknth(str, n, chritem, false, nonzero);
 }
 
 std::string CreateDumpString(char const* tableName, QueryResult* result)

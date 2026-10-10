@@ -63,13 +63,8 @@ enum DumpReturn
     DUMP_FILE_BROKEN,
 };
 
-class PlayerDump
-{
-    protected:
-        PlayerDump() {}
-};
 
-class PlayerDumpWriter : public PlayerDump
+class PlayerDumpWriter
 {
     public:
         PlayerDumpWriter() {}
@@ -89,7 +84,7 @@ class PlayerDumpWriter : public PlayerDump
         GUIDs texts;
 };
 
-class PlayerDumpReader : public PlayerDump
+class PlayerDumpReader
 {
     public:
         PlayerDumpReader() {}

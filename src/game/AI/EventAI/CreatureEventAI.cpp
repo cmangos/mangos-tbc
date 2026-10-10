@@ -24,6 +24,7 @@
 #include "Chat/Chat.h"
 #include "Tools/Language.h"
 #include "MotionGenerators/MovementGenerator.h"
+#include "Spells/SpellAuras.h"
 
 bool CreatureEventAIHolder::UpdateRepeatTimer(Creature* creature, uint32 repeatMin, uint32 repeatMax)
 {

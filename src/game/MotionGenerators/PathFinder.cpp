@@ -30,7 +30,16 @@
  #include "Metric/Metric.h"
 #endif
 
+#include <array>
 #include <limits>
+
+namespace
+{
+    // bound box of poly search area
+    std::array<float, VERTEX_SIZE> NearPolySearchBound { 5.0f, 5.0f, 5.0f };
+    std::array<float, VERTEX_SIZE> FarPolySearchBound { 10.0f, 10.0f, 10.0f };
+}
+
 ////////////////// PathFinder //////////////////
 PathFinder::PathFinder(const Unit* owner, bool ignoreNormalization) :
     m_type(PATHFIND_BLANK), m_useStraightPath(false), m_forceDestination(false), m_straightLine(false),
@@ -355,7 +364,7 @@ dtPolyRef PathFinder::getPolyByLocation(const float* point, float* distance)
     // try to get it by findNearestPoly()
     // first try with NearPolySearchBound
     float closestPoint[VERTEX_SIZE] = {0.0f, 0.0f, 0.0f};
-    dtStatus dtResult = m_navMeshQuery->findNearestPoly(point, NearPolySearchBound, &m_filter, &polyRef, closestPoint);
+    dtStatus dtResult = m_navMeshQuery->findNearestPoly(point, NearPolySearchBound.data(), &m_filter, &polyRef, closestPoint);
     if (dtStatusSucceed(dtResult) && polyRef != INVALID_POLYREF)
     {
         float newDistance = dtVdist(closestPoint, point);
@@ -370,7 +379,7 @@ dtPolyRef PathFinder::getPolyByLocation(const float* point, float* distance)
     // From dtNavMeshQuery::findNearestPoly: "If the search extents overlaps more than
     // 128 polygons it may return an invalid result".We just use FarPolySearchBound.
 
-    dtResult = m_navMeshQuery->findNearestPoly(point, FarPolySearchBound, &m_filter, &polyRef, closestPoint);
+    dtResult = m_navMeshQuery->findNearestPoly(point, FarPolySearchBound.data(), &m_filter, &polyRef, closestPoint);
     if (dtStatusSucceed(dtResult) && polyRef != INVALID_POLYREF)
     {
         float newDistance = dtVdist(closestPoint, point);

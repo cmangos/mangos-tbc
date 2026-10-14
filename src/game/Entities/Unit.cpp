@@ -12316,7 +12316,7 @@ void Unit::Uncharm(Unit* charmed, uint32 /*spellId*/)
 void Unit::RemoveUnattackableTargets(Unit* charmer)
 {
     // first find friendly target (stopping combat here is not recommended because m_attackers will be modified)
-    AttackerSet friendlyTargets;
+    std::set<std::pair<Unit*, float>> friendlyTargets;
     for (auto itr = getAttackers().begin(); itr != getAttackers().end(); ++itr)
     {
         Unit* attacker = (*itr);
@@ -12324,7 +12324,7 @@ void Unit::RemoveUnattackableTargets(Unit* charmer)
             continue;
 
         if (CanAttack(attacker))
-            friendlyTargets.insert(attacker);
+            friendlyTargets.insert({attacker, 0.f});
     }
 
     for (auto itr = getThreatManager().getThreatList().begin(); itr != getThreatManager().getThreatList().end(); ++itr)
@@ -12334,16 +12334,16 @@ void Unit::RemoveUnattackableTargets(Unit* charmer)
             continue;
 
         if (!CanAttack(attacker))
-            friendlyTargets.insert(attacker);
+            friendlyTargets.insert({attacker, (*itr)->getThreat()});
     }
 
     // now stop attackers combat and transfer threat generated from this to owner, also get the total generated threat
-    for (auto attacker : friendlyTargets)
+    for (auto&[attacker, threat] : friendlyTargets)
     {
         attacker->AttackStop(true, true);
         attacker->getThreatManager().modifyThreatPercent(this, -101);     // only remove the possessed creature from threat list because it can be filled by other players
         if (charmer && IsPropagatingThreatToOwner())
-            attacker->AddThreat(charmer);
+            attacker->AddThreat(charmer, threat);
     }
 }
 

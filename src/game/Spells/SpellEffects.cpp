@@ -6010,12 +6010,7 @@ void Spell::EffectScriptEffect(SpellEffectIndex eff_idx)
                 {
                     unitTarget->RemoveAurasDueToSpell(30657);   // Remove quake from all triggers
                     return;
-                }
-                case 30629:                                 // Debris - Magtheridon
-                {
-                    unitTarget->CastSpell(nullptr, 30630, TRIGGERED_OLD_TRIGGERED);
-                    return;
-                }               
+                }            
                 case 30834:                                 // Infernal Relay
                 {
                     if (!unitTarget)

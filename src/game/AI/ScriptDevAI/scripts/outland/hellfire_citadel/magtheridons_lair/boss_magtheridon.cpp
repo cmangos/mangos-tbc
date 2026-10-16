@@ -434,13 +434,34 @@ struct QuakeMagth : public SpellScript
     }
 };
 
+// 30629 - Debris
+struct DebrisMagtheridonTargeting : public SpellScript
+{
+    bool OnCheckTarget(const Spell* /*spell*/, Unit* target, SpellEffectIndex /*eff*/) const override
+    {
+        if (!target->IsPlayer())
+            return false;
+
+        return true;
+    }
+
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
+    {
+        Unit* target = spell->GetUnitTarget();
+        if (!target)
+            return;
+
+        target->CastSpell(nullptr, SPELL_DEBRIS_2, TRIGGERED_OLD_TRIGGERED);
+    }
+};
+
 // 30632 - Debris
 struct DebrisMagtheridon : public AuraScript
 {
     void OnPersistentAreaAuraEnd(DynamicObject* dynGo) const override
     {
         if (Unit* owner = dynGo->GetCaster())
-            owner->CastSpell(nullptr, 30631, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, dynGo->GetObjectGuid());
+            owner->CastSpell(nullptr, SPELL_DEBRIS_DAMAGE, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, dynGo->GetObjectGuid());
     }
 };
 
@@ -465,5 +486,6 @@ void AddSC_boss_magtheridon()
     RegisterSpellScript<ShadowGraspCube>("spell_shadow_grasp_cube");
     RegisterSpellScript<ShadowGraspMagth>("spell_shadow_grasp_magtheridon");
     RegisterSpellScript<QuakeMagth>("spell_quake_magtheridon");
+    RegisterSpellScript<DebrisMagtheridonTargeting>("spell_magtheridon_debris_targeting");
     RegisterSpellScript<DebrisMagtheridon>("spell_magtheridon_debris");
 }

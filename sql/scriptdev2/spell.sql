@@ -551,6 +551,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (31298,'spell_anetheron_sleep'),
 (42201,'spell_eternal_silence'),
 (41910,'spell_alar_phoenix_ember_blast'),
+(30629,'spell_magtheridon_debris_targeting'),
 (30632,'spell_magtheridon_debris'),
 (32286,'spell_focus_target_visual'),
 (32301,'spell_ping_shirrak'),

@@ -22,15 +22,15 @@ enum
     NPC_KARGATH_BLADEFIST       = 16808,
     NPC_EXECUTIONER             = 17301,                    // must be killed for the executioner event
 
-    NPC_SOLDIER_ALLIANCE_1      = 17288,                    // quest giver for 9524
-    NPC_SOLDIER_ALLIANCE_2      = 17289,
-    NPC_SOLDIER_ALLIANCE_3      = 17292,
-    NPC_OFFICER_ALLIANCE        = 17290,                    // quest objective
+    NPC_RANDY_WHIZZLESPROCKET   = 17288,                    // quest giver for 9524
+    NPC_RIFLEMAN_BROWNBEARD     = 17289,
+    NPC_PRIVATE_JACINT          = 17292,
+    NPC_CAPTAIN_ALINA           = 17290,                    // quest objective
 
-    NPC_SOLDIER_HORDE_1         = 17294,                    // quest giver for 9525
-    NPC_SOLDIER_HORDE_2         = 17295,
-    NPC_SOLDIER_HORDE_3         = 17297,
-    NPC_OFFICER_HORDE           = 17296,                    // quest objective
+    NPC_DRISELLA                = 17294,                    // quest giver for 9525
+    NPC_KORAG_PROUDMANE         = 17295,
+    NPC_SCOUT_ORGARR            = 17297,
+    NPC_CAPTAIN_BONESHATTER     = 17296,                    // quest objective
 
     GO_NETHEKURSE_DOOR          = 182540,
     GO_NETHEKURSE_ENTER_DOOR    = 182539,
@@ -64,9 +64,21 @@ enum
     SPELL_KARGATH_EXECUTIONER_2 = 39289,                    // 10 min - second prisoner
     SPELL_KARGATH_EXECUTIONER_3 = 39290,                    // 15 min - last prisoner
 
-    // I'm not sure if these texts are used at the execution but this is most likely they are used to
-    SAY_KARGATH_EXECUTE_ALLY    = -1540049,
-    SAY_KARGATH_EXECUTE_HORDE   = -1540050,
+    // Execution Intro
+    SAY_KARGATH_EXECUTE_INTRO_ALLY  = 13721,
+    SAY_KARGATH_EXECUTE_INTRO_HORDE = 13722,
+
+    // TODO: Figure out when this one is used
+    SAY_KARGATH_ENTER_EXECUTIONER = 13723,
+
+    // Execute prisoners
+    SAY_KARGATH_EXECUTE_DWARF_ALLY = 13724,
+    SAY_KARGATH_EXECUTE_TAUREN_HORDE = 13725,
+
+    SAY_KARGATH_EXECUTE_OFFICER_ALLY = 13726,
+    SAY_KARGATH_EXECUTE_OFFICER_HORDE = 13727,
+
+    SAY_KARGATH_EXECUTE_FINAL = 13728,
 
     // AT_NETHEKURSE               = 4524,                  // Area trigger used for the execution event
 
@@ -109,11 +121,11 @@ const float afExecutionerLoc[4] = {151.443f, -84.439f, 1.938f, 6.283f};
 
 static SpawnLocation aSoldiersLocs[] =
 {
-    {0, 119.609f, 256.127f, -45.254f, 5.133f, 0,                       NPC_SOLDIER_HORDE_1},
-    {0, 131.106f, 254.520f, -45.236f, 3.951f, NPC_SOLDIER_ALLIANCE_1,                    0},
-    {0, 151.040f, -91.558f,   1.936f, 1.559f, NPC_SOLDIER_ALLIANCE_3,  NPC_SOLDIER_HORDE_3},
-    {0, 150.669f, -77.015f,   1.933f, 4.705f, NPC_SOLDIER_ALLIANCE_2,  NPC_SOLDIER_HORDE_2},
-    {0, 138.241f, -84.198f,   1.907f, 0.055f, NPC_OFFICER_ALLIANCE,      NPC_OFFICER_HORDE}
+    {0, 119.609f, 256.127f, -45.254f, 5.133f, 0,                              NPC_DRISELLA},
+    {0, 131.106f, 254.520f, -45.236f, 3.951f, NPC_RANDY_WHIZZLESPROCKET,                 0},
+    {0, 151.040f, -91.558f,   1.936f, 1.559f, NPC_RIFLEMAN_BROWNBEARD, NPC_KORAG_PROUDMANE},
+    {0, 150.669f, -77.015f,   1.933f, 4.705f, NPC_PRIVATE_JACINT,         NPC_SCOUT_ORGARR},
+    {0, 138.241f, -84.198f,   1.907f, 0.055f, NPC_CAPTAIN_ALINA,   NPC_CAPTAIN_BONESHATTER}
 };
 
 class instance_shattered_halls : public ScriptedInstance, public TimerManager

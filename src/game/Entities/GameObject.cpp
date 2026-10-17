@@ -666,7 +666,7 @@ void GameObject::Update(const uint32 diff)
             {
                 SendObjectDeSpawnAnim(GetObjectGuid());
                 // reset flags
-                if (GetMap()->Instanceable())
+                if (GetMap()->Instanceable() && GetGoType() != GAMEOBJECT_TYPE_CHEST)
                 {
                     // In Instances GO_FLAG_LOCKED, GO_FLAG_INTERACT_COND or GO_FLAG_NO_INTERACT are not changed
                     uint32 currentLockOrInteractFlags = GetUInt32Value(GAMEOBJECT_FLAGS) & (GO_FLAG_LOCKED | GO_FLAG_INTERACT_COND | GO_FLAG_NO_INTERACT);

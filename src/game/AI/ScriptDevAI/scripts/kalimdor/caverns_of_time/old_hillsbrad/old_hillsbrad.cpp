@@ -168,7 +168,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
     {
         case TYPE_BARREL_DIVERSION:
             m_auiEncounter[uiType] = uiData;
-            if (uiData == IN_PROGRESS)
+            if (uiData == SPECIAL)
             {
                 if (m_uiBarrelCount >= MAX_BARRELS)
                     return;
@@ -179,13 +179,14 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
 
                 debug_log("SD2: Instance Old Hillsbrad: go_barrel_old_hillsbrad count %u", m_uiBarrelCount);
                 
-                // 5 Barrels used - Worldstate still gets shown ingame
-                // Dont change Type to Done as it can reset on crash/soft reset
+                // 5 Barrels used - Worldstate still gets shown ingame                
                 if (m_uiBarrelCount == MAX_BARRELS)
                 {
                     ResetTimer(OHF_BARREL_RP, 3000);
                     m_uiDrakeStep = 1;
                 }
+                // Change to IN_PROGRESS for gossip condition handling
+                SetData(TYPE_BARREL_DIVERSION, IN_PROGRESS);
             }
             break;
         case TYPE_THRALL_EVENT:
@@ -271,6 +272,10 @@ void instance_old_hillsbrad::Load(const char* chrIn)
         if (i == IN_PROGRESS)
             i = NOT_STARTED;
     }
+
+    // custom reload for Barrel Event
+    if (m_auiEncounter[0] != DONE)
+        m_auiEncounter[0] = NOT_STARTED;
 
     // custom reload - if the escort event or the Epoch event are not done, then reset the escort
     // this is done, because currently we cannot handle Thrall relocation on server reset
@@ -390,7 +395,7 @@ bool ProcessEventId_event_go_barrel_old_hillsbrad(uint32 /*uiEventId*/, Object* 
             if (static_cast<GameObject*>(pTarget)->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT))
                 return true;
 
-            pInstance->SetData(TYPE_BARREL_DIVERSION, IN_PROGRESS);
+            pInstance->SetData(TYPE_BARREL_DIVERSION, SPECIAL);
 
             // Don't allow players to use same object twice
             if (pTarget->GetTypeId() == TYPEID_GAMEOBJECT)

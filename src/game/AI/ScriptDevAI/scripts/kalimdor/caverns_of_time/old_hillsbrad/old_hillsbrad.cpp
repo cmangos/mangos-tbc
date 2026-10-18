@@ -41,7 +41,8 @@ enum OHFActions
 
 void instance_old_hillsbrad::Initialize()
 {
-    instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 0);
+    instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_DRAKE_TRASH_RESPAWN, 0);
+    instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_TRASH_RESPAWN, 0);
     AddCustomAction(OHF_BARREL_RP, true, [&]() { DoBarrelRP(); });
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 }
@@ -203,7 +204,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
         case TYPE_DRAKE:
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)           
-                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 0);
+                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_DRAKE_TRASH_RESPAWN, 0);
                 break;
         case TYPE_SKARLOC:
         case TYPE_ESCORT_BARN:
@@ -321,7 +322,7 @@ void instance_old_hillsbrad::DoBarrelRP()
                 if (SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE"))
                     lieutnantDrake->Spawn(true, true);
 
-                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 1);
+                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_DRAKE_TRASH_RESPAWN, 1);
             }
 
             // Orc Prisoners and all alive enemy NPC groups around the orc Huts will have differen RP elements after Lieutenant Drake spawned

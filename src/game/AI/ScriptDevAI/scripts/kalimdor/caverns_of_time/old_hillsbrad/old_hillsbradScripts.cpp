@@ -122,9 +122,9 @@ enum ThrallActions
 
 struct npc_thrall_old_hillsbradAI : public npc_escortAI
 {
-    npc_thrall_old_hillsbradAI(Creature* pCreature) : npc_escortAI(pCreature)
+    npc_thrall_old_hillsbradAI(Creature* creature) : npc_escortAI(creature)
     {
-        m_pInstance = (instance_old_hillsbrad*)pCreature->GetInstanceData();
+        m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();
         Reset();
         AddTimerlessCombatAction(THRALL_LOW_HEALTH, true);
     }
@@ -217,28 +217,52 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     }
 };
 
-UnitAI* GetAI_npc_thrall_old_hillsbrad(Creature* pCreature)
+UnitAI* GetAI_npc_thrall_old_hillsbrad(Creature* creature)
 {
-    return new npc_thrall_old_hillsbradAI(pCreature);
+    return new npc_thrall_old_hillsbradAI(creature);
 }
 
-bool GossipHello_npc_thrall_old_hillsbrad(Player* pPlayer, Creature* pCreature)
+bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
 {
-    if (pCreature->isQuestGiver())
+    if (creature->isQuestGiver())
     {
-        pPlayer->PrepareQuestMenu(pCreature->GetObjectGuid());
-        pPlayer->SendPreparedQuest(pCreature->GetObjectGuid());
+        player->PrepareQuestMenu(creature->GetObjectGuid());
+        player->SendPreparedQuest(creature->GetObjectGuid());
     }
+
+    player->PrepareGossipMenu(creature, GOSSIP_START);
+    player->SendPreparedGossip(creature);
 
     return true;
 }
 
-bool GossipSelect_npc_thrall_old_hillsbrad(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
+bool GossipSelect_npc_thrall_old_hillsbrad(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 action)
 {
-    instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)pCreature->GetInstanceData();
+    instance_old_hillsbrad* instance = (instance_old_hillsbrad*)creature->GetInstanceData();
 
-    switch (uiAction)
+    switch (action)
     {
+        case 1:
+        {
+            // Start Event and open Prison Door
+            if (instance)
+            {
+                instance->SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
+                instance->DoUseDoorOrButton(GO_PRISON_DOOR);
+            }
+            if (npc_thrall_old_hillsbradAI* thrallAI = dynamic_cast<npc_thrall_old_hillsbradAI*>(creature->AI()))
+                thrallAI->Start(true, player, nullptr, false, false, THRALL_PATH_ID);
+
+            // Despawn 2 groups on the Bridge via EAI so they dont despawn if InCombat            
+            if (std::vector<Creature*> const* bridgeSpecial = creature->GetMap()->GetCreatures("OHF_THRALL_BRIDGETRASH_DESPAWN"))
+            {
+                for (Creature* creature : *bridgeSpecial)
+                    creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
+            }
+
+            // Also set Worldstate condition to false so they dont respawn
+            creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_TRASH_RESPAWN, 1);
+        }
     }
     return true;
 }

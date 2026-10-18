@@ -317,7 +317,8 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
                     m_uiDrakeStep = 3;
                     break;
                 }
-                case 3: {
+                case 3: 
+                {
                     // Remove Barrel Worldstate and update quests
                     UpdateLodgeQuestCredit();
                     DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);

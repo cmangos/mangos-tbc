@@ -66,6 +66,7 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
         case NPC_EPOCH:
         case NPC_BARTOLO:
         case NPC_COMMANDER_MOGRAINE:
+        case NPC_COT_DESPAWN_TRIGGER:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
         case NPC_ORC_PRISONER:

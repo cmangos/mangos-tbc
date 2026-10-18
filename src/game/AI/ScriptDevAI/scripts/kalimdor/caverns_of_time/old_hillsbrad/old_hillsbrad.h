@@ -55,8 +55,12 @@ enum
     NPC_BARTOLO                     = 20365,
     NPC_BEGGAR                      = 20432,
     NPC_COMMANDER_MOGRAINE          = 20345,
+    NPC_COT_DESPAWN_TRIGGER         = 19433,
 
-    THRALL_PATH_ID                  = 5600435
+    THRALL_PATH_ID                  = 5600435,
+
+    // Spell used to despawn all EscortNPCs
+    SPELL_STUN_PHASE_2              = 33937
 };
 
 class instance_old_hillsbrad : public ScriptedInstance, public TimerManager

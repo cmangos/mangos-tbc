@@ -84,6 +84,8 @@ class instance_old_hillsbrad : public ScriptedInstance
         const char* Save() const override { return m_strInstData.c_str(); }
         void Load(const char* chrIn) override;
 
+        bool CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const override;
+
         void Update(const uint32 diff) override;
 
         TimePoint m_beggarScriptTime;

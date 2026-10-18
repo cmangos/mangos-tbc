@@ -264,6 +264,22 @@ void instance_old_hillsbrad::Load(const char* chrIn)
     OUT_LOAD_INST_DATA_COMPLETE;
 }
 
+bool instance_old_hillsbrad::CheckConditionCriteriaMeet(Player const* player, uint32 instanceConditionId, WorldObject const* conditionSource, uint32 conditionSourceType) const
+{
+    switch (instanceConditionId)
+    {
+        case INSTANCE_CONDITION_ID_THRALL_STARTABLE:
+            return (GetData(TYPE_BARREL_DIVERSION) == IN_PROGRESS);
+    }
+
+    script_error_log("instance_old_hillsbrad::CheckConditionCriteriaMeet called with unsupported Id %u. Called with param plr %s, src %s, condition source type %u",
+        instanceConditionId,
+        player ? player->GetGuidStr().c_str() : "nullptr",
+        conditionSource ? conditionSource->GetGuidStr().c_str() : "nullptr",
+        conditionSourceType);
+    return false;
+}
+
 void instance_old_hillsbrad::UpdateLodgeQuestCredit()
 {
     Map::PlayerList const& players = instance->GetPlayers();

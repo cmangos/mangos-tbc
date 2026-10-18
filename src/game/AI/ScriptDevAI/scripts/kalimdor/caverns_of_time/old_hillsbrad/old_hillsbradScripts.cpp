@@ -165,6 +165,9 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
 
     void JustDied(Unit* /*pKiller*/) override
     {        
+        // fail, and relocation handled in instance script
+        if (m_pInstance)
+            m_pInstance->SetData(TYPE_THRALL_EVENT, FAIL);
     }
 
     void CorpseRemoved(uint32& uiRespawnDelay) override

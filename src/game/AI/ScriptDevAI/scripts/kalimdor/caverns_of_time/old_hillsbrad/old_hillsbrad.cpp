@@ -37,6 +37,7 @@ instance_old_hillsbrad::instance_old_hillsbrad(Map* pMap) : ScriptedInstance(pMa
 enum OHFActions
 {
     OHF_BARREL_RP,
+    OHF_THRALL_RESET,
 };
 
 void instance_old_hillsbrad::Initialize()
@@ -44,6 +45,7 @@ void instance_old_hillsbrad::Initialize()
     instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_DRAKE_TRASH_RESPAWN, 0);
     instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_TRASH_RESPAWN, 0);
     AddCustomAction(OHF_BARREL_RP, true, [&]() { DoBarrelRP(); });
+    AddCustomAction(OHF_THRALL_RESET, true, [&]() { HandleThrallRelocation(); });
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 }
 
@@ -137,28 +139,16 @@ void instance_old_hillsbrad::OnObjectCreate(GameObject* pGo)
 
 void instance_old_hillsbrad::HandleThrallRelocation()
 {
-    // reset instance data
-    SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
-
-    if (Creature* pThrall = GetSingleCreatureFromStorage(NPC_THRALL))
+    if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
     {
         debug_log("SD2: Instance Old Hillsbrad: Thrall relocation");
 
-        if (!pThrall->IsAlive())
-            pThrall->Respawn();
+        // Close Prison Door
+        DoUseDoorOrButton(GO_PRISON_DOOR);
 
-        // epoch failed, reloc to inn
-        if (GetData(TYPE_ESCORT_INN) == DONE)
-            pThrall->GetMap()->CreatureRelocation(pThrall, 2660.57f, 659.173f, 61.9370f, 5.76f);
-        // barn to inn failed, reloc to barn
-        else if (GetData(TYPE_ESCORT_BARN) == DONE)
-            pThrall->GetMap()->CreatureRelocation(pThrall, 2486.91f, 626.356f, 58.0761f, 4.66f);
-        // keep to barn failed, reloc to keep
-        else if (GetData(TYPE_SKARLOC) == DONE)
-            pThrall->GetMap()->CreatureRelocation(pThrall, 2063.40f, 229.509f, 64.4883f, 2.23f);
-        // prison to keep failed, reloc to prison
-        else
-            pThrall->GetMap()->CreatureRelocation(pThrall, 2231.89f, 119.95f, 82.2979f, 4.21f);
+        if (!thrall->IsAlive())
+            thrall->Respawn();
+
     }
 }
 
@@ -196,11 +186,6 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData == FAIL)
             {
-                // despawn the bosses if necessary
-                if (Creature* pSkarloc = GetSingleCreatureFromStorage(NPC_SKARLOC, true))
-                    pSkarloc->ForcedDespawn();
-                if (Creature* pEpoch = GetSingleCreatureFromStorage(NPC_EPOCH, true))
-                    pEpoch->ForcedDespawn();
 
                 if (m_uiThrallEventCount <= MAX_WIPE_COUNTER)
                 {
@@ -208,7 +193,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                     debug_log("SD2: Instance Old Hillsbrad: Thrall event failed %u times.", m_uiThrallEventCount);
 
                     // reset Thrall on timer
-                    m_uiThrallResetTimer = 30000;
+                    ResetTimer(OHF_THRALL_RESET, 30000);
                 }
                 // If we already respawned Thrall too many times, the event is failed for good
                 else if (m_uiThrallEventCount > MAX_WIPE_COUNTER)
@@ -367,18 +352,6 @@ void instance_old_hillsbrad::DoBarrelRP()
 void instance_old_hillsbrad::Update(uint32 uiDiff)
 {
     UpdateTimers(uiDiff);
-
-    
-    if (m_uiThrallResetTimer)
-    {
-        if (m_uiThrallResetTimer <= uiDiff)
-        {
-            HandleThrallRelocation();
-            m_uiThrallResetTimer = 0;
-        }
-        else
-            m_uiThrallResetTimer -= uiDiff;
-    }
 }
 
 InstanceData* GetInstanceData_instance_old_hillsbrad(Map* pMap)

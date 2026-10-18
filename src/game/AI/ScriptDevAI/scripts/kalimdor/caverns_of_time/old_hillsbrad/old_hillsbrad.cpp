@@ -27,7 +27,6 @@ EndScriptData */
 instance_old_hillsbrad::instance_old_hillsbrad(Map* pMap) : ScriptedInstance(pMap),
     m_uiBarrelCount(0),
     m_uiThrallEventCount(0),
-    m_uiThrallResetTimer(0),
     m_uiDrakeStep(0)
 {
     Initialize();

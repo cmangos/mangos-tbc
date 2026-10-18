@@ -28,15 +28,21 @@ instance_old_hillsbrad::instance_old_hillsbrad(Map* pMap) : ScriptedInstance(pMa
     m_uiBarrelCount(0),
     m_uiThrallEventCount(0),
     m_uiThrallResetTimer(0),
-    m_uiDrakeDelay(0),
     m_uiDrakeStep(0)
 {
     Initialize();
 }
 
+
+enum OHFActions
+{
+    OHF_BARREL_RP,
+};
+
 void instance_old_hillsbrad::Initialize()
 {
     instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 0);
+    AddCustomAction(OHF_BARREL_RP, true, [&]() { DoBarrelRP(); });
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 }
 
@@ -163,7 +169,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 // Dont change Type to Done as it can reset on crash/soft reset
                 if (m_uiBarrelCount == MAX_BARRELS)
                 {
-                    m_uiDrakeDelay = 3000;
+                    ResetTimer(OHF_BARREL_RP, 3000);
                     m_uiDrakeStep = 1;
                 }
             }
@@ -294,57 +300,56 @@ void instance_old_hillsbrad::UpdateLodgeQuestCredit()
     }
 }
 
+void instance_old_hillsbrad::DoBarrelRP()
+{
+    switch (m_uiDrakeStep)
+    {
+        case 1: 
+        {
+            // First spawn  all Roaring Flames - despawning on soft reset
+            if (SpawnGroup* roaringFlames = instance->GetSpawnManager().GetSpawnGroup("OHF_ROARING_FLAMES"))
+                roaringFlames->Spawn(true, true);
+            ResetTimer(OHF_BARREL_RP, 2000);
+            m_uiDrakeStep = 2;
+            break;
+        }
+        case 2: 
+        {
+            // Spawn Lieutnant Drake only if not already done and prevent enemy npc respawning
+            if (GetData(TYPE_DRAKE) != DONE)
+            {
+                if (SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE"))
+                    lieutnantDrake->Spawn(true, true);
+
+                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 1);
+            }
+
+            // Orc Prisoners and all alive enemy NPC groups around the orc Huts will have differen RP elements after Lieutenant Drake spawned
+            // Everything gets handled via EAI activated with AI_EVENT_CUSTOM_EVENTAI_A
+            if (std::vector<Creature*> const* drakerpSpecial = instance->GetCreatures("OHF_DRAKE_RP_SPECIAL"))
+            {
+                for (Creature* creature : *drakerpSpecial)
+                    creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
+            }
+            ResetTimer(OHF_BARREL_RP, 7000);
+            m_uiDrakeStep = 3;
+            break;
+        }
+        case 3: 
+        {
+            // Remove Barrel Worldstate and update quests
+            UpdateLodgeQuestCredit();
+            DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
+            break;
+        }
+    }
+}
+
 void instance_old_hillsbrad::Update(uint32 uiDiff)
 {
-    if (m_uiDrakeDelay)
-    {
-        if (m_uiDrakeDelay <= uiDiff)
-        {
-            switch (m_uiDrakeStep)
-            {
-                case 1: 
-                {
-                    // First spawn  all Roaring Flames - despawning on soft reset
-                    if (SpawnGroup* roaringFlames = instance->GetSpawnManager().GetSpawnGroup("OHF_ROARING_FLAMES"))
-                        roaringFlames->Spawn(true, true);
-                    m_uiDrakeDelay = 2000;
-                    m_uiDrakeStep = 2;
-                    break;
-                }
-                case 2: 
-                {
-                    // Spawn Lieutnant Drake only if not already done and prevent enemy npc respawning
-                    if (GetData(TYPE_DRAKE) != DONE)
-                    {
-                        if (SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE"))
-                            lieutnantDrake->Spawn(true, true);
+    UpdateTimers(uiDiff);
 
-                        instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 1);
-                    }
-
-                    // Orc Prisoners and all alive enemy NPC groups around the orc Huts will have differen RP elements after Lieutenant Drake spawned
-                    // Everything gets handled via EAI activated with AI_EVENT_CUSTOM_EVENTAI_A
-                    if (std::vector<Creature*> const* drakerpSpecial = instance->GetCreatures("OHF_DRAKE_RP_SPECIAL"))                    
-                    {
-                        for (Creature* creature : *drakerpSpecial)
-                            creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
-                    }
-                    m_uiDrakeDelay = 7000;
-                    m_uiDrakeStep = 3;
-                    break;
-                }
-                case 3: 
-                {
-                    // Remove Barrel Worldstate and update quests
-                    UpdateLodgeQuestCredit();
-                    DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
-                    break;
-                }
-            }
-        }
-        else
-            m_uiDrakeDelay -= uiDiff;
-    }
+    
     if (m_uiThrallResetTimer)
     {
         if (m_uiThrallResetTimer <= uiDiff)

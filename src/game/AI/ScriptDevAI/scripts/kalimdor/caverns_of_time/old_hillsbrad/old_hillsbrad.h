@@ -59,7 +59,7 @@ enum
     THRALL_PATH_ID                  = 5600435
 };
 
-class instance_old_hillsbrad : public ScriptedInstance
+class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
 {
     public:
         instance_old_hillsbrad(Map* pMap);
@@ -93,6 +93,7 @@ class instance_old_hillsbrad : public ScriptedInstance
     protected:
         void HandleThrallRelocation();
         void UpdateLodgeQuestCredit();
+        void DoBarrelRP();
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
@@ -100,7 +101,6 @@ class instance_old_hillsbrad : public ScriptedInstance
         uint32 m_uiBarrelCount;
         uint32 m_uiThrallEventCount;
         uint32 m_uiThrallResetTimer;
-        uint32 m_uiDrakeDelay;
         uint8 m_uiDrakeStep;
 };
 

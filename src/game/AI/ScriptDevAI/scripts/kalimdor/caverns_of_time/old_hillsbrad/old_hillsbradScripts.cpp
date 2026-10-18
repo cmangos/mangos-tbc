@@ -109,6 +109,14 @@ enum
     // reset texts
     SAY_ERONZION_RESET_THRALL       = 16729,
     SAY_ERONZION_RESET_LAST         = 16731,
+
+    GOSSIP_START = 7499,
+};
+
+enum ThrallActions
+{
+    THRALL_ACTION_MAX,
+    THRALL_LOW_HEALTH
 };
 
 
@@ -118,6 +126,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     {
         m_pInstance = (instance_old_hillsbrad*)pCreature->GetInstanceData();
         Reset();
+        AddTimerlessCombatAction(THRALL_LOW_HEALTH, true);
     }
 
     instance_old_hillsbrad* m_pInstance;
@@ -190,6 +199,21 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     void UpdateEscortAI(const uint32 uiDiff) override
     {  
         DoMeleeAttackIfReady();
+    }
+
+    void ExecuteAction(uint32 action) override
+    {
+        switch (action)
+        {
+            case THRALL_LOW_HEALTH: {
+                if (m_creature->GetHealthPercent() < 20.0f)
+                {
+                    DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_LOW_HP1 : SAY_TH_RANDOM_LOW_HP2, m_creature);
+                    SetActionReadyStatus(action, false);
+                }
+                break;
+            }
+        }
     }
 };
 

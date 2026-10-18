@@ -322,6 +322,7 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
                     // Remove Barrel Worldstate and update quests
                     UpdateLodgeQuestCredit();
                     DoUpdateWorldState(WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT, 0);
+                    break;
                 }
             }
         }

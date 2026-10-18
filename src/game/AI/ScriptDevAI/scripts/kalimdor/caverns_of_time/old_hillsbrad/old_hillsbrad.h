@@ -73,6 +73,7 @@ class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
 
         void OnPlayerEnter(Player* pPlayer) override;
         void OnCreatureCreate(Creature* pCreature) override;
+        void OnCreatureRespawn(Creature* creature) override;
         void OnObjectCreate(GameObject* pGo) override;
 
         void OnCreatureEnterCombat(Creature* pCreature) override;

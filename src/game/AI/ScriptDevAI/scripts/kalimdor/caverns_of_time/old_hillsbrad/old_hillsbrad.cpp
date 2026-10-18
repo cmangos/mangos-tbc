@@ -69,11 +69,25 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
         case NPC_COT_DESPAWN_TRIGGER:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
-        case NPC_ORC_PRISONER:
-            break;
     }
 }
 
+void instance_old_hillsbrad::OnCreatureRespawn(Creature* creature)
+{
+    switch (creature->GetEntry())
+    {
+        case NPC_SKARLOC:
+            // Confirmed from TBC Anni that on soft reset Thrall respawns at Prison and players can do the Escort again
+            // Guessed: To prevent getting double boss loot (confirmed on mop classic) 
+            if (GetData(TYPE_SKARLOC) == DONE)
+            {
+                creature->SetNoXP(true);
+                creature->SetNoLoot(true);
+                creature->SetNoReputation(true);
+            }
+        break;
+    }
+}
 void instance_old_hillsbrad::OnCreatureDeath(Creature* pCreature)
 {
     switch (pCreature->GetEntry())
@@ -88,9 +102,7 @@ void instance_old_hillsbrad::OnCreatureEnterCombat(Creature* pCreature)
 {
     switch (pCreature->GetEntry())
     {
-        case NPC_DRAKE:
-            SetData(TYPE_DRAKE, IN_PROGRESS);
-            break;
+        case NPC_DRAKE: SetData(TYPE_DRAKE, IN_PROGRESS); break;
         case NPC_SKARLOC: SetData(TYPE_SKARLOC, IN_PROGRESS); break;
         case NPC_EPOCH:   SetData(TYPE_EPOCH, IN_PROGRESS);   break;
     }

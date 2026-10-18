@@ -286,21 +286,21 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
         {
             switch (m_uiDrakeStep)
             {
-                case 1: {
+                case 1: 
+                {
                     // First spawn  all Roaring Flames - despawning on soft reset
-                    SpawnGroup* roaringFlames = instance->GetSpawnManager().GetSpawnGroup("OHF_ROARING_FLAMES");
-                    if (roaringFlames)
+                    if (SpawnGroup* roaringFlames = instance->GetSpawnManager().GetSpawnGroup("OHF_ROARING_FLAMES"))
                         roaringFlames->Spawn(true, true);
                     m_uiDrakeDelay = 2000;
                     m_uiDrakeStep = 2;
                     break;
                 }
-                case 2: {
+                case 2: 
+                {
                     // Spawn Lieutnant Drake only if not already done and prevent enemy npc respawning
                     if (GetData(TYPE_DRAKE) != DONE)
                     {
-                        SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE");
-                        if (lieutnantDrake)
+                        if (SpawnGroup* lieutnantDrake = instance->GetSpawnManager().GetSpawnGroup("OHF_LIEUTENANTDRAKE"))
                             lieutnantDrake->Spawn(true, true);
 
                         instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN, 1);
@@ -308,8 +308,7 @@ void instance_old_hillsbrad::Update(uint32 uiDiff)
 
                     // Orc Prisoners and all alive enemy NPC groups around the orc Huts will have differen RP elements after Lieutenant Drake spawned
                     // Everything gets handled via EAI activated with AI_EVENT_CUSTOM_EVENTAI_A
-                    std::vector<Creature*> const* drakerpSpecial = instance->GetCreatures("OHF_DRAKE_RP_SPECIAL");
-                    if (drakerpSpecial)
+                    if (std::vector<Creature*> const* drakerpSpecial = instance->GetCreatures("OHF_DRAKE_RP_SPECIAL"))                    
                     {
                         for (Creature* creature : *drakerpSpecial)
                             creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
@@ -351,7 +350,7 @@ bool ProcessEventId_event_go_barrel_old_hillsbrad(uint32 /*uiEventId*/, Object* 
     {
         if (instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)((Player*)pSource)->GetInstanceData())
         {
-            if ((GameObject*)pTarget->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT))
+            if (static_cast<GameObject*>(pTarget)->HasFlag(GAMEOBJECT_FLAGS, GO_FLAG_NO_INTERACT))
                 return true;
 
             pInstance->SetData(TYPE_BARREL_DIVERSION, IN_PROGRESS);

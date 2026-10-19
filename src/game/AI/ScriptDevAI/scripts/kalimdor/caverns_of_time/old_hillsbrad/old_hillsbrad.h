@@ -105,7 +105,6 @@ class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
 
         uint32 m_uiBarrelCount;
         uint32 m_uiThrallEventCount;
-        uint32 m_uiThrallResetTimer;
         uint8 m_uiDrakeStep;
 };
 

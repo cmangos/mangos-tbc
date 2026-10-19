@@ -122,7 +122,7 @@ enum ThrallActions
 
 struct npc_thrall_old_hillsbradAI : public npc_escortAI
 {
-    npc_thrall_old_hillsbradAI(Creature* creature) : npc_escortAI(creature)
+    npc_thrall_old_hillsbradAI(Creature* creature) : npc_escortAI(creature, THRALL_ACTION_MAX)
     {
         m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();
         Reset();
@@ -169,39 +169,11 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         if (m_pInstance)
             m_pInstance->SetData(TYPE_THRALL_EVENT, FAIL);
     }
-
-    void CorpseRemoved(uint32& uiRespawnDelay) override
-    {
-    }
-
-    void JustRespawned() override
-    {
-        npc_escortAI::JustRespawned();        
-    }
-
-    void JustReachedHome() override 
-    {       
-        npc_escortAI::JustReachedHome();
-    }
-
-    void EnterEvadeMode() override
-    {
-        npc_escortAI::EnterEvadeMode();
-    }
-
+   
     void WaypointReached(uint32 uiPoint) override
     {
         if (!m_pInstance)
             return;
-    }
-
-    void UpdateAI(const uint32 uiDiff) override
-    {        
-    }
-
-    void UpdateEscortAI(const uint32 uiDiff) override
-    {  
-        DoMeleeAttackIfReady();
     }
 
     void ExecuteAction(uint32 action) override
@@ -219,11 +191,6 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         }
     }
 };
-
-UnitAI* GetAI_npc_thrall_old_hillsbrad(Creature* creature)
-{
-    return new npc_thrall_old_hillsbradAI(creature);
-}
 
 bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
 {
@@ -656,7 +623,7 @@ void AddSC_old_hillsbrad()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_thrall_old_hillsbrad";
-    pNewScript->GetAI = &GetAI_npc_thrall_old_hillsbrad;
+    pNewScript->GetAI = &GetNewAIInstance<npc_thrall_old_hillsbradAI>;
     pNewScript->pGossipHello = &GossipHello_npc_thrall_old_hillsbrad;
     pNewScript->pGossipSelect = &GossipSelect_npc_thrall_old_hillsbrad;
     pNewScript->RegisterSelf();

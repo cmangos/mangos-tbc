@@ -57,7 +57,7 @@ enum
     NPC_COMMANDER_MOGRAINE          = 20345,
     NPC_COT_DESPAWN_TRIGGER         = 19433,
 
-    THRALL_PATH_ID                  = 5600435,
+    THRALL_PATH_ID = 5600050,
 
     // Spell used to despawn all EscortNPCs
     SPELL_STUN_PHASE_2              = 33937

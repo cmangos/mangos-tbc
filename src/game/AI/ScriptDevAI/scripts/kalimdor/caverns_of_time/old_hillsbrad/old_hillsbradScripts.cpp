@@ -110,13 +110,15 @@ enum
     SAY_ERONZION_RESET_THRALL       = 16729,
     SAY_ERONZION_RESET_LAST         = 16731,
 
+    SPELL_SUMMON_EROZION_IMAGE      = 33954, // if thrall dies during escort
+
     GOSSIP_START = 7499,
 };
 
 enum ThrallActions
 {
+    THRALL_LOW_HEALTH,
     THRALL_ACTION_MAX,
-    THRALL_LOW_HEALTH
 };
 
 
@@ -168,6 +170,9 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         // fail, and relocation handled in instance script
         if (m_pInstance)
             m_pInstance->SetData(TYPE_THRALL_EVENT, FAIL);
+
+        DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_DIE1 : SAY_TH_RANDOM_DIE2, m_creature);
+        DoCastSpellIfCan(m_creature, SPELL_SUMMON_EROZION_IMAGE, CAST_TRIGGERED);
     }
    
     void WaypointReached(uint32 uiPoint) override

@@ -145,6 +145,7 @@ void instance_old_hillsbrad::HandleThrallRelocation()
         // Close Prison Door
         DoUseDoorOrButton(GO_PRISON_DOOR);
 
+        // Change code for spawn_group_usage
         if (!thrall->IsAlive())
             thrall->Respawn();
 
@@ -184,7 +185,10 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 return;
             m_auiEncounter[uiType] = uiData;
             if (uiData == FAIL)
-            {
+            {                
+                // CoT Hillsbrad Despawn Trigger Unit cast Stun Phase 2 Units
+                if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
+                    despawnTrigger->AI()->DoCastSpellIfCan(despawnTrigger, SPELL_STUN_PHASE_2);
 
                 if (m_uiThrallEventCount <= MAX_WIPE_COUNTER)
                 {

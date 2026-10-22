@@ -214,6 +214,8 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
             SetEscortPaused(true);
 
             // check current states before fail and set current waypoint, everything else handled via DB
+            if (m_pInstance->GetData(TYPE_ESCORT_INN) == DONE)
+                SetCurrentWaypoint(78);
             if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
                 SetCurrentWaypoint(48);
             else if (m_pInstance->GetData(TYPE_SKARLOC) == DONE)
@@ -241,6 +243,10 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
             // We reached Barn - everything else handled via DB
             case 48: 
                 m_pInstance->SetData(TYPE_ESCORT_BARN, DONE);
+                break;
+            // We reached Taretha
+            case 78:
+                m_pInstance->SetData(TYPE_ESCORT_INN, DONE);
                 break;
         }
     }
@@ -362,203 +368,39 @@ bool GossipSelect_npc_thrall_old_hillsbrad(Player* player, Creature* creature, u
 
 enum
 {
-    // end event texts and spells
-    SAY_TA_FREE                     = 16082,
-    SAY_TR_GLAD_SAFE                = 16083,
-    SAY_TA_NEVER_MET                = 16085,
-    SAY_TR_THEN_WHO                 = 16084,
-    SAY_PRE_WIPE                    = 16086,
-    SAY_WIPE_MEMORY                 = 16087,
-    SAY_ABOUT_TARETHA               = 16088,
-    SAY_TH_EVENT_COMPLETE           = 16089,
-    SAY_TA_FAREWELL                 = 16090,
-
-    GOSSIP_ITEM_EPOCH_1             = -3560005,             // "Strange wizard?"
-    TEXT_ID_EPOCH_1                 = 9610,                 // Thank you for helping Thrall escape, friends. Now I only hope
-
-    GOSSIP_ITEM_EPOCH_2             = -3560006,             // "We'll get you out. Taretha. Don't worry. I doubt the wizard would wander too far away."
-    TEXT_ID_EPOCH_2                 = 9613,                 // Yes, friends. This man was no wizard of
-
-    SPELL_TELEPORT                  = 7791,
-    SPELL_MEMORY_WIPE               = 33336,                // hits Taretha and Thrall
-    SPELL_MEMORY_WP_RESUME          = 33337,
-    SPELL_SHADOW_PRISON             = 33071,                // in creature_template_addon - remove from Taretha on event complete
+    GOSSIP_ITEM_EPOCH_1 = 7849
 };
 
-static const DialogueEntry aTarethaDialogue[] =
-{
-    {SAY_TA_FREE,           NPC_TARETHA,    4000, DIALOGUE_STEP_TEXT},
-    {SAY_TR_GLAD_SAFE,      NPC_THRALL,     9000, DIALOGUE_STEP_TEXT},
-    {SAY_TA_NEVER_MET,      NPC_TARETHA,    3000, DIALOGUE_STEP_TEXT},
-    {SAY_TR_THEN_WHO,       NPC_THRALL,     6000, DIALOGUE_STEP_TEXT},
-    {SPELL_MEMORY_WIPE,     0,              3000},
-    {SAY_WIPE_MEMORY,       NPC_EROZION,    12000, DIALOGUE_STEP_TEXT},
-    {SAY_ABOUT_TARETHA,     NPC_EROZION,    6000, DIALOGUE_STEP_TEXT},
-    {SAY_TH_EVENT_COMPLETE, NPC_THRALL,     3000, DIALOGUE_STEP_TEXT},
-    {NPC_THRALL,            0,              2000},
-    {SAY_TA_FAREWELL,       NPC_TARETHA,    3000, DIALOGUE_STEP_TEXT},
-    {NPC_TARETHA,           0,              0},
-    {0, 0, 0},
-};
 
-struct npc_tarethaAI : public npc_escortAI, private DialogueHelper
+struct npc_tarethaAI : public ScriptedAI
 {
-    npc_tarethaAI(Creature* pCreature) : npc_escortAI(pCreature),
-        DialogueHelper(aTarethaDialogue)
+    npc_tarethaAI(Creature* creature) : ScriptedAI(creature)
     {
-        m_pInstance = (instance_old_hillsbrad*)pCreature->GetInstanceData();
-        InitializeDialogueHelper(m_pInstance);
+        m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();
         Reset();
     }
 
     instance_old_hillsbrad* m_pInstance;
 
-    bool m_bHasStartedEpilogue;
 
     void Reset() override
     {
-        m_bHasStartedEpilogue = false;
-    }
-
-    void JustSummoned(Creature* pSummoned) override
-    {
-        // Remove flags from the npc - the quest will be handled by the entrance version
-        if (pSummoned->GetEntry() == NPC_EROZION)
-        {
-            DoBroadcastText(SAY_PRE_WIPE, pSummoned);
-            pSummoned->CastSpell(pSummoned, SPELL_TELEPORT, TRIGGERED_NONE);
-            pSummoned->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP | UNIT_NPC_FLAG_QUESTGIVER);
-        }
-    }
-
-    Creature* GetSpeakerByEntry(uint32 uiEntry) override
-    {
-        switch (uiEntry)
-        {
-            case NPC_TARETHA:                   return m_creature;
-            case NPC_THRALL:                    return m_pInstance->GetSingleCreatureFromStorage(NPC_THRALL);
-            case NPC_EROZION:                   return m_pInstance->GetSingleCreatureFromStorage(NPC_EROZION);
-            default:                            return nullptr;
-        }
-    }
-
-    void WaypointReached(uint32 uiPoint) override
-    {
-        if (uiPoint == 8)
-        {
-            StartNextDialogueText(SAY_TA_FREE);
-
-            if (m_pInstance)
-            {
-                if (Creature* pThrall = m_pInstance->GetSingleCreatureFromStorage(NPC_THRALL))
-                    pThrall->SetFacingToObject(m_creature);
-            }
-
-            m_creature->HandleEmote(EMOTE_ONESHOT_CHEER);
-            SetEscortPaused(true);
-            SetRun(false);
-        }
-    }
-
-    void JustDidDialogueStep(int32 iEntry) override
-    {
-        if (!m_pInstance)
-            return;
-
-        switch (iEntry)
-        {
-            case SAY_TR_THEN_WHO:
-                m_creature->SummonCreature(NPC_EROZION, 2646.47f, 680.416f, 55.38f, 4.16f, TEMPSPAWN_TIMED_DESPAWN, 5 * MINUTE * IN_MILLISECONDS);
-                break;
-            case SPELL_MEMORY_WIPE:
-                if (Creature* pErozion = m_pInstance->GetSingleCreatureFromStorage(NPC_EROZION))
-                    pErozion->CastSpell(pErozion, SPELL_MEMORY_WIPE, TRIGGERED_NONE);
-                break;
-            case SAY_TH_EVENT_COMPLETE:
-                if (Creature* pErozion = m_pInstance->GetSingleCreatureFromStorage(NPC_EROZION))
-                    pErozion->CastSpell(pErozion, SPELL_MEMORY_WP_RESUME, TRIGGERED_NONE);
-                if (Creature* pThrall = m_pInstance->GetSingleCreatureFromStorage(NPC_THRALL))
-                    pThrall->RemoveAurasDueToSpell(SPELL_MEMORY_WIPE);
-                m_creature->RemoveAurasDueToSpell(SPELL_MEMORY_WIPE);
-                break;
-            case NPC_THRALL:
-                if (Creature* pThrall = m_pInstance->GetSingleCreatureFromStorage(NPC_THRALL))
-                {
-                    if (npc_thrall_old_hillsbradAI* pThrallAI = dynamic_cast<npc_thrall_old_hillsbradAI*>(pThrall->AI()))
-                        pThrallAI->SetEscortPaused(false);
-                }
-                break;
-            case SAY_TA_FAREWELL:
-                if (Creature* pThrall = m_pInstance->GetSingleCreatureFromStorage(NPC_THRALL))
-                    m_creature->SetFacingToObject(pThrall);
-                m_creature->HandleEmote(EMOTE_ONESHOT_WAVE);
-                break;
-            case NPC_TARETHA:
-                if (Creature* pErozion = m_pInstance->GetSingleCreatureFromStorage(NPC_EROZION))
-                    pErozion->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_QUESTGIVER);
-                m_pInstance->SetData(TYPE_THRALL_EVENT, DONE);
-                SetEscortPaused(false);
-                break;
-        }
-    }
-
-    void UpdateEscortAI(const uint32 uiDiff) override
-    {
-        DialogueUpdate(uiDiff);
-
-        if (!m_bHasStartedEpilogue && m_pInstance)
-        {
-            // Start epilogue
-            if (m_pInstance->GetData(TYPE_EPOCH) == DONE && m_pInstance->GetData(TYPE_THRALL_EVENT) != DONE)
-            {
-                m_creature->RemoveAurasDueToSpell(SPELL_SHADOW_PRISON);
-                m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_UNINTERACTIBLE);
-                m_creature->SetStandState(UNIT_STAND_STATE_STAND);
-
-                Start(true);
-                m_bHasStartedEpilogue = true;
-            }
-        }
     }
 };
 
-UnitAI* GetAI_npc_taretha(Creature* pCreature)
+bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
 {
-    return new npc_tarethaAI(pCreature);
-}
+    instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();
 
-bool GossipHello_npc_taretha(Player* pPlayer, Creature* pCreature)
-{
-    instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)pCreature->GetInstanceData();
-
-    if (pInstance && pInstance->GetData(TYPE_ESCORT_INN) == DONE && pInstance->GetData(TYPE_EPOCH) != DONE)
+    if (uiAction == 100)
     {
-        pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_EPOCH_1, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
-        pPlayer->SEND_GOSSIP_MENU(TEXT_ID_EPOCH_1, pCreature->GetObjectGuid());
+        player->PrepareGossipMenu(creature, GOSSIP_ITEM_EPOCH_1);
+        player->SendPreparedGossip(creature);
     }
 
-    return true;
-}
-
-bool GossipSelect_npc_taretha(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
-{
-    instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)pCreature->GetInstanceData();
-
-    if (uiAction == GOSSIP_ACTION_INFO_DEF + 1)
+    if (uiAction == 101)
     {
-        pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_EPOCH_2, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 2);
-        pPlayer->SEND_GOSSIP_MENU(TEXT_ID_EPOCH_2, pCreature->GetObjectGuid());
-    }
-
-    if (uiAction == GOSSIP_ACTION_INFO_DEF + 2)
-    {
-        pPlayer->CLOSE_GOSSIP_MENU();
-
-        if (pInstance && pInstance->GetData(TYPE_THRALL_EVENT) == IN_PROGRESS)
-        {
-            pCreature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-
-        }
+        player->CLOSE_GOSSIP_MENU();
     }
 
     return true;
@@ -749,8 +591,7 @@ void AddSC_old_hillsbrad()
 
     pNewScript = new Script;
     pNewScript->Name = "npc_taretha";
-    pNewScript->GetAI = &GetAI_npc_taretha;
-    pNewScript->pGossipHello = &GossipHello_npc_taretha;
+    pNewScript->GetAI = &GetNewAIInstance<npc_tarethaAI>;
     pNewScript->pGossipSelect = &GossipSelect_npc_taretha;
     pNewScript->RegisterSelf();
 

@@ -82,6 +82,7 @@ class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
         void OnCreatureEvade(Creature* pCreature) override;
         void OnCreatureDeath(Creature* pCreature) override;
         void OnCreatureDespawn(Creature* pCreature) override;
+        void OnCreatureGroupDespawn(CreatureGroup* pGroup, Creature* pCreature) override;
 
         void SetData(uint32 uiType, uint32 uiData) override;
         uint32 GetData(uint32 uiType) const override;

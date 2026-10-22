@@ -143,6 +143,15 @@ void instance_old_hillsbrad::OnObjectCreate(GameObject* pGo)
         m_goEntryGuidStore[GO_PRISON_DOOR] = pGo->GetObjectGuid();
 }
 
+void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup, Creature* /*pCreature*/)
+{
+    if (creatureGroup->HasStringId("OHF_BARN_GROUP"))
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+            if (thrall->IsAlive())
+                thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
+}
+
+
 void instance_old_hillsbrad::HandleThrallRelocation()
 {
     if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))

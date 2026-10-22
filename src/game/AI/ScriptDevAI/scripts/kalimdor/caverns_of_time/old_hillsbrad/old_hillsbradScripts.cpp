@@ -215,7 +215,6 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
 
             // check current states before fail and set current waypoint, everything else handled via DB
             if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
-
                 SetCurrentWaypoint(48);
             else if (m_pInstance->GetData(TYPE_SKARLOC) == DONE)
                 SetCurrentWaypoint(22);

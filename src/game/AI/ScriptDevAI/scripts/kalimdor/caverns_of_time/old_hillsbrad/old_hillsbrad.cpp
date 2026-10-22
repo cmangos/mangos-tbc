@@ -49,7 +49,13 @@ void instance_old_hillsbrad::Initialize()
 }
 
 void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
-{}
+{
+    if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+    {
+        if (!thrall->IsAlive())
+            HandleThrallRelocation();
+    }
+}
 
 void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
 {
@@ -143,6 +149,10 @@ void instance_old_hillsbrad::HandleThrallRelocation()
     {
         debug_log("SD2: Instance Old Hillsbrad: Thrall relocation");
 
+        // Thrall already got spawned
+        if (thrall->IsAlive())
+            return;
+
         // Reset State
         SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
 
@@ -166,7 +176,7 @@ void instance_old_hillsbrad::HandleThrallRelocation()
             if (SpawnGroup* horseGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_SKARLOC_MOUNT"))
                 horseGroup->Spawn(true, true);
         }
-        // Died before Skarloc - respawn at Prison at Close Door
+        // Died before Skarloc - respawn at Prison and Close Door
         else
         {
             // respawn thrall

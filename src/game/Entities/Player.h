@@ -2083,6 +2083,8 @@ class Player : public Unit
         bool IsSwimming() const { return m_movementInfo.HasMovementFlag(MOVEFLAG_SWIMMING); }
 
         void UpdateClientControl(Unit const* target, bool enabled, bool forced = false) const;
+        void SetPendingClientControlChange() { m_pendingClientControlChange = true; }
+        bool ConsumePendingClientControlChange() { bool pending = m_pendingClientControlChange; m_pendingClientControlChange = false; return pending; }
 
         void SetMover(Unit* target) { m_mover = target ? target : this; }
         Unit* GetMover() const { return m_mover; }
@@ -2558,6 +2560,7 @@ class Player : public Unit
         Taxi::Tracker m_taxiTracker;
 
         Unit* m_mover;
+        bool m_pendingClientControlChange;
         Camera m_camera;
 
         GridReference<Player> m_gridRef;

@@ -68,6 +68,7 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
         case NPC_BARTOLO:
         case NPC_COMMANDER_MOGRAINE:
         case NPC_COT_DESPAWN_TRIGGER:
+        case NPC_SKARLOCS_MOUNT:
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
     }
@@ -142,12 +143,38 @@ void instance_old_hillsbrad::HandleThrallRelocation()
     {
         debug_log("SD2: Instance Old Hillsbrad: Thrall relocation");
 
-        // Close Prison Door
-        DoUseDoorOrButton(GO_PRISON_DOOR);
+        // Reset State
+        SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
 
-        // Change code for spawn_group_usage
-        if (!thrall->IsAlive())
-            thrall->Respawn();
+        // Despawn Corpse
+        thrall->ForcedDespawn();
+
+        if (GetData(TYPE_ESCORT_BARN) == DONE)
+        {
+            // respawn thrall
+            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_BARN"))
+                thrallGroup->Spawn(true, true);
+        }
+        // Skarloc Dead - Respawn at that Position
+        else if (GetData(TYPE_SKARLOC) == DONE)
+        {
+            // respawn thrall
+            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_SKARLOC"))
+                thrallGroup->Spawn(true, true);
+
+            // Also respawn Horse
+            if (SpawnGroup* horseGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_SKARLOC_MOUNT"))
+                horseGroup->Spawn(true, true);
+        }
+        // Died before Skarloc - respawn at Prison at Close Door
+        else
+        {
+            // respawn thrall
+            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_PRISON"))
+                thrallGroup->Spawn(true, true);
+
+           DoUseDoorOrButton(GO_PRISON_DOOR);
+        }
 
     }
 }
@@ -190,6 +217,9 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
                     despawnTrigger->AI()->DoCastSpellIfCan(despawnTrigger, SPELL_STUN_PHASE_2);
 
+                if (Creature* armorer = GetSingleCreatureFromStorage(NPC_ARMORER))
+                    armorer->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_B, armorer, armorer);
+
                 if (m_uiThrallEventCount <= MAX_WIPE_COUNTER)
                 {
                     ++m_uiThrallEventCount;
@@ -209,6 +239,13 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_DRAKE_TRASH_RESPAWN, 0);
                 break;
         case TYPE_SKARLOC:
+            m_auiEncounter[uiType] = uiData;
+            if (uiData == DONE)
+            {                
+                if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+                    thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
+            }
+            break;
         case TYPE_ESCORT_BARN:
         case TYPE_ESCORT_INN:
         case TYPE_EPOCH:
@@ -261,14 +298,11 @@ void instance_old_hillsbrad::Load(const char* chrIn)
             i = NOT_STARTED;
     }
 
-    // custom reload for Barrel Event
-    if (m_auiEncounter[0] != DONE)
-        m_auiEncounter[0] = NOT_STARTED;
-
-    // custom reload - if the escort event or the Epoch event are not done, then reset the escort
-    // this is done, because currently we cannot handle Thrall relocation on server reset
+    // custom reload
+    // If Epoch event is not done, we have to redo barrel and full escort
     if (m_auiEncounter[5] != DONE)
     {
+        m_auiEncounter[0] = NOT_STARTED;
         m_auiEncounter[2] = NOT_STARTED;
         m_auiEncounter[3] = NOT_STARTED;
         m_auiEncounter[4] = NOT_STARTED;

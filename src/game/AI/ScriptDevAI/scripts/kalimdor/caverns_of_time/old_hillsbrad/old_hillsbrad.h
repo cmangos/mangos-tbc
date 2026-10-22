@@ -29,6 +29,8 @@ enum
     NPC_ARMORER                     = 18764,
     NPC_ORC_PRISONER                = 18598,
 
+    NPC_SKARLOCS_MOUNT              = 18798,
+
     NPC_TARREN_MILL_GUARDSMAN       = 18092,
     NPC_TARREN_MILL_PROTECTOR       = 18093,
     NPC_TARREN_MILL_LOOKOUT         = 18094,
@@ -57,7 +59,7 @@ enum
     NPC_COMMANDER_MOGRAINE          = 20345,
     NPC_COT_DESPAWN_TRIGGER         = 19433,
 
-    THRALL_PATH_ID = 5600050,
+    THRALL_PATH_ID = 5600000,
 
     // Spell used to despawn all EscortNPCs
     SPELL_STUN_PHASE_2              = 33937

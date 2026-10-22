@@ -113,6 +113,11 @@ enum
     SPELL_SUMMON_EROZION_IMAGE      = 33954, // if thrall dies during escort
 
     GOSSIP_START = 7499,
+    GOSSIP_SKARLOC_01 = 7830,
+    GOSSIP_SKARLOC_02 = 7829,
+    GOSSIP_SKARLOC_03 = 7831,
+    GOSSIP_BARN = 7840,
+    MODEL_SKARLOC_MOUNT = 8469,
 };
 
 enum ThrallActions
@@ -126,21 +131,41 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
 {
     npc_thrall_old_hillsbradAI(Creature* creature) : npc_escortAI(creature, THRALL_ACTION_MAX)
     {
-        m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();
-        Reset();
+        m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();        
         AddTimerlessCombatAction(THRALL_LOW_HEALTH, true);
+        m_Mounted = false;
+        Reset();
     }
 
     instance_old_hillsbrad* m_pInstance;
 
+    bool m_Mounted;
 
     void Reset() override
     {      
-            
+        if (m_Mounted)
+        {
+            m_creature->Mount(MODEL_SKARLOC_MOUNT);
+            m_Mounted = false;
+        }            
+    }
+
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 /*miscValue*/) override
+    {
+        // Skarloc died, restore movement, everything else handled inside DB
+        if (eventType == AI_EVENT_CUSTOM_EVENTAI_A)
+        {
+            m_creature->GetMotionMaster()->UnpauseWaypoints();
+        }
     }
 
     void EnterCombat(Unit* enemy) override
     {
+        if (m_creature->GetMountID())
+        {
+            m_creature->Unmount();
+            m_Mounted = true;
+        }
         npc_escortAI::EnterCombat(enemy);
     }
 
@@ -174,11 +199,51 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_DIE1 : SAY_TH_RANDOM_DIE2, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_EROZION_IMAGE, CAST_TRIGGERED);
     }
+
+    void JustRespawned() override
+    {
+        npc_escortAI::JustRespawned();
+
+        if (!m_pInstance)
+            return;
+
+        // We died during Escort and respawned from instance 
+        if (m_pInstance->GetData(TYPE_THRALL_EVENT) == IN_PROGRESS)
+        {
+            Start(true, nullptr, nullptr, false, false, THRALL_PATH_ID);
+            SetEscortPaused(true);
+
+            // check current states before fail and set current waypoint, everything else handled via DB
+            if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
+
+                SetCurrentWaypoint(48);
+            else if (m_pInstance->GetData(TYPE_SKARLOC) == DONE)
+                SetCurrentWaypoint(22);
+
+            m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        }
+    }
+
+    // Wrapper to restart escort
+    void DoRestartEscortMovement()
+    {
+        m_creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
+        SetEscortPaused(false);
+    }
    
     void WaypointReached(uint32 uiPoint) override
     {
         if (!m_pInstance)
             return;
+
+        switch (uiPoint)
+        {
+            // We reached Barn - everything else handled via DB
+            case 48: 
+                m_pInstance->SetData(TYPE_ESCORT_BARN, DONE);
+                break;
+        }
     }
 
     void ExecuteAction(uint32 action) override
@@ -186,7 +251,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         switch (action)
         {
             case THRALL_LOW_HEALTH: {
-                if (m_creature->GetHealthPercent() < 20.0f)
+                if (m_creature->GetHealthPercent() < 35.0f)
                 {
                     DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_LOW_HP1 : SAY_TH_RANDOM_LOW_HP2, m_creature);
                     SetActionReadyStatus(action, false);
@@ -205,9 +270,26 @@ bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
         player->SendPreparedQuest(creature->GetObjectGuid());
     }
 
-    player->PrepareGossipMenu(creature, GOSSIP_START);
-    player->SendPreparedGossip(creature);
-
+    if (instance_old_hillsbrad* instance = (instance_old_hillsbrad*)creature->GetInstanceData())
+    {
+        // Barn Reached
+        if (instance->GetData(TYPE_ESCORT_BARN) == DONE)
+        {
+            player->PrepareGossipMenu(creature, GOSSIP_BARN);
+            player->SendPreparedGossip(creature);
+        }
+        else if (instance->GetData(TYPE_SKARLOC) == DONE)
+        {
+            player->PrepareGossipMenu(creature, GOSSIP_SKARLOC_01);
+            player->SendPreparedGossip(creature);
+        }
+        // Text gets always shown, GossipAction handled via condition
+        else
+        {
+            player->PrepareGossipMenu(creature, GOSSIP_START);
+            player->SendPreparedGossip(creature);
+        }
+    }
     return true;
 }
 
@@ -217,8 +299,8 @@ bool GossipSelect_npc_thrall_old_hillsbrad(Player* player, Creature* creature, u
 
     switch (action)
     {
-        case 1:
-        {
+        case 100:
+        {        
             // Start Event and open Prison Door
             if (instance)
             {
@@ -237,9 +319,42 @@ bool GossipSelect_npc_thrall_old_hillsbrad(Player* player, Creature* creature, u
 
             // Also set Worldstate condition to false so they dont respawn
             creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_TRASH_RESPAWN, 1);
+
+            return true;
+        }
+        case 101:
+        {
+            player->PrepareGossipMenu(creature, GOSSIP_SKARLOC_02);
+            player->SendPreparedGossip(creature);
+            return true;
+        }
+        case 102: 
+        {
+            player->PrepareGossipMenu(creature, GOSSIP_SKARLOC_03);
+            player->SendPreparedGossip(creature);
+            return true;
+        }
+        case 103: 
+        {            
+            if (instance)            
+                instance->SetData(TYPE_ESCORT_BARN, IN_PROGRESS);            
+            
+            if (npc_thrall_old_hillsbradAI* thrallAI = dynamic_cast<npc_thrall_old_hillsbradAI*>(creature->AI()))
+                thrallAI->DoRestartEscortMovement();
+
+            return true;
+        }
+        case 104: 
+        {
+            if (instance)
+                instance->SetData(TYPE_ESCORT_INN, IN_PROGRESS);
+
+            if (npc_thrall_old_hillsbradAI* thrallAI = dynamic_cast<npc_thrall_old_hillsbradAI*>(creature->AI()))
+                thrallAI->DoRestartEscortMovement();
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 /*######

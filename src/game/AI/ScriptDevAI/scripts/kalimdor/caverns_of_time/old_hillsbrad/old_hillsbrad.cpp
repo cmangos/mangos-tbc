@@ -268,6 +268,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
         case TYPE_ESCORT_BARN:
         case TYPE_ESCORT_INN:
         case TYPE_EPOCH:
+        case TYPE_ESCORT_SKARLOC:
             m_auiEncounter[uiType] = uiData;
             debug_log("SD2: Instance Old Hillsbrad: Thrall event type %u adjusted to data %u.", uiType, uiData);
             break;
@@ -322,9 +323,9 @@ void instance_old_hillsbrad::Load(const char* chrIn)
     if (m_auiEncounter[5] != DONE)
     {
         m_auiEncounter[0] = NOT_STARTED;
-        m_auiEncounter[2] = NOT_STARTED;
         m_auiEncounter[3] = NOT_STARTED;
         m_auiEncounter[4] = NOT_STARTED;
+        m_auiEncounter[7] = NOT_STARTED;
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;

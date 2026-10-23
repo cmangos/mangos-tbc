@@ -218,7 +218,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
                 SetCurrentWaypoint(78);
             if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
                 SetCurrentWaypoint(48);
-            else if (m_pInstance->GetData(TYPE_SKARLOC) == DONE)
+            else if (m_pInstance->GetData(TYPE_ESCORT_SKARLOC) == DONE)
                 SetCurrentWaypoint(22);
 
             m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -283,7 +283,7 @@ bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
             player->PrepareGossipMenu(creature, GOSSIP_BARN);
             player->SendPreparedGossip(creature);
         }
-        else if (instance->GetData(TYPE_SKARLOC) == DONE)
+        else if (instance->GetData(TYPE_ESCORT_SKARLOC) == DONE)
         {
             player->PrepareGossipMenu(creature, GOSSIP_SKARLOC_01);
             player->SendPreparedGossip(creature);

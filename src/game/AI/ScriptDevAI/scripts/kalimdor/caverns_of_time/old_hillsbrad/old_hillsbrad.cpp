@@ -48,15 +48,6 @@ void instance_old_hillsbrad::Initialize()
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 }
 
-void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
-{
-    if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
-    {
-        if (!thrall->IsAlive())
-            HandleThrallRelocation();
-    }
-}
-
 void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
 {
     switch (pCreature->GetEntry())
@@ -151,6 +142,14 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
                 thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
 }
 
+void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
+{
+    if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+    {
+        if (!thrall->IsAlive())
+            HandleThrallRelocation();
+    }
+}
 
 void instance_old_hillsbrad::HandleThrallRelocation()
 {
@@ -168,7 +167,17 @@ void instance_old_hillsbrad::HandleThrallRelocation()
         // Despawn Corpse
         thrall->ForcedDespawn();
 
-        if (GetData(TYPE_ESCORT_BARN) == DONE)
+        if (GetData(TYPE_ESCORT_INN) == DONE)
+        {
+            // respawn thrall
+            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_BARN"))
+                thrallGroup->Spawn(true, true);
+
+            // readd Gossip Flag for Taretha
+            if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
+                taretha->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        }
+        else if (GetData(TYPE_ESCORT_BARN) == DONE)
         {
             // respawn thrall
             if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_BARN"))

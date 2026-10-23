@@ -117,6 +117,7 @@ enum
     GOSSIP_SKARLOC_02 = 7829,
     GOSSIP_SKARLOC_03 = 7831,
     GOSSIP_BARN = 7840,
+    GOSSIP_INN = 7853,
     MODEL_SKARLOC_MOUNT = 8469,
 };
 
@@ -134,6 +135,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();        
         AddTimerlessCombatAction(THRALL_LOW_HEALTH, true);
         m_Mounted = false;
+        creature->SetActiveObjectState(true);
         Reset();
     }
 
@@ -215,7 +217,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
 
             // check current states before fail and set current waypoint, everything else handled via DB
             if (m_pInstance->GetData(TYPE_ESCORT_INN) == DONE)
-                SetCurrentWaypoint(78);
+                SetCurrentWaypoint(80);
             if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
                 SetCurrentWaypoint(48);
             else if (m_pInstance->GetData(TYPE_ESCORT_SKARLOC) == DONE)
@@ -245,7 +247,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
                 m_pInstance->SetData(TYPE_ESCORT_BARN, DONE);
                 break;
             // We reached Taretha
-            case 78:
+            case 80:
                 m_pInstance->SetData(TYPE_ESCORT_INN, DONE);
                 break;
         }
@@ -277,6 +279,12 @@ bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
 
     if (instance_old_hillsbrad* instance = (instance_old_hillsbrad*)creature->GetInstanceData())
     {
+        // Inn Reached
+        if (instance->GetData(TYPE_ESCORT_INN) == DONE)
+        {
+            player->PrepareGossipMenu(creature, GOSSIP_INN);
+            player->SendPreparedGossip(creature);
+        }
         // Barn Reached
         if (instance->GetData(TYPE_ESCORT_BARN) == DONE)
         {
@@ -368,7 +376,8 @@ bool GossipSelect_npc_thrall_old_hillsbrad(Player* player, Creature* creature, u
 
 enum
 {
-    GOSSIP_ITEM_EPOCH_1 = 7849
+    GOSSIP_ITEM_EPOCH_1 = 7849,
+    GOSSIP_ITEM_EPOCH_2 = 7852
 };
 
 
@@ -388,22 +397,35 @@ struct npc_tarethaAI : public ScriptedAI
     }
 };
 
-bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 uiAction)
+bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 action)
 {
-    instance_old_hillsbrad* pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();
+    instance_old_hillsbrad* instance = (instance_old_hillsbrad*)creature->GetInstanceData();
 
-    if (uiAction == 100)
+    switch (action)
     {
-        player->PrepareGossipMenu(creature, GOSSIP_ITEM_EPOCH_1);
-        player->SendPreparedGossip(creature);
-    }
+        case 100:      
+        {
+            player->PrepareGossipMenu(creature, GOSSIP_ITEM_EPOCH_1);
+            player->SendPreparedGossip(creature);
+            return true;
+        }
+        case 101:        
+        {
+            if (instance && instance->GetData(TYPE_THRALL_EVENT) == IN_PROGRESS)
+            {
+                creature->RemoveFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+                creature->SetActiveObjectState(true);
 
-    if (uiAction == 101)
-    {
-        player->CLOSE_GOSSIP_MENU();
+                if (Creature* thrall = instance->GetSingleCreatureFromStorage(NPC_THRALL))
+                {
+                    if (npc_thrall_old_hillsbradAI* thrallAI = dynamic_cast<npc_thrall_old_hillsbradAI*>(thrall->AI()))
+                        thrallAI->DoRestartEscortMovement();
+                }
+            }
+            return true;
+        }
     }
-
-    return true;
+    return false;
 }
 
 enum

@@ -175,7 +175,7 @@ void instance_old_hillsbrad::HandleThrallRelocation()
                 thrallGroup->Spawn(true, true);
         }
         // Skarloc Dead - Respawn at that Position
-        else if (GetData(TYPE_SKARLOC) == DONE)
+        else if (GetData(TYPE_ESCORT_SKARLOC) == DONE)
         {
             // respawn thrall
             if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_SKARLOC"))

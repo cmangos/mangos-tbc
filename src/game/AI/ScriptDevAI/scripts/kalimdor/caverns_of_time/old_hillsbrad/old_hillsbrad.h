@@ -9,7 +9,7 @@
 
 enum
 {
-    MAX_ENCOUNTER                   = 7,
+    MAX_ENCOUNTER                   = 8,
     MAX_BARRELS                     = 5,
     MAX_WIPE_COUNTER                = 20,
 

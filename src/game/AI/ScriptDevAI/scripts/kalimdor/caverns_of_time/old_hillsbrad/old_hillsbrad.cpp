@@ -263,6 +263,8 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             {                
                 if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
                     thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
+
+                SetData(TYPE_ESCORT_SKARLOC, DONE);
             }
             break;
         case TYPE_ESCORT_BARN:

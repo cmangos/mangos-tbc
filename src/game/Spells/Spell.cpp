@@ -2191,6 +2191,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
             // vanilla brackets - 0, 55, 130, 205, 330
             // tbc brackets - 305, 355, 380, 430
             uint32 minimumRequiredSkill = 500; // catch setting for missing cases so its noticable
+            // Duplicate logic of GetFishingBaseSkillLevel, kept in core for research reasons until all instances are rechecked
             switch (mapId)
             {
                 case 0:
@@ -2232,6 +2233,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                         case 17: // barrens
                         case 141: // teldrassil
                         case 148: // darkshore
+                        case 215: // mulgore
                         case 1657: // darnassus
                             minimumRequiredSkill = 0;
                             break;
@@ -2313,7 +2315,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                                 case 3692:
                                 case 3693:
                                 case 3975:
-                                    minimumRequiredSkill = 430;
+                                    minimumRequiredSkill = 405;
                                     break;
                                 default:
                                     minimumRequiredSkill = 380;
@@ -2324,7 +2326,7 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                             switch (area)
                             {
                                 case 3621: // lake sunspring
-                                    minimumRequiredSkill = 430;
+                                    minimumRequiredSkill = 405;
                                     break;
                                 default:
                                     minimumRequiredSkill = 355;
@@ -2340,22 +2342,28 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                     }
                     break;
                 }
-                case 534: // these are unverified - needs more data
-                case 545:
-                case 546:
-                case 547:
-                case 548:
-                case 560:
-                case 568:
-                case 580:
-                case 585:
-                    minimumRequiredSkill = 430;
+                case 545: // Steamvaults
+                case 546: // Underbog -- TODO: Verify
+                case 547: // Slave Pens -- TODO: Verify
+                    result = SPELL_FAILED_NO_FISH;
+                    break;
+                // these are unverified - needs more data
+                case 534: // Hyjal Summit
+                case 548: // SSC
+                case 560: // OHF
+                case 568: // ZA
+                case 580: // SWP
+                case 585: // MgT
+                    minimumRequiredSkill = 405;
                     break;
             }
 
-            uint32 fishingSkill = m_caster->IsPlayer() ? static_cast<Player*>(m_caster)->GetSkillValue(SKILL_FISHING) : 0;
-            if (fishingSkill < minimumRequiredSkill)
-                result = SPELL_FAILED_LOW_CASTLEVEL;
+            if (result == SPELL_CAST_OK)
+            {
+                uint32 fishingSkill = m_caster->IsPlayer() ? static_cast<Player*>(m_caster)->GetSkillValue(SKILL_FISHING) : 0;
+                if (fishingSkill < minimumRequiredSkill)
+                    result = SPELL_FAILED_LOW_CASTLEVEL;
+            }
 
             if (result != SPELL_CAST_OK)
             {

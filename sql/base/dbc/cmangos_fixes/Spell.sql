@@ -2622,6 +2622,9 @@ INSERT INTO spell_template(Id, SchoolMask, Category, Dispel, Mechanic, Attribute
 -- was 4 (poison) - and source has immunity to it - so it prevents itself with applying aura - had to remove it.
 UPDATE spell_template SET Dispel = 0 WHERE id = 14108;
 
+-- T3 set bonus should have 10% chance not 100
+UPDATE spell_template SET EffectBasePoints1=9,EffectItemType1=0x1 WHERE Id = 28831;
+
 -- ============================================================
 -- TBC section
 -- ============================================================

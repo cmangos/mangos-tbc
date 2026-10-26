@@ -354,7 +354,7 @@ void instance_blood_furnace::Update(uint32 uiDiff)
         }
 
         // Broggok Event: For the last wave we don't check the timer; the boss is released only when all mobs die
-        if (m_uiBroggokEventPhase <= MAX_ORC_WAVES)
+        if (m_uiBroggokEventPhase < MAX_ORC_WAVES)
         {
             // on wotlk ptr normal and heroic both used 90 seconds timer 
             if (m_uiBroggokEventTimer < uiDiff)            

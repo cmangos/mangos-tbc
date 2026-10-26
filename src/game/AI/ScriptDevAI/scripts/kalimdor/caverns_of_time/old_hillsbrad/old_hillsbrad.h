@@ -32,15 +32,6 @@ enum
 
     NPC_SKARLOCS_MOUNT              = 18798,
 
-    NPC_TARREN_MILL_GUARDSMAN       = 18092,
-    NPC_TARREN_MILL_PROTECTOR       = 18093,
-    NPC_TARREN_MILL_LOOKOUT         = 18094,
-    NPC_YOUNG_BLANCHY               = 18651,
-
-    NPC_BARN_GUARDSMAN              = 23175,
-    NPC_BARN_PROTECTOR              = 23179,
-    NPC_BARN_LOOKOUT                = 23177,
-
     // bosses
     NPC_DRAKE                       = 17848,
     NPC_SKARLOC                     = 17862,
@@ -48,11 +39,6 @@ enum
 
     GO_ROARING_FLAME                = 182592,
     GO_PRISON_DOOR                  = 184393,
-
-    QUEST_ENTRY_HILLSBRAD           = 10282,
-    QUEST_ENTRY_DIVERSION           = 10283,
-    QUEST_ENTRY_ESCAPE              = 10284,
-    QUEST_ENTRY_RETURN              = 10285,
 
     // RP scripts
     NPC_BARTOLO                     = 20365,

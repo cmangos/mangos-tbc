@@ -419,8 +419,8 @@ bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*uiSen
                     for (Creature* creature : *epochSpecial)
                         creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
                 }
-
-                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_EPOCH_TRASH_DESPAWN, 1);
+                // Also set Worldstate to prevent respawn
+                creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_EPOCH_TRASH_DESPAWN, 1);
             }
             return true;
         }

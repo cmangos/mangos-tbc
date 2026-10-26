@@ -63,7 +63,8 @@ enum
     THRALL_PATH_ID = 5600000,
 
     // Spell used to despawn all EscortNPCs
-    SPELL_STUN_PHASE_2              = 33937
+    SPELL_STUN_PHASE_2 = 33937,
+    SPELL_SHADOW_SPIKE = 33125
 };
 
 class instance_old_hillsbrad : public ScriptedInstance, public TimerManager

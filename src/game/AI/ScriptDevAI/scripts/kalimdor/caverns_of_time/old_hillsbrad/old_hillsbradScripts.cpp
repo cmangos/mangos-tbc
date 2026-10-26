@@ -152,15 +152,6 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         }            
     }
 
-    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* invoker, uint32 /*miscValue*/) override
-    {
-        // Skarloc died, restore movement, everything else handled inside DB
-        if (eventType == AI_EVENT_CUSTOM_EVENTAI_A)
-        {
-            m_creature->GetMotionMaster()->UnpauseWaypoints();
-        }
-    }
-
     void EnterCombat(Unit* enemy) override
     {
         if (m_creature->GetMountID())
@@ -217,8 +208,8 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
 
             // check current states before fail and set current waypoint, everything else handled via DB
             if (m_pInstance->GetData(TYPE_ESCORT_INN) == DONE)
-                SetCurrentWaypoint(80);
-            if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
+                SetCurrentWaypoint(81);
+            else if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
                 SetCurrentWaypoint(48);
             else if (m_pInstance->GetData(TYPE_ESCORT_SKARLOC) == DONE)
                 SetCurrentWaypoint(22);
@@ -286,7 +277,7 @@ bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
             player->SendPreparedGossip(creature);
         }
         // Barn Reached
-        if (instance->GetData(TYPE_ESCORT_BARN) == DONE)
+        else if (instance->GetData(TYPE_ESCORT_BARN) == DONE)
         {
             player->PrepareGossipMenu(creature, GOSSIP_BARN);
             player->SendPreparedGossip(creature);
@@ -405,7 +396,7 @@ bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*uiSen
     {
         case 100:      
         {
-            player->PrepareGossipMenu(creature, GOSSIP_ITEM_EPOCH_1);
+            player->PrepareGossipMenu(creature, GOSSIP_ITEM_EPOCH_2);
             player->SendPreparedGossip(creature);
             return true;
         }
@@ -421,6 +412,15 @@ bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*uiSen
                     if (npc_thrall_old_hillsbradAI* thrallAI = dynamic_cast<npc_thrall_old_hillsbradAI*>(thrall->AI()))
                         thrallAI->DoRestartEscortMovement();
                 }
+
+                // Despawn all enemy groups around this area
+                if (std::vector<Creature*> const* epochSpecial = creature->GetMap()->GetCreatures("OHF_EPOCH_EVENT_DESPAWN"))
+                {
+                    for (Creature* creature : *epochSpecial)
+                        creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
+                }
+
+                instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_EPOCH_TRASH_DESPAWN, 1);
             }
             return true;
         }

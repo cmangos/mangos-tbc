@@ -140,6 +140,24 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
         if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
             if (thrall->IsAlive())
                 thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
+
+    if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_01"))
+        if (SpawnGroup* wave02 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_02"))
+            wave02->Spawn(true, true);
+
+    if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_02"))
+        if (SpawnGroup* wave02 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_3"))
+            wave02->Spawn(true, true);
+
+    if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_03"))
+        if (Creature* epoch = GetSingleCreatureFromStorage(NPC_EPOCH))
+            if (epoch->IsAlive())
+                epoch->GetMotionMaster()->MoveWaypoint();
+
+    if (creatureGroup->HasStringId("OHF_EPOCH_HUNTER"))
+        if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
+            if (taretha->IsAlive())
+                taretha->GetMotionMaster()->UnpauseWaypoints();
 }
 
 void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
@@ -159,7 +177,6 @@ void instance_old_hillsbrad::HandleThrallRelocation()
             // Despawn Corpse
         thrall->ForcedDespawn();
     }
-    else
 
         // Reset State
         SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
@@ -170,9 +187,13 @@ void instance_old_hillsbrad::HandleThrallRelocation()
             if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_INN"))
                 thrallGroup->Spawn(true, true);
 
-            // readd Gossip Flag for Taretha
+            // readd Gossip Flag for Taretha and remove standstate
             if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
+            {
+                taretha->RemoveAurasDueToSpell(SPELL_SHADOW_SPIKE);
+                taretha->SetStandState(UNIT_STAND_STATE_STAND);
                 taretha->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+            }
         }
         else if (GetData(TYPE_ESCORT_BARN) == DONE)
         {
@@ -266,7 +287,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             if (uiData == DONE)
             {                
                 if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
-                    thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
+                    thrall->GetMotionMaster()->UnpauseWaypoints();
 
                 SetData(TYPE_ESCORT_SKARLOC, DONE);
             }

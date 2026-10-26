@@ -144,11 +144,6 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
 
 void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
 {
-    if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
-    {
-        if (!thrall->IsAlive())
-            HandleThrallRelocation();
-    }
 }
 
 void instance_old_hillsbrad::HandleThrallRelocation()
@@ -161,16 +156,18 @@ void instance_old_hillsbrad::HandleThrallRelocation()
         if (thrall->IsAlive())
             return;
 
+            // Despawn Corpse
+        thrall->ForcedDespawn();
+    }
+    else
+
         // Reset State
         SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
-
-        // Despawn Corpse
-        thrall->ForcedDespawn();
 
         if (GetData(TYPE_ESCORT_INN) == DONE)
         {
             // respawn thrall
-            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_BARN"))
+            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_INN"))
                 thrallGroup->Spawn(true, true);
 
             // readd Gossip Flag for Taretha
@@ -201,10 +198,8 @@ void instance_old_hillsbrad::HandleThrallRelocation()
             if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_PRISON"))
                 thrallGroup->Spawn(true, true);
 
-           DoUseDoorOrButton(GO_PRISON_DOOR);
+            DoUseDoorOrButton(GO_PRISON_DOOR);
         }
-
-    }
 }
 
 void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
@@ -340,6 +335,81 @@ void instance_old_hillsbrad::Load(const char* chrIn)
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
+}
+
+void instance_old_hillsbrad::ShowChatCommands(ChatHandler* handler)
+{
+    handler->SendSysMessage("This instance supports the following commands:\n barrel, prison, skarloc, barn, epoch");
+}
+
+void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args)
+{
+    char* result = handler->ExtractLiteralArg(&args);
+    if (!result)
+        return;
+    std::string val = result;
+    if (val == "barrel")
+    {        
+        m_uiBarrelCount = MAX_BARRELS;
+
+        ResetTimer(OHF_BARREL_RP, 3000);
+        m_uiDrakeStep = 1;
+ 
+        // Change to IN_PROGRESS for gossip condition handling
+        SetData(TYPE_BARREL_DIVERSION, IN_PROGRESS);
+    }
+    if (val == "prison")
+    {
+        // Nothing started yet
+        SetData(TYPE_SKARLOC, NOT_STARTED);
+        SetData(TYPE_ESCORT_SKARLOC, NOT_STARTED);
+        SetData(TYPE_ESCORT_BARN, NOT_STARTED);
+        SetData(TYPE_ESCORT_INN, NOT_STARTED);
+        SetData(TYPE_EPOCH, NOT_STARTED);
+        SetData(TYPE_THRALL_EVENT, NOT_STARTED);
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+            thrall->ForcedDespawn();
+        HandleThrallRelocation();
+    }
+    if (val == "skarloc")
+    {
+        // Nothing started yet
+        SetData(TYPE_SKARLOC, DONE);
+        SetData(TYPE_ESCORT_SKARLOC, DONE);
+        SetData(TYPE_ESCORT_BARN, NOT_STARTED);
+        SetData(TYPE_ESCORT_INN, NOT_STARTED);
+        SetData(TYPE_EPOCH, NOT_STARTED);
+        SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+            thrall->ForcedDespawn();
+        HandleThrallRelocation();
+    }
+    if (val == "barn")
+    {
+        // Nothing started yet
+        SetData(TYPE_SKARLOC, DONE);
+        SetData(TYPE_ESCORT_SKARLOC, DONE);
+        SetData(TYPE_ESCORT_BARN, DONE);
+        SetData(TYPE_ESCORT_INN, NOT_STARTED);
+        SetData(TYPE_EPOCH, NOT_STARTED);
+        SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+            thrall->ForcedDespawn();
+        HandleThrallRelocation();
+    }
+    if (val == "epoch")
+    {
+        // Nothing started yet
+        SetData(TYPE_SKARLOC, DONE);
+        SetData(TYPE_ESCORT_SKARLOC, DONE);
+        SetData(TYPE_ESCORT_BARN, DONE);
+        SetData(TYPE_ESCORT_INN, DONE);
+        SetData(TYPE_EPOCH, NOT_STARTED);
+        SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+            thrall->ForcedDespawn();
+        HandleThrallRelocation();
+    }
 }
 
 bool instance_old_hillsbrad::CheckConditionCriteriaMeet(Player const* player, uint32 instanceConditionId, WorldObject const* conditionSource, uint32 conditionSourceType) const

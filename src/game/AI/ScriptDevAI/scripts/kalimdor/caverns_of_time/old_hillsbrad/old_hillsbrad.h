@@ -97,6 +97,9 @@ class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
 
         void Update(const uint32 diff) override;
 
+        void ShowChatCommands(ChatHandler* handler) override;
+        void ExecuteChatCommand(ChatHandler* handler, char* args) override;
+
         TimePoint m_beggarScriptTime;
 
     protected:

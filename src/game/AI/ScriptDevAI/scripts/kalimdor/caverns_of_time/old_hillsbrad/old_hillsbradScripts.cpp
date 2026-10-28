@@ -130,16 +130,15 @@ enum ThrallActions
 
 struct npc_thrall_old_hillsbradAI : public npc_escortAI
 {
-    npc_thrall_old_hillsbradAI(Creature* creature) : npc_escortAI(creature, THRALL_ACTION_MAX)
-    {
-        m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();        
+    npc_thrall_old_hillsbradAI(Creature* creature) : npc_escortAI(creature, THRALL_ACTION_MAX), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
+    {      
         AddTimerlessCombatAction(THRALL_LOW_HEALTH, true);
         m_Mounted = false;
         creature->SetActiveObjectState(true);
         Reset();
     }
 
-    instance_old_hillsbrad* m_pInstance;
+    ScriptedInstance* m_instance;
 
     bool m_Mounted;
 
@@ -184,10 +183,10 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     }
 
     void JustDied(Unit* /*pKiller*/) override
-    {        
+    {
         // fail, and relocation handled in instance script
-        if (m_pInstance)
-            m_pInstance->SetData(TYPE_THRALL_EVENT, FAIL);
+        if (m_instance)
+            m_instance->SetData(TYPE_THRALL_EVENT, FAIL);
 
         DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_DIE1 : SAY_TH_RANDOM_DIE2, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_EROZION_IMAGE, CAST_TRIGGERED);
@@ -197,21 +196,21 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     {
         npc_escortAI::JustRespawned();
 
-        if (!m_pInstance)
+        if (!m_instance)
             return;
 
         // We died during Escort and respawned from instance 
-        if (m_pInstance->GetData(TYPE_THRALL_EVENT) == IN_PROGRESS)
+        if (m_instance->GetData(TYPE_THRALL_EVENT) == IN_PROGRESS)
         {
             Start(true, nullptr, nullptr, false, false, THRALL_PATH_ID);
             SetEscortPaused(true);
 
             // check current states before fail and set current waypoint, everything else handled via DB
-            if (m_pInstance->GetData(TYPE_ESCORT_INN) == DONE)
+            if (m_instance->GetData(TYPE_ESCORT_INN) == DONE)
                 SetCurrentWaypoint(81);
-            else if (m_pInstance->GetData(TYPE_ESCORT_BARN) == DONE)
+            else if (m_instance->GetData(TYPE_ESCORT_BARN) == DONE)
                 SetCurrentWaypoint(48);
-            else if (m_pInstance->GetData(TYPE_ESCORT_SKARLOC) == DONE)
+            else if (m_instance->GetData(TYPE_ESCORT_SKARLOC) == DONE)
                 SetCurrentWaypoint(22);
 
             m_creature->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
@@ -228,18 +227,18 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
    
     void WaypointReached(uint32 uiPoint) override
     {
-        if (!m_pInstance)
+        if (!m_instance)
             return;
 
         switch (uiPoint)
         {
             // We reached Barn - everything else handled via DB
             case 48: 
-                m_pInstance->SetData(TYPE_ESCORT_BARN, DONE);
+                m_instance->SetData(TYPE_ESCORT_BARN, DONE);
                 break;
             // We reached Taretha
             case 80:
-                m_pInstance->SetData(TYPE_ESCORT_INN, DONE);
+                m_instance->SetData(TYPE_ESCORT_INN, DONE);
                 break;
         }
     }
@@ -248,7 +247,8 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     {
         switch (action)
         {
-            case THRALL_LOW_HEALTH: {
+            case THRALL_LOW_HEALTH: 
+            {
                 if (m_creature->GetHealthPercent() < 35.0f)
                 {
                     DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_LOW_HP1 : SAY_TH_RANDOM_LOW_HP2, m_creature);
@@ -297,14 +297,14 @@ bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
     return true;
 }
 
-bool GossipSelect_npc_thrall_old_hillsbrad(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 action)
+bool GossipSelect_npc_thrall_old_hillsbrad(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
 {
     instance_old_hillsbrad* instance = (instance_old_hillsbrad*)creature->GetInstanceData();
 
     switch (action)
     {
         case 100:
-        {        
+        {
             // Start Event and open Prison Door
             if (instance)
             {
@@ -374,13 +374,12 @@ enum
 
 struct npc_tarethaAI : public ScriptedAI
 {
-    npc_tarethaAI(Creature* creature) : ScriptedAI(creature)
+    npc_tarethaAI(Creature* creature) : ScriptedAI(creature), m_instance(static_cast<ScriptedInstance*>(creature->GetInstanceData()))
     {
-        m_pInstance = (instance_old_hillsbrad*)creature->GetInstanceData();
         Reset();
     }
 
-    instance_old_hillsbrad* m_pInstance;
+    ScriptedInstance* m_instance;
 
 
     void Reset() override
@@ -388,7 +387,7 @@ struct npc_tarethaAI : public ScriptedAI
     }
 };
 
-bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*uiSender*/, uint32 action)
+bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*sender*/, uint32 action)
 {
     instance_old_hillsbrad* instance = (instance_old_hillsbrad*)creature->GetInstanceData();
 

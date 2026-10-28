@@ -143,8 +143,8 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
             wave02->Spawn(true, true);
 
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_02"))
-        if (SpawnGroup* wave02 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_3"))
-            wave02->Spawn(true, true);
+        if (SpawnGroup* wave03 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_03"))
+            wave03->Spawn(true, true);
 
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_03"))
         if (Creature* epoch = GetSingleCreatureFromStorage(NPC_EPOCH))
@@ -376,7 +376,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
         // Change to IN_PROGRESS for gossip condition handling
         SetData(TYPE_BARREL_DIVERSION, IN_PROGRESS);
     }
-    if (val == "prison")
+    else if (val == "prison")
     {
         // Nothing started yet
         SetData(TYPE_SKARLOC, NOT_STARTED);
@@ -389,7 +389,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
             thrall->ForcedDespawn();
         HandleThrallRelocation();
     }
-    if (val == "skarloc")
+    else if (val == "skarloc")
     {
         // Nothing started yet
         SetData(TYPE_SKARLOC, DONE);
@@ -402,7 +402,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
             thrall->ForcedDespawn();
         HandleThrallRelocation();
     }
-    if (val == "barn")
+    else if (val == "barn")
     {
         // Nothing started yet
         SetData(TYPE_SKARLOC, DONE);
@@ -415,7 +415,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
             thrall->ForcedDespawn();
         HandleThrallRelocation();
     }
-    if (val == "epoch")
+    else if (val == "epoch")
     {
         // Nothing started yet
         SetData(TYPE_SKARLOC, DONE);

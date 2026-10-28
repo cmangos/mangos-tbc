@@ -86,25 +86,16 @@ bool GossipSelect_npc_erozion(Player* pPlayer, Creature* pCreature, uint32 /*uiS
 
 enum
 {
-    // Thrall texts - misc
+    // Thrall texts
     SAY_TH_RANDOM_LOW_HP1           = 17610,
     SAY_TH_RANDOM_LOW_HP2           = 17611,
 
     SAY_TH_RANDOM_DIE1              = 17612,
     SAY_TH_RANDOM_DIE2              = 17613,
 
-    SAY_TH_RANDOM_AGGRO1            = 17600,
-    SAY_TH_RANDOM_AGGRO2            = 17601,
-    SAY_TH_RANDOM_AGGRO3            = 17602,
-    SAY_TH_RANDOM_AGGRO4            = 17603,
 
     SAY_TH_RANDOM_KILL1             = 17604,
     SAY_TH_RANDOM_KILL2             = 17605,
-    SAY_TH_RANDOM_KILL3             = 17606,
-
-    SAY_TH_LEAVE_COMBAT1            = 17607,
-    SAY_TH_LEAVE_COMBAT2            = 17608,
-    SAY_TH_LEAVE_COMBAT3            = 17609,
 
     // reset texts
     SAY_ERONZION_RESET_THRALL       = 16729,
@@ -120,6 +111,9 @@ enum
     GOSSIP_INN = 7853,
     MODEL_SKARLOC_MOUNT = 8469,
 };
+
+static const int32 aRandomAggro[] = {17600, 17601, 17602, 17603};
+static const int32 aRandomEvade[] = {17606, 17607, 17608, 17609};
 
 enum ThrallActions
 {
@@ -163,14 +157,10 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
 
     void Aggro(Unit* /*pWho*/) override
     {
-        switch (urand(0, 3))
-        {
-            case 0: DoBroadcastText(SAY_TH_RANDOM_AGGRO1, m_creature); break;
-            case 1: DoBroadcastText(SAY_TH_RANDOM_AGGRO2, m_creature); break;
-            case 2: DoBroadcastText(SAY_TH_RANDOM_AGGRO3, m_creature); break;
-            case 3: DoBroadcastText(SAY_TH_RANDOM_AGGRO4, m_creature); break;
-        }
+        if (urand(0, 4) == 0)
+            DoBroadcastText(aRandomAggro[urand(0, 3)], m_creature);
     }
+
 
     void KilledUnit(Unit* /*pVictim*/) override
     {
@@ -190,6 +180,17 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
 
         DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_DIE1 : SAY_TH_RANDOM_DIE2, m_creature);
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_EROZION_IMAGE, CAST_TRIGGERED);
+    }
+
+    void JustReachedHome() override
+    {
+        // During Escort, everytime Thrall leaves combat he has a 20% chance to say some text before going to next waypoint
+        if (!HasEscortState(STATE_ESCORT_ESCORTING))
+        {
+            if (urand(0, 4) == 0)
+                DoBroadcastText(aRandomEvade[urand(0, 3)], m_creature);
+        }
+        npc_escortAI::JustReachedHome();
     }
 
     void JustRespawned() override

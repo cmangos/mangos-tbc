@@ -36,6 +36,8 @@
 
 #include "Common.h"
 #include "Mails/Mail.h"
+#include <memory>
+
 
 /**
  * A class to represent the mail send factory to multiple (often all existing) characters.
@@ -61,7 +63,7 @@ class MassMailMgr
          *
          * Note: this function safe to be called from Map::Update content/etc, real data add will executed in next tick after query results ready
          */
-        void AddMassMailTask(MailDraft* mailProto, const MailSender& sender, uint32 raceMask);
+        void AddMassMailTask(std::unique_ptr<MailDraft> mailProto, const MailSender& sender, uint32 raceMask);
 
         /**
          * And new mass mail task with SQL query text for fill receivers list.
@@ -71,7 +73,7 @@ class MassMailMgr
          *
          * Note: this function safe to be called from Map::Update content/etc, real data add will executed in next tick after query results ready
          */
-        void AddMassMailTask(MailDraft* mailProto, const MailSender& sender, char const* query);
+        void AddMassMailTask(std::unique_ptr<MailDraft> mailProto, const MailSender& sender, char const* query);
 
         /**
          * And new mass mail task and let fill receivers list returned as result.
@@ -81,9 +83,9 @@ class MassMailMgr
          *
          * Note: this function NOT SAFE for call from Map::Update content/etc
          */
-        ReceiversList& AddMassMailTask(MailDraft* mailProto, const MailSender& sender)
+        ReceiversList& AddMassMailTask(std::unique_ptr<MailDraft> mailProto, const MailSender& sender)
         {
-            m_massMails.emplace_back(mailProto, sender);
+            m_massMails.emplace_back(std::move(mailProto), sender);
             return m_massMails.rbegin()->m_receivers;
         }
 
@@ -97,8 +99,8 @@ class MassMailMgr
         /// Mass mail task store mail prototype and receivers list who not get mail yet
         struct MassMail
         {
-            explicit MassMail(MailDraft* mailProto, MailSender sender)
-                : m_protoMail(mailProto), m_sender(sender)
+            explicit MassMail(std::unique_ptr<MailDraft> mailProto, MailSender sender)
+            : m_protoMail(std::move(mailProto)), m_sender(sender)
             {
                 MANGOS_ASSERT(mailProto);
             }

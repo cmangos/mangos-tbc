@@ -1111,10 +1111,10 @@ void GameEventMgr::SendEventMails(int16 event_id)
                << " AND characters.deleteDate IS NULL AND character_queststatus.guid = characters.guid AND character_queststatus.quest = "
                << mail.questId
                << " AND character_queststatus.rewarded <> 0";
-            sMassMailMgr.AddMassMailTask(new MailDraft(mail.mailTemplateId), MailSender(MAIL_CREATURE, mail.senderEntry), ss.str().c_str());
+            sMassMailMgr.AddMassMailTask(std::make_unique<MailDraft>(mail.mailTemplateId), MailSender(MAIL_CREATURE, mail.senderEntry), ss.str().c_str());
         }
         else
-            sMassMailMgr.AddMassMailTask(new MailDraft(mail.mailTemplateId), MailSender(MAIL_CREATURE, mail.senderEntry), mail.raceMask);
+            sMassMailMgr.AddMassMailTask(std::make_unique<MailDraft>(mail.mailTemplateId), MailSender(MAIL_CREATURE, mail.senderEntry), mail.raceMask);
     }
 }
 

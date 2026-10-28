@@ -35,16 +35,16 @@
 
 INSTANTIATE_SINGLETON_1(MassMailMgr);
 
-void MassMailMgr::AddMassMailTask(MailDraft* mailProto, const MailSender& sender, uint32 raceMask)
+void MassMailMgr::AddMassMailTask(std::unique_ptr<MailDraft> mailProto, const MailSender& sender, uint32 raceMask)
 {
     if (RACEMASK_ALL_PLAYABLE & ~raceMask)                  // have races not included in mask
     {
         std::ostringstream ss;
         ss << "SELECT guid FROM characters WHERE (1 << (race - 1)) & " << raceMask << " AND deleteDate IS NULL";
-        AddMassMailTask(mailProto, sender, ss.str().c_str());
+        AddMassMailTask(std::move(mailProto), sender, ss.str().c_str());
     }
     else
-        AddMassMailTask(mailProto, sender, "SELECT guid FROM characters WHERE deleteDate IS NULL");
+        AddMassMailTask(std::move(mailProto), sender, "SELECT guid FROM characters WHERE deleteDate IS NULL");
 }
 
 struct MassMailerQueryHandler
@@ -57,7 +57,7 @@ struct MassMailerQueryHandler
             return;
         }
 
-        MassMailMgr::ReceiversList& recievers = sMassMailMgr.AddMassMailTask(mailProto, sender);
+        MassMailMgr::ReceiversList& recievers = sMassMailMgr.AddMassMailTask(std::unique_ptr<MailDraft>(mailProto), sender);
 
         do
         {
@@ -69,9 +69,9 @@ struct MassMailerQueryHandler
     }
 } massMailerQueryHandler;
 
-void MassMailMgr::AddMassMailTask(MailDraft* mailProto, const MailSender& sender, char const* query)
+void MassMailMgr::AddMassMailTask(std::unique_ptr<MailDraft> mailProto, const MailSender& sender, char const* query)
 {
-    CharacterDatabase.AsyncPQuery(&massMailerQueryHandler, &MassMailerQueryHandler::HandleQueryCallback, mailProto, sender, "%s", query);
+    CharacterDatabase.AsyncPQuery(&massMailerQueryHandler, &MassMailerQueryHandler::HandleQueryCallback, mailProto.release(), sender, "%s", query);  
 }
 
 void MassMailMgr::Update(bool sendall /*= false*/)

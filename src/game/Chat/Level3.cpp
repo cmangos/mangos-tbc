@@ -6455,19 +6455,18 @@ bool ChatHandler::HandleSendMassMailCommand(char* args)
         return false;
 
     // need dynamic object because it trasfered to mass mailer
-    MailDraft* draft = new MailDraft;
+    auto mailDraft = std::make_unique<MailDraft>();
 
     // fill mail
-    if (!HandleSendMailHelper(*draft, args))
+    if (!HandleSendMailHelper(*mailDraft, args))
     {
-        delete draft;
         return false;
     }
 
     // from console show nonexistent sender
     MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
 
-    sMassMailMgr.AddMassMailTask(draft, sender, raceMask);
+    sMassMailMgr.AddMassMailTask(std::move(mailDraft), sender, raceMask);
 
     PSendSysMessage(LANG_MAIL_SENT, name);
     return true;
@@ -6590,20 +6589,18 @@ bool ChatHandler::HandleSendMassItemsCommand(char* args)
         return false;
 
     // need dynamic object because it trasfered to mass mailer
-    MailDraft* draft = new MailDraft;
-
+    auto mailDraft = std::make_unique<MailDraft>();
 
     // fill mail
-    if (!HandleSendItemsHelper(*draft, args))
+    if (!HandleSendItemsHelper(*mailDraft, args))
     {
-        delete draft;
         return false;
     }
 
     // from console show nonexistent sender
     MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
 
-    sMassMailMgr.AddMassMailTask(draft, sender, raceMask);
+    sMassMailMgr.AddMassMailTask(std::move(mailDraft), sender, raceMask);
 
     PSendSysMessage(LANG_MAIL_SENT, name);
     return true;
@@ -6671,19 +6668,18 @@ bool ChatHandler::HandleSendMassMoneyCommand(char* args)
         return false;
 
     // need dynamic object because it trasfered to mass mailer
-    MailDraft* draft = new MailDraft;
+    auto mailDraft = std::make_unique<MailDraft>();
 
     // fill mail
-    if (!HandleSendMoneyHelper(*draft, args))
+    if (!HandleSendMoneyHelper(*mailDraft, args))
     {
-        delete draft;
         return false;
     }
 
     // from console show nonexistent sender
     MailSender sender(MAIL_NORMAL, m_session ? m_session->GetPlayer()->GetObjectGuid().GetCounter() : 0, MAIL_STATIONERY_GM);
 
-    sMassMailMgr.AddMassMailTask(draft, sender, raceMask);
+    sMassMailMgr.AddMassMailTask(std::move(mailDraft), sender, raceMask);
 
     PSendSysMessage(LANG_MAIL_SENT, name);
     return true;

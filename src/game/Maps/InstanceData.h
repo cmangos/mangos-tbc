@@ -53,6 +53,9 @@ enum InstanceConditionIDs                                   // Suggested values 
 
     INSTANCE_CONDITION_ID_SOCRETHAR_GOSSIP  = 8215,
 
+    // Gossip condition for OHF
+    INSTANCE_CONDITION_ID_THRALL_STARTABLE = 17876,
+
     // Gossip conditions for Hyjal Summit
     INSTANCE_CONDITION_ID_WINTERCHILL_STARTABLE = 17767,
     INSTANCE_CONDITION_ID_ANETHERON_STARTABLE = 17808,

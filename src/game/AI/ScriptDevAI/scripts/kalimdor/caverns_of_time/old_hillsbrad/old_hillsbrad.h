@@ -9,17 +9,18 @@
 
 enum
 {
-    MAX_ENCOUNTER                   = 7,
+    MAX_ENCOUNTER                   = 8,
     MAX_BARRELS                     = 5,
     MAX_WIPE_COUNTER                = 20,
 
     TYPE_BARREL_DIVERSION           = 0,                    // barrel event
     TYPE_DRAKE                      = 1,                    // first boss
-    TYPE_SKARLOC                    = 2,                    // prison to keep - boss
+    TYPE_SKARLOC                    = 2,                    // prison to keep - boss    
     TYPE_ESCORT_BARN                = 3,                    // keep to barn
     TYPE_ESCORT_INN                 = 4,                    // barn to inn
     TYPE_EPOCH                      = 5,                    // inn event
     TYPE_THRALL_EVENT               = 6,                    // global event
+    TYPE_ESCORT_SKARLOC             = 7,
 
     // event npcs
     NPC_THRALL                      = 17876,
@@ -29,14 +30,7 @@ enum
     NPC_ARMORER                     = 18764,
     NPC_ORC_PRISONER                = 18598,
 
-    NPC_TARREN_MILL_GUARDSMAN       = 18092,
-    NPC_TARREN_MILL_PROTECTOR       = 18093,
-    NPC_TARREN_MILL_LOOKOUT         = 18094,
-    NPC_YOUNG_BLANCHY               = 18651,
-
-    NPC_BARN_GUARDSMAN              = 23175,
-    NPC_BARN_PROTECTOR              = 23179,
-    NPC_BARN_LOOKOUT                = 23177,
+    NPC_SKARLOCS_MOUNT              = 18798,
 
     // bosses
     NPC_DRAKE                       = 17848,
@@ -46,20 +40,20 @@ enum
     GO_ROARING_FLAME                = 182592,
     GO_PRISON_DOOR                  = 184393,
 
-    QUEST_ENTRY_HILLSBRAD           = 10282,
-    QUEST_ENTRY_DIVERSION           = 10283,
-    QUEST_ENTRY_ESCAPE              = 10284,
-    QUEST_ENTRY_RETURN              = 10285,
-
     // RP scripts
     NPC_BARTOLO                     = 20365,
     NPC_BEGGAR                      = 20432,
     NPC_COMMANDER_MOGRAINE          = 20345,
+    NPC_COT_DESPAWN_TRIGGER         = 19433,
 
-    THRALL_PATH_ID                  = 5600435
+    THRALL_PATH_ID = 5600000,
+
+    // Spell used to despawn all EscortNPCs
+    SPELL_STUN_PHASE_2 = 33937,
+    SPELL_SHADOW_SPIKE = 33125
 };
 
-class instance_old_hillsbrad : public ScriptedInstance
+class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
 {
     public:
         instance_old_hillsbrad(Map* pMap);
@@ -69,12 +63,14 @@ class instance_old_hillsbrad : public ScriptedInstance
 
         void OnPlayerEnter(Player* pPlayer) override;
         void OnCreatureCreate(Creature* pCreature) override;
+        void OnCreatureRespawn(Creature* creature) override;
         void OnObjectCreate(GameObject* pGo) override;
 
         void OnCreatureEnterCombat(Creature* pCreature) override;
         void OnCreatureEvade(Creature* pCreature) override;
         void OnCreatureDeath(Creature* pCreature) override;
         void OnCreatureDespawn(Creature* pCreature) override;
+        void OnCreatureGroupDespawn(CreatureGroup* group, Creature* creature) override;
 
         void SetData(uint32 uiType, uint32 uiData) override;
         uint32 GetData(uint32 uiType) const override;
@@ -84,21 +80,25 @@ class instance_old_hillsbrad : public ScriptedInstance
         const char* Save() const override { return m_strInstData.c_str(); }
         void Load(const char* chrIn) override;
 
+        bool CheckConditionCriteriaMeet(Player const* pPlayer, uint32 uiInstanceConditionId, WorldObject const* pConditionSource, uint32 conditionSourceType) const override;
+
         void Update(const uint32 diff) override;
+
+        void ShowChatCommands(ChatHandler* handler) override;
+        void ExecuteChatCommand(ChatHandler* handler, char* args) override;
 
         TimePoint m_beggarScriptTime;
 
     protected:
         void HandleThrallRelocation();
         void UpdateLodgeQuestCredit();
+        void DoBarrelRP();
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
 
         uint32 m_uiBarrelCount;
         uint32 m_uiThrallEventCount;
-        uint32 m_uiThrallResetTimer;
-        uint32 m_uiDrakeDelay;
         uint8 m_uiDrakeStep;
 };
 

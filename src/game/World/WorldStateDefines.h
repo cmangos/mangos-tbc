@@ -274,7 +274,9 @@ enum WorldStateID : int32
 
     // COT: Old Hillsbrad
     WORLD_STATE_OLD_HILLSBRAD_BARREL_COUNT = 2436,
-    WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TRASH_RESPAWN = 5600004,
+    WORLD_STATE_OLD_HILLSBRAD_CUSTOM_DRAKE_TRASH_RESPAWN = 5600004,  // Used to prevent respawning of trash as long Lieutnant Drake is alive
+    WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_TRASH_RESPAWN = 5600005,  // Used to prevent respawning of 2 trash groups after players started Thrall Escort
+    WORLD_STATE_OLD_HILLSBRAD_CUSTOM_EPOCH_TRASH_DESPAWN = 5600006, // Used to despawn some NPCs around Epoch event
 
     // COT: Opening the Dark Portal
     WORLD_STATE_OPENING_THE_DARK_PORTAL_IS_ACTIVE = 2541,

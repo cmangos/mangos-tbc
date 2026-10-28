@@ -47,31 +47,30 @@ void MassMailMgr::AddMassMailTask(std::unique_ptr<MailDraft> mailProto, const Ma
         AddMassMailTask(std::move(mailProto), sender, "SELECT guid FROM characters WHERE deleteDate IS NULL");
 }
 
-struct MassMailerQueryHandler
+void HandleQueryCallback(std::unique_ptr<QueryResult> queryResult, std::unique_ptr<MailDraft> mailProto, MailSender sender)
 {
-    void HandleQueryCallback(QueryResult* result, MailDraft* mailProto, MailSender sender)
+    if (!queryResult)
     {
-        if (!result)
-        {
-            delete mailProto;
-            return;
-        }
-
-        MassMailMgr::ReceiversList& recievers = sMassMailMgr.AddMassMailTask(std::unique_ptr<MailDraft>(mailProto), sender);
-
-        do
-        {
-            Field* fields = result->Fetch();
-            recievers.insert(fields[0].GetUInt32());
-        }
-        while (result->NextRow());
-        delete result;
+        return;
     }
-} massMailerQueryHandler;
+
+    MassMailMgr::ReceiversList& recievers = sMassMailMgr.AddMassMailTask(std::move(mailProto), sender);
+
+    do
+    {
+        Field* fields = queryResult->Fetch();
+        recievers.insert(fields[0].GetUInt32());
+    }
+    while (queryResult->NextRow());
+}
 
 void MassMailMgr::AddMassMailTask(std::unique_ptr<MailDraft> mailProto, const MailSender& sender, char const* query)
 {
-    CharacterDatabase.AsyncPQuery(&massMailerQueryHandler, &MassMailerQueryHandler::HandleQueryCallback, mailProto.release(), sender, "%s", query);  
+    auto callback = [mailProto = std::move(mailProto), sender](std::unique_ptr<QueryResult> queryResult) mutable
+                    {
+                        HandleQueryCallback(std::move(queryResult), std::move(mailProto), sender);
+                    };
+    CharacterDatabase.AsyncPQuery(std::move(callback), "%s", query);
 }
 
 void MassMailMgr::Update(bool sendall /*= false*/)

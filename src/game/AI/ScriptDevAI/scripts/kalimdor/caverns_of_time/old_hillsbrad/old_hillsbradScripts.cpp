@@ -97,10 +97,6 @@ enum
     SAY_TH_RANDOM_KILL1             = 17604,
     SAY_TH_RANDOM_KILL2             = 17605,
 
-    // reset texts
-    SAY_ERONZION_RESET_THRALL       = 16729,
-    SAY_ERONZION_RESET_LAST         = 16731,
-
     SPELL_SUMMON_EROZION_IMAGE      = 33954, // if thrall dies during escort
 
     GOSSIP_START = 7499,
@@ -161,7 +157,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
             DoBroadcastText(aRandomAggro[urand(0, 3)], m_creature);
     }
 
-    void JustDied(Unit* /*pKiller*/) override
+    void JustDied(Unit* /*killer*/) override
     {
         // fail, and relocation handled in instance script
         if (m_instance)

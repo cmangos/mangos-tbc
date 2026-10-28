@@ -31,6 +31,7 @@ enum
     NPC_ORC_PRISONER                = 18598,
 
     NPC_SKARLOCS_MOUNT              = 18798,
+    NPC_IMAGE_EROZION               = 19438,
 
     // bosses
     NPC_DRAKE                       = 17848,
@@ -50,7 +51,11 @@ enum
 
     // Spell used to despawn all EscortNPCs
     SPELL_STUN_PHASE_2 = 33937,
-    SPELL_SHADOW_SPIKE = 33125
+    SPELL_SHADOW_SPIKE = 33125,
+
+    // reset texts - unconfirmed atm
+    SAY_ERONZION_RESET_THRALL = 16729,
+    SAY_ERONZION_RESET_LAST = 16731,
 };
 
 class instance_old_hillsbrad : public ScriptedInstance, public TimerManager

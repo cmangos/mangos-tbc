@@ -82,6 +82,14 @@ void instance_old_hillsbrad::OnCreatureRespawn(Creature* creature)
                 creature->SetNoReputation(true);
             }
         break;
+        case NPC_IMAGE_EROZION: 
+        {            
+            // on try 19 there is another Text - no text after 20 trys
+            if (m_uiThrallEventCount == 19)
+                creature->DoBroadcastText(SAY_ERONZION_RESET_LAST, creature);
+            else if (m_uiThrallEventCount <= MAX_WIPE_COUNTER)
+                creature->DoBroadcastText(SAY_ERONZION_RESET_THRALL, creature);
+        }
     }
 }
 void instance_old_hillsbrad::OnCreatureDeath(Creature* pCreature)

@@ -58,6 +58,16 @@ Database::AsyncQuery(Callable callback, const char* sql)
     return m_threadBody->Delay(new SqlQuery(sql, new MaNGOS::QueryCallback(std::move(callback)), m_pResultQueue));
 }
 
+// -- PQuery --
+
+template <typename Callable>
+bool
+Database::AsyncPQuery(Callable callback, const char* format, ...)
+{
+    ASYNC_PQUERY_BODY(format, szQuery)
+    return AsyncQuery(std::move(callback), szQuery);
+}
+
 // -- PQuery / member --
 
 template<class Class>

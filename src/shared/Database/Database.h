@@ -144,12 +144,22 @@ class Database
         // Query
         /**
          * Callable needs to be a callable object (function object, pointer to function, reference
-         * to function, pointer to member function, etc) that takes a pointer to QueryResult as
-         * an argument and returns void. The caller can use std::bind to create such a callable
-         * object and bind any other required arguments for the actual callback.
+         * to function, pointer to member function, etc) that takes a std::unique_ptr<QueryResult>
+         * or a pointer to QueryResult as an argument and returns void. The caller can use std::bind
+         * to create such a callable object and bind any other required arguments for the actual callback.
          */
         template <typename Callable>
         bool AsyncQuery(Callable callback, const char* sql);
+
+        // PQuery
+        /**
+         * Callable needs to be a callable object (function object, pointer to function, reference
+         * to function, pointer to member function, etc) that takes a std::unique_ptr<QueryResult>
+         * or a pointer to QueryResult as an argument and returns void. The caller can use std::bind
+         * to create such a callable object and bind any other required arguments for the actual callback.
+         */
+        template <typename Callable>
+        bool AsyncPQuery(Callable callback, const char* format, ...) ATTR_PRINTF(3, 4);
 
         // PQuery / member
         template<class Class>

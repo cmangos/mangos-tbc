@@ -19,8 +19,9 @@
 #ifndef MANGOS_CALLBACK_H
 #define MANGOS_CALLBACK_H
 
-#include <functional>
+#include <concepts>
 #include <memory>
+#include <utility>
 
 /// ---------- QUERY CALLBACKS -----------
 
@@ -37,25 +38,35 @@ namespace MaNGOS
             virtual void SetResult(std::unique_ptr<QueryResult> queryResult) = 0;
     };
 
+    /**
+     * Callable needs to be a callable object (function object, pointer to function, reference
+     * to function, pointer to member function, etc) that takes an std::unique_ptr<QueryResult>
+     * or a pointer to QueryResult as an argument and returns void. The caller can use std::bind
+     * to create such a callable object and bind any other required arguments for the actual callback.
+     */
+    template <typename Callable>
+    requires(std::invocable<Callable&, QueryResult*> ||
+             std::invocable<Callable&, std::unique_ptr<QueryResult>>)
     class QueryCallback : public IQueryCallback
     {
         public:
 
-            /**
-             * Callable needs to be a callable object (function object, pointer to function, reference
-             * to function, pointer to member function, etc) that takes a pointer to QueryResult as
-             * an argument and returns void. The caller can use std::bind to create such a callable
-             * object and bind any other required arguments for the actual callback.
-             */
-            template <typename Callable>
-            QueryCallback(Callable callback)
-            : m_Callback(std::move(callback)), m_QueryResult()
+            QueryCallback(Callable&& callback)
+            : m_Callback(std::forward<Callable>(callback))
+            , m_QueryResult()
             {
             }
 
             void Execute() override
             {
-                m_Callback(m_QueryResult.release());
+                if constexpr (std::invocable<Callable&, QueryResult*>)
+                {
+                    m_Callback(m_QueryResult.release());
+                }
+                else
+                {
+                    m_Callback(std::move(m_QueryResult));
+                }
             }
 
             void SetResult(std::unique_ptr<QueryResult> queryResult) override
@@ -65,7 +76,7 @@ namespace MaNGOS
 
         private:
 
-            std::function<void(QueryResult*)> m_Callback;
+            Callable m_Callback;
             std::unique_ptr<QueryResult> m_QueryResult;
     };
 }

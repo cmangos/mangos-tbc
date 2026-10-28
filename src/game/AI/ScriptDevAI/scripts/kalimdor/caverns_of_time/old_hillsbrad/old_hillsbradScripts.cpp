@@ -93,7 +93,7 @@ enum
     SAY_TH_RANDOM_DIE1              = 17612,
     SAY_TH_RANDOM_DIE2              = 17613,
 
-
+    // Unconfirmed texts
     SAY_TH_RANDOM_KILL1             = 17604,
     SAY_TH_RANDOM_KILL2             = 17605,
 
@@ -159,17 +159,6 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     {
         if (urand(0, 4) == 0)
             DoBroadcastText(aRandomAggro[urand(0, 3)], m_creature);
-    }
-
-
-    void KilledUnit(Unit* /*pVictim*/) override
-    {
-        switch (urand(0, 2))
-        {
-            case 0: DoBroadcastText(SAY_TH_RANDOM_KILL1, m_creature); break;
-            case 1: DoBroadcastText(SAY_TH_RANDOM_KILL2, m_creature); break;
-            case 2: DoBroadcastText(SAY_TH_RANDOM_KILL3, m_creature); break;
-        }
     }
 
     void JustDied(Unit* /*pKiller*/) override

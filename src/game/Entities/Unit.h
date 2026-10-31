@@ -930,6 +930,7 @@ struct CharmInfo
         void InitPossessCreateSpells();
         void InitCharmCreateSpells();
         void InitPetActionBar();
+        void InitChessActionBar();
         void InitEmptyActionBar();
         void ProcessUnattackableTargets(CombatData* combatData);
 

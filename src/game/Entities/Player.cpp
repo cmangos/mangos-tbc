@@ -1614,7 +1614,7 @@ void Player::Update(const uint32 diff)
         m_createdInstanceClearTimer -= diff;
 
     Pet* pet = GetPet();
-    if (pet && !pet->IsWithinDistInMap(this, GetMap()->GetVisibilityDistance()) && (GetCharmGuid() && (pet->GetObjectGuid() != GetCharmGuid())))
+    if (pet && !pet->IsWithinDistInMap(this, GetMap()->GetVisibilityDistance()) && pet->GetObjectGuid() != GetCharmGuid())
         pet->Unsummon(PET_SAVE_REAGENTS, this);
 
     if (IsHasDelayedTeleport() && !m_semaphoreTeleport_Near)

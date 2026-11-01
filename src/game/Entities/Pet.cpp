@@ -247,7 +247,7 @@ bool Pet::LoadPetFromDB(Player* owner, Position const& spawnPos, uint32 petentry
 
     CreatureCreatePos pos(owner->GetMap(), spawnPos.x, spawnPos.y, spawnPos.z, spawnPos.o);
 
-    uint32 guid = pos.GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
+    uint32 guid = pos.GetMap()->GenerateLocalLowGuid(HIGHGUID_PET, pet_number);
     if (!Create(guid, pos, creatureInfo, pet_number))
     {
         return false;
@@ -1185,10 +1185,9 @@ bool Pet::CreateBaseAtCreature(Creature* creature)
 
     CreatureCreatePos pos(creature, creature->GetOrientation());
 
-    uint32 guid = creature->GetMap()->GenerateLocalLowGuid(HIGHGUID_PET);
-
     BASIC_LOG("Create pet");
     uint32 pet_number = sObjectMgr.GeneratePetNumber();
+    uint32 guid = creature->GetMap()->GenerateLocalLowGuid(HIGHGUID_PET, pet_number);
     if (!Create(guid, pos, creature->GetCreatureInfo(), pet_number))
         return false;
 
@@ -2204,6 +2203,9 @@ void Pet::ToggleAutocast(uint32 spellid, bool apply)
 bool Pet::Create(uint32 guidlow, CreatureCreatePos& cPos, CreatureInfo const* cinfo, uint32 pet_number)
 {
     SetMap(cPos.GetMap());
+
+    if (!guidlow)                                           // no free map guid counter, already logged
+        return false;
 
     Object::_Create(guidlow, guidlow, pet_number, HIGHGUID_PET);
 

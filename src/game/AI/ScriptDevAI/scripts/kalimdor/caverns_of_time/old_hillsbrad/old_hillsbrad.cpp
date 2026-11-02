@@ -86,9 +86,9 @@ void instance_old_hillsbrad::OnCreatureRespawn(Creature* creature)
         {            
             // on try 19 there is another Text - no text after 20 trys
             if (m_uiThrallEventCount == 19)
-                creature->DoBroadcastText(SAY_ERONZION_RESET_LAST, creature);
+                DoBroadcastText(SAY_ERONZION_RESET_LAST, creature);
             else if (m_uiThrallEventCount <= MAX_WIPE_COUNTER)
-                creature->DoBroadcastText(SAY_ERONZION_RESET_THRALL, creature);
+                DoBroadcastText(SAY_ERONZION_RESET_THRALL, creature);
         }
     }
 }
@@ -162,7 +162,12 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
     if (creatureGroup->HasStringId("OHF_EPOCH_HUNTER"))
         if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
             if (taretha->IsAlive())
-                taretha->GetMotionMaster()->UnpauseWaypoints();
+            {
+                taretha->RemoveAllAuras();
+                taretha->SetStandState(UNIT_STAND_STATE_STAND);
+                taretha->SetWalk(false);
+                taretha->GetMotionMaster()->MovePath();
+            }
 }
 
 void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)

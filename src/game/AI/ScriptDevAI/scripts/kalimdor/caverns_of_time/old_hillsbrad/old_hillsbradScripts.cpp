@@ -167,6 +167,12 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         DoCastSpellIfCan(m_creature, SPELL_SUMMON_EROZION_IMAGE, CAST_TRIGGERED);
     }
 
+    void KilledUnit(Unit* /*pVictim*/) override
+    {
+        if (urand(0, 4) == 0)
+            DoBroadcastText(urand(0, 1) ? SAY_TH_RANDOM_KILL1 : SAY_TH_RANDOM_KILL2, m_creature);
+    }
+
     void JustReachedHome() override
     {
         // During Escort, everytime Thrall leaves combat he has a 20% chance to say some text before going to next waypoint

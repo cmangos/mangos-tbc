@@ -39,7 +39,7 @@ EndContentData */
 enum
 {
     GOSSIP_ENTRANCE = 7769,
-    GOSSIP_FINISHED = 10475,
+    GOSSIP_FINISHED = 8391,
 };
 
 bool GossipHello_npc_erozion(Player* player, Creature* creature)

@@ -9,7 +9,7 @@
 
 enum
 {
-    MAX_ENCOUNTER                   = 8,
+    MAX_ENCOUNTER                   = 9,
     MAX_BARRELS                     = 5,
     MAX_WIPE_COUNTER                = 20,
 
@@ -21,6 +21,7 @@ enum
     TYPE_EPOCH                      = 5,                    // inn event
     TYPE_THRALL_EVENT               = 6,                    // global event
     TYPE_ESCORT_SKARLOC             = 7,
+    TYPE_EPOCH_WAVE                 = 8,                    // Epoch Waves
 
     // event npcs
     NPC_THRALL                      = 17876,
@@ -29,6 +30,8 @@ enum
     NPC_LODGE_QUEST_TRIGGER         = 20155,
     NPC_ARMORER                     = 18764,
     NPC_ORC_PRISONER                = 18598,
+
+    NPC_INFINITE_SLAYER             = 18170,
 
     NPC_SKARLOCS_MOUNT              = 18798,
     NPC_IMAGE_EROZION               = 19438,
@@ -98,6 +101,7 @@ class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
         void HandleThrallRelocation();
         void UpdateLodgeQuestCredit();
         void DoBarrelRP();
+        void SpawnWave();
 
         uint32 m_auiEncounter[MAX_ENCOUNTER];
         std::string m_strInstData;
@@ -105,6 +109,7 @@ class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
         uint32 m_uiBarrelCount;
         uint32 m_uiThrallEventCount;
         uint8 m_uiDrakeStep;
+        uint8 m_uiWave;
 };
 
 #endif

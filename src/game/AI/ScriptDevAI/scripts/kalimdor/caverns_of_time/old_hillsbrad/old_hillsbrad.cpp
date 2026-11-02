@@ -37,6 +37,7 @@ enum OHFActions
 {
     OHF_BARREL_RP,
     OHF_THRALL_RESET,
+    OHF_EPOCH_WAVES,
 };
 
 void instance_old_hillsbrad::Initialize()
@@ -45,6 +46,7 @@ void instance_old_hillsbrad::Initialize()
     instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_TRASH_RESPAWN, 0);
     AddCustomAction(OHF_BARREL_RP, true, [&]() { DoBarrelRP(); });
     AddCustomAction(OHF_THRALL_RESET, true, [&]() { HandleThrallRelocation(); });
+    AddCustomAction(OHF_EPOCH_WAVES, true, [&]() { SpawnWave(); });
     memset(&m_auiEncounter, 0, sizeof(m_auiEncounter));
 }
 
@@ -146,28 +148,18 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
             if (thrall->IsAlive())
                 thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
 
+    // Spawn next Wave if group died before timer but only if next wave isnt spawned yet
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_01"))
-        if (SpawnGroup* wave02 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_02"))
-            wave02->Spawn(true, true);
+        if (m_uiWave != 2)
+            SpawnWave();
 
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_02"))
-        if (SpawnGroup* wave03 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_03"))
-            wave03->Spawn(true, true);
+        if (m_uiWave != 3)
+            SpawnWave();
 
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_03"))
-        if (Creature* epoch = GetSingleCreatureFromStorage(NPC_EPOCH))
-            if (epoch->IsAlive())
-                epoch->GetMotionMaster()->MoveWaypoint();
-
-    if (creatureGroup->HasStringId("OHF_EPOCH_HUNTER"))
-        if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
-            if (taretha->IsAlive())
-            {
-                taretha->RemoveAllAuras();
-                taretha->SetStandState(UNIT_STAND_STATE_STAND);
-                taretha->SetWalk(false);
-                taretha->GetMotionMaster()->MovePath();
-            }
+        if (m_uiWave != 2)
+            SpawnWave();
 }
 
 void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
@@ -302,9 +294,33 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 SetData(TYPE_ESCORT_SKARLOC, DONE);
             }
             break;
+        case TYPE_EPOCH_WAVE: 
+            m_auiEncounter[uiType] = uiData;
+            if (uiData == IN_PROGRESS)
+            {
+                m_uiWave = 1;
+                ResetTimer(OHF_EPOCH_WAVES, 5000);
+            }
+            break;
+        case TYPE_EPOCH:
+            m_auiEncounter[uiType] = uiData;
+            if (uiData == DONE)
+            {
+                // Start end RP
+                if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
+                {
+                    if (taretha->IsAlive())
+                    {
+                        taretha->RemoveAllAuras();
+                        taretha->SetStandState(UNIT_STAND_STATE_STAND);
+                        taretha->SetWalk(false);
+                        taretha->GetMotionMaster()->MovePath();
+                    }
+                }
+            }
+            break;
         case TYPE_ESCORT_BARN:
         case TYPE_ESCORT_INN:
-        case TYPE_EPOCH:
         case TYPE_ESCORT_SKARLOC:
             m_auiEncounter[uiType] = uiData;
             debug_log("SD2: Instance Old Hillsbrad: Thrall event type %u adjusted to data %u.", uiType, uiData);
@@ -517,6 +533,47 @@ void instance_old_hillsbrad::DoBarrelRP()
         }
     }
 }
+
+void instance_old_hillsbrad::SpawnWave()
+{
+    switch (m_uiWave)
+    {
+        case 1: 
+        {
+            if (SpawnGroup* wave01 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_01"))
+                wave01->Spawn(true, true);
+            m_uiWave = 2;            
+            ResetTimer(OHF_EPOCH_WAVES, 95000);
+            break;
+        }
+        case 2: 
+        {
+            if (SpawnGroup* wave02 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_02"))
+                wave02->Spawn(true, true);
+            m_uiWave = 3;
+            ResetTimer(OHF_EPOCH_WAVES, 95000);
+            break;
+        }
+        case 3: 
+        {
+            if (SpawnGroup* wave03 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_03"))
+                wave03->Spawn(true, true);
+            break;
+            m_uiWave = 4;
+            ResetTimer(OHF_EPOCH_WAVES, 120000);
+        }
+        case 4: 
+        {
+            SetData(TYPE_EPOCH_WAVE, DONE);
+            if (Creature* epoch = GetSingleCreatureFromStorage(NPC_EPOCH))
+                if (epoch->IsAlive())
+                    epoch->GetMotionMaster()->MoveWaypoint();
+            break;
+        }
+        break;
+    }
+}
+
 
 void instance_old_hillsbrad::Update(uint32 uiDiff)
 {

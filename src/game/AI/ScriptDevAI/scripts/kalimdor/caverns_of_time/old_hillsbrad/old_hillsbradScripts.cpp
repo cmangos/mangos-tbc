@@ -214,6 +214,9 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
             case 80:
                 m_instance->SetData(TYPE_ESCORT_INN, DONE);
                 break;
+            case 86:
+                m_instance->SetData(TYPE_EPOCH_WAVE, IN_PROGRESS);
+                break;
             // Last Waypoint
             case 87:
                 m_instance->SetData(TYPE_THRALL_EVENT, DONE);

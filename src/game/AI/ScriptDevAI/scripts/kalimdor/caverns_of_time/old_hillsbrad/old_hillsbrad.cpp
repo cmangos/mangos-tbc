@@ -150,15 +150,15 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
 
     // Spawn next Wave if group died before timer but only if next wave isnt spawned yet
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_01"))
-        if (m_uiWave != 2)
+        if (m_uiWave == 2)
             SpawnWave();
 
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_02"))
-        if (m_uiWave != 3)
+        if (m_uiWave == 3)
             SpawnWave();
 
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_03"))
-        if (m_uiWave != 2)
+        if (m_uiWave == 4)
             SpawnWave();
 }
 

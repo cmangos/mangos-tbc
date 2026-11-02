@@ -93,7 +93,6 @@ enum
     SAY_TH_RANDOM_DIE1              = 17612,
     SAY_TH_RANDOM_DIE2              = 17613,
 
-    // Unconfirmed texts
     SAY_TH_RANDOM_KILL1             = 17604,
     SAY_TH_RANDOM_KILL2             = 17605,
 

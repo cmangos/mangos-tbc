@@ -15,7 +15,7 @@ enum
 
     TYPE_BARREL_DIVERSION           = 0,                    // barrel event
     TYPE_DRAKE                      = 1,                    // first boss
-    TYPE_SKARLOC                    = 2,                    // prison to keep - boss    
+    TYPE_SKARLOC                    = 2,                    // prison to keep - boss
     TYPE_ESCORT_BARN                = 3,                    // keep to barn
     TYPE_ESCORT_INN                 = 4,                    // barn to inn
     TYPE_EPOCH                      = 5,                    // inn event
@@ -30,8 +30,6 @@ enum
     NPC_LODGE_QUEST_TRIGGER         = 20155,
     NPC_ARMORER                     = 18764,
     NPC_ORC_PRISONER                = 18598,
-
-    NPC_INFINITE_SLAYER             = 18170,
 
     NPC_SKARLOCS_MOUNT              = 18798,
     NPC_IMAGE_EROZION               = 19438,
@@ -50,15 +48,17 @@ enum
     NPC_COMMANDER_MOGRAINE          = 20345,
     NPC_COT_DESPAWN_TRIGGER         = 19433,
 
-    THRALL_PATH_ID = 5600000,
+    THRALL_PATH_ID                  = 5600000,
 
     // Spell used to despawn all EscortNPCs
-    SPELL_STUN_PHASE_2 = 33937,
-    SPELL_SHADOW_SPIKE = 33125,
+    SPELL_STUN_PHASE_2              = 33937,
 
-    // reset texts - unconfirmed atm
-    SAY_ERONZION_RESET_THRALL = 16729,
-    SAY_ERONZION_RESET_LAST = 16731,
+    // Taretha aura when Epoch Hunter spawns
+    SPELL_SHADOW_SPIKE              = 33125,
+
+    // reset texts
+    SAY_ERONZION_RESET_THRALL       = 16729,
+    SAY_ERONZION_RESET_LAST         = 16731,
 };
 
 class instance_old_hillsbrad : public ScriptedInstance, public TimerManager

@@ -38,45 +38,28 @@ EndContentData */
 
 enum
 {
-    GOSSIP_ITEM_NEED_BOMBS          = -3560001,
-    TEXT_ID_DEFAULT                 = 9778,
-    TEXT_ID_GOT_ITEM                = 9515,
-
-    ITEM_ENTRY_BOMBS                = 25853,
+    GOSSIP_ENTRANCE = 7769,
+    GOSSIP_FINISHED = 10475,
 };
 
-bool GossipHello_npc_erozion(Player* pPlayer, Creature* pCreature)
+bool GossipHello_npc_erozion(Player* player, Creature* creature)
 {
-    if (pCreature->isQuestGiver())
-        pPlayer->PrepareQuestMenu(pCreature->GetObjectGuid());
-
-    ScriptedInstance* pInstance = (ScriptedInstance*)pCreature->GetInstanceData();
-
-    if (pInstance && pInstance->GetData(TYPE_BARREL_DIVERSION) != DONE && !pPlayer->HasItemCount(ITEM_ENTRY_BOMBS, 1))
-        pPlayer->ADD_GOSSIP_ITEM_ID(GOSSIP_ICON_CHAT, GOSSIP_ITEM_NEED_BOMBS, GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF + 1);
-
-    // Need info, should have option to teleport or not
-    if (pInstance && pInstance->GetData(TYPE_EPOCH) == DONE)
-        pPlayer->ADD_GOSSIP_ITEM(GOSSIP_ICON_CHAT, "Take me back to my time.", GOSSIP_SENDER_MAIN, GOSSIP_ACTION_INFO_DEF+2);
-
-    pPlayer->SEND_GOSSIP_MENU(TEXT_ID_DEFAULT, pCreature->GetObjectGuid());
-
-    return true;
-}
-
-bool GossipSelect_npc_erozion(Player* pPlayer, Creature* pCreature, uint32 /*uiSender*/, uint32 uiAction)
-{
-    if (uiAction == GOSSIP_ACTION_INFO_DEF + 1)
+    if (creature->isQuestGiver())
     {
-        if (Item* pItem = pPlayer->StoreNewItemInInventorySlot(ITEM_ENTRY_BOMBS, 1))
-            pPlayer->SendNewItem(pItem, 1, true, false);
-
-        pPlayer->SEND_GOSSIP_MENU(TEXT_ID_GOT_ITEM, pCreature->GetObjectGuid());
+        player->PrepareQuestMenu(creature->GetObjectGuid());
+        player->SendPreparedQuest(creature->GetObjectGuid());
     }
 
-    if (uiAction == GOSSIP_ACTION_INFO_DEF + 2)
-        pPlayer->CLOSE_GOSSIP_MENU();
-
+    if (creature->HasStringId("OHF_EROZION_ENTRANCE"))
+    {
+        player->PrepareGossipMenu(creature, GOSSIP_ENTRANCE);
+        player->SendPreparedGossip(creature);
+    }
+    else if (creature->HasStringId("OHF_EROZION_TARRENMILL"))
+    {
+        player->PrepareGossipMenu(creature, GOSSIP_FINISHED);
+        player->SendPreparedGossip(creature);
+    }
     return true;
 }
 
@@ -596,7 +579,6 @@ void AddSC_old_hillsbrad()
     Script* pNewScript = new Script;
     pNewScript->Name = "npc_erozion";
     pNewScript->pGossipHello = &GossipHello_npc_erozion;
-    pNewScript->pGossipSelect = &GossipSelect_npc_erozion;
     pNewScript->RegisterSelf();
 
     pNewScript = new Script;

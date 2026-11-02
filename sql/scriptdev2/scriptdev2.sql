@@ -4372,13 +4372,6 @@ INSERT INTO gossip_texts (entry,content_default,comment) VALUES
 (-3534005,'Until we meet again, Thrall.','thrall GOSSIP_ITEM_SUCCESS'),
 (-3534006,'I would be grateful for any aid you can provide, Priestess.','tyrande GOSSIP_ITEM_AID');
 
--- -3 560 000 ESCAPE FROM DURNHOLDE (OLD HILLSBRAD)
-INSERT INTO gossip_texts (entry,content_default,comment) VALUES
-(-3560001,'I need a pack of Incendiary Bombs.','erozion GOSSIP_ITEM_NEED_BOMBS'),
-(-3560005,'Strange wizard?','taretha GOSSIP_ITEM_EPOCH1'),
-(-3560006,'We''ll get you out. Taretha. Don''t worry. I doubt the wizard would wander too far away.','taretha GOSSIP_ITEM_EPOCH2'),
-(-3560007,'Tarren Mill.','thrall GOSSIP_ITEM_TARREN_1');
-
 -- -3 564 000 BLACK TEMPLE
 INSERT INTO gossip_texts (entry,content_default,comment) VALUES
 (-3564000,'I''m with you, Akama.','akama(shade) GOSSIP_ITEM_START_ENCOUNTER'),

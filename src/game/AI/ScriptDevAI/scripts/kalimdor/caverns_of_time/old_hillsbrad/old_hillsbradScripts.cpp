@@ -45,14 +45,11 @@ enum
 bool GossipHello_npc_erozion(Player* player, Creature* creature)
 {
     if (creature->isQuestGiver())
-    {
         player->PrepareQuestMenu(creature->GetObjectGuid());
-        player->SendPreparedQuest(creature->GetObjectGuid());
-    }
 
     if (creature->HasStringId("OHF_EROZION_ENTRANCE"))
     {
-        player->PrepareGossipMenu(creature, GOSSIP_ENTRANCE);
+        player->PrepareGossipMenu(creature, GOSSIP_ENTRANCE, true);
         player->SendPreparedGossip(creature);
     }
     else if (creature->HasStringId("OHF_EROZION_TARRENMILL"))
@@ -291,7 +288,7 @@ bool GossipHello_npc_thrall_old_hillsbrad(Player* player, Creature* creature)
         // Text gets always shown, GossipAction handled via condition
         else
         {
-            player->PrepareGossipMenu(creature, GOSSIP_START);
+            player->PrepareGossipMenu(creature, GOSSIP_START, true);
             player->SendPreparedGossip(creature);
         }
     }

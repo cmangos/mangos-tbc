@@ -3230,6 +3230,7 @@ void Spell::CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTa
                     fail = target->GetDbGuid() != spellST->targetEntry;
                     break;
                 case SPELL_TARGET_TYPE_STRING_ID:
+                    fail = !target->HasStringId(spellST->targetEntry);
                     break;
                 default:
                     fail = target->GetEntry() != spellST->targetEntry;
@@ -3252,8 +3253,7 @@ void Spell::CheckSpellScriptTargets(SQLMultiStorage::SQLMSIteratorBounds<SpellTa
                     targetUnitMap.push_back(target);
                     break;
                 case SPELL_TARGET_TYPE_STRING_ID:
-                    if (target->HasStringId(spellST->targetEntry))
-                        targetUnitMap.push_back(target);
+                    targetUnitMap.push_back(target);
                     break;
                 default:
                     break;

@@ -72,7 +72,6 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
     {
         case NPC_THRALL:
         case NPC_TARETHA:
-        case NPC_EROZION:
         case NPC_ARMORER:
         case NPC_DRAKE:
         case NPC_SKARLOC:
@@ -81,6 +80,11 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
         case NPC_COMMANDER_MOGRAINE:
         case NPC_COT_DESPAWN_TRIGGER:
         case NPC_SKARLOCS_MOUNT:
+            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
+            break;
+        case NPC_EROZION:
+            if (pCreature->HasStringId("OHF_EROZION_TARRENMILL"))
+                UpdateEscortQuestCredit();
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
     }
@@ -508,6 +512,20 @@ void instance_old_hillsbrad::UpdateLodgeQuestCredit()
         {
             if (Player* pPlayer = player.getSource())
                 pPlayer->KilledMonsterCredit(NPC_LODGE_QUEST_TRIGGER);
+        }
+    }
+}
+
+void instance_old_hillsbrad::UpdateEscortQuestCredit()
+{
+    Map::PlayerList const& players = instance->GetPlayers();
+
+    if (!players.isEmpty())
+    {
+        for (const auto& player : players)
+        {
+            if (Player* pPlayer = player.getSource())
+                pPlayer->KilledMonsterCredit(NPC_ESCORT_QUEST_TRIGGER);
         }
     }
 }

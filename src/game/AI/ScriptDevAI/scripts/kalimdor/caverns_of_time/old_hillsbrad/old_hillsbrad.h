@@ -28,6 +28,7 @@ enum
     NPC_TARETHA                     = 18887,
     NPC_EROZION                     = 18723,
     NPC_LODGE_QUEST_TRIGGER         = 20155,
+    NPC_ESCORT_QUEST_TRIGGER        = 20156,
     NPC_ARMORER                     = 18764,
     NPC_ORC_PRISONER                = 18598,
 
@@ -100,6 +101,7 @@ class instance_old_hillsbrad : public ScriptedInstance, public TimerManager
     protected:
         void HandleThrallRelocation();
         void UpdateLodgeQuestCredit();
+        void UpdateEscortQuestCredit();
         void DoBarrelRP();
         void SpawnWave();
 

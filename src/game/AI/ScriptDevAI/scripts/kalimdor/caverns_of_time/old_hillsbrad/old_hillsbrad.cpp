@@ -209,11 +209,17 @@ void instance_old_hillsbrad::HandleThrallRelocation()
             thrallGroup->Spawn(true, true);
 
         // readd Gossip Flag for Taretha and remove standstate
-        if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
+        if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA, true))
         {
             taretha->RemoveAurasDueToSpell(SPELL_SHADOW_SPIKE);
             taretha->SetStandState(UNIT_STAND_STATE_STAND);
             taretha->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
+        }
+        else 
+        {
+        // Something went wrong, respawn
+            if (SpawnGroup* taretha = instance->GetSpawnManager().GetSpawnGroup("OHF_TARETHA"))
+                taretha->Spawn(true, true);
         }
     }
     else if (GetData(TYPE_ESCORT_BARN) == DONE)
@@ -316,7 +322,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)
             {                
-                if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+                if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL, true))
                     thrall->GetMotionMaster()->UnpauseWaypoints();
 
                 SetData(TYPE_ESCORT_SKARLOC, DONE);
@@ -444,7 +450,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
         SetData(TYPE_ESCORT_INN, NOT_STARTED);
         SetData(TYPE_EPOCH, NOT_STARTED);
         SetData(TYPE_THRALL_EVENT, NOT_STARTED);
-        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL, true))
             thrall->ForcedDespawn();
         HandleThrallRelocation();
     }
@@ -456,7 +462,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
         SetData(TYPE_ESCORT_INN, NOT_STARTED);
         SetData(TYPE_EPOCH, NOT_STARTED);
         SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
-        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL, true))
             thrall->ForcedDespawn();
         HandleThrallRelocation();
     }
@@ -468,7 +474,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
         SetData(TYPE_ESCORT_INN, NOT_STARTED);
         SetData(TYPE_EPOCH, NOT_STARTED);
         SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
-        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL, true))
             thrall->ForcedDespawn();
         HandleThrallRelocation();
     }
@@ -480,7 +486,7 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
         SetData(TYPE_ESCORT_INN, DONE);
         SetData(TYPE_EPOCH, NOT_STARTED);
         SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
-        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+        if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL, true))
             thrall->ForcedDespawn();
         HandleThrallRelocation();
     }

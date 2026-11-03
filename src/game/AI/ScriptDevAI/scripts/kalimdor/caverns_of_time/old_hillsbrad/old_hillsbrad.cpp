@@ -73,6 +73,7 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
         case NPC_THRALL:
         case NPC_TARETHA:
         case NPC_ARMORER:
+        case NPC_EROZION:
         case NPC_DRAKE:
         case NPC_SKARLOC:
         case NPC_EPOCH:
@@ -80,11 +81,6 @@ void instance_old_hillsbrad::OnCreatureCreate(Creature* pCreature)
         case NPC_COMMANDER_MOGRAINE:
         case NPC_COT_DESPAWN_TRIGGER:
         case NPC_SKARLOCS_MOUNT:
-            m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
-            break;
-        case NPC_EROZION:
-            if (pCreature->HasStringId("OHF_EROZION_TARRENMILL"))
-                UpdateEscortQuestCredit();
             m_npcEntryGuidStore[pCreature->GetEntry()] = pCreature->GetObjectGuid();
             break;
     }
@@ -112,6 +108,9 @@ void instance_old_hillsbrad::OnCreatureRespawn(Creature* creature)
             else if (m_uiThrallEventCount <= MAX_WIPE_COUNTER)
                 DoBroadcastText(SAY_ERONZION_RESET_THRALL, creature);
         }
+        case NPC_EROZION:
+            if (creature->HasStringId("OHF_EROZION_TARRENMILL"))
+                UpdateEscortQuestCredit();
     }
 }
 void instance_old_hillsbrad::OnCreatureDeath(Creature* pCreature)
@@ -340,6 +339,12 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)
             {
+                // Safty
+                if (GetData(TYPE_EPOCH_WAVE) == IN_PROGRESS)
+                {
+                    SetData(TYPE_EPOCH_WAVE, DONE);
+                    DisableTimer(OHF_EPOCH_WAVES);
+                }
                 // Start end RP
                 if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
                 {

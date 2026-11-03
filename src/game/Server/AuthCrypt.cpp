@@ -61,7 +61,7 @@ void AuthCrypt::Init(BigNumber* K)
     uint8* key = new uint8[Sha1Hash::GetLength()];
     uint8 recvSeed[SEED_KEY_SIZE] = { 0x38, 0xA7, 0x83, 0x15, 0xF8, 0x92, 0x25, 0x30, 0x71, 0x98, 0x67, 0xB1, 0x8C, 0x4, 0xE2, 0xAA };
     HMACSHA1 recvHash(SEED_KEY_SIZE, (uint8*)recvSeed);
-    recvHash.UpdateBigNumber(K);
+    recvHash.UpdateBigNumber(K, 40);                // K is 40 bytes, with its leading zero bytes
     recvHash.Finalize();
     memcpy(key, recvHash.GetDigest(), Sha1Hash::GetLength());
     _key.resize(Sha1Hash::GetLength());

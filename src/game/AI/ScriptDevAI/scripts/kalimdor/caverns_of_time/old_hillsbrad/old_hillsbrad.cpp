@@ -165,7 +165,7 @@ void instance_old_hillsbrad::OnCreatureGroupDespawn(CreatureGroup* creatureGroup
     if (creatureGroup->HasStringId("OHF_BARN_GROUP"))
         if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
             if (thrall->IsAlive())
-                thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, thrall, thrall);
+                thrall->GetMotionMaster()->UnpauseWaypoints();
 
     // Spawn next Wave if group died before timer but only if next wave isnt spawned yet
     if (creatureGroup->HasStringId("OHF_EPOCH_WAVE_01"))

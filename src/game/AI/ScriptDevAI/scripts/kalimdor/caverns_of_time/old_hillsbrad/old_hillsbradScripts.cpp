@@ -126,10 +126,11 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         // Next Wave spawned
         if (eventType == AI_EVENT_CUSTOM_A)
         {
-            // We are in combat - new spawned wave should aggro us no m
-
+            // We are in combat - new spawned wave should aggro us instantly
+            if (m_creature->IsInCombat())
+                m_creature->AI()->SendAIEventAround(AI_EVENT_CUSTOM_EVENTAI_F, m_creature, 0, 5000);
             // We are not in combat and not on evade let wave aggro 
-            if (!m_creature->IsInCombat() && !m_creature->GetCombatManager().IsInEvadeMode())
+            else if (!m_creature->IsInCombat() && !m_creature->GetCombatManager().IsInEvadeMode())
                 m_creature->AI()->SendAIEventAround(AI_EVENT_CUSTOM_EVENTAI_F, m_creature, 1500, 50);
         }
     }

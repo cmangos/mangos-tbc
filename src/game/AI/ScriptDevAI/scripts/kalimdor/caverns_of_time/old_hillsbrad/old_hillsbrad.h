@@ -15,13 +15,13 @@ enum
 
     TYPE_BARREL_DIVERSION           = 0,                    // barrel event
     TYPE_DRAKE                      = 1,                    // first boss
-    TYPE_SKARLOC                    = 2,                    // prison to keep - boss
-    TYPE_ESCORT_BARN                = 3,                    // keep to barn
-    TYPE_ESCORT_INN                 = 4,                    // barn to inn
-    TYPE_EPOCH                      = 5,                    // inn event
-    TYPE_THRALL_EVENT               = 6,                    // global event
-    TYPE_ESCORT_SKARLOC             = 7,
-    TYPE_EPOCH_WAVE                 = 8,                    // Epoch Waves
+    TYPE_SKARLOC                    = 2,                    // prison to keep - boss                
+    TYPE_ESCORT_SKARLOC             = 3,                    // Thrall respawning at Skarloc
+    TYPE_ESCORT_BARN                = 4,                    // Thrall respawning at Barn
+    TYPE_ESCORT_INN                 = 5,                    // Thrall respawning at Inn
+    TYPE_EPOCH_WAVE                 = 6,                    // Epoch Hunter Waves
+    TYPE_EPOCH                      = 7,                    // Boss Epoch Hunter
+    TYPE_THRALL_EVENT               = 8,                    // global Escort Event
 
     // event npcs
     NPC_THRALL                      = 17876,

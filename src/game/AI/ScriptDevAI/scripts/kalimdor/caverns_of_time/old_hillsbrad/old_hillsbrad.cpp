@@ -42,8 +42,20 @@ enum OHFActions
 
 void instance_old_hillsbrad::Initialize()
 {
+    // On soft reset - Those trash respawns again
+    // Trash in the Huts that cant respawn when Lieutnant Drake is alive
     instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_DRAKE_TRASH_RESPAWN, 0);
+    // Trash on the Bridges that get despawned when player starts Thrall escort
     instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_TRASH_RESPAWN, 0);
+    // Trash and friendly npcs around tarren mill that get despawned during Epoch Hunter Event
+    instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TARREN_MILL_DESPAWN, 0);
+
+    // If Escort got finished we keep Barrels and all Escort related NPCs despawned
+    if (GetData(TYPE_THRALL_EVENT) == DONE)
+        instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_ESCORT, 1);
+    else
+        instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_ESCORT, 0);
+
     AddCustomAction(OHF_BARREL_RP, true, [&]() { DoBarrelRP(); });
     AddCustomAction(OHF_THRALL_RESET, true, [&]() { HandleThrallRelocation(); });
     AddCustomAction(OHF_EPOCH_WAVES, true, [&]() { SpawnWave(); });
@@ -176,53 +188,55 @@ void instance_old_hillsbrad::HandleThrallRelocation()
         if (thrall->IsAlive())
             return;
 
-            // Despawn Corpse
+        // Despawn Corpse
         thrall->ForcedDespawn();
     }
 
-        // Reset State
+    if (GetData(TYPE_ESCORT_INN) == DONE)
+    {
         SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
 
-        if (GetData(TYPE_ESCORT_INN) == DONE)
-        {
-            // respawn thrall
-            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_INN"))
-                thrallGroup->Spawn(true, true);
+        // respawn thrall
+        if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_INN"))
+            thrallGroup->Spawn(true, true);
 
-            // readd Gossip Flag for Taretha and remove standstate
-            if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
-            {
-                taretha->RemoveAurasDueToSpell(SPELL_SHADOW_SPIKE);
-                taretha->SetStandState(UNIT_STAND_STATE_STAND);
-                taretha->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
-            }
-        }
-        else if (GetData(TYPE_ESCORT_BARN) == DONE)
+        // readd Gossip Flag for Taretha and remove standstate
+        if (Creature* taretha = GetSingleCreatureFromStorage(NPC_TARETHA))
         {
-            // respawn thrall
-            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_BARN"))
-                thrallGroup->Spawn(true, true);
+            taretha->RemoveAurasDueToSpell(SPELL_SHADOW_SPIKE);
+            taretha->SetStandState(UNIT_STAND_STATE_STAND);
+            taretha->SetFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_GOSSIP);
         }
-        // Skarloc Dead - Respawn at that Position
-        else if (GetData(TYPE_ESCORT_SKARLOC) == DONE)
-        {
-            // respawn thrall
-            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_SKARLOC"))
-                thrallGroup->Spawn(true, true);
+    }
+    else if (GetData(TYPE_ESCORT_BARN) == DONE)
+    {
+        SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
+        // respawn thrall
+        if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_BARN"))
+            thrallGroup->Spawn(true, true);
+    }
+    // Skarloc Dead - Respawn at that Position
+    else if (GetData(TYPE_ESCORT_SKARLOC) == DONE)
+    {
+        SetData(TYPE_THRALL_EVENT, IN_PROGRESS);
+        // respawn thrall
+        if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_SKARLOC"))
+            thrallGroup->Spawn(true, true);
 
-            // Also respawn Horse
-            if (SpawnGroup* horseGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_SKARLOC_MOUNT"))
-                horseGroup->Spawn(true, true);
-        }
-        // Died before Skarloc - respawn at Prison and Close Door
-        else
-        {
-            // respawn thrall
-            if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_PRISON"))
-                thrallGroup->Spawn(true, true);
+        // Also respawn Horse
+        if (SpawnGroup* horseGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_SKARLOC_MOUNT"))
+            horseGroup->Spawn(true, true);
+    }
+    // Died before Skarloc - respawn at Prison and Close Door
+    else
+    {
+        SetData(TYPE_THRALL_EVENT, NOT_STARTED);
+        // respawn thrall
+        if (SpawnGroup* thrallGroup = instance->GetSpawnManager().GetSpawnGroup("OHF_THRALL_PRISON"))
+            thrallGroup->Spawn(true, true);
 
-            DoUseDoorOrButton(GO_PRISON_DOOR);
-        }
+        DoUseDoorOrButton(GO_PRISON_DOOR);
+    }
 }
 
 void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
@@ -265,7 +279,12 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
 
                 if (Creature* armorer = GetSingleCreatureFromStorage(NPC_ARMORER))
                     armorer->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_B, armorer, armorer);
-
+                    
+                if (GetData(TYPE_EPOCH_WAVE) == IN_PROGRESS)
+                {
+                    SetData(TYPE_EPOCH_WAVE, NOT_STARTED);
+                    DisableTimer(OHF_EPOCH_WAVES);
+                }
                 if (m_uiThrallEventCount <= MAX_WIPE_COUNTER)
                 {
                     ++m_uiThrallEventCount;
@@ -373,12 +392,14 @@ void instance_old_hillsbrad::Load(const char* chrIn)
 
     // custom reload
     // If Epoch event is not done, we have to redo barrel and full escort
-    if (m_auiEncounter[5] != DONE)
+    if (m_auiEncounter[7] != DONE)
     {
-        m_auiEncounter[0] = NOT_STARTED;
-        m_auiEncounter[3] = NOT_STARTED;
-        m_auiEncounter[4] = NOT_STARTED;
-        m_auiEncounter[7] = NOT_STARTED;
+        m_auiEncounter[0] = NOT_STARTED;    // Barrel
+        m_auiEncounter[3] = NOT_STARTED;    // Thrall respawning at Skarloc
+        m_auiEncounter[4] = NOT_STARTED;    // Thrall respawning at Barn
+        m_auiEncounter[5] = NOT_STARTED;    // Thrall respawning at Inn
+        m_auiEncounter[6] = NOT_STARTED;    // Epoch Hunter Waves
+        m_auiEncounter[8] = NOT_STARTED;    // Escort
     }
 
     OUT_LOAD_INST_DATA_COMPLETE;
@@ -420,7 +441,6 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
     }
     else if (val == "skarloc")
     {
-        // Nothing started yet
         SetData(TYPE_SKARLOC, DONE);
         SetData(TYPE_ESCORT_SKARLOC, DONE);
         SetData(TYPE_ESCORT_BARN, NOT_STARTED);
@@ -433,7 +453,6 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
     }
     else if (val == "barn")
     {
-        // Nothing started yet
         SetData(TYPE_SKARLOC, DONE);
         SetData(TYPE_ESCORT_SKARLOC, DONE);
         SetData(TYPE_ESCORT_BARN, DONE);
@@ -446,7 +465,6 @@ void instance_old_hillsbrad::ExecuteChatCommand(ChatHandler* handler, char* args
     }
     else if (val == "epoch")
     {
-        // Nothing started yet
         SetData(TYPE_SKARLOC, DONE);
         SetData(TYPE_ESCORT_SKARLOC, DONE);
         SetData(TYPE_ESCORT_BARN, DONE);
@@ -550,6 +568,10 @@ void instance_old_hillsbrad::SpawnWave()
         {
             if (SpawnGroup* wave02 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_02"))
                 wave02->Spawn(true, true);
+
+            if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+                if (thrall->IsAlive())
+                    thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, thrall, thrall);
             m_uiWave = 3;
             ResetTimer(OHF_EPOCH_WAVES, 95000);
             break;
@@ -558,9 +580,14 @@ void instance_old_hillsbrad::SpawnWave()
         {
             if (SpawnGroup* wave03 = instance->GetSpawnManager().GetSpawnGroup("OHF_EPOCH_WAVE_03"))
                 wave03->Spawn(true, true);
-            break;
+
+            if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+                if (thrall->IsAlive())
+                    thrall->AI()->SendAIEvent(AI_EVENT_CUSTOM_A, thrall, thrall);
+            
             m_uiWave = 4;
             ResetTimer(OHF_EPOCH_WAVES, 120000);
+            break;
         }
         case 4: 
         {

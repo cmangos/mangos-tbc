@@ -106,6 +106,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     {      
         AddTimerlessCombatAction(THRALL_LOW_HEALTH, true);
         m_Mounted = false;
+        m_Wave = false;
         creature->SetActiveObjectState(true);
         Reset();
     }
@@ -113,6 +114,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     ScriptedInstance* m_instance;
 
     bool m_Mounted;
+    bool m_Wave;
 
     void Reset() override
     {      
@@ -121,6 +123,18 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
             m_creature->Mount(MODEL_SKARLOC_MOUNT);
             m_Mounted = false;
         }            
+    }
+    void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
+    {
+        // Next Wave spawned
+        if (eventType == AI_EVENT_CUSTOM_A)
+        {
+            // We are in combat - new spawned wave should aggro us no m
+
+            // We are not in combat and not on evade let wave aggro 
+            if (!m_creature->IsInCombat() && !m_creature->GetCombatManager().IsInEvadeMode())
+                m_creature->AI()->SendAIEventAround(AI_EVENT_CUSTOM_EVENTAI_F, m_creature, 1500, 50);
+        }
     }
 
     void EnterCombat(Unit* enemy) override
@@ -158,10 +172,13 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
     void JustReachedHome() override
     {
         // During Escort, everytime Thrall leaves combat he has a 20% chance to say some text before going to next waypoint
-        if (!HasEscortState(STATE_ESCORT_ESCORTING))
+        if (HasEscortState(STATE_ESCORT_ESCORTING))
         {
             if (urand(0, 4) == 0)
                 DoBroadcastText(aRandomEvade[urand(0, 3)], m_creature);
+
+            if (m_Wave)
+                m_creature->AI()->SendAIEventAround(AI_EVENT_CUSTOM_EVENTAI_F, m_creature, 1500, 50);            
         }
         npc_escortAI::JustReachedHome();
     }
@@ -214,7 +231,9 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
             case 80:
                 m_instance->SetData(TYPE_ESCORT_INN, DONE);
                 break;
+            // We are standing before Epoch Hunter - start waves
             case 86:
+                m_Wave = true;
                 m_instance->SetData(TYPE_EPOCH_WAVE, IN_PROGRESS);
                 break;
             // Last Waypoint
@@ -401,7 +420,7 @@ bool GossipSelect_npc_taretha(Player* player, Creature* creature, uint32 /*sende
                         creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, creature, creature);
                 }
                 // Also set Worldstate to prevent respawn
-                creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_EPOCH_TRASH_DESPAWN, 1);
+                creature->GetMap()->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_TARREN_MILL_DESPAWN, 1);
             }
             return true;
         }
@@ -576,6 +595,21 @@ struct InfiniteTransform : public SpellScript
         }
     }
 };
+// 33937 - Stun Phase 2 Units
+struct StunPhase2Units : public SpellScript
+{
+    void OnHit(Spell* spell, SpellMissInfo /*missInfo*/) const override
+    {
+        Unit* caster = spell->GetCaster();
+        Unit* target = spell->m_targets.getUnitTarget();
+        if (target->IsCreature() && target != caster)
+        {
+            static_cast<Creature*>(target)->ForcedDespawn(3000);
+            static_cast<Creature*>(target)->AI()->SetAIImmobilizedState(true);
+        }
+    }
+
+};
 
 void AddSC_old_hillsbrad()
 {
@@ -618,4 +652,5 @@ void AddSC_old_hillsbrad()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<InfiniteTransform>("spell_infinite_transform");
+    RegisterSpellScript<StunPhase2Units>("spell_stun_phase_2_unit");
 }

@@ -277,6 +277,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
                 if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
                     despawnTrigger->AI()->DoCastSpellIfCan(despawnTrigger, SPELL_STUN_PHASE_2);
 
+
                 if (Creature* armorer = GetSingleCreatureFromStorage(NPC_ARMORER))
                     armorer->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_B, armorer, armorer);
                     

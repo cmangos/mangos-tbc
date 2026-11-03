@@ -56,7 +56,7 @@ void instance_old_hillsbrad::Initialize()
     else
     {
         instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_ESCORT, 0);
-        // For safty reason 
+        // For safety reason (crash)
         HandleThrallRelocation();        
     }
 
@@ -339,7 +339,7 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData == DONE)
             {
-                // Safty
+                // Safety
                 if (GetData(TYPE_EPOCH_WAVE) == IN_PROGRESS)
                 {
                     SetData(TYPE_EPOCH_WAVE, DONE);

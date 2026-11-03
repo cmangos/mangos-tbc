@@ -54,7 +54,11 @@ void instance_old_hillsbrad::Initialize()
     if (GetData(TYPE_THRALL_EVENT) == DONE)
         instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_ESCORT, 1);
     else
+    {
         instance->GetVariableManager().SetVariable(WORLD_STATE_OLD_HILLSBRAD_CUSTOM_THRALL_ESCORT, 0);
+        // For safty reason 
+        HandleThrallRelocation();        
+    }
 
     AddCustomAction(OHF_BARREL_RP, true, [&]() { DoBarrelRP(); });
     AddCustomAction(OHF_THRALL_RESET, true, [&]() { HandleThrallRelocation(); });
@@ -180,7 +184,7 @@ void instance_old_hillsbrad::OnPlayerEnter(Player* pPlayer)
 
 void instance_old_hillsbrad::HandleThrallRelocation()
 {
-    if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL))
+    if (Creature* thrall = GetSingleCreatureFromStorage(NPC_THRALL, true))
     {
         debug_log("SD2: Instance Old Hillsbrad: Thrall relocation");
 

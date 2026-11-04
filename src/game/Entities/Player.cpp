@@ -18783,6 +18783,25 @@ void Player::TakeExtendedCost(uint32 extendedCostId, uint32 count)
     }
 }
 
+bool Player::CanSeeVendorItem(Creature const* vendor, VendorItem const* vendorItem, ItemPrototype const* proto) const
+{
+    if (IsGameMaster())
+        return true;
+
+    // class wrong item skip only for bindable case
+    if ((proto->AllowableClass & getClassMask()) == 0 && proto->Bonding == BIND_WHEN_PICKED_UP)
+        return false;
+
+    // race wrong item skip always
+    if ((proto->AllowableRace & getRaceMask()) == 0)
+        return false;
+
+    if (vendorItem->conditionId && !sObjectMgr.IsConditionSatisfied(vendorItem->conditionId, this, vendor->GetMap(), vendor, CONDITION_FROM_VENDOR))
+        return false;
+
+    return true;
+}
+
 // Return true is the bought item has a max count to force refresh of window by caller
 bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, uint8 bag, uint8 slot)
 {
@@ -18830,6 +18849,13 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
 
     VendorItem const* crItem = vendorslot < vCount ? vItems->GetItem(vendorslot) : tItems->GetItem(vendorslot - vCount);
     if (!crItem || crItem->item != item)                    // store diff item (cheating)
+    {
+        SendBuyError(BuyResult::CANT_FIND_ITEM, pCreature, vendorslot);
+        return false;
+    }
+
+    // hidden from this player in the vendor list (cheating)
+    if (!CanSeeVendorItem(pCreature, crItem, pProto))
     {
         SendBuyError(BuyResult::CANT_FIND_ITEM, pCreature, vendorslot);
         return false;
@@ -18893,12 +18919,6 @@ bool Player::BuyItemFromVendor(ObjectGuid vendorGuid, uint32 item, uint8 count, 
             SendEquipError(EQUIP_ERR_CANT_EQUIP_RANK, nullptr, nullptr);
             return false;
         }
-    }
-
-    if (crItem->conditionId && !IsGameMaster() && !sObjectMgr.IsConditionSatisfied(crItem->conditionId, this, pCreature->GetMap(), pCreature, CONDITION_FROM_VENDOR))
-    {
-        SendBuyError(BuyResult::CANT_FIND_ITEM, pCreature, vendorslot);
-        return false;
     }
 
     uint32 price = pProto->BuyPrice * count;

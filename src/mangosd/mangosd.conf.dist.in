@@ -155,6 +155,12 @@ Spawns.ZoneArea = 0
 #        Grid clean up delay (in milliseconds)
 #        Default: 300000 (5 min)
 #
+#    MemoryTrimInterval
+#        Seconds between automatic glibc malloc_trim() calls while the realm is busy.
+#        On an empty realm (no players/bots) the trim runs every 60 seconds anyway.
+#        0 disables the periodic trim; idle trim still runs.
+#        Default: 300 (5 min)
+#
 #    MapUpdateInterval
 #        Map update interval (in milliseconds)
 #        Default: 100
@@ -266,6 +272,7 @@ LoadAllGridsOnMaps = ""
 Autoload.Active = 1
 Specials.Active = 0
 GridCleanUpDelay = 300000
+MemoryTrimInterval = 300
 MapUpdateInterval = 100
 ChangeWeatherInterval = 600000
 PlayerSave.Interval = 900000

@@ -136,8 +136,8 @@ void Movement::VerifyMovementFlags(uint32 flags, uint32 &removeFlags, bool stric
 
     if (sAnticheatConfig.IsEnabled(CHEAT_TYPE_FLY_HACK))
     {
-        static constexpr uint32 flyHackFlags1 = (MOVEFLAG_WALK_MODE | MOVEFLAG_SWIMMING | MOVEFLAG_HOVER | MOVEFLAG_FALLINGFAR | MOVEFLAG_FLYING | MOVEFLAG_ONTRANSPORT);
-        static constexpr uint32 flyHackFlags2 = (MOVEFLAG_SWIMMING | MOVEFLAG_FLYING);
+        static constexpr uint32 flyHackFlags1 = (MOVEFLAG_WALK_MODE | MOVEFLAG_SWIMMING | MOVEFLAG_HOVER | MOVEFLAG_FALLINGFAR | MOVEFLAG_CAN_FLY | MOVEFLAG_ONTRANSPORT);
+        static constexpr uint32 flyHackFlags2 = (MOVEFLAG_SWIMMING | MOVEFLAG_CAN_FLY);
 
         if ((flags & flyHackFlags1) == flyHackFlags1)
         {
@@ -163,11 +163,11 @@ void Movement::VerifyMovementFlags(uint32 flags, uint32 &removeFlags, bool stric
         }
 
         // no need to check pending orders.  players should never have this.
-        if (flags & MOVEFLAG_CAN_FLY)
+        if (flags & MOVEFLAG_DESCENDING)
         {
             _anticheat->RecordCheatInternal(CHEAT_TYPE_FLY_HACK, "MovementFlags hack: Player %s had MOVE_CAN_FLY (flags: 0x%lx)",
                 _me->GetName(), flags);
-            removeFlags |= MOVEFLAG_CAN_FLY;
+            removeFlags |= MOVEFLAG_DESCENDING;
         }
     }
 

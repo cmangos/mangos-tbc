@@ -729,11 +729,17 @@ enum MovementFlags
     MOVEFLAG_FALLING            = 0x00001000,
     MOVEFLAG_FALLINGFAR         = 0x00002000,
     MOVEFLAG_PENDINGSTOP        = 0x00004000,
+    MOVEFLAG_PENDINGSTRAFESTOP  = 0x00008000,
+    MOVEFLAG_PENDINGFORWARD     = 0x00010000,
+    MOVEFLAG_PENDINGBACKWARD    = 0x00020000,
+    MOVEFLAG_PENDINGSTRAFELEFT  = 0x00040000,
+    MOVEFLAG_PENDINGSTRAFERIGHT = 0x00080000,
+    MOVEFLAG_PENDINGROOT        = 0x00100000,
     MOVEFLAG_SWIMMING           = 0x00200000,               // appears with fly flag also
     MOVEFLAG_ASCENDING          = 0x00400000,               // swim up also
-    MOVEFLAG_CAN_FLY            = 0x00800000,
-    MOVEFLAG_FLYING             = 0x01000000,
-    MOVEFLAG_FLYING2            = 0x02000000,               // Actual flying mode
+    MOVEFLAG_DESCENDING         = 0x00800000,               // swim down also
+    MOVEFLAG_CAN_FLY            = 0x01000000,
+    MOVEFLAG_FLYING             = 0x02000000,               // Actual flying mode
     MOVEFLAG_SPLINE_ELEVATION   = 0x04000000,               // used for flight paths
     MOVEFLAG_SPLINE_ENABLED     = 0x08000000,               // used for flight paths
     MOVEFLAG_WATERWALKING       = 0x10000000,               // prevent unit from falling through water
@@ -754,7 +760,7 @@ enum MovementFlags
 MovementFlags const movementFlagsMask = MovementFlags(
         MOVEFLAG_FORWARD | MOVEFLAG_BACKWARD  | MOVEFLAG_STRAFE_LEFT | MOVEFLAG_STRAFE_RIGHT |
         MOVEFLAG_PITCH_UP | MOVEFLAG_PITCH_DOWN | MOVEFLAG_FALLING |
-        MOVEFLAG_FALLINGFAR | MOVEFLAG_ASCENDING | MOVEFLAG_FLYING |
+        MOVEFLAG_FALLINGFAR | MOVEFLAG_ASCENDING | MOVEFLAG_CAN_FLY |
         MOVEFLAG_SPLINE_ELEVATION
                                         );
 
@@ -790,7 +796,7 @@ class MovementInfo
         inline UnitMoveType GetSpeedType() const { return GetSpeedType(MovementFlags(moveFlags)); }
         static inline UnitMoveType GetSpeedType(MovementFlags f)
         {
-            if (f & MOVEFLAG_FLYING)
+            if (f & MOVEFLAG_CAN_FLY)
                 return (f & MOVEFLAG_BACKWARD ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
             else if (f & MOVEFLAG_SWIMMING)
                 return (f & MOVEFLAG_BACKWARD ? MOVE_SWIM_BACK : MOVE_SWIM);

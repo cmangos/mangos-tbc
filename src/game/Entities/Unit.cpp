@@ -240,7 +240,7 @@ void MovementInfo::Read(ByteBuffer& data)
         data >> t_time;
     }
 
-    if (HasMovementFlag(MovementFlags(MOVEFLAG_SWIMMING | MOVEFLAG_FLYING2)))
+    if (HasMovementFlag(MovementFlags(MOVEFLAG_SWIMMING | MOVEFLAG_FLYING)))
     {
         data >> s_pitch;
     }
@@ -288,7 +288,7 @@ void MovementInfo::Write(ByteBuffer& data) const
         data << t_time;
     }
 
-    if (HasMovementFlag(MovementFlags(MOVEFLAG_SWIMMING | MOVEFLAG_FLYING2)))
+    if (HasMovementFlag(MovementFlags(MOVEFLAG_SWIMMING | MOVEFLAG_FLYING)))
     {
         data << s_pitch;
     }
@@ -13091,9 +13091,9 @@ void Unit::SetCanFly(bool enable)
     if (!isClientControlled)
     {
         if (enable)
-            m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
+            m_movementInfo.AddMovementFlag(MOVEFLAG_DESCENDING);
         else
-            m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
+            m_movementInfo.RemoveMovementFlag(MOVEFLAG_DESCENDING);
     }
 
     if (!IsInWorld()) // is sent on add to map

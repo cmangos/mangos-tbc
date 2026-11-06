@@ -7091,7 +7091,7 @@ bool Player::CanUseCapturePoint() const
            !HasStealthAura() &&                             // not stealthed
            !HasInvisibilityAura() &&                        // visible
            (IsPvP() || sWorld.IsPvPRealm()) &&
-           !HasMovementFlag(MOVEFLAG_FLYING) &&
+           !HasMovementFlag(MOVEFLAG_CAN_FLY) &&
            !IsTaxiFlying() &&
            !IsGameMaster();
 }
@@ -21651,7 +21651,7 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank)
 
 void Player::UpdateFallInformationIfNeed(MovementInfo const& minfo, uint16 opcode)
 {
-    if (m_lastFallTime >= minfo.GetFallTime() || m_lastFallZ <= minfo.GetPos().z || minfo.HasMovementFlag(MOVEFLAG_FLYING2) || opcode == MSG_MOVE_FALL_LAND)
+    if (m_lastFallTime >= minfo.GetFallTime() || m_lastFallZ <= minfo.GetPos().z || minfo.HasMovementFlag(MOVEFLAG_FLYING) || opcode == MSG_MOVE_FALL_LAND)
         SetFallInformation(minfo.GetFallTime(), minfo.GetPos().z);
 }
 

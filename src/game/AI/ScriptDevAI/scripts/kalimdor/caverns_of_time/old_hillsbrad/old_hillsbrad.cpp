@@ -286,10 +286,27 @@ void instance_old_hillsbrad::SetData(uint32 uiType, uint32 uiData)
             m_auiEncounter[uiType] = uiData;
             if (uiData == FAIL)
             {                
-                // CoT Hillsbrad Despawn Trigger Unit cast Stun Phase 2 Units
-                if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
-                    despawnTrigger->AI()->DoCastSpellIfCan(despawnTrigger, SPELL_STUN_PHASE_2);
-
+                // CoT Hillsbrad Despawn Trigger - spell cast depending on "phase"
+                if (GetData(TYPE_ESCORT_INN) == DONE)
+                {
+                    if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
+                        despawnTrigger->AI()->DoCastSpellIfCan(nullptr, SPELL_STUN_PHASE_5);
+                }
+                else if (GetData(TYPE_ESCORT_BARN) == DONE)
+                {
+                    if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
+                        despawnTrigger->AI()->DoCastSpellIfCan(nullptr, SPELL_STUN_PHASE_4);
+                } 
+                else if (GetData(TYPE_ESCORT_SKARLOC) == DONE)
+                {
+                    if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
+                        despawnTrigger->AI()->DoCastSpellIfCan(nullptr, SPELL_STUN_PHASE_3);
+                }
+                else
+                {
+                    if (Creature* despawnTrigger = GetSingleCreatureFromStorage(NPC_COT_DESPAWN_TRIGGER))
+                        despawnTrigger->AI()->DoCastSpellIfCan(nullptr, SPELL_STUN_PHASE_2);
+                }
 
                 if (Creature* armorer = GetSingleCreatureFromStorage(NPC_ARMORER))
                     armorer->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_B, armorer, armorer);

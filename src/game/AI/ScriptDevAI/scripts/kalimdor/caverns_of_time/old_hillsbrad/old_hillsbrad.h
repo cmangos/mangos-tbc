@@ -53,6 +53,9 @@ enum
 
     // Spell used to despawn all EscortNPCs
     SPELL_STUN_PHASE_2              = 33937,
+    SPELL_STUN_PHASE_3              = 34016,
+    SPELL_STUN_PHASE_4              = 34023,
+    SPELL_STUN_PHASE_5              = 34024,
 
     // Taretha aura when Epoch Hunter spawns
     SPELL_SHADOW_SPIKE              = 33125,

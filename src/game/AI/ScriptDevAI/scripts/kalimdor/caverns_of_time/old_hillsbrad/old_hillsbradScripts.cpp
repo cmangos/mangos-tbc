@@ -593,18 +593,18 @@ struct InfiniteTransform : public SpellScript
         }
     }
 };
-// 33937 - Stun Phase 2 Units
-struct StunPhase2Units : public SpellScript
+// 33937, 34016, 34023, 34024 - Stun Phase 2, 3, 4, 5 Units
+struct StunPhaseUnits : public SpellScript
 {
-    void OnHit(Spell* spell, SpellMissInfo /*missInfo*/) const override
+    void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override
     {
         Unit* caster = spell->GetCaster();
-        Unit* target = spell->m_targets.getUnitTarget();
-        if (target->IsCreature() && target != caster)
-        {
-            static_cast<Creature*>(target)->ForcedDespawn(3000);
-            static_cast<Creature*>(target)->AI()->SetAIImmobilizedState(true);
-        }
+        Unit* target = spell->GetUnitTarget();
+        if (!caster || !target || target == caster || !target->IsCreature())
+            return;
+
+        static_cast<Creature*>(target)->ForcedDespawn(3000);
+        static_cast<Creature*>(target)->AI()->SetAIImmobilizedState(true);
     }
 
 };
@@ -650,5 +650,5 @@ void AddSC_old_hillsbrad()
     pNewScript->RegisterSelf();
 
     RegisterSpellScript<InfiniteTransform>("spell_infinite_transform");
-    RegisterSpellScript<StunPhase2Units>("spell_stun_phase_2_unit");
+    RegisterSpellScript<StunPhaseUnits>("spell_stun_phase_unit");
 }

@@ -390,10 +390,11 @@ void WorldSession::HandleMovementOpcodes(WorldPacket& recv_data)
     if (!ProcessMovementInfo(movementInfo, mover, plMover, recv_data))
         return;
 
-    // CMSG opcode has no handler in client, should not be sent to others.
-    // It is sent by client when you jump and hit something on the way up,
+    // These CMSG opcodes have no handler in client, should not be sent to others.
+    // CMSG_MOVE_FALL_RESET is sent by client when you jump and hit something on the way up,
     // thus stopping upward movement and causing you to descend sooner.
-    if (opcode == CMSG_MOVE_FALL_RESET)
+    // CMSG_MOVE_SET_FLY is sent by client when it starts or stops flying.
+    if (opcode == CMSG_MOVE_FALL_RESET || opcode == CMSG_MOVE_SET_FLY)
         return;
 
     WorldPacket data(opcode, recv_data.size());

@@ -85,6 +85,12 @@ void Pet::RemoveFromWorld()
         if (!m_removed && !IsPlayerControlled())
             Unsummon(PET_SAVE_NOT_IN_SLOT, nullptr, false);
 
+        // clear a stale pet link on the owner if this pet is removed without
+        // going through Unsummon (e.g. grid unload while owner is out of range)
+        if (Unit* owner = GetOwner())
+            if (owner->GetPetGuid() == GetObjectGuid())
+                owner->SetPet(nullptr);
+
         GetMap()->GetObjectsStore().erase<Pet>(GetObjectGuid(), (Pet*)nullptr);
     }
 

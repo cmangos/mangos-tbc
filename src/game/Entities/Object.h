@@ -760,7 +760,7 @@ enum MovementFlags
 MovementFlags const movementFlagsMask = MovementFlags(
         MOVEFLAG_FORWARD | MOVEFLAG_BACKWARD  | MOVEFLAG_STRAFE_LEFT | MOVEFLAG_STRAFE_RIGHT |
         MOVEFLAG_PITCH_UP | MOVEFLAG_PITCH_DOWN | MOVEFLAG_FALLING |
-        MOVEFLAG_FALLINGFAR | MOVEFLAG_ASCENDING | MOVEFLAG_CAN_FLY |
+        MOVEFLAG_FALLINGFAR | MOVEFLAG_ASCENDING | MOVEFLAG_FLYING |
         MOVEFLAG_SPLINE_ELEVATION
                                         );
 
@@ -796,7 +796,7 @@ class MovementInfo
         inline UnitMoveType GetSpeedType() const { return GetSpeedType(MovementFlags(moveFlags)); }
         static inline UnitMoveType GetSpeedType(MovementFlags f)
         {
-            if (f & MOVEFLAG_CAN_FLY)
+            if (f & MOVEFLAG_FLYING)
                 return (f & MOVEFLAG_BACKWARD ? MOVE_FLIGHT_BACK : MOVE_FLIGHT);
             else if (f & MOVEFLAG_SWIMMING)
                 return (f & MOVEFLAG_BACKWARD ? MOVE_SWIM_BACK : MOVE_SWIM);

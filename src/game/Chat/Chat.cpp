@@ -3704,10 +3704,11 @@ void ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const
             data << uint32(strlen(senderName) + 1);
             data << senderName;
             data << ObjectGuid(targetGuid);                         // Unit Target
-            if (targetGuid && !targetGuid.IsPlayer() && !targetGuid.IsPet() && (msgtype != CHAT_MSG_WHISPER_FOREIGN))
+            if (targetGuid && !targetGuid.IsPlayer() && (msgtype != CHAT_MSG_WHISPER_FOREIGN))
             {
-                data << uint32(strlen(targetName) + 1);             // target name length
-                data << targetName;                                 // target name
+                char const* name = (targetGuid.IsPet() || !targetName) ? "" : targetName; // empty for a pet
+                data << uint32(strlen(name) + 1);                   // target name length
+                data << name;                                       // target name
             }
             MANGOS_ASSERT(message);
             data << uint32(strlen(message) + 1);
@@ -3717,13 +3718,7 @@ void ChatHandler::BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const
         case CHAT_MSG_BG_SYSTEM_NEUTRAL:
         case CHAT_MSG_BG_SYSTEM_ALLIANCE:
         case CHAT_MSG_BG_SYSTEM_HORDE:
-            data << ObjectGuid(targetGuid);                         // Unit Target
-            if (targetGuid && !targetGuid.IsPlayer())
-            {
-                MANGOS_ASSERT(targetName);
-                data << uint32(strlen(targetName) + 1);             // target name length
-                data << targetName;                                 // target name
-            }
+            data << ObjectGuid(targetGuid);                         // Unit Target, never followed by its name
             MANGOS_ASSERT(message);
             data << uint32(strlen(message) + 1);
             data << message;

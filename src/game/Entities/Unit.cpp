@@ -13091,9 +13091,9 @@ void Unit::SetCanFly(bool enable)
     if (!isClientControlled)
     {
         if (enable)
-            m_movementInfo.AddMovementFlag(MOVEFLAG_DESCENDING);
+            m_movementInfo.AddMovementFlag(MOVEFLAG_CAN_FLY);
         else
-            m_movementInfo.RemoveMovementFlag(MOVEFLAG_DESCENDING);
+            m_movementInfo.RemoveMovementFlag(MOVEFLAG_CAN_FLY);
     }
 
     if (!IsInWorld()) // is sent on add to map

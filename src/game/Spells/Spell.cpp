@@ -2358,6 +2358,16 @@ void Spell::SetTargetMap(SpellEffectIndex effIndex, uint32 targetMode, bool targ
                     break;
             }
 
+            // Zones missing from the switch above (e.g. capital cities) keep the 500 catch value:
+            // fall back to skill_fishing_base_level data before rejecting the cast
+            if (minimumRequiredSkill == 500)
+            {
+                int32 zoneSkill = sObjectMgr.GetFishingBaseSkillLevel(area);
+                if (!zoneSkill)
+                    zoneSkill = sObjectMgr.GetFishingBaseSkillLevel(zone);
+                minimumRequiredSkill = zoneSkill > 0 ? uint32(zoneSkill) : 0;
+            }
+
             if (result == SPELL_CAST_OK)
             {
                 uint32 fishingSkill = m_caster->IsPlayer() ? static_cast<Player*>(m_caster)->GetSkillValue(SKILL_FISHING) : 0;

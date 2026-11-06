@@ -686,7 +686,7 @@ bool ChaseMovementGenerator::IsReachablePositionToTarget(Unit& owner, float x, f
         float dy = y - target.GetPositionY();
         if (dx * dx + dy * dy > reach * reach)
         {
-            if (!i_target->IsJumping() && !target.IsFalling())
+            if (!target.IsFalling())
                 return false;
         }
         else if (this->i_target->IsFlying() && !owner.CanFly())
@@ -699,7 +699,7 @@ bool ChaseMovementGenerator::IsReachablePositionToTarget(Unit& owner, float x, f
     else
     {
         if (target.GetDistance(x, y, z, DIST_CALC_COMBAT_REACH, target.GetTransport()) - owner.GetCombatReach() > this->i_offset)
-            if (!i_target->IsJumping() && !i_target->IsFalling())
+            if (!i_target->IsFalling())
                 return false;
     }
     return true;

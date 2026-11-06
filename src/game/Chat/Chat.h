@@ -642,6 +642,7 @@ class ChatHandler
         bool HandleSendMassMoneyCommand(char* args);
 
         bool HandleServerCorpsesCommand(char* args);
+        bool HandleServerMemoryCommand(char* args);
         bool HandleServerExitCommand(char* args);
         bool HandleServerIdleRestartCommand(char* args);
         bool HandleServerIdleShutDownCommand(char* args);

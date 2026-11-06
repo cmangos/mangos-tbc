@@ -1420,14 +1420,6 @@ bool GameObject::CanUseNow(Player const* player) const
 {
     switch (GetGoType())
     {
-        case GAMEOBJECT_TYPE_CHAIR:
-        {
-            float x, y;
-            std::tie(x, y) = GetClosestChairSlotPosition(player);
-            if (player->GetDistance(x, y, GetPositionZ(), DIST_CALC_NONE, GetTransport()) > 3.f * 3.f)
-                return false;
-            break;
-        }
         case GAMEOBJECT_TYPE_SUMMONING_RITUAL:
         {
             SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(m_goInfo->summoningRitual.spellId);
@@ -2677,7 +2669,7 @@ std::pair<float, float> GameObject::GetClosestChairSlotPosition(Unit const* user
     // check if the db is sane
     if (GetGOInfo()->chair.slots > 0)
     {
-        float lowestDist = DEFAULT_VISIBILITY_DISTANCE;
+        float lowestDist = std::numeric_limits<float>::max();
 
         float x_lowest = GetPositionX();
         float y_lowest = GetPositionY();

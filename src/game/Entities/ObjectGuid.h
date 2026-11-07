@@ -146,6 +146,7 @@ class ObjectGuid
                 case HIGHGUID_PET:          return TYPEID_UNIT;
                 case HIGHGUID_PLAYER:       return TYPEID_PLAYER;
                 case HIGHGUID_GAMEOBJECT:   return TYPEID_GAMEOBJECT;
+                case HIGHGUID_TRANSPORT:    return TYPEID_GAMEOBJECT;
                 case HIGHGUID_DYNAMICOBJECT: return TYPEID_DYNAMICOBJECT;
                 case HIGHGUID_CORPSE:       return TYPEID_CORPSE;
                 case HIGHGUID_MO_TRANSPORT: return TYPEID_GAMEOBJECT;

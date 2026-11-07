@@ -28,9 +28,8 @@ enum AuraFlags
     AFLAG_EFFECT_0              = 0x01,
     AFLAG_EFFECT_1              = 0x02,
     AFLAG_EFFECT_2              = 0x04,
-    AFLAG_UNK4                  = 0x08,     // Pre-WotLK: unused in UI
+    AFLAG_NOT_CASTER            = 0x08,     // the target cast it: the client hides it by SPELL_ATTR_EX5_NO_CASTER_AURA_ICON, else by SPELL_ATTR_EX5_NO_TARGET_AURA_ICON
     AFLAG_CANCELABLE            = 0x10,
-    AFLAG_NOT_CANCELABLE        = 0x20,
 
     AFLAG_MASK_ALL              = 0xFF
 };

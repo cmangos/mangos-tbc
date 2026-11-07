@@ -648,7 +648,6 @@ void instance_old_hillsbrad::SpawnWave()
                     epoch->GetMotionMaster()->MoveWaypoint();
             break;
         }
-        break;
     }
 }
 

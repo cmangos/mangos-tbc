@@ -570,8 +570,8 @@ bool WorldSession::Update(uint32 /*diff*/)
 
 void WorldSession::UpdateMap(uint32 diff)
 {
-    // Send time sync packet every 10s.
-    if (m_timeSyncTimer > 0)
+    // Send time sync packet every 10s, to a client only: bots never answer it
+    if (m_socket && m_timeSyncTimer > 0)
     {
         if (diff >= m_timeSyncTimer)
             SendTimeSync();

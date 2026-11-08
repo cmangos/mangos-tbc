@@ -213,7 +213,7 @@ struct npc_thrall_old_hillsbradAI : public npc_escortAI
         m_creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC);
         SetEscortPaused(false);
     }
-   
+
     void WaypointReached(uint32 uiPoint) override
     {
         if (!m_instance)

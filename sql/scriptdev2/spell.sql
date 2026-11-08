@@ -791,7 +791,11 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (35268,'spell_raging_flames_inferno'),
 (39346,'spell_raging_flames_inferno'),
 (34168,'spell_spore_cloud_underbog'),
-(33133,'spell_infinite_transform');
+(33133,'spell_infinite_transform'),
+(33937, 'spell_stun_phase_unit'),
+(34016, 'spell_stun_phase_unit'),
+(34023, 'spell_stun_phase_unit'),
+(34024, 'spell_stun_phase_unit');
 
 -- Wotlk
 INSERT INTO spell_scripts(Id, ScriptName) VALUES

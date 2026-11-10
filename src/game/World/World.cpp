@@ -87,6 +87,11 @@
 #include <mutex>
 #include <cstdarg>
 #include <memory>
+#if defined(__GLIBC__) && !defined(_WIN32)
+#include <malloc.h>
+#endif
+#include <cstdio>
+#include <cstring>
 
 INSTANTIATE_SINGLETON_1(World);
 
@@ -508,6 +513,9 @@ void World::LoadConfigSettings(bool reload)
     setConfigMin(CONFIG_UINT32_INTERVAL_GRIDCLEAN, "GridCleanUpDelay", 5 * MINUTE * IN_MILLISECONDS, MIN_GRID_DELAY);
     if (reload)
         sMapMgr.SetGridCleanUpDelay(getConfig(CONFIG_UINT32_INTERVAL_GRIDCLEAN));
+    // Seconds between automatic glibc malloc_trim() calls while players/bots are online.
+    // 0 disables the periodic trim (idle trim still runs). Default: 5 minutes.
+    setConfig(CONFIG_UINT32_MEMORY_TRIM_INTERVAL, "MemoryTrimInterval", 5 * MINUTE);
 
     setConfigMin(CONFIG_UINT32_INTERVAL_MAPUPDATE, "MapUpdateInterval", 100, MIN_MAP_UPDATE_DELAY);
     if (reload)
@@ -1558,8 +1566,45 @@ void World::DetectDBCLang()
     sLog.outString("Using %s DBC Locale as default. All available DBC locales: %s", localeNames[m_defaultDbcLocale], availableLocalsStr.empty() ? "<none>" : availableLocalsStr.c_str());
     sLog.outString();
 }
-
 /// Update the World !
+
+void World::TrimMemory()
+{
+#if defined(__GLIBC__) && !defined(_WIN32)
+    // glibc keeps freed blocks in its per-arena free lists. With bots, grid
+    // loading and DB work the same arenas churn through millions of small
+    // allocations, so RSS stays far above the live set after the objects are
+    // gone. malloc_trim() madvise()s the free pages back to the kernel without
+    // touching live allocations.
+    auto readRssKb = []() -> unsigned long
+    {
+        FILE* file = fopen("/proc/self/status", "r");
+        if (!file)
+            return 0;
+
+        unsigned long rss = 0;
+        char line[256];
+        while (fgets(line, sizeof(line), file))
+        {
+            if (std::strncmp(line, "VmRSS:", 6) == 0)
+            {
+                std::sscanf(line + 6, "%lu", &rss);
+                break;
+            }
+        }
+        fclose(file);
+        return rss;
+    };
+
+    const unsigned long before = readRssKb();
+    const int result = malloc_trim(0);
+    const unsigned long after = readRssKb();
+
+    sLog.outString("Memory trim: malloc_trim(%d), RSS %lu kB -> %lu kB (released %ld kB)",
+        result, before, after, (long)before - (long)after);
+#endif
+}
+
 void World::Update(uint32 diff)
 {
     m_currentMSTime = WorldTimer::getMSTime();
@@ -1750,6 +1795,30 @@ void World::Update(uint32 diff)
 
     // cleanup unused GridMap objects as well as VMaps
     sTerrainMgr.Update(diff);
+
+    // Give freed heap pages back to the OS. On an idle realm (no sessions/bots)
+    // do it every minute; otherwise honour MemoryTrimInterval (default 5 min).
+    // Running it after the terrain cleanup lets the grid/vmap/mmap pages that
+    // were just released be returned in the same pass.
+    m_memoryTrimTimer += diff;
+    if (m_memoryTrimTimer >= 60 * IN_MILLISECONDS)
+    {
+        m_memoryTrimTimer = 0;
+        const bool idle = GetActiveSessionCount() == 0;
+        const uint32 interval = idle ? 60 : getConfig(CONFIG_UINT32_MEMORY_TRIM_INTERVAL);
+        const uint32 now = uint32(time(nullptr));
+        if (interval && (m_lastMemoryTrimTime == 0 || now - m_lastMemoryTrimTime >= interval))
+        {
+            m_lastMemoryTrimTime = now;
+
+            // On an empty realm force the normal grid/vmap/mmap cleanup pass so
+            // tiles that just lost their last user are released before trimming.
+            if (idle)
+                sTerrainMgr.Update(getConfig(CONFIG_UINT32_INTERVAL_GRIDCLEAN) + 1000);
+
+            TrimMemory();
+        }
+    }
 #ifdef BUILD_METRICS
     auto updateEndTime = std::chrono::time_point_cast<std::chrono::milliseconds>(Clock::now());
     long long total = (updateEndTime - m_currentTime).count();

@@ -4634,6 +4634,25 @@ bool ChatHandler::HandleServerCorpsesCommand(char* /*args*/)
     return true;
 }
 
+/// Manually return free heap pages to the OS (glibc malloc_trim)
+bool ChatHandler::HandleServerMemoryCommand(char* args)
+{
+    std::string sub = args ? args : "";
+    const size_t first = sub.find_first_not_of(" \t");
+    sub.erase(0, first == std::string::npos ? sub.size() : first);
+
+    if (sub == "trim")
+    {
+        sWorld.TrimMemory();
+        PSendSysMessage("Memory trim executed; see Server.log for the RSS delta.");
+        return true;
+    }
+
+    PSendSysMessage("Usage: server memory trim");
+    return true;
+}
+
+
 bool ChatHandler::HandleRepairitemsCommand(char* args)
 {
     Player* target;

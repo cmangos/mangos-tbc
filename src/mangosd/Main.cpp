@@ -42,6 +42,11 @@
 #include <iostream>
 #include <string>
 
+#if defined(__GLIBC__) && !defined(_WIN32)
+#include <malloc.h>
+#include <cstdlib>
+#endif
+
 #ifdef ENABLE_PLAYERBOTS
 #include "playerbot/PlayerbotAIConfig.h"
 #endif
@@ -72,6 +77,14 @@ uint32 realmID;                                             ///< Id of the realm
 /// Launch the mangos server
 int main(int argc, char* argv[])
 {
+    #if defined(__GLIBC__) && !defined(_WIN32)
+        // Bound the number of glibc per-thread arenas. Bots, grid loading and the
+        // DB threads otherwise create one arena each and keep freed pages in them,
+        // which is the main reason RSS stays high after bots log out. Must be set
+        // before the worker threads start. An explicit MALLOC_ARENA_MAX wins.
+        if (!std::getenv("MALLOC_ARENA_MAX"))
+            mallopt(M_ARENA_MAX, 8);
+    #endif
     std::string auctionBotConfig, configFile, playerBotConfig, aiPlayerBotConfig, serviceParameter;
 
     boost::program_options::options_description desc("Allowed options");

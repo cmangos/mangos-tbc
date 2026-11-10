@@ -813,6 +813,7 @@ ChatCommand* ChatHandler::getCommandTable()
         { "idleshutdown",   SEC_ADMINISTRATOR,  true,  nullptr,                                        "", serverIdleShutdownCommandTable },
         { "info",           SEC_PLAYER,         true,  &ChatHandler::HandleServerInfoCommand,          "", nullptr },
         { "log",            SEC_CONSOLE,        true,  nullptr,                                        "", serverLogCommandTable },
+        { "memory",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerMemoryCommand,        "", nullptr },
         { "motd",           SEC_PLAYER,         true,  &ChatHandler::HandleServerMotdCommand,          "", nullptr },
         { "plimit",         SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerPLimitCommand,        "", nullptr },
         { "resetallraid",   SEC_ADMINISTRATOR,  true,  &ChatHandler::HandleServerResetAllRaidCommand,  "", nullptr },

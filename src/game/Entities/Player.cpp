@@ -10718,7 +10718,7 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
         pItem2->SetCount(pItem2->GetCount() + pItem->GetCount());
         if (IsInWorld() && update)
         {
-            GetMap()->AddUpdateCreateObject(pItem2);
+            GetMap()->AddUpdateObject(pItem2);
         }
 
         if (IsInWorld() && update)

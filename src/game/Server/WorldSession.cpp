@@ -104,7 +104,7 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     _logoutTime(0), m_afkTime(0), m_playerSave(true), m_inQueue(false), m_playerLoading(false), m_kickSession(false), m_playerLogout(false), m_playerRecentlyLogout(false),
     m_sessionDbcLocale(sWorld.GetAvailableDbcLocale(locale)), m_sessionDbLocaleIndex(sObjectMgr.GetStorageLocaleIndexFor(locale)),
     m_latency(0), m_tutorialState(TUTORIALDATA_UNCHANGED),
-    m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0),
+    m_timeSyncClockDeltaQueue(6), m_timeSyncClockDelta(0), m_timeSyncRoundTrip(0), m_pendingTimeSyncRequests(), m_timeSyncNextCounter(0), m_timeSyncTimer(0),
     m_recruitingFriendId(recruitingFriend), m_isRecruiter(isARecruiter)
     {}
 
@@ -1253,6 +1253,14 @@ void WorldSession::SendPlaySpellVisual(ObjectGuid guid, uint32 spellArtKit) cons
     data << guid;
     data << spellArtKit;                                    // index from SpellVisualKit.dbc
     SendPacket(data);
+}
+
+// Time a packet takes to reach the client: half the round trip of the clock synchronisation, or of the ping until the
+// synchronisation has measured one, at most one second
+uint32 WorldSession::GetOneWayDelay() const
+{
+    uint32 const roundTrip = m_timeSyncRoundTrip ? m_timeSyncRoundTrip.load() : m_latency.load();
+    return std::min(roundTrip / 2, uint32(1000));
 }
 
 void WorldSession::SynchronizeMovement(MovementInfo& movementInfo)

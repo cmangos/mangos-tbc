@@ -2031,11 +2031,15 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         }
     }
 
+    // set when this call carries out a teleport delayed by an earlier call
+    bool const delayedTeleport = m_bHasDelayedTeleport;
+
     // the client takes only the world position of a near teleport of its own player and leaves any transport: onto a transport,
     // whose deck may be moving, the world is reloaded instead and the player created aboard (not for a passenger the transport
     // itself moves along)
     GenericTransport* destTransport = transport;
-    if (!destTransport && m_teleportTransport && GetMapId() == mapid)
+    // a delayed teleport is carried out without its transport, kept by the call that delayed it
+    if (!destTransport && delayedTeleport && m_teleportTransport && GetMapId() == mapid)
         destTransport = GetMap()->GetTransport(m_teleportTransport);
     bool const nearOntoTransport = destTransport && destTransport != m_transport;
 
@@ -2063,8 +2067,10 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
             RemoveAurasWithInterruptFlags(AURA_INTERRUPT_FLAG_ENTER_WORLD);
 
         GenericTransport* currentTransport = transport;
-        if (!transport && m_teleportTransport)
+        if (!transport && delayedTeleport && m_teleportTransport)
             currentTransport = GetMap()->GetTransport(m_teleportTransport);
+        // the acknowledgement boards the player onto the transport of this teleport only
+        m_teleportTransport = currentTransport ? currentTransport->GetObjectGuid() : ObjectGuid();
         if (currentTransport)
         {
             m_movementInfo.AddMovementFlag(MOVEFLAG_ONTRANSPORT);
@@ -2107,8 +2113,6 @@ bool Player::TeleportTo(uint32 mapid, float x, float y, float z, float orientati
         {
             // lets reset near teleport flag if it wasn't reset during chained teleports
             SetSemaphoreTeleportNear(false);
-            // set when this call carries out a teleport delayed by an earlier call
-            bool const delayedTeleport = m_bHasDelayedTeleport;
             // setup delayed teleport flag
             // if teleport spell is casted in Unit::Update() func
             // then we need to delay it until update process will be finished

@@ -214,8 +214,8 @@ struct TamingPetRodAura : public AuraScript
         }
         else
         {
-            if (aura->GetRemoveMode() == AURA_REMOVE_BY_EXPIRE)
-                creature->ForcedDespawn();     
+            if (aura->GetRemoveMode() != AURA_REMOVE_BY_DEATH && aura->GetRemoveMode() != AURA_REMOVE_BY_DELETE)
+                creature->ForcedDespawn();
         }
     }
 };

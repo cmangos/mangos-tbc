@@ -3701,7 +3701,9 @@ void Aura::HandleModPossess(bool apply, bool Real)
 
         caster->TakePossessOf(target);
 
-        if (Player* playerCaster = caster->IsPlayer() ? static_cast<Player*>(caster) : nullptr)
+        // a creation not written yet carries the values
+        Player* playerCaster = caster->IsPlayer() ? static_cast<Player*>(caster) : nullptr;
+        if (playerCaster && !playerCaster->IsCreationPending(target))
         {
             UpdateData newData;
             target->BuildValuesUpdateBlockForPlayerWithFlags(newData, playerCaster, UF_FLAG_OWNER_ONLY);
@@ -3816,7 +3818,7 @@ void Aura::HandleModCharm(bool apply, bool Real)
 
         caster->TakeCharmOf(target, GetId());
 
-        if (playerCaster)
+        if (playerCaster && !playerCaster->IsCreationPending(target)) // a creation not written yet carries the values
         {
             UpdateMask updateMask;
             updateMask.SetCount(target->GetValuesCount());

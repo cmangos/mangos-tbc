@@ -2641,7 +2641,7 @@ void Player::SetGameMaster(bool on)
     }
 
     UpdateData data;
-    m_camera.UpdateVisibilityForOwner(true, data);
+    m_camera.UpdateVisibilityForOwner(data);
     data.SendData(*GetSession());
     GetMap()->AddUpdateMovementObject(this);
     UpdateEverything();
@@ -19908,20 +19908,6 @@ void Player::learnQuestRewardedSpells()
             continue;
 
         learnQuestRewardedSpells(quest);
-    }
-}
-
-void Player::SendAuraDurationsForTarget(Unit* target)
-{
-    SpellAuraHolderMap const& auraHolders = target->GetSpellAuraHolderMap();
-    for (SpellAuraHolderMap::const_iterator itr = auraHolders.begin(); itr != auraHolders.end(); ++itr)
-    {
-        SpellAuraHolder* holder = itr->second;
-
-        if (holder->GetAuraSlot() >= MAX_AURAS || holder->IsPassive() || holder->GetCasterGuid() != GetObjectGuid())
-            continue;
-
-        holder->SendAuraDurationToCaster(this);
     }
 }
 

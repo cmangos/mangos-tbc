@@ -1904,7 +1904,6 @@ class Player : public Unit
         void SendUpdateWorldState(uint32 Field, uint32 Value) const;
         void SendDirectMessage(WorldPacket const& data) const;
 
-        void SendAuraDurationsForTarget(Unit* target);
         void SendAuraDurationsOnLogin(); // sends own durations
         void SendExtraAuraDurationsOnLogin(bool visible); // sends init and non visible slot auras
 

@@ -424,6 +424,8 @@ struct mob_solarium_priestAI : public CombatAI
         }
     }
 };
+
+// 42783 - Wrath of the Astromancer
 struct WrathOfTheAstromancer : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override

@@ -416,6 +416,7 @@ struct npc_inner_demonAI : public ScriptedAI
     }
 };
 
+// 37676 - Insidious Whisper
 struct InsidiousWhisper : public SpellScript, public AuraScript
 {
     void OnInit(Spell* spell) const override
@@ -480,6 +481,7 @@ struct InsidiousWhisper : public SpellScript, public AuraScript
     }
 };
 
+// 37750 - Clear Consuming Madness
 struct ClearConsumingMadness : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex effIdx) const override
@@ -498,6 +500,7 @@ struct ClearConsumingMadness : public SpellScript
     }
 };
 
+// 37640 - Whirlwind
 struct LeoWhirlwindAura : public AuraScript
 {
     void OnApply(Aura* aura, bool apply) const override
@@ -508,6 +511,7 @@ struct LeoWhirlwindAura : public AuraScript
     }
 };
 
+// 37641 - Whirlwind
 struct LeoWhirlwindProc : public SpellScript
 {
     void OnEffectExecute(Spell* spell, SpellEffectIndex /*effIdx*/) const override

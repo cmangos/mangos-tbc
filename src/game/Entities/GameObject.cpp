@@ -1015,7 +1015,10 @@ void GameObject::SetOwnerGuid(ObjectGuid guid)
 
 Unit* GameObject::GetOwner() const
 {
-    return ObjectAccessor::GetUnit(*this, GetOwnerGuid());
+    if (!IsInWorld())
+        return nullptr;
+
+    return GetMap()->GetUnit(GetOwnerGuid());
 }
 
 WorldObject* GameObject::GetSpawner() const
@@ -1594,8 +1597,14 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
                 caster = nullptr;
 
             if (goInfo->trap.spellId)
-                if (CastSpell(caster, user, goInfo->trap.spellId, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid()) != SPELL_CAST_OK)
+            {
+                SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(goInfo->trap.spellId);
+                if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER) // hunter traps confirmed
+                    caster = nullptr;
+
+                if (CastSpell(caster, user, spellInfo, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid()) != SPELL_CAST_OK)
                     return;
+            }
             // use template cooldown if provided
             m_cooldownTime = time(nullptr) + (goInfo->trap.cooldown ? goInfo->trap.cooldown : uint32(4));
 

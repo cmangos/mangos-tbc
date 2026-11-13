@@ -7667,10 +7667,18 @@ SpellAuraHolder::SpellAuraHolder(SpellEntry const* spellproto, Unit* target, Wor
     if (!caster)
         m_casterGuid = target->GetObjectGuid();
     else
+    {
+        // hunter traps confirmed that while spell caster is GO, aura caster is player
+        if (spellproto->SpellFamilyName == SPELLFAMILY_HUNTER)
+        {
+            if (Player* player = caster->GetMap()->GetPlayer(caster->GetOwnerGuid()))
+                caster = player;
+        }
         m_casterGuid = caster->GetObjectGuid();
+    }
 
     m_applyTime      = time(nullptr);
-    m_applyMSTime = target->GetMap()->GetCurrentMSTime();
+    m_applyMSTime    = target->GetMap()->GetCurrentMSTime();
     m_isPassive      = IsPassiveSpell(spellproto);
     m_isDeathPersist = IsDeathPersistentSpell(spellproto);
     m_trackedAuraType = sSpellMgr.IsSingleTargetSpell(spellproto) ? TRACK_AURA_TYPE_SINGLE_TARGET : TRACK_AURA_TYPE_NOT_TRACKED;

@@ -43,6 +43,7 @@ class AbstractRandomMovementGenerator : public MovementGenerator
 
     protected:
         virtual int32 _setLocation(Unit& owner);
+        virtual void _computePath(Unit& owner, float x, float y, float z);
 
         float i_x, i_y, i_z;
         float i_radius;
@@ -101,6 +102,7 @@ class FleeingMovementGenerator : public AbstractRandomMovementGenerator
         explicit FleeingMovementGenerator(Unit const& source);
 
         virtual int32 _setLocation(Unit& owner) override;
+        virtual void _computePath(Unit& owner, float x, float y, float z) override;
         MovementGeneratorType GetMovementGeneratorType() const override { return FLEEING_MOTION_TYPE; }
 };
 

@@ -124,7 +124,7 @@ int32 AbstractRandomMovementGenerator::_setLocation(Unit& owner)
     if (i_pathLength != 0.0f)
         m_pathFinder->setPathLengthLimit(i_pathLength);
 
-    m_pathFinder->ComputePathToRandomPoint(Vector3(x, y, z), i_radius);
+    _computePath(owner, x, y, z);
 
     if ((m_pathFinder->getPathType() & PATHFIND_NOPATH) != 0)
         return 0;
@@ -146,6 +146,11 @@ int32 AbstractRandomMovementGenerator::_setLocation(Unit& owner)
         owner.addUnitState(i_stateMotion);
 
     return duration;
+}
+
+void AbstractRandomMovementGenerator::_computePath(Unit& owner, float x, float y, float z)
+{
+    m_pathFinder->ComputePathToRandomPoint(Vector3(x, y, z), i_radius);
 }
 
 ConfusedMovementGenerator::ConfusedMovementGenerator(float x, float y, float z) :
@@ -254,6 +259,17 @@ int32 FleeingMovementGenerator::_setLocation(Unit& owner)
         i_radius = frand(0.6f, 1.2f) * (MAX_QUIET_DISTANCE - MIN_QUIET_DISTANCE);
 
     return AbstractRandomMovementGenerator::_setLocation(owner);
+}
+
+void FleeingMovementGenerator::_computePath(Unit& owner, float x, float y, float z)
+{
+    owner.GetPosition(x, y, z);
+    float angle = 2.0f * M_PI_F * rand_norm_f();
+    Position pos = owner.GetFirstRandomAngleCollisionPosition(i_radius, angle);
+    x = pos.x;
+    y = pos.y;
+    z = pos.z + 0.5f; // under terrain prevention
+    m_pathFinder->calculate(x, y, z);
 }
 
 void PanicMovementGenerator::Initialize(Unit& owner)

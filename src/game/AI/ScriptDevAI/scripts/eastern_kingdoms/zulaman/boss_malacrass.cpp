@@ -269,7 +269,7 @@ struct boss_malacrassAI : public CombatAI
 
     void ReceiveAIEvent(AIEventType eventType, Unit* /*sender*/, Unit* /*invoker*/, uint32 /*miscValue*/) override
     {
-        if (eventType == AI_EVENT_CUSTOM_A) // malacrass kill or wipe
+        if (eventType == AI_EVENT_CUSTOM_A && m_instance) // malacrass kill or wipe
         {
             auto& addsList = m_instance->GetMalacrassAddsEntryList();
             m_creature->ForcedDespawn();
@@ -282,7 +282,7 @@ struct boss_malacrassAI : public CombatAI
     void DoInitializeAdds()
     {
         // not if m_creature are dead, so avoid
-        if (!m_creature->IsAlive())
+        if (!m_creature->IsAlive() || !m_instance)
             return;
 
         auto& addsList = m_instance->GetMalacrassAddsEntryList();

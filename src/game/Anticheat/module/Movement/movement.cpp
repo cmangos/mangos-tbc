@@ -58,6 +58,14 @@ uint16 GetOrderResponse(uint16 opcode)
         case SMSG_MOVE_WATER_WALK:
         case SMSG_MOVE_LAND_WALK:
             return CMSG_MOVE_WATER_WALK_ACK;
+        case MSG_MOVE_TELEPORT_ACK:
+            return MSG_MOVE_TELEPORT_ACK;
+        case SMSG_MOVE_KNOCK_BACK:
+            return CMSG_MOVE_KNOCK_BACK_ACK;
+        case SMSG_FORCE_FLIGHT_SPEED_CHANGE:
+            return CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK;
+        case SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE:
+            return CMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE_ACK;
         default:
             return 0;
     }

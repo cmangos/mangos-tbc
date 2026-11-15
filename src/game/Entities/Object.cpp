@@ -2795,7 +2795,7 @@ bool WorldObject::GetExpireTime(SpellEntry const& spellEntry, TimePoint& expireT
     return false;
 }
 
-bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/) const
+bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const* itemProto /*= nullptr*/, bool itemCategoryOnly /*= false*/) const
 {
     uint32 spellCategory = spellEntry.Category;
 
@@ -2809,13 +2809,15 @@ bool WorldObject::IsSpellReady(SpellEntry const& spellEntry, ItemPrototype const
         return false;
 
     // overwrite category by provided category in item prototype during item cast if need
+    // item category 0 keeps the spell category, unless only the item category is checked
     if (itemProto)
     {
         for (const auto& Spell : itemProto->Spells)
         {
             if (Spell.SpellId == spellEntry.Id)
             {
-                spellCategory = Spell.SpellCategory;
+                if (Spell.SpellCategory || itemCategoryOnly)
+                    spellCategory = Spell.SpellCategory;
                 break;
             }
         }
@@ -2879,7 +2881,8 @@ bool WorldObject::HasGCDOrCooldownWithinMargin(SpellEntry const& spellEntry, Ite
         {
             if (Spell.SpellId == spellEntry.Id)
             {
-                spellCategory = Spell.SpellCategory;
+                if (Spell.SpellCategory)
+                    spellCategory = Spell.SpellCategory;
                 break;
             }
         }

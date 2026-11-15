@@ -225,30 +225,26 @@ void Warden::RequestScans(std::vector<std::shared_ptr<const Scan>> &&scans)
         {
             _pendingScans.push_back(*i);
 
-            // account for the space this scan consumes.  without this the checks above only ever
-            // compare a single scan against the buffer limits, so a request could be built which
-            // overflows the client's buffers, bounded only by Warden.ScanCount.
+            // count this scan against the client buffers checked at the top of the loop
             request += (*i)->requestSize;
             reply += (*i)->replySize;
         }
     }
 
-    // if there are still no pending scans, no request can be built this cycle.  this used to assert
-    // (crashing the server), which is reachable if an oversized scan is ever added -- e.g. via the
-    // warden_scans table -- so handle each possible cause gracefully instead.
+    // nothing can be sent this cycle: either every scan examined was a NOP, or the loop stopped before
+    // any scan could be added to the request
     if (_pendingScans.empty())
     {
-        // the loop ran to completion, so every scan we examined was a NOP.  nothing is pending and
-        // nothing is worth retrying, which matches what the normal path below does with the queue.
+        // every scan examined was a NOP: empty the queue, as after a request which took all of it
         if (!queueUpdated)
         {
             _enqueuedScans.clear();
             return;
         }
 
-        // otherwise we stopped on the very first scan.  if it can never fit in a single request,
-        // drop it so it does not block the queue forever.  if we merely hit the per-request scan
-        // count limit (Warden.ScanCount set to zero), leave the queue intact and retry later.
+        // the loop stopped at the scan now at the front of the queue while the request was still empty,
+        // so either this scan alone exceeds a client buffer, or Warden.ScanCount is zero.  a scan which
+        // can never fit is dropped so that it does not block the queue, otherwise the queue is kept.
         auto const &next = _enqueuedScans.front();
 
         if (next->requestSize > MaxRequest || next->replySize > MaxReply)

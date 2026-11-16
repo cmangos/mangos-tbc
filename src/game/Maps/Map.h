@@ -450,6 +450,7 @@ class Map : public GridRefManager<NGridType>
 
         // the group loot rolls of this loot target are updated by the map until they end
         void AddRollingLoot(ObjectGuid const& lootTargetGuid) { m_rollingLoots.insert(lootTargetGuid); }
+        void ResendLootRollsTo(Player const* player);
 
         void UpdateInfinite(Player& player) const;
     private:

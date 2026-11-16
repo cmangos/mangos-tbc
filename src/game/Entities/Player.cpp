@@ -19823,6 +19823,10 @@ void Player::SendInitialPacketsAfterAddToMap(bool reconnect)
         WorldPacket data(SMSG_LFG_DISABLED);
         GetSession()->SendPacket(data);
     }
+
+    // a voter arriving on the map during a group loot roll gets it again
+    if (IsInWorld())
+        GetMap()->ResendLootRollsTo(this);
 }
 
 Unit* Player::GetGroupUpdatePet() const

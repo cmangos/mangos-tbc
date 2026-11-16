@@ -511,6 +511,9 @@ LootSlotType LootItem::GetSlotTypeForSharedLoot(Player const* player, Loot const
     if (!IsAllowed(player, loot) && !isMasterForConditionalOverThreshold)
         return MAX_LOOT_SLOT_TYPE;
 
+    if (!rollWinnerGuid.IsEmpty())
+        return player->GetObjectGuid() == rollWinnerGuid ? LOOT_SLOT_NORMAL : MAX_LOOT_SLOT_TYPE;
+
     if (freeForAll)
         return loot->m_lootMethod == NOT_GROUP_TYPE_LOOT ? LOOT_SLOT_OWNER : LOOT_SLOT_NORMAL; // player have not yet looted a free for all item
 
@@ -906,15 +909,18 @@ void GroupLootRoll::Finish(RollVoteMap::const_iterator& winnerItr)
     {
         SendLootRollWon(winnerItr->first, winnerItr->second.number, winnerItr->second.vote);
 
-        Player* plr = sObjectMgr.GetPlayer(winnerItr->first);
+        // a map thread may not change a player on another map: a winner who is not on this one keeps the item in the loot,
+        // for him only, until he comes back for it
+        Player* plr = m_loot->m_lootTarget->GetMap()->GetPlayer(winnerItr->first);
         if (plr && plr->GetSession())
         {
             m_loot->SendItem(plr, m_itemSlot);
         }
         else
         {
-            // hum the winner is not available
             m_lootItem->isReleased = true;
+            m_lootItem->rollWinnerGuid = winnerItr->first;
+            m_loot->ForceLootAnimationClientUpdate();
         }
     }
     m_isStarted = false;
@@ -1554,6 +1560,10 @@ void Loot::GroupCheck()
             }
         }
     }
+
+    // the map ends the rolls, even when no player stays near the loot
+    if (!m_roll.empty() && m_lootTarget)
+        m_lootTarget->GetMap()->AddRollingLoot(m_guidTarget);
 
     // in master loot case we have to send looter list to client
     if (masterLooter)
@@ -2215,7 +2225,7 @@ bool Loot::AutoStore(Player* player, bool broadcast /*= false*/, uint32 bag /*= 
     return result;
 }
 
-void Loot::Update()
+bool Loot::Update()
 {
     m_isChanged = false;
     GroupLootRollMap::iterator itr = m_roll.begin();
@@ -2226,6 +2236,7 @@ void Loot::Update()
         else
             ++itr;
     }
+    return !m_roll.empty();
 }
 
 // this will force server to update all client that is showing this object

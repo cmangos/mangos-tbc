@@ -190,6 +190,15 @@ struct CreatureInfo
 
     ObjectGuid GetObjectGuid(uint32 lowguid) const { return ObjectGuid(GetHighGuid(), Entry, lowguid); }
 
+    // the templates used instead of this one on a map of a higher difficulty
+    std::vector<uint32> GetDifficultyEntries() const
+    {
+        std::vector<uint32> entries;
+        if (HeroicEntry)
+            entries.push_back(HeroicEntry);
+        return entries;
+    }
+
     SkillType GetRequiredLootSkill() const
     {
         if (HasFlag(CreatureTypeFlags::SKIN_WITH_HERBALISM))

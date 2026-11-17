@@ -850,14 +850,14 @@ void BattleGroundMgr::RewardArenaSeason(uint32 seasonId)
     });
 
     // Remove Gladiator, Duelist and Rival from every offline player
-    CharacterDatabase.PExecute("UPDATE characters a SET knownTitles="
-        "CONCAT(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) &~0xE0000000, ' ', SUBSTR(knownTitles, LOCATE(' ', knownTitles)))"
-        "WHERE(CAST(TRIM(SUBSTRING_INDEX(knownTitles, ' ', 1))  AS UNSIGNED) & 0xE0000000) != 0");
+    CharacterDatabase.PExecute("UPDATE characters SET knownTitles = "
+        _CONCAT3_("(CAST(TRIM(SUBSTR(knownTitles, 1, INSTR(knownTitles, ' ') - 1)) AS UNSIGNED) & ~0xE0000000)", "' '", "SUBSTR(knownTitles, INSTR(knownTitles, ' '))")
+        " WHERE INSTR(knownTitles, ' ') > 0 AND (CAST(TRIM(SUBSTR(knownTitles, 1, INSTR(knownTitles, ' ') - 1)) AS UNSIGNED) & 0xE0000000) != 0");
 
     // Remove Challenger from every offline player
-    CharacterDatabase.PExecute("UPDATE characters a SET knownTitles ="
-        "CONCAT(SUBSTRING_INDEX(knownTitles, ' ', 1), ' ', CAST(TRIM(SUBSTR(knownTitles, LOCATE(' ', knownTitles)))  AS UNSIGNED) &~0x00000001)"
-        "WHERE(CAST(TRIM(SUBSTR(knownTitles, LOCATE(' ', knownTitles)))  AS UNSIGNED) & 0x00000001) != 0");
+    CharacterDatabase.PExecute("UPDATE characters SET knownTitles = "
+        _CONCAT3_("SUBSTR(knownTitles, 1, INSTR(knownTitles, ' ') - 1)", "' '", "(CAST(TRIM(SUBSTR(knownTitles, INSTR(knownTitles, ' '))) AS UNSIGNED) & ~0x00000001)")
+        " WHERE INSTR(knownTitles, ' ') > 0 AND (CAST(TRIM(SUBSTR(knownTitles, INSTR(knownTitles, ' '))) AS UNSIGNED) & 0x00000001) != 0");
 
     CharacterDatabase.PExecute("UPDATE characters SET totalHonorPoints=4*arenaPoints,arenaPoints=0");
 

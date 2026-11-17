@@ -1083,7 +1083,7 @@ void AuctionEntry::AuctionBidWinning(Player* newbidder)
     CharacterDatabase.BeginTransaction();
     this->DeleteFromDB();
     if (newbidder)
-        newbidder->SaveInventoryAndGoldToDB();
+        newbidder->SaveGoldToDB();                          // only the money changes: the auction row must not depend on the rest of the save
     CharacterDatabase.CommitTransaction();
 
     delete this;
@@ -1128,7 +1128,7 @@ bool AuctionEntry::UpdateBid(uint32 newbid, Player* newbidder /*=nullptr*/)
         CharacterDatabase.BeginTransaction();
         CharacterDatabase.PExecute("UPDATE auction SET buyguid = '%u', lastbid = '%u' WHERE id = '%u'", bidder, bid, Id);
         if (newbidder)
-            newbidder->SaveInventoryAndGoldToDB();
+            newbidder->SaveGoldToDB();                      // only the money changes: the auction row must not depend on the rest of the save
         CharacterDatabase.CommitTransaction();
         return true;
     }

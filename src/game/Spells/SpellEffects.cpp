@@ -593,11 +593,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 8344:                                  // Gnomish Universal Remote (ItemID: 7506)
                 {
-                    if (m_CastItem && unitTarget)
+                    if (GetCastItem() && unitTarget)
                     {
                         // 8345 - Control the machine | 8346 = Malfunction the machine (root) | 8347 = Taunt/enrage the machine
                         const uint32 spell_list[3] = { 8345, 8346, 8347 };
-                        m_caster->CastSpell(unitTarget, spell_list[urand(0, 2)], TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                        m_caster->CastSpell(unitTarget, spell_list[urand(0, 2)], TRIGGERED_OLD_TRIGGERED, GetCastItem());
                     }
 
                     return;
@@ -651,7 +651,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 13006:                                 // Gnomish Shrink Ray (ItemID: 10716)
                 {
-                    if (unitTarget && m_CastItem)
+                    if (unitTarget && GetCastItem())
                     {
                         uint32 roll = urand(0, 99);
                         // These rates are hella random; someone feel free to correct them
@@ -673,28 +673,28 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 13120:                                 // Net-O-Matic
                 {
-                    if (unitTarget && m_CastItem)
+                    if (unitTarget && GetCastItem())
                     {
                         uint32 roll = urand(0, 99);
                         if (roll < 2)                           // 2% for 30 sec self root (off-like chance unknown)
-                            m_caster->CastSpell(unitTarget, 16566, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 16566, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else if (roll < 4)                      // 2% for 20 sec root, charge to target (off-like chance unknown)
-                            m_caster->CastSpell(unitTarget, 13119, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 13119, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else                                    // normal root
-                            m_caster->CastSpell(unitTarget, 13099, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 13099, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                     }
 
                     return;
                 }
                 case 13180:                                 // Gnomish Mind Control Cap (ItemID: 10726)
                 {
-                    if (unitTarget && m_CastItem)
+                    if (unitTarget && GetCastItem())
                     {
                         uint32 roll = urand(0, 9);
                         if (roll == 1 && unitTarget->GetTypeId() == TYPEID_PLAYER)
-                            unitTarget->CastSpell(m_caster, 13181, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            unitTarget->CastSpell(m_caster, 13181, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else if (roll)
-                            m_caster->CastSpell(unitTarget, 13181, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 13181, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                     }
 
                     return;
@@ -730,19 +730,19 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     {
                         uint32 roll = urand(0, 99);
                         if (roll < 25)                          // Fireball (25% chance)
-                            m_caster->CastSpell(unitTarget, 15662, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 15662, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else if (roll < 50)                     // Frostbolt (25% chance)
-                            m_caster->CastSpell(unitTarget, 11538, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 11538, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else if (roll < 70)                     // Chain Lighting (20% chance)
-                            m_caster->CastSpell(unitTarget, 21179, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 21179, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else if (roll < 85)                     // Enveloping Winds (15% chance)
-                            m_caster->CastSpell(unitTarget, 25189, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 25189, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else if (roll < 90)                     // Summon Felhund minion (5% chance)
-                            m_caster->CastSpell(m_caster, 14642, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(m_caster, 14642, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else if (roll < 97)                     // Polymorph (7% to target, 10% chance total)
-                            m_caster->CastSpell(unitTarget, 14621, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 14621, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                         else                                    // Polymorph (3% to self, backfire, 10% chance total)
-                            m_caster->CastSpell(m_caster, 14621, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(m_caster, 14621, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                     }
 
                     return;
@@ -1124,29 +1124,29 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 23074:                                 // Arcanite Dragonling
                 {
-                    if (m_CastItem)
-                        m_caster->CastSpell(m_caster, 19804, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                    if (GetCastItem())
+                        m_caster->CastSpell(m_caster, 19804, TRIGGERED_OLD_TRIGGERED, GetCastItem());
 
                     return;
                 }
                 case 23075:                                 // Mithril Mechanical Dragonling
                 {
-                    if (m_CastItem)
-                        m_caster->CastSpell(m_caster, 12749, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                    if (GetCastItem())
+                        m_caster->CastSpell(m_caster, 12749, TRIGGERED_OLD_TRIGGERED, GetCastItem());
 
                     return;
                 }
                 case 23076:                                 // Mechanical Dragonling
                 {
-                    if (m_CastItem)
-                        m_caster->CastSpell(m_caster, 4073, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                    if (GetCastItem())
+                        m_caster->CastSpell(m_caster, 4073, TRIGGERED_OLD_TRIGGERED, GetCastItem());
 
                     return;
                 }
                 case 23133:                                 // Gnomish Battle Chicken
                 {
-                    if (m_CastItem)
-                        m_caster->CastSpell(m_caster, 13166, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                    if (GetCastItem())
+                        m_caster->CastSpell(m_caster, 13166, TRIGGERED_OLD_TRIGGERED, GetCastItem());
 
                     return;
                 }
@@ -1585,25 +1585,25 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                 }
                 case 30458:                                 // Nigh Invulnerability
                 {
-                    if (!m_CastItem)
+                    if (!GetCastItem())
                         return;
 
                     if (roll_chance_i(86))                  // Nigh-Invulnerability   - success
-                        m_caster->CastSpell(m_caster, 30456, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                        m_caster->CastSpell(m_caster, 30456, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                     else                                    // Complete Vulnerability - backfire in 14% casts
-                        m_caster->CastSpell(m_caster, 30457, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                        m_caster->CastSpell(m_caster, 30457, TRIGGERED_OLD_TRIGGERED, GetCastItem());
 
                     return;
                 }
                 case 30507:                                 // Poultryizer
                 {
-                    if (!m_CastItem)
+                    if (!GetCastItem())
                         return;
 
                     if (roll_chance_i(80))                  // Poultryized! - success
-                        m_caster->CastSpell(unitTarget, 30501, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                        m_caster->CastSpell(unitTarget, 30501, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                     else                                    // Poultryized! - backfire 20%
-                        m_caster->CastSpell(unitTarget, 30504, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                        m_caster->CastSpell(unitTarget, 30504, TRIGGERED_OLD_TRIGGERED, GetCastItem());
 
                     return;
                 }
@@ -1968,11 +1968,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                     switch (unitTarget->GetEntry())
                     {
                         case 22431:
-                            m_caster->CastSpell(unitTarget, 39322, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 39322, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                             break;
                         case 22507:
                         case 22506:
-                            m_caster->CastSpell(unitTarget, 39323, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                            m_caster->CastSpell(unitTarget, 39323, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                             break;
                     }
                     return;
@@ -2172,7 +2172,7 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
                         return;
 
                     if (roll_chance_i(66))
-                        m_caster->CastSpell(m_caster, 42289, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                        m_caster->CastSpell(m_caster, 42289, TRIGGERED_OLD_TRIGGERED, GetCastItem());
                     else
                         m_caster->CastSpell(m_caster, 42288, TRIGGERED_OLD_TRIGGERED);
 
@@ -2761,18 +2761,18 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
         {
             if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000000200000)) // Flametongue Weapon Proc, Ranks
             {
-                if (m_CastItem)
+                if (Item* castItem = GetCastItem())
                 {
                     // found spelldamage coefficients of 0.381% per 0.1 speed and 15.244 per 4.0 speed
                     // but own calculation say 0.385 gives at most one point difference to published values
                     int32 bonusDamage = m_caster->SpellBaseDamageBonusDone(GetSpellSchoolMask(m_spellInfo))
                                         + unitTarget->SpellBaseDamageBonusTaken(GetSpellSchoolMask(m_spellInfo));
                     // Does Amplify Magic/Dampen Magic influence flametongue? If not, the above addition must be removed.
-                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / float(IN_MILLISECONDS);
+                    float weaponSpeed = float(castItem->GetProto()->Delay) / float(IN_MILLISECONDS);
                     bonusDamage = m_caster->SpellBonusWithCoeffs(m_spellInfo, eff_idx, 0, bonusDamage, 0, false); // apply spell coeff
                     int32 totalDamage = (damage * 0.01 * weaponSpeed) + bonusDamage;
 
-                    m_caster->CastCustomSpell(unitTarget, 10444, &totalDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                    m_caster->CastCustomSpell(unitTarget, 10444, &totalDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, castItem);
                 }
                 else
                     sLog.outError("Spell::EffectDummy: spell %i requires cast Item", m_spellInfo->Id);
@@ -2781,11 +2781,11 @@ void Spell::EffectDummy(SpellEffectIndex eff_idx)
             }
             if (m_spellInfo->SpellFamilyFlags & uint64(0x0000000400000000)) // Flametongue Totem Proc, Ranks
             {
-                if (m_CastItem) // Does not scale with gear
+                if (Item* castItem = GetCastItem()) // Does not scale with gear
                 {
-                    float weaponSpeed = float(m_CastItem->GetProto()->Delay) / float(IN_MILLISECONDS);
-                    int32 totalDamage = (damage * 0.01f * weaponSpeed * (m_CastItem->GetEnchantmentModifier() + 100.f) / 100.f);
-                    m_caster->CastCustomSpell(unitTarget, 16368, &totalDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, m_CastItem);
+                    float weaponSpeed = float(castItem->GetProto()->Delay) / float(IN_MILLISECONDS);
+                    int32 totalDamage = (damage * 0.01f * weaponSpeed * (castItem->GetEnchantmentModifier() + 100.f) / 100.f);
+                    m_caster->CastCustomSpell(unitTarget, 16368, &totalDamage, nullptr, nullptr, TRIGGERED_OLD_TRIGGERED, castItem);
                 }
                 else
                     sLog.outError("Spell::EffectDummy: spell %i requires cast Item", m_spellInfo->Id);
@@ -2854,7 +2854,7 @@ void Spell::EffectTriggerSpellWithValue(SpellEffectIndex eff_idx)
     }
 
     int32 bp = damage;
-    m_caster->CastCustomSpell(unitTarget, triggered_spell_id, &bp, &bp, &bp, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);
+    m_caster->CastCustomSpell(unitTarget, triggered_spell_id, &bp, &bp, &bp, TRIGGERED_OLD_TRIGGERED, GetCastItem(), nullptr, m_originalCasterGUID, m_spellInfo);
 }
 
 void Spell::EffectTriggerRitualOfSummoning(SpellEffectIndex eff_idx)
@@ -3007,7 +3007,7 @@ void Spell::EffectTriggerSpell(SpellEffectIndex effIndex)
         }
     }
 
-    caster->CastSpell(targets, spellInfo, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);
+    caster->CastSpell(targets, spellInfo, TRIGGERED_OLD_TRIGGERED, GetCastItem(), nullptr, m_originalCasterGUID, m_spellInfo);
 }
 
 void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
@@ -3030,7 +3030,7 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
         return;
     }
 
-    if (m_CastItem)
+    if (GetCastItem())
         DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "WORLD: cast Item spellId - %i", spellInfo->Id);
 
     SpellCastTargets targets;
@@ -3045,7 +3045,7 @@ void Spell::EffectTriggerMissileSpell(SpellEffectIndex effect_idx)
         targets.setGOTarget(gameObjTarget);
     else if (spellInfo->EffectImplicitTargetA[0] != TARGET_LOCATION_CASTER_DEST) // TODO: Add a proper filling mechanism
         targets.setDestination(m_targets.m_destPos.x, m_targets.m_destPos.y, m_targets.m_destPos.z);
-    m_caster->CastSpell(targets, spellInfo, TRIGGERED_OLD_TRIGGERED, m_CastItem, nullptr, m_originalCasterGUID, m_spellInfo);
+    m_caster->CastSpell(targets, spellInfo, TRIGGERED_OLD_TRIGGERED, GetCastItem(), nullptr, m_originalCasterGUID, m_spellInfo);
 }
 
 void Spell::EffectTeleportUnits(SpellEffectIndex eff_idx)
@@ -3115,7 +3115,7 @@ void Spell::EffectApplyAura(SpellEffectIndex eff_idx)
 
     DEBUG_FILTER_LOG(LOG_FILTER_SPELL_CAST, "Spell: Aura is: %u", m_spellInfo->EffectApplyAuraName[eff_idx]);
 
-    Aura* aur = CreateAura(m_spellInfo, eff_idx, &damage, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, caster, m_CastItem, GetScriptValue());
+    Aura* aur = CreateAura(m_spellInfo, eff_idx, &damage, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, caster, GetCastItem(), GetScriptValue());
     m_spellAuraHolder->AddAura(aur, eff_idx);
 }
 
@@ -3633,7 +3633,7 @@ void Spell::EffectEnergize(SpellEffectIndex eff_idx)
         {
             // cast random elixir on target
             uint32 rand_spell = urand(0, elixirs.size() - 1);
-            m_caster->CastSpell(unitTarget, elixirs[rand_spell], TRIGGERED_OLD_TRIGGERED, m_CastItem);
+            m_caster->CastSpell(unitTarget, elixirs[rand_spell], TRIGGERED_OLD_TRIGGERED, GetCastItem());
         }
     }
 }
@@ -3817,21 +3817,19 @@ void Spell::EffectSummonChangeItem(SpellEffectIndex eff_idx)
     Player* player = static_cast<Player*>(m_caster);
 
     // applied only to using item
-    if (!m_CastItem)
+    Item* oldItem = GetCastItem();
+    if (!oldItem)
         return;
 
     // ... only to item in own inventory/bank/equip_slot
-    if (m_CastItem->GetOwnerGuid() != player->GetObjectGuid())
+    if (oldItem->GetOwnerGuid() != player->GetObjectGuid())
         return;
 
     uint32 newitemid = m_spellInfo->EffectItemType[eff_idx];
     if (!newitemid)
         return;
 
-    Item* oldItem = m_CastItem;
-
-    if (m_CastItem)
-        m_CastItem->SetUsedInSpell(false);
+    oldItem->SetUsedInSpell(false);
     // prevent crash at access and unexpected charges counting with item update queue corrupt
     ClearCastItem();
 
@@ -3871,7 +3869,7 @@ void Spell::EffectApplyAreaAura(SpellEffectIndex eff_idx)
     if (!unitTarget || !unitTarget->IsAlive())
         return;
 
-    Aura* aura = CreateAura(m_spellInfo, eff_idx, &damage, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, m_caster, m_CastItem, GetScriptValue());
+    Aura* aura = CreateAura(m_spellInfo, eff_idx, &damage, &m_currentBasePoints[eff_idx], m_spellAuraHolder, unitTarget, m_caster, GetCastItem(), GetScriptValue());
     m_spellAuraHolder->AddAura(aura, eff_idx);
 }
 
@@ -3955,9 +3953,9 @@ void Spell::EffectSummonType(SpellEffectIndex eff_idx)
         }
     }
     // level of creature summoned using engineering item based at engineering skill level
-    else if (m_CastItem)
+    else if (Item* castItem = GetCastItem())
     {
-        ItemPrototype const* proto = m_CastItem->GetProto();
+        ItemPrototype const* proto = castItem->GetProto();
         if (proto && proto->RequiredSkill == SKILL_ENGINEERING && proto->InventoryType == INVTYPE_TRINKET)
         {
             if (uint16 engineeringSkill = ((Player*)m_caster)->GetSkillValue(SKILL_ENGINEERING))
@@ -7181,7 +7179,8 @@ void Spell::EffectInebriate(SpellEffectIndex /*eff_idx*/)
         currentDrunk = 0xFFFF;
     else
         currentDrunk += drunkMod;
-    player->SetDrunkValue(currentDrunk, m_CastItem ? m_CastItem->GetEntry() : 0);
+    Item* castItem = GetCastItem();
+    player->SetDrunkValue(currentDrunk, castItem ? castItem->GetEntry() : 0);
 }
 
 void Spell::EffectFeedPet(SpellEffectIndex eff_idx)

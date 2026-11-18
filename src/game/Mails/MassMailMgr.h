@@ -102,7 +102,7 @@ class MassMailMgr
             explicit MassMail(std::unique_ptr<MailDraft> mailProto, MailSender sender)
             : m_protoMail(std::move(mailProto)), m_sender(sender)
             {
-                MANGOS_ASSERT(mailProto);
+                MANGOS_ASSERT(m_protoMail);
             }
             MassMail(MassMail const&) = delete;
 

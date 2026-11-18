@@ -1601,7 +1601,7 @@ void GameObject::Use(Unit* user, SpellEntry const* spellInfo)
             if (goInfo->trap.spellId)
             {
                 SpellEntry const* spellInfo = sSpellTemplate.LookupEntry<SpellEntry>(goInfo->trap.spellId);
-                if (spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER) // hunter traps confirmed
+                if (spellInfo && spellInfo->SpellFamilyName == SPELLFAMILY_HUNTER) // hunter traps confirmed
                     caster = nullptr;
 
                 if (CastSpell(caster, user, spellInfo, TRIGGERED_OLD_TRIGGERED, nullptr, nullptr, GetObjectGuid()) != SPELL_CAST_OK)

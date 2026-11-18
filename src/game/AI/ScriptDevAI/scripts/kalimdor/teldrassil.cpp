@@ -59,14 +59,16 @@ struct npc_mistAI : public FollowerAI
     {
         FollowerAI::MoveInLineOfSight(who);
 
-        if (!m_creature->GetVictim() && !HasFollowState(STATE_FOLLOW_COMPLETE) && who->GetEntry() == NPC_ARYNIA)
+        if (!HasFollowState(STATE_FOLLOW_COMPLETE) && who->GetEntry() == NPC_ARYNIA)
         {
             if (m_creature->IsWithinDistInMap(who, 10.0f))
             {
+                // Stop Movement
+                SetFollowComplete(true);                
+                // Start RP inside DB
+                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, who);
                 // 2 Seconds Delay before Quest gets completed
                 ResetTimer(MIST_FINISH, 2000);
-                // Start RP
-                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, who);
             }
         }
     }
@@ -78,7 +80,16 @@ struct npc_mistAI : public FollowerAI
             if (player->GetQuestStatus(QUEST_MIST) == QUEST_STATUS_INCOMPLETE)
                 player->RewardPlayerAndGroupAtEventExplored(QUEST_MIST, m_creature);
         }
-        SetFollowComplete();
+    }
+
+    void UpdateFollowerAI(const uint32 uiDiff) override 
+    {
+       // UpdateTimers(uiDiff, m_creature->IsInCombat());
+
+        if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
+            return;
+
+        DoMeleeAttackIfReady();
     }
 };
 

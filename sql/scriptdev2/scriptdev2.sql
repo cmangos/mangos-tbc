@@ -1686,9 +1686,6 @@ INSERT INTO script_texts (entry,content_default,sound,type,language,emote,broadc
 ('-1000321','Show this upstart how a real Blood Knight fights, Swiftblade!','0','1','1','0','14462','kelerun SayId3'),
 ('-1000322','Show $n the meaning of pain, Sunstriker!','0','1','1','0','14463','kelerun SayId4'),
 
-('-1000323','Mist! I feared I would never see you again! Yes, I am well, do not worry for me. You must rest and recover your health.','0','0','7','0','1330','mist SAY_AT_HOME'),
-('-1000324','%s growls in acknowledgement before straightening and making her way off into the forest.','0','2','0','0','1340','mist EMOTE_AT_HOME'),
-
 ('-1000325','*Threshwackonator First Mate unit prepared to follow*','0','2','0','0','3012','threshwackonator EMOTE_START'),
 ('-1000326','YARRR! Swabie, what have ye done?! He''s gone mad! Baton down the hatches! Hoist the mast! ARRRR! Every man for hi''self!','0','0','7','0','2704','threshwackonator SAY_AT_CLOSE'),
 

@@ -53,6 +53,7 @@ INSERT INTO spell_scripts(Id, ScriptName) VALUES
 (11511,'spell_activate_bomb_thermaplugg'),
 (11795,'spell_activate_bomb_thermaplugg'),
 (11610,'spell_gammerita_turtle_camera'),
+(11757,'spell_digging_for_cobalt'),
 (11886,'spell_capture_wildkin'),
 (11887,'spell_capture_hippogryph'),
 (11888,'spell_capture_faerie_dragon'),

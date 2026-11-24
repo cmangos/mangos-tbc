@@ -600,7 +600,13 @@ void Unit::TriggerAggroLinkingEvent(Unit* enemy)
 void Unit::TriggerEvadeEvents()
 {
     if (!IsPlayerControlled())
+    {
+        // already evading home - skip triggering again
+        if (HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME))
+            return;
+
         SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_EVADING_HOME);
+    }
 
     static_cast<Creature*>(this)->SetLootRecipient(nullptr);
 

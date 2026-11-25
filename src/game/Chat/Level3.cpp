@@ -3691,10 +3691,8 @@ bool ChatHandler::HandleNpcInfoCommand(char* /*args*/)
 
     PSendSysMessage(LANG_NPCINFO_LEVEL, target->GetLevel());
     PSendSysMessage(LANG_NPCINFO_HEALTH, target->GetCreateHealth(), target->GetMaxHealth(), target->GetHealth());
-    PSendSysMessage("DamageMultiplier: %.15f", target->GetCreatureInfo()->DamageMultiplier);
-    PSendSysMessage("DamageVariance: %.15f", target->GetCreatureInfo()->DamageVariance);
-    PSendSysMessage("MinDMG: %.15f", target->GetFloatValue(UNIT_FIELD_MINDAMAGE));
-    PSendSysMessage("MaxDMG: %.15f", target->GetFloatValue(UNIT_FIELD_MAXDAMAGE));
+    PSendSysMessage("DamageMultiplier: %.6f DamageVariance: %.6f ", target->GetCreatureInfo()->DamageMultiplier, target->GetCreatureInfo()->DamageVariance);
+    PSendSysMessage("MinDMG: %.0f MaxDMG: %.0f MeleeBaseAttackTime: %u", target->GetFloatValue(UNIT_FIELD_MINDAMAGE), target->GetFloatValue(UNIT_FIELD_MAXDAMAGE), target->GetCreatureInfo()->MeleeBaseAttackTime);
 
     PSendSysMessage(LANG_NPCINFO_FLAGS, target->GetUInt32Value(UNIT_FIELD_FLAGS), target->GetUInt32Value(UNIT_DYNAMIC_FLAGS), target->GetCreatureInfo()->ExtraFlags);
     PSendSysMessage(LANG_COMMAND_RAWPAWNTIMES, defRespawnDelayStr.c_str(), curRespawnDelayStr.c_str());

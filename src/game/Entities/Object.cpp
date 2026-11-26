@@ -2612,7 +2612,10 @@ void WorldObject::UpdateVisibility()
         Player* client = GetMap()->GetPlayer(*itr);
         ++itr;                                              // ScheduleOutOfRange takes the client off the list
         if (client && !isVisibleForInState(client, client->GetCamera().GetBody(), true))
+        {
             client->ScheduleOutOfRange(this);
+            client->AfterVisibilityDestroy(this);
+        }
     }
 
     WorldObjectCreateAccumulator notifier(*this);

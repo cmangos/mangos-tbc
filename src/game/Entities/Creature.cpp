@@ -439,10 +439,8 @@ bool Creature::InitEntry(uint32 Entry, CreatureData const* data /*=nullptr*/, Ga
         }
     }
 
-    if (eventData && eventData->vendor_id)
-    {
-        m_gameEventVendorId = eventData->vendor_id;         // use game event vendor id to override current vendor template id for any active event
-    }
+    // use game event vendor id to override current vendor template id for any active event
+    m_gameEventVendorId = eventData ? eventData->vendor_id : 0;
 
     SetName(normalInfo->Name);                              // at normal entry always
 

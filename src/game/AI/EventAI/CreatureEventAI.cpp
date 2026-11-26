@@ -1535,6 +1535,9 @@ void CreatureEventAI::JustReachedHome()
 
 void CreatureEventAI::EnterEvadeMode()
 {
+    if (IsReturningHome())
+        return;
+
     UnitAI::EnterEvadeMode();
 
     // Handle Evade events

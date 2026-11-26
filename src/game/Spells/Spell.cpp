@@ -4640,7 +4640,12 @@ void Spell::SendInterrupted(SpellCastResult result) const
     data << uint8(result);
     m_trueCaster->SendMessageToSet(data, true);
 
-    data.Initialize(SMSG_SPELL_FAILED_OTHER, (8 + 4));
+    SendSpellFailedOther(result);
+}
+
+void Spell::SendSpellFailedOther(SpellCastResult /*result*/) const
+{
+    WorldPacket data(SMSG_SPELL_FAILED_OTHER, (8 + 4));
     data << m_trueCaster->GetPackGUID();
     data << m_spellInfo->Id;
     m_trueCaster->SendMessageToSet(data, true);
@@ -8551,7 +8556,8 @@ bool Spell::IsEffectWithImplementedMultiplier(uint32 effectId) const
 void Spell::StopCast(SpellCastResult castResult)
 {
     SendCastResult(castResult);
-    SendInterrupted(castResult);
+    // the others see a cast that fails at its end through SMSG_SPELL_FAILED_OTHER only
+    SendSpellFailedOther(castResult);
     finish(false);
     m_trueCaster->DecreaseCastCounter();
     SetExecutedCurrently(false);

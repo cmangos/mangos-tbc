@@ -1018,6 +1018,7 @@ enum ControlledUnitMask
     CONTROLLED_GUARDIANS = 0x04,                            // including PROTECTOR_PET
     CONTROLLED_CHARM     = 0x08,
     CONTROLLED_TOTEMS    = 0x10,
+    CONTROLLED_PVP_SUMMONS = 0x20,                          // friendly wild summons that share the owner's PvP state
 };
 
 // for clearing special attacks
@@ -2546,6 +2547,8 @@ class Unit : public WorldObject
         void AddSummonForOnDeathDespawn(ObjectGuid guid);
         void DespawnSummonsOnDeath();
 
+        void AddPvPSummon(ObjectGuid guid);
+
         virtual bool IsNoWeaponSkillGain() const { return false; }
         virtual bool IsPreventingDeath() const { return false; }
         virtual bool IsIgnoringMisdirection() const { return false; }
@@ -2710,6 +2713,7 @@ class Unit : public WorldObject
         Unit* _GetTotem(TotemSlot slot) const;              // for templated function without include need
         Pet* _GetPet(ObjectGuid guid) const;                // for templated function without include need
         Unit* _GetUnit(ObjectGuid guid) const;              // for templated function without include need
+        Unit* _GetPvPSummon(ObjectGuid guid) const;         // for templated function without include need
 
         // Wrapper called by DealDamage when a creature is killed
         static void JustKilledCreature(Unit* killer, Creature* victim, Player* responsiblePlayer);
@@ -2739,6 +2743,8 @@ class Unit : public WorldObject
         GuidSet m_charmedUnitsPrivate;                      // stores non-advertised active charmed unit guids (e.g. aoe charms)
 
         GuidSet m_summonsForOnDeathDespawn;                 // SUMMON_PROP_FLAG_DESPAWN_ON_SUMMONER_DEATH
+
+        GuidSet m_pvpSummons;                               // CONTROLLED_PVP_SUMMONS
 
         ObjectGuid m_TotemSlot[MAX_TOTEM_SLOT];
 
@@ -2827,6 +2833,20 @@ void Unit::CallForAllControlledUnits(Func const& func, uint32 controlledMask)
             if (Unit* charmed = _GetUnit(*(itr++)))
                 func(charmed);
     }
+
+    if (controlledMask & CONTROLLED_PVP_SUMMONS)
+    {
+        for (GuidSet::iterator itr = m_pvpSummons.begin(); itr != m_pvpSummons.end();)
+        {
+            if (Unit* summon = _GetPvPSummon(*itr))
+            {
+                ++itr;
+                func(summon);
+            }
+            else
+                itr = m_pvpSummons.erase(itr);
+        }
+    }
 }
 
 
@@ -2868,6 +2888,14 @@ bool Unit::CheckAllControlledUnits(Func const& func, uint32 controlledMask) cons
         for (GuidSet::const_iterator itr = m_charmedUnitsPrivate.begin(); itr != m_charmedUnitsPrivate.end();)
             if (Unit const* charmed = _GetUnit(*(itr++)))
                 if (func(charmed))
+                    return true;
+    }
+
+    if (controlledMask & CONTROLLED_PVP_SUMMONS)
+    {
+        for (ObjectGuid guid : m_pvpSummons)
+            if (Unit const* summon = _GetPvPSummon(guid))
+                if (func(summon))
                     return true;
     }
 

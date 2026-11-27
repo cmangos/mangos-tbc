@@ -7192,6 +7192,16 @@ Unit* Unit::_GetUnit(ObjectGuid guid) const
     return nullptr;
 }
 
+Unit* Unit::_GetPvPSummon(ObjectGuid guid) const
+{
+    if (!IsInWorld())
+        return nullptr;
+
+    // only a summon on this map that this unit still owns
+    Creature* summon = GetMap()->GetAnyTypeCreature(guid);
+    return summon && summon->GetOwnerGuid() == GetObjectGuid() ? summon : nullptr;
+}
+
 Pet* Unit::GetPet() const
 {
     if (ObjectGuid pet_guid = GetPetGuid())
@@ -9964,6 +9974,7 @@ void Unit::RemoveFromWorld()
             pet->Unsummon(PET_SAVE_AS_DELETED, this);
         }
         RemoveMiniPet();
+        m_pvpSummons.clear();                               // the summons stay on this map
         RemoveAllGameObjects();
         RemoveAllDynObjects();
         GetViewPoint().Event_RemovedFromWorld();
@@ -11281,7 +11292,7 @@ void Unit::SetPvP(bool state)
         if (GetTypeId() == TYPEID_PLAYER && static_cast<Player*>(this)->GetGroup())
             static_cast<Player*>(this)->SetGroupUpdateFlag(GROUP_UPDATE_FLAG_STATUS);
 
-        CallForAllControlledUnits(SetPvPHelper(state), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM);
+        CallForAllControlledUnits(SetPvPHelper(state), CONTROLLED_PET | CONTROLLED_TOTEMS | CONTROLLED_GUARDIANS | CONTROLLED_CHARM | CONTROLLED_PVP_SUMMONS);
     }
 }
 
@@ -12793,6 +12804,20 @@ void Unit::DespawnSummonsOnDeath()
             summon->ForcedDespawn();
 
     m_summonsForOnDeathDespawn.clear();
+}
+
+void Unit::AddPvPSummon(ObjectGuid guid)
+{
+    // forget the summons that are gone
+    for (GuidSet::iterator itr = m_pvpSummons.begin(); itr != m_pvpSummons.end();)
+    {
+        if (_GetPvPSummon(*itr))
+            ++itr;
+        else
+            itr = m_pvpSummons.erase(itr);
+    }
+
+    m_pvpSummons.insert(guid);
 }
 
 bool Unit::MeetsSelectAttackingRequirement(Unit* target, SpellEntry const* spellInfo, uint32 selectFlags, SelectAttackingTargetParams params, int32 unitConditionId) const

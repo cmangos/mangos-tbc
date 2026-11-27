@@ -4591,6 +4591,7 @@ bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry co
                         summon->SetPvP(summonInvoker->IsPvP());
                         summon->SetPvPFreeForAll(summonInvoker->IsPvPFreeForAll());
                         summon->SetPvPSanctuary(summonInvoker->IsPvPSanctuary());
+                        summonInvoker->AddPvPSummon(summon->GetObjectGuid());
                     }
                 }
 

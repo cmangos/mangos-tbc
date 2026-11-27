@@ -34,68 +34,73 @@ EndContentData */
 
 enum
 {
-    SAY_AT_HOME             = -1000323,
-    EMOTE_AT_HOME           = -1000324,
     QUEST_MIST              = 938,
     NPC_ARYNIA              = 3519,
-    FACTION_DARNASSUS       = 79
+    FACTION_DARNASSUS       = 10
+};
+
+enum MistsActions
+{
+    MIST_FINISH,
+    MIST_ACTION_MAX,
 };
 
 struct npc_mistAI : public FollowerAI
 {
-    npc_mistAI(Creature* pCreature) : FollowerAI(pCreature) { Reset(); }
+    npc_mistAI(Creature* creature) : FollowerAI(creature, MIST_ACTION_MAX) 
+    { 
+        Reset(); 
+        AddCustomAction(MIST_FINISH, true, [&]() { DoCompleteQuestEvent(); });
+    }
 
     void Reset() override { }
 
-    void MoveInLineOfSight(Unit* pWho) override
+    void MoveInLineOfSight(Unit* who) override
     {
-        FollowerAI::MoveInLineOfSight(pWho);
+        FollowerAI::MoveInLineOfSight(who);
 
-        if (!m_creature->GetVictim() && !HasFollowState(STATE_FOLLOW_COMPLETE) && pWho->GetEntry() == NPC_ARYNIA)
+        if (!HasFollowState(STATE_FOLLOW_COMPLETE) && who->GetEntry() == NPC_ARYNIA)
         {
-            if (m_creature->IsWithinDistInMap(pWho, 10.0f))
+            if (m_creature->IsWithinDistInMap(who, 10.0f))
             {
-                DoScriptText(SAY_AT_HOME, pWho);
-                DoComplete();
+                // Stop Movement
+                SetFollowComplete(true);                
+                // Start RP inside DB
+                m_creature->AI()->SendAIEvent(AI_EVENT_CUSTOM_EVENTAI_A, m_creature, who);
+                // 2 Seconds Delay before Quest gets completed
+                ResetTimer(MIST_FINISH, 2000);
             }
         }
     }
 
-    void DoComplete()
+    void DoCompleteQuestEvent()
     {
-        DoScriptText(EMOTE_AT_HOME, m_creature);
-
-        if (Player* pPlayer = GetLeaderForFollower())
+        if (Player* player = GetLeaderForFollower())
         {
-            if (pPlayer->GetQuestStatus(QUEST_MIST) == QUEST_STATUS_INCOMPLETE)
-                pPlayer->RewardPlayerAndGroupAtEventExplored(QUEST_MIST, m_creature);
+            if (player->GetQuestStatus(QUEST_MIST) == QUEST_STATUS_INCOMPLETE)
+                player->RewardPlayerAndGroupAtEventExplored(QUEST_MIST, m_creature);
         }
-
-        // The follow is over (and for later development, run off to the woods before really end)
-        SetFollowComplete();
     }
 
-    // call not needed here, no known abilities
-    /*void UpdateFollowerAI(const uint32 uiDiff) override
+    void UpdateFollowerAI(const uint32 uiDiff) override 
     {
+       // UpdateTimers(uiDiff, m_creature->IsInCombat());
+
         if (!m_creature->SelectHostileTarget() || !m_creature->GetVictim())
             return;
 
         DoMeleeAttackIfReady();
-    }*/
+    }
 };
 
-UnitAI* GetAI_npc_mist(Creature* pCreature)
+bool QuestAccept_npc_mist(Player* player, Creature* creature, const Quest* quest)
 {
-    return new npc_mistAI(pCreature);
-}
-
-bool QuestAccept_npc_mist(Player* pPlayer, Creature* pCreature, const Quest* pQuest)
-{
-    if (pQuest->GetQuestId() == QUEST_MIST)
+    if (quest->GetQuestId() == QUEST_MIST)
     {
-        if (npc_mistAI* pMistAI = dynamic_cast<npc_mistAI*>(pCreature->AI()))
-            pMistAI->StartFollow(pPlayer, FACTION_DARNASSUS, pQuest);
+        creature->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_IMMUNE_TO_NPC | UNIT_FLAG_IMMUNE_TO_PLAYER);
+
+        if (npc_mistAI* pMistAI = dynamic_cast<npc_mistAI*>(creature->AI()))
+            pMistAI->StartFollow(player, FACTION_DARNASSUS, quest);
     }
 
     return true;
@@ -105,7 +110,7 @@ void AddSC_teldrassil()
 {
     Script* pNewScript = new Script;
     pNewScript->Name = "npc_mist";
-    pNewScript->GetAI = &GetAI_npc_mist;
+    pNewScript->GetAI = &GetNewAIInstance<npc_mistAI>;
     pNewScript->pQuestAcceptNPC = &QuestAccept_npc_mist;
     pNewScript->RegisterSelf();
 }

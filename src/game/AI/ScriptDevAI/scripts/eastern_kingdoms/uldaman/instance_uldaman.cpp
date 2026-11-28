@@ -26,8 +26,7 @@ EndScriptData
 #include "uldaman.h"
 
 instance_uldaman::instance_uldaman(Map* pMap) : ScriptedInstance(pMap),
-    m_uiKeeperCooldown(0),
-    m_uiStoneKeepersFallen(0)
+    m_uiKeeperCooldown(0)
 {
     Initialize();
 }
@@ -65,10 +64,10 @@ void instance_uldaman::OnCreatureCreate(Creature* pCreature)
     {
         case NPC_HALLSHAPER:
         case NPC_CUSTODIAN:
-            m_lWardens.push_back(pCreature->GetObjectGuid());
+            m_sWardens.insert(pCreature->GetObjectGuid());
             break;
         case NPC_STONE_KEEPER:
-            m_lKeepers.push_back(pCreature->GetObjectGuid());
+            m_sKeepers.insert(pCreature->GetObjectGuid());
             break;
         case NPC_ARCHAEDAS:
             m_npcEntryGuidStore[NPC_ARCHAEDAS] = pCreature->GetObjectGuid();
@@ -92,11 +91,18 @@ void instance_uldaman::SetData(uint32 uiType, uint32 uiData)
         case TYPE_ALTAR_EVENT:
             if (uiData == DONE)
             {
-                DoUseDoorOrButton(GO_TEMPLE_DOOR_UPPER);
-                DoUseDoorOrButton(GO_TEMPLE_DOOR_LOWER);
+                debug_log("SD2: Uldaman: altar event DONE, opening temple doors");
+                DoUseOpenableObject(GO_TEMPLE_DOOR_UPPER, true);
+                DoUseOpenableObject(GO_TEMPLE_DOOR_LOWER, true);
             }
             else if (uiData == IN_PROGRESS)
             {
+                if (m_sKeepers.empty())
+                {
+                    script_error_log("Instance Uldaman: cannot start altar event, no Stone Keepers registered");
+                    return;
+                }
+
                 // Also do a reset before starting the event - this will respawn dead Keepers
                 DoResetKeeperEvent();
                 m_uiKeeperCooldown = 5000;
@@ -104,7 +110,6 @@ void instance_uldaman::SetData(uint32 uiType, uint32 uiData)
             else if (uiData == NOT_STARTED)
             {
                 DoResetKeeperEvent();
-                m_uiStoneKeepersFallen = 0;
             }
             m_auiEncounter[0] = uiData;
             break;
@@ -206,16 +211,20 @@ void instance_uldaman::StartEvent(uint32 uiEventId, Player* pPlayer)
 
 void instance_uldaman::DoResetKeeperEvent()
 {
-    if (m_lKeepers.empty())
+    // Start every attempt from a clean slate, even if a previous attempt left
+    // dead keepers behind.
+    m_sDeadKeepers.clear();
+
+    if (m_sKeepers.empty())
     {
         script_error_log("Instance Uldaman: ERROR creature %u couldn't be found or something really bad happened.", NPC_STONE_KEEPER);
         return;
     }
 
     // Force reset all keepers to the original state
-    for (GuidList::const_iterator itr = m_lKeepers.begin(); itr != m_lKeepers.end(); ++itr)
+    for (ObjectGuid const& guid : m_sKeepers)
     {
-        if (Creature* pKeeper = instance->GetCreature(*itr))
+        if (Creature* pKeeper = instance->GetCreature(guid))
         {
             if (!pKeeper->IsAlive())
                 pKeeper->Respawn();
@@ -227,9 +236,9 @@ Creature* instance_uldaman::GetClosestDwarfNotInCombat(Creature* pSearcher)
 {
     CreatureList lTemp;
 
-    for (GuidList::const_iterator itr = m_lWardens.begin(); itr != m_lWardens.end(); ++itr)
+    for (ObjectGuid const& guid : m_sWardens)
     {
-        Creature* pTemp = instance->GetCreature(*itr);
+        Creature* pTemp = instance->GetCreature(guid);
 
         if (pTemp && pTemp->IsAlive() && !pTemp->GetVictim())
             lTemp.push_back(pTemp);
@@ -244,22 +253,50 @@ Creature* instance_uldaman::GetClosestDwarfNotInCombat(Creature* pSearcher)
 
 void instance_uldaman::OnCreatureEvade(Creature* pCreature)
 {
-    // Reset Altar event
-    if (pCreature->GetEntry() == NPC_STONE_KEEPER)
+    // Reset the altar event only while it is still running. Once it is DONE,
+    // a late keeper evade must not undo the door state.
+    if (pCreature->GetEntry() == NPC_STONE_KEEPER && GetData(TYPE_ALTAR_EVENT) == IN_PROGRESS)
         SetData(TYPE_ALTAR_EVENT, NOT_STARTED);
 }
 
 void instance_uldaman::OnCreatureDeath(Creature* pCreature)
 {
-    if (pCreature->GetEntry() == NPC_STONE_KEEPER)
-    {
-        ++m_uiStoneKeepersFallen;
+    if (pCreature->GetEntry() != NPC_STONE_KEEPER)
+        return;
 
-        if (m_lKeepers.size() == m_uiStoneKeepersFallen)
-            SetData(TYPE_ALTAR_EVENT, DONE);
-        else
-            m_uiKeeperCooldown = 5000;
+    if (GetData(TYPE_ALTAR_EVENT) != IN_PROGRESS)
+        return;
+
+    if (m_sKeepers.empty())
+    {
+        script_error_log("Instance Uldaman: Stone Keeper died but no keepers are registered");
+        return;
     }
+
+    m_sDeadKeepers.insert(pCreature->GetObjectGuid());
+
+    // If a keeper respawned mid-event, it is alive again and must not remain
+    // counted as dead.
+    for (GuidSet::iterator itr = m_sDeadKeepers.begin(); itr != m_sDeadKeepers.end();)
+    {
+        Creature* pKeeper = instance->GetCreature(*itr);
+        if (pKeeper && pKeeper->IsAlive())
+            itr = m_sDeadKeepers.erase(itr);
+        else
+            ++itr;
+    }
+
+    uint32 deadCount = 0;
+    for (ObjectGuid const& guid : m_sKeepers)
+        if (m_sDeadKeepers.find(guid) != m_sDeadKeepers.end())
+            ++deadCount;
+
+    debug_log("SD2: Uldaman: keeper died, %u/%u dead", deadCount, uint32(m_sKeepers.size()));
+
+    if (deadCount == m_sKeepers.size())
+        SetData(TYPE_ALTAR_EVENT, DONE);
+    else
+        m_uiKeeperCooldown = 5000;
 }
 
 void instance_uldaman::Update(uint32 uiDiff)
@@ -272,10 +309,10 @@ void instance_uldaman::Update(uint32 uiDiff)
 
     if (m_uiKeeperCooldown <= uiDiff)
     {
-        for (GuidList::const_iterator itr = m_lKeepers.begin(); itr != m_lKeepers.end(); ++itr)
+        for (ObjectGuid const& guid : m_sKeepers)
         {
             // Get Keeper which is alive and out of combat
-            Creature* pKeeper = instance->GetCreature(*itr);
+            Creature* pKeeper = instance->GetCreature(guid);
             if (!pKeeper || !pKeeper->IsAlive() || pKeeper->GetVictim())
                 continue;
 
